@@ -40,7 +40,6 @@ import javax.inject.Inject
  */
 class ButlerDocumentsProvider : DocumentsProvider() {
 
-    // Manual Hilt injection required for ContentProvider
     @Inject lateinit var codec: DocumentIdCodec
     @Inject lateinit var rootQueryHandler: RootQueryHandler
     @Inject lateinit var documentQueryHandler: DocumentQueryHandler
@@ -51,7 +50,6 @@ class ButlerDocumentsProvider : DocumentsProvider() {
     override fun onCreate(): Boolean {
         val context = context ?: return false
 
-        // Perform manual Hilt injection
         EntryPointAccessors.fromApplication(
             context.applicationContext,
             DocumentsProviderEntryPoint::class.java
@@ -61,9 +59,6 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         return true
     }
 
-    /**
-     * Return available storage roots shown in the file picker drawer.
-     */
     override fun queryRoots(projection: Array<String>?): Cursor {
         return runBlocking {
             try {
@@ -75,9 +70,6 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         }
     }
 
-    /**
-     * Return metadata for a single document (file or virtual document).
-     */
     override fun queryDocument(documentId: String, projection: Array<String>?): Cursor {
         return runBlocking {
             try {
@@ -89,9 +81,6 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         }
     }
 
-    /**
-     * Return child documents for a directory or virtual document.
-     */
     override fun queryChildDocuments(
         parentDocumentId: String,
         projection: Array<String>?,
@@ -107,9 +96,6 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         }
     }
 
-    /**
-     * Open a document for reading/writing.
-     */
     override fun openDocument(
         documentId: String,
         mode: String,
@@ -179,7 +165,6 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         return try {
             log(TAG, VERBOSE) { "isChildDocument(parent=$parentDocumentId, child=$documentId)" }
 
-            // Virtual documents (butler root, device home) are navigation nodes, not filesystem paths
             if (codec.isVirtualDocument(parentDocumentId)) {
                 log(TAG, VERBOSE) { "Parent is virtual document, returning false" }
                 return false
@@ -189,18 +174,14 @@ class ButlerDocumentsProvider : DocumentsProvider() {
                 return false
             }
 
-            // Same document is not a descendant of itself
             if (parentDocumentId == documentId) {
                 log(TAG, VERBOSE) { "Same document, returning false" }
                 return false
             }
 
-            // Decode document IDs to filesystem paths
             val parentPath = codec.decode(parentDocumentId)
             val childPath = codec.decode(documentId)
 
-            // Use existing hierarchy checking utilities
-            // Handles type checking (LocalPath vs SAFPath) automatically
             val isChild = parentPath.isAncestorOf(childPath)
 
             log(TAG, VERBOSE) { "isChildDocument result: $isChild (${parentPath.path} -> ${childPath.path})" }

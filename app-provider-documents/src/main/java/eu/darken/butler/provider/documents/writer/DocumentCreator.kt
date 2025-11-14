@@ -51,14 +51,11 @@ class DocumentCreator @Inject constructor(
         log(TAG, INFO) { "createDocument(parent=$parentDocumentId, mime=$mimeType, name=$displayName)" }
 
         try {
-            // Decode parent document ID to path
             val parentPath = codec.decode(parentDocumentId)
             log(TAG, INFO) { "Parent path: $parentPath" }
 
-            // Build destination path
             val destinationPath = parentPath.child(displayName)
 
-            // Handle name conflicts by generating unique name
             val finalPath = if (gatewaySwitch.exists(destinationPath)) {
                 log(TAG, INFO) { "Name conflict detected, generating unique name" }
                 generateUniqueName(parentPath, displayName)
@@ -66,7 +63,6 @@ class DocumentCreator @Inject constructor(
                 destinationPath
             }
 
-            // Create file or directory based on MIME type
             val isDirectory = mimeType == DocumentsContract.Document.MIME_TYPE_DIR
 
             if (isDirectory) {
@@ -77,11 +73,9 @@ class DocumentCreator @Inject constructor(
                 gatewaySwitch.createFile(finalPath, createParents = false)
             }
 
-            // Return encoded document ID
             val documentId = codec.encode(finalPath)
             log(TAG, INFO) { "Created document: $documentId" }
 
-            // Notify system to refresh UI
             notifyParentChanged(parentDocumentId)
 
             return documentId
@@ -116,7 +110,6 @@ class DocumentCreator @Inject constructor(
      * - "file (1).txt" exists → returns child path with "file (2).txt"
      */
     private suspend fun generateUniqueName(parentPath: APath<*>, originalName: String): APath<*> {
-        // Split into base name and extension
         val lastDotIndex = originalName.lastIndexOf('.')
         val baseName: String
         val extension: String
@@ -129,7 +122,6 @@ class DocumentCreator @Inject constructor(
             extension = ""
         }
 
-        // Try numbered variants until we find one that doesn't exist
         var counter = 1
         var candidatePath: APath<*>
         do {

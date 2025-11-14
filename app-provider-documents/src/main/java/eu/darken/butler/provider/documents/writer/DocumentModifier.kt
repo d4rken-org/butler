@@ -53,43 +53,34 @@ class DocumentModifier @Inject constructor(
         log(TAG, INFO) { "renameDocument(doc=$documentId, newName=$displayName)" }
 
         try {
-            // Decode source document ID
             val sourcePath = codec.decode(documentId)
             log(TAG, INFO) { "Source path: $sourcePath" }
 
-            // Check if name actually changed
             if (sourcePath.name == displayName) {
                 log(TAG, INFO) { "Name unchanged, returning same document ID" }
                 return documentId
             }
 
-            // Build destination path
             val parentPath = sourcePath.parent
                 ?: throw IllegalArgumentException("Cannot rename root path")
 
             val destinationPath = parentPath.child(displayName)
 
-            // Check for conflicts
             if (gatewaySwitch.exists(destinationPath)) {
                 throw IllegalStateException("Destination already exists: $destinationPath")
             }
 
-            // Perform rename (via move operation)
             log(TAG, INFO) { "Renaming $sourcePath -> $destinationPath" }
             gatewaySwitch.move(sourcePath, destinationPath)
 
-            // Return new document ID
             val newDocumentId = codec.encode(destinationPath)
             log(TAG, INFO) { "Renamed successfully, new ID: $newDocumentId" }
 
-            // Notify system about the rename:
-            // 1. Parent directory's children changed (file list needs refresh)
             val parentDocumentId = codec.encode(parentPath)
             notifyChildrenChanged(parentDocumentId)
 
-            // 2. Optionally notify about the specific document changes (metadata)
-            notifyDocumentChanged(documentId) // Old location removed
-            notifyDocumentChanged(newDocumentId) // New location created
+            notifyDocumentChanged(documentId)
+            notifyDocumentChanged(newDocumentId)
 
             return newDocumentId
 
@@ -113,11 +104,9 @@ class DocumentModifier @Inject constructor(
         log(TAG, INFO) { "deleteDocument(doc=$documentId)" }
 
         try {
-            // Decode document ID
             val path = codec.decode(documentId)
             log(TAG, INFO) { "Deleting path: $path" }
 
-            // Lookup to check if it exists and get file type
             val lookup = try {
                 gatewaySwitch.lookup(path, LookupOptions())
             } catch (e: FileNotFoundException) {
@@ -125,18 +114,13 @@ class DocumentModifier @Inject constructor(
                 return
             }
 
-            // Revoke permissions BEFORE deleting
-            // This ensures URIs become invalid atomically with deletion
             revokePermissionsRecursively(path, lookup)
 
-            // Delete file/directory
             log(TAG, INFO) { "Deleting ${lookup.fileType}: $path" }
             gatewaySwitch.delete(path, recursive = true)
 
             log(TAG, INFO) { "Deleted successfully: $path" }
 
-            // Notify system about the deletion
-            // Notify parent directory's children collection so it refreshes the file list
             val parentPath = path.parent
             if (parentPath != null) {
                 val parentDocumentId = codec.encode(parentPath)
@@ -144,10 +128,8 @@ class DocumentModifier @Inject constructor(
             }
 
         } catch (e: FileNotFoundException) {
-            // Idempotent - deleting non-existent file succeeds
             log(TAG, WARN) { "Delete target not found (idempotent): ${e.message}" }
         } catch (e: IllegalArgumentException) {
-            // Virtual documents should not be deleted
             log(TAG, ERROR) { "Cannot delete virtual document: ${e.asLog()}" }
             throw e
         } catch (e: Exception) {
@@ -167,7 +149,6 @@ class DocumentModifier @Inject constructor(
     private suspend fun revokePermissionsRecursively(path: APath<*>, lookup: APathLookup<*>) {
         log(TAG, INFO) { "Revoking permissions for: $path (${lookup.fileType})" }
 
-        // If directory, recursively revoke children first
         if (lookup.fileType == FileType.DIRECTORY) {
             try {
                 val children = gatewaySwitch.lookupFiles(path, LookupOptions())
@@ -179,7 +160,6 @@ class DocumentModifier @Inject constructor(
             }
         }
 
-        // Revoke permissions for this path
         val documentId = codec.encode(path)
         val uri = DocumentsContract.buildDocumentUri(ButlerDocumentsProvider.AUTHORITY, documentId)
 

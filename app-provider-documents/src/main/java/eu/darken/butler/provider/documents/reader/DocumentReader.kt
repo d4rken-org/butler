@@ -55,15 +55,12 @@ class DocumentReader @Inject constructor(
     ): ParcelFileDescriptor {
         log(TAG, INFO) { "openDocument(documentId=$documentId, mode=$mode)" }
 
-        // Check cancellation
         signal?.throwIfCanceled()
 
         return try {
-            // Decode document ID to path
             val path = codec.decode(documentId)
             log(TAG, INFO) { "Opening path: $path (mode=$mode)" }
 
-            // Route based on mode
             when (mode) {
                 "r" -> openForRead(path)
                 "w", "wt" -> openForWrite(path, truncate = true)
@@ -72,7 +69,6 @@ class DocumentReader @Inject constructor(
                 else -> throw IllegalArgumentException("Unsupported mode: $mode")
             }
         } catch (e: IllegalArgumentException) {
-            // Document ID decode failure or virtual document
             log(TAG, ERROR) { "openDocument($documentId) failed: ${e.asLog()}" }
             throw FileNotFoundException("Cannot open document: ${e.message}")
         } catch (e: Exception) {
@@ -81,9 +77,6 @@ class DocumentReader @Inject constructor(
         }
     }
 
-    /**
-     * Open file for reading.
-     */
     private suspend fun openForRead(path: APath<*>): ParcelFileDescriptor {
         log(TAG, VERBOSE) { "Opening for read: $path" }
         val inputStream = gatewaySwitch.openInputStream(path)
@@ -98,10 +91,9 @@ class DocumentReader @Inject constructor(
         log(TAG, VERBOSE) { "Opening for write (truncate=$truncate): $path" }
 
         val pipe = ParcelFileDescriptor.createPipe()
-        val readSide = pipe[0]  // We read from this to get client's writes
-        val writeSide = pipe[1]  // Client writes to this
+        val readSide = pipe[0]
+        val writeSide = pipe[1]
 
-        // Background thread: Read from pipe and write to file
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 ParcelFileDescriptor.AutoCloseInputStream(readSide).use { input ->
@@ -120,7 +112,7 @@ class DocumentReader @Inject constructor(
             }
         }
 
-        return writeSide  // Client writes to this end
+        return writeSide
     }
 
     /**
@@ -141,7 +133,6 @@ class DocumentReader @Inject constructor(
         val readSide = pipe[0]
         val writeSide = pipe[1]
 
-        // Transfer data on background thread
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 ParcelFileDescriptor.AutoCloseOutputStream(writeSide).use { output ->

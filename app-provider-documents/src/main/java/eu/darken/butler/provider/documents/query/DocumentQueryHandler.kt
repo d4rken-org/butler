@@ -66,7 +66,6 @@ class DocumentQueryHandler @Inject constructor(
         try {
             when {
                 documentId == ProviderLocation.Root.Butler.rootDocumentId -> {
-                    // Virtual: Butler root
                     cursor.addVirtualDocument(
                         documentId = documentId,
                         displayName = ProviderLocation.Root.Butler.title.get(context),
@@ -77,7 +76,6 @@ class DocumentQueryHandler @Inject constructor(
                 }
 
                 documentId == ProviderLocation.Home.Device.documentId -> {
-                    // Virtual: Device home
                     cursor.addVirtualDocument(
                         documentId = documentId,
                         displayName = ProviderLocation.Home.Device.title.get(context),
@@ -88,7 +86,6 @@ class DocumentQueryHandler @Inject constructor(
                 }
 
                 else -> {
-                    // Real filesystem path - decode and lookup
                     val path = codec.decode(documentId)
                     val lookup = gatewaySwitch.lookup(path, LookupOptions())
                     cursor.addFilesystemDocument(documentId, lookup)
@@ -120,7 +117,6 @@ class DocumentQueryHandler @Inject constructor(
         val resolvedProjection = projection ?: DEFAULT_DOCUMENT_PROJECTION
         val cursor = MatrixCursor(resolvedProjection)
 
-        // Register for change notifications - this enables automatic refresh
         val notificationUri = DocumentsContract.buildChildDocumentsUri(
             ButlerDocumentsProvider.AUTHORITY,
             parentDocumentId
@@ -131,7 +127,6 @@ class DocumentQueryHandler @Inject constructor(
         try {
             when {
                 parentDocumentId == ProviderLocation.Root.Butler.rootDocumentId -> {
-                    // Butler root → return Device home
                     cursor.addVirtualDocument(
                         documentId = ProviderLocation.Home.Device.documentId,
                         displayName = ProviderLocation.Home.Device.title.get(context),
@@ -142,22 +137,18 @@ class DocumentQueryHandler @Inject constructor(
                 }
 
                 parentDocumentId == ProviderLocation.Home.Device.documentId -> {
-                    // Device home → enumerate storage locations dynamically
                     enumerateStorageLocations(cursor)
                 }
 
                 else -> {
-                    // Real filesystem path - check permissions before accessing
                     val path = codec.decode(parentDocumentId)
                     val requirements = pathPermissionCheck.monitor(path).first()
 
                     if (requirements.needsAction) {
-                        // Path requires permissions - return error cursor
                         log(TAG, WARN) { "Path $path requires permissions (${requirements.combos}), returning error" }
                         val errorMessage = buildPermissionErrorMessage(requirements)
                         return ErrorMatrixCursor(resolvedProjection, errorMessage)
                     } else {
-                        // Path accessible - list directory contents
                         val children = gatewaySwitch.lookupFiles(path, LookupOptions())
 
                         children.forEach { childLookup ->
@@ -188,7 +179,6 @@ class DocumentQueryHandler @Inject constructor(
      * - SAF locations (user-granted trees) - always shown (permissions granted)
      */
     private suspend fun enumerateStorageLocations(cursor: MatrixCursor) {
-        // 1. Root filesystem - check permissions first
         val rootPath = LocalPath.build("/")
         val rootRequirements = pathPermissionCheck.monitor(rootPath).first()
 
@@ -205,7 +195,6 @@ class DocumentQueryHandler @Inject constructor(
             log(TAG, INFO) { "Root filesystem requires permissions (${rootRequirements.combos}), filtering out" }
         }
 
-        // 2. Storage volumes (internal + SD cards) - check permissions
         storageManager2.storageVolumes.forEachIndexed { index, volume ->
             val path = volume.directory?.let { LocalPath.build(it) }
                 ?: volume.path?.let { LocalPath.build(it) }
@@ -233,7 +222,6 @@ class DocumentQueryHandler @Inject constructor(
             }
         }
 
-        // 3. SAF locations (user-granted trees) - always accessible
         val safLocations = safLocationManager.locations.first()
         safLocations.forEach { location ->
             log(TAG, INFO) { "SAF location accessible: ${location.displayName.get(context)}" }
@@ -302,9 +290,6 @@ class DocumentQueryHandler @Inject constructor(
         }
     }
 
-    /**
-     * Get MIME type for a file based on its extension.
-     */
     private fun getMimeType(filename: String): String {
         val extension = filename.substringAfterLast('.', "")
         return when (extension.lowercase()) {
@@ -323,7 +308,6 @@ class DocumentQueryHandler @Inject constructor(
      * Returns a user-friendly message indicating what access is needed.
      */
     private fun buildPermissionErrorMessage(requirements: PathRequirements): String {
-        // Check for specific permission combos to provide targeted messages
         val allTypes = requirements.combos.flatten().distinct()
 
         return when {
@@ -337,7 +321,6 @@ class DocumentQueryHandler @Inject constructor(
                 context.getString(R.string.documents_error_requires_storage)
             }
             else -> {
-                // Generic message if multiple options or unknown combo
                 context.getString(R.string.documents_error_requires_permissions)
             }
         }
@@ -346,9 +329,6 @@ class DocumentQueryHandler @Inject constructor(
     companion object {
         private val TAG = logTag("Provider", "Documents", "DocumentQuery")
 
-        /**
-         * Default projection when none specified.
-         */
         private val DEFAULT_DOCUMENT_PROJECTION = arrayOf(
             COLUMN_DOCUMENT_ID,
             COLUMN_DISPLAY_NAME,
