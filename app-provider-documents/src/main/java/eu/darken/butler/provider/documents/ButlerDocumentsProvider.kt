@@ -5,10 +5,7 @@ import android.database.MatrixCursor
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsProvider
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -61,25 +58,21 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         return true
     }
 
-    override fun queryRoots(projection: Array<String>?): Cursor {
-        return runBlocking {
-            try {
-                rootQueryHandler.queryRoots(projection)
-            } catch (e: Exception) {
-                log(TAG, ERROR) { "queryRoots failed: ${e.asLog()}" }
-                MatrixCursor(projection ?: arrayOf())
-            }
+    override fun queryRoots(projection: Array<String>?): Cursor = runBlocking {
+        try {
+            rootQueryHandler.queryRoots(projection)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "queryRoots failed: ${e.asLog()}" }
+            MatrixCursor(projection ?: arrayOf())
         }
     }
 
-    override fun queryDocument(documentId: String, projection: Array<String>?): Cursor {
-        return runBlocking {
-            try {
-                documentQueryHandler.queryDocument(documentId, projection)
-            } catch (e: Exception) {
-                log(TAG, ERROR) { "queryDocument($documentId) failed: ${e.asLog()}" }
-                MatrixCursor(projection ?: arrayOf())
-            }
+    override fun queryDocument(documentId: String, projection: Array<String>?): Cursor = runBlocking {
+        try {
+            documentQueryHandler.queryDocument(documentId, projection)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "queryDocument($documentId) failed: ${e.asLog()}" }
+            MatrixCursor(projection ?: arrayOf())
         }
     }
 
@@ -87,14 +80,12 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         parentDocumentId: String,
         projection: Array<String>?,
         sortOrder: String?
-    ): Cursor {
-        return runBlocking {
-            try {
-                documentQueryHandler.queryChildDocuments(parentDocumentId, projection, sortOrder)
-            } catch (e: Exception) {
-                log(TAG, ERROR) { "queryChildDocuments($parentDocumentId) failed: ${e.asLog()}" }
-                MatrixCursor(projection ?: arrayOf())
-            }
+    ): Cursor = runBlocking {
+        try {
+            documentQueryHandler.queryChildDocuments(parentDocumentId, projection, sortOrder)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "queryChildDocuments($parentDocumentId) failed: ${e.asLog()}" }
+            MatrixCursor(projection ?: arrayOf())
         }
     }
 
@@ -251,12 +242,3 @@ class ButlerDocumentsProvider : DocumentsProvider() {
     }
 }
 
-/**
- * Hilt EntryPoint for manual dependency injection.
- * ContentProviders don't support constructor injection, so we use this pattern.
- */
-@InstallIn(SingletonComponent::class)
-@EntryPoint
-interface DocumentsProviderEntryPoint {
-    fun inject(provider: ButlerDocumentsProvider)
-}
