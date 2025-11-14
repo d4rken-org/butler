@@ -12,9 +12,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.PrivacyTip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
@@ -34,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
 
 @Composable
 internal fun PrivacyPage(
@@ -72,22 +77,21 @@ internal fun PrivacyPage(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-            Text(
-                text = stringResource(R.string.onboarding_privacy_title),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = stringResource(R.string.onboarding_privacy_message),
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-            )
+                OnboardingPageHeader(
+                    title = stringResource(R.string.onboarding_privacy_title),
+                    message = stringResource(R.string.onboarding_privacy_message),
+                    subtitleAlpha = 0.8f,
+                    spacingAfterTitle = 24.dp,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.TwoTone.PrivacyTip,
+                            contentDescription = null,
+                            modifier = Modifier.size(96.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                )
 
             Spacer(modifier = Modifier.height(16.dp))
 
