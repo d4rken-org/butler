@@ -1,7 +1,7 @@
 package eu.darken.butler.explorer.core.engine
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Android
+import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.DeveloperMode
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.PrivacyTip
@@ -95,29 +95,10 @@ class DeviceLocationLoader @Inject constructor(
         if (hasRoot || hasAdb) {
             ExplorerItem.Storage.Local(
                 localId = "root",
-                displayIcon = Icons.TwoTone.Android,
+                displayIcon = Icons.TwoTone.Code,
                 displayName = R.string.explorer_navigation_root.toCaString(),
                 target = ExplorerNavigation.Target.Directory(LocalPath.build("/")),
             ).run { deviceItems.add(this) }
-        }
-
-        if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV) {
-            storageEnvironment.ourPrivateDirs.forEachIndexed { index, path ->
-                ExplorerItem.Storage.Local(
-                    localId = "butler-${path}",
-                    displayIcon = Icons.TwoTone.PrivacyTip,
-                    displayName = "Butler-Private #$index".toCaString(),
-                    target = ExplorerNavigation.Target.Directory(path),
-                ).run { deviceItems.add(this) }
-            }
-            storageEnvironment.ourPublicDirs.forEachIndexed { index, path ->
-                ExplorerItem.Storage.Local(
-                    localId = "butler-${path}",
-                    displayIcon = Icons.TwoTone.Public,
-                    displayName = "Butler-Public #$index".toCaString(),
-                    target = ExplorerNavigation.Target.Directory(path),
-                ).run { deviceItems.add(this) }
-            }
         }
 
         ExplorerItem.Storage.Local(
@@ -164,7 +145,28 @@ class DeviceLocationLoader @Inject constructor(
             )
         }
 
-        val allLocations = deviceItems + safStorage
+        val devItems = buildList {
+            if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV) {
+                storageEnvironment.ourPrivateDirs.forEachIndexed { index, path ->
+                    ExplorerItem.Storage.Local(
+                        localId = "butler-${path}",
+                        displayIcon = Icons.TwoTone.PrivacyTip,
+                        displayName = "Butler-Private #$index".toCaString(),
+                        target = ExplorerNavigation.Target.Directory(path),
+                    ).run { add(this) }
+                }
+                storageEnvironment.ourPublicDirs.forEachIndexed { index, path ->
+                    ExplorerItem.Storage.Local(
+                        localId = "butler-${path}",
+                        displayIcon = Icons.TwoTone.Public,
+                        displayName = "Butler-Public #$index".toCaString(),
+                        target = ExplorerNavigation.Target.Directory(path),
+                    ).run { add(this) }
+                }
+            }
+        }
+
+        val allLocations = deviceItems + safStorage + devItems
         log(tag) { "loadQuickList(): Created quick list with ${allLocations.size} storage locations" }
 
         updateState {

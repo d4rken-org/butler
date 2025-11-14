@@ -6,11 +6,14 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -76,18 +79,18 @@ internal fun FileGridBase(
             }
             
             // Top bar with icon and size
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
                     .background(Color.Black.copy(alpha = 0.6f))
-                    .padding(horizontal = 6.dp, vertical = 4.dp)
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 // Icon or checkbox in top-left
                 Box(
-                    modifier = Modifier
-                        .size(20.dp)
-                        .align(Alignment.CenterStart)
+                    modifier = Modifier.size(20.dp)
                 ) {
                     if (showSelection) {
                         Checkbox(
@@ -99,21 +102,20 @@ internal fun FileGridBase(
                         icon()
                     }
                 }
-                
+
+                Spacer(modifier = Modifier.width(4.dp))
+
                 // Secondary info or trailing content in top-right
-                Box(
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ) {
-                    when {
-                        trailingContent != null -> trailingContent()
-                        secondaryText != null -> Text(
-                            text = secondaryText,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+                when {
+                    trailingContent != null -> trailingContent()
+                    secondaryText != null -> Text(
+                        text = secondaryText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.MiddleEllipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
                 }
             }
             

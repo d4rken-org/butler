@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core
 
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -62,6 +63,14 @@ class WorkspaceRepo @Inject constructor(
         data class BatchWorkspaceCreation(
             val totalCount: Int,
             val skippedCount: Int = 0,
+        ) : ConfirmationData
+
+        /**
+         * Confirmation for closing a workspace
+         */
+        data class WorkspaceCloseConfirmation(
+            val workspaceId: Workspace.Id,
+            val workspaceTitle: CaString,
         ) : ConfirmationData
 
         // Future confirmation types can be added here:
@@ -269,6 +278,40 @@ class WorkspaceRepo @Inject constructor(
 
             is WorkspaceAction.Close -> {
                 log(TAG, INFO) { "Closing workspace with id ${action.id}" }
+
+                // Request confirmation if required
+                if (action.requireConfirmation) {
+                    val workspace = _workspaces.value.firstOrNull { it.id == action.id }
+                    if (workspace == null) {
+                        log(TAG, WARN) { "Cannot request close confirmation - workspace ${action.id} not found" }
+                        return@withLock WorkspaceAction.Close.Result
+                    }
+
+                    val workspaceInfo = workspace.info.first()
+                    val confirmationId = kotlin.uuid.Uuid.random().toString()
+
+                    log(TAG, INFO) { "Requesting confirmation to close workspace: ${workspaceInfo.title}" }
+
+                    val confirmed = suspendCancellableCoroutine { continuation ->
+                        confirmationContinuations[confirmationId] = continuation
+                        _pendingConfirmations.update {
+                            it + (confirmationId to PendingConfirmation(
+                                id = confirmationId,
+                                sourceWorkspaceId = action.id,
+                                data = ConfirmationData.WorkspaceCloseConfirmation(
+                                    workspaceId = action.id,
+                                    workspaceTitle = workspaceInfo.title,
+                                ),
+                            ))
+                        }
+                    }
+
+                    if (!confirmed) {
+                        log(TAG, INFO) { "Close confirmation cancelled by user" }
+                        return@withLock WorkspaceAction.Close.Result
+                    }
+                    log(TAG, INFO) { "Close confirmation approved by user" }
+                }
 
                 // Cancel any pending confirmations for this workspace
                 _pendingConfirmations.value

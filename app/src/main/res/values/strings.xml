@@ -37,6 +37,7 @@
     <string name="onboarding_workspaces_editor_description">Edit files.</string>
     <string name="onboarding_workspaces_templates_title">Templates</string>
     <string name="onboarding_workspaces_templates_description">Save your setup.</string>
+    <string name="onboarding_workspaces_apps_description">Manage your apps.</string>
 
     <string name="onboarding_adaptive_title">Fits Any Screen</string>
     <string name="onboarding_adaptive_message">Butler adapts to your device for the best experience.</string>

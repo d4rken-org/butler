@@ -33,6 +33,7 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerIcon
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
 
 @Composable
 internal fun WelcomePage(
@@ -66,27 +67,16 @@ internal fun WelcomePage(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                ButlerIcon(
-                    modifier = Modifier.size(172.dp),
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = stringResource(R.string.onboarding_welcome_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = stringResource(R.string.onboarding_welcome_message),
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
+                OnboardingPageHeader(
+                    title = stringResource(R.string.onboarding_welcome_title),
+                    message = stringResource(R.string.onboarding_welcome_message),
+                    spacingAfterTitle = 24.dp,
+                    icon = {
+                        ButlerIcon(
+                            modifier = Modifier.size(172.dp),
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))

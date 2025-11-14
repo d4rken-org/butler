@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.dialogs
 
+import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.workspace.core.Workspace
 
 /**
@@ -33,5 +34,19 @@ sealed interface WorkspaceManagerDialogState {
         val confirmationId: String,
         override val targetWorkspaceId: Workspace.Id,
         val totalCount: Int,
+    ) : Targeted
+
+    /**
+     * Confirmation dialog for closing a workspace.
+     * Shown when the user attempts to close a workspace via back button navigation.
+     *
+     * @param confirmationId Unique ID linking this dialog to the pending confirmation in WorkspaceRepo
+     * @param targetWorkspaceId Workspace pane where the dialog should appear (same as workspace being closed)
+     * @param workspaceTitle Title of the workspace being closed
+     */
+    data class WorkspaceCloseConfirmation(
+        val confirmationId: String,
+        override val targetWorkspaceId: Workspace.Id,
+        val workspaceTitle: CaString,
     ) : Targeted
 }
