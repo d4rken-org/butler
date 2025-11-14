@@ -1,7 +1,11 @@
 package eu.darken.butler.explorer.ui.explorer.items.grid
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.Edit
@@ -120,10 +124,19 @@ fun StorageGrid(
 @Composable
 private fun StorageGridLocalPreview() {
     PreviewWrapper {
-        StorageGrid(
-            item = MockDataProvider.createMockStorageLocal(),
-            onClick = {}
-        )
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(3) {
+                StorageGrid(
+                    item = MockDataProvider.createMockStorageLocal(),
+                    onClick = {}
+                )
+            }
+        }
     }
 }
 
@@ -131,10 +144,19 @@ private fun StorageGridLocalPreview() {
 @Composable
 private fun StorageGridSAFPreview() {
     PreviewWrapper {
-        StorageGrid(
-            item = MockDataProvider.createMockStorageSAF(),
-            onClick = {}
-        )
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(3) {
+                StorageGrid(
+                    item = MockDataProvider.createMockStorageSAF(),
+                    onClick = {}
+                )
+            }
+        }
     }
 }
 
@@ -142,14 +164,23 @@ private fun StorageGridSAFPreview() {
 @Composable
 private fun StorageGridSAFReadOnlyPreview() {
     PreviewWrapper {
-        StorageGrid(
-            item = MockDataProvider.createMockStorageSAF(
-                name = "SD Card (Read-only)",
-                hasReadPermission = true,
-                hasWritePermission = false
-            ),
-            onClick = {}
-        )
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(3) {
+                StorageGrid(
+                    item = MockDataProvider.createMockStorageSAF(
+                        name = "SD Card (Read-only)",
+                        hasReadPermission = true,
+                        hasWritePermission = false
+                    ),
+                    onClick = {}
+                )
+            }
+        }
     }
 }
 
@@ -157,13 +188,22 @@ private fun StorageGridSAFReadOnlyPreview() {
 @Composable
 private fun StorageGridSAFWriteOnlyPreview() {
     PreviewWrapper {
-        StorageGrid(
-            item = MockDataProvider.createMockStorageSAF(
-                name = "SD Card (Write-only)",
-                hasReadPermission = false,
-                hasWritePermission = true
-            ),
-            onClick = {}
-        )
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(3) {
+                StorageGrid(
+                    item = MockDataProvider.createMockStorageSAF(
+                        name = "SD Card (Write-only)",
+                        hasReadPermission = false,
+                        hasWritePermission = true
+                    ),
+                    onClick = {}
+                )
+            }
+        }
     }
 }
