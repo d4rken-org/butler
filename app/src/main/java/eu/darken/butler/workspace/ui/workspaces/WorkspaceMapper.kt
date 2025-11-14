@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.compose.runtime.Composable
+import eu.darken.butler.appdetails.ui.AppDetailsWorkspacePageHost
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePageHost
 import eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
@@ -37,6 +38,11 @@ fun WorkspaceMapper(
         )
 
         Workspace.Type.APPS -> AppsWorkspacePageHost(
+            id = info.id,
+            design = design,
+        )
+
+        Workspace.Type.APP_DETAILS -> AppDetailsWorkspacePageHost(
             id = info.id,
             design = design,
         )

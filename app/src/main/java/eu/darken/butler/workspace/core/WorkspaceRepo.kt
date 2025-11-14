@@ -38,6 +38,7 @@ class WorkspaceRepo @Inject constructor(
     private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
     private val editorWorkspaceFactory: EditorWorkspace.Factory,
     private val appsWorkspaceFactory: AppsWorkspace.Factory,
+    private val appDetailsWorkspaceFactory: eu.darken.butler.appdetails.core.AppDetailsWorkspace.Factory,
     workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
 ) : WorkspaceProvider, WorkspaceRemote {
@@ -128,6 +129,10 @@ class WorkspaceRepo @Inject constructor(
             Workspace.Type.APPS -> appsWorkspaceFactory.create(
                 id = Workspace.Id(),
                 arguments = arguments as AppsWorkspace.Arguments?
+            )
+            Workspace.Type.APP_DETAILS -> appDetailsWorkspaceFactory.create(
+                id = Workspace.Id(),
+                arguments = arguments
             )
         }
         if (idToReplace != null) {

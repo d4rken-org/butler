@@ -56,14 +56,12 @@ class WorkspacesViewModel @Inject constructor(
     val bannerStates = _bannerStates.asStateFlow()
 
     init {
-        log(tag) { "WorkspacesViewModel initializing..." }
-
         launch {
             val currentWorkspaces = workspaceRepo.state.first()
             if (currentWorkspaces.infos.isEmpty()) {
                 log(tag) { "No workspaces found, auto-creating workspace for testing" }
                 // FIXME: AUTO-CREATE WORKSPACE FOR TESTING - REMOVE BEFORE MERGE, DO NOT COMMIT
-                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
+                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.APPS))
             }
         }
 
@@ -163,6 +161,7 @@ class WorkspacesViewModel @Inject constructor(
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = swipeGesturesEnabled && onDemandWorkspaceCreation,
             motd = visibleMotd,
+            currentPaneCount = uiState.currentPaneCount,
         )
     }.asStateFlow()
 
@@ -251,6 +250,7 @@ class WorkspacesViewModel @Inject constructor(
         val swipeGesturesEnabled: Boolean = true,
         val onDemandWorkspaceCreation: Boolean = true,
         val motd: MotdState? = null,
+        val currentPaneCount: Int = 1,
     ) {
         val displayMode: WorkspacePanelMode
             get() = state.panelMode
@@ -271,11 +271,52 @@ class WorkspacesViewModel @Inject constructor(
         val all: List<Workspace.Info>
             get() = state.infos
 
-        // Filter workspaces by caller relationship
+        private val isMultiPane: Boolean
+            get() = currentPaneCount > 1
+
+        /**
+         * Workspaces that should render in panes/tabs.
+         * Only includes normal workspaces (not sub-workspaces).
+         * Sub-workspaces render as overlays (either Dialog or Box within parent pane).
+         */
         val tabWorkspaces: List<Workspace.Info>
             get() = state.infos.filter { !it.isSubWorkspace }
 
-        val modalWorkspace: Workspace.Info?
-            get() = state.infos.firstOrNull { it.isSubWorkspace }
+        /**
+         * Workspace that should render as a full-screen Dialog overlay covering all panes.
+         * Includes:
+         * - FULL_SCREEN modals (pickers, settings dialogs) - always render as Dialog
+         * - PANE_LOCAL modals on single-pane devices (phones) - render as Dialog
+         */
+        val fullScreenModalWorkspace: Workspace.Info?
+            get() = state.infos.firstOrNull { info ->
+                info.isSubWorkspace && when (info.modalPresentation) {
+                    // Full-screen modals always render as Dialog overlay
+                    Workspace.ModalPresentationMode.FULL_SCREEN -> true
+
+                    // Pane-local modals only render as Dialog in single-pane layout
+                    Workspace.ModalPresentationMode.PANE_LOCAL -> !isMultiPane
+                }
+            }
+
+        /**
+         * Map of parent workspace ID to their pane-local modal child (if any).
+         * Only populated in multi-pane layouts.
+         * Each pane can look up if it has a child modal overlay: `paneLocalModals[parentId]`
+         *
+         * Example: Apps workspace (parent) → App details (child modal overlay)
+         */
+        val paneLocalModals: Map<Workspace.Id, Workspace.Info>
+            get() = if (!isMultiPane) {
+                emptyMap()
+            } else {
+                state.infos
+                    .filter { info ->
+                        info.isSubWorkspace &&
+                        info.modalPresentation == Workspace.ModalPresentationMode.PANE_LOCAL &&
+                        info.callerWorkspaceId != null
+                    }
+                    .associateBy { it.callerWorkspaceId!! }
+            }
     }
 }

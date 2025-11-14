@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.workspaces
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -42,6 +43,7 @@ fun AdaptiveWorkspaceLayout(
     onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit,
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
+    paneLocalModals: Map<Workspace.Id, Workspace.Info> = emptyMap(),
 ) {
     val dragDropState = remember { DragDropState() }
 
@@ -118,18 +120,43 @@ fun AdaptiveWorkspaceLayout(
                 paneContent = { info, paneNumber ->
                     if (info != null) {
                         key(info.id) {
-                            WorkspaceOverlayContainer(
-                                workspaceId = info.id,
-                                managerDialogStates = managerDialogStates,
-                                onDismissManagerDialog = onDismissManagerDialog,
-                                onConfirmManagerDialog = onConfirmManagerDialog,
-                                bannerStates = bannerStates,
-                                onDismissBanner = onDismissBanner,
-                            ) {
-                                WorkspaceMapper(
-                                    info = info,
-                                    design = design,
-                                )
+                            // Check if this workspace has a pane-local modal child
+                            val childModal = paneLocalModals[info.id]
+
+                            Box {
+                                // Background: Parent workspace
+                                WorkspaceOverlayContainer(
+                                    workspaceId = info.id,
+                                    managerDialogStates = managerDialogStates,
+                                    onDismissManagerDialog = onDismissManagerDialog,
+                                    onConfirmManagerDialog = onConfirmManagerDialog,
+                                    bannerStates = bannerStates,
+                                    onDismissBanner = onDismissBanner,
+                                ) {
+                                    WorkspaceMapper(
+                                        info = info,
+                                        design = design,
+                                    )
+                                }
+
+                                // Overlay: Child modal (if any)
+                                childModal?.let { modal ->
+                                    key(modal.id) {
+                                        WorkspaceOverlayContainer(
+                                            workspaceId = modal.id,
+                                            managerDialogStates = managerDialogStates,
+                                            onDismissManagerDialog = onDismissManagerDialog,
+                                            onConfirmManagerDialog = onConfirmManagerDialog,
+                                            bannerStates = bannerStates,
+                                            onDismissBanner = onDismissBanner,
+                                        ) {
+                                            WorkspaceMapper(
+                                                info = modal.asPaneInfo(),
+                                                design = design,
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     } else {
