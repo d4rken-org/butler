@@ -14,12 +14,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -125,28 +123,6 @@ fun WorkspaceButton(
                         Icon(
                             imageVector = Icons.TwoTone.Close,
                             contentDescription = null
-                        )
-                    }
-                )
-            }
-            if ((state?.workspaceCount ?: 0) > 0) {
-                HorizontalDivider()
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = stringResource(R.string.workspace_fab_close_all),
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    },
-                    onClick = {
-                        expanded = false
-                        showCloseAllDialog = true
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.TwoTone.DeleteSweep,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 )

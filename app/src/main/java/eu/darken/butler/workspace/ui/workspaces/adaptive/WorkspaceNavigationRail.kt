@@ -261,7 +261,6 @@ private fun DraggableWorkspaceRailItem(
                                     text = "${paneIdx + 1}",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.padding(end = 2.dp)
                                 )
                             }
@@ -375,7 +374,6 @@ private fun WorkspaceRailItem(
                             text = "${paneIdx + 1}",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(end = 2.dp)
                         )
                     }
