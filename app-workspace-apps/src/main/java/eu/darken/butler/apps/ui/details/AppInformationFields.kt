@@ -28,7 +28,7 @@ fun AppInformationFields(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Package Name
         InfoField(

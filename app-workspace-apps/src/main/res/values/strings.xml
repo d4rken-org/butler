@@ -42,6 +42,15 @@
     <string name="apps_action_deselect_all">Deselect all</string>
     <string name="apps_action_open_in_tab">Open in Tab</string>
 
+    <!-- Action Descriptions -->
+    <string name="apps_action_launch_desc">Start the application</string>
+    <string name="apps_action_open_info_desc">View detailed system information</string>
+    <string name="apps_action_enable_desc">Enable this application</string>
+    <string name="apps_action_disable_desc">Disable this application</string>
+    <string name="apps_action_uninstall_desc">Remove this application</string>
+    <string name="apps_action_export_apk_desc">Save APK file to storage</string>
+    <string name="apps_action_share_desc">Share APK file with other apps</string>
+
     <!-- App Info Labels -->
     <string name="apps_package_name_label">Package</string>
     <string name="apps_version_label">Version</string>
@@ -93,7 +102,7 @@
     </plurals>
 
     <!-- App Details Sections -->
-    <string name="apps_details_section_quick_actions">Quick Actions</string>
+    <string name="apps_details_section_actions">Actions</string>
     <string name="apps_details_section_overview">Overview</string>
     <string name="apps_details_section_storage">Storage</string>
 

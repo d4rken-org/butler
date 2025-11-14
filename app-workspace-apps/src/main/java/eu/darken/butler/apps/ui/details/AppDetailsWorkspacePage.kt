@@ -1,11 +1,6 @@
 package eu.darken.butler.apps.ui.details
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,9 +38,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
-import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.setHeight
 import eu.darken.butler.workspace.ui.scroll.setHeights
 
 @Composable
@@ -96,13 +89,9 @@ fun AppDetailsWorkspacePage(
         }
     }
 
-    // Scroll behavior for toolbar and action bar
+    // Scroll behavior for toolbar
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
-    val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     var toolbarHeightPx by remember { mutableStateOf(0) }
-
-    val actionBarHeightDp = 48.dp
-    bottomBarScrollBehavior.state.setHeight(actionBarHeightDp)
 
     // Configure top toolbar scroll heights after measurement
     topToolbarScrollBehavior.state.setHeights(
@@ -121,23 +110,22 @@ fun AppDetailsWorkspacePage(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
-                .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection),
             contentPadding = PaddingValues(
                 top = topToolbarScrollBehavior.state.getCurrentHeightDp() + 8.dp,
-                bottom = actionBarHeightDp + 8.dp,
-                start = 16.dp,
-                end = 16.dp,
+                bottom = 16.dp,
+                start = 12.dp,
+                end = 12.dp,
             ),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             if (state.app != null) {
-                // Quick Actions Section
+                // Actions Section
                 item {
-                    SectionHeader(title = stringResource(R.string.apps_details_section_quick_actions))
+                    SectionHeader(title = stringResource(R.string.apps_details_section_actions))
                 }
                 item {
-                    QuickActionsBar(
+                    ActionsSection(
                         app = state.app,
                         onLaunchApp = { vm.onLaunchApp(state.app!!) },
                         onShowAppInfo = { vm.onShowAppInfo(state.app!!) },
@@ -148,7 +136,7 @@ fun AppDetailsWorkspacePage(
                     )
                 }
 
-                item { Spacer(modifier = Modifier.height(16.dp)) }
+                item { Spacer(modifier = Modifier.height(8.dp)) }
 
                 // Overview Section
                 item {
@@ -160,7 +148,7 @@ fun AppDetailsWorkspacePage(
 
                 // Storage Section
                 if (state.availablePaths.isNotEmpty()) {
-                    item { Spacer(modifier = Modifier.height(16.dp)) }
+                    item { Spacer(modifier = Modifier.height(8.dp)) }
                     item {
                         SectionHeader(title = stringResource(R.string.apps_details_section_storage))
                     }
@@ -194,36 +182,6 @@ fun AppDetailsWorkspacePage(
             workspaceButtonState = workspaceButtonState,
             workspaceActionHandler = workspaceActionHandler,
         )
-
-        // Floating action bar (pinned at bottom)
-        AnimatedVisibility(
-            visible = state.app != null,
-            modifier = Modifier.align(Alignment.BottomCenter),
-            enter = slideInVertically(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
-                initialOffsetY = { it }
-            ),
-            exit = slideOutVertically(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
-                targetOffsetY = { it }
-            )
-        ) {
-            AppDetailsActionBar(
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .graphicsLayer {
-                        translationY = -bottomBarScrollBehavior.state.heightOffset
-                    },
-                onExportApk = { state.app?.let { vm.onExportApk(it) } },
-                onMoreOptions = { /* TODO: Implement more options menu */ },
-            )
-        }
     }
 }
 
@@ -234,12 +192,12 @@ private fun SectionHeader(
 ) {
     Text(
         text = title.uppercase(),
-        style = MaterialTheme.typography.labelLarge.copy(
+        style = MaterialTheme.typography.labelMedium.copy(
             letterSpacing = 0.5.sp
         ),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 8.dp)
+            .padding(top = 4.dp, bottom = 4.dp)
     )
 }
