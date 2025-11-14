@@ -40,6 +40,7 @@ import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
+import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -88,6 +89,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val workspaceProvider: WorkspaceProvider,
     private val systemClipboardHelper: SystemClipboardHelper,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
+    private val shareIntentUseCase: ShareIntentUseCase,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
@@ -610,11 +612,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG, INFO) { "Sharing ${results.size} file(s)" }
 
         try {
-            val intent = if (results.size == 1) {
-                createShareIntent(results.first())
-            } else {
-                createShareMultipleIntent(results)
+            val shareItems = results.map { result ->
+                object : ShareIntentUseCase.Item {
+                    override val path = result.path
+                    override val mimeType = getMimeType(result.name)
+                    override val displayName = result.name
+                }
             }
+
+            val intent = shareIntentUseCase.createShareIntent(shareItems)
 
             if (intent != null) {
                 val chooser = Intent.createChooser(
@@ -635,83 +641,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         } catch (e: Exception) {
             log(TAG, ERROR) { "Error creating share intent: ${e.asLog()}" }
             throw e
-        }
-    }
-
-    private fun createShareIntent(result: SearchItem): Intent? {
-        return try {
-            val path = result.path
-            if (path !is LocalPath) {
-                log(TAG, WARN) { "Share only supported for local paths, got: ${path::class.simpleName}" }
-                return null
-            }
-
-            val file = File(path.path)
-            if (!file.exists()) {
-                log(TAG, WARN) { "File does not exist: ${path.path}" }
-                return null
-            }
-
-            val uri = FileProvider.getUriForFile(
-                appContext,
-                "${appContext.packageName}.fileprovider",
-                file
-            )
-
-            val mimeType = getMimeType(file.name) ?: "*/*"
-
-            Intent(Intent.ACTION_SEND).apply {
-                type = mimeType
-                putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, file.name)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to create share intent for ${result.name}: ${e.asLog()}" }
-            null
-        }
-    }
-
-    private fun createShareMultipleIntent(results: List<SearchItem>): Intent? {
-        return try {
-            val uris = results.mapNotNull { result ->
-                val path = result.path
-                if (path !is LocalPath) {
-                    log(TAG, WARN) { "Skipping non-local path: ${path::class.simpleName}" }
-                    return@mapNotNull null
-                }
-
-                val file = File(path.path)
-                if (!file.exists()) {
-                    log(TAG, WARN) { "File does not exist: ${path.path}" }
-                    return@mapNotNull null
-                }
-
-                try {
-                    FileProvider.getUriForFile(
-                        appContext,
-                        "${appContext.packageName}.fileprovider",
-                        file
-                    )
-                } catch (e: Exception) {
-                    log(TAG, ERROR) { "Failed to get URI for ${file.name}: ${e.asLog()}" }
-                    null
-                }
-            }
-
-            if (uris.isEmpty()) {
-                log(TAG, WARN) { "No valid URIs created for sharing" }
-                return null
-            }
-
-            Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-                type = "*/*" // Use generic type for multiple files
-                putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to create share multiple intent: ${e.asLog()}" }
-            null
         }
     }
 

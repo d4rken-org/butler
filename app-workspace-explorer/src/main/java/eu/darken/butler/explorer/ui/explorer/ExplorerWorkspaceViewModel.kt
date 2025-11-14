@@ -15,6 +15,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -65,6 +66,7 @@ import eu.darken.butler.permissions.core.SAFPickerGrant
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
+import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -106,6 +108,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
+    private val shareIntentUseCase: ShareIntentUseCase,
     private val fileIntentHelper: FileIntentHelper,
     private val explorerSettings: ExplorerSettings,
     itemSorterFactory: ExplorerItemSorter.Factory,
@@ -668,7 +671,42 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Directory.Share -> {
                 log(tag) { "shareSelectedItems(): ${selectedItemsFlow.value.size} items" }
-                // TODO: Implement share via Android share sheet
+
+                val selectedFiles = selectedItemsFlow.value.filterIsInstance<ExplorerItem.File>()
+                if (selectedFiles.isEmpty()) {
+                    log(tag, WARN) { "No files selected for sharing (directories cannot be shared)" }
+                    return@launch
+                }
+
+                val shareItems = selectedFiles.map { file ->
+                    object : ShareIntentUseCase.Item {
+                        override val path = file.lookup.lookedUp
+                        override val mimeType = file.mimeType.rawType
+                        override val displayName = file.lookup.name
+                    }
+                }
+
+                val intent = shareIntentUseCase.createShareIntent(shareItems)
+                if (intent != null) {
+                    try {
+                        val chooserIntent = Intent.createChooser(
+                            intent,
+                            if (selectedFiles.size == 1) {
+                                "Share ${selectedFiles.first().lookup.name}"
+                            } else {
+                                "Share ${selectedFiles.size} files"
+                            }
+                        )
+                        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        context.startActivity(chooserIntent)
+                    } catch (e: Exception) {
+                        log(tag, ERROR) { "Failed to share files: ${e.asLog()}" }
+                        errorEvents.emit(e)
+                    }
+                } else {
+                    log(tag, ERROR) { "Failed to create share intent for ${selectedFiles.size} files" }
+                    errorEvents.emit(Exception("Failed to share ${selectedFiles.size} files"))
+                }
             }
             is ExplorerAction.Directory.SelectAll -> {
                 selectedItemsFlow.value = stateSnap.selectionState.selectableItems
@@ -818,8 +856,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
             workspaceRemote.execute(action)
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to create editor workspace: ${e.message}" }
-            // TODO: Show error message to user
+            log(tag, ERROR) { "Failed to create editor workspace: ${e.asLog()}" }
+            errorEvents.emit(e)
         }
     }
 
@@ -832,12 +870,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             try {
                 context.startActivity(intent)
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to open file with external app: ${e.message}" }
-                // TODO: Show error message to user
+                log(tag, ERROR) { "Failed to open file with external app: ${e.asLog()}" }
+                errorEvents.emit(e)
             }
         } else {
             log(tag, WARN) { "No app found to open file: ${item.lookup.name}" }
-            // TODO: Show "no app found" message to user
+            errorEvents.emit(Exception("No app found to open file: ${item.lookup.name}"))
         }
     }
 
@@ -845,19 +883,25 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "shareFile(${item.lookup.name})" }
         dismissDialog()
 
-        val intent = fileIntentHelper.shareFile(item)
+        val shareItem = object : ShareIntentUseCase.Item {
+            override val path = item.lookup.lookedUp
+            override val mimeType = item.mimeType.rawType
+            override val displayName = item.lookup.name
+        }
+
+        val intent = shareIntentUseCase.createShareIntent(listOf(shareItem))
         if (intent != null) {
             try {
                 val chooserIntent = Intent.createChooser(intent, "Share ${item.lookup.name}")
                 chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(chooserIntent)
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to share file: ${e.message}" }
-                // TODO: Show error message to user
+                log(tag, ERROR) { "Failed to share file: ${e.asLog()}" }
+                errorEvents.emit(e)
             }
         } else {
             log(tag, WARN) { "Failed to create share intent for: ${item.lookup.name}" }
-            // TODO: Show error message to user
+            errorEvents.emit(Exception("Failed to share file: ${item.lookup.name}"))
         }
     }
 
