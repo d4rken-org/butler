@@ -469,13 +469,6 @@ private fun TextLineItem(
                 position.coerceIn(0, expandedText.length) * charWidth
             }
 
-            // DEBUG: Draw red box
-            drawRect(
-                color = Color.Red,
-                topLeft = Offset(cursorX, 0f),
-                size = Size(20f, size.height)
-            )
-
             // Draw cursor on top
             if (isFocused) {
                 // Focused: Blinking line cursor
@@ -633,99 +626,6 @@ private fun SelectableText(
                     onTextLayout(result)
                 },
                 modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-}
-
-@Composable
-private fun CursorIndicator(
-    position: Int,
-    text: String,
-    fontSize: Int,
-    isFocused: Boolean,
-    textLayoutResult: TextLayoutResult?,
-    modifier: Modifier = Modifier
-) {
-    val density = LocalDensity.current
-    val cursorColor = MaterialTheme.colorScheme.primary
-
-    // Calculate cursor position - use precise layout if available
-    val cursorX = if (textLayoutResult != null && position <= text.length) {
-        val boundingBox = textLayoutResult.getBoundingBox(position.coerceIn(0, text.length))
-        boundingBox.left
-    } else {
-        // Fallback to approximate calculation
-        val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-        position.coerceIn(0, text.length) * charWidth
-    }
-
-    // Calculate character width for block cursor
-    val charWidth = if (textLayoutResult != null && position < text.length) {
-        val currentBox = textLayoutResult.getBoundingBox(position)
-        val nextBox = if (position + 1 <= text.length) {
-            textLayoutResult.getBoundingBox(position + 1)
-        } else {
-            currentBox
-        }
-        (nextBox.left - currentBox.left).coerceAtLeast(0f)
-    } else {
-        with(density) { (fontSize * 0.6f).sp.toPx() }
-    }
-
-    // Blinking animation when focused
-    val infiniteTransition = rememberInfiniteTransition(label = "cursor_blink")
-    val cursorAlpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = if (isFocused) 0f else 1f,
-        animationSpec = if (isFocused) {
-            infiniteRepeatable(
-                animation = keyframes {
-                    durationMillis = 1060
-                    1f at 0
-                    1f at 530
-                    0f at 531
-                    0f at 1060
-                },
-                repeatMode = RepeatMode.Restart
-            )
-        } else {
-            infiniteRepeatable(
-                animation = tween(0),
-                repeatMode = RepeatMode.Restart
-            )
-        },
-        label = "cursor_alpha"
-    )
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        // DEBUG: Draw bright red box to verify Canvas is rendering
-        drawRect(
-            color = Color.Red,
-            topLeft = Offset(cursorX, 0f),
-            size = Size(20f, size.height)
-        )
-
-        if (isFocused) {
-            // Focused: Blinking line cursor (3dp width)
-            drawLine(
-                color = cursorColor.copy(alpha = cursorAlpha),
-                start = Offset(cursorX, 0f),
-                end = Offset(cursorX, size.height),
-                strokeWidth = 3.dp.toPx()
-            )
-        } else {
-            // Unfocused: Solid block cursor
-            val blockWidth = if (position < text.length) {
-                charWidth
-            } else {
-                charWidth * 0.3f // Thin block at end of line
-            }
-
-            drawRect(
-                color = cursorColor.copy(alpha = 0.4f),
-                topLeft = Offset(cursorX, 0f),
-                size = Size(blockWidth, size.height)
             )
         }
     }
