@@ -92,4 +92,20 @@
         <item quantity="other">%d selected</item>
     </plurals>
 
+    <!-- App Details Sections -->
+    <string name="apps_details_section_quick_actions">Quick Actions</string>
+    <string name="apps_details_section_overview">Overview</string>
+    <string name="apps_details_section_storage">Storage</string>
+
+    <!-- App Details Action Bar -->
+    <string name="apps_details_more_options">More options</string>
+
+    <!-- App Information -->
+    <string name="apps_type_label">Type</string>
+    <string name="apps_type_system">System app</string>
+    <string name="apps_type_user">User app</string>
+    <string name="apps_status_label">Status</string>
+    <string name="apps_status_enabled">Enabled</string>
+    <string name="apps_status_disabled">Disabled</string>
+
 </resources>
