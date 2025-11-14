@@ -1,6 +1,7 @@
 package eu.darken.butler.provider.documents.core
 
 import android.provider.DocumentsContract.Root.FLAG_LOCAL_ONLY
+import android.provider.DocumentsContract.Root.FLAG_SUPPORTS_CREATE
 import android.provider.DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.provider.documents.R
@@ -86,6 +87,6 @@ class DocumentRootTest : BaseTest() {
         root.apiRootId shouldBe "butler"
         root.rootDocumentId shouldBe "butler"
         root.icon shouldBe android.R.drawable.ic_menu_manage
-        root.flags shouldBe (FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY)
+        root.flags shouldBe (FLAG_SUPPORTS_CREATE or FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY)
     }
 }

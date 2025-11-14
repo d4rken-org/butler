@@ -273,8 +273,10 @@ class DocumentQueryHandler @Inject constructor(
         }
 
         val flags = when (lookup.fileType) {
-            FileType.DIRECTORY -> FLAG_DIR_SUPPORTS_CREATE or FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME
-            FileType.FILE -> FLAG_SUPPORTS_WRITE or FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME
+            FileType.DIRECTORY -> FLAG_DIR_SUPPORTS_CREATE or FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME or
+                    FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
+            FileType.FILE -> FLAG_SUPPORTS_WRITE or FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME or
+                    FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
             FileType.SYMBOLIC_LINK -> 0
             FileType.UNKNOWN -> 0
         }

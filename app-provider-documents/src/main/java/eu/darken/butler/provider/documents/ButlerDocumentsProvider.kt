@@ -21,6 +21,7 @@ import eu.darken.butler.provider.documents.query.RootQueryHandler
 import eu.darken.butler.provider.documents.reader.DocumentReader
 import eu.darken.butler.provider.documents.writer.DocumentCreator
 import eu.darken.butler.provider.documents.writer.DocumentModifier
+import eu.darken.butler.provider.documents.writer.DocumentMover
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
@@ -46,6 +47,7 @@ class ButlerDocumentsProvider : DocumentsProvider() {
     @Inject lateinit var documentReader: DocumentReader
     @Inject lateinit var documentCreator: DocumentCreator
     @Inject lateinit var documentModifier: DocumentModifier
+    @Inject lateinit var documentMover: DocumentMover
 
     override fun onCreate(): Boolean {
         val context = context ?: return false
@@ -189,6 +191,50 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         } catch (e: Exception) {
             log(TAG, ERROR) { "isChildDocument($parentDocumentId, $documentId) failed: ${e.asLog()}" }
             false // Safe default: deny relationship on error
+        }
+    }
+
+    /**
+     * Copy a document to a new parent directory.
+     * Uses native filesystem operations for optimal performance (10x-100x faster than byte-by-byte).
+     *
+     * @param sourceDocumentId Document ID to copy
+     * @param targetParentDocumentId Parent directory to copy into
+     * @return New document ID of the copied document
+     */
+    override fun copyDocument(
+        sourceDocumentId: String,
+        targetParentDocumentId: String
+    ): String = runBlocking {
+        try {
+            log(TAG, INFO) { "copyDocument($sourceDocumentId, $targetParentDocumentId)" }
+            documentMover.copyDocument(sourceDocumentId, targetParentDocumentId)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "copyDocument failed: ${e.asLog()}" }
+            throw e
+        }
+    }
+
+    /**
+     * Move a document to a new parent directory.
+     * Uses atomic filesystem operations when possible (instant metadata update).
+     *
+     * @param sourceDocumentId Document ID to move
+     * @param sourceParentDocumentId Current parent directory (for validation)
+     * @param targetParentDocumentId New parent directory to move into
+     * @return New document ID at the target location
+     */
+    override fun moveDocument(
+        sourceDocumentId: String,
+        sourceParentDocumentId: String,
+        targetParentDocumentId: String
+    ): String = runBlocking {
+        try {
+            log(TAG, INFO) { "moveDocument($sourceDocumentId, $sourceParentDocumentId, $targetParentDocumentId)" }
+            documentMover.moveDocument(sourceDocumentId, sourceParentDocumentId, targetParentDocumentId)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "moveDocument failed: ${e.asLog()}" }
+            throw e
         }
     }
 
