@@ -44,7 +44,7 @@ interface ProviderLocation {
             override val icon = android.R.drawable.ic_menu_manage  // TODO: Create custom Butler icon
             override val title = R.string.documents_root_butler_title.toCaString()
             override val summary = R.string.documents_root_butler_summary.toCaString()
-            override val flags = FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
+            override val flags = FLAG_SUPPORTS_CREATE or FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
             override val rootDocumentId = "butler"
         }
     }

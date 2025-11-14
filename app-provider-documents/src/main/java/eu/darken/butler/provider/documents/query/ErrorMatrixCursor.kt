@@ -18,9 +18,6 @@ import android.provider.DocumentsContract
  *     errorMessage = "Root access required"
  * )
  * ```
- *
- * Phase 1: Permission errors
- * Phase 2: Additional error types (decode failures, etc.)
  */
 class ErrorMatrixCursor(
     columnNames: Array<String>,

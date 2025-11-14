@@ -49,14 +49,12 @@ class DocumentIdCodec @Inject constructor(
 
         val encodedData = when (path) {
             is LocalPath -> {
-                // Simple: encode the absolute path string
                 val pathString = path.path
                 Base64.getUrlEncoder().withoutPadding().encodeToString(
                     pathString.toByteArray(Charsets.UTF_8)
                 )
             }
             is SAFPath -> {
-                // Complex: JSON-serialize the entire SAFPath object (treeRoot + segments)
                 val jsonString = json.encodeToString(SAFPath.serializer(), path)
                 Base64.getUrlEncoder().withoutPadding().encodeToString(
                     jsonString.toByteArray(Charsets.UTF_8)

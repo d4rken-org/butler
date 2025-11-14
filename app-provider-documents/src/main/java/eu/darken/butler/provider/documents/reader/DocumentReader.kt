@@ -4,9 +4,7 @@ import android.content.Context
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -20,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
 import java.io.InputStream
+import java.io.OutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,9 +30,6 @@ import javax.inject.Singleton
  * - Return ParcelFileDescriptor for client apps
  * - Route through appropriate file access methods (LocalPath, SAFPath)
  * - Handle access modes and cancellation
- *
- * Phase 1: Read-only support (mode "r")
- * Phase 3: Write support (modes: w, wa, rw, rwt, wt)
  */
 @Singleton
 class DocumentReader @Inject constructor(
@@ -50,7 +46,6 @@ class DocumentReader @Inject constructor(
      * @param signal Optional cancellation signal
      * @return ParcelFileDescriptor for reading/writing the file
      * @throws FileNotFoundException If file doesn't exist
-     * @throws UnsupportedOperationException If mode not supported in current phase
      * @throws IllegalArgumentException If document ID is invalid or for virtual documents
      */
     suspend fun openDocument(
@@ -60,27 +55,20 @@ class DocumentReader @Inject constructor(
     ): ParcelFileDescriptor {
         log(TAG, INFO) { "openDocument(documentId=$documentId, mode=$mode)" }
 
-        // Check cancellation
         signal?.throwIfCanceled()
 
-        // Phase 1: Only support read mode
-        if (mode != "r") {
-            throw UnsupportedOperationException("Write operations not yet supported (Phase 3)")
-        }
-
-        try {
-            // Decode document ID to path
+        return try {
             val path = codec.decode(documentId)
-            log(TAG, INFO) { "Opening path: $path" }
+            log(TAG, INFO) { "Opening path: $path (mode=$mode)" }
 
-            // Route to appropriate handler based on path type
-            return when (path) {
-                is LocalPath -> openLocalPath(path, mode)
-                is SAFPath -> openSAFPath(path, mode)
-                else -> throw IllegalArgumentException("Unsupported path type: ${path::class.simpleName}")
+            when (mode) {
+                "r" -> openForRead(path)
+                "w", "wt" -> openForWrite(path, truncate = true)
+                "wa" -> openForWrite(path, truncate = false)
+                "rw", "rwt" -> openForReadWrite(path, truncate = true)
+                else -> throw IllegalArgumentException("Unsupported mode: $mode")
             }
         } catch (e: IllegalArgumentException) {
-            // Document ID decode failure or virtual document
             log(TAG, ERROR) { "openDocument($documentId) failed: ${e.asLog()}" }
             throw FileNotFoundException("Cannot open document: ${e.message}")
         } catch (e: Exception) {
@@ -89,33 +77,51 @@ class DocumentReader @Inject constructor(
         }
     }
 
-    /**
-     * Open a LocalPath file.
-     * Fast path: Direct Java File I/O if accessible.
-     * Fallback: GatewaySwitch with pipe for inaccessible files (root/ADB).
-     */
-    private suspend fun openLocalPath(path: LocalPath, mode: String): ParcelFileDescriptor {
-        val file = path.file
-
-        // Fast path: Direct file access if possible
-        if (file.exists() && file.isFile && file.canRead()) {
-            log(TAG, VERBOSE) { "Using direct file access for: ${path.path}" }
-            val pfdMode = ParcelFileDescriptor.parseMode(mode)
-            return ParcelFileDescriptor.open(file, pfdMode)
-        }
-
-        // Fallback: Use GatewaySwitch for inaccessible files
-        log(TAG, INFO) { "File not directly accessible, routing through GatewaySwitch: ${path.path}" }
-        return openViaGateway(path)
+    private suspend fun openForRead(path: APath<*>): ParcelFileDescriptor {
+        log(TAG, VERBOSE) { "Opening for read: $path" }
+        val inputStream = gatewaySwitch.openInputStream(path)
+        return createPipeFromInputStream(inputStream)
     }
 
     /**
-     * Open a file via GatewaySwitch using pipe pattern.
-     * Used for files that require privileged access (root/ADB) or caller lacks permissions (SAF).
+     * Open file for writing (truncate or append).
+     * Uses pipe pattern: client writes → pipe → background thread → GatewaySwitch.
      */
-    private suspend fun openViaGateway(path: APath<*>): ParcelFileDescriptor {
-        val inputStream = gatewaySwitch.openInputStream(path)
-        return createPipeFromInputStream(inputStream)
+    private suspend fun openForWrite(path: APath<*>, truncate: Boolean): ParcelFileDescriptor {
+        log(TAG, VERBOSE) { "Opening for write (truncate=$truncate): $path" }
+
+        val pipe = ParcelFileDescriptor.createPipe()
+        val readSide = pipe[0]
+        val writeSide = pipe[1]
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                ParcelFileDescriptor.AutoCloseInputStream(readSide).use { input ->
+                    gatewaySwitch.openOutputStream(path, append = !truncate).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                log(TAG, VERBOSE) { "Write pipe transfer completed: $path" }
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Write pipe transfer failed: ${e.asLog()}" }
+                try {
+                    writeSide.closeWithError(e.message ?: "Write failed")
+                } catch (closeError: Exception) {
+                    log(TAG, ERROR) { "Failed to close write side with error: ${closeError.asLog()}" }
+                }
+            }
+        }
+
+        return writeSide
+    }
+
+    /**
+     * Open file for read-write.
+     * Currently treats read-write mode as write-only since most apps only need one direction.
+     */
+    private suspend fun openForReadWrite(path: APath<*>, truncate: Boolean): ParcelFileDescriptor {
+        log(TAG, WARN) { "Read-write mode not fully optimized (using write-only for now): $path" }
+        return openForWrite(path, truncate)
     }
 
     /**
@@ -127,7 +133,6 @@ class DocumentReader @Inject constructor(
         val readSide = pipe[0]
         val writeSide = pipe[1]
 
-        // Transfer data on background thread
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 ParcelFileDescriptor.AutoCloseOutputStream(writeSide).use { output ->
@@ -147,18 +152,6 @@ class DocumentReader @Inject constructor(
         }
 
         return readSide
-    }
-
-    /**
-     * Open a SAFPath file.
-     * Uses pipe pattern because calling app doesn't have the SAF tree grant - only Butler does.
-     * Similar to root/ADB files that require privileged access.
-     */
-    private suspend fun openSAFPath(path: SAFPath, mode: String): ParcelFileDescriptor {
-        // SAF files are like root/ADB files - calling app doesn't have the tree grant
-        // We must stream through a pipe using Butler's permissions
-        log(TAG, INFO) { "SAF file requires pipe (caller lacks tree grant): ${path.path}" }
-        return openViaGateway(path)
     }
 
     companion object {

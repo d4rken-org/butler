@@ -481,10 +481,8 @@ class SAFFileSystemOps @Inject constructor(
         val docFile = path.resolveDocFile()
         log(TAG, VERBOSE) { "openInputStream(): $path -> $docFile" }
 
-        if (!docFile.readable) {
-            throw IOException("readable=false")
-        }
-
+        // Note: We don't pre-check readable here - let ContentResolver validate permissions.
+        // DocumentsProvider operates in a different permission context than direct file access.
         contentResolver.openInputStream(docFile.uri)
             ?: throw IOException("Couldn't open input stream for $path")
     } catch (e: Exception) {

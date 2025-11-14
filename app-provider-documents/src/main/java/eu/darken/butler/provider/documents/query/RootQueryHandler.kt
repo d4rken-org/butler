@@ -16,7 +16,6 @@ import javax.inject.Singleton
  * Handles queryRoots() calls from Android's DocumentsProvider API.
  *
  * Returns the single Butler root that appears in the file picker drawer.
- * Phase 1: Only one root (Butler). Phase 2+ could add per-server roots for SSH/FTP.
  */
 @Singleton
 class RootQueryHandler @Inject constructor(
@@ -32,7 +31,6 @@ class RootQueryHandler @Inject constructor(
     suspend fun queryRoots(projection: Array<String>?): Cursor {
         log(TAG, INFO) { "queryRoots() called with projection: ${projection?.contentToString()}" }
 
-        // Phase 1: Single Butler root
         val roots = listOf(ProviderLocation.Root.Butler)
 
         val resolvedProjection = projection ?: DEFAULT_ROOT_PROJECTION
@@ -48,9 +46,7 @@ class RootQueryHandler @Inject constructor(
                 add(DocumentsContract.Root.COLUMN_FLAGS, root.flags)
 
                 // Optional columns
-                add(DocumentsContract.Root.COLUMN_SUMMARY, root.summary?.get(context))
-
-                // Phase 2: Calculate total device storage
+                add(DocumentsContract.Root.COLUMN_SUMMARY, root.summary.get(context))
                 add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, null)
             }
         }

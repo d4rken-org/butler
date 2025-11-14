@@ -5,11 +5,11 @@
         <!-- Butler DocumentsProvider for system file picker integration -->
         <provider
             android:name=".ButlerDocumentsProvider"
-            android:authorities="${applicationId}.documents"
+            android:authorities="${applicationId}.provider.documents"
+            android:enabled="true"
             android:exported="true"
             android:grantUriPermissions="true"
-            android:permission="android.permission.MANAGE_DOCUMENTS"
-            android:enabled="true">
+            android:permission="android.permission.MANAGE_DOCUMENTS">
             <intent-filter>
                 <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
             </intent-filter>
