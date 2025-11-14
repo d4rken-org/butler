@@ -14,9 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okio.Buffer
-import okio.buffer
-import okio.use
 import java.util.LinkedList
 
 class ChunkedTextBuffer @AssistedInject constructor(
