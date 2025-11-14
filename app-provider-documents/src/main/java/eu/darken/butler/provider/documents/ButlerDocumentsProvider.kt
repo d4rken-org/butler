@@ -113,14 +113,12 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         documentId: String,
         mode: String,
         signal: CancellationSignal?
-    ): ParcelFileDescriptor {
-        return runBlocking {
-            try {
-                documentReader.openDocument(documentId, mode, signal)
-            } catch (e: Exception) {
-                log(TAG, ERROR) { "openDocument($documentId, $mode) failed: ${e.asLog()}" }
-                throw e // Re-throw for proper client-side error handling
-            }
+    ): ParcelFileDescriptor = runBlocking {
+        try {
+            documentReader.openDocument(documentId, mode, signal)
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "openDocument($documentId, $mode) failed: ${e.asLog()}" }
+            throw e // Re-throw for proper client-side error handling
         }
     }
 

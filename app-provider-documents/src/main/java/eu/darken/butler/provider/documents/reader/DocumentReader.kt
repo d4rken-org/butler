@@ -4,9 +4,7 @@ import android.content.Context
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -68,16 +66,23 @@ class DocumentReader @Inject constructor(
             throw UnsupportedOperationException("Write operations not yet supported (Phase 3)")
         }
 
-        try {
+        return try {
             // Decode document ID to path
             val path = codec.decode(documentId)
             log(TAG, INFO) { "Opening path: $path" }
 
             // Route to appropriate handler based on path type
-            return when (path) {
-                is LocalPath -> openLocalPath(path, mode)
-                is SAFPath -> openSAFPath(path, mode)
-                else -> throw IllegalArgumentException("Unsupported path type: ${path::class.simpleName}")
+            when (path) {
+                is LocalPath -> {
+                    log(TAG, VERBOSE) { "Routing LocalPath through GatewaySwitch: ${path.path}" }
+                    openViaGateway(path)
+                }
+                is SAFPath -> {
+                    // SAF files are like root/ADB files - calling app doesn't have the tree grant
+                    // We must stream through a pipe using Butler's permissions
+                    log(TAG, INFO) { "SAF file requires pipe (caller lacks tree grant): ${path.path}" }
+                    openViaGateway(path)
+                }
             }
         } catch (e: IllegalArgumentException) {
             // Document ID decode failure or virtual document
@@ -87,16 +92,6 @@ class DocumentReader @Inject constructor(
             log(TAG, ERROR) { "openDocument($documentId) failed: ${e.asLog()}" }
             throw e
         }
-    }
-
-    /**
-     * Open a LocalPath file.
-     * Always routes through GatewaySwitch for consistent file access handling.
-     * This ensures proper support for root/ADB access and maintains architecture consistency.
-     */
-    private suspend fun openLocalPath(path: LocalPath, mode: String): ParcelFileDescriptor {
-        log(TAG, VERBOSE) { "Routing LocalPath through GatewaySwitch: ${path.path}" }
-        return openViaGateway(path)
     }
 
     /**
@@ -137,18 +132,6 @@ class DocumentReader @Inject constructor(
         }
 
         return readSide
-    }
-
-    /**
-     * Open a SAFPath file.
-     * Uses pipe pattern because calling app doesn't have the SAF tree grant - only Butler does.
-     * Similar to root/ADB files that require privileged access.
-     */
-    private suspend fun openSAFPath(path: SAFPath, mode: String): ParcelFileDescriptor {
-        // SAF files are like root/ADB files - calling app doesn't have the tree grant
-        // We must stream through a pipe using Butler's permissions
-        log(TAG, INFO) { "SAF file requires pipe (caller lacks tree grant): ${path.path}" }
-        return openViaGateway(path)
     }
 
     companion object {
