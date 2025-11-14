@@ -16,11 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Description
-import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.twotone.Layers
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -43,6 +38,10 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.core.label
 
 @Composable
 internal fun WorkspacesPage(
@@ -104,14 +103,14 @@ internal fun WorkspacesPage(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     WorkspaceCard(
-                        icon = Icons.Filled.FolderOpen,
-                        title = stringResource(R.string.onboarding_workspaces_explorer_title),
+                        icon = Workspace.Type.EXPLORER.icon,
+                        title = Workspace.Type.EXPLORER.label.asComposable(),
                         description = stringResource(R.string.onboarding_workspaces_explorer_description),
                         modifier = Modifier.weight(1f)
                     )
                     WorkspaceCard(
-                        icon = Icons.Filled.Search,
-                        title = stringResource(R.string.onboarding_workspaces_searcher_title),
+                        icon = Workspace.Type.SEARCHER.icon,
+                        title = Workspace.Type.SEARCHER.label.asComposable(),
                         description = stringResource(R.string.onboarding_workspaces_searcher_description),
                         modifier = Modifier.weight(1f)
                     )
@@ -121,15 +120,15 @@ internal fun WorkspacesPage(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     WorkspaceCard(
-                        icon = Icons.TwoTone.Description,
-                        title = stringResource(R.string.onboarding_workspaces_editor_title),
+                        icon = Workspace.Type.EDITOR.icon,
+                        title = Workspace.Type.EDITOR.label.asComposable(),
                         description = stringResource(R.string.onboarding_workspaces_editor_description),
                         modifier = Modifier.weight(1f)
                     )
                     WorkspaceCard(
-                        icon = Icons.TwoTone.Layers,
-                        title = stringResource(R.string.onboarding_workspaces_templates_title),
-                        description = stringResource(R.string.onboarding_workspaces_templates_description),
+                        icon = Workspace.Type.APPS.icon,
+                        title = Workspace.Type.APPS.label.asComposable(),
+                        description = stringResource(R.string.onboarding_workspaces_apps_description),
                         modifier = Modifier.weight(1f)
                     )
                 }
