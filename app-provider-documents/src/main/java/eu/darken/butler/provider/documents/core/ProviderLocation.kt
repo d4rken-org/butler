@@ -64,22 +64,4 @@ interface ProviderLocation {
         }
     }
 
-    sealed interface Location : ProviderLocation {
-
-        val path: APath<*>
-
-        data class Local(
-            override val path: LocalPath,
-            override val icon: Int = android.R.drawable.ic_menu_view,
-            override val title: CaString = path.name.toCaString(),
-        ) : Location
-
-        data class SAF(
-            override val path: eu.darken.butler.common.files.SAFPath,
-            override val icon: Int = android.R.drawable.ic_menu_view,
-            override val title: CaString = path.name.toCaString(),
-        ) : Location
-    }
-
-
 }

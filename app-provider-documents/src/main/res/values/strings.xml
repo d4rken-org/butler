@@ -20,12 +20,4 @@
     <string name="documents_error_requires_storage">Storage permission required to browse this location. Grant storage permission in Butler app settings.</string>
     <string name="documents_error_requires_permissions">Additional permissions required to browse this location. Check Butler app settings.</string>
     <string name="documents_error_generic">Unable to access this location. Check Butler app for access options.</string>
-
-    <!-- Error Messages - Phase 3: Write Operations -->
-    <string name="documents_error_create_failed">Failed to create file or directory</string>
-    <string name="documents_error_delete_failed">Failed to delete file or directory</string>
-    <string name="documents_error_rename_failed">Failed to rename file or directory</string>
-    <string name="documents_error_parent_not_directory">Parent is not a directory</string>
-    <string name="documents_error_invalid_name">Invalid file or directory name</string>
-    <string name="documents_error_destination_exists">A file or directory with that name already exists</string>
 </resources>
