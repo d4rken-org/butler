@@ -4,6 +4,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -14,8 +16,9 @@ import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.ChunkManager
-import eu.darken.butler.editor.core.engine.EditorChunk
 import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.LineEnding
+import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +32,10 @@ import okio.Source
 import okio.buffer
 import okio.use
 import java.io.FileNotFoundException
+import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
+import java.nio.charset.Charset
+import java.nio.charset.CodingErrorAction
 
 /**
  * File-based data source implementation.
@@ -47,6 +54,101 @@ class FileDataSource @AssistedInject constructor(
 
     private val accessMutex = Mutex()
 
+    /**
+     * Detects charset from BOM (Byte Order Mark).
+     * @return Pair of (Charset, BOM size in bytes) or null if no BOM
+     */
+    private fun detectCharsetFromBOM(bytes: ByteArray): Pair<Charset, Int>? {
+        return when {
+            // UTF-8 BOM: EF BB BF
+            bytes.size >= 3 &&
+                    bytes[0] == 0xEF.toByte() &&
+                    bytes[1] == 0xBB.toByte() &&
+                    bytes[2] == 0xBF.toByte() ->
+                Charsets.UTF_8 to 3
+
+            // UTF-16 LE BOM: FF FE
+            bytes.size >= 2 &&
+                    bytes[0] == 0xFF.toByte() &&
+                    bytes[1] == 0xFE.toByte() ->
+                Charsets.UTF_16LE to 2
+
+            // UTF-16 BE BOM: FE FF
+            bytes.size >= 2 &&
+                    bytes[0] == 0xFE.toByte() &&
+                    bytes[1] == 0xFF.toByte() ->
+                Charsets.UTF_16BE to 2
+
+            else -> null
+        }
+    }
+
+    /**
+     * Validates whether bytes are valid UTF-8.
+     * Uses strict decoding - any malformed sequence returns false.
+     */
+    private fun isValidUTF8(bytes: ByteArray): Boolean {
+        return try {
+            val decoder = Charsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+
+            decoder.decode(ByteBuffer.wrap(bytes))
+            true
+        } catch (e: CharacterCodingException) {
+            false
+        }
+    }
+
+    /**
+     * Detects charset from file content.
+     *
+     * Strategy:
+     * 1. Check for BOM (most reliable)
+     * 2. Validate UTF-8 encoding
+     * 3. Default to UTF-8 (modern standard)
+     *
+     * @return Triple of (Charset, hasBOM, bomBytes)
+     */
+    private suspend fun detectCharset(filePath: APath<*>): Triple<Charset, Boolean, ByteArray?> {
+        // Read first 8KB for detection (enough for BOM + content validation)
+        val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
+        val fileSize = lookup.size ?: 0L
+        val sampleSize = minOf(8192L, fileSize).toInt()
+
+        if (sampleSize == 0) {
+            // Empty file - default to UTF-8
+            return Triple(Charsets.UTF_8, false, null)
+        }
+
+        val sampleBytes = ByteArray(sampleSize)
+
+        gatewaySwitch.file(filePath, readWrite = false).use { handle ->
+            handle.source().buffer().use { source ->
+                source.read(sampleBytes)
+            }
+        }
+
+        // 1. Check for BOM (highest priority)
+        detectCharsetFromBOM(sampleBytes)?.let { (charset, bomSize) ->
+            val bomBytes = sampleBytes.copyOfRange(0, bomSize)
+            log(tag, INFO) { "Detected $charset via BOM" }
+            return Triple(charset, true, bomBytes)
+        }
+
+        // 2. Validate UTF-8 (no BOM)
+        if (isValidUTF8(sampleBytes)) {
+            log(tag, INFO) { "Detected UTF-8 via validation (no BOM)" }
+            return Triple(Charsets.UTF_8, false, null)
+        }
+
+        // 3. Default to UTF-8 (modern standard)
+        // Note: Legacy encodings (ISO-8859-1, Windows-1252, Shift-JIS) will display as mojibake
+        // but won't crash. Future enhancement: add manual encoding selector.
+        log(tag, WARN) { "Could not confidently detect encoding - defaulting to UTF-8" }
+        return Triple(Charsets.UTF_8, false, null)
+    }
+
     override suspend fun open() {
         log(tag) { "Opening file data source: $filePath" }
         try {
@@ -56,26 +158,35 @@ class FileDataSource @AssistedInject constructor(
 
             val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
 
+            // Detect charset from file content
+            val (detectedCharset, hasBOM, bomBytes) = detectCharset(filePath)
+
             _fileInfo.value = FileInfo(
                 path = filePath,
                 size = lookup.size!!,
                 lastModified = lookup.modifiedAt!!,
-                canWrite = true // We'll assume writable for now
+                canWrite = true, // We'll assume writable for now
+                lineEnding = LineEnding.LF, // Updated during chunk loading
+                detectedCharset = detectedCharset,
+                hasBOM = hasBOM,
+                bomBytes = bomBytes
             )
 
-            log(tag) { "Opened FileDataSource without loading content (${lookup.size} bytes)" }
+            log(tag, INFO) {
+                "Opened FileDataSource: size=${lookup.size} bytes, charset=$detectedCharset, hasBOM=$hasBOM"
+            }
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to open - ${e.asLog()}" }
             throw e
         }
     }
 
-    override suspend fun readChunk(startOffset: Long, size: Long): ByteArray = accessMutex.withLock {
+    override suspend fun readChunk(startOffset: Long, size: Long): String = accessMutex.withLock {
         withContext(Dispatchers.IO) {
             // Check if offset is beyond file size
             val fileSize = _fileInfo.value?.size ?: 0L
             if (startOffset >= fileSize) {
-                return@withContext ByteArray(0)
+                return@withContext ""
             }
 
             // Read from file (ChunkManager cache is the source of truth for modified chunks)
@@ -108,12 +219,44 @@ class FileDataSource @AssistedInject constructor(
 
                         if (totalBytesRead == 0L) {
                             // Offset is beyond file size
-                            return@withContext ByteArray(0)
+                            return@withContext ""
                         }
 
-                        log(tag) { "readChunk: requested=$size, read=$totalBytesRead bytes at offset $startOffset" }
+                        log(tag) { "readChunk: requested=$size, read=$totalBytesRead at offset $startOffset" }
 
-                        buffer.readByteArray()
+                        val bytes = buffer.readByteArray()
+
+                        // Get detected charset from FileInfo
+                        val fileInfo = _fileInfo.value
+                        val charset = fileInfo?.detectedCharset ?: Charsets.UTF_8
+
+                        // If this is the first chunk (offset 0) and file has BOM, skip BOM bytes
+                        val (contentBytes, skippedBOM) = if (startOffset == 0L && fileInfo?.hasBOM == true && fileInfo.bomBytes != null) {
+                            val bomSize = fileInfo.bomBytes.size
+                            if (bytes.size > bomSize) {
+                                bytes.copyOfRange(bomSize, bytes.size) to true
+                            } else {
+                                // Edge case: chunk is smaller than BOM (very small chunk size)
+                                byteArrayOf() to true
+                            }
+                        } else {
+                            bytes to false
+                        }
+
+                        if (skippedBOM) {
+                            log(tag) { "Skipped ${fileInfo?.bomBytes?.size} byte BOM in first chunk" }
+                        }
+
+                        // Decode bytes using detected charset
+                        // Note: May contain incomplete UTF-16 surrogate pairs at chunk boundaries
+                        // ChunkRepository is responsible for handling this
+                        try {
+                            String(contentBytes, charset)
+                        } catch (e: CharacterCodingException) {
+                            log(tag, ERROR) { "Failed to decode chunk with $charset - ${e.asLog()}" }
+                            // Fallback to UTF-8 with replacement chars
+                            String(contentBytes, Charsets.UTF_8)
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -126,81 +269,12 @@ class FileDataSource @AssistedInject constructor(
     override suspend fun getSize(): Long = _fileInfo.value?.size ?: 0L
 
     /**
-     * Writes raw bytes at a specific offset in the file.
-     * Note: This method writes directly without merging - caller must handle content assembly.
-     * For complex edits with multiple chunks, use save() instead.
-     */
-    override suspend fun writeChunk(offset: Long, bytes: ByteArray) = accessMutex.withLock {
-        withContext(Dispatchers.IO) {
-            try {
-                log(tag) { "Writing ${bytes.size} bytes at offset $offset" }
-
-                // For now, we'll read entire file, modify, and write back
-                // This is not optimal for large files but matches our atomic write pattern
-                // TODO: Optimize for large files with RandomAccessFile or memory-mapped files
-
-                // Read original content
-                val originalContent = gatewaySwitch.file(filePath, readWrite = false).use { handle ->
-                    handle.source().buffer().use { source ->
-                        source.readByteArray()
-                    }
-                }
-
-                // Calculate new file size
-                val newSize = maxOf(originalContent.size.toLong(), offset + bytes.size)
-                val newContent = ByteArray(newSize.toInt())
-
-                // Copy original content
-                System.arraycopy(originalContent, 0, newContent, 0, originalContent.size)
-
-                // Write new bytes at offset
-                System.arraycopy(bytes, 0, newContent, offset.toInt(), bytes.size)
-
-                // Atomic save via temp file
-                val tempPath = filePath.parent?.child("${filePath.name}.tmp")
-                    ?: throw IllegalStateException("Cannot create temp file - no parent directory")
-
-                try {
-                    gatewaySwitch.file(tempPath, readWrite = true).use { handle ->
-                        handle.sink().buffer().use { sink ->
-                            sink.write(newContent)
-                        }
-                    }
-
-                    // Atomic rename
-                    gatewaySwitch.delete(filePath)
-                    gatewaySwitch.move(tempPath, filePath)
-
-                    log(tag) { "Successfully wrote ${bytes.size} bytes at offset $offset" }
-
-                } catch (e: Exception) {
-                    // Clean up temp file on failure
-                    try {
-                        if (tempPath.exists(gatewaySwitch)) {
-                            gatewaySwitch.delete(tempPath)
-                        }
-                    } catch (cleanupError: Exception) {
-                        log(tag, ERROR) { "Failed to cleanup temp file: ${cleanupError.asLog()}" }
-                    }
-                    throw e
-                }
-
-                _isModified.value = false
-
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to write chunk at offset $offset - ${e.asLog()}" }
-                throw e
-            }
-        }
-    }
-
-    /**
      * Saves dirty chunks to file using atomic write pattern.
      * Uses temp file + atomic rename to prevent corruption.
      *
      * @param dirtyChunks List of modified chunks to save (will be merged with original content)
      */
-    override suspend fun save(dirtyChunks: List<EditorChunk>, boundaries: Map<EditorChunk.ChunkId, ChunkBoundary>) = accessMutex.withLock {
+    override suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) = accessMutex.withLock {
         withContext(Dispatchers.IO) {
             if (dirtyChunks.isEmpty()) {
                 log(tag) { "No modifications to save" }
@@ -211,18 +285,30 @@ class FileDataSource @AssistedInject constructor(
             try {
                 log(tag) { "Saving ${dirtyChunks.size} modified chunks using atomic write" }
 
+                // Get current file info for charset and BOM preservation
+                val fileInfo = _fileInfo.value ?: error("FileInfo not initialized")
+
                 // Read original file into memory
-                val originalContent = gatewaySwitch.file(filePath, readWrite = false).use { handle ->
+                val originalBytes = gatewaySwitch.file(filePath, readWrite = false).use { handle ->
                     handle.source().buffer().use { source ->
                         source.readByteArray()
                     }
                 }
 
-                // Filter only text chunks for saving
-                val textChunks = dirtyChunks.filterIsInstance<EditorChunk.Text>()
+                // Strip BOM from original content before merging (we'll restore it separately)
+                val originalContent = if (fileInfo.hasBOM && fileInfo.bomBytes != null) {
+                    originalBytes.drop(fileInfo.bomBytes.size).toByteArray()
+                } else {
+                    originalBytes
+                }
 
-                // Merge modifications using ChunkManager algorithm
-                val mergedContent = ChunkManager.mergeChunks(originalContent, textChunks, boundaries)
+                // Merge modifications using ChunkManager algorithm with original charset
+                val mergedContent = ChunkManager.mergeChunks(
+                    originalContent,
+                    dirtyChunks,
+                    boundaries,
+                    charset = fileInfo.detectedCharset
+                )
 
                 // Atomic save: write to temp file, then rename
                 val tempPath = filePath.parent?.child("${filePath.name}.tmp")
@@ -232,6 +318,11 @@ class FileDataSource @AssistedInject constructor(
                     // Write merged content to temp file
                     gatewaySwitch.file(tempPath, readWrite = true).use { handle ->
                         handle.sink().buffer().use { sink ->
+                            // Restore BOM if original file had one
+                            if (fileInfo.hasBOM && fileInfo.bomBytes != null) {
+                                sink.write(fileInfo.bomBytes)
+                                log(tag) { "Restored ${fileInfo.bomBytes.size} byte BOM to saved file" }
+                            }
                             sink.write(mergedContent)
                         }
                     }
@@ -259,13 +350,17 @@ class FileDataSource @AssistedInject constructor(
                 // Update state
                 _isModified.value = false
 
-                // Update file info with new size
+                // Update file info with new size (preserve charset and BOM)
                 val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
                 _fileInfo.value = FileInfo(
                     path = filePath,
                     size = lookup.size!!,
                     lastModified = lookup.modifiedAt!!,
-                    canWrite = true
+                    canWrite = true,
+                    lineEnding = fileInfo.lineEnding, // Preserve line ending
+                    detectedCharset = fileInfo.detectedCharset, // Preserve charset
+                    hasBOM = fileInfo.hasBOM, // Preserve BOM flag
+                    bomBytes = fileInfo.bomBytes // Preserve BOM bytes
                 )
 
             } catch (e: Exception) {

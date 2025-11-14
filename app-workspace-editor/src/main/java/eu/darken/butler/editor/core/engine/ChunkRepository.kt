@@ -17,7 +17,6 @@ import kotlin.time.Instant
 class ChunkRepository @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted val dataSource: EditorDataSource,
-    @Assisted private val chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkRepository")
@@ -26,42 +25,75 @@ class ChunkRepository @AssistedInject constructor(
         return dataSource.fileInfo.value
     }
 
-    suspend fun loadChunk(chunkId: EditorChunk.ChunkId, boundary: ChunkBoundary): EditorChunk.Text = withContext(Dispatchers.IO) {
+    suspend fun loadChunk(chunkId: TextChunk.ChunkId, boundary: ChunkBoundary): TextChunk = withContext(Dispatchers.IO) {
         log(tag) { "Loading chunk: $chunkId at ${boundary.startOffset}-${boundary.endOffset}" }
 
-        // Read raw bytes from data source
-        val bytes = dataSource.readChunk(boundary.startOffset, boundary.size)
+        // Read from DataSource (may contain incomplete UTF-16 surrogate pairs at boundaries)
+        val rawContent = dataSource.readChunk(boundary.startOffset, boundary.size)
 
-        // Decode bytes to String using UTF-8 (text mode responsibility)
-        val content = bytes.toString(Charsets.UTF_8)
+        // CRITICAL: Adjust for UTF-16 surrogate pairs
+        // DataSource reads byte-based chunks, which can split multi-byte UTF-8 characters
+        // This creates incomplete UTF-16 surrogate pairs in JVM Strings
+        val validContent = adjustForSurrogatePairs(rawContent)
 
         // Detect line ending style in this chunk
-        val lineEnding = detectLineEnding(content)
+        val lineEnding = detectLineEnding(validContent)
 
         // Count lines using detected style
-        val lineCount = countLines(content, lineEnding)
+        // Note: isLastChunk defaults to true; ChunkManager will recalculate with proper values
+        val lineCount = countLines(validContent, lineEnding, isLastChunk = true)
 
-        val chunk = EditorChunk.Text(
-            offset = boundary.startOffset,
-            content = content,
-            size = bytes.size.toLong(),
+        val chunk = TextChunk(
+            id = chunkId,
+            content = validContent,  // Adjusted content with complete characters only
             lineCount = lineCount,
             lineEnding = lineEnding,
             isDirty = false,
-            isLoaded = true,
-            refCount = 0,
-            id = chunkId
+            isLoaded = true
         )
 
-        log(tag) { "Loaded chunk: $chunkId (${bytes.size} bytes → ${content.length} chars, $lineCount lines, $lineEnding)" }
+        log(tag) { "Loaded chunk: $chunkId (${validContent.length} bytes, $lineCount lines, $lineEnding)" }
         chunk
+    }
+
+    /**
+     * Adjusts content to ensure it doesn't end mid-surrogate-pair.
+     *
+     * UTF-16 surrogate pairs consist of two Char values:
+     * - High surrogate: U+D800 to U+DBFF
+     * - Low surrogate: U+DC00 to U+DFFF
+     *
+     * When DataSource reads byte-based chunks, multi-byte UTF-8 characters (like emoji)
+     * can be split at chunk boundaries. This creates incomplete UTF-16 surrogate pairs
+     * in the decoded String.
+     *
+     * If content ends with a high surrogate (incomplete pair), we truncate it.
+     * ChunkManager will adjust chunk boundaries accordingly and the "missing" character
+     * will become the first character of the next chunk.
+     *
+     * @param content The decoded string content from DataSource
+     * @return Content with complete surrogate pairs only
+     */
+    private fun adjustForSurrogatePairs(content: String): String {
+        if (content.isEmpty()) return content
+
+        val lastIndex = content.length - 1
+
+        // Check if content ends with a high surrogate (first half of pair)
+        // If so, we have an incomplete pair - truncate it
+        if (Character.isHighSurrogate(content[lastIndex])) {
+            log(tag) { "Adjusting content: truncating orphaned high surrogate at end" }
+            return content.take(lastIndex)
+        }
+
+        return content
     }
 
     /**
      * Detects the line ending style used in the given content.
      * Prioritizes the most common style found in the text.
      */
-    private fun detectLineEnding(content: String): LineEnding {
+    fun detectLineEnding(content: String): LineEnding {
         if (content.isEmpty()) return LineEnding.LF  // Default for empty content
 
         val crlfCount = content.windowed(2).count { it == "\r\n" }
@@ -85,26 +117,42 @@ class ChunkRepository @AssistedInject constructor(
 
     /**
      * Counts the number of lines in content based on the detected line ending style.
+     *
+     * @param content The text content to count lines in
+     * @param lineEnding The line ending style detected in the content
+     * @param isLastChunk Whether this is the last chunk in the file (affects +1 for missing newline)
+     * @return The number of lines in the content
      */
-    private fun countLines(content: String, lineEnding: LineEnding): Int {
-        if (content.isEmpty()) return 1  // Empty content is 1 line
+    fun countLines(content: String, lineEnding: LineEnding, isLastChunk: Boolean = true): Int {
+        if (content.isEmpty()) return if (isLastChunk) 1 else 0
 
-        val lineCount = when (lineEnding) {
+        val newlineCount = when (lineEnding) {
             LineEnding.LF -> content.count { it == '\n' }
-            LineEnding.CRLF -> content.windowed(2).count { it == "\r\n" }
+            LineEnding.CRLF -> content.count { it == '\n' }  // Count LF (part of every CRLF)
             LineEnding.CR -> content.count { it == '\r' }
-            LineEnding.MIXED -> content.count { it == '\n' }  // Use LF as primary for mixed
+            LineEnding.MIXED -> {
+                // For mixed, count distinct line endings (avoid double-counting CRLF)
+                val crlfCount = content.windowed(2).count { it == "\r\n" }
+                val totalLfCount = content.count { it == '\n' }
+                val totalCrCount = content.count { it == '\r' }
+                val standaloneLf = totalLfCount - crlfCount
+                val standaloneCr = totalCrCount - crlfCount
+                crlfCount + standaloneLf + standaloneCr
+            }
         }
 
-        // Add 1 if content doesn't end with a newline (last line has no terminator)
-        val endsWithNewline = when (lineEnding) {
-            LineEnding.LF -> content.endsWith('\n')
-            LineEnding.CRLF -> content.endsWith("\r\n")
-            LineEnding.CR -> content.endsWith('\r')
-            LineEnding.MIXED -> content.endsWith('\n') || content.endsWith("\r\n") || content.endsWith('\r')
+        // Only add +1 for last chunk if it doesn't end with newline
+        if (isLastChunk) {
+            val endsWithNewline = when (lineEnding) {
+                LineEnding.LF -> content.endsWith('\n')
+                LineEnding.CRLF -> content.endsWith('\n') || content.endsWith("\r\n")
+                LineEnding.CR -> content.endsWith('\r')
+                LineEnding.MIXED -> content.endsWith('\n') || content.endsWith("\r\n") || content.endsWith('\r')
+            }
+            return newlineCount + if (!endsWithNewline) 1 else 0
         }
 
-        return lineCount + if (!endsWithNewline) 1 else 0
+        return newlineCount
     }
 
     /**
@@ -114,7 +162,7 @@ class ChunkRepository @AssistedInject constructor(
      * @param dirtyChunks List of modified chunks to save
      * @param boundaries Map of chunk IDs to their file positions
      */
-    suspend fun saveFile(dirtyChunks: List<EditorChunk.Text>, boundaries: Map<EditorChunk.ChunkId, ChunkBoundary>) = withContext(Dispatchers.IO) {
+    suspend fun saveFile(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) = withContext(Dispatchers.IO) {
         log(tag) { "Saving ${dirtyChunks.size} dirty chunks to data source" }
         dataSource.save(dirtyChunks, boundaries)
         log(tag) { "Successfully saved chunks" }
@@ -127,7 +175,7 @@ class ChunkRepository @AssistedInject constructor(
      * The caller (ChunkedTextBuffer) is responsible for converting to file-relative line numbers.
      */
     suspend fun searchInChunk(
-        chunk: EditorChunk.Text,
+        chunk: TextChunk,
         boundary: ChunkBoundary,
         query: String,
         ignoreCase: Boolean = false
@@ -150,7 +198,7 @@ class ChunkRepository @AssistedInject constructor(
 
                 val absoluteOffset = boundary.startOffset + foundIndex
                 // Line number is chunk-relative (0-based within chunk)
-                val lineNumber = chunk.content.substring(0, foundIndex).count { it == '\n' }
+                val lineNumber = chunk.content.take(foundIndex).count { it == '\n' }
                 val lineStart = chunk.content.lastIndexOf('\n', foundIndex - 1) + 1
                 val columnNumber = foundIndex - lineStart
 
@@ -183,7 +231,6 @@ class ChunkRepository @AssistedInject constructor(
         fun create(
             workspaceId: Workspace.Id,
             dataSource: EditorDataSource,
-            chunkSize: Long = ChunkManager.DEFAULT_CHUNK_SIZE
         ): ChunkRepository
     }
 }
@@ -193,11 +240,47 @@ data class FileInfo(
     val size: Long,
     val lastModified: Instant,
     val canWrite: Boolean,
-    val lineEnding: LineEnding = LineEnding.LF
-)
+    val lineEnding: LineEnding = LineEnding.LF,
+    val detectedCharset: java.nio.charset.Charset = Charsets.UTF_8,
+    val hasBOM: Boolean = false,
+    val bomBytes: ByteArray? = null
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as FileInfo
+
+        if (path != other.path) return false
+        if (size != other.size) return false
+        if (lastModified != other.lastModified) return false
+        if (canWrite != other.canWrite) return false
+        if (lineEnding != other.lineEnding) return false
+        if (detectedCharset != other.detectedCharset) return false
+        if (hasBOM != other.hasBOM) return false
+        if (bomBytes != null) {
+            if (other.bomBytes == null) return false
+            if (!bomBytes.contentEquals(other.bomBytes)) return false
+        } else if (other.bomBytes != null) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = path.hashCode()
+        result = 31 * result + size.hashCode()
+        result = 31 * result + lastModified.hashCode()
+        result = 31 * result + canWrite.hashCode()
+        result = 31 * result + lineEnding.hashCode()
+        result = 31 * result + detectedCharset.hashCode()
+        result = 31 * result + hasBOM.hashCode()
+        result = 31 * result + (bomBytes?.contentHashCode() ?: 0)
+        return result
+    }
+}
 
 data class SearchResult(
     val position: TextPosition,
     val matchText: String,
-    val chunkId: EditorChunk.ChunkId
+    val chunkId: TextChunk.ChunkId
 )

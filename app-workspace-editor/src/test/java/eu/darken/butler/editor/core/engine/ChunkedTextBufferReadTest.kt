@@ -755,4 +755,62 @@ class ChunkedTextBufferReadTest : ChunkedTextBufferTestBase() {
         text shouldBe emoji
         text.length shouldBe 2
     }
+
+    @Test
+    fun `emoji with skin tone at chunk boundary is preserved`() = runTest {
+        // Emoji with skin tone modifier: 👍🏻 = U+1F44D (thumbs up) + U+1F3FB (light skin tone)
+        // = 4 UTF-16 chars total: high1, low1, high2, low2
+        // This tests grapheme clusters (multiple code points forming one visual character)
+        val thumbsUpWithSkinTone = "👍🏻"
+        val content = "X".repeat(97) + thumbsUpWithSkinTone + "Y".repeat(96)  // Position to span boundary
+
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // Read the skin tone emoji that spans chunks
+        val text = buffer.getText(97L, 101L).getOrThrow()
+
+        // Should preserve the full emoji with skin tone modifier
+        text.contains("👍") shouldBe true
+        text.contains(thumbsUpWithSkinTone) shouldBe true
+        text.length shouldBe 4  // Two emoji (each 2 UTF-16 chars)
+    }
+
+    @Test
+    fun `ZWJ emoji sequence at chunk boundary is preserved`() = runTest {
+        // Family emoji with Zero-Width Joiners: 👨‍👩‍👧‍👦
+        // = Man + ZWJ + Woman + ZWJ + Girl + ZWJ + Boy
+        // = (2 + 1 + 2 + 1 + 2 + 1 + 2) = 11 UTF-16 chars total
+        val familyEmoji = "👨‍👩‍👧‍👦"
+        val content = "X".repeat(95) + familyEmoji + "Y".repeat(94)
+
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // Read across chunk boundary
+        val text = buffer.getText(95L, 106L).getOrThrow()
+
+        // Should preserve the complete ZWJ sequence
+        text.contains(familyEmoji) shouldBe true
+        text.length shouldBe 11  // Full ZWJ sequence
+    }
+
+    @Test
+    fun `combining diacritics at chunk boundary are preserved`() = runTest {
+        // é can be represented as: e (U+0065) + combining acute accent (U+0301)
+        // This is different from the precomposed é (U+00E9)
+        val baseE = "e"
+        val combiningAcute = "\u0301"
+        val eWithDiacritic = baseE + combiningAcute  // Decomposed form
+        val textWithDiacritics = "Caf$eWithDiacritic"  // "Café" with combining diacritic
+
+        val content = "X".repeat(98) + textWithDiacritics + "Y".repeat(97)
+
+        val buffer = createBuffer(content, chunkSize = 100L)
+
+        // Read across chunk boundary where combining character might be split
+        val text = buffer.getText(98L, 103L).getOrThrow()
+
+        // Should contain the base+combining sequence (may not display perfectly in test output)
+        text.contains("Caf") shouldBe true
+        (text.length >= 4) shouldBe true  // At least "Cafe" (base characters)
+    }
 }

@@ -16,54 +16,34 @@ import kotlinx.coroutines.sync.withLock
 
 class ChunkManager @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
-    @Assisted private val chunkRepository: ChunkRepository?,
+    @Assisted private val chunkRepository: ChunkRepository,
     @Assisted val chunkSize: Long = DEFAULT_CHUNK_SIZE
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkManager")
 
-    // ==================== Unified Chunk Storage ====================
-    // Single storage for all chunks using EditorChunk sealed class (Text and Binary)
-    private val _chunks = MutableStateFlow<Map<EditorChunk.ChunkId, EditorChunk>>(emptyMap())
-    val chunks: StateFlow<Map<EditorChunk.ChunkId, EditorChunk>> = _chunks
+    private val _chunks = MutableStateFlow<Map<TextChunk.ChunkId, TextChunk>>(emptyMap())
+    val chunks: StateFlow<Map<TextChunk.ChunkId, TextChunk>> = _chunks.asStateFlow()
 
-    private val _loadStates = MutableStateFlow<Map<EditorChunk.ChunkId, ChunkLoadState>>(emptyMap())
-    val loadStates: StateFlow<Map<EditorChunk.ChunkId, ChunkLoadState>> = _loadStates
+    private val _loadStates = MutableStateFlow<Map<TextChunk.ChunkId, ChunkLoadState>>(emptyMap())
+    val loadStates: StateFlow<Map<TextChunk.ChunkId, ChunkLoadState>> = _loadStates.asStateFlow()
 
     private val chunkMutex = Mutex()
 
-    // Unified chunk boundary tracking (offset → ID mapping)
+    // Chunk boundary tracking (offset → ID mapping)
     // @Volatile ensures cross-thread visibility after mutex release (fixes race condition)
     @Volatile
-    private var boundaries: MutableMap<EditorChunk.ChunkId, ChunkBoundary> = mutableMapOf()
+    private var boundaries: MutableMap<TextChunk.ChunkId, ChunkBoundary> = mutableMapOf()
 
     // LRU tracking for chunk eviction
-    private val chunkAccessOrder = mutableListOf<EditorChunk.ChunkId>()
+    private val chunkAccessOrder = mutableListOf<TextChunk.ChunkId>()
     private var maxCachedChunks: Int = DEFAULT_MAX_CACHED_CHUNKS
 
-    // ==================== Type-Safe Accessors ====================
-
-    /**
-     * Get a text chunk by ID (for internal use).
-     */
-    private fun getTextChunk(chunkId: EditorChunk.ChunkId): EditorChunk.Text? {
-        return _chunks.value[chunkId] as? EditorChunk.Text
-    }
-
-    /**
-     * Get a binary chunk by ID.
-     */
-    fun getBinaryChunk(chunkId: EditorChunk.ChunkId): EditorChunk.Binary? {
-        return _chunks.value[chunkId] as? EditorChunk.Binary
-    }
-
-    // ==================== Text Chunk Methods ====================
-
-    suspend fun loadChunk(chunkId: EditorChunk.ChunkId): Result<EditorChunk.Text> = chunkMutex.withLock {
+    suspend fun loadChunk(chunkId: TextChunk.ChunkId): Result<TextChunk> = chunkMutex.withLock {
         log(tag) { "Loading chunk: $chunkId" }
 
         // Check if already loaded
-        getTextChunk(chunkId)?.let { existingChunk ->
+        _chunks.value[chunkId]?.let { existingChunk ->
             if (existingChunk.isLoaded) {
                 log(tag) { "Chunk $chunkId already loaded (cached)" }
                 // Update LRU: move to end (most recently used)
@@ -90,12 +70,11 @@ class ChunkManager @AssistedInject constructor(
 
             // Load from repository with boundary information
             log(tag) { "Loading chunk $chunkId from disk" }
-            val editorChunk = chunkRepository?.loadChunk(chunkId, boundary)
-                ?: return@withLock Result.failure(IllegalStateException("ChunkRepository not available"))
+            val chunk = chunkRepository.loadChunk(chunkId, boundary)
 
             // CRITICAL: Adjust boundary if chunk size differs due to surrogate pair protection
             // This can happen when chunk end falls in the middle of a UTF-16 surrogate pair
-            val actualEndOffset = boundary.startOffset + editorChunk.size
+            val actualEndOffset = boundary.startOffset + chunk.size
             if (actualEndOffset != boundary.endOffset) {
                 log(tag) {
                     "Adjusting boundary for $chunkId: [${boundary.startOffset}, ${boundary.endOffset}) -> " +
@@ -103,32 +82,48 @@ class ChunkManager @AssistedInject constructor(
                 }
 
                 // Update this chunk's boundary
-                boundaries[chunkId] = ChunkBoundary(
+                boundaries = (boundaries + (chunkId to ChunkBoundary(
                     startOffset = boundary.startOffset,
                     endOffset = actualEndOffset,
-                    lineCount = editorChunk.lineCount
-                )
+                    lineCount = chunk.lineCount
+                ))).toMutableMap()
 
-                // CASCADE: Adjust next chunk's start offset to match this chunk's new end
-                // Find the next chunk by looking for one whose start matches our old end
-                val nextChunkEntry = boundaries.entries.find { it.value.startOffset == boundary.endOffset }
-                if (nextChunkEntry != null) {
+                // CASCADE: Adjust ALL subsequent chunks' start AND end offsets
+                // When one chunk shrinks, all following chunks need to shift left
+                var currentEndOffset = boundary.endOffset  // Where we originally ended
+                var newEndOffset = actualEndOffset          // Where we actually end now
+                val delta = currentEndOffset - newEndOffset // How much we shifted
+
+                // Loop through all subsequent chunks and shift them
+                var searchOffset = currentEndOffset
+                while (true) {
+                    val nextChunkEntry = boundaries.entries.find { it.value.startOffset == searchOffset }
+                    if (nextChunkEntry == null) break  // No more chunks to cascade
+
                     val nextChunkId = nextChunkEntry.key
                     val nextBoundary = nextChunkEntry.value
+                    val newNextStart = nextBoundary.startOffset - delta
+                    val newNextEnd = nextBoundary.endOffset - delta
+
                     log(tag) {
-                        "Cascading boundary adjustment to next chunk ${nextChunkId.value}: " +
-                                "start ${nextBoundary.startOffset} -> $actualEndOffset"
+                        "Cascading boundary adjustment to chunk $nextChunkId: " +
+                                "[${nextBoundary.startOffset}, ${nextBoundary.endOffset}) -> " +
+                                "[$newNextStart, $newNextEnd)"
                     }
+
                     boundaries[nextChunkId] = ChunkBoundary(
-                        startOffset = actualEndOffset,  // Start where previous chunk ended
-                        endOffset = nextBoundary.endOffset,
+                        startOffset = newNextStart,
+                        endOffset = newNextEnd,
                         lineCount = nextBoundary.lineCount
                     )
+
+                    // Move to next chunk in chain
+                    searchOffset = nextBoundary.endOffset
                 }
             }
 
-            // Update state with EditorChunk.Text
-            _chunks.value = _chunks.value + (chunkId to editorChunk)
+            // Update state
+            _chunks.value = _chunks.value + (chunkId to chunk)
             _loadStates.value = _loadStates.value + (chunkId to ChunkLoadState(
                 isLoading = false,
                 loadedAt = System.currentTimeMillis()
@@ -138,12 +133,12 @@ class ChunkManager @AssistedInject constructor(
             chunkAccessOrder.remove(chunkId)
             chunkAccessOrder.add(chunkId)
 
-            log(tag) { "Successfully loaded chunk: $chunkId (${editorChunk.size} bytes)" }
+            log(tag) { "Successfully loaded chunk: $chunkId (${chunk.size} chars)" }
 
             // Trigger eviction if cache is full
             evictOldChunksIfNeeded()
 
-            Result.success(editorChunk)
+            Result.success(chunk)
 
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to load chunk: $chunkId - ${e.asLog()}" }
@@ -158,8 +153,8 @@ class ChunkManager @AssistedInject constructor(
         }
     }
 
-    suspend fun getChunk(chunkId: EditorChunk.ChunkId): EditorChunk.Text? {
-        return getTextChunk(chunkId)
+    suspend fun getChunk(chunkId: TextChunk.ChunkId): TextChunk? {
+        return _chunks.value[chunkId]
     }
 
     /**
@@ -168,29 +163,29 @@ class ChunkManager @AssistedInject constructor(
      *
      * Thread-safe: boundaries map is @Volatile and only modified atomically during boundary updates.
      */
-    fun getBoundary(chunkId: EditorChunk.ChunkId): ChunkBoundary? {
+    fun getBoundary(chunkId: TextChunk.ChunkId): ChunkBoundary? {
         return boundaries[chunkId]
     }
 
     /**
      * Update a single chunk's boundary. Used when chunk content changes size.
      */
-    suspend fun updateBoundary(chunkId: EditorChunk.ChunkId, newBoundary: ChunkBoundary) = chunkMutex.withLock {
-        boundaries[chunkId] = newBoundary
+    suspend fun updateBoundary(chunkId: TextChunk.ChunkId, newBoundary: ChunkBoundary) = chunkMutex.withLock {
+        boundaries = (boundaries + (chunkId to newBoundary)).toMutableMap()
     }
 
     /**
      * Get all chunk IDs currently tracked (both in cache and evicted but with boundaries).
      */
-    fun getAllChunkIds(): List<EditorChunk.ChunkId> {
-        return boundaries.keys.filter { _chunks.value[it] is EditorChunk.Text || _chunks.value[it] == null }
+    fun getAllChunkIds(): List<TextChunk.ChunkId> {
+        return boundaries.keys.toList()
     }
 
     /**
      * Updates line counts for multiple chunks atomically.
      * Used during first metadata build to initialize line counts.
      */
-    suspend fun batchUpdateLineCounts(lineCounts: Map<EditorChunk.ChunkId, Int>) = chunkMutex.withLock {
+    suspend fun batchUpdateLineCounts(lineCounts: Map<TextChunk.ChunkId, Int>) = chunkMutex.withLock {
         for ((chunkId, lineCount) in lineCounts) {
             val boundary = boundaries[chunkId] ?: continue
             boundaries[chunkId] = boundary.copy(lineCount = lineCount)
@@ -198,12 +193,10 @@ class ChunkManager @AssistedInject constructor(
         log(tag) { "Batch updated line counts for ${lineCounts.size} chunks" }
     }
 
-    suspend fun getChunksInRange(startOffset: Long, endOffset: Long): List<EditorChunk.Text> {
+    suspend fun getChunksInRange(startOffset: Long, endOffset: Long): List<TextChunk> {
         // Snapshot relevant chunk IDs while holding mutex to avoid race conditions
         val relevantChunkIds = chunkMutex.withLock {
-            val matching = boundaries.filter { (chunkId, boundary) ->
-                // Only text chunks
-                (_chunks.value[chunkId] is EditorChunk.Text || _chunks.value[chunkId] == null) &&
+            val matching = boundaries.filter { (_, boundary) ->
                 // Use >= to include chunks that end exactly at startOffset (insertion at end of chunk)
                 boundary.endOffset >= startOffset && boundary.startOffset < endOffset
             }
@@ -218,10 +211,10 @@ class ChunkManager @AssistedInject constructor(
         log(tag) { "Found ${relevantChunkIds.size} chunks in range $startOffset-$endOffset" }
 
         // Load chunks if not already loaded (outside mutex to avoid reentrant lock)
-        val loadedChunks = mutableListOf<EditorChunk.Text>()
+        val loadedChunks = mutableListOf<TextChunk>()
         for (chunkId in relevantChunkIds) {
             val chunk = _chunks.value[chunkId]
-            if (chunk != null && chunk is EditorChunk.Text && chunk.isLoaded) {
+            if (chunk != null && chunk.isLoaded) {
                 // Chunk already in cache
                 loadedChunks.add(chunk)
             } else {
@@ -242,13 +235,14 @@ class ChunkManager @AssistedInject constructor(
         }
     }
 
-    suspend fun addChunk(chunk: EditorChunk.Text): Unit = chunkMutex.withLock {
+    suspend fun addChunk(chunk: TextChunk): Unit = chunkMutex.withLock {
         _chunks.value = _chunks.value + (chunk.id to chunk)
+
     }
 
-    suspend fun updateChunk(chunkId: EditorChunk.ChunkId, updater: (EditorChunk.Text) -> EditorChunk.Text): EditorChunk.Text? =
+    suspend fun updateChunk(chunkId: TextChunk.ChunkId, updater: (TextChunk) -> TextChunk): TextChunk? =
         chunkMutex.withLock {
-            val currentChunk = _chunks.value[chunkId] as? EditorChunk.Text ?: return@withLock null
+            val currentChunk = _chunks.value[chunkId] ?: return@withLock null
             val updatedChunk = updater(currentChunk)
 
             // Preserve refCount from current chunk (updater might not include it in copy())
@@ -266,9 +260,9 @@ class ChunkManager @AssistedInject constructor(
     /**
      * Internal helper to pin a chunk without acquiring mutex (caller must hold lock).
      */
-    private suspend fun pinChunkInternal(chunkId: EditorChunk.ChunkId): Result<EditorChunk.Text> {
+    private suspend fun pinChunkInternal(chunkId: TextChunk.ChunkId): Result<TextChunk> {
         // Ensure chunk is loaded
-        val editorChunk = _chunks.value[chunkId] as? EditorChunk.Text ?: run {
+        val chunk = _chunks.value[chunkId] ?: run {
             log(tag) { "Chunk $chunkId not in cache, loading before pinning" }
             val loadResult = loadChunk(chunkId)
             if (loadResult.isFailure) {
@@ -276,11 +270,11 @@ class ChunkManager @AssistedInject constructor(
                     loadResult.exceptionOrNull() ?: Exception("Failed to load chunk for pinning")
                 )
             }
-            return Result.success(loadResult.getOrThrow())
+            loadResult.getOrThrow()
         }
 
         // Pin the chunk
-        val pinnedChunk = editorChunk.pin() as EditorChunk.Text
+        val pinnedChunk = chunk.pin()
         _chunks.value = _chunks.value + (chunkId to pinnedChunk)
 
         log(tag) { "Pinned chunk: $chunkId (refCount=${pinnedChunk.refCount})" }
@@ -291,16 +285,16 @@ class ChunkManager @AssistedInject constructor(
     /**
      * Internal helper to unpin a chunk without acquiring mutex (caller must hold lock).
      */
-    private suspend fun unpinChunkInternal(chunkId: EditorChunk.ChunkId): Result<Unit> {
-        val editorChunk = _chunks.value[chunkId] as? EditorChunk.Text
+    private suspend fun unpinChunkInternal(chunkId: TextChunk.ChunkId): Result<Unit> {
+        val chunk = _chunks.value[chunkId]
             ?: return Result.failure(IllegalStateException("Chunk $chunkId not in cache"))
 
-        if (editorChunk.refCount == 0) {
+        if (chunk.refCount == 0) {
             log(tag, WARN) { "Attempting to unpin chunk $chunkId with refCount=0" }
             return Result.failure(IllegalStateException("Chunk $chunkId already has refCount=0"))
         }
 
-        val unpinnedChunk = editorChunk.unpin() as EditorChunk.Text
+        val unpinnedChunk = chunk.unpin()
         _chunks.value = _chunks.value + (chunkId to unpinnedChunk)
 
         log(tag) { "Unpinned chunk: $chunkId (refCount=${unpinnedChunk.refCount})" }
@@ -315,7 +309,7 @@ class ChunkManager @AssistedInject constructor(
      *
      * @return Result containing the pinned chunk, or failure if chunk cannot be loaded
      */
-    suspend fun pinChunk(chunkId: EditorChunk.ChunkId): Result<EditorChunk.Text> = chunkMutex.withLock {
+    suspend fun pinChunk(chunkId: TextChunk.ChunkId): Result<TextChunk> = chunkMutex.withLock {
         pinChunkInternal(chunkId)
     }
 
@@ -325,7 +319,7 @@ class ChunkManager @AssistedInject constructor(
      *
      * @return Result indicating success or failure
      */
-    suspend fun unpinChunk(chunkId: EditorChunk.ChunkId): Result<Unit> = chunkMutex.withLock {
+    suspend fun unpinChunk(chunkId: TextChunk.ChunkId): Result<Unit> = chunkMutex.withLock {
         unpinChunkInternal(chunkId)
     }
 
@@ -335,8 +329,8 @@ class ChunkManager @AssistedInject constructor(
      *
      * @return Result containing list of pinned chunks, or failure if any chunk cannot be loaded
      */
-    suspend fun pinChunks(chunkIds: Set<EditorChunk.ChunkId>): Result<List<EditorChunk.Text>> = chunkMutex.withLock {
-        val pinnedChunks = mutableListOf<EditorChunk.Text>()
+    suspend fun pinChunks(chunkIds: Set<TextChunk.ChunkId>): Result<List<TextChunk>> = chunkMutex.withLock {
+        val pinnedChunks = mutableListOf<TextChunk>()
 
         try {
             for (chunkId in chunkIds) {
@@ -369,7 +363,7 @@ class ChunkManager @AssistedInject constructor(
      *
      * @return Result indicating success or failure
      */
-    suspend fun unpinChunks(chunkIds: Set<EditorChunk.ChunkId>): Result<Unit> = chunkMutex.withLock {
+    suspend fun unpinChunks(chunkIds: Set<TextChunk.ChunkId>): Result<Unit> = chunkMutex.withLock {
         for (chunkId in chunkIds) {
             val result = unpinChunkInternal(chunkId)
             if (result.isFailure) {
@@ -389,8 +383,8 @@ class ChunkManager @AssistedInject constructor(
      * @return Result containing the block's return value, or failure if chunk cannot be pinned
      */
     suspend fun <T> withPinnedChunk(
-        chunkId: EditorChunk.ChunkId,
-        block: suspend (EditorChunk.Text) -> T
+        chunkId: TextChunk.ChunkId,
+        block: suspend (TextChunk) -> T
     ): Result<T> {
         val pinResult = pinChunk(chunkId)
         if (pinResult.isFailure) {
@@ -417,8 +411,8 @@ class ChunkManager @AssistedInject constructor(
      * @return Result containing the block's return value, or failure if chunks cannot be pinned
      */
     suspend fun <T> withPinnedChunks(
-        chunkIds: Set<EditorChunk.ChunkId>,
-        block: suspend (List<EditorChunk.Text>) -> T
+        chunkIds: Set<TextChunk.ChunkId>,
+        block: suspend (List<TextChunk>) -> T
     ): Result<T> {
         val pinResult = pinChunks(chunkIds)
         if (pinResult.isFailure) {
@@ -443,7 +437,7 @@ class ChunkManager @AssistedInject constructor(
      * @param removeFromStructure If true, also removes the chunk's boundary (chunk deleted from file structure).
      *                           If false, keeps boundary (chunk can be reloaded later).
      */
-    suspend fun evictChunk(chunkId: EditorChunk.ChunkId, removeFromStructure: Boolean = false): Boolean = chunkMutex.withLock {
+    suspend fun evictChunk(chunkId: TextChunk.ChunkId, removeFromStructure: Boolean = false): Boolean = chunkMutex.withLock {
         val chunk = _chunks.value[chunkId] ?: return@withLock false
 
         // Don't evict pinned chunks (dirty or actively referenced)
@@ -467,30 +461,6 @@ class ChunkManager @AssistedInject constructor(
     }
 
     /**
-     * Evict a binary chunk from the cache.
-     */
-    suspend fun evictBinaryChunk(chunkId: EditorChunk.ChunkId, removeFromStructure: Boolean = false): Boolean = chunkMutex.withLock {
-        val chunk = getBinaryChunk(chunkId) ?: return@withLock false
-
-        // Don't evict pinned chunks (dirty or actively referenced)
-        if (chunk.isPinned) {
-            log(tag) { "Cannot evict pinned binary chunk: ${chunkId.value} (refCount=${chunk.refCount}, isDirty=${chunk.isDirty})" }
-            return@withLock false
-        }
-
-        log(tag) { "Evicting binary chunk: ${chunkId.value} (removeFromStructure=$removeFromStructure)" }
-
-        _chunks.value = _chunks.value - chunkId
-
-        if (removeFromStructure) {
-            // Remove boundary - chunk no longer exists in logical file structure
-            boundaries = (boundaries - chunkId).toMutableMap()
-        }
-
-        true
-    }
-
-    /**
      * Update chunk boundaries after an edit operation.
      * Shifts boundaries for chunks after the edit point by deltaLength.
      *
@@ -503,13 +473,10 @@ class ChunkManager @AssistedInject constructor(
     suspend fun updateBoundaries(editOffset: Long, deltaLength: Long, deltaLines: Int = 0) = chunkMutex.withLock {
         if (deltaLength == 0L && deltaLines == 0) return@withLock
 
-        val updatedBoundaries = mutableMapOf<EditorChunk.ChunkId, ChunkBoundary>()
+        val updatedBoundaries = mutableMapOf<TextChunk.ChunkId, ChunkBoundary>()
         var adjustedCount = 0
 
         for ((chunkId, boundary) in boundaries) {
-            // Only update text chunks
-            if (_chunks.value[chunkId] !is EditorChunk.Text && _chunks.value[chunkId] != null) continue
-
             val newBoundary = when {
                 // Chunk entirely after edit point - shift both offsets, keep line count
                 // Use > (not >=) because edit at startOffset means edit is WITHIN chunk, not after it
@@ -537,57 +504,10 @@ class ChunkManager @AssistedInject constructor(
             updatedBoundaries[chunkId] = newBoundary
         }
 
-        // Merge updated boundaries back (only replaces text chunk boundaries)
-        boundaries = (boundaries + updatedBoundaries).toMutableMap()
+        // Atomic swap prevents race condition where readers see empty map during clear+putAll
+        boundaries = updatedBoundaries
 
         log(tag) { "Updated $adjustedCount chunk boundaries after edit at offset $editOffset (delta=$deltaLength bytes, $deltaLines lines)" }
-    }
-
-    /**
-     * Update binary chunk boundaries after an edit operation.
-     * Similar to updateBoundaries() but for binary chunks.
-     */
-    suspend fun updateBinaryBoundaries(editOffset: Long, deltaLength: Long) = chunkMutex.withLock {
-        if (deltaLength == 0L) return@withLock
-
-        val updatedBoundaries = mutableMapOf<EditorChunk.ChunkId, ChunkBoundary>()
-        var adjustedCount = 0
-
-        // Only process binary chunks
-        for ((chunkId, boundary) in boundaries) {
-            // Skip non-binary chunks
-            if (_chunks.value[chunkId] !is EditorChunk.Binary) continue
-
-            val newBoundary = when {
-                // Chunk entirely after edit point - shift both offsets
-                boundary.startOffset > editOffset -> {
-                    adjustedCount++
-                    ChunkBoundary(
-                        boundary.startOffset + deltaLength,
-                        boundary.endOffset + deltaLength,
-                        0  // Binary chunks don't track lines
-                    )
-                }
-                // Chunk contains or ends at edit point - adjust end offset
-                boundary.endOffset >= editOffset -> {
-                    adjustedCount++
-                    ChunkBoundary(
-                        boundary.startOffset,
-                        boundary.endOffset + deltaLength,
-                        0  // Binary chunks don't track lines
-                    )
-                }
-                // Chunk entirely before edit point - no change
-                else -> boundary
-            }
-
-            updatedBoundaries[chunkId] = newBoundary
-        }
-
-        // Merge updated boundaries back (only replaces binary chunk boundaries)
-        boundaries = (boundaries + updatedBoundaries).toMutableMap()
-
-        log(tag) { "Updated $adjustedCount binary chunk boundaries after edit at offset $editOffset (delta=$deltaLength bytes)" }
     }
 
     private fun evictOldChunksIfNeeded() {
@@ -661,13 +581,9 @@ class ChunkManager @AssistedInject constructor(
      * @return Result.success if all chunks saved, Result.failure if save failed
      */
     suspend fun saveAllDirtyChunks(): Result<Unit> {
-        // Get dirty chunk IDs first (before pinning) - only text chunks
+        // Get dirty chunk IDs first (before pinning)
         val dirtyChunkIds = chunkMutex.withLock {
-            _chunks.value.values
-                .filterIsInstance<EditorChunk.Text>()
-                .filter { it.isDirty }
-                .map { it.id }
-                .toSet()
+            _chunks.value.values.filter { it.isDirty }.map { it.id }.toSet()
         }
 
         if (dirtyChunkIds.isEmpty()) {
@@ -682,14 +598,11 @@ class ChunkManager @AssistedInject constructor(
         return withPinnedChunks(dirtyChunkIds) { pinnedChunks ->
             // Get snapshot of boundaries for save operation
             val boundariesSnapshot = chunkMutex.withLock {
-                boundaries
-                    .filterKeys { _chunks.value[it] is EditorChunk.Text || _chunks.value[it] == null }
-                    .toMap()
+                boundaries.toMap() // Create immutable copy
             }
 
             // Save all chunks - throws on failure, withPinnedChunks will catch and return Result.failure
-            chunkRepository?.saveFile(pinnedChunks, boundariesSnapshot)
-                ?: throw IllegalStateException("ChunkRepository not available")
+            chunkRepository.saveFile(pinnedChunks, boundariesSnapshot)
 
             // Only mark clean if save succeeded (if exception thrown above, this won't execute)
             markChunksClean(dirtyChunkIds.toList())
@@ -703,12 +616,13 @@ class ChunkManager @AssistedInject constructor(
      * Returns all dirty chunks sorted by startOffset.
      * Used for batch save operations where we need all modified chunks in order.
      */
-    suspend fun getDirtyChunks(): List<EditorChunk.Text> = chunkMutex.withLock {
-        val dirtyEditorChunks = _chunks.value.values.filterIsInstance<EditorChunk.Text>().filter { it.isDirty }
-        log(tag) { "Found ${dirtyEditorChunks.size} dirty chunks" }
+    suspend fun getDirtyChunks(): List<TextChunk> = chunkMutex.withLock {
+        val dirtyChunks = _chunks.value.values.filter { it.isDirty }
+        log(tag) { "Found ${dirtyChunks.size} dirty chunks" }
         // Sort by boundary startOffset (using boundaries map as source of truth)
-        dirtyEditorChunks
-            .sortedBy { chunk -> boundaries[chunk.id]?.startOffset ?: Long.MAX_VALUE }
+        dirtyChunks.sortedBy { chunk ->
+            boundaries[chunk.id]?.startOffset ?: Long.MAX_VALUE
+        }
     }
 
     /**
@@ -717,22 +631,18 @@ class ChunkManager @AssistedInject constructor(
      *
      * @param chunkIds List of chunk IDs to mark as clean
      */
-    suspend fun markChunksClean(chunkIds: List<EditorChunk.ChunkId>): Unit = chunkMutex.withLock {
+    suspend fun markChunksClean(chunkIds: List<TextChunk.ChunkId>): Unit = chunkMutex.withLock {
         log(tag) { "Marking ${chunkIds.size} chunks as clean" }
 
         val updatedChunks = _chunks.value.toMutableMap()
         var markedCount = 0
 
         for (chunkId in chunkIds) {
-            val chunk = updatedChunks[chunkId]
-            if (chunk != null && chunk.isDirty) {
-                // markClean is a method on EditorChunk, not TextChunk
-                val cleanChunk = when (chunk) {
-                    is EditorChunk.Text -> chunk.copy(isDirty = false)
-                    is EditorChunk.Binary -> chunk.copy(isDirty = false)
+            updatedChunks[chunkId]?.let { chunk ->
+                if (chunk.isDirty) {
+                    updatedChunks[chunkId] = chunk.markClean()
+                    markedCount++
                 }
-                updatedChunks[chunkId] = cleanChunk
-                markedCount++
             }
         }
 
@@ -740,18 +650,18 @@ class ChunkManager @AssistedInject constructor(
         log(tag) { "Successfully marked $markedCount chunks as clean" }
     }
 
-    suspend fun generateChunkIds(fileSize: Long): List<EditorChunk.ChunkId> = chunkMutex.withLock {
+    suspend fun generateChunkIds(fileSize: Long): List<TextChunk.ChunkId> = chunkMutex.withLock {
         // Reset counter for deterministic ID generation
-        EditorChunk.ChunkId.resetCounter()
+        TextChunk.ChunkId.resetCounter()
 
         // Clear old boundaries
         boundaries.clear()
 
-        val chunkIds = mutableListOf<EditorChunk.ChunkId>()
+        val chunkIds = mutableListOf<TextChunk.ChunkId>()
 
         // Handle empty files - create one empty chunk
         if (fileSize == 0L) {
-            val id = EditorChunk.ChunkId.generate()
+            val id = TextChunk.ChunkId.generate()
             boundaries[id] = ChunkBoundary(0L, 0L, lineCount = 1)
             chunkIds.add(id)
             log(tag) { "Generated 1 chunk ID for empty file" }
@@ -760,7 +670,7 @@ class ChunkManager @AssistedInject constructor(
 
         var offset = 0L
         while (offset < fileSize) {
-            val id = EditorChunk.ChunkId.generate()
+            val id = TextChunk.ChunkId.generate()
             val endOffset = minOf(offset + chunkSize, fileSize)
 
             // Store boundary for this chunk (lineCount=0 sentinel, will be populated by buildChunkMetadata)
@@ -774,211 +684,11 @@ class ChunkManager @AssistedInject constructor(
         return@withLock chunkIds
     }
 
-    /**
-     * Generate binary chunk IDs and boundaries for a file of given size.
-     * Similar to generateChunkIds() but for binary chunks.
-     */
-    suspend fun generateBinaryChunkIds(fileSize: Long): List<EditorChunk.ChunkId> = chunkMutex.withLock {
-        // Reset counter for deterministic ID generation
-        EditorChunk.ChunkId.resetCounter()
-
-        // Clear old binary boundaries (only those for binary chunks)
-        boundaries = boundaries.filterKeys { chunkId ->
-            _chunks.value[chunkId] !is EditorChunk.Binary
-        }.toMutableMap()
-
-        val chunkIds = mutableListOf<EditorChunk.ChunkId>()
-
-        // Handle empty files - create one empty chunk
-        if (fileSize == 0L) {
-            val id = EditorChunk.ChunkId.generate()
-            boundaries[id] = ChunkBoundary(0L, 0L, lineCount = 0)
-            chunkIds.add(id)
-            log(tag) { "Generated 1 binary chunk ID for empty file" }
-            return@withLock chunkIds
-        }
-
-        var offset = 0L
-        while (offset < fileSize) {
-            val id = EditorChunk.ChunkId.generate()
-            val endOffset = minOf(offset + chunkSize, fileSize)
-            boundaries[id] = ChunkBoundary(
-                startOffset = offset,
-                endOffset = endOffset,
-                lineCount = 0  // Binary chunks don't track lines
-            )
-            chunkIds.add(id)
-            offset = endOffset
-        }
-
-        log(tag) { "Generated ${chunkIds.size} binary chunk IDs with boundaries for ${fileSize} bytes" }
-        return@withLock chunkIds
-    }
-
     suspend fun clear() = chunkMutex.withLock {
         log(tag) { "Clearing all chunks" }
         _chunks.value = emptyMap()
         _loadStates.value = emptyMap()
         boundaries.clear()
-        chunkAccessOrder.clear()
-    }
-
-    // ==================== Binary Chunk Methods ====================
-    // Now unified with text chunks using EditorChunk sealed class
-
-    suspend fun addBinaryChunk(chunk: EditorChunk.Binary): Unit = chunkMutex.withLock {
-        _chunks.value = _chunks.value + (chunk.id to chunk)
-        log(tag) { "Added binary chunk: ${chunk.id.value}" }
-    }
-
-    suspend fun loadBinaryChunk(chunkId: EditorChunk.ChunkId): Result<EditorChunk.Binary> = chunkMutex.withLock {
-        log(tag) { "Loading binary chunk: ${chunkId.value}" }
-
-        // Check if already loaded
-        getBinaryChunk(chunkId)?.let { existingChunk ->
-            log(tag) { "Binary chunk ${chunkId.value} already loaded (cached)" }
-            return@withLock Result.success(existingChunk)
-        }
-
-        try {
-            // Get boundary for this chunk
-            val boundary = boundaries[chunkId]
-                ?: return@withLock Result.failure(IllegalArgumentException("No boundary found for binary chunk: ${chunkId.value}"))
-
-            // Load from repository
-            log(tag) { "Loading binary chunk ${chunkId.value} from disk" }
-            // TODO Phase 3: Use proper BinaryChunkRepository here
-            // For now, this will be called after initialization when chunk already exists
-            return@withLock Result.failure(UnsupportedOperationException("Binary chunk loading from disk not yet implemented"))
-
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to load binary chunk: ${chunkId.value} - ${e.asLog()}" }
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getBinaryChunksInRange(startOffset: Long, endOffset: Long): List<EditorChunk.Binary> = chunkMutex.withLock {
-        val relevantChunkIds = boundaries.filter { (chunkId, boundary) ->
-            // Only binary chunks
-            _chunks.value[chunkId] is EditorChunk.Binary &&
-            boundary.endOffset >= startOffset && boundary.startOffset < endOffset
-        }.keys
-
-        log(tag) { "Found ${relevantChunkIds.size} binary chunks in range $startOffset-$endOffset" }
-
-        relevantChunkIds.mapNotNull { getBinaryChunk(it) }
-    }
-
-    suspend fun updateBinaryChunk(chunkId: EditorChunk.ChunkId, updater: (EditorChunk.Binary) -> EditorChunk.Binary): EditorChunk.Binary? =
-        chunkMutex.withLock {
-            val currentChunk = getBinaryChunk(chunkId) ?: return@withLock null
-            val updatedChunk = updater(currentChunk)
-            _chunks.value = _chunks.value + (chunkId to updatedChunk)
-            log(tag, DEBUG) { "Updated binary chunk ${chunkId.value}: size=${updatedChunk.size}, dirty=${updatedChunk.isDirty}" }
-            updatedChunk
-        }
-
-    suspend fun <T> withPinnedBinaryChunk(
-        chunkId: EditorChunk.ChunkId,
-        block: suspend (EditorChunk.Binary) -> T
-    ): Result<T> {
-        // Pin chunk (with mutex)
-        val pinnedChunk = chunkMutex.withLock {
-            val chunk = getBinaryChunk(chunkId)
-                ?: return Result.failure(IllegalArgumentException("Binary chunk not found: ${chunkId.value}"))
-            val pinned = chunk.pin() as EditorChunk.Binary
-            _chunks.value = _chunks.value + (chunkId to pinned)
-            pinned
-        }
-
-        // Execute block WITHOUT holding mutex (prevents deadlock)
-        return try {
-            val result = block(pinnedChunk)
-
-            // Unpin chunk (with mutex)
-            chunkMutex.withLock {
-                val currentChunk = getBinaryChunk(chunkId)
-                if (currentChunk != null && currentChunk.refCount > 0) {
-                    val unpinned = currentChunk.unpin() as EditorChunk.Binary
-                    _chunks.value = _chunks.value + (chunkId to unpinned)
-                }
-            }
-
-            Result.success(result)
-        } catch (e: Exception) {
-            // Unpin on error (with mutex)
-            chunkMutex.withLock {
-                val currentChunk = getBinaryChunk(chunkId)
-                if (currentChunk != null && currentChunk.refCount > 0) {
-                    val unpinned = currentChunk.unpin() as EditorChunk.Binary
-                    _chunks.value = _chunks.value + (chunkId to unpinned)
-                }
-            }
-            Result.failure(e)
-        }
-    }
-
-    /**
-     * Get all dirty binary chunks.
-     */
-    suspend fun getDirtyBinaryChunks(): List<EditorChunk.Binary> = chunkMutex.withLock {
-        _chunks.value.values.filterIsInstance<EditorChunk.Binary>().filter { it.isDirty }
-    }
-
-    suspend fun <T> withPinnedBinaryChunks(
-        chunkIds: Set<EditorChunk.ChunkId>,
-        block: suspend (List<EditorChunk.Binary>) -> T
-    ): Result<T> {
-        // Pin all chunks (with mutex)
-        val pinnedChunks = chunkMutex.withLock {
-            val chunks = chunkIds.mapNotNull { getBinaryChunk(it) }
-            if (chunks.size != chunkIds.size) {
-                return Result.failure(IllegalArgumentException("Some binary chunks not found"))
-            }
-
-            val updatedChunks = mutableMapOf<EditorChunk.ChunkId, EditorChunk>()
-            chunks.map { chunk ->
-                val pinnedChunk = chunk.pin() as EditorChunk.Binary
-                updatedChunks[chunk.id] = pinnedChunk
-                pinnedChunk
-            }.also {
-                _chunks.value = _chunks.value + updatedChunks
-            }
-        }
-
-        // Execute block WITHOUT holding mutex (prevents deadlock)
-        return try {
-            val result = block(pinnedChunks)
-
-            // Unpin all chunks (with mutex)
-            chunkMutex.withLock {
-                val updatedChunks = mutableMapOf<EditorChunk.ChunkId, EditorChunk>()
-                for (chunkId in chunkIds) {
-                    val currentChunk = getBinaryChunk(chunkId)
-                    if (currentChunk != null && currentChunk.refCount > 0) {
-                        val unpinned = currentChunk.unpin() as EditorChunk.Binary
-                        updatedChunks[chunkId] = unpinned
-                    }
-                }
-                _chunks.value = _chunks.value + updatedChunks
-            }
-
-            Result.success(result)
-        } catch (e: Exception) {
-            // Unpin all on error (with mutex)
-            chunkMutex.withLock {
-                val updatedChunks = mutableMapOf<EditorChunk.ChunkId, EditorChunk>()
-                for (chunkId in chunkIds) {
-                    val currentChunk = getBinaryChunk(chunkId)
-                    if (currentChunk != null && currentChunk.refCount > 0) {
-                        val unpinned = currentChunk.unpin() as EditorChunk.Binary
-                        updatedChunks[chunkId] = unpinned
-                    }
-                }
-                _chunks.value = _chunks.value + updatedChunks
-            }
-            Result.failure(e)
-        }
     }
 
     @AssistedFactory
@@ -1011,12 +721,15 @@ class ChunkManager @AssistedInject constructor(
          * @param originalContent The original file content as bytes
          * @param dirtyChunks List of modified chunks (will be sorted by startOffset from boundaries)
          * @param boundaries Map of chunk IDs to their original positions in the file
+         * @param charset Charset to use for encoding chunk content (default: UTF-8)
          * @return Merged byte array with all modifications applied
+         * @throws IllegalStateException if content cannot be encoded in the specified charset
          */
         fun mergeChunks(
             originalContent: ByteArray,
-            dirtyChunks: List<EditorChunk.Text>,
-            boundaries: Map<EditorChunk.ChunkId, ChunkBoundary>
+            dirtyChunks: List<TextChunk>,
+            boundaries: Map<TextChunk.ChunkId, ChunkBoundary>,
+            charset: java.nio.charset.Charset = Charsets.UTF_8
         ): ByteArray {
             if (dirtyChunks.isEmpty()) return originalContent
 
@@ -1044,7 +757,16 @@ class ChunkManager @AssistedInject constructor(
                 }
 
                 // Add the modified chunk content (size may differ from original)
-                val newBytes = chunk.content.toByteArray(Charsets.UTF_8)
+                val newBytes = try {
+                    chunk.content.toByteArray(charset)
+                } catch (e: Exception) {
+                    throw IllegalStateException(
+                        "Cannot encode content with $charset. File contains characters " +
+                                "not representable in this encoding (detected from original file). " +
+                                "Consider converting file to UTF-8.",
+                        e
+                    )
+                }
                 result.addAll(newBytes.toList())
 
                 // Move past this chunk in original file
@@ -1062,16 +784,4 @@ class ChunkManager @AssistedInject constructor(
             return result.toByteArray()
         }
     }
-}
-
-/**
- * Tracks the offset boundaries of a chunk.
- * Chunk IDs are sequential/opaque, boundaries track actual file positions.
- */
-data class ChunkBoundary(
-    val startOffset: Long,
-    val endOffset: Long,
-    val lineCount: Int
-) {
-    val size: Long get() = endOffset - startOffset
 }

@@ -279,6 +279,36 @@ class FileDataSourceTest : BaseTest() {
     }
 
     @Test
+    fun `emoji at chunk boundary is protected from corruption`(@TempDir tempDir: File) = runTest {
+        // Given: File with emoji positioned so byte boundary might split it
+        // Emoji 🎉 = U+1F389 = 4 bytes in UTF-8: F0 9F 8E 89
+        // UTF-16: 2 chars (high surrogate D83C + low surrogate DF89)
+        // Position content so emoji bytes span a chunk boundary
+        val paddingLength = 10
+        val padding = "a".repeat(paddingLength)
+        val emoji = "🎉"
+        val content = padding + emoji + "XYZ"
+
+        val dataSource = createDataSource(tempDir, "test.txt", content)
+
+        // When: Read chunk that would end in the middle of emoji's UTF-8 bytes
+        // Read just the padding + 2 bytes of emoji (incomplete)
+        val chunk = dataSource.readChunk(0L, (paddingLength + 2).toLong())
+
+        // Then: Should NOT contain orphaned surrogate (protection should truncate or include full emoji)
+        val hasHighSurrogate = chunk.contains('\uD83C')  // High surrogate of 🎉
+        val hasLowSurrogate = chunk.contains('\uDF89')   // Low surrogate of 🎉
+
+        // Protection ensures we don't have orphaned surrogates:
+        // Either both surrogates present (full emoji) or neither (truncated before emoji)
+        (hasHighSurrogate && hasLowSurrogate) || (!hasHighSurrogate && !hasLowSurrogate) shouldBe true
+
+        // Verify content is valid (no corruption)
+        (chunk.length > 0) shouldBe true
+        chunk.startsWith("a") shouldBe true
+    }
+
+    @Test
     fun `handles file without trailing newline`(@TempDir tempDir: File) = runTest {
         // Given
         val dataSource = createDataSource(tempDir, "test.txt", "Line 1\nLine 2")
