@@ -215,6 +215,8 @@ private fun AppsWorkspacePage(
                 userAppsCount = state.userAppsCount,
                 systemAppsCount = state.systemAppsCount,
                 selectedCount = state.selectionCount,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
             )
         }
 

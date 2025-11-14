@@ -13,6 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -90,7 +91,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val systemClipboardHelper: SystemClipboardHelper,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val shareIntentUseCase: ShareIntentUseCase,
+    itemSorterFactory: eu.darken.butler.searcher.core.sorting.SearchItemSorter.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
+
+    private val itemSorter = itemSorterFactory.create(id)
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
         workspaceProvider.retrieve(id).map { workspace: Workspace? -> workspace as? SearcherWorkspace }
@@ -102,8 +106,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
+    private val currentSortSettings = MutableStateFlow<eu.darken.butler.searcher.core.SearchSortSettings>(searcherSettings.sortSettings.valueBlocking)
+    private val viewModeFlow = MutableStateFlow<ViewMode>(ViewMode.LIST)
     private var lastAutoExecutedQuery: String? = null
     private var currentSearchId: String? = null
+
+    enum class ViewMode {
+        LIST,
+        GRID
+    }
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
@@ -230,7 +241,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         .distinctUntilChanged()
         .asStateFlow()
 
-    val state = combine(
+    val state: Flow<State> = combine(
         searchQuery,
         workspaceSearchState,
         searcherSettings.maxHistoryItems.flow.flatMapLatest { searchHistory.getSearches(it) },
@@ -238,8 +249,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         selectionState,
         quickActionsResult,
         dialogStateFlow,
-    ) { query, workspaceState, history, filter, selection, quickActions, dialogState ->
-        val updatedSelectionState = selection.copy(selectableResults = workspaceState.results)
+        currentSortSettings,
+        viewModeFlow,
+    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewMode: ViewMode ->
+        val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
+        val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
+        val updatedSelectionState = selection.copy(selectableResults = sortedResults)
 
         // Calculate available actions based on selection state
         val actions = if (updatedSelectionState.selectedResultIds.isNotEmpty()) {
@@ -269,6 +284,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 // Delete
                 add(SearcherAction.Delete(updatedSelectionState.selectedResults))
             }
+        } else if (sortedResults.isNotEmpty()) {
+            buildList {
+                add(SearcherAction.Common.Sort())
+                add(SearcherAction.Common.ToggleView())
+            }
         } else {
             emptyList()
         }
@@ -276,7 +296,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         State(
             id = id,
             searchQuery = query,
-            workspaceState = workspaceState,
+            workspaceState = updatedWorkspaceState,
             searchHistory = history,
             currentFilter = filter,
             searchTargets = workspaceState.searchTargets,
@@ -288,6 +308,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             quickActionsResult = quickActions,
             dialogState = dialogState,
             availableActions = actions,
+            viewMode = viewMode,
+            sortSettings = sortSettings,
         )
     }
         .distinctUntilChanged()
@@ -544,6 +566,17 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherAction.SelectAll -> selectAll()
             is SearcherAction.DeselectAll -> deselectAll()
+            is SearcherAction.Common.Sort -> {
+                dialogStateFlow.value = SearcherDialogState.EditSortOptions(
+                    currentSortSettings = currentSortSettings.value
+                )
+            }
+            is SearcherAction.Common.ToggleView -> {
+                viewModeFlow.value = when (viewModeFlow.value) {
+                    ViewMode.LIST -> ViewMode.GRID
+                    ViewMode.GRID -> ViewMode.LIST
+                }
+            }
             is SearcherAction.OpenInNewTabs -> {
                 vmScope.launch {
                     log(TAG) { "openInNewTabs(): ${action.results.size} items" }
@@ -668,6 +701,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val quickActionsResult: SearchItem? = null,
         val dialogState: SearcherDialogState = SearcherDialogState.None,
         val availableActions: List<SearcherAction> = emptyList(),
+        val viewMode: ViewMode = ViewMode.LIST,
+        val sortSettings: eu.darken.butler.searcher.core.SearchSortSettings = eu.darken.butler.searcher.core.SearchSortSettings(),
     ) {
         val isSearching: Boolean
             get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
@@ -731,6 +766,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    fun onSortOptions(result: eu.darken.butler.searcher.ui.search.dialogs.SearchSortOptionsResult) = launch {
+        log(tag) { "onSortOptions($result)" }
+        dialogStateFlow.value = SearcherDialogState.None
+        searcherSettings.sortSettings.value(result.sortSettings)
+        currentSortSettings.value = result.sortSettings
+    }
 
     private fun showFileProperties(result: SearchItem) {
         log(TAG) { "showFileProperties(${result.name})" }
