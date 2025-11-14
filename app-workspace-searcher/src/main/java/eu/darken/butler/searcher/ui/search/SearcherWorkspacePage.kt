@@ -16,8 +16,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -107,8 +112,12 @@ fun SearcherWorkspacePage(
 
     // Track actual measured height of the toolbar card
     val density = LocalDensity.current
-    var actualToolbarHeightPx by remember { mutableStateOf(0) }
+    var actualToolbarHeightPx by remember { mutableIntStateOf(0) }
     val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
+
+    // Track actual measured height of the info bar
+    var actualInfoBarHeightPx by remember { mutableIntStateOf(0) }
+    val actualInfoBarHeightDp = with(density) { actualInfoBarHeightPx.toDp() }
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
@@ -160,7 +169,10 @@ fun SearcherWorkspacePage(
         derivedStateOf { clipboardState.entries.isNotEmpty() }
     }
     val hasActions by remember {
-        derivedStateOf { state?.selectionState?.selectedResultIds?.isNotEmpty() == true }
+        derivedStateOf {
+            state?.selectionState?.selectedResultIds?.isNotEmpty() == true ||
+            state?.listItems?.isNotEmpty() == true
+        }
     }
 
     // Get current toolbar height for layout calculations
@@ -174,6 +186,13 @@ fun SearcherWorkspacePage(
                 currentState.workspaceState.targetProgress.isNotEmpty() &&
                     currentState.workspaceState.searchStatus != SearcherWorkspace.State.SearchStatus.IDLE
             } ?: false
+        }
+    }
+
+    // Determine if info bar should be visible
+    val showInfoBar by remember {
+        derivedStateOf {
+            state?.selectionState?.selectionCount?.let { it > 0 } ?: false
         }
     }
 
@@ -258,7 +277,9 @@ fun SearcherWorkspacePage(
                 contentPadding = PaddingValues(
                     start = 16.dp,
                     end = 16.dp,
-                    top = 16.dp + actualToolbarHeightDp + (if (showProgressCard) statusCardHeight + 8.dp else 0.dp),
+                    top = 8.dp + actualToolbarHeightDp +
+                        (if (showProgressCard) statusCardHeight + 8.dp else 0.dp) +
+                        (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp),
                     bottom = run {
                         val actionBarHeight = if (hasActions) 64.dp else 0.dp
                         val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
@@ -411,6 +432,24 @@ fun SearcherWorkspacePage(
                 )
             }
 
+            // Pinned info bar below progress card
+            if (showInfoBar) {
+                SearcherInfoBar(
+                    selectedCount = currentState.selectionState.selectionCount,
+                    onClearSelection = { onPageAction(SearcherPageAction.Results.ExitSelectionMode) },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .offset(
+                            y = 8.dp + actualToolbarHeightDp +
+                                (if (showProgressCard) statusCardHeight + 8.dp else 0.dp)
+                        )
+                        .padding(horizontal = 16.dp)
+                        .onGloballyPositioned { layoutCoordinates ->
+                            actualInfoBarHeightPx = layoutCoordinates.size.height
+                        }
+                )
+            }
+
             // Floating Operations and Clipboard Bars Container
             AnimatedVisibility(
                 visible = hasOperations || hasClipboard,
@@ -490,8 +529,7 @@ fun SearcherWorkspacePage(
                             is SearcherAction.DeselectAll -> onPageAction(SearcherPageAction.Results.ExitSelectionMode)
                             else -> onPageAction(SearcherPageAction.WorkspaceAction(searcherAction))
                         }
-                    },
-                    selectionCount = currentState.selectionState.selectionCount
+                    }
                 )
             }
 
@@ -566,6 +604,7 @@ fun SearcherWorkspacePage(
             onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
             onNavigateToClipboardSource = { clip -> vm?.navigateToClipboardSource(clip) },
             onRemoveClipboardEntry = { clip -> vm?.removeClipboardEntry(clip) },
+            onSortOptionsConfirmed = { vm?.onSortOptions(it) },
         )
 
         // Operation dialog host
@@ -657,12 +696,12 @@ private fun SearcherWorkspacePageWithResultsPreview() {
 
 @Preview2
 @Composable
-private fun SearcherWorkspacePageSearchingPreview() {
+private fun SearcherWorkspacePageSearchingWithProgressPreview() {
     PreviewWrapper {
         val workspaceId = Workspace.Id()
         SearcherWorkspacePage(
             workspaceId = workspaceId,
-            stateSource = flowOf(SearcherMockDataProvider.createMockSearchingState(workspaceId)),
+            stateSource = flowOf(SearcherMockDataProvider.createMockSearchingWithProgressState(workspaceId)),
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
