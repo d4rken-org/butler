@@ -82,7 +82,7 @@ class ChunkRepository @AssistedInject constructor(
         // If so, we have an incomplete pair - truncate it
         if (Character.isHighSurrogate(content[lastIndex])) {
             log(tag) { "Adjusting content: truncating orphaned high surrogate at end" }
-            return content.substring(0, lastIndex)
+            return content.take(lastIndex)
         }
 
         return content
@@ -181,7 +181,7 @@ class ChunkRepository @AssistedInject constructor(
 
                 val absoluteOffset = boundary.startOffset + foundIndex
                 // Line number is chunk-relative (0-based within chunk)
-                val lineNumber = chunk.content.substring(0, foundIndex).count { it == '\n' }
+                val lineNumber = chunk.content.take(foundIndex).count { it == '\n' }
                 val lineStart = chunk.content.lastIndexOf('\n', foundIndex - 1) + 1
                 val columnNumber = foundIndex - lineStart
 
@@ -223,8 +223,44 @@ data class FileInfo(
     val size: Long,
     val lastModified: Instant,
     val canWrite: Boolean,
-    val lineEnding: LineEnding = LineEnding.LF
-)
+    val lineEnding: LineEnding = LineEnding.LF,
+    val detectedCharset: java.nio.charset.Charset = Charsets.UTF_8,
+    val hasBOM: Boolean = false,
+    val bomBytes: ByteArray? = null
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as FileInfo
+
+        if (path != other.path) return false
+        if (size != other.size) return false
+        if (lastModified != other.lastModified) return false
+        if (canWrite != other.canWrite) return false
+        if (lineEnding != other.lineEnding) return false
+        if (detectedCharset != other.detectedCharset) return false
+        if (hasBOM != other.hasBOM) return false
+        if (bomBytes != null) {
+            if (other.bomBytes == null) return false
+            if (!bomBytes.contentEquals(other.bomBytes)) return false
+        } else if (other.bomBytes != null) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = path.hashCode()
+        result = 31 * result + size.hashCode()
+        result = 31 * result + lastModified.hashCode()
+        result = 31 * result + canWrite.hashCode()
+        result = 31 * result + lineEnding.hashCode()
+        result = 31 * result + detectedCharset.hashCode()
+        result = 31 * result + hasBOM.hashCode()
+        result = 31 * result + (bomBytes?.contentHashCode() ?: 0)
+        return result
+    }
+}
 
 data class SearchResult(
     val position: TextPosition,

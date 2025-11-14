@@ -721,12 +721,15 @@ class ChunkManager @AssistedInject constructor(
          * @param originalContent The original file content as bytes
          * @param dirtyChunks List of modified chunks (will be sorted by startOffset from boundaries)
          * @param boundaries Map of chunk IDs to their original positions in the file
+         * @param charset Charset to use for encoding chunk content (default: UTF-8)
          * @return Merged byte array with all modifications applied
+         * @throws IllegalStateException if content cannot be encoded in the specified charset
          */
         fun mergeChunks(
             originalContent: ByteArray,
             dirtyChunks: List<TextChunk>,
-            boundaries: Map<TextChunk.ChunkId, ChunkBoundary>
+            boundaries: Map<TextChunk.ChunkId, ChunkBoundary>,
+            charset: java.nio.charset.Charset = Charsets.UTF_8
         ): ByteArray {
             if (dirtyChunks.isEmpty()) return originalContent
 
@@ -754,7 +757,16 @@ class ChunkManager @AssistedInject constructor(
                 }
 
                 // Add the modified chunk content (size may differ from original)
-                val newBytes = chunk.content.toByteArray(Charsets.UTF_8)
+                val newBytes = try {
+                    chunk.content.toByteArray(charset)
+                } catch (e: Exception) {
+                    throw IllegalStateException(
+                        "Cannot encode content with $charset. File contains characters " +
+                                "not representable in this encoding (detected from original file). " +
+                                "Consider converting file to UTF-8.",
+                        e
+                    )
+                }
                 result.addAll(newBytes.toList())
 
                 // Move past this chunk in original file

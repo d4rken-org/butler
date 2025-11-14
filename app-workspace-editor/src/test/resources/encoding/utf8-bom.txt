@@ -1,0 +1,3 @@
+﻿Hello UTF-8 with BOM
+Line 2 with emoji 🎉
+Line 3

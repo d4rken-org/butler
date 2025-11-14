@@ -11,6 +11,19 @@ import java.io.FileNotFoundException
  * Data source interface for editor content.
  * Supports both file-based and in-memory editing.
  *
+ * ## Encoding Handling
+ * - Detects encoding on open():
+ *   1. BOM detection (UTF-8, UTF-16 LE/BE) - 100% reliable
+ *   2. UTF-8 validation for non-BOM files
+ *   3. Defaults to UTF-8 for modern files
+ * - Transcodes to UTF-8 Strings internally for editing
+ * - Saves in ORIGINAL encoding to preserve file format
+ * - Preserves BOM if present in original file
+ * - Throws exception if content unmappable in original encoding
+ *
+ * Supported encodings: UTF-8, UTF-16 LE/BE, ASCII
+ * Legacy encodings (ISO-8859-1, Windows-1252, etc.) display as mojibake (�)
+ *
  * ## Architectural Role
  * DataSource is a **pure I/O layer** - it handles reading/writing bytes from storage.
  * - **Does NOT handle**: Text semantics (line endings, UTF-16 validation, etc.)
@@ -37,12 +50,17 @@ interface EditorDataSource {
      *
      * @param startOffset Byte offset in the file/content where reading begins
      * @param size Number of bytes to read
-     * @return String content decoded from UTF-8 bytes
+     * @return String content decoded using detected charset (from FileInfo)
+     *
+     * **Encoding Behavior**:
+     * - Uses charset detected during open() (stored in FileInfo.detectedCharset)
+     * - BOM is stripped from first chunk (offset 0) if present
+     * - Falls back to UTF-8 if decoding fails
      *
      * **Important**: The returned String may contain incomplete UTF-16 surrogate pairs
      * at chunk boundaries. This occurs when byte-based chunk boundaries split multi-byte
-     * UTF-8 characters (like emoji). ChunkRepository is responsible for detecting and
-     * handling incomplete surrogate pairs.
+     * characters (like emoji in UTF-8 or surrogate pairs in UTF-16). ChunkRepository is
+     * responsible for detecting and handling incomplete surrogate pairs.
      *
      * ChunkManager cache is the source of truth for modified chunks.
      */
