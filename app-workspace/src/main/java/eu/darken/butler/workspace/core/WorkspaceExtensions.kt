@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.AccountTree
+import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Apps
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Info
@@ -19,7 +20,7 @@ val Workspace.Type.icon: ImageVector
         Workspace.Type.SEARCHER -> Icons.TwoTone.Search
         Workspace.Type.EDITOR -> Icons.TwoTone.Edit
         Workspace.Type.APPS -> Icons.TwoTone.Apps
-        Workspace.Type.APP_DETAILS -> Icons.TwoTone.Info
+        Workspace.Type.APP_DETAILS -> Icons.TwoTone.Android
     }
 
 val Workspace.Type.label: CaString
