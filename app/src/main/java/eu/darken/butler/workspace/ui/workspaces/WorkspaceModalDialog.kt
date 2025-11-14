@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import eu.darken.butler.appdetails.ui.AppDetailsWorkspacePageHost
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePageHost
+import eu.darken.butler.apps.ui.details.AppDetailsWorkspacePageHost
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper

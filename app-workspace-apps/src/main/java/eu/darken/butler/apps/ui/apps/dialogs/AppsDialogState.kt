@@ -1,5 +1,6 @@
 package eu.darken.butler.apps.ui.apps.dialogs
 
+import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.core.engine.SortSettings

@@ -1,4 +1,4 @@
-package eu.darken.butler.appdetails.core
+package eu.darken.butler.apps.core.details
 
 import android.content.Context
 import android.content.Intent

@@ -9,12 +9,13 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsWorkspace
+import eu.darken.butler.apps.core.details.AppDetailsArguments
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.core.engine.SortSettings
-import eu.darken.butler.apps.ui.apps.dialogs.AppPath
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -254,7 +255,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "Showing app details (modal): ${app.packageName}" }
         workspaceRemote.createAndFocus(
             type = Workspace.Type.APP_DETAILS,
-            arguments = eu.darken.butler.appdetails.core.AppDetailsArguments(
+            arguments = AppDetailsArguments(
                 packageName = app.packageName,
                 callerWorkspaceId = id,
             )
@@ -265,7 +266,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "Opening app details in tab: ${app.packageName}" }
         workspaceRemote.createAndFocus(
             type = Workspace.Type.APP_DETAILS,
-            arguments = eu.darken.butler.appdetails.core.AppDetailsArguments(
+            arguments = AppDetailsArguments(
                 packageName = app.packageName,
                 callerWorkspaceId = null,  // No caller = opens as tab
             )

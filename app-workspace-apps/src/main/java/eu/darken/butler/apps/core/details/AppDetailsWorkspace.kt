@@ -1,9 +1,10 @@
-package eu.darken.butler.appdetails.core
+package eu.darken.butler.apps.core.details
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import eu.darken.butler.appdetails.R
+import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -101,7 +102,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
         add(
             AppPath(
                 path = internalDataPath,
-                label = R.string.appdetails_path_internal_data_label.toCaString(),
+                label = R.string.apps_path_internal_data_label.toCaString(),
             )
         )
 
@@ -110,7 +111,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
         add(
             AppPath(
                 path = externalDataPath,
-                label = R.string.appdetails_path_external_data_label.toCaString(),
+                label = R.string.apps_path_external_data_label.toCaString(),
             )
         )
     }

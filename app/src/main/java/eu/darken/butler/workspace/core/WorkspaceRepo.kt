@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.core
 
 import eu.darken.butler.apps.core.AppsWorkspace
+import eu.darken.butler.apps.core.details.AppDetailsWorkspace
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
@@ -39,7 +40,7 @@ class WorkspaceRepo @Inject constructor(
     private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
     private val editorWorkspaceFactory: EditorWorkspace.Factory,
     private val appsWorkspaceFactory: AppsWorkspace.Factory,
-    private val appDetailsWorkspaceFactory: eu.darken.butler.appdetails.core.AppDetailsWorkspace.Factory,
+    private val appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
     workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
 ) : WorkspaceProvider, WorkspaceRemote {

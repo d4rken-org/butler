@@ -1,4 +1,4 @@
-package eu.darken.butler.appdetails.ui
+package eu.darken.butler.apps.ui.details
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,13 +36,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.details.AppDetailsWorkspace
+import eu.darken.butler.apps.core.details.AppDetailsWorkspaceViewModel
 import eu.darken.butler.common.formatFileSize
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun OverviewTab(
-    state: eu.darken.butler.appdetails.core.AppDetailsWorkspace.State,
-    vm: eu.darken.butler.appdetails.core.AppDetailsWorkspaceViewModel,
+    state: AppDetailsWorkspace.State,
+    vm: AppDetailsWorkspaceViewModel,
     modifier: Modifier = Modifier,
 ) {
     val app = state.app ?: return
@@ -101,7 +104,7 @@ fun OverviewTab(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = stringResource(eu.darken.butler.appdetails.R.string.appdetails_package_name_label),
+                text = stringResource(R.string.apps_package_name_label),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -113,7 +116,7 @@ fun OverviewTab(
             if (app.versionName != null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = stringResource(eu.darken.butler.appdetails.R.string.appdetails_version_label),
+                    text = stringResource(R.string.apps_version_label),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -126,7 +129,7 @@ fun OverviewTab(
             if (app.appSize != null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = stringResource(eu.darken.butler.appdetails.R.string.appdetails_size_label),
+                    text = stringResource(R.string.apps_size_label),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -164,7 +167,7 @@ fun OverviewTab(
         // Storage Locations
         if (state.availablePaths.isNotEmpty()) {
             Text(
-                text = stringResource(eu.darken.butler.appdetails.R.string.appdetails_details_storage_locations_label),
+                text = stringResource(R.string.apps_details_storage_locations_label),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
@@ -229,7 +232,7 @@ fun OverviewTab(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text(stringResource(eu.darken.butler.appdetails.R.string.appdetails_action_launch))
+                Text(stringResource(R.string.apps_action_launch))
             }
 
             // App Info
@@ -242,7 +245,7 @@ fun OverviewTab(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text(stringResource(eu.darken.butler.appdetails.R.string.appdetails_action_open_info))
+                Text(stringResource(R.string.apps_action_open_info))
             }
 
             // Enable/Disable
@@ -256,7 +259,7 @@ fun OverviewTab(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.size(8.dp))
-                    Text(stringResource(eu.darken.butler.appdetails.R.string.appdetails_action_disable))
+                    Text(stringResource(R.string.apps_action_disable))
                 }
             } else {
                 FilledTonalButton(
@@ -268,7 +271,7 @@ fun OverviewTab(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.size(8.dp))
-                    Text(stringResource(eu.darken.butler.appdetails.R.string.appdetails_action_enable))
+                    Text(stringResource(R.string.apps_action_enable))
                 }
             }
 
@@ -282,7 +285,7 @@ fun OverviewTab(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text(stringResource(eu.darken.butler.appdetails.R.string.appdetails_action_uninstall))
+                Text(stringResource(R.string.apps_action_uninstall))
             }
 
             // Export APK
@@ -295,7 +298,7 @@ fun OverviewTab(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text(stringResource(eu.darken.butler.appdetails.R.string.appdetails_action_export_apk))
+                Text(stringResource(R.string.apps_action_export_apk))
             }
 
             // Share
@@ -308,7 +311,7 @@ fun OverviewTab(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text(stringResource(eu.darken.butler.appdetails.R.string.appdetails_action_share))
+                Text(stringResource(R.string.apps_action_share))
             }
         }
     }

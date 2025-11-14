@@ -1,4 +1,4 @@
-package eu.darken.butler.appdetails.core
+package eu.darken.butler.apps.core
 
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.files.APath
