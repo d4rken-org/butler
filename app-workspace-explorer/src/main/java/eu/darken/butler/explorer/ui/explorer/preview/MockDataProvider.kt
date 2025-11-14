@@ -462,6 +462,8 @@ object MockDataProvider {
             localId = localId,
             displayName = name.toCaString(),
             displayIcon = icon,
+            totalBytes = 128 * 1024 * 1024 * 1024L,
+            availableBytes = 64 * 1024 * 1024 * 1024L,
             target = ExplorerNavigation.Target.Directory(
                 LocalPath.build("/storage/emulated/0")
             )
@@ -486,6 +488,8 @@ object MockDataProvider {
             ),
             displayName = name.toCaString(),
             displayIcon = icon,
+            totalBytes = 999 * 1024 * 1024 * 1024L,
+            availableBytes = 555 * 1024 * 1024 * 1024L,
             target = ExplorerNavigation.Target.Directory(
                 SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments")
             )

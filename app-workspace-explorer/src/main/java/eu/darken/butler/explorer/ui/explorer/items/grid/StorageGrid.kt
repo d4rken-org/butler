@@ -91,8 +91,7 @@ fun StorageGrid(
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
-        secondaryText = item.target.path.path,
-        tertiaryText = run {
+        secondaryText = run {
             val totalBytes = item.totalBytes
             val availableBytes = item.availableBytes
             when {
@@ -109,6 +108,7 @@ fun StorageGrid(
                 else -> null
             }
         },
+        tertiaryText = item.target.path.path,
         backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
         trailingContent = if (item is ExplorerItem.Storage.SAF) {
             { PermissionIndicator(item.location) }
