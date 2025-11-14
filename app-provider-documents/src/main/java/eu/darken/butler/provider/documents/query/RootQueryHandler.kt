@@ -46,7 +46,7 @@ class RootQueryHandler @Inject constructor(
                 add(DocumentsContract.Root.COLUMN_FLAGS, root.flags)
 
                 // Optional columns
-                add(DocumentsContract.Root.COLUMN_SUMMARY, root.summary?.get(context))
+                add(DocumentsContract.Root.COLUMN_SUMMARY, root.summary.get(context))
                 add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, null)
             }
         }
