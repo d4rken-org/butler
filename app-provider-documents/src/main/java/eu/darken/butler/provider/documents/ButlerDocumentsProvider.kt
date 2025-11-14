@@ -14,6 +14,8 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.extensions.isAncestorOf
+import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.query.DocumentQueryHandler
 import eu.darken.butler.provider.documents.query.RootQueryHandler
 import eu.darken.butler.provider.documents.reader.DocumentReader
@@ -39,6 +41,7 @@ import javax.inject.Inject
 class ButlerDocumentsProvider : DocumentsProvider() {
 
     // Manual Hilt injection required for ContentProvider
+    @Inject lateinit var codec: DocumentIdCodec
     @Inject lateinit var rootQueryHandler: RootQueryHandler
     @Inject lateinit var documentQueryHandler: DocumentQueryHandler
     @Inject lateinit var documentReader: DocumentReader
@@ -159,6 +162,52 @@ class ButlerDocumentsProvider : DocumentsProvider() {
         } catch (e: Exception) {
             log(TAG, ERROR) { "renameDocument failed: ${e.asLog()}" }
             throw e
+        }
+    }
+
+    /**
+     * Test if documentId is a descendant (child, grandchild, etc.) of parentDocumentId.
+     * Required for ACTION_OPEN_DOCUMENT_TREE to enable copy/move destination selection.
+     *
+     * Performance critical - called frequently during file picker operations.
+     *
+     * @param parentDocumentId Parent document ID
+     * @param documentId Document ID to test
+     * @return true if documentId is any descendant of parentDocumentId, false otherwise
+     */
+    override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean {
+        return try {
+            log(TAG, VERBOSE) { "isChildDocument(parent=$parentDocumentId, child=$documentId)" }
+
+            // Virtual documents (butler root, device home) are navigation nodes, not filesystem paths
+            if (codec.isVirtualDocument(parentDocumentId)) {
+                log(TAG, VERBOSE) { "Parent is virtual document, returning false" }
+                return false
+            }
+            if (codec.isVirtualDocument(documentId)) {
+                log(TAG, VERBOSE) { "Child is virtual document, returning false" }
+                return false
+            }
+
+            // Same document is not a descendant of itself
+            if (parentDocumentId == documentId) {
+                log(TAG, VERBOSE) { "Same document, returning false" }
+                return false
+            }
+
+            // Decode document IDs to filesystem paths
+            val parentPath = codec.decode(parentDocumentId)
+            val childPath = codec.decode(documentId)
+
+            // Use existing hierarchy checking utilities
+            // Handles type checking (LocalPath vs SAFPath) automatically
+            val isChild = parentPath.isAncestorOf(childPath)
+
+            log(TAG, VERBOSE) { "isChildDocument result: $isChild (${parentPath.path} -> ${childPath.path})" }
+            isChild
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "isChildDocument($parentDocumentId, $documentId) failed: ${e.asLog()}" }
+            false // Safe default: deny relationship on error
         }
     }
 
