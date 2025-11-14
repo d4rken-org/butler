@@ -198,4 +198,10 @@
 
     <!-- Exit app -->
     <string name="general_press_back_again_to_exit">Press back again to exit</string>
+
+    <!-- InfoBar -->
+    <plurals name="common_infobar_selected_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
 </resources>
