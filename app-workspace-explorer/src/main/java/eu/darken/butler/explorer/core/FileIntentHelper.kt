@@ -102,7 +102,7 @@ class FileIntentHelper @Inject constructor(
                     // Use FileProvider for secure access to files
                     FileProvider.getUriForFile(
                         context,
-                        "${context.packageName}.fileprovider",
+                        "${context.packageName}.provider",
                         file
                     )
                 }

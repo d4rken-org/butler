@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
 import javax.inject.Inject
@@ -42,7 +43,9 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
                 )
             )
 
-            actions.add(ExplorerAction.Directory.Share())
+            if (selectionState.selectedItems.all { it is ExplorerItem.File }) {
+                actions.add(ExplorerAction.Directory.Share())
+            }
             actions.add(ExplorerAction.Common.Info())
         } else {
             actions.add(
