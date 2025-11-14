@@ -17,9 +17,7 @@ import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.PolymorphicSerializer
@@ -39,26 +37,15 @@ class MainViewModel @Inject constructor(
 
     val themeState = generalSettings.themeState.asStateFlow()
 
-    private val showExitConfirmationFlow = MutableStateFlow(false)
-    private val dontAskAgainFlow = MutableStateFlow(false)
-
-    val state = combine(
-        generalSettings.isOnboardingCompleted.flow,
-        generalSettings.isConfirmExitEnabled.flow,
-        showExitConfirmationFlow,
-        dontAskAgainFlow,
-        flowOf(Unit),
-    ) { onBoardingComplete, confirmExitEnabled, showExitConfirmation, dontAskAgain, _ ->
-        State(
-            startScreen = when {
-                !onBoardingComplete -> State.StartScreen.ONBOARDING
-                else -> State.StartScreen.HOME
-            },
-            confirmExitEnabled = confirmExitEnabled,
-            showExitConfirmation = showExitConfirmation,
-            dontAskAgain = dontAskAgain
-        )
-    }
+    val state = generalSettings.isOnboardingCompleted.flow
+        .combine(flowOf(Unit)) { onBoardingComplete, _ ->
+            State(
+                startScreen = when {
+                    !onBoardingComplete -> State.StartScreen.ONBOARDING
+                    else -> State.StartScreen.HOME
+                },
+            )
+        }
         .onEach { log(VERBOSE) { "New state: $it" } }
         .asStateFlow()
 
@@ -67,41 +54,14 @@ class MainViewModel @Inject constructor(
         upgradeRepo.refresh()
     }
 
-    fun updateConfirmExitEnabled(enabled: Boolean) = launch {
-        log(tag) { "updateConfirmExitEnabled($enabled)" }
-        generalSettings.isConfirmExitEnabled.value(enabled)
-    }
-
     data class State(
         val startScreen: StartScreen = StartScreen.ONBOARDING,
-        val confirmExitEnabled: Boolean = true,
-        val showExitConfirmation: Boolean = false,
-        val dontAskAgain: Boolean = false,
     ) {
         enum class StartScreen {
             ONBOARDING,
             HOME,
             ;
         }
-    }
-
-    fun setShowExitConfirmation(show: Boolean) = launch {
-        log(tag) { "setShowExitConfirmation($show)" }
-        showExitConfirmationFlow.value = show
-    }
-
-    fun setDontAskAgain(dontAsk: Boolean) = launch {
-        log(tag) { "setDontAskAgain($dontAsk)" }
-        dontAskAgainFlow.value = dontAsk
-    }
-
-    fun isConfirmExitEnabled(callback: (Boolean) -> Unit) = launch {
-        log(tag) { "isConfirmExitEnabled()" }
-        val onboarded = generalSettings.isOnboardingCompleted.flow.first()
-        val exitConfirm = generalSettings.isConfirmExitEnabled.flow.first()
-        val isEnabled = onboarded && exitConfirm
-        log(tag) { "isConfirmExitEnabled(): onboarded=$onboarded, exitConfirm=$exitConfirm, result=$isEnabled" }
-        callback(isEnabled)
     }
 
     fun openDirectoryFromShortcut(serializedPath: String) = launch {
