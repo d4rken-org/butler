@@ -2,9 +2,9 @@
 <resources>
     <!-- Clipboard -->
     <string name="clipboard_header_title">Clipboard</string>
-    <string name="clipboard_clear_all">Clear All</string>
+    <string name="clipboard_clear_all">Clear all</string>
     <string name="clipboard_paste">Paste</string>
-    <string name="clipboard_open_in_explorer">Open in Explorer</string>
+    <string name="clipboard_open_in_explorer">Open in explorer</string>
     <string name="clipboard_copy">Copy</string>
     <string name="clipboard_cut">Cut</string>
     <string name="clipboard_origin">Origin: %s</string>
@@ -34,15 +34,15 @@
     <string name="clipboard_info_time">Time</string>
     <string name="clipboard_info_items_with_count">Items (%1$d)</string>
     <string name="clipboard_info_actions">Actions</string>
-    <string name="clipboard_info_go_to_source">Go to Source</string>
-    <string name="clipboard_info_remove">Remove from Clipboard</string>
+    <string name="clipboard_info_go_to_source">Go to source</string>
+    <string name="clipboard_info_remove">Remove from clipboard</string>
 
     <string name="workspace_explorer_label">Explorer</string>
     <string name="workspace_searcher_label">Searcher</string>
     <string name="workspace_editor_label">Editor</string>
     <string name="workspace_templates_label">Templates</string>
     <string name="workspace_apps_label">Apps</string>
-    <string name="workspace_appdetails_label">App Details</string>
+    <string name="workspace_appdetails_label">App details</string>
 
     <!-- Workspace UI Actions -->
     <string name="workspace_expand_more_action">More</string>
@@ -54,12 +54,12 @@
     <string name="workspace_button_menu_settings_action">Settings</string>
 
     <!-- Workspace Manager Actions -->
-    <string name="workspace_manager_close_all_title">Close All Tabs?</string>
+    <string name="workspace_manager_close_all_title">Close all tabs?</string>
     <string name="workspace_manager_close_all_message">This will close all %1$d open %2$s. This action cannot be undone.</string>
     <string name="workspace_manager_close_all_message_singular">tab</string>
     <string name="workspace_manager_close_all_message_plural">tabs</string>
-    <string name="workspace_manager_close_all_action">Close All</string>
-    <string name="workspace_fab_close_all">Close All Tabs</string>
+    <string name="workspace_manager_close_all_action">Close all</string>
+    <string name="workspace_fab_close_all">Close all tabs</string>
     <string name="general_cancel_action">Cancel</string>
 
     <!-- Operations -->
@@ -70,7 +70,7 @@
     <string name="operations_state_waiting">Waiting for input</string>
     <string name="operations_state_successful">Successful</string>
     <string name="operations_state_failed">Failed</string>
-    <string name="operations_state_cancelled">Cancelled</string>
+    <string name="operations_state_cancelled">Canceled</string>
     <string name="operations_cancel_operation">Cancel operation</string>
     <string name="operations_cancel_dialog_title">Cancel operation?</string>
     <string name="operations_cancel_dialog_message">Are you sure you want to cancel this operation?</string>
@@ -78,10 +78,10 @@
     <string name="operations_details_started_at">Started</string>
     <string name="operations_details_duration">Duration</string>
     <string name="operations_details_progress">Progress</string>
-    <string name="operations_details_error">Error Details</string>
+    <string name="operations_details_error">Error details</string>
     <string name="operations_details_actions">Actions</string>
     <string name="operations_details_overview">Overview</string>
-    <string name="operations_details_copy_error">Copy Error Details</string>
+    <string name="operations_details_copy_error">Copy error details</string>
     <string name="operations_details_status">Status</string>
     <string name="operations_details_result">Result</string>
     <string name="operations_details_affected_paths_with_count">Affected paths (%d)</string>
@@ -184,29 +184,29 @@
     <!-- Workspace > Settings-->
     <string name="workspace_settings_title">Tabs</string>
     <string name="workspace_settings_navigation">Navigation</string>
-    <string name="workspace_settings_swipe_gestures_title">Swipe Gestures</string>
+    <string name="workspace_settings_swipe_gestures_title">Swipe gestures</string>
     <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between tabs.</string>
-    <string name="workspace_settings_ondemand_creation_title">Auto-Create Tabs</string>
+    <string name="workspace_settings_ondemand_creation_title">Auto-create tabs</string>
     <string name="workspace_settings_ondemand_creation_desc">Automatically create new tab when swiping past the last tab.</string>
-    <string name="workspace_settings_live_preview_title">Live Previews</string>
+    <string name="workspace_settings_live_preview_title">Live previews</string>
     <string name="workspace_settings_live_preview_desc">Show live workspace content in tab manager.</string>
     <string name="workspace_settings_layout_title">Layout</string>
-    <string name="workspace_settings_layout_mode_portrait_title">Portrait Layout Mode</string>
+    <string name="workspace_settings_layout_mode_portrait_title">Portrait layout mode</string>
     <string name="workspace_settings_layout_mode_portrait_desc">Choose workspace layout in portrait orientation.</string>
-    <string name="workspace_settings_layout_mode_landscape_title">Landscape Layout Mode</string>
+    <string name="workspace_settings_layout_mode_landscape_title">Landscape layout mode</string>
     <string name="workspace_settings_layout_mode_landscape_desc">Choose workspace layout in landscape orientation.</string>
     <string name="workspace_settings_layout_mode_auto">Auto</string>
     <string name="workspace_settings_layout_mode_auto_desc">Automatically adapt layout based on screen size.</string>
     <string name="workspace_settings_layout_mode_single">Single</string>
     <string name="workspace_settings_layout_mode_single_desc">One workspace pane takes the full screen.</string>
-    <string name="workspace_settings_layout_mode_dual_vertical">Dual Vertical</string>
+    <string name="workspace_settings_layout_mode_dual_vertical">Dual vertical</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Two panes side-by-side (left/right).</string>
-    <string name="workspace_settings_layout_mode_dual_horizontal">Dual Horizontal</string>
+    <string name="workspace_settings_layout_mode_dual_horizontal">Dual horizontal</string>
     <string name="workspace_settings_layout_mode_dual_horizontal_desc">Two panes stacked (top/bottom).</string>
-    <string name="workspace_settings_layout_mode_triple_sidebar_left">Triple Sidebar Left</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_left">Triple sidebar left</string>
     <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">One large pane on left, two smaller panes stacked on right.</string>
-    <string name="workspace_settings_layout_mode_triple_sidebar_right">Triple Sidebar Right</string>
+    <string name="workspace_settings_layout_mode_triple_sidebar_right">Triple sidebar right</string>
     <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Two smaller panes stacked on left, one large pane on right.</string>
-    <string name="workspace_settings_layout_mode_quad_grid">Quad Grid</string>
+    <string name="workspace_settings_layout_mode_quad_grid">Quad grid</string>
     <string name="workspace_settings_layout_mode_quad_grid_desc">Four panes in a 2×2 grid.</string>
 </resources>
