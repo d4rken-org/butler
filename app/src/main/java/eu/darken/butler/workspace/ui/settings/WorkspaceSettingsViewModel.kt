@@ -7,7 +7,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.WorkspaceSettings
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 

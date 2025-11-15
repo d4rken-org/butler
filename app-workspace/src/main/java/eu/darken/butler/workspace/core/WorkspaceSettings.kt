@@ -10,7 +10,7 @@ import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton

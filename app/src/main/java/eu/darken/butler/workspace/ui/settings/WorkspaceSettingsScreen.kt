@@ -30,12 +30,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -43,7 +40,10 @@ import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
 import eu.darken.butler.common.ui.waitForState
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.layout.description
+import eu.darken.butler.workspace.ui.layout.icon
+import eu.darken.butler.workspace.ui.layout.label
 
 @Composable
 fun WorkspaceSettingsScreen(
@@ -60,7 +60,7 @@ fun WorkspaceSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.workspace_settings_title)) },
+                title = { Text(stringResource(eu.darken.butler.workspace.R.string.workspace_settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
@@ -81,14 +81,14 @@ fun WorkspaceSettingsScreen(
             verticalArrangement = Arrangement.Top
         ) {
             item {
-                SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_navigation))
+                SettingsCategoryHeader(text = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_navigation))
             }
 
             item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.SwipeLeft,
-                    title = stringResource(R.string.workspace_settings_swipe_gestures_title),
-                    subtitle = stringResource(R.string.workspace_settings_swipe_gestures_desc),
+                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_swipe_gestures_title),
+                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_swipe_gestures_desc),
                     checked = state.swipeGesturesEnabled,
                     onCheckedChange = { onToggleSwipeGestures() }
                 )
@@ -97,8 +97,8 @@ fun WorkspaceSettingsScreen(
             item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.AutoAwesome,
-                    title = stringResource(R.string.workspace_settings_ondemand_creation_title),
-                    subtitle = stringResource(R.string.workspace_settings_ondemand_creation_desc),
+                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_ondemand_creation_title),
+                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_ondemand_creation_desc),
                     checked = state.onDemandWorkspaceCreation,
                     onCheckedChange = { onToggleOnDemandWorkspaceCreation() },
                     enabled = state.swipeGesturesEnabled,
@@ -108,23 +108,23 @@ fun WorkspaceSettingsScreen(
             item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.Visibility,
-                    title = stringResource(R.string.workspace_settings_live_preview_title),
-                    subtitle = stringResource(R.string.workspace_settings_live_preview_desc),
+                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_live_preview_title),
+                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_live_preview_desc),
                     checked = state.livePreview,
                     onCheckedChange = { onToggleLivePreview() }
                 )
             }
 
             item {
-                SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_layout_title))
+                SettingsCategoryHeader(text = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_title))
             }
 
             item {
                 SettingsPreferenceItem(
                     icon = Icons.TwoTone.StayPrimaryPortrait,
-                    title = stringResource(R.string.workspace_settings_layout_mode_portrait_title),
-                    subtitle = stringResource(R.string.workspace_settings_layout_mode_portrait_desc),
-                    value = getLayoutModeLabel(state.layoutModePortrait),
+                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_portrait_title),
+                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_portrait_desc),
+                    value = state.layoutModePortrait.label(),
                     onClick = { showPortraitDialog = true }
                 )
             }
@@ -132,9 +132,9 @@ fun WorkspaceSettingsScreen(
             item {
                 SettingsPreferenceItem(
                     icon = Icons.TwoTone.StayPrimaryLandscape,
-                    title = stringResource(R.string.workspace_settings_layout_mode_landscape_title),
-                    subtitle = stringResource(R.string.workspace_settings_layout_mode_landscape_desc),
-                    value = getLayoutModeLabel(state.layoutModeLandscape),
+                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_landscape_title),
+                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_landscape_desc),
+                    value = state.layoutModeLandscape.label(),
                     onClick = { showLandscapeDialog = true }
                 )
             }
@@ -143,7 +143,7 @@ fun WorkspaceSettingsScreen(
 
     if (showPortraitDialog) {
         LayoutModeDialog(
-            title = stringResource(R.string.workspace_settings_layout_mode_portrait_title),
+            title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_portrait_title),
             currentMode = state.layoutModePortrait,
             availableModes = listOf(
                 WorkspacePanelMode.AUTO,
@@ -161,7 +161,7 @@ fun WorkspaceSettingsScreen(
 
     if (showLandscapeDialog) {
         LayoutModeDialog(
-            title = stringResource(R.string.workspace_settings_layout_mode_landscape_title),
+            title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_landscape_title),
             currentMode = state.layoutModeLandscape,
             availableModes = listOf(
                 WorkspacePanelMode.AUTO,
@@ -176,32 +176,6 @@ fun WorkspaceSettingsScreen(
                 showLandscapeDialog = false
             }
         )
-    }
-}
-
-@Composable
-private fun getLayoutModeLabel(mode: WorkspacePanelMode): String {
-    return when (mode) {
-        WorkspacePanelMode.AUTO -> stringResource(R.string.workspace_settings_layout_mode_auto)
-        WorkspacePanelMode.SINGLE -> stringResource(R.string.workspace_settings_layout_mode_single)
-        WorkspacePanelMode.DUAL_VERTICAL -> stringResource(R.string.workspace_settings_layout_mode_dual_vertical)
-        WorkspacePanelMode.DUAL_HORIZONTAL -> stringResource(R.string.workspace_settings_layout_mode_dual_horizontal)
-        WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> stringResource(R.string.workspace_settings_layout_mode_triple_sidebar_left)
-        WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT -> stringResource(R.string.workspace_settings_layout_mode_triple_sidebar_right)
-        WorkspacePanelMode.QUAD_GRID -> stringResource(R.string.workspace_settings_layout_mode_quad_grid)
-    }
-}
-
-@Composable
-private fun getLayoutModeIconPainter(mode: WorkspacePanelMode): Painter {
-    return when (mode) {
-        WorkspacePanelMode.SINGLE -> painterResource(R.drawable.ic_layout_single)
-        WorkspacePanelMode.DUAL_VERTICAL -> painterResource(R.drawable.ic_layout_dual_vertical)
-        WorkspacePanelMode.DUAL_HORIZONTAL -> painterResource(R.drawable.ic_layout_dual_horizontal)
-        WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> painterResource(R.drawable.ic_layout_triple_sidebar_left)
-        WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT -> painterResource(R.drawable.ic_layout_triple_sidebar_right)
-        WorkspacePanelMode.QUAD_GRID -> painterResource(R.drawable.ic_layout_quad_grid)
-        WorkspacePanelMode.AUTO -> painterResource(R.drawable.ic_layout_single) // Fallback
     }
 }
 
@@ -231,22 +205,22 @@ private fun LayoutModeDialog(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            painter = getLayoutModeIconPainter(mode),
+                            imageVector = mode.icon(),
                             contentDescription = null,
                             tint = if (isSelected) {
                                 MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             },
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(32.dp),
                         )
                         Column(modifier = Modifier.padding(start = 16.dp)) {
                             Text(
-                                text = getLayoutModeLabel(mode),
+                                text = mode.label(),
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                             Text(
-                                text = getLayoutModeDescription(mode),
+                                text = mode.description(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             )
@@ -257,19 +231,6 @@ private fun LayoutModeDialog(
         },
         confirmButton = {}
     )
-}
-
-@Composable
-private fun getLayoutModeDescription(mode: WorkspacePanelMode): String {
-    return when (mode) {
-        WorkspacePanelMode.AUTO -> stringResource(R.string.workspace_settings_layout_mode_auto_desc)
-        WorkspacePanelMode.SINGLE -> stringResource(R.string.workspace_settings_layout_mode_single_desc)
-        WorkspacePanelMode.DUAL_VERTICAL -> stringResource(R.string.workspace_settings_layout_mode_dual_vertical_desc)
-        WorkspacePanelMode.DUAL_HORIZONTAL -> stringResource(R.string.workspace_settings_layout_mode_dual_horizontal_desc)
-        WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> stringResource(R.string.workspace_settings_layout_mode_triple_sidebar_left_desc)
-        WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT -> stringResource(R.string.workspace_settings_layout_mode_triple_sidebar_right_desc)
-        WorkspacePanelMode.QUAD_GRID -> stringResource(R.string.workspace_settings_layout_mode_quad_grid_desc)
-    }
 }
 
 @Preview2

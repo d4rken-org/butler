@@ -303,35 +303,6 @@
     <string name="workspace_adaptive_tip_switch_layouts">Switch between pane layouts in the tab manager.</string>
     <string name="workspace_adaptive_tip_copy_between_panes">Copy files between panes with drag and drop.</string>
 
-    <!-- Workspace > Settings-->
-    <string name="workspace_settings_title">Tabs</string>
-    <string name="workspace_settings_navigation">Navigation</string>
-    <string name="workspace_settings_swipe_gestures_title">Swipe Gestures</string>
-    <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between tabs.</string>
-    <string name="workspace_settings_ondemand_creation_title">Auto-Create Tabs</string>
-    <string name="workspace_settings_ondemand_creation_desc">Automatically create new tab when swiping past the last tab.</string>
-    <string name="workspace_settings_live_preview_title">Live Previews</string>
-    <string name="workspace_settings_live_preview_desc">Show live workspace content in tab manager.</string>
-    <string name="workspace_settings_layout_title">Layout</string>
-    <string name="workspace_settings_layout_mode_portrait_title">Portrait Layout Mode</string>
-    <string name="workspace_settings_layout_mode_portrait_desc">Choose workspace layout in portrait orientation.</string>
-    <string name="workspace_settings_layout_mode_landscape_title">Landscape Layout Mode</string>
-    <string name="workspace_settings_layout_mode_landscape_desc">Choose workspace layout in landscape orientation.</string>
-    <string name="workspace_settings_layout_mode_auto">Auto</string>
-    <string name="workspace_settings_layout_mode_auto_desc">Automatically adapt layout based on screen size.</string>
-    <string name="workspace_settings_layout_mode_single">Single</string>
-    <string name="workspace_settings_layout_mode_single_desc">One workspace pane takes the full screen.</string>
-    <string name="workspace_settings_layout_mode_dual_vertical">Dual Vertical</string>
-    <string name="workspace_settings_layout_mode_dual_vertical_desc">Two panes side-by-side (left/right).</string>
-    <string name="workspace_settings_layout_mode_dual_horizontal">Dual Horizontal</string>
-    <string name="workspace_settings_layout_mode_dual_horizontal_desc">Two panes stacked (top/bottom).</string>
-    <string name="workspace_settings_layout_mode_triple_sidebar_left">Triple Sidebar Left</string>
-    <string name="workspace_settings_layout_mode_triple_sidebar_left_desc">One large pane on left, two smaller panes stacked on right.</string>
-    <string name="workspace_settings_layout_mode_triple_sidebar_right">Triple Sidebar Right</string>
-    <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Two smaller panes stacked on left, one large pane on right.</string>
-    <string name="workspace_settings_layout_mode_quad_grid">Quad Grid</string>
-    <string name="workspace_settings_layout_mode_quad_grid_desc">Four panes in a 2×2 grid.</string>
-
     <string name="workspace_badge_tip_title">Tip: Tab Button Indicators</string>
     <string name="workspace_badge_open_workspaces">Number of open tabs</string>
     <string name="workspace_badge_active_operations">Active operations (file copies, searches, etc.)</string>

@@ -1,6 +1,6 @@
 package eu.darken.butler.workspace.core
 
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import kotlinx.coroutines.flow.Flow
 
 interface WorkspaceRemote {

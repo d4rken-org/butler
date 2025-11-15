@@ -17,11 +17,9 @@ import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 
 @HiltViewModel(assistedFactory = TemplatesWorkspaceViewModel.Factory::class)
 class TemplatesWorkspaceViewModel @AssistedInject constructor(

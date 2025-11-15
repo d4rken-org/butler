@@ -132,7 +132,7 @@ fun SettingsIndexScreen(
             item {
                 SettingsBaseItem(
                     icon = Icons.TwoTone.Workspaces,
-                    title = stringResource(R.string.workspace_settings_title),
+                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_title),
                     subtitle = stringResource(R.string.workspace_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.workspaces()) },
                 )
@@ -158,7 +158,7 @@ fun SettingsIndexScreen(
                 )
                 SettingsDivider()
             }
-            
+
             item { SettingsCategoryHeader(stringResource(R.string.settings_category_tools_label)) }
 
             item {
