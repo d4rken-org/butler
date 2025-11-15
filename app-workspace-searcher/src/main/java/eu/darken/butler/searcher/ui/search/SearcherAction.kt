@@ -17,6 +17,7 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.actions.WorkspaceAction
@@ -119,7 +120,8 @@ sealed interface SearcherAction : WorkspaceAction {
             override val label = R.string.searcher_action_sort.toCaString()
         }
 
-        data class ToggleView(
+        data class UpdateViewStyle(
+            val viewStyle: SearcherViewStyle,
             override val isEnabled: Boolean = true,
             override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
         ) : Common {
