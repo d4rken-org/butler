@@ -68,6 +68,9 @@ fun WorkspaceManagerScreenHost(
             onDismissBadgeExplanation = vm::dismissBadgeExplanation,
             onDismissLongPressHint = vm::dismissLongPressHint,
             onCloseAllWorkspaces = vm::closeAllWorkspaces,
+            onTabsClick = vm::clearFilters,
+            onOperationsFilterClick = vm::toggleOperationsFilter,
+            onAttentionFilterClick = vm::toggleAttentionFilter,
         )
     }
 }
@@ -84,6 +87,9 @@ fun WorkspaceManagerScreen(
     onDismissBadgeExplanation: () -> Unit,
     onDismissLongPressHint: () -> Unit,
     onCloseAllWorkspaces: () -> Unit,
+    onTabsClick: () -> Unit = {},
+    onOperationsFilterClick: () -> Unit = {},
+    onAttentionFilterClick: () -> Unit = {},
 ) {
     var showCloseAllDialog by remember { mutableStateOf(false) }
     var isFabVisible by remember { mutableStateOf(true) }
@@ -163,6 +169,9 @@ fun WorkspaceManagerScreen(
             onReorderWorkspaces = onReorderWorkspaces,
             onSelectWorkspace = onSelectWorkspace,
             onDismissBadgeExplanation = onDismissBadgeExplanation,
+            onTabsClick = onTabsClick,
+            onOperationsFilterClick = onOperationsFilterClick,
+            onAttentionFilterClick = onAttentionFilterClick,
         )
     }
 

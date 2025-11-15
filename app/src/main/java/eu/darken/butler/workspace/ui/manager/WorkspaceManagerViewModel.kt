@@ -10,10 +10,12 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
@@ -27,13 +29,26 @@ class WorkspaceManagerViewModel @Inject constructor(
     private val workspacePreviewManager: WorkspacePreviewManager,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Manager", "VM"), navCtrl) {
 
+    private val filterOperationsFlow = MutableStateFlow(false)
+    private val filterAttentionFlow = MutableStateFlow(false)
+
     val state = combine(
         workspaceRepo.state,
         workspaceSettings.showTipBadgeExplanation.flow,
         workspaceSettings.showTipFabLongPress.flow,
         workspaceSettings.livePreview.flow,
         workspacePageManager.state,
-    ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState ->
+        filterOperationsFlow,
+        filterAttentionFlow,
+    ) { args: Array<Any> ->
+        val repoState = args[0] as WorkspaceRemote.State
+        val showBadge = args[1] as Boolean
+        val showFabLongPressHint = args[2] as Boolean
+        val livePreview = args[3] as Boolean
+        val pageManagerState = args[4] as WorkspacePageManager.State
+        val filterOps = args[5] as Boolean
+        val filterAtt = args[6] as Boolean
+
         State(
             workspaces = repoState.infos.map { info ->
                 val panePosition = pageManagerState.selectedWorkspaces.entries
@@ -46,6 +61,8 @@ class WorkspaceManagerViewModel @Inject constructor(
                     isFocused = pageManagerState.focusedWorkspaceId == info.id,
                     isSelected = pageManagerState.selectedWorkspaces.values.contains(info.id),
                     paneNumber = panePosition,
+                    operationCount = info.operationCount,
+                    attentionCount = info.attentionCount,
                 )
             },
             useLivePreview = livePreview,
@@ -54,6 +71,8 @@ class WorkspaceManagerViewModel @Inject constructor(
             operationsCount = repoState.operationCount,
             attentionCount = repoState.attentionCount,
             currentPaneCount = pageManagerState.currentPaneCount,
+            filterOperations = filterOps,
+            filterAttention = filterAtt,
         )
     }.asStateFlow()
 
@@ -100,6 +119,22 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspacePreviewManager.invalidateFocusedWorkspacePreview()
     }
 
+    fun toggleOperationsFilter() {
+        log(tag) { "toggleOperationsFilter() - current: ${filterOperationsFlow.value}" }
+        filterOperationsFlow.value = !filterOperationsFlow.value
+    }
+
+    fun toggleAttentionFilter() {
+        log(tag) { "toggleAttentionFilter() - current: ${filterAttentionFlow.value}" }
+        filterAttentionFlow.value = !filterAttentionFlow.value
+    }
+
+    fun clearFilters() {
+        log(tag) { "clearFilters()" }
+        filterOperationsFlow.value = false
+        filterAttentionFlow.value = false
+    }
+
     data class State(
         val workspaces: List<WorkspaceItem> = emptyList(),
         val showBadgeExplanation: Boolean = true,
@@ -108,8 +143,22 @@ class WorkspaceManagerViewModel @Inject constructor(
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
         val currentPaneCount: Int = 1,
+        val filterOperations: Boolean = false,
+        val filterAttention: Boolean = false,
     ) {
         val workspaceCount: Int = workspaces.size
+
+        val filteredWorkspaces: List<WorkspaceItem>
+            get() {
+                // If no filters active, return all workspaces
+                if (!filterOperations && !filterAttention) return workspaces
+
+                return workspaces.filter { workspace ->
+                    val matchesOperations = !filterOperations || workspace.operationCount > 0
+                    val matchesAttention = !filterAttention || workspace.attentionCount > 0
+                    matchesOperations && matchesAttention
+                }
+            }
     }
 
     data class WorkspaceItem(
@@ -120,5 +169,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         val isFocused: Boolean = false,
         val isSelected: Boolean = false,
         val paneNumber: Int? = null,
+        val operationCount: Int = 0,
+        val attentionCount: Int = 0,
     )
 }
