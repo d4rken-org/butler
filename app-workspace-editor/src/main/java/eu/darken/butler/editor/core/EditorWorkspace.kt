@@ -258,8 +258,8 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun deleteSelection() = engineHolder.value().deleteSelection()
 
     suspend fun insertText(text: String) = engineHolder.value().insertText(text)
-    fun setCursorPosition(position: TextPosition) = runBlocking { engineHolder.value().setCursorPosition(position) }
-    fun setSelection(start: TextPosition, end: TextPosition) = runBlocking { engineHolder.value().setSelection(start, end) }
+    suspend fun setCursorPosition(position: TextPosition) = engineHolder.value().setCursorPosition(position)
+    suspend fun setSelection(start: TextPosition, end: TextPosition) = engineHolder.value().setSelection(start, end)
     suspend fun updateVisibleRange(startLine: Int, endLine: Int) = engineHolder.value().updateVisibleRange(startLine, endLine)
     fun clearError() = runBlocking { engineHolder.value().clearError() }
     fun canUndo() = runBlocking { engineHolder.value().canUndo() }
