@@ -301,7 +301,6 @@ private fun TemplatesWorkspacePagePreview() {
                     EditorWorkspaceTemplate(),
                 ),
                 isUpgraded = true,
-                panelMode = WorkspacePanelMode.AUTO,
                 versionDescription = "1.0.0-preview",
             ),
             onNavToSettings = {},

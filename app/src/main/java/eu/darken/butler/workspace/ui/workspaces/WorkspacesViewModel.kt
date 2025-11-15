@@ -263,8 +263,11 @@ class WorkspacesViewModel @Inject constructor(
         val motd: MotdState? = null,
         val currentPaneCount: Int = 1,
     ) {
-        val displayMode: WorkspacePanelMode
-            get() = state.panelMode
+        val portraitPanelMode: WorkspacePanelMode
+            get() = state.portraitPanelMode
+
+        val landscapePanelMode: WorkspacePanelMode
+            get() = state.landscapePanelMode
 
         val focused: Workspace.Id?
             get() = focusedWorkspace

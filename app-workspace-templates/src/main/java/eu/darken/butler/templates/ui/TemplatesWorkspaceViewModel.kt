@@ -44,13 +44,11 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
     val state = combine(
         templates,
         upgradeRepo.upgradeInfo,
-        workspaceRemote.state.map { it.panelMode },
-    ) { temps, upgradeInfo, panelMode ->
+    ) { temps, upgradeInfo ->
         State(
             id = id,
             templates = temps,
             isUpgraded = upgradeInfo.isUpgraded,
-            panelMode = panelMode,
             versionDescription = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
         )
     }.asStateFlow()
@@ -63,7 +61,6 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         val id: Workspace.Id,
         val isUpgraded: Boolean,
         val templates: List<WorkspaceTemplate>,
-        val panelMode: WorkspacePanelMode,
         val versionDescription: String,
     )
 
