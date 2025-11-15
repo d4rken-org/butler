@@ -35,6 +35,7 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.operations.SearcherCommand
@@ -106,15 +107,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
-    private val currentSortSettings = MutableStateFlow<eu.darken.butler.searcher.core.SearchSortSettings>(searcherSettings.sortSettings.valueBlocking)
-    private val viewModeFlow = MutableStateFlow<ViewMode>(ViewMode.LIST)
+    private val currentSortSettings = MutableStateFlow(searcherSettings.sortSettings.valueBlocking)
+    private val viewStyleFlow = MutableStateFlow(searcherSettings.defaultViewStyle.valueBlocking)
     private var lastAutoExecutedQuery: String? = null
     private var currentSearchId: String? = null
-
-    enum class ViewMode {
-        LIST,
-        GRID
-    }
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
@@ -250,8 +246,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         quickActionsResult,
         dialogStateFlow,
         currentSortSettings,
-        viewModeFlow,
-    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewMode: ViewMode ->
+        viewStyleFlow,
+    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewStyle: SearcherViewStyle ->
         val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -285,7 +281,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         } else if (sortedResults.isNotEmpty()) {
             buildList {
                 add(SearcherAction.Common.Sort())
-                add(SearcherAction.Common.ToggleView())
+                val toggledViewStyle = when (viewStyle) {
+                    is SearcherViewStyle.List -> SearcherViewStyle.Grid()
+                    is SearcherViewStyle.Grid -> SearcherViewStyle.List()
+                }
+                add(SearcherAction.Common.UpdateViewStyle(toggledViewStyle))
             }
         } else {
             emptyList()
@@ -306,7 +306,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             quickActionsResult = quickActions,
             dialogState = dialogState,
             availableActions = actions,
-            viewMode = viewMode,
+            viewStyle = viewStyle,
             sortSettings = sortSettings,
         )
     }
@@ -569,10 +569,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     currentSortSettings = currentSortSettings.value
                 )
             }
-            is SearcherAction.Common.ToggleView -> {
-                viewModeFlow.value = when (viewModeFlow.value) {
-                    ViewMode.LIST -> ViewMode.GRID
-                    ViewMode.GRID -> ViewMode.LIST
+            is SearcherAction.Common.UpdateViewStyle -> {
+                viewStyleFlow.value = action.viewStyle
+                vmScope.launch {
+                    searcherSettings.defaultViewStyle.value(action.viewStyle)
                 }
             }
             is SearcherAction.OpenInNewTabs -> {
@@ -699,7 +699,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val quickActionsResult: SearchItem? = null,
         val dialogState: SearcherDialogState = SearcherDialogState.None,
         val availableActions: List<SearcherAction> = emptyList(),
-        val viewMode: ViewMode = ViewMode.LIST,
+        val viewStyle: SearcherViewStyle = SearcherViewStyle.default(),
         val sortSettings: eu.darken.butler.searcher.core.SearchSortSettings = eu.darken.butler.searcher.core.SearchSortSettings(),
     ) {
         val isSearching: Boolean
@@ -904,6 +904,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Search.UpdateQuery -> {
                 log(TAG, INFO) { "Updating search query: ${action.query.text}" }
                 searchQuery.value = action.query
+                // Auto-clear results when query becomes empty
+                if (action.query.text.isBlank()) {
+                    clearResults()
+                }
             }
             is SearcherPageAction.Search.Perform -> performSearch()
             is SearcherPageAction.Search.Explicit -> {

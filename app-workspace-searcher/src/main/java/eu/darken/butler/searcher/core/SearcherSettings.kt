@@ -37,6 +37,8 @@ class SearcherSettings @Inject constructor(
 
     val sortSettings = dataStore.createValue("searcher.sort.default", SearchSortSettings(), json)
 
+    val defaultViewStyle = dataStore.createValue("searcher.view.style.default", SearcherViewStyle.default(), json)
+
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         caseSensitive,
@@ -47,6 +49,7 @@ class SearcherSettings @Inject constructor(
         maxSearchResults,
         defaultSearchTargets,
         sortSettings,
+        defaultViewStyle,
     )
 
     companion object {
