@@ -1,4 +1,4 @@
-package eu.darken.butler.provider.documents
+package eu.darken.butler.provider.documents.core
 
 import android.database.Cursor
 import android.database.MatrixCursor
@@ -12,13 +12,12 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.extensions.isAncestorOf
-import eu.darken.butler.provider.documents.core.DocumentIdCodec
-import eu.darken.butler.provider.documents.query.DocumentQueryHandler
-import eu.darken.butler.provider.documents.query.RootQueryHandler
-import eu.darken.butler.provider.documents.reader.DocumentReader
-import eu.darken.butler.provider.documents.writer.DocumentCreator
-import eu.darken.butler.provider.documents.writer.DocumentModifier
-import eu.darken.butler.provider.documents.writer.DocumentMover
+import eu.darken.butler.provider.documents.core.query.DocumentQueryHandler
+import eu.darken.butler.provider.documents.core.query.RootQueryHandler
+import eu.darken.butler.provider.documents.core.reader.DocumentReader
+import eu.darken.butler.provider.documents.core.writer.DocumentCreator
+import eu.darken.butler.provider.documents.core.writer.DocumentModifier
+import eu.darken.butler.provider.documents.core.writer.DocumentMover
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 

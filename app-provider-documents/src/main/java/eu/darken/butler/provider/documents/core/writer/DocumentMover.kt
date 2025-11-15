@@ -1,4 +1,4 @@
-package eu.darken.butler.provider.documents.writer
+package eu.darken.butler.provider.documents.core.writer
 
 import android.content.Context
 import android.provider.DocumentsContract
@@ -6,7 +6,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -14,7 +13,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.MoveAction
-import eu.darken.butler.provider.documents.ButlerDocumentsProvider
+import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import kotlinx.coroutines.flow.last
 import java.io.FileNotFoundException

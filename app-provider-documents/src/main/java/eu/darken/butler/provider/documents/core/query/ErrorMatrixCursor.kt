@@ -1,4 +1,4 @@
-package eu.darken.butler.provider.documents.query
+package eu.darken.butler.provider.documents.core.query
 
 import android.database.MatrixCursor
 import android.os.Bundle
