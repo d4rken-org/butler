@@ -16,6 +16,7 @@ import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlin.coroutines.coroutineContext
@@ -162,11 +163,11 @@ class EditorEngine @AssistedInject constructor(
 
             // Open data source
             resources.dataSource.open()
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
 
             // Initialize text buffer
             val bufferInitResult = resources.textBuffer.initialize()
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
             if (bufferInitResult.isFailure) {
                 val error = bufferInitResult.exceptionOrNull() ?: Exception("Unknown error")
                 _state.value = EditorState.Error(error, _state.value)
@@ -391,7 +392,7 @@ class EditorEngine @AssistedInject constructor(
                 ?: return Result.failure(IllegalStateException("Cannot go to line - no file open"))
 
             val totalLines = _totalLines.value
-            if (lineNumber < 0 || lineNumber >= totalLines) {
+            if (lineNumber !in 0..<totalLines) {
                 return Result.failure(
                     IllegalArgumentException("Line $lineNumber out of range (0..$totalLines)")
                 )
@@ -430,7 +431,7 @@ class EditorEngine @AssistedInject constructor(
         val currentRange = _visibleRange.value
 
         try {
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
             val contentResult = currentState.resources.textBuffer.getTextForRange(
                 currentRange.first,
                 currentRange.last

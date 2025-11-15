@@ -17,13 +17,13 @@ import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
-import eu.darken.butler.explorer.core.picker.PickerConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -201,26 +201,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun setCursorPosition(position: TextPosition) {
-        launch {
-            try {
-                val workspace = workspaceFlow.first() as? EditorWorkspace
-                workspace?.setCursorPosition(position)
-            } catch (e: Exception) {
-                log(tag, Logging.Priority.ERROR) { "Failed to set cursor position - ${e.asLog()}" }
-            }
-        }
+    fun setCursorPosition(position: TextPosition) = launch {
+        getCurrentWorkspace()?.setCursorPosition(position)
     }
 
-    fun setSelection(start: TextPosition, end: TextPosition) {
-        launch {
-            try {
-                val workspace = workspaceFlow.first() as? EditorWorkspace
-                workspace?.setSelection(start, end)
-            } catch (e: Exception) {
-                log(tag, Logging.Priority.ERROR) { "Failed to set selection - ${e.asLog()}" }
-            }
-        }
+
+    fun setSelection(start: TextPosition, end: TextPosition) = launch {
+        getCurrentWorkspace()?.setSelection(start, end)
     }
 
     fun search(query: String) {
