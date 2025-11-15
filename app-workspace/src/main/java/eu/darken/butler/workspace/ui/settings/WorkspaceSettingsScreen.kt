@@ -40,6 +40,7 @@ import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
 import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.layout.description
 import eu.darken.butler.workspace.ui.layout.icon
@@ -60,7 +61,7 @@ fun WorkspaceSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(eu.darken.butler.workspace.R.string.workspace_settings_title)) },
+                title = { Text(stringResource(R.string.workspace_settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
@@ -81,14 +82,14 @@ fun WorkspaceSettingsScreen(
             verticalArrangement = Arrangement.Top
         ) {
             item {
-                SettingsCategoryHeader(text = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_navigation))
+                SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_navigation))
             }
 
             item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.SwipeLeft,
-                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_swipe_gestures_title),
-                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_swipe_gestures_desc),
+                    title = stringResource(R.string.workspace_settings_swipe_gestures_title),
+                    subtitle = stringResource(R.string.workspace_settings_swipe_gestures_desc),
                     checked = state.swipeGesturesEnabled,
                     onCheckedChange = { onToggleSwipeGestures() }
                 )
@@ -97,8 +98,8 @@ fun WorkspaceSettingsScreen(
             item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.AutoAwesome,
-                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_ondemand_creation_title),
-                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_ondemand_creation_desc),
+                    title = stringResource(R.string.workspace_settings_ondemand_creation_title),
+                    subtitle = stringResource(R.string.workspace_settings_ondemand_creation_desc),
                     checked = state.onDemandWorkspaceCreation,
                     onCheckedChange = { onToggleOnDemandWorkspaceCreation() },
                     enabled = state.swipeGesturesEnabled,
@@ -108,22 +109,22 @@ fun WorkspaceSettingsScreen(
             item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.Visibility,
-                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_live_preview_title),
-                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_live_preview_desc),
+                    title = stringResource(R.string.workspace_settings_live_preview_title),
+                    subtitle = stringResource(R.string.workspace_settings_live_preview_desc),
                     checked = state.livePreview,
                     onCheckedChange = { onToggleLivePreview() }
                 )
             }
 
             item {
-                SettingsCategoryHeader(text = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_title))
+                SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_layout_title))
             }
 
             item {
                 SettingsPreferenceItem(
                     icon = Icons.TwoTone.StayPrimaryPortrait,
-                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_portrait_title),
-                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_portrait_desc),
+                    title = stringResource(R.string.workspace_settings_layout_mode_portrait_title),
+                    subtitle = stringResource(R.string.workspace_settings_layout_mode_portrait_desc),
                     value = state.layoutModePortrait.label(),
                     onClick = { showPortraitDialog = true }
                 )
@@ -132,8 +133,8 @@ fun WorkspaceSettingsScreen(
             item {
                 SettingsPreferenceItem(
                     icon = Icons.TwoTone.StayPrimaryLandscape,
-                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_landscape_title),
-                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_landscape_desc),
+                    title = stringResource(R.string.workspace_settings_layout_mode_landscape_title),
+                    subtitle = stringResource(R.string.workspace_settings_layout_mode_landscape_desc),
                     value = state.layoutModeLandscape.label(),
                     onClick = { showLandscapeDialog = true }
                 )
@@ -143,7 +144,7 @@ fun WorkspaceSettingsScreen(
 
     if (showPortraitDialog) {
         LayoutModeDialog(
-            title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_portrait_title),
+            title = stringResource(R.string.workspace_settings_layout_mode_portrait_title),
             currentMode = state.layoutModePortrait,
             availableModes = listOf(
                 WorkspacePanelMode.AUTO,
@@ -161,7 +162,7 @@ fun WorkspaceSettingsScreen(
 
     if (showLandscapeDialog) {
         LayoutModeDialog(
-            title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_layout_mode_landscape_title),
+            title = stringResource(R.string.workspace_settings_layout_mode_landscape_title),
             currentMode = state.layoutModeLandscape,
             availableModes = listOf(
                 WorkspacePanelMode.AUTO,
