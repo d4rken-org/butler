@@ -198,7 +198,8 @@ class WorkspaceRepo @Inject constructor(
                 _events.emit(
                     WorkspaceEvent.Created(
                         workspaceId = newId,
-                        replacedId = action.replace
+                        replacedId = action.replace,
+                        autoFocus = action.autoFocus,
                     )
                 )
                 WorkspaceAction.Create.Result(newId)

@@ -127,7 +127,8 @@ fun TemplatesWorkspacePage(
                                         WorkspaceAction.Create(
                                             type = template.type,
                                             arguments = template.arguments,
-                                            replace = state.id
+                                            replace = state.id,
+                                            autoFocus = true,
                                         )
                                     )
                                 })
