@@ -204,8 +204,6 @@ private fun LayoutModeDialog(
     onDismiss: () -> Unit,
     onConfirm: (WorkspacePanelMode) -> Unit,
 ) {
-    var selectedMode by remember { mutableStateOf(currentMode) }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -216,15 +214,15 @@ private fun LayoutModeDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .selectable(
-                                selected = (mode == selectedMode),
-                                onClick = { selectedMode = mode },
+                                selected = (mode == currentMode),
+                                onClick = { onConfirm(mode) },
                                 role = Role.RadioButton
                             )
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
-                            selected = (mode == selectedMode),
+                            selected = (mode == currentMode),
                             onClick = null
                         )
                         Column(modifier = Modifier.padding(start = 16.dp)) {
@@ -242,16 +240,7 @@ private fun LayoutModeDialog(
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(selectedMode) }) {
-                Text(stringResource(android.R.string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.general_cancel_action))
-            }
-        }
+        confirmButton = {}
     )
 }
 
