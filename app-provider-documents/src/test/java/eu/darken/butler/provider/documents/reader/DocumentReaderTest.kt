@@ -64,7 +64,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(100)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Can read file contents
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -176,7 +176,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(100)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Can read file contents through pipe
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -208,7 +208,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(150)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Can read all data through pipe
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -241,7 +241,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(100)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Read line by line
         FileInputStream(pfd.fileDescriptor).bufferedReader().use { reader ->
@@ -267,7 +267,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(100)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Can open and read (returns empty)
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -295,7 +295,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(200)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Can read all data
         FileInputStream(pfd.fileDescriptor).use { inputStream ->

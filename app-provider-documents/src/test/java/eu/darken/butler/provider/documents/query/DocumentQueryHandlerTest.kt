@@ -21,6 +21,7 @@ import eu.darken.butler.provider.documents.core.query.DocumentQueryHandler
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import android.webkit.MimeTypeMap
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -36,7 +37,7 @@ import org.robolectric.annotation.Config
 import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [29])
+@Config(sdk = [33])
 class DocumentQueryHandlerTest {
 
     private lateinit var context: Context
@@ -76,6 +77,19 @@ class DocumentQueryHandlerTest {
                 every { uri.toString() } returns "content://$authority/document/$documentId/children"
             }
         }
+
+        // Mock MimeTypeMap for tests since it doesn't work properly in Robolectric
+        mockkStatic(MimeTypeMap::class)
+        val mockMimeTypeMap = mockk<MimeTypeMap>(relaxed = true)
+        every { MimeTypeMap.getSingleton() } returns mockMimeTypeMap
+        every { mockMimeTypeMap.getMimeTypeFromExtension("pdf") } returns "application/pdf"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("jpg") } returns "image/jpeg"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("jpeg") } returns "image/jpeg"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("png") } returns "image/png"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("mp4") } returns "video/mp4"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("zip") } returns "application/zip"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("txt") } returns "text/plain"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("") } returns null
 
         handler = DocumentQueryHandler(
             context,
