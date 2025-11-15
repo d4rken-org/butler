@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -511,6 +512,14 @@ class GatewaySwitch @Inject constructor(
         )
 
         is SAFPath -> error("Same-type operations should be handled by native implementation")
+    }
+
+    override suspend fun create(
+        target: APath<*>,
+        type: CreateAction.CreateType,
+        options: CreateAction.Options
+    ): Flow<CreateAction.State<APath<*>, APathLookup<APath<*>>>> {
+        return useGateway(target) { create(target, type, options) }
     }
 
     enum class Type {

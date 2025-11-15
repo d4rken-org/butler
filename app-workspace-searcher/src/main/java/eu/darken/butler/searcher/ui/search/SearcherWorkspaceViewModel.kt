@@ -259,10 +259,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         // Calculate available actions based on selection state
         val actions = if (updatedSelectionState.selectedResultIds.isNotEmpty()) {
             buildList {
-                // Select All / Deselect All
-                if (updatedSelectionState.isAllSelected) {
-                    add(SearcherAction.DeselectAll)
-                } else if (updatedSelectionState.selectableResults.isNotEmpty()) {
+                // Select All
+                if (!updatedSelectionState.isAllSelected && updatedSelectionState.selectableResults.isNotEmpty()) {
                     add(SearcherAction.SelectAll)
                 }
 

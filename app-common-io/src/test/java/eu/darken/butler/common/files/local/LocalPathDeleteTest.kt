@@ -394,8 +394,8 @@ class LocalPathDeleteTest : BaseTest() {
                         is PathActionIssue.UnknownError -> PathActionIssue.InsufficientPermission.Resolution.Skip(
                             applyToAll = true
                         )
-                        is PathActionIssue.InsufficientSpace -> TODO()
-                        is PathActionIssue.PathAlreadyExists -> TODO()
+                        is PathActionIssue.InsufficientSpace -> throw NotImplementedError()
+                        is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
                     }
                 } else {
                     // Subsequent issues should not occur due to "Apply to All"
@@ -447,9 +447,9 @@ class LocalPathDeleteTest : BaseTest() {
                             PathActionIssue.UnknownError.Resolution.Skip()
                         }
                     }
-                    is PathActionIssue.InsufficientPermission -> TODO()
-                    is PathActionIssue.InsufficientSpace -> TODO()
-                    is PathActionIssue.PathAlreadyExists -> TODO()
+                    is PathActionIssue.InsufficientPermission -> throw NotImplementedError()
+                    is PathActionIssue.InsufficientSpace -> throw NotImplementedError()
+                    is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
                 }
             }
         ).last()
@@ -486,7 +486,7 @@ class LocalPathDeleteTest : BaseTest() {
                 when (issue) {
                     is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Cancel()
                     is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Cancel()
-                    else -> TODO()
+                    else -> throw NotImplementedError()
                 }
             }
         ).last()
@@ -965,8 +965,8 @@ class LocalPathDeleteTest : BaseTest() {
                 when (issue) {
                     is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
                     is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                    is PathActionIssue.InsufficientSpace -> TODO()
-                    is PathActionIssue.PathAlreadyExists -> TODO()
+                    is PathActionIssue.InsufficientSpace -> throw NotImplementedError()
+                    is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
                 }
             }
         ).last() as DeleteAction.State.Completed
@@ -1331,7 +1331,7 @@ class LocalPathDeleteTest : BaseTest() {
                     when (issue) {
                         is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
                         is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                        else -> TODO()
+                        else -> throw NotImplementedError()
                     }
                 }
             ).last() as DeleteAction.State.Completed
@@ -1365,7 +1365,7 @@ class LocalPathDeleteTest : BaseTest() {
                         // We can't easily force real errors, but we can track attempts
                         PathActionIssue.UnknownError.Resolution.Skip()
                     }
-                    else -> TODO()
+                    else -> throw NotImplementedError()
                 }
             }
         ).last() as DeleteAction.State.Completed
@@ -1442,7 +1442,7 @@ class LocalPathDeleteTest : BaseTest() {
                     when (issue) {
                         is PathActionIssue.InsufficientPermission -> PathActionIssue.InsufficientPermission.Resolution.Skip()
                         is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
-                        else -> TODO()
+                        else -> throw NotImplementedError()
                     }
                 }
             ).last() as DeleteAction.State.Completed
@@ -1498,7 +1498,7 @@ class LocalPathDeleteTest : BaseTest() {
                             // This shouldn't happen in practice for deletion, but handle it gracefully
                             PathActionIssue.InsufficientPermission.Resolution.Skip()
                         }
-                        else -> TODO()
+                        else -> throw NotImplementedError()
                     }
                 }
             ).last() as DeleteAction.State.Completed
@@ -1951,7 +1951,7 @@ class LocalPathDeleteTest : BaseTest() {
                             }
                             PathActionIssue.InsufficientPermission.Resolution.Skip()
                         }
-                        else -> TODO()
+                        else -> throw NotImplementedError()
                     }
                 }
             ).collect { state ->

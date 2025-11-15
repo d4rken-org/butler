@@ -55,7 +55,7 @@ fun InsufficientPermissionIssueSheet(
     ) {
         Text(
             text = issue.title.asComposable(),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
         )
 

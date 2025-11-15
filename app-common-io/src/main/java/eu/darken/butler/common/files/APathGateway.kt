@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files
 
 import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.FileSystemAction
 import eu.darken.butler.common.files.actions.MoveAction
@@ -15,6 +16,7 @@ interface APathGateway<
     CopyAction<P, PL, P, PL>,
     MoveAction<P, PL, P, PL>,
     DeleteAction<P, PL>,
+    CreateAction<P, PL>,
     FileSystemAction<P> {
 
     suspend fun walk(

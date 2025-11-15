@@ -78,7 +78,7 @@ fun UnknownErrorIssueSheet(
             )
             Text(
                 text = issue.title.asComposable(),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -126,7 +126,7 @@ fun UnknownErrorIssueSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(start = 8.dp, end = 0.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {

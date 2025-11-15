@@ -15,12 +15,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,11 +31,11 @@ import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.minutes
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OperationDetailsSheet(
     operation: OperationDisplay,
@@ -61,11 +58,10 @@ fun OperationDetailsSheet(
             )
         }
     } else {
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = rememberModalBottomSheetState(
-                skipPartiallyExpanded = true
-            ),
+        PaneScopedBottomSheet(
+            visible = true,
+            onDismiss = onDismiss,
+            modifier = modifier,
         ) {
             OperationDetailsContent(
                 operation = operation,

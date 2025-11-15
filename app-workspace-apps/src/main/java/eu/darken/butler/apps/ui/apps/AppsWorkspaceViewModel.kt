@@ -109,10 +109,8 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 // Open in Tab - primary action for selections
                 add(AppsAction.OpenInTab(selectedApps))
 
-                // Select All / Deselect All
-                if (appsState.selectedAppIds.size == appsState.filteredApps.size) {
-                    add(AppsAction.DeselectAll)
-                } else if (appsState.filteredApps.isNotEmpty()) {
+                // Select All
+                if (appsState.selectedAppIds.size != appsState.filteredApps.size && appsState.filteredApps.isNotEmpty()) {
                     add(AppsAction.SelectAll)
                 }
 

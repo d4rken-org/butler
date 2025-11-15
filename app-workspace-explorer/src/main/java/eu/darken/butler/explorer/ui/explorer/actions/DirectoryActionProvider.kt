@@ -17,8 +17,6 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
         val isWritable = (directory?.info?.isWritable ?: false)
 
         if (selectionState.isSelectionMode) {
-            actions.add(ExplorerAction.Directory.DeselectAll)
-
             if (!selectionState.isAllSelected) {
                 actions.add(ExplorerAction.Directory.SelectAll)
             }
