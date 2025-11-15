@@ -40,7 +40,7 @@
     <string name="apps_action_filter">Filter</string>
     <string name="apps_action_select_all">Select all</string>
     <string name="apps_action_deselect_all">Deselect all</string>
-    <string name="apps_action_open_in_tab">Open in Tab</string>
+    <string name="apps_action_open_in_tab">Open in tab</string>
 
     <!-- Action Descriptions -->
     <string name="apps_action_launch_desc">Start the application</string>
@@ -57,13 +57,13 @@
     <string name="apps_size_label">Size</string>
 
     <!-- App Details -->
-    <string name="apps_details_storage_locations_label">Storage Locations</string>
-    <string name="apps_path_internal_data_label">Internal Data</string>
-    <string name="apps_path_external_data_label">External Storage</string>
+    <string name="apps_details_storage_locations_label">Storage locations</string>
+    <string name="apps_path_internal_data_label">Internal data</string>
+    <string name="apps_path_external_data_label">External storage</string>
 
     <!-- App Details Tabs -->
     <string name="appdetails_tab_overview_label">Overview</string>
-    <string name="appdetails_tab_packageinfo_label">Package Info</string>
+    <string name="appdetails_tab_packageinfo_label">Package info</string>
 
     <!-- App Details Actions -->
     <string name="appdetails_back_action">Back to apps</string>

@@ -9,12 +9,12 @@
     <string name="documents_connection_device_summary">Local device storage</string>
 
     <!-- Storage Locations (Level 3) - Phase 1 -->
-    <string name="documents_storage_root_label">Root Filesystem</string>
+    <string name="documents_storage_root_label">Root filesystem</string>
 
     <!-- Future: Additional storage types -->
-    <string name="documents_storage_internal_label">Internal Storage</string>
-    <string name="documents_storage_sd_card_label">SD Card</string>
-    <string name="documents_storage_saf_label">SAF Location</string>
+    <string name="documents_storage_internal_label">Internal storage</string>
+    <string name="documents_storage_sd_card_label">SD card</string>
+    <string name="documents_storage_saf_label">SAF location</string>
 
     <!-- Future: Remote connections -->
     <string name="documents_connection_ssh_title">SSH: %1$s</string>

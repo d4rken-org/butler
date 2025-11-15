@@ -2,30 +2,30 @@
     <string name="onboarding_welcome_title">Welcome to Butler</string>
     <string name="onboarding_welcome_message">Butler is an open-source file explorer focusing on performance and privacy.</string>
     <string name="onboarding_welcome_action">Let\'s go</string>
-    <string name="onboarding_beta_title">Shape the Future</string>
+    <string name="onboarding_beta_title">Shape the future</string>
     <string name="onboarding_beta_message">This is a beta (testing) build. Proceed with a sense of humor and a backup plan. Please report issues you encounter.</string>
     <string name="onboarding_beta_action">I fear nothing</string>
-    <string name="onboarding_beta_feature_early_access_title">Early Access</string>
+    <string name="onboarding_beta_feature_early_access_title">Early access</string>
     <string name="onboarding_beta_feature_early_access_description">Try cutting-edge features before anyone else.</string>
-    <string name="onboarding_beta_feature_influence_title">Direct Impact</string>
+    <string name="onboarding_beta_feature_influence_title">Direct impact</string>
     <string name="onboarding_beta_feature_influence_description">Your feedback shapes Butler\'s development.</string>
-    <string name="onboarding_beta_feature_feedback_title">Community Driven</string>
+    <string name="onboarding_beta_feature_feedback_title">Community driven</string>
     <string name="onboarding_beta_feature_feedback_description">Join a community of power users improving Butler.</string>
-    <string name="onboarding_sustainability_title">Free &amp; Sustainable</string>
+    <string name="onboarding_sustainability_title">Free &amp; sustainable</string>
     <string name="onboarding_sustainability_message">Core features are free. Some advanced features require Butler Pro - it keeps me coding and the app evolving.</string>
-    <string name="onboarding_sustainability_free_title">Core Features</string>
+    <string name="onboarding_sustainability_free_title">Core features</string>
     <string name="onboarding_sustainability_free_description">File browsing, search, and editing.</string>
-    <string name="onboarding_sustainability_pro_title">Pro Features</string>
+    <string name="onboarding_sustainability_pro_title">Pro features</string>
     <string name="onboarding_sustainability_pro_description">Improved multi-tasking and tools for power users.</string>
-    <string name="onboarding_sustainability_support_title">Ethical Funding</string>
+    <string name="onboarding_sustainability_support_title">Ethical funding</string>
     <string name="onboarding_sustainability_support_description">No ads, no data selling - just direct support from users.</string>
     <string name="onboarding_sustainability_action">Continue</string>
-    <string name="onboarding_privacy_title">Privacy &amp; Data</string>
+    <string name="onboarding_privacy_title">Privacy &amp; data</string>
     <string name="onboarding_privacy_message">Butler has no advertisements and does not sell user data. Your privacy is important to me.</string>
-    <string name="onboarding_privacy_read_action">Read Privacy Policy</string>
+    <string name="onboarding_privacy_read_action">Read privacy policy</string>
     <string name="onboarding_privacy_action">Accept</string>
 
-    <string name="onboarding_workspaces_title">Work in Tabs</string>
+    <string name="onboarding_workspaces_title">Work in tabs</string>
     <string name="onboarding_workspaces_message">Open multiple tabs and switch between them - just like your web browser.</string>
     <string name="onboarding_workspaces_action">Continue</string>
     <string name="onboarding_workspaces_hint">Keep multiple tabs open simultaneously.</string>
@@ -39,7 +39,7 @@
     <string name="onboarding_workspaces_templates_description">Save your setup.</string>
     <string name="onboarding_workspaces_apps_description">Manage your apps.</string>
 
-    <string name="onboarding_adaptive_title">Fits Any Screen</string>
+    <string name="onboarding_adaptive_title">Fits any screen</string>
     <string name="onboarding_adaptive_message">Butler adapts to your device for the best experience.</string>
     <string name="onboarding_adaptive_action">Continue</string>
     <string name="onboarding_adaptive_phone_title">Phone</string>
@@ -50,8 +50,8 @@
     <string name="onboarding_adaptive_tablet_description">Multiple panels side by side.</string>
 
     <!-- Explorer Shortcuts -->
-    <string name="shortcut_explorer_new_short">New Explorer</string>
-    <string name="shortcut_explorer_new_long">Create new Explorer workspace</string>
+    <string name="shortcut_explorer_new_short">New explorer</string>
+    <string name="shortcut_explorer_new_long">Create new explorer workspace</string>
 
     <!-- Shortcuts Settings -->
     <string name="shortcuts_settings_title">Shortcuts</string>
@@ -99,7 +99,7 @@
 
     <string name="setup_grant_access_label">Grant access</string>
     <string name="setup_access_granted_label">Access granted</string>
-    <string name="setup_use_root_label">Use Root if available</string>
+    <string name="setup_use_root_label">Use root if available</string>
     <string name="setup_use_shizuku_label">Use Shizuku if available</string>
 
     <string name="setup_status_checking">Checking…</string>
@@ -119,10 +119,10 @@
     <string name="debug_log_recording_progress">Recording debug log</string>
     <string name="debug_log_record_action">Record</string>
     <string name="debug_log_stop_action">Stop recording</string>
-    <string name="debug_log_screen_title">Debug Log Recorder</string>
+    <string name="debug_log_screen_title">Debug log recorder</string>
     <string name="debug_log_screen_sensitive_information_message">The generated file contains sensitive information (e.g. file names and installed apps). Only share it with trusted parties.</string>
     <string name="debug_log_screen_session_path_label">Debug session path</string>
-    <string name="debug_log_screen_log_files_label">Log Files</string>
+    <string name="debug_log_screen_log_files_label">Log files</string>
     <string name="debug_log_screen_log_files_ready">Log files ready (ZIP: %1$s)</string>
     <string name="debug_log_screen_discard_action">Discard</string>
     <string name="debug_log_file_label">Recorded log file</string>
@@ -217,7 +217,7 @@
     <string name="acknowledgement_android_title">Android</string>
     <string name="acknowledgement_android_subtitle">Android Open Source Project (APACHE 2.0)</string>
     <string name="acknowledgement_kotlin_title">Kotlin</string>
-    <string name="acknowledgement_kotlin_subtitle">The Kotlin Programming Language. (APACHE 2.0)</string>
+    <string name="acknowledgement_kotlin_subtitle">The Kotlin programming language. (APACHE 2.0)</string>
     <string name="acknowledgement_dagger_title">Dagger</string>
     <string name="acknowledgement_dagger_subtitle">A fast dependency injector for Android and Java. (APACHE 2.0)</string>
     <string name="acknowledgement_librootjava_title">libRootJava</string>
@@ -234,13 +234,13 @@
     <string name="acknowledgement_android_robot_subtitle">The Android robot is reproduced or modified from work created and shared by Google and used according to terms described in the Creative Commons 3.0 Attribution License.</string>
     <string name="acknowledgement_jetpack_compose_title">Jetpack Compose</string>
     <string name="acknowledgement_jetpack_compose_subtitle">Android\'s modern toolkit for building native UI. (APACHE 2.0)</string>
-    <string name="acknowledgement_jetpack_libraries_title">Jetpack Libraries</string>
+    <string name="acknowledgement_jetpack_libraries_title">Jetpack libraries</string>
     <string name="acknowledgement_jetpack_libraries_subtitle">Room, WorkManager, DataStore, Navigation and other AndroidX libraries. (APACHE 2.0)</string>
-    <string name="acknowledgement_kotlin_extensions_title">Kotlin Extensions</string>
+    <string name="acknowledgement_kotlin_extensions_title">Kotlin extensions</string>
     <string name="acknowledgement_kotlin_extensions_subtitle">Coroutines and Serialization libraries. (APACHE 2.0)</string>
     <string name="acknowledgement_coil_title">Coil</string>
     <string name="acknowledgement_coil_subtitle">Image loading library backed by Kotlin Coroutines. (APACHE 2.0)</string>
-    <string name="acknowledgement_square_libraries_title">Square Libraries</string>
+    <string name="acknowledgement_square_libraries_title">Square libraries</string>
     <string name="acknowledgement_square_libraries_subtitle">Retrofit, OkHttp, and OkIO networking libraries. (APACHE 2.0)</string>
     <string name="acknowledgement_accompanist_title">Accompanist</string>
     <string name="acknowledgement_accompanist_subtitle">Utilities for Jetpack Compose. (APACHE 2.0)</string>
@@ -259,8 +259,8 @@
     <!-- Upgrade Status -->
     <string name="settings_upgrade_status_label">Butler upgrade status</string>
     <string name="settings_upgrade_status_description">View upgrade status and benefits.</string>
-    <string name="upgrade_status_screen_title">Upgrade Status</string>
-    <string name="upgrade_status_card_title">Upgrade Status</string>
+    <string name="upgrade_status_screen_title">Upgrade status</string>
+    <string name="upgrade_status_card_title">Upgrade status</string>
     <string name="upgrade_status_free">Status: Free</string>
     <string name="upgrade_status_pro">Status: Pro</string>
     <string name="upgrade_status_foss">Status: FOSS</string>
@@ -275,7 +275,7 @@
 
     <!-- Workspace -->
     <!-- Workspace > Manager -->
-    <string name="workspace_manager_title">Tab Manager</string>
+    <string name="workspace_manager_title">Tab manager</string>
     <string name="workspace_manager_empty_title">No tabs</string>
     <string name="workspace_manager_empty_subtitle">Create your first tab to get started</string>
 
@@ -303,28 +303,28 @@
     <string name="workspace_adaptive_tip_switch_layouts">Switch between pane layouts in the tab manager.</string>
     <string name="workspace_adaptive_tip_copy_between_panes">Copy files between panes with drag and drop.</string>
 
-    <string name="workspace_badge_tip_title">Tip: Tab Button Indicators</string>
+    <string name="workspace_badge_tip_title">Tip: Tab button indicators</string>
     <string name="workspace_badge_open_workspaces">Number of open tabs</string>
     <string name="workspace_badge_active_operations">Active operations (file copies, searches, etc.)</string>
     <string name="workspace_badge_attention_items">Items needing attention (errors, unsaved changes)</string>
 
     <!-- Workspace Manager Actions -->
     <string name="workspace_manager_dismiss_content_desc">Dismiss</string>
-    <string name="workspace_manager_close_all_title">Close All Tabs?</string>
+    <string name="workspace_manager_close_all_title">Close all tabs?</string>
     <string name="workspace_manager_close_all_message">This will close all %1$d open %2$s. This action cannot be undone.</string>
     <string name="workspace_manager_close_all_message_singular">tab</string>
     <string name="workspace_manager_close_all_message_plural">tabs</string>
-    <string name="workspace_manager_close_all_action">Close All</string>
+    <string name="workspace_manager_close_all_action">Close all</string>
     <string name="general_cancel_action">Cancel</string>
 
     <!-- Workspace Manager FAB -->
-    <string name="workspace_fab_add_workspace">Add Tab</string>
+    <string name="workspace_fab_add_workspace">Add tab</string>
     <string name="workspace_fab_explorer">Explorer</string>
     <string name="workspace_fab_search">Search</string>
     <string name="workspace_fab_editor">Editor</string>
     <string name="workspace_fab_apps">Apps</string>
     <string name="workspace_fab_templates">Templates</string>
-    <string name="workspace_fab_close_all">Close All Tabs</string>
+    <string name="workspace_fab_close_all">Close all tabs</string>
     <string name="workspace_fab_longpress_hint">Tip: Long-press for quick access to all workspace types</string>
 
     <!-- Workspace Navigation Rail -->
