@@ -55,7 +55,7 @@ class LocalGateway @Inject constructor(
     private val fileSystemOps: LocalFileSystemOps,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
-    private val accessibilityChecker: LocalPathAccessChecker,
+    private val accessChecker: LocalPathAccessChecker,
 ) : APathGateway<LocalPath, LocalPathLookup> {
 
     // Represents the resource that keeps the gateway resources alive
@@ -134,7 +134,7 @@ class LocalGateway @Inject constructor(
                     }
                     else -> throw IllegalStateException("No matching mode available for $operation")
                 }
-                if (accessibilityChecker.shouldTryNormalAccess(path, forWriting)) {
+                if (accessChecker.shouldTryNormalAccess(path, forWriting)) {
                     try {
                         normalOp().also { log(TAG, VERBOSE) { "$operation(AUTO:NORMAL) -> $path" } }
                     } catch (e: IOException) {
@@ -635,7 +635,7 @@ class LocalGateway @Inject constructor(
             }
 
             Mode.AUTO -> {
-                val shouldTry = accessibilityChecker.shouldTryNormalAccess(targets.first(), forWriting = true)
+                val shouldTry = accessChecker.shouldTryNormalAccess(targets.first(), forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
                         try {
@@ -731,7 +731,7 @@ class LocalGateway @Inject constructor(
             }
 
             Mode.AUTO -> {
-                val shouldTry = accessibilityChecker.shouldTryNormalAccess(destination, forWriting = true)
+                val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
                         try {
@@ -826,7 +826,7 @@ class LocalGateway @Inject constructor(
             }
 
             Mode.AUTO -> {
-                val shouldTry = accessibilityChecker.shouldTryNormalAccess(destination, forWriting = true)
+                val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
                         try {
@@ -937,7 +937,7 @@ class LocalGateway @Inject constructor(
             Mode.AUTO -> {
                 val parent = target.parent
                 val shouldTry = if (parent != null) {
-                    accessibilityChecker.shouldTryNormalAccess(parent, forWriting = true)
+                    accessChecker.shouldTryNormalAccess(parent, forWriting = true)
                 } else {
                     false
                 }
