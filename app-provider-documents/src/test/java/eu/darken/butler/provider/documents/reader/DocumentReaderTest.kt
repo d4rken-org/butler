@@ -16,6 +16,7 @@ import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -279,7 +280,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument handles large file`() = runTest {
+    fun `openDocument handles large file`() = runBlocking {
         // Given: Large file (100KB) - reduced for faster testing
         val testFile = tempFolder.newFile("large.txt")
         val largeData = ByteArray(100 * 1024) { (it % 256).toByte() }
@@ -294,8 +295,10 @@ class DocumentReaderTest {
         // When
         val pfd = reader.openDocument(documentId, "r", null)
 
-        // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(1000)
+        // Allow time for Dispatchers.IO coroutine to transfer data through pipe
+        // Use Thread.sleep (real time) instead of delay (virtual time)
+        // because DocumentReader uses Dispatchers.IO (not TestDispatcher)
+        Thread.sleep(1500)
 
         // Then: Can read all data
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
