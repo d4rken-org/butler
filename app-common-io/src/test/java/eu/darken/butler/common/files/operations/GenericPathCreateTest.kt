@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.toList
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import testhelpers.BaseTest
+import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -362,5 +364,325 @@ class GenericPathCreateTest : BaseTest() {
         // Original file should still exist
         mockOps.hasFile("/parent/file.txt") shouldBe true
         mockOps.getFileContent("/parent/file.txt") shouldBe "existing".toByteArray()
+    }
+
+    // ============ OVERWRITE-DELETE FAILURE SCENARIOS ============
+
+    @Test
+    fun `overwrite triggers delete which succeeds then create succeeds`() = runTest {
+        // Given - file exists, will be overwritten
+        mockOps.addMockDir("/parent")
+        mockOps.addMockFile("/parent/file.txt", "old content".toByteArray())
+
+        val targetPath = LocalPath.build("/parent/file.txt")
+
+        issueResolution = PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+
+        // When
+        val result = targetPath.createGeneric(
+            fileSystemOps = mockOps,
+            type = CreateAction.CreateType.FILE,
+            onIssue = onIssue
+        ).last() as CreateAction.State.Completed
+
+        // Then - old file deleted, new file created
+        issueCallCount shouldBe 1
+        result.created.lookedUp.path shouldBe "/parent/file.txt"
+        mockOps.hasFile("/parent/file.txt") shouldBe true
+        mockOps.getFileContent("/parent/file.txt")?.size shouldBe 0 // New empty file
+    }
+
+    @Test
+    fun `overwrite triggers delete which fails with permission error and user retries`() = runTest {
+        // Given - file exists, delete will fail once
+        mockOps.addMockDir("/parent")
+        mockOps.addMockFile("/parent/file.txt", "protected".toByteArray())
+
+        val targetPath = LocalPath.build("/parent/file.txt")
+
+        val issueCounter = AtomicInteger(0)
+        val issueHandler: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
+            val count = issueCounter.incrementAndGet()
+            when (count) {
+                1 -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                2 -> {
+                    // Delete failed - retry
+                    issue.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+                    PathActionIssue.UnknownError.Resolution.Retry
+                }
+                else -> throw AssertionError("Too many issues")
+            }
+        }
+
+        // Make delete fail once (use IOException to get UnknownError instead of InsufficientPermission)
+        mockOps.setFailDelete(1) { IOException("Delete I/O error") }
+
+        // When
+        val result = targetPath.createGeneric(
+            fileSystemOps = mockOps,
+            type = CreateAction.CreateType.FILE,
+            onIssue = issueHandler
+        ).last() as CreateAction.State.Completed
+
+        // Then - delete retried and succeeded, file created
+        issueCounter.get() shouldBe 2
+        result.created.lookedUp.path shouldBe "/parent/file.txt"
+        mockOps.hasFile("/parent/file.txt") shouldBe true
+    }
+
+    @Test
+    fun `overwrite triggers delete which fails and user cancels entire operation`() = runTest {
+        // Given - file exists, delete will fail
+        mockOps.addMockDir("/parent")
+        mockOps.addMockFile("/parent/file.txt", "protected".toByteArray())
+
+        val targetPath = LocalPath.build("/parent/file.txt")
+
+        val issueCounter = AtomicInteger(0)
+        val issueHandler: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
+            val count = issueCounter.incrementAndGet()
+            when (count) {
+                1 -> PathActionIssue.PathAlreadyExists.Resolution.Overwrite()
+                2 -> {
+                    // Delete failed - cancel
+                    issue.shouldBeInstanceOf<PathActionIssue.UnknownError>()
+                    PathActionIssue.UnknownError.Resolution.Cancel()
+                }
+                else -> throw AssertionError("Too many issues")
+            }
+        }
+
+        // Make delete fail permanently (use IOException to get UnknownError instead of InsufficientPermission)
+        mockOps.setFailDelete(10) { IOException("Delete I/O error") }
+
+        // When/Then - should throw CancellationException
+        assertThrows<CancellationException> {
+            targetPath.createGeneric(
+                fileSystemOps = mockOps,
+                type = CreateAction.CreateType.FILE,
+                onIssue = issueHandler
+            ).last()
+        }
+
+        issueCounter.get() shouldBe 2
+        mockOps.hasFile("/parent/file.txt") shouldBe true // Original still exists
+    }
+
+    // ============ UNSUPPORTED RESOLUTION VALIDATION ============
+
+    @Test
+    fun `throw IllegalArgumentException for RenameDestination resolution`() = runTest {
+        // Given - file exists
+        mockOps.addMockDir("/parent")
+        mockOps.addMockFile("/parent/file.txt", "existing".toByteArray())
+
+        val targetPath = LocalPath.build("/parent/file.txt")
+
+        issueResolution = PathActionIssue.PathAlreadyExists.Resolution.RenameDestination(
+            newName = "file_renamed.txt"
+        )
+
+        // When/Then - should throw IllegalArgumentException
+        assertThrows<IllegalArgumentException> {
+            targetPath.createGeneric(
+                fileSystemOps = mockOps,
+                type = CreateAction.CreateType.FILE,
+                onIssue = onIssue
+            ).last()
+        }
+    }
+
+    @Test
+    fun `throw IllegalArgumentException for Merge resolution`() = runTest {
+        // Given - directory exists
+        mockOps.addMockDir("/parent")
+        mockOps.addMockDir("/parent/existingdir")
+
+        val targetPath = LocalPath.build("/parent/existingdir")
+
+        issueResolution = PathActionIssue.PathAlreadyExists.Resolution.Merge()
+
+        // When/Then - should throw IllegalArgumentException
+        assertThrows<IllegalArgumentException> {
+            targetPath.createGeneric(
+                fileSystemOps = mockOps,
+                type = CreateAction.CreateType.DIRECTORY,
+                onIssue = onIssue
+            ).last()
+        }
+    }
+
+    @Test
+    fun `throw IllegalStateException for Skip resolution`() = runTest {
+        // Given - file exists
+        mockOps.addMockDir("/parent")
+        mockOps.addMockFile("/parent/file.txt", "existing".toByteArray())
+
+        val targetPath = LocalPath.build("/parent/file.txt")
+
+        issueResolution = PathActionIssue.PathAlreadyExists.Resolution.Skip()
+
+        // When/Then - should throw IllegalStateException (canSkip=false)
+        assertThrows<IllegalStateException> {
+            targetPath.createGeneric(
+                fileSystemOps = mockOps,
+                type = CreateAction.CreateType.FILE,
+                onIssue = onIssue
+            ).last()
+        }
+    }
+
+    @Test
+    fun `renaming root path throws IllegalStateException`() = runTest {
+        // Given - trying to create at root (edge case)
+        val rootPath = LocalPath.build("/")
+
+        mockOps.addMockDir("/") // Root exists
+
+        issueResolution = PathActionIssue.PathAlreadyExists.Resolution.RenameSource(
+            newName = "newname"
+        )
+
+        // When/Then - should throw IllegalStateException (can't rename root)
+        assertThrows<IllegalStateException> {
+            rootPath.createGeneric(
+                fileSystemOps = mockOps,
+                type = CreateAction.CreateType.DIRECTORY,
+                onIssue = onIssue
+            ).last()
+        }
+    }
+
+    // ============ EDGE CASES ============
+
+    @Test
+    fun `create file with special characters in name`() = runTest {
+        // Given
+        mockOps.addMockDir("/parent")
+
+        val specialName = "file (1) [test] ~special~ 文件.txt"
+        val targetPath = LocalPath.build("/parent/$specialName")
+
+        // When
+        val result = targetPath.createGeneric(
+            fileSystemOps = mockOps,
+            type = CreateAction.CreateType.FILE,
+            onIssue = null
+        ).last() as CreateAction.State.Completed
+
+        // Then
+        result.created.lookedUp.path shouldBe "/parent/$specialName"
+        mockOps.hasFile("/parent/$specialName") shouldBe true
+    }
+
+    @Test
+    fun `create file in very deep directory structure`() = runTest {
+        // Given - create 50-level deep structure
+        var currentPath = ""
+        for (i in 1..50) {
+            currentPath += "/level$i"
+            mockOps.addMockDir(currentPath)
+        }
+
+        val targetPath = LocalPath.build("$currentPath/deepfile.txt")
+
+        // When
+        val result = targetPath.createGeneric(
+            fileSystemOps = mockOps,
+            type = CreateAction.CreateType.FILE,
+            onIssue = null
+        ).last() as CreateAction.State.Completed
+
+        // Then
+        result.created.lookedUp.path shouldBe "$currentPath/deepfile.txt"
+        mockOps.hasFile("$currentPath/deepfile.txt") shouldBe true
+    }
+
+    @Test
+    fun `verify Active state contains correct target and type for file`() = runTest {
+        // Given
+        mockOps.addMockDir("/parent")
+        val targetPath = LocalPath.build("/parent/file.txt")
+
+        // When
+        val states = targetPath.createGeneric(
+            fileSystemOps = mockOps,
+            type = CreateAction.CreateType.FILE,
+            onIssue = null
+        ).toList()
+
+        // Then
+        states.size shouldBe 2
+        val activeState = states[0] as CreateAction.State.Active
+        activeState.target.path shouldBe "/parent/file.txt"
+        activeState.type shouldBe CreateAction.CreateType.FILE
+    }
+
+    @Test
+    fun `verify Active state contains correct target and type for directory`() = runTest {
+        // Given
+        mockOps.addMockDir("/parent")
+        val targetPath = LocalPath.build("/parent/newdir")
+
+        // When
+        val states = targetPath.createGeneric(
+            fileSystemOps = mockOps,
+            type = CreateAction.CreateType.DIRECTORY,
+            onIssue = null
+        ).toList()
+
+        // Then
+        states.size shouldBe 2
+        val activeState = states[0] as CreateAction.State.Active
+        activeState.target.path shouldBe "/parent/newdir"
+        activeState.type shouldBe CreateAction.CreateType.DIRECTORY
+    }
+
+    @Test
+    fun `verify only Active and Completed states emitted on success`() = runTest {
+        // Given
+        mockOps.addMockDir("/parent")
+        val targetPath = LocalPath.build("/parent/file.txt")
+
+        // When
+        val states = targetPath.createGeneric(
+            fileSystemOps = mockOps,
+            type = CreateAction.CreateType.FILE,
+            onIssue = null
+        ).toList()
+
+        // Then - exactly 2 states, no intermediate states
+        states.size shouldBe 2
+        states[0].shouldBeInstanceOf<CreateAction.State.Active<*, *>>()
+        states[1].shouldBeInstanceOf<CreateAction.State.Completed<*, *>>()
+    }
+
+    @Test
+    fun `multiple sequential retry attempts before success`() = runTest {
+        // Given - parent exists, create will fail 3 times
+        mockOps.addMockDir("/parent")
+
+        val targetPath = LocalPath.build("/parent/file.txt")
+
+        val retryCounter = AtomicInteger(0)
+        val issueHandler: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
+            retryCounter.incrementAndGet()
+            PathActionIssue.UnknownError.Resolution.Retry
+        }
+
+        // Make create fail 3 times
+        mockOps.setFailCreateFile(3) { RuntimeException("Temporary error") }
+
+        // When
+        val result = targetPath.createGeneric(
+            fileSystemOps = mockOps,
+            type = CreateAction.CreateType.FILE,
+            onIssue = issueHandler
+        ).last() as CreateAction.State.Completed
+
+        // Then - retried 3 times, then succeeded
+        retryCounter.get() shouldBe 3
+        result.created.lookedUp.path shouldBe "/parent/file.txt"
+        mockOps.hasFile("/parent/file.txt") shouldBe true
     }
 }

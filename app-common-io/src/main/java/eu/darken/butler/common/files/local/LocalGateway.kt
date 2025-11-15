@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -24,6 +25,7 @@ import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.operations.createGeneric
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.RootUnavailableException
 import eu.darken.butler.common.root.canUseRootNow
@@ -811,6 +813,123 @@ class LocalGateway @Inject constructor(
                     hasAdb() -> {
                         log(TAG, VERBOSE) { "move(AUTO->ADB): To $destination" }
                         adbOps { TODO("ADB move implementation") }
+                    }
+                    else -> throw IllegalStateException("No matching mode available.")
+                }
+            }
+        }
+    }.flowOn(dispatcherProvider.IO)
+
+    override suspend fun create(
+        target: LocalPath,
+        type: CreateAction.CreateType,
+        options: CreateAction.Options
+    ): Flow<CreateAction.State<LocalPath, LocalPathLookup>> = create(target, type, options, Mode.AUTO)
+
+    fun create(
+        target: LocalPath,
+        type: CreateAction.CreateType,
+        options: CreateAction.Options,
+        mode: Mode = Mode.AUTO,
+    ): Flow<CreateAction.State<LocalPath, LocalPathLookup>> = flow {
+        log(TAG, VERBOSE) { "create(): $target (type=$type)" }
+        when (mode) {
+            Mode.NORMAL -> {
+                log(TAG, VERBOSE) { "create(NORMAL): $target" }
+                target.createGeneric(
+                    fileSystemOps = fileSystemOps,
+                    type = type,
+                    onIssue = options.onIssue,
+                ).collect { state ->
+                    emit(state)
+                    if (state is CreateAction.State.Completed<*, *>) {
+                        log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                    }
+                }
+            }
+
+            Mode.ROOT -> {
+                log(TAG, VERBOSE) { "create(ROOT): $target (type=$type)" }
+                rootOps { client ->
+                    target.createGeneric(
+                        fileSystemOps = client,
+                        type = type,
+                        onIssue = options.onIssue,
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CreateAction.State.Completed<*, *>) {
+                            log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                        }
+                    }
+                }
+            }
+
+            Mode.ADB -> {
+                log(TAG, VERBOSE) { "create(ADB): $target (type=$type)" }
+                adbOps { client ->
+                    target.createGeneric(
+                        fileSystemOps = client,
+                        type = type,
+                        onIssue = options.onIssue,
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CreateAction.State.Completed<*, *>) {
+                            log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                        }
+                    }
+                }
+            }
+
+            Mode.AUTO -> {
+                val parent = target.parent
+                val shouldTry = if (parent != null) {
+                    accessibilityChecker.shouldTryNormalAccess(parent, forWriting = true)
+                } else {
+                    false
+                }
+                when {
+                    shouldTry || (!hasAdb() && !hasRoot()) -> {
+                        log(TAG, VERBOSE) { "create(AUTO->NORMAL, $shouldTry): $target" }
+                        target.createGeneric(
+                            fileSystemOps = fileSystemOps,
+                            type = type,
+                            onIssue = options.onIssue,
+                        ).collect { state ->
+                            emit(state)
+                            if (state is CreateAction.State.Completed<*, *>) {
+                                log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                            }
+                        }
+                    }
+                    hasRoot() -> {
+                        log(TAG, VERBOSE) { "create(AUTO->ROOT): $target (type=$type)" }
+                        rootOps { client ->
+                            target.createGeneric(
+                                fileSystemOps = client,
+                                type = type,
+                                onIssue = options.onIssue,
+                            ).collect { state ->
+                                emit(state)
+                                if (state is CreateAction.State.Completed<*, *>) {
+                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                                }
+                            }
+                        }
+                    }
+                    hasAdb() -> {
+                        log(TAG, VERBOSE) { "create(AUTO->ADB): $target (type=$type)" }
+                        adbOps { client ->
+                            target.createGeneric(
+                                fileSystemOps = client,
+                                type = type,
+                                onIssue = options.onIssue,
+                            ).collect { state ->
+                                emit(state)
+                                if (state is CreateAction.State.Completed<*, *>) {
+                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                                }
+                            }
+                        }
                     }
                     else -> throw IllegalStateException("No matching mode available.")
                 }
