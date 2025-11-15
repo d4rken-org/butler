@@ -10,13 +10,12 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
-import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
+import eu.darken.butler.common.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,15 +39,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspacePageManager.state,
         filterOperationsFlow,
         filterAttentionFlow,
-    ) { args: Array<Any> ->
-        val repoState = args[0] as WorkspaceRemote.State
-        val showBadge = args[1] as Boolean
-        val showFabLongPressHint = args[2] as Boolean
-        val livePreview = args[3] as Boolean
-        val pageManagerState = args[4] as WorkspacePageManager.State
-        val filterOps = args[5] as Boolean
-        val filterAtt = args[6] as Boolean
-
+    ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState, filterOps, filterAtt ->
         State(
             workspaces = repoState.infos.map { info ->
                 val panePosition = pageManagerState.selectedWorkspaces.entries
