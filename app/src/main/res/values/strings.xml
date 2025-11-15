@@ -209,6 +209,9 @@
     <string name="workspace_status_operation_singular">Operation</string>
     <string name="workspace_status_operation_plural">Operations</string>
     <string name="workspace_status_attention_label">Attention</string>
+    <string name="workspace_status_filter_tabs_desc">Show all workspaces</string>
+    <string name="workspace_status_filter_operations_desc">Filter by workspaces with operations</string>
+    <string name="workspace_status_filter_attention_desc">Filter by workspaces needing attention</string>
 
     <!-- Acknowledgements -->
     <string name="acknowledgement_android_title">Android</string>

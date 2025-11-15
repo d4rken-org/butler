@@ -24,6 +24,9 @@ fun AdaptiveWorkspaceManagerContent(
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
     onDismissBadgeExplanation: () -> Unit,
+    onTabsClick: () -> Unit = {},
+    onOperationsFilterClick: () -> Unit = {},
+    onAttentionFilterClick: () -> Unit = {},
 ) {
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -49,6 +52,9 @@ fun AdaptiveWorkspaceManagerContent(
             onReorderWorkspaces = onReorderWorkspaces,
             onSelectWorkspace = onSelectWorkspace,
             onDismissBadgeExplanation = onDismissBadgeExplanation,
+            onTabsClick = onTabsClick,
+            onOperationsFilterClick = onOperationsFilterClick,
+            onAttentionFilterClick = onAttentionFilterClick,
         )
     }
 }
