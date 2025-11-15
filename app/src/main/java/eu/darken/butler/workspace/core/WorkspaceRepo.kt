@@ -93,12 +93,17 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
-    override val state: Flow<WorkspaceRemote.State> = infos
-        .map { workspaceInfos ->
-            WorkspaceRemote.State(
-                infos = workspaceInfos,
-            )
-        }
+    override val state: Flow<WorkspaceRemote.State> = combine(
+        infos,
+        workspaceSettings.layoutModePortrait.flow,
+        workspaceSettings.layoutModeLandscape.flow,
+    ) { workspaceInfos, layoutModePortrait, layoutModeLandscape ->
+        WorkspaceRemote.State(
+            infos = workspaceInfos,
+            portraitPanelMode = layoutModePortrait,
+            landscapePanelMode = layoutModeLandscape,
+        )
+    }
         .setupCommonEventHandlers(TAG, enabled = Bugs.isTrace) { "WorkspaceState" }
         .replayingShare(appScope)
 
@@ -193,7 +198,8 @@ class WorkspaceRepo @Inject constructor(
                 _events.emit(
                     WorkspaceEvent.Created(
                         workspaceId = newId,
-                        replacedId = action.replace
+                        replacedId = action.replace,
+                        autoFocus = action.autoFocus,
                     )
                 )
                 WorkspaceAction.Create.Result(newId)

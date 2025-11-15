@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
@@ -24,7 +26,7 @@ import eu.darken.butler.main.ui.motd.MotdCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -85,6 +87,9 @@ fun WorkspaceScreen(
     onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit = {},
 ) {
     val windowSizeInfo = rememberWindowSizeInfo()
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     var showPaneNumbers by remember { mutableStateOf(false) }
     var showPaneOverlay by remember { mutableStateOf(false) }
 
@@ -92,17 +97,21 @@ fun WorkspaceScreen(
         mutableStateOf(DividerPositions())
     }
 
+    // Select panel mode based on orientation
+    val effectivePanelMode = if (isLandscape) {
+        state.landscapePanelMode
+    } else {
+        state.portraitPanelMode
+    }
 
-    val effectivePaneLayout = when (state.displayMode) {
+    val effectivePaneLayout = when (effectivePanelMode) {
         WorkspacePanelMode.AUTO -> windowSizeInfo.recommendedLayout
         WorkspacePanelMode.SINGLE -> WorkspaceDesign.Layout.SINGLE
-        WorkspacePanelMode.DUAL -> if (windowSizeInfo.widthDp > windowSizeInfo.heightDp) {
-            WorkspaceDesign.Layout.DUAL_VERTICAL
-        } else {
-            WorkspaceDesign.Layout.DUAL_HORIZONTAL
-        }
-
-        WorkspacePanelMode.TRIPLE -> WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT
+        WorkspacePanelMode.DUAL_VERTICAL -> WorkspaceDesign.Layout.DUAL_VERTICAL
+        WorkspacePanelMode.DUAL_HORIZONTAL -> WorkspaceDesign.Layout.DUAL_HORIZONTAL
+        WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT
+        WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT -> WorkspaceDesign.Layout.TRIPLE_MAIN_RIGHT
+        WorkspacePanelMode.QUAD_GRID -> WorkspaceDesign.Layout.QUAD_GRID
     }
 
     val design = WorkspaceDesign(
@@ -191,7 +200,8 @@ private fun WorkspacesScreenPreview() {
         val state = WorkspacesViewModel.State(
             state = WorkspaceRemote.State(
                 infos = emptyList(), // No workspaces
-                panelMode = WorkspacePanelMode.DUAL,
+                portraitPanelMode = WorkspacePanelMode.AUTO,
+                landscapePanelMode = WorkspacePanelMode.AUTO,
             ),
             focusedWorkspace = null,
             selectedWorkspaces = emptyMap(), // No selected workspaces

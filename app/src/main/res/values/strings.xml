@@ -303,16 +303,6 @@
     <string name="workspace_adaptive_tip_switch_layouts">Switch between pane layouts in the tab manager.</string>
     <string name="workspace_adaptive_tip_copy_between_panes">Copy files between panes with drag and drop.</string>
 
-    <!-- Workspace > Settings-->
-    <string name="workspace_settings_title">Tabs</string>
-    <string name="workspace_settings_navigation">Navigation</string>
-    <string name="workspace_settings_swipe_gestures_title">Swipe Gestures</string>
-    <string name="workspace_settings_swipe_gestures_desc">Swipe left or right to switch between tabs.</string>
-    <string name="workspace_settings_ondemand_creation_title">Auto-Create Tabs</string>
-    <string name="workspace_settings_ondemand_creation_desc">Automatically create new tab when swiping past the last tab.</string>
-    <string name="workspace_settings_live_preview_title">Live Previews</string>
-    <string name="workspace_settings_live_preview_desc">Show live workspace content in tab manager.</string>
-
     <string name="workspace_badge_tip_title">Tip: Tab Button Indicators</string>
     <string name="workspace_badge_open_workspaces">Number of open tabs</string>
     <string name="workspace_badge_active_operations">Active operations (file copies, searches, etc.)</string>

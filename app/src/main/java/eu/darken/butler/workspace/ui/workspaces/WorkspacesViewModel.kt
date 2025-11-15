@@ -19,8 +19,8 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.WorkspacePageManager
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import kotlinx.coroutines.delay
@@ -254,8 +254,11 @@ class WorkspacesViewModel @Inject constructor(
         val motd: MotdState? = null,
         val currentPaneCount: Int = 1,
     ) {
-        val displayMode: WorkspacePanelMode
-            get() = state.panelMode
+        val portraitPanelMode: WorkspacePanelMode
+            get() = state.portraitPanelMode
+
+        val landscapePanelMode: WorkspacePanelMode
+            get() = state.landscapePanelMode
 
         val focused: Workspace.Id?
             get() = focusedWorkspace
