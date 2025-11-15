@@ -59,6 +59,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var safLocationManager: SAFLocationManager
     @Inject lateinit var imageLoaderProvider: Provider<ImageLoader>
     @Inject lateinit var workspacePreviewManager: WorkspacePreviewManager
+    @Inject lateinit var documentsProviderManager: eu.darken.butler.provider.documents.core.DocumentsProviderManager
 
     private val logCatLogger = LogCatLogger()
 
