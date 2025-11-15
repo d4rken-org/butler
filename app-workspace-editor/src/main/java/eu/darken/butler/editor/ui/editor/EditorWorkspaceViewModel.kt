@@ -202,13 +202,25 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun setCursorPosition(position: TextPosition) {
-        val workspace = getCurrentWorkspace()
-        workspace?.setCursorPosition(position)
+        launch {
+            try {
+                val workspace = workspaceFlow.first() as? EditorWorkspace
+                workspace?.setCursorPosition(position)
+            } catch (e: Exception) {
+                log(tag, Logging.Priority.ERROR) { "Failed to set cursor position - ${e.asLog()}" }
+            }
+        }
     }
 
     fun setSelection(start: TextPosition, end: TextPosition) {
-        val workspace = getCurrentWorkspace()
-        workspace?.setSelection(start, end)
+        launch {
+            try {
+                val workspace = workspaceFlow.first() as? EditorWorkspace
+                workspace?.setSelection(start, end)
+            } catch (e: Exception) {
+                log(tag, Logging.Priority.ERROR) { "Failed to set selection - ${e.asLog()}" }
+            }
+        }
     }
 
     fun search(query: String) {
