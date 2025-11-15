@@ -1,4 +1,4 @@
-package eu.darken.butler.provider.documents
+package eu.darken.butler.provider.documents.core
 
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn

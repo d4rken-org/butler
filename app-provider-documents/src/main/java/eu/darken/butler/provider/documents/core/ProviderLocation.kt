@@ -4,8 +4,6 @@ import android.provider.DocumentsContract.Document.*
 import android.provider.DocumentsContract.Root.*
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.provider.documents.R
 
 interface ProviderLocation {
@@ -42,8 +40,8 @@ interface ProviderLocation {
         data object Butler : Root {
             override val apiRootId = "butler"
             override val icon = R.mipmap.ic_launcher
-            override val title = R.string.documents_root_butler_title.toCaString()
-            override val summary = R.string.documents_root_butler_summary.toCaString()
+            override val title = R.string.provider_documents_root_butler_title.toCaString()
+            override val summary = R.string.provider_documents_root_butler_summary.toCaString()
             override val flags = FLAG_SUPPORTS_CREATE or FLAG_SUPPORTS_IS_CHILD or FLAG_LOCAL_ONLY
             override val rootDocumentId = "butler"
         }
@@ -58,7 +56,7 @@ interface ProviderLocation {
         data object Device : Home {
             override val documentId = "device|self"
             override val icon = R.drawable.devices_24px
-            override val title = R.string.documents_connection_device_title.toCaString()
+            override val title = R.string.provider_documents_connection_device_title.toCaString()
             override val summary = R.string.documents_connection_device_summary.toCaString()
             override val flags = FLAG_DIR_SUPPORTS_CREATE  // Directory that can contain new items
         }

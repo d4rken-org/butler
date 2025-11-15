@@ -6,12 +6,12 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.provider.documents.ButlerDocumentsProvider
+import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
+import eu.darken.butler.provider.documents.core.writer.DocumentCreator
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

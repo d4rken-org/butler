@@ -2,6 +2,7 @@ package eu.darken.butler.provider.documents
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.ProviderLocation
 import io.kotest.matchers.shouldBe
