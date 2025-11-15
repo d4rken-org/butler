@@ -4,7 +4,7 @@
     <application>
         <!-- Butler DocumentsProvider for system file picker integration -->
         <provider
-            android:name=".ButlerDocumentsProvider"
+            android:name=".core.ButlerDocumentsProvider"
             android:authorities="${applicationId}.provider.documents"
             android:enabled="true"
             android:exported="true"

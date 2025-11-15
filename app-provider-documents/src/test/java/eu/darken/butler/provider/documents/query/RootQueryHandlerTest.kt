@@ -4,6 +4,7 @@ import android.content.Context
 import android.provider.DocumentsContract
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.provider.documents.core.ProviderLocation
+import eu.darken.butler.provider.documents.core.query.RootQueryHandler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.test.runTest
