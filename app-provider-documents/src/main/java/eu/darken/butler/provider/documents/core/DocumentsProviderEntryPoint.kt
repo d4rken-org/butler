@@ -12,4 +12,7 @@ import dagger.hilt.components.SingletonComponent
 @EntryPoint
 interface DocumentsProviderEntryPoint {
     fun inject(provider: ButlerDocumentsProvider)
+
+    // Eager initialization of component state manager
+    fun providerManager(): DocumentsProviderManager
 }

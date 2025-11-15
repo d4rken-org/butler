@@ -5,9 +5,12 @@ import android.database.Cursor
 import android.database.MatrixCursor
 import android.provider.DocumentsContract
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.provider.documents.core.DocumentsProviderSettings
 import eu.darken.butler.provider.documents.core.ProviderLocation
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,6 +23,7 @@ import javax.inject.Singleton
 @Singleton
 class RootQueryHandler @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val settings: DocumentsProviderSettings,
 ) {
 
     /**
@@ -30,6 +34,12 @@ class RootQueryHandler @Inject constructor(
      */
     suspend fun queryRoots(projection: Array<String>?): Cursor {
         log(TAG, INFO) { "queryRoots() called with projection: ${projection?.contentToString()}" }
+
+        if (!settings.isEnabled.value()) {
+            log(TAG, WARN) { "Provider is disabled - returning empty cursor" }
+            val resolvedProjection = projection ?: DEFAULT_ROOT_PROJECTION
+            return MatrixCursor(resolvedProjection)
+        }
 
         val roots = listOf(ProviderLocation.Root.Butler)
 

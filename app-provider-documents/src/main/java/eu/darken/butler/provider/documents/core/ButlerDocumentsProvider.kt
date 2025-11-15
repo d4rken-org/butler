@@ -48,10 +48,14 @@ class ButlerDocumentsProvider : DocumentsProvider() {
     override fun onCreate(): Boolean {
         val context = context ?: return false
 
-        EntryPointAccessors.fromApplication(
+        val entryPoint = EntryPointAccessors.fromApplication(
             context.applicationContext,
             DocumentsProviderEntryPoint::class.java
-        ).inject(this)
+        )
+        entryPoint.inject(this)
+
+        // Initialize component state manager to sync enabled/disabled state
+        entryPoint.providerManager()
 
         log(TAG, INFO) { "ButlerDocumentsProvider initialized" }
         return true
