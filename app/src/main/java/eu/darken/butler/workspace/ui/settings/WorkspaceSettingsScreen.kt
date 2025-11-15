@@ -6,27 +6,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.AutoAwesome
-import androidx.compose.material.icons.twotone.GridView
-import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.StayPrimaryLandscape
 import androidx.compose.material.icons.twotone.StayPrimaryPortrait
 import androidx.compose.material.icons.twotone.SwipeLeft
-import androidx.compose.material.icons.twotone.TabletAndroid
 import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,8 +30,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
@@ -197,6 +193,19 @@ private fun getLayoutModeLabel(mode: WorkspacePanelMode): String {
 }
 
 @Composable
+private fun getLayoutModeIconPainter(mode: WorkspacePanelMode): Painter {
+    return when (mode) {
+        WorkspacePanelMode.SINGLE -> painterResource(R.drawable.ic_layout_single)
+        WorkspacePanelMode.DUAL_VERTICAL -> painterResource(R.drawable.ic_layout_dual_vertical)
+        WorkspacePanelMode.DUAL_HORIZONTAL -> painterResource(R.drawable.ic_layout_dual_horizontal)
+        WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> painterResource(R.drawable.ic_layout_triple_sidebar_left)
+        WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT -> painterResource(R.drawable.ic_layout_triple_sidebar_right)
+        WorkspacePanelMode.QUAD_GRID -> painterResource(R.drawable.ic_layout_quad_grid)
+        WorkspacePanelMode.AUTO -> painterResource(R.drawable.ic_layout_single) // Fallback
+    }
+}
+
+@Composable
 private fun LayoutModeDialog(
     title: String,
     currentMode: WorkspacePanelMode,
@@ -208,22 +217,28 @@ private fun LayoutModeDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column(modifier = Modifier.selectableGroup()) {
+            Column {
                 availableModes.forEach { mode ->
+                    val isSelected = mode == currentMode
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .selectable(
-                                selected = (mode == currentMode),
-                                onClick = { onConfirm(mode) },
-                                role = Role.RadioButton
+                                selected = isSelected,
+                                onClick = { onConfirm(mode) }
                             )
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        RadioButton(
-                            selected = (mode == currentMode),
-                            onClick = null
+                        Icon(
+                            painter = getLayoutModeIconPainter(mode),
+                            contentDescription = null,
+                            tint = if (isSelected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            },
+                            modifier = Modifier.size(48.dp),
                         )
                         Column(modifier = Modifier.padding(start = 16.dp)) {
                             Text(
