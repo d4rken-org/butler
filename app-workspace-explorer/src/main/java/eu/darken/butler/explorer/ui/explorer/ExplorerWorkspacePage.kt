@@ -66,6 +66,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
+import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.issues.IssueBottomSheet
@@ -184,12 +185,7 @@ fun ExplorerWorkspacePage(
     val issueState by (vm?.issueState?.collectAsState() ?: remember { mutableStateOf(null) })
     var showIssueSheet by remember { mutableStateOf(false) }
 
-    // Automatically show conflict sheet when conflictState becomes non-null
-    LaunchedEffect(issueState) {
-        if (issueState != null) showIssueSheet = true
-    }
-
-    // Listen for requests to show conflict sheet
+    // Listen for requests to show conflict sheet (manual trigger only)
     LaunchedEffect(vm) {
         vm?.showIssueSheetEvent?.collect { showIssueSheet = true }
     }
@@ -735,21 +731,21 @@ fun ExplorerWorkspacePage(
             },
             onCopyError = { vm?.copyError(it) }
         )
-    }
 
-    // Show conflict bottom sheet when needed
-    if (issueState != null && showIssueSheet) {
-        IssueBottomSheet(
-            issue = issueState!!,
-            onResolution = { resolution -> vm?.resolveConflict(resolution) },
-            onDismiss = { showIssueSheet = false },
-        )
+        // Show conflict bottom sheet when needed
+        if (issueState != null && showIssueSheet) {
+            IssueBottomSheet(
+                issue = issueState!!,
+                onResolution = { resolution -> vm?.resolveConflict(resolution) },
+                onDismiss = { showIssueSheet = false },
+            )
+        }
     }
 
     // Show add storage bottom sheet
     val showAddStorageSheet by (vm?.showAddStorageSheet?.collectAsState() ?: remember { mutableStateOf(false) })
     if (showAddStorageSheet) {
-        eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet(
+        AddDeviceStorageSheet(
             onDismiss = { vm?.dismissAddStorageSheet() },
             onContinue = { vm?.addSAFLocation() }
         )

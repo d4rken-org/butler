@@ -20,9 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +45,7 @@ import eu.darken.butler.common.files.toCaString
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import java.text.DateFormat
 import java.util.Date
 import kotlin.time.Clock
@@ -71,11 +70,9 @@ fun ItemInfoBottomSheet(
             )
         }
     } else {
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = sheetState,
+        PaneScopedBottomSheet(
+            visible = true,
+            onDismiss = onDismiss,
             modifier = modifier,
         ) {
             ItemInfoContent(
