@@ -244,6 +244,27 @@ fun ExplorerWorkspacePage(
         }
     }
 
+    // Synchronize scroll position when view mode changes
+    LaunchedEffect(mainState.viewMode) {
+        val items = mainState.items
+        if (items != null && items.isNotEmpty()) {
+            val currentIndex = if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                // Switching TO list view - sync from grid
+                gridState.firstVisibleItemIndex
+            } else {
+                // Switching TO grid view - sync from list
+                listState.firstVisibleItemIndex
+            }
+
+            // Apply the scroll position to the new view mode
+            if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+                listState.scrollToItem(currentIndex, 0)
+            } else {
+                gridState.scrollToItem(currentIndex, 0)
+            }
+        }
+    }
+
     // Auto-scroll to top when sort settings change
     LaunchedEffect(mainState.sortSettings) {
         if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
