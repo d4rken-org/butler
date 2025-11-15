@@ -208,6 +208,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val useRegexPatterns: Boolean = false,
         val useBackButtonForNavigation: Boolean = false,
         val pickerConfig: PickerConfig? = null,
+        val sortSettings: eu.darken.butler.explorer.core.SortSettings = eu.darken.butler.explorer.core.SortSettings(),
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -330,6 +331,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             useRegexPatterns = useRegexPatterns,
             useBackButtonForNavigation = useBackButtonForNavigation,
             pickerConfig = pickerConfig,
+            sortSettings = sortSetting,
         )
     }
         .distinctUntilChanged()

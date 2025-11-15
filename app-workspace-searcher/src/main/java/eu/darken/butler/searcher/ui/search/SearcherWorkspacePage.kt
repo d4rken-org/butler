@@ -152,6 +152,13 @@ fun SearcherWorkspacePage(
         }
     }
 
+    // Auto-scroll to top when sort settings change
+    LaunchedEffect(state?.sortSettings) {
+        if (state?.sortSettings != null) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
 

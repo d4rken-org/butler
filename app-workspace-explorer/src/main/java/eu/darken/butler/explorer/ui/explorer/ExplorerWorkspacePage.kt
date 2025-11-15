@@ -244,6 +244,15 @@ fun ExplorerWorkspacePage(
         }
     }
 
+    // Auto-scroll to top when sort settings change
+    LaunchedEffect(mainState.sortSettings) {
+        if (mainState.viewMode == ExplorerWorkspaceViewModel.ViewMode.LIST) {
+            listState.animateScrollToItem(0)
+        } else {
+            gridState.animateScrollToItem(0)
+        }
+    }
+
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
 
