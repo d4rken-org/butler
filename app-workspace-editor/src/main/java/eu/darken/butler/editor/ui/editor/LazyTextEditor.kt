@@ -1,6 +1,9 @@
 package eu.darken.butler.editor.ui.editor
 
 import android.graphics.Paint
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -49,6 +52,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.core.engine.TextPosition
 import kotlinx.coroutines.launch
+
+private val tag = logTag("Editor", "LazyTextEditor")
 
 @Composable
 fun LazyTextEditor(
@@ -196,6 +201,7 @@ private fun DualColumnEditorContent(
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     var isFocused by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
 
     // Sync textFieldValue with visible content
     LaunchedEffect(visibleLineContent) {
@@ -348,11 +354,58 @@ private fun DualColumnEditorContent(
                     .then(focusBorderModifier)
                     .clipToBounds()
                     .pointerInput(Unit) {
-                        detectTapGestures {
+                        detectTapGestures { offset ->
+                            log(tag, INFO) { "LazyColumn click detected at offset: $offset" }
+
+                            // Request focus first
                             try {
                                 focusRequester.requestFocus()
                             } catch (e: Exception) {
-                                // Ignore focus errors
+                                log(tag, WARN) { "Failed to request focus: ${e.message}" }
+                            }
+
+                            // Find which line was clicked based on Y coordinate
+                            val layoutInfo = contentListState.layoutInfo
+                            val clickedItem = layoutInfo.visibleItemsInfo.find { item ->
+                                offset.y >= item.offset && offset.y < (item.offset + item.size)
+                            }
+
+                            if (clickedItem != null) {
+                                val lineIndex = clickedItem.index
+                                log(tag, INFO) { "Clicked on line $lineIndex at Y offset ${offset.y}" }
+
+                                // Calculate column based on X position
+                                // offset.x is already relative to the content LazyColumn,
+                                // so line number width is already excluded from the coordinate system
+                                val contentPaddingPx = with(density) { 8.dp.toPx() }
+                                val adjustedX = offset.x - contentPaddingPx
+
+                                // Use consistent character width calculation (same as cursor drawing)
+                                val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
+
+                                // Get the line content to calculate max column
+                                val lineContent = visibleLineContent[lineIndex] ?: ""
+                                val expandedContent = lineContent.expandTabs(tabSize)
+
+                                val clickedColumn = if (adjustedX < 0) {
+                                    0 // Clicked in padding
+                                } else {
+                                    // Calculate column position
+                                    val calculatedColumn = (adjustedX / charWidth).toInt()
+                                    calculatedColumn.coerceIn(0, expandedContent.length)
+                                }
+
+                                log(tag, INFO) { "Calculated column $clickedColumn for line $lineIndex (adjustedX: $adjustedX, lineLength: ${expandedContent.length})" }
+
+                                // Create cursor position and notify
+                                val newPosition = TextPosition(
+                                    offset = calculateOffsetForLine(visibleLineContent, lineIndex, clickedColumn),
+                                    line = lineIndex,
+                                    column = clickedColumn
+                                )
+                                onCursorPositionChange(newPosition)
+                            } else {
+                                log(tag, WARN) { "No line found at Y offset ${offset.y}" }
                             }
                         }
                     }
@@ -376,13 +429,16 @@ private fun DualColumnEditorContent(
                         fontSize = fontSize,
                         tabSize = tabSize,
                         onLineClick = { clickPosition ->
+                            log(tag, INFO) { "onLineClick called - Line: $lineIndex, Column: $clickPosition" }
                             val newPosition = TextPosition(
                                 offset = calculateOffsetForLine(visibleLineContent, lineIndex, clickPosition),
                                 line = lineIndex,
                                 column = clickPosition
                             )
+                            log(tag, INFO) { "Calling onCursorPositionChange with position: $newPosition" }
                             onCursorPositionChange(newPosition)
                         },
+                        focusRequester = focusRequester,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -413,11 +469,13 @@ private fun TextLineItem(
     fontSize: Int,
     tabSize: Int,
     onLineClick: (Int) -> Unit,
+    focusRequester: FocusRequester? = null,
     modifier: Modifier = Modifier
 ) {
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val density = LocalDensity.current
     val cursorColor = MaterialTheme.colorScheme.primary
+    val expandedText = remember(lineContent, tabSize) { lineContent.expandTabs(tabSize) }
 
     // Blinking animation when focused
     val infiniteTransition = rememberInfiniteTransition(label = "cursor_blink")
@@ -461,12 +519,22 @@ private fun TextLineItem(
             val position = cursorPosition.column
 
             val layoutResult = textLayoutResult
-            val cursorX = if (layoutResult != null && position <= expandedText.length) {
-                val boundingBox = layoutResult.getBoundingBox(position.coerceIn(0, expandedText.length))
-                boundingBox.left
-            } else {
-                val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-                position.coerceIn(0, expandedText.length) * charWidth
+            val cursorX = when {
+                layoutResult != null && position < expandedText.length -> {
+                    // Position is within text bounds, get exact position
+                    val boundingBox = layoutResult.getBoundingBox(position)
+                    boundingBox.left
+                }
+                layoutResult != null && position == expandedText.length && expandedText.isNotEmpty() -> {
+                    // Position is at end of non-empty line, get right edge of last character
+                    val boundingBox = layoutResult.getBoundingBox(expandedText.length - 1)
+                    boundingBox.right
+                }
+                else -> {
+                    // Fallback: calculate based on character width
+                    val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
+                    position * charWidth
+                }
             }
 
             // Draw cursor on top
@@ -481,16 +549,27 @@ private fun TextLineItem(
             } else {
                 // Unfocused: Block cursor
                 val layoutResultForWidth = textLayoutResult
-                val charWidth = if (layoutResultForWidth != null && position < expandedText.length) {
-                    val currentBox = layoutResultForWidth.getBoundingBox(position)
-                    val nextBox = if (position + 1 <= expandedText.length) {
-                        layoutResultForWidth.getBoundingBox(position + 1)
-                    } else {
-                        currentBox
+                val charWidth = when {
+                    layoutResultForWidth != null && position < expandedText.length - 1 -> {
+                        // Get width from current to next character
+                        val currentBox = layoutResultForWidth.getBoundingBox(position)
+                        val nextBox = layoutResultForWidth.getBoundingBox(position + 1)
+                        (nextBox.left - currentBox.left).coerceAtLeast(0f)
                     }
-                    (nextBox.left - currentBox.left).coerceAtLeast(0f)
-                } else {
-                    with(density) { (fontSize * 0.6f).sp.toPx() }
+                    layoutResultForWidth != null && position == expandedText.length - 1 && expandedText.isNotEmpty() -> {
+                        // Last character: get its width
+                        val box = layoutResultForWidth.getBoundingBox(position)
+                        if (position > 0) {
+                            val prevBox = layoutResultForWidth.getBoundingBox(position - 1)
+                            (box.right - box.left).coerceAtLeast(0f)
+                        } else {
+                            with(density) { (fontSize * 0.6f).sp.toPx() }
+                        }
+                    }
+                    else -> {
+                        // Fallback or end of line
+                        with(density) { (fontSize * 0.6f).sp.toPx() }
+                    }
                 }
 
                 val blockWidth = if (position < expandedText.length) {
@@ -524,7 +603,6 @@ private fun TextLineItem(
             selection = selection,
             wordWrap = wordWrap,
             fontSize = fontSize,
-            onTextClick = onLineClick,
             onTextLayout = { layoutResult ->
                 textLayoutResult = layoutResult
             },
@@ -541,7 +619,6 @@ private fun SelectableText(
     selection: Pair<TextPosition, TextPosition>?,
     wordWrap: Boolean,
     fontSize: Int,
-    onTextClick: (Int) -> Unit,
     onTextLayout: (TextLayoutResult) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -554,14 +631,6 @@ private fun SelectableText(
         Canvas(
             modifier = modifier
                 .height(with(density) { (fontSize + 4).sp.toDp() })
-                .pointerInput(lineIndex) {
-                    detectTapGestures { offset ->
-                        // Calculate character position from click
-                        val charWidth = fontSize * density.density * 0.6f // Approximate monospace char width
-                        val clickedColumn = (offset.x / charWidth).toInt().coerceIn(0, text.length)
-                        onTextClick(clickedColumn)
-                    }
-                }
         ) {
             drawTextLine(
                 text = text,
@@ -576,19 +645,6 @@ private fun SelectableText(
         // Use Compose Text rendering (more reliable)
         Box(
             modifier = modifier
-                .pointerInput(lineIndex, layoutResult) {
-                    detectTapGestures { offset ->
-                        val clickedColumn = if (layoutResult != null) {
-                            // Use precise text layout measurements
-                            layoutResult!!.getOffsetForPosition(offset).coerceIn(0, text.length)
-                        } else {
-                            // Fallback to approximate calculation
-                            val charWidth = fontSize * density.density * 0.6f
-                            (offset.x / charWidth).toInt().coerceIn(0, text.length)
-                        }
-                        onTextClick(clickedColumn)
-                    }
-                }
         ) {
             // Selection background
             selection?.let { (start, end) ->
