@@ -21,6 +21,7 @@ import eu.darken.butler.workspace.ui.feedback.WorkspaceBanner
  *
  * This provides a unified location for rendering:
  * - Manager-controlled dialogs (e.g., batch operation confirmations)
+ * - Feedback banners
  * - Future: Workspace-level notifications
  * - Future: Workspace-level loading states
  * - Future: Floating action buttons

@@ -4,6 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.hasApiLevel
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -24,10 +25,14 @@ sealed interface CopyOperationEvent : Parcelable {
 
                 // Delegate to appropriate subtype's CREATOR
                 return when (className) {
-                    ScanProgress::class.java.name -> parcel.readParcelable(ScanProgress::class.java.classLoader)
-                    CopyProgress::class.java.name -> parcel.readParcelable(CopyProgress::class.java.classLoader)
-                    Result::class.java.name -> parcel.readParcelable(Result::class.java.classLoader)
-                    Error::class.java.name -> parcel.readParcelable(Error::class.java.classLoader)
+                    CopyOperationEvent.ScanProgress::class.java.name ->
+                        parcel.readParcelable<ScanProgress>(ScanProgress::class.java.classLoader)
+                    CopyOperationEvent.CopyProgress::class.java.name ->
+                        parcel.readParcelable<CopyProgress>(CopyProgress::class.java.classLoader)
+                    CopyOperationEvent.Result::class.java.name ->
+                        parcel.readParcelable<Result>(Result::class.java.classLoader)
+                    CopyOperationEvent.Error::class.java.name ->
+                        parcel.readParcelable<Error>(Error::class.java.classLoader)
                     else -> throw IllegalArgumentException("Unknown CopyOperationEvent type: $className")
                 } ?: throw IllegalStateException("Failed to read CopyOperationEvent")
             }

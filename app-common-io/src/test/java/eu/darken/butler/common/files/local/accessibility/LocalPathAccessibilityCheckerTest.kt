@@ -10,8 +10,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
-import testhelpers.EmptyApp
 import testhelpers.BaseTest
+import testhelpers.EmptyApp
 
 /**
  * Tests for LocalPathAccessChecker.
@@ -61,7 +61,7 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
     fun `root path should not try normal access for both read and write`() {
         val path = LocalPath.build("/")
 
-        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe true
+        checker.shouldTryNormalAccess(path, forWriting = false) shouldBe false
         checker.shouldTryNormalAccess(path, forWriting = true) shouldBe false
     }
 

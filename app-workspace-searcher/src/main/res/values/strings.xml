@@ -2,20 +2,23 @@
 <resources>
     <string name="searcher_title">Search</string>
     <string name="searcher_subtitle">Find files and content</string>
-    <string name="searcher_settings_title">Search Settings</string>
+    <string name="searcher_settings_title">Search settings</string>
     <string name="searcher_settings_search_category">Search</string>
-    <string name="searcher_settings_history">Search History</string>
+    <string name="searcher_settings_history">Search history</string>
     <string name="searcher_settings_save_history_title">Save search history</string>
-    <string name="searcher_settings_save_history_subtitle">Remember previous searches.</string>
+    <string name="searcher_settings_save_history_subtitle">Remember previous searches</string>
     <string name="searcher_settings_current_history_title">Current history entries</string>
-    <string name="searcher_settings_current_history_subtitle">Number of searches currently saved.</string>
-    <string name="searcher_settings_max_history_title">Max history entries</string>
-    <string name="searcher_settings_max_history_subtitle">Maximum number of saved searches.</string>
+    <string name="searcher_settings_current_history_subtitle">Number of searches currently saved</string>
+    <string name="searcher_settings_max_history_title">Maximum history entries</string>
+    <string name="searcher_settings_max_history_subtitle">Maximum number of saved searches</string>
     <string name="searcher_settings_clear_history_title">Clear search history</string>
-    <string name="searcher_settings_clear_history_subtitle">Remove all saved searches.</string>
+    <string name="searcher_settings_clear_history_subtitle">Remove all saved searches</string>
     <string name="searcher_settings_search_performance">Performance</string>
     <string name="searcher_settings_max_results_title">Maximum search results</string>
     <string name="searcher_settings_max_results_subtitle">Limit the number of results returned per search.</string>
+    <string name="searcher_settings_content_search_category">Content Search</string>
+    <string name="searcher_settings_include_binaries_title">Include binary files</string>
+    <string name="searcher_settings_include_binaries_subtitle">Search content of binary files (may be slow and produce irrelevant results)</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Recent searches</string>
@@ -26,7 +29,7 @@
     <string name="searcher_multipath_show_fewer_action">Show fewer</string>
     <string name="searcher_empty_state_title">No search paths configured</string>
     <string name="searcher_empty_state_description">Add storage locations to search through your files</string>
-    <string name="searcher_add_default_paths_action">Add Default Search Paths</string>
+    <string name="searcher_add_default_paths_action">Add default search paths</string>
 
     <!-- Search Options -->
     <string name="searcher_option_case_sensitive_label">Aa</string>
@@ -35,7 +38,9 @@
     <string name="searcher_option_whole_word_desc">Whole word search</string>
     <string name="searcher_option_regex_label">.*</string>
     <string name="searcher_option_regex_desc">Regular expression search</string>
-    
+    <string name="searcher_option_search_content_label">Content</string>
+    <string name="searcher_option_search_content_desc">Search file contents</string>
+
     <!-- Search history actions -->
     <string name="searcher_history_remove_action">Remove from history</string>
     <string name="searcher_history_clear_all_action">Clear all</string>
@@ -82,17 +87,20 @@
         <item quantity="other">%d found</item>
     </plurals>
 
+    <!-- Match context -->
+    <string name="searcher_match_line_label">Line %1$d</string>
+
     <!-- Action strings -->
-    <string name="searcher_action_open_in_editor">Open in Editor</string>
-    <string name="searcher_action_open_in_explorer">Open in Explorer</string>
+    <string name="searcher_action_open_in_editor">Open in editor</string>
+    <string name="searcher_action_open_in_explorer">Open in explorer</string>
     <string name="searcher_action_copy">Copy</string>
     <string name="searcher_action_cut">Cut</string>
     <string name="searcher_action_delete">Delete</string>
     <string name="searcher_action_share">Share</string>
-    <string name="searcher_action_copy_path">Copy Path</string>
+    <string name="searcher_action_copy_path">Copy path</string>
     <string name="searcher_action_properties">Properties</string>
-    <string name="searcher_action_select_all">Select All</string>
-    <string name="searcher_action_deselect_all">Deselect All</string>
+    <string name="searcher_action_select_all">Select all</string>
+    <string name="searcher_action_deselect_all">Deselect all</string>
     <string name="searcher_action_open_in_new_tabs">Open in new tabs</string>
     <string name="searcher_action_sort">Sort</string>
     <string name="searcher_action_view">View</string>

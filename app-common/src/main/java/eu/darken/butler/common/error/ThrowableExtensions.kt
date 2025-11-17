@@ -14,6 +14,18 @@ val Throwable.causes: Sequence<Throwable>
         }
     }
 
+/**
+ * Returns a sequence containing this throwable and all its causes.
+ * Useful for checking exception types throughout the entire cause chain.
+ *
+ * Example:
+ * ```
+ * exception.causeChain.any { it is IOException }
+ * ```
+ */
+val Throwable.causeChain: Sequence<Throwable>
+    get() = sequenceOf(this) + causes
+
 fun Throwable.getRootCause(): Throwable {
     var error = this
     while (error.cause != null) {

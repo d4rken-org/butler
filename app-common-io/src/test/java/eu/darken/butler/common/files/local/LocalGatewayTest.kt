@@ -20,8 +20,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
-import testhelpers.EmptyApp
 import testhelpers.BaseTest
+import testhelpers.EmptyApp
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 import java.io.IOException
@@ -76,7 +76,7 @@ class LocalGatewayTest : BaseTest() {
             fileSystemOps = mockFileSystemOps,
             rootManager = mockRootManager,
             adbManager = mockAdbManager,
-            accessibilityChecker = mockAccessibilityChecker
+            accessChecker = mockAccessibilityChecker
         )
     }
 

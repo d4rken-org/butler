@@ -83,4 +83,24 @@ interface FileOpsConnection {
         boolean followSymlinks,
         in FileOperationCallback callback
     );
+
+    /**
+     * Move files with progress streaming and interactive issue resolution.
+     *
+     * @param sources Paths to move
+     * @param destination Target directory or file path
+     * @param overwrite If true, overwrite existing files
+     * @param preserveAttributes If true, preserve file attributes (timestamps, permissions)
+     * @param followSymlinks If true, follow symlinks to their targets
+     * @param callback Callback for resolving issues (null = fail fast)
+     * @return RemoteInputStream streaming MoveOperationEvent instances
+     */
+    RemoteInputStream moveStream(
+        in List<LocalPath> sources,
+        in LocalPath destination,
+        boolean overwrite,
+        boolean preserveAttributes,
+        boolean followSymlinks,
+        in FileOperationCallback callback
+    );
 }

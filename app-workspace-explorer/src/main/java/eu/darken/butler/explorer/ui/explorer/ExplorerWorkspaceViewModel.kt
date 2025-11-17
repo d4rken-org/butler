@@ -41,6 +41,7 @@ import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerNavigation.Target.*
 import eu.darken.butler.explorer.core.ExplorerSettings
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.explorer.core.FileTypeFilter
@@ -123,7 +124,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
-    private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
+    private val viewStyleFlow = MutableStateFlow<ExplorerViewStyle>(explorerSettings.defaultViewStyle.valueBlocking)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(None)
     private val issueStateFlow = MutableStateFlow<Issue?>(null)
     private val filterStateFlow = MutableStateFlow(FilterState())
@@ -185,11 +186,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .launchInViewModel()
     }
 
-    enum class ViewMode {
-        LIST,
-        GRID
-    }
-
     data class State(
         internal val currentLocation: ExplorerLocation? = null,
         val locationId: String? = null,
@@ -197,7 +193,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val items: List<ExplorerItem>? = null,
         val error: Throwable? = null,
         val selectionState: ExplorerSelectionState = ExplorerSelectionState(),
-        val viewMode: ViewMode = ViewMode.LIST,
+        val viewStyle: ExplorerViewStyle = ExplorerViewStyle.default(),
         val canGoBack: Boolean = false,
         val canGoForward: Boolean = false,
         val availableActions: List<ExplorerAction> = emptyList(),
@@ -208,6 +204,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val useRegexPatterns: Boolean = false,
         val useBackButtonForNavigation: Boolean = false,
         val pickerConfig: PickerConfig? = null,
+        val sortSettings: eu.darken.butler.explorer.core.SortSettings = eu.darken.butler.explorer.core.SortSettings(),
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -236,7 +233,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val state = combine(
         workspaceState,
         selectedItemsFlow,
-        viewModeFlow,
+        viewStyleFlow,
         dialogStateFlow,
         currentSortSettings,
         upgradeRepo.upgradeInfo,
@@ -244,7 +241,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         explorerSettings.useRegexPatterns.flow,
         explorerSettings.useBackButtonForNavigation.flow,
         pickerConfigFlow,
-    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig ->
+    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig ->
         val items = wsState.currentLocation?.items
             ?.let { items -> applyPickerFilter(items, pickerConfig) }
             ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
@@ -285,6 +282,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             actionProvider.getActions(
                 location = it,
                 selectionState = selectionState,
+                viewStyle = viewStyle,
             )
                 .filter { action ->
                     // In picker mode, only allow browse/create/select actions
@@ -319,7 +317,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             items = items,
             error = wsState.error,
             selectionState = selectionState,
-            viewMode = viewMode,
+            viewStyle = viewStyle,
             canGoBack = wsState.canGoBack,
             canGoForward = wsState.canGoForward,
             availableActions = availableActions,
@@ -330,6 +328,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             useRegexPatterns = useRegexPatterns,
             useBackButtonForNavigation = useBackButtonForNavigation,
             pickerConfig = pickerConfig,
+            sortSettings = sortSetting,
         )
     }
         .distinctUntilChanged()
@@ -762,10 +761,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     useRegexPatterns = explorerSettings.useRegexPatterns.valueBlocking,
                 )
             }
-            is ExplorerAction.Common.ToggleView -> {
-                viewModeFlow.value = when (viewModeFlow.value) {
-                    ViewMode.LIST -> ViewMode.GRID
-                    ViewMode.GRID -> ViewMode.LIST
+            is ExplorerAction.Common.UpdateViewStyle -> {
+                viewStyleFlow.value = action.viewStyle
+                launch {
+                    explorerSettings.defaultViewStyle.value(action.viewStyle)
                 }
             }
             is ExplorerAction.Common.Refresh -> {
@@ -1398,7 +1397,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Common.Refresh,
             is ExplorerAction.Common.Sort,
             is ExplorerAction.Common.Filter,
-            is ExplorerAction.Common.ToggleView,
+            is ExplorerAction.Common.UpdateViewStyle,
             is ExplorerAction.Directory.Create,
             is ExplorerAction.Directory.SelectAll,
             is ExplorerAction.Directory.DeselectAll -> true

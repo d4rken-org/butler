@@ -19,8 +19,8 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.WorkspacePageManager
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import kotlinx.coroutines.delay
@@ -59,9 +59,18 @@ class WorkspacesViewModel @Inject constructor(
         launch {
             val currentWorkspaces = workspaceRepo.state.first()
             if (currentWorkspaces.infos.isEmpty()) {
-                log(tag) { "No workspaces found, auto-creating workspace for testing" }
-                // FIXME: AUTO-CREATE WORKSPACE FOR TESTING - REMOVE BEFORE MERGE, DO NOT COMMIT
-                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.APPS))
+                log(tag) { "No workspaces found, attempting to restore session" }
+
+                // Try to restore previous session
+                val restoredIds = workspaceRepo.restoreSession()
+
+                if (restoredIds.isEmpty()) {
+                    // No session to restore or restoration failed, create default workspace
+                    log(tag) { "No session restored, creating default workspace" }
+                    workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
+                } else {
+                    log(tag, INFO) { "Restored ${restoredIds.size} workspaces from session" }
+                }
             }
         }
 
@@ -263,8 +272,11 @@ class WorkspacesViewModel @Inject constructor(
         val motd: MotdState? = null,
         val currentPaneCount: Int = 1,
     ) {
-        val displayMode: WorkspacePanelMode
-            get() = state.panelMode
+        val portraitPanelMode: WorkspacePanelMode
+            get() = state.portraitPanelMode
+
+        val landscapePanelMode: WorkspacePanelMode
+            get() = state.landscapePanelMode
 
         val focused: Workspace.Id?
             get() = focusedWorkspace

@@ -14,6 +14,7 @@ import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -21,6 +22,7 @@ import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
 import eu.darken.butler.common.files.metadata.FileSystem
+import eu.darken.butler.common.files.operations.createGeneric
 import eu.darken.butler.common.files.saf.SAFFileSystemOps.*
 import eu.darken.butler.common.sharedresource.SharedResource
 import kotlinx.coroutines.CoroutineScope
@@ -225,6 +227,25 @@ class SAFGateway @Inject constructor(
             emit(state)
             if (state is MoveAction.State.Completed) {
                 log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+            }
+        }
+    }.flowOn(dispatcherProvider.IO)
+
+    override suspend fun create(
+        target: SAFPath,
+        type: CreateAction.CreateType,
+        options: CreateAction.Options
+    ): Flow<CreateAction.State<SAFPath, SAFPathLookup>> = flow {
+        log(TAG, VERBOSE) { "create(): $target (type=$type)" }
+
+        target.createGeneric(
+            fileSystemOps = fileSystemOps,
+            type = type,
+            onIssue = options.onIssue,
+        ).collect { state ->
+            emit(state)
+            if (state is CreateAction.State.Completed) {
+                log(TAG, INFO) { "create(): Finished, created ${state.created}" }
             }
         }
     }.flowOn(dispatcherProvider.IO)

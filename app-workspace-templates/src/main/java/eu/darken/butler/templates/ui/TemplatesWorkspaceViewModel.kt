@@ -17,11 +17,9 @@ import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 
 @HiltViewModel(assistedFactory = TemplatesWorkspaceViewModel.Factory::class)
 class TemplatesWorkspaceViewModel @AssistedInject constructor(
@@ -44,13 +42,11 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
     val state = combine(
         templates,
         upgradeRepo.upgradeInfo,
-        workspaceRemote.state.map { it.panelMode },
-    ) { temps, upgradeInfo, panelMode ->
+    ) { temps, upgradeInfo ->
         State(
             id = id,
             templates = temps,
             isUpgraded = upgradeInfo.isUpgraded,
-            panelMode = panelMode,
             versionDescription = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
         )
     }.asStateFlow()
@@ -63,7 +59,6 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         val id: Workspace.Id,
         val isUpgraded: Boolean,
         val templates: List<WorkspaceTemplate>,
-        val panelMode: WorkspacePanelMode,
         val versionDescription: String,
     )
 

@@ -39,14 +39,17 @@ fun WorkspaceManagerGridLayout(
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
     onDismissBadgeExplanation: () -> Unit,
+    onTabsClick: () -> Unit = {},
+    onOperationsFilterClick: () -> Unit = {},
+    onAttentionFilterClick: () -> Unit = {},
 ) {
     val tag = logTag("Workspace", "Manager", "GridLayout")
-    var localWorkspaceItems by remember { mutableStateOf(state.workspaces) }
+    var localWorkspaceItems by remember { mutableStateOf(state.filteredWorkspaces) }
     var isDragging by remember { mutableStateOf(false) }
 
     if (!isDragging) {
-        log(tag) { "Updating local workspace items: ${state.workspaces}" }
-        localWorkspaceItems = state.workspaces
+        log(tag) { "Updating local workspace items: ${state.filteredWorkspaces}" }
+        localWorkspaceItems = state.filteredWorkspaces
     }
 
     // Calculate number of columns based on screen width
@@ -104,7 +107,12 @@ fun WorkspaceManagerGridLayout(
                 WorkspaceStatusCard(
                     workspaceCount = state.workspaceCount,
                     operationsCount = state.operationsCount,
-                    attentionCount = state.attentionCount
+                    attentionCount = state.attentionCount,
+                    isOperationsFilterActive = state.filterOperations,
+                    isAttentionFilterActive = state.filterAttention,
+                    onTabsClick = onTabsClick,
+                    onOperationsClick = onOperationsFilterClick,
+                    onAttentionClick = onAttentionFilterClick,
                 )
             }
         }

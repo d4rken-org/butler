@@ -9,24 +9,24 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
-import eu.darken.butler.provider.documents.ButlerDocumentsProvider
+import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.ProviderLocation
+import eu.darken.butler.provider.documents.core.query.DocumentQueryHandler
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import android.webkit.MimeTypeMap
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -37,7 +37,7 @@ import org.robolectric.annotation.Config
 import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [29])
+@Config(sdk = [33])
 class DocumentQueryHandlerTest {
 
     private lateinit var context: Context
@@ -77,6 +77,19 @@ class DocumentQueryHandlerTest {
                 every { uri.toString() } returns "content://$authority/document/$documentId/children"
             }
         }
+
+        // Mock MimeTypeMap for tests since it doesn't work properly in Robolectric
+        mockkStatic(MimeTypeMap::class)
+        val mockMimeTypeMap = mockk<MimeTypeMap>(relaxed = true)
+        every { MimeTypeMap.getSingleton() } returns mockMimeTypeMap
+        every { mockMimeTypeMap.getMimeTypeFromExtension("pdf") } returns "application/pdf"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("jpg") } returns "image/jpeg"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("jpeg") } returns "image/jpeg"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("png") } returns "image/png"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("mp4") } returns "video/mp4"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("zip") } returns "application/zip"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("txt") } returns "text/plain"
+        every { mockMimeTypeMap.getMimeTypeFromExtension("") } returns null
 
         handler = DocumentQueryHandler(
             context,
@@ -383,5 +396,137 @@ class DocumentQueryHandlerTest {
         val errorMessage = cursor.extras.getString(DocumentsContract.EXTRA_ERROR)
         errorMessage shouldNotBe null
         errorMessage!!.contains("Storage permission", ignoreCase = true) shouldBe true
+    }
+
+    @Test
+    fun `queryDocument detects MIME types from file extensions`() = runTest {
+        val testFiles = mapOf(
+            "document.pdf" to "application/pdf",
+            "image.jpg" to "image/jpeg",
+            "video.mp4" to "video/mp4",
+            "archive.zip" to "application/zip",
+            "text.txt" to "text/plain",
+            "noextension" to "application/octet-stream",
+        )
+
+        testFiles.forEach { (filename, expectedMimeType) ->
+            val path = LocalPath.build("/test/$filename")
+            val documentId = "local|test"
+
+            val mockLookup = mockk<APathLookup<APath<*>>> {
+                coEvery { lookedUp } returns path
+                coEvery { name } returns filename
+                coEvery { fileType } returns FileType.FILE
+                coEvery { size } returns 1024L
+                coEvery { modifiedAt } returns Instant.fromEpochMilliseconds(1000000)
+            }
+
+            coEvery { codec.decode(documentId) } returns path
+            coEvery { gatewaySwitch.lookup(path, any()) } returns mockLookup
+
+            val cursor = handler.queryDocument(documentId, null)
+
+            cursor.count shouldBe 1
+            cursor.moveToFirst() shouldBe true
+
+            val mimeIndex = cursor.getColumnIndex(COLUMN_MIME_TYPE)
+            cursor.getString(mimeIndex) shouldBe expectedMimeType
+        }
+    }
+
+    @Test
+    fun `queryDocument resolves symlink to directory`() = runTest {
+        val symlinkPath = LocalPath.build("/test/link")
+        val targetPath = LocalPath.build("/test/target")
+        val documentId = "local|symlink"
+
+        val targetLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns targetPath
+            coEvery { name } returns "target"
+            coEvery { fileType } returns FileType.DIRECTORY
+        }
+
+        val symlinkLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns symlinkPath
+            coEvery { name } returns "link"
+            coEvery { fileType } returns FileType.SYMBOLIC_LINK
+            coEvery { target } returns targetPath
+            coEvery { size } returns null
+            coEvery { modifiedAt } returns Instant.fromEpochMilliseconds(1000000)
+        }
+
+        coEvery { codec.decode(documentId) } returns symlinkPath
+        coEvery { gatewaySwitch.lookup(symlinkPath, any()) } returns symlinkLookup
+        coEvery { gatewaySwitch.lookup(targetPath, any()) } returns targetLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+
+        cursor.count shouldBe 1
+        cursor.moveToFirst() shouldBe true
+
+        val mimeIndex = cursor.getColumnIndex(COLUMN_MIME_TYPE)
+        cursor.getString(mimeIndex) shouldBe MIME_TYPE_DIR
+    }
+
+    @Test
+    fun `queryDocument resolves symlink to file`() = runTest {
+        val symlinkPath = LocalPath.build("/test/link.txt")
+        val targetPath = LocalPath.build("/test/target.pdf")
+        val documentId = "local|symlink"
+
+        val targetLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns targetPath
+            coEvery { name } returns "target.pdf"
+            coEvery { fileType } returns FileType.FILE
+        }
+
+        val symlinkLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns symlinkPath
+            coEvery { name } returns "link.txt"
+            coEvery { fileType } returns FileType.SYMBOLIC_LINK
+            coEvery { target } returns targetPath
+            coEvery { size } returns null
+            coEvery { modifiedAt } returns Instant.fromEpochMilliseconds(1000000)
+        }
+
+        coEvery { codec.decode(documentId) } returns symlinkPath
+        coEvery { gatewaySwitch.lookup(symlinkPath, any()) } returns symlinkLookup
+        coEvery { gatewaySwitch.lookup(targetPath, any()) } returns targetLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+
+        cursor.count shouldBe 1
+        cursor.moveToFirst() shouldBe true
+
+        val mimeIndex = cursor.getColumnIndex(COLUMN_MIME_TYPE)
+        // Should use target's MIME type (application/pdf) not symlink's name (.txt)
+        cursor.getString(mimeIndex) shouldBe "application/pdf"
+    }
+
+    @Test
+    fun `queryDocument handles broken symlink gracefully`() = runTest {
+        val symlinkPath = LocalPath.build("/test/broken-link.txt")
+        val documentId = "local|symlink"
+
+        val symlinkLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns symlinkPath
+            coEvery { name } returns "broken-link.txt"
+            coEvery { fileType } returns FileType.SYMBOLIC_LINK
+            coEvery { target } returns null // Broken symlink has no target
+            coEvery { size } returns null
+            coEvery { modifiedAt } returns Instant.fromEpochMilliseconds(1000000)
+        }
+
+        coEvery { codec.decode(documentId) } returns symlinkPath
+        coEvery { gatewaySwitch.lookup(symlinkPath, any()) } returns symlinkLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+
+        cursor.count shouldBe 1
+        cursor.moveToFirst() shouldBe true
+
+        val mimeIndex = cursor.getColumnIndex(COLUMN_MIME_TYPE)
+        // Should fall back to using symlink's name
+        cursor.getString(mimeIndex) shouldBe "text/plain"
     }
 }

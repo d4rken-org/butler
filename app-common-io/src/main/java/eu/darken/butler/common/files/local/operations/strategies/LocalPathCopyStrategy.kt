@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -150,6 +151,12 @@ class LocalPathCopyStrategy(
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
+        // Check for existing file if overwrite is disabled
+        if (!options.overwrite && destOps.exists(destination)) {
+            log(TAG, DEBUG) { "Destination exists and overwrite=false: $destination" }
+            throw PathAlreadyExistsException(path = destination)
+        }
+
         // Read the symlink target
         val linkTarget = sourceOps.readSymbolicLink(sourceLookup.lookedUp)
 
@@ -197,6 +204,12 @@ class LocalPathCopyStrategy(
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
+        // Check for existing file if overwrite is disabled
+        if (!options.overwrite && destOps.exists(destination)) {
+            log(TAG, DEBUG) { "Destination exists and overwrite=false: $destination" }
+            throw PathAlreadyExistsException(path = destination)
+        }
+
         var totalBytesTransferred = 0L
 
         // Chunked file copy with progress tracking

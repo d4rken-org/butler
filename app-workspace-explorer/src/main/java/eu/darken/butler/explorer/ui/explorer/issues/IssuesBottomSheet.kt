@@ -1,10 +1,9 @@
 package eu.darken.butler.explorer.ui.explorer.issues
 
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 @Composable
 fun IssueBottomSheet(
@@ -12,11 +11,9 @@ fun IssueBottomSheet(
     onResolution: (PathActionIssue.Resolution) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        sheetState = sheetState,
-        onDismissRequest = onDismiss,
+    PaneScopedBottomSheet(
+        visible = true,
+        onDismiss = onDismiss,
     ) {
         when (issue) {
             is PathActionIssue.PathAlreadyExists -> PathAlreadyExistsIssueSheet(
