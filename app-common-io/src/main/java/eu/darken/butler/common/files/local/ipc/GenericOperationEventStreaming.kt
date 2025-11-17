@@ -52,8 +52,9 @@ fun <T : Parcelable> Flow<T>.toRemoteInputStream(
             val parcel = Parcel.obtain().apply {
                 // Write class name first for deserialization
                 writeString(event::class.java.name)
-                // Write the actual event data
-                event.writeToParcel(this, 0)
+                // Use writeParcelable() for symmetric serialization with readParcelable().
+                // Do NOT use writeToParcel() as it writes raw data without metadata.
+                writeParcelable(event, 0)
             }
 
             // Encode as Base64 and write as line (newline-delimited)

@@ -13,6 +13,8 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
+import eu.darken.butler.common.files.actions.MoveAction
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
@@ -21,6 +23,7 @@ import eu.darken.butler.common.ipc.IpcClientModule
 import eu.darken.butler.common.ipc.fileHandle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import okio.FileHandle
 import okio.buffer
 import java.io.InputStream
@@ -32,6 +35,7 @@ class FileOpsClient @AssistedInject constructor(
 ) : IpcClientModule,
     FileSystemOps<LocalPath, LocalPathLookup>,
     CopyAction<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>,
+    MoveAction<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>,
     DeleteAction<LocalPath, LocalPathLookup> {
 
     /**
@@ -169,7 +173,7 @@ class FileOpsClient @AssistedInject constructor(
                     val domainIssue = issue.toPathActionIssue()
 
                     // Call user's issue handler (blocking call)
-                    val resolution = kotlinx.coroutines.runBlocking {
+                    val resolution = runBlocking {
                         issueHandler(domainIssue)
                     }
 
@@ -209,7 +213,7 @@ class FileOpsClient @AssistedInject constructor(
     override suspend fun copy(
         sources: Set<LocalPath>,
         destination: LocalPath,
-        onIssue: (suspend (eu.darken.butler.common.files.actions.PathActionIssue) -> eu.darken.butler.common.files.actions.PathActionIssue.Resolution)?,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         options: CopyAction.Options,
     ): Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = try {
         log(TAG, VERBOSE) { "copy(): ${sources.size} sources → $destination" }
@@ -222,7 +226,7 @@ class FileOpsClient @AssistedInject constructor(
                     val domainIssue = issue.toPathActionIssue()
 
                     // Call user's issue handler (blocking call)
-                    val resolution = kotlinx.coroutines.runBlocking {
+                    val resolution = runBlocking {
                         issueHandler(domainIssue)
                     }
 
@@ -247,6 +251,61 @@ class FileOpsClient @AssistedInject constructor(
             .map { event ->
                 // Convert each event to CopyAction.State
                 event.toCopyActionState()
+            }
+    } catch (e: Exception) {
+        throw e.refineException()
+    }
+
+    /**
+     * Move files with progress streaming and interactive issue resolution.
+     *
+     * @param sources Set of source paths to move
+     * @param destination Destination directory or file
+     * @param onIssue Issue handler for conflict resolution (optional)
+     * @param options Move options (overwrite, preserve attributes, atomic move)
+     * @return Flow of State updates (scan progress, move progress, and final result)
+     */
+    override suspend fun move(
+        sources: Set<LocalPath>,
+        destination: LocalPath,
+        onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
+        options: MoveAction.Options,
+    ): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = try {
+        log(TAG, VERBOSE) { "move(): ${sources.size} sources → $destination" }
+
+        // Create AIDL callback wrapper if onIssue is provided
+        val callback: FileOperationCallback? = onIssue?.let { issueHandler ->
+            object : FileOperationCallback.Stub() {
+                override fun onIssue(issue: FileOperationIssue): FileOperationIssueResolution {
+                    // Convert IPC issue to domain issue
+                    val domainIssue = issue.toPathActionIssue()
+
+                    // Call user's issue handler (blocking call)
+                    val resolution = runBlocking {
+                        issueHandler(domainIssue)
+                    }
+
+                    // Convert domain resolution to IPC resolution
+                    return resolution.toFileOperationIssueResolution()
+                }
+            }
+        }
+
+        // Call host's moveStream()
+        val remoteInputStream = fileOpsConnection.moveStream(
+            sources.toList(),
+            destination,
+            options.overwrite,
+            options.preserveAttributes,
+            false,  // followSymlinks - MoveAction doesn't have this option
+            callback
+        )
+
+        // Convert RemoteInputStream to Flow<MoveOperationEvent>
+        remoteInputStream.toEventFlow(MoveOperationEvent.CREATOR)
+            .map { event ->
+                // Convert each event to MoveAction.State
+                event.toMoveActionState()
             }
     } catch (e: Exception) {
         throw e.refineException()

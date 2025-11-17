@@ -622,15 +622,31 @@ class LocalGateway @Inject constructor(
 
             Mode.ROOT -> {
                 log(TAG, VERBOSE) { "delete(ROOT): ${targets.size} targets" }
-                rootOps {
-                    TODO()
+                rootOps { client ->
+                    client.delete(
+                        targets = targets,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is DeleteAction.State.Completed) {
+                            log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+                        }
+                    }
                 }
             }
 
             Mode.ADB -> {
                 log(TAG, VERBOSE) { "delete(ADB): ${targets.size} targets" }
-                adbOps {
-                    TODO()
+                adbOps { client ->
+                    client.delete(
+                        targets = targets,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is DeleteAction.State.Completed) {
+                            log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+                        }
+                    }
                 }
             }
 
@@ -657,11 +673,15 @@ class LocalGateway @Inject constructor(
                                 when {
                                     hasRoot() -> {
                                         log(TAG, VERBOSE) { "delete(AUTO->NORMAL->ROOT): ${targets.size} targets" }
-                                        rootOps { TODO("Root delete implementation") }
+                                        rootOps { client ->
+                                            client.delete(targets = targets, options = options).collect { emit(it) }
+                                        }
                                     }
                                     hasAdb() -> {
                                         log(TAG, VERBOSE) { "delete(AUTO->NORMAL->ADB): ${targets.size} targets" }
-                                        adbOps { TODO("ADB delete implementation") }
+                                        adbOps { client ->
+                                            client.delete(targets = targets, options = options).collect { emit(it) }
+                                        }
                                     }
                                 }
                             } else {
@@ -671,11 +691,15 @@ class LocalGateway @Inject constructor(
                     }
                     hasRoot() -> {
                         log(TAG, VERBOSE) { "delete(AUTO->ROOT): ${targets.size} targets" }
-                        rootOps { TODO("Root delete implementation") }
+                        rootOps { client ->
+                            client.delete(targets = targets, options = options).collect { emit(it) }
+                        }
                     }
                     hasAdb() -> {
                         log(TAG, VERBOSE) { "delete(AUTO->ADB): ${targets.size} targets" }
-                        adbOps { TODO("ADB delete implementation") }
+                        adbOps { client ->
+                            client.delete(targets = targets, options = options).collect { emit(it) }
+                        }
                     }
                     else -> throw IllegalStateException("No matching mode available.")
                 }
@@ -718,15 +742,35 @@ class LocalGateway @Inject constructor(
 
             Mode.ROOT -> {
                 log(TAG, VERBOSE) { "copy(ROOT): To $destination" }
-                rootOps {
-                    TODO()
+                rootOps { client ->
+                    client.copy(
+                        sources = sources,
+                        destination = destination,
+                        onIssue = onIssue,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CopyAction.State.Completed) {
+                            log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+                        }
+                    }
                 }
             }
 
             Mode.ADB -> {
                 log(TAG, VERBOSE) { "copy(ADB): To $destination" }
-                adbOps {
-                    TODO()
+                adbOps { client ->
+                    client.copy(
+                        sources = sources,
+                        destination = destination,
+                        onIssue = onIssue,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CopyAction.State.Completed) {
+                            log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+                        }
+                    }
                 }
             }
 
@@ -753,11 +797,15 @@ class LocalGateway @Inject constructor(
                                 when {
                                     hasRoot() -> {
                                         log(TAG, VERBOSE) { "copy(AUTO->NORMAL->ROOT): To $destination" }
-                                        rootOps { TODO("Root copy implementation") }
+                                        rootOps { client ->
+                                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                                        }
                                     }
                                     hasAdb() -> {
                                         log(TAG, VERBOSE) { "copy(AUTO->NORMAL->ADB): To $destination" }
-                                        adbOps { TODO("ADB copy implementation") }
+                                        adbOps { client ->
+                                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                                        }
                                     }
                                 }
                             } else {
@@ -767,11 +815,15 @@ class LocalGateway @Inject constructor(
                     }
                     hasRoot() -> {
                         log(TAG, VERBOSE) { "copy(AUTO->ROOT): To $destination" }
-                        rootOps { TODO("Root copy implementation") }
+                        rootOps { client ->
+                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                        }
                     }
                     hasAdb() -> {
                         log(TAG, VERBOSE) { "copy(AUTO->ADB): To $destination" }
-                        adbOps { TODO("ADB copy implementation") }
+                        adbOps { client ->
+                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                        }
                     }
                     else -> throw IllegalStateException("No matching mode available.")
                 }
@@ -813,15 +865,35 @@ class LocalGateway @Inject constructor(
 
             Mode.ROOT -> {
                 log(TAG, VERBOSE) { "move(ROOT): To $destination" }
-                rootOps {
-                    TODO("Root move implementation")
+                rootOps { client ->
+                    client.move(
+                        sources = sources,
+                        destination = destination,
+                        onIssue = onIssue,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is MoveAction.State.Completed<*, *, *, *>) {
+                            log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+                        }
+                    }
                 }
             }
 
             Mode.ADB -> {
                 log(TAG, VERBOSE) { "move(ADB): To $destination" }
-                adbOps {
-                    TODO("ADB move implementation")
+                adbOps { client ->
+                    client.move(
+                        sources = sources,
+                        destination = destination,
+                        onIssue = onIssue,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is MoveAction.State.Completed<*, *, *, *>) {
+                            log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+                        }
+                    }
                 }
             }
 
@@ -848,11 +920,15 @@ class LocalGateway @Inject constructor(
                                 when {
                                     hasRoot() -> {
                                         log(TAG, VERBOSE) { "move(AUTO->NORMAL->ROOT): To $destination" }
-                                        rootOps { TODO("Root move implementation") }
+                                        rootOps { client ->
+                                            client.move(sources, destination, onIssue, options).collect { emit(it) }
+                                        }
                                     }
                                     hasAdb() -> {
                                         log(TAG, VERBOSE) { "move(AUTO->NORMAL->ADB): To $destination" }
-                                        adbOps { TODO("ADB move implementation") }
+                                        adbOps { client ->
+                                            client.move(sources, destination, onIssue, options).collect { emit(it) }
+                                        }
                                     }
                                 }
                             } else {
@@ -862,11 +938,15 @@ class LocalGateway @Inject constructor(
                     }
                     hasRoot() -> {
                         log(TAG, VERBOSE) { "move(AUTO->ROOT): To $destination" }
-                        rootOps { TODO("Root move implementation") }
+                        rootOps { client ->
+                            client.move(sources, destination, onIssue, options).collect { emit(it) }
+                        }
                     }
                     hasAdb() -> {
                         log(TAG, VERBOSE) { "move(AUTO->ADB): To $destination" }
-                        adbOps { TODO("ADB move implementation") }
+                        adbOps { client ->
+                            client.move(sources, destination, onIssue, options).collect { emit(it) }
+                        }
                     }
                     else -> throw IllegalStateException("No matching mode available.")
                 }
