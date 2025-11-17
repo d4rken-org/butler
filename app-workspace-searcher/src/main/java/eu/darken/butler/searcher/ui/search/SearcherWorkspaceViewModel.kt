@@ -35,6 +35,7 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.operations.SearcherCommand
@@ -106,15 +107,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
-    private val currentSortSettings = MutableStateFlow<eu.darken.butler.searcher.core.SearchSortSettings>(searcherSettings.sortSettings.valueBlocking)
-    private val viewModeFlow = MutableStateFlow<ViewMode>(ViewMode.LIST)
+    private val currentSortSettings = MutableStateFlow(searcherSettings.sortSettings.valueBlocking)
+    private val viewStyleFlow = MutableStateFlow(searcherSettings.defaultViewStyle.valueBlocking)
     private var lastAutoExecutedQuery: String? = null
     private var currentSearchId: String? = null
-
-    enum class ViewMode {
-        LIST,
-        GRID
-    }
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
@@ -132,7 +128,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             currentFilter.value = currentFilter.value.copy(
                 caseSensitive = caseSensitive,
                 wholeWord = wholeWord,
-                useRegex = useRegex
+                useRegex = useRegex,
             )
         }.launchIn(vmScope)
 
@@ -246,12 +242,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceSearchState,
         searcherSettings.maxHistoryItems.flow.flatMapLatest { searchHistory.getSearches(it) },
         currentFilter,
+        searcherSettings.searchContent.flow,
         selectionState,
         quickActionsResult,
         dialogStateFlow,
         currentSortSettings,
-        viewModeFlow,
-    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewMode: ViewMode ->
+        viewStyleFlow,
+    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, searchContent: Boolean, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewStyle: SearcherViewStyle ->
         val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -259,10 +256,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         // Calculate available actions based on selection state
         val actions = if (updatedSelectionState.selectedResultIds.isNotEmpty()) {
             buildList {
-                // Select All / Deselect All
-                if (updatedSelectionState.isAllSelected) {
-                    add(SearcherAction.DeselectAll)
-                } else if (updatedSelectionState.selectableResults.isNotEmpty()) {
+                // Select All
+                if (!updatedSelectionState.isAllSelected && updatedSelectionState.selectableResults.isNotEmpty()) {
                     add(SearcherAction.SelectAll)
                 }
 
@@ -287,7 +282,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         } else if (sortedResults.isNotEmpty()) {
             buildList {
                 add(SearcherAction.Common.Sort())
-                add(SearcherAction.Common.ToggleView())
+                val toggledViewStyle = when (viewStyle) {
+                    is SearcherViewStyle.List -> SearcherViewStyle.Grid()
+                    is SearcherViewStyle.Grid -> SearcherViewStyle.List()
+                }
+                add(SearcherAction.Common.UpdateViewStyle(toggledViewStyle))
             }
         } else {
             emptyList()
@@ -303,12 +302,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
+            searchContent = searchContent,
             setupRequirements = workspaceState.setupRequirements,
             selectionState = updatedSelectionState,
             quickActionsResult = quickActions,
             dialogState = dialogState,
             availableActions = actions,
-            viewMode = viewMode,
+            viewStyle = viewStyle,
             sortSettings = sortSettings,
         )
     }
@@ -369,7 +369,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 targets = targets,
                 filter = currentFilter.value,
                 options = SearchQuery.Options(
-                    maxResults = searcherSettings.maxSearchResults.value()
+                    searchContent = searcherSettings.searchContent.value(),
+                    maxResults = searcherSettings.maxSearchResults.value(),
                 ),
                 saveToHistory = saveToHistory,
             )
@@ -571,10 +572,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     currentSortSettings = currentSortSettings.value
                 )
             }
-            is SearcherAction.Common.ToggleView -> {
-                viewModeFlow.value = when (viewModeFlow.value) {
-                    ViewMode.LIST -> ViewMode.GRID
-                    ViewMode.GRID -> ViewMode.LIST
+            is SearcherAction.Common.UpdateViewStyle -> {
+                viewStyleFlow.value = action.viewStyle
+                vmScope.launch {
+                    searcherSettings.defaultViewStyle.value(action.viewStyle)
                 }
             }
             is SearcherAction.OpenInNewTabs -> {
@@ -696,12 +697,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,
+        val searchContent: Boolean = false,
         val setupRequirements: PathRequirements = PathRequirements(),
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
         val quickActionsResult: SearchItem? = null,
         val dialogState: SearcherDialogState = SearcherDialogState.None,
         val availableActions: List<SearcherAction> = emptyList(),
-        val viewMode: ViewMode = ViewMode.LIST,
+        val viewStyle: SearcherViewStyle = SearcherViewStyle.default(),
         val sortSettings: eu.darken.butler.searcher.core.SearchSortSettings = eu.darken.butler.searcher.core.SearchSortSettings(),
     ) {
         val isSearching: Boolean
@@ -906,6 +908,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Search.UpdateQuery -> {
                 log(TAG, INFO) { "Updating search query: ${action.query.text}" }
                 searchQuery.value = action.query
+                // Auto-clear results when query becomes empty
+                if (action.query.text.isBlank()) {
+                    clearResults()
+                }
             }
             is SearcherPageAction.Search.Perform -> performSearch()
             is SearcherPageAction.Search.Explicit -> {
@@ -932,6 +938,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 vmScope.launch {
                     val current = searcherSettings.useRegex.flow.first()
                     searcherSettings.useRegex.update { !current }
+                }
+            }
+            is SearcherPageAction.Options.ToggleSearchContent -> {
+                vmScope.launch {
+                    val current = searcherSettings.searchContent.flow.first()
+                    searcherSettings.searchContent.update { !current }
                 }
             }
 

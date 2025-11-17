@@ -1,4 +1,4 @@
-package eu.darken.butler.provider.documents.writer
+package eu.darken.butler.provider.documents.core.writer
 
 import android.content.Context
 import android.content.Intent
@@ -16,7 +16,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.provider.documents.ButlerDocumentsProvider
+import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import java.io.FileNotFoundException
 import javax.inject.Inject

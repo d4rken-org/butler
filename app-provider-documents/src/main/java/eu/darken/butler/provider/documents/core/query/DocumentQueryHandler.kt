@@ -1,10 +1,11 @@
-package eu.darken.butler.provider.documents.query
+package eu.darken.butler.provider.documents.core.query
 
 import android.content.Context
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document.*
+import android.webkit.MimeTypeMap
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
@@ -21,7 +22,7 @@ import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
-import eu.darken.butler.provider.documents.ButlerDocumentsProvider
+import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.R
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.ProviderLocation
@@ -163,7 +164,7 @@ class DocumentQueryHandler @Inject constructor(
             // Return error cursor for user feedback
             return ErrorMatrixCursor(
                 resolvedProjection,
-                context.getString(R.string.documents_error_generic)
+                context.getString(R.string.provider_documents_error_generic)
             )
         }
 
@@ -186,10 +187,10 @@ class DocumentQueryHandler @Inject constructor(
             log(TAG, INFO) { "Root filesystem accessible, adding to list" }
             cursor.addVirtualDocument(
                 documentId = codec.encode(rootPath),
-                displayName = context.getString(R.string.documents_storage_root_label),
+                displayName = context.getString(R.string.provider_documents_storage_root_label),
                 mimeType = MIME_TYPE_DIR,
                 flags = FLAG_DIR_SUPPORTS_CREATE,
-                icon = android.R.drawable.ic_menu_view,
+                icon = R.drawable.ic_folder_lock_24,
             )
         } else {
             log(TAG, INFO) { "Root filesystem requires permissions (${rootRequirements.combos}), filtering out" }
@@ -205,8 +206,8 @@ class DocumentQueryHandler @Inject constructor(
             if (!requirements.needsAction) {
                 val displayName = volume.userLabel?.takeIf { it.isNotBlank() }
                     ?: when (index) {
-                        0 -> context.getString(R.string.documents_storage_internal_label)
-                        else -> context.getString(R.string.documents_storage_sd_card_label)
+                        0 -> context.getString(R.string.provider_documents_storage_internal_label)
+                        else -> context.getString(R.string.provider_documents_storage_sd_card_label)
                     }
 
                 log(TAG, INFO) { "Storage volume accessible: $displayName ($path)" }
@@ -215,7 +216,7 @@ class DocumentQueryHandler @Inject constructor(
                     displayName = displayName,
                     mimeType = MIME_TYPE_DIR,
                     flags = FLAG_DIR_SUPPORTS_CREATE,
-                    icon = android.R.drawable.ic_menu_view,
+                    icon = R.drawable.ic_folder,
                 )
             } else {
                 log(TAG, INFO) { "Storage volume requires permissions: $path (${requirements.combos}), filtering out" }
@@ -230,7 +231,7 @@ class DocumentQueryHandler @Inject constructor(
                 displayName = location.displayName.get(context),
                 mimeType = MIME_TYPE_DIR,
                 flags = FLAG_DIR_SUPPORTS_CREATE,
-                icon = android.R.drawable.ic_menu_view,
+                icon = R.drawable.ic_folder_open_24,
             )
         }
     }
@@ -261,14 +262,14 @@ class DocumentQueryHandler @Inject constructor(
      * Add a filesystem document row to the cursor.
      * Uses APathLookup metadata from GatewaySwitch.
      */
-    private fun MatrixCursor.addFilesystemDocument(
+    private suspend fun MatrixCursor.addFilesystemDocument(
         documentId: String,
         lookup: APathLookup<*>
     ) {
         val mimeType = when (lookup.fileType) {
             FileType.DIRECTORY -> MIME_TYPE_DIR
             FileType.FILE -> getMimeType(lookup.name)
-            FileType.SYMBOLIC_LINK -> getMimeType(lookup.name) // TODO: Resolve symlink type
+            FileType.SYMBOLIC_LINK -> resolveSymlinkMimeType(lookup)
             FileType.UNKNOWN -> "application/octet-stream"
         }
 
@@ -293,15 +294,41 @@ class DocumentQueryHandler @Inject constructor(
     }
 
     private fun getMimeType(filename: String): String {
-        val extension = filename.substringAfterLast('.', "")
-        return when (extension.lowercase()) {
-            "txt" -> "text/plain"
-            "pdf" -> "application/pdf"
-            "jpg", "jpeg" -> "image/jpeg"
-            "png" -> "image/png"
-            "mp4" -> "video/mp4"
-            "zip" -> "application/zip"
-            else -> "application/octet-stream"
+        val extension = filename.substringAfterLast('.', "").lowercase()
+        return if (extension.isNotEmpty()) {
+            MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+                ?: "application/octet-stream"
+        } else {
+            "application/octet-stream"
+        }
+    }
+
+    /**
+     * Resolve symlink MIME type by looking up the target.
+     * Returns MIME_TYPE_DIR if target is a directory, otherwise infers from target filename.
+     * Falls back to inferring from symlink name if target is unavailable.
+     */
+    private suspend fun resolveSymlinkMimeType(lookup: APathLookup<*>): String {
+        val target = lookup.target
+        if (target == null) {
+            log(TAG, VERBOSE) { "Symlink ${lookup.path} has no target, using symlink name for MIME type" }
+            return getMimeType(lookup.name)
+        }
+
+        return try {
+            val targetLookup = gatewaySwitch.lookup(target, LookupOptions())
+            when (targetLookup.fileType) {
+                FileType.DIRECTORY -> MIME_TYPE_DIR
+                FileType.FILE -> getMimeType(targetLookup.name)
+                FileType.SYMBOLIC_LINK -> {
+                    log(TAG, VERBOSE) { "Symlink ${lookup.path} target is also a symlink, using target name" }
+                    getMimeType(targetLookup.name)
+                }
+                FileType.UNKNOWN -> "application/octet-stream"
+            }
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Failed to resolve symlink ${lookup.path} target: ${e.asLog()}" }
+            getMimeType(lookup.name)
         }
     }
 
@@ -314,16 +341,16 @@ class DocumentQueryHandler @Inject constructor(
 
         return when {
             SetupModule.Type.ROOT in allTypes && SetupModule.Type.SHIZUKU !in allTypes -> {
-                context.getString(R.string.documents_error_requires_root)
+                context.getString(R.string.provider_documents_error_requires_root)
             }
             SetupModule.Type.SHIZUKU in allTypes && SetupModule.Type.ROOT !in allTypes -> {
-                context.getString(R.string.documents_error_requires_adb)
+                context.getString(R.string.provider_documents_error_requires_adb)
             }
             SetupModule.Type.STORAGE in allTypes -> {
-                context.getString(R.string.documents_error_requires_storage)
+                context.getString(R.string.provider_documents_error_requires_storage)
             }
             else -> {
-                context.getString(R.string.documents_error_requires_permissions)
+                context.getString(R.string.provider_documents_error_requires_permissions)
             }
         }
     }

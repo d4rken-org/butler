@@ -23,7 +23,7 @@ fun PathActionIssue.toFileOperationIssue(): FileOperationIssue {
             issueType = FileOperationIssue.IssueType.PERMISSION_DENIED,
             sourcePath = source as? LocalPathLookup,
             destinationPath = destination as LocalPathLookup,
-            errorMessage = exception?.message,
+            errorMessage = exception.toString(),
             canSkip = canSkip,
         )
 

@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -217,4 +218,16 @@ suspend fun <P : APath<P>, PL : APathLookup<P>> Set<P>.delete(
     options = options
 ).onCompletion {
     log(VERBOSE) { "Set<APath>.delete(options=$options): Deleted $this" }
+}
+
+suspend fun <P : APath<P>, PL : APathLookup<P>> P.create(
+    gateway: APathGateway<P, PL>,
+    type: CreateAction.CreateType,
+    options: CreateAction.Options = CreateAction.Options(),
+): Flow<CreateAction.State<P, PL>> = gateway.create(
+    target = this,
+    type = type,
+    options = options
+).onCompletion {
+    log(VERBOSE) { "P.create(type=$type, options=$options): Created $this" }
 }

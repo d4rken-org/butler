@@ -26,9 +26,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +40,7 @@ import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.AppsAction
 import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 @Composable
 fun AppDetailsDialog(
@@ -51,11 +50,9 @@ fun AppDetailsDialog(
     onAction: (AppsAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
+    PaneScopedBottomSheet(
+        visible = true,
+        onDismiss = onDismiss,
         modifier = modifier,
     ) {
         AppDetailsContent(

@@ -9,13 +9,19 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.causeChain
+import eu.darken.butler.common.error.causes
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.PathException
+import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
@@ -24,6 +30,7 @@ import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import eu.darken.butler.common.files.operations.createGeneric
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.RootUnavailableException
 import eu.darken.butler.common.root.canUseRootNow
@@ -52,7 +59,7 @@ class LocalGateway @Inject constructor(
     private val fileSystemOps: LocalFileSystemOps,
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
-    private val accessibilityChecker: LocalPathAccessChecker,
+    private val accessChecker: LocalPathAccessChecker,
 ) : APathGateway<LocalPath, LocalPathLookup> {
 
     // Represents the resource that keeps the gateway resources alive
@@ -131,7 +138,7 @@ class LocalGateway @Inject constructor(
                     }
                     else -> throw IllegalStateException("No matching mode available for $operation")
                 }
-                if (accessibilityChecker.shouldTryNormalAccess(path, forWriting)) {
+                if (accessChecker.shouldTryNormalAccess(path, forWriting)) {
                     try {
                         normalOp().also { log(TAG, VERBOSE) { "$operation(AUTO:NORMAL) -> $path" } }
                     } catch (e: IOException) {
@@ -619,43 +626,99 @@ class LocalGateway @Inject constructor(
 
             Mode.ROOT -> {
                 log(TAG, VERBOSE) { "delete(ROOT): ${targets.size} targets" }
-                rootOps {
-                    TODO()
+                rootOps { client ->
+                    client.delete(
+                        targets = targets,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is DeleteAction.State.Completed) {
+                            log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+                        }
+                    }
                 }
             }
 
             Mode.ADB -> {
                 log(TAG, VERBOSE) { "delete(ADB): ${targets.size} targets" }
-                adbOps {
-                    TODO()
+                adbOps { client ->
+                    client.delete(
+                        targets = targets,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is DeleteAction.State.Completed) {
+                            log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+                        }
+                    }
                 }
             }
 
             Mode.AUTO -> {
-                val shouldTry = accessibilityChecker.shouldTryNormalAccess(targets.first(), forWriting = true)
+                val shouldTry = accessChecker.shouldTryNormalAccess(targets.first(), forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
-                        // No escalation available, try normal anyway as fallback
-                        log(TAG, VERBOSE) { "delete(AUTO->NORMAL, $shouldTry): ${targets.size} targets" }
-                        targets.delete(
-                            fileSystemOps,
-                            recursive = options.recursive,
-                            ignoreMissing = options.ignoreMissing,
-                            onIssue = options.onIssue,
-                        ).collect { state ->
-                            emit(state)
-                            if (state is DeleteAction.State.Completed) {
-                                log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+                        var hasEscalated = false
+                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
+                            operationName = "delete()",
+                            originalOnIssue = options.onIssue,
+                            hasEscalatedRef = { hasEscalated },
+                            markEscalated = { hasEscalated = true }
+                        )
+
+                        try {
+                            log(TAG, VERBOSE) { "delete(AUTO->NORMAL, $shouldTry): ${targets.size} targets" }
+                            targets.delete(
+                                fileSystemOps,
+                                recursive = options.recursive,
+                                ignoreMissing = options.ignoreMissing,
+                                onIssue = escalationAwareOnIssue,
+                            ).collect { state ->
+                                emit(state)
+                                if (state is DeleteAction.State.Completed) {
+                                    log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            log(TAG, VERBOSE) { "delete(AUTO->NORMAL): Error: ${e.message}" }
+                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                                log(TAG, INFO) { "delete(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
+                                when {
+                                    hasRoot() -> {
+                                        log(TAG, VERBOSE) { "delete(AUTO->NORMAL->ROOT): ${targets.size} targets" }
+                                        rootOps { client ->
+                                            client.delete(
+                                                targets = targets,
+                                                options = options.copy(onIssue = escalationAwareOnIssue)
+                                            ).collect { emit(it) }
+                                        }
+                                    }
+                                    hasAdb() -> {
+                                        log(TAG, VERBOSE) { "delete(AUTO->NORMAL->ADB): ${targets.size} targets" }
+                                        adbOps { client ->
+                                            client.delete(
+                                                targets = targets,
+                                                options = options.copy(onIssue = escalationAwareOnIssue)
+                                            ).collect { emit(it) }
+                                        }
+                                    }
+                                }
+                            } else {
+                                throw e
                             }
                         }
                     }
                     hasRoot() -> {
                         log(TAG, VERBOSE) { "delete(AUTO->ROOT): ${targets.size} targets" }
-                        rootOps { TODO() }
+                        rootOps { client ->
+                            client.delete(targets = targets, options = options).collect { emit(it) }
+                        }
                     }
                     hasAdb() -> {
                         log(TAG, VERBOSE) { "delete(AUTO->ADB): ${targets.size} targets" }
-                        adbOps { TODO() }
+                        adbOps { client ->
+                            client.delete(targets = targets, options = options).collect { emit(it) }
+                        }
                     }
                     else -> throw IllegalStateException("No matching mode available.")
                 }
@@ -698,42 +761,97 @@ class LocalGateway @Inject constructor(
 
             Mode.ROOT -> {
                 log(TAG, VERBOSE) { "copy(ROOT): To $destination" }
-                rootOps {
-                    TODO()
+                rootOps { client ->
+                    client.copy(
+                        sources = sources,
+                        destination = destination,
+                        onIssue = onIssue,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CopyAction.State.Completed) {
+                            log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+                        }
+                    }
                 }
             }
 
             Mode.ADB -> {
                 log(TAG, VERBOSE) { "copy(ADB): To $destination" }
-                adbOps {
-                    TODO()
+                adbOps { client ->
+                    client.copy(
+                        sources = sources,
+                        destination = destination,
+                        onIssue = onIssue,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CopyAction.State.Completed) {
+                            log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+                        }
+                    }
                 }
             }
 
             Mode.AUTO -> {
-                val shouldTry = accessibilityChecker.shouldTryNormalAccess(destination, forWriting = true)
+                val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
-                        log(TAG, VERBOSE) { "copy(AUTO->NORMAL, $shouldTry): To $destination" }
-                        sources.copy(
-                            fileSystemOps = fileSystemOps,
-                            destination = destination,
-                            options = options,
-                            onIssue = onIssue,
-                        ).collect { state ->
-                            emit(state)
-                            if (state is CopyAction.State.Completed) {
-                                log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+                        var hasEscalated = false
+                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
+                            operationName = "copy()",
+                            originalOnIssue = onIssue,
+                            hasEscalatedRef = { hasEscalated },
+                            markEscalated = { hasEscalated = true }
+                        )
+
+                        try {
+                            log(TAG, VERBOSE) { "copy(AUTO->NORMAL, $shouldTry): To $destination" }
+                            sources.copy(
+                                fileSystemOps = fileSystemOps,
+                                destination = destination,
+                                options = options,
+                                onIssue = escalationAwareOnIssue,
+                            ).collect { state ->
+                                emit(state)
+                                if (state is CopyAction.State.Completed) {
+                                    log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            log(TAG, VERBOSE) { "copy(AUTO->NORMAL): Error: ${e.message}" }
+                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                                log(TAG, INFO) { "copy(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
+                                when {
+                                    hasRoot() -> {
+                                        log(TAG, VERBOSE) { "copy(AUTO->NORMAL->ROOT): To $destination" }
+                                        rootOps { client ->
+                                            client.copy(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
+                                        }
+                                    }
+                                    hasAdb() -> {
+                                        log(TAG, VERBOSE) { "copy(AUTO->NORMAL->ADB): To $destination" }
+                                        adbOps { client ->
+                                            client.copy(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
+                                        }
+                                    }
+                                }
+                            } else {
+                                throw e
                             }
                         }
                     }
                     hasRoot() -> {
                         log(TAG, VERBOSE) { "copy(AUTO->ROOT): To $destination" }
-                        rootOps { TODO() }
+                        rootOps { client ->
+                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                        }
                     }
                     hasAdb() -> {
                         log(TAG, VERBOSE) { "copy(AUTO->ADB): To $destination" }
-                        adbOps { TODO() }
+                        adbOps { client ->
+                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                        }
                     }
                     else -> throw IllegalStateException("No matching mode available.")
                 }
@@ -775,48 +893,324 @@ class LocalGateway @Inject constructor(
 
             Mode.ROOT -> {
                 log(TAG, VERBOSE) { "move(ROOT): To $destination" }
-                rootOps {
-                    TODO("Root move implementation")
+                rootOps { client ->
+                    client.move(
+                        sources = sources,
+                        destination = destination,
+                        onIssue = onIssue,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is MoveAction.State.Completed<*, *, *, *>) {
+                            log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+                        }
+                    }
                 }
             }
 
             Mode.ADB -> {
                 log(TAG, VERBOSE) { "move(ADB): To $destination" }
-                adbOps {
-                    TODO("ADB move implementation")
+                adbOps { client ->
+                    client.move(
+                        sources = sources,
+                        destination = destination,
+                        onIssue = onIssue,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is MoveAction.State.Completed<*, *, *, *>) {
+                            log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+                        }
+                    }
                 }
             }
 
             Mode.AUTO -> {
-                val shouldTry = accessibilityChecker.shouldTryNormalAccess(destination, forWriting = true)
+                val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
-                        log(TAG, VERBOSE) { "move(AUTO->NORMAL, $shouldTry): To $destination" }
-                        sources.move(
-                            fileSystemOps,
-                            destination,
-                            options,
-                            onIssue = onIssue,
-                        ).collect { state ->
-                            emit(state)
-                            if (state is MoveAction.State.Completed<*, *, *, *>) {
-                                log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+                        var hasEscalated = false
+                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
+                            operationName = "move()",
+                            originalOnIssue = onIssue,
+                            hasEscalatedRef = { hasEscalated },
+                            markEscalated = { hasEscalated = true }
+                        )
+
+                        try {
+                            log(TAG, VERBOSE) { "move(AUTO->NORMAL, $shouldTry): To $destination" }
+                            sources.move(
+                                fileSystemOps,
+                                destination,
+                                options,
+                                onIssue = escalationAwareOnIssue,
+                            ).collect { state ->
+                                emit(state)
+                                if (state is MoveAction.State.Completed<*, *, *, *>) {
+                                    log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            log(TAG, VERBOSE) { "move(AUTO->NORMAL): Error: ${e.message}" }
+                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                                log(TAG, INFO) { "move(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
+                                when {
+                                    hasRoot() -> {
+                                        log(TAG, VERBOSE) { "move(AUTO->NORMAL->ROOT): To $destination" }
+                                        rootOps { client ->
+                                            client.move(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
+                                        }
+                                    }
+                                    hasAdb() -> {
+                                        log(TAG, VERBOSE) { "move(AUTO->NORMAL->ADB): To $destination" }
+                                        adbOps { client ->
+                                            client.move(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
+                                        }
+                                    }
+                                }
+                            } else {
+                                throw e
                             }
                         }
                     }
                     hasRoot() -> {
                         log(TAG, VERBOSE) { "move(AUTO->ROOT): To $destination" }
-                        rootOps { TODO("Root move implementation") }
+                        rootOps { client ->
+                            client.move(sources, destination, onIssue, options).collect { emit(it) }
+                        }
                     }
                     hasAdb() -> {
                         log(TAG, VERBOSE) { "move(AUTO->ADB): To $destination" }
-                        adbOps { TODO("ADB move implementation") }
+                        adbOps { client ->
+                            client.move(sources, destination, onIssue, options).collect { emit(it) }
+                        }
                     }
                     else -> throw IllegalStateException("No matching mode available.")
                 }
             }
         }
     }.flowOn(dispatcherProvider.IO)
+
+    override suspend fun create(
+        target: LocalPath,
+        type: CreateAction.CreateType,
+        options: CreateAction.Options
+    ): Flow<CreateAction.State<LocalPath, LocalPathLookup>> = create(target, type, options, Mode.AUTO)
+
+    fun create(
+        target: LocalPath,
+        type: CreateAction.CreateType,
+        options: CreateAction.Options,
+        mode: Mode = Mode.AUTO,
+    ): Flow<CreateAction.State<LocalPath, LocalPathLookup>> = flow {
+        log(TAG, VERBOSE) { "create(): $target (type=$type)" }
+        when (mode) {
+            Mode.NORMAL -> {
+                log(TAG, VERBOSE) { "create(NORMAL): $target" }
+                target.createGeneric(
+                    fileSystemOps = fileSystemOps,
+                    type = type,
+                    onIssue = options.onIssue,
+                ).collect { state ->
+                    emit(state)
+                    if (state is CreateAction.State.Completed<*, *>) {
+                        log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                    }
+                }
+            }
+
+            Mode.ROOT -> {
+                log(TAG, VERBOSE) { "create(ROOT): $target (type=$type)" }
+                rootOps { client ->
+                    target.createGeneric(
+                        fileSystemOps = client,
+                        type = type,
+                        onIssue = options.onIssue,
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CreateAction.State.Completed<*, *>) {
+                            log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                        }
+                    }
+                }
+            }
+
+            Mode.ADB -> {
+                log(TAG, VERBOSE) { "create(ADB): $target (type=$type)" }
+                adbOps { client ->
+                    target.createGeneric(
+                        fileSystemOps = client,
+                        type = type,
+                        onIssue = options.onIssue,
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CreateAction.State.Completed<*, *>) {
+                            log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                        }
+                    }
+                }
+            }
+
+            Mode.AUTO -> {
+                val parent = target.parent
+                val shouldTry = if (parent != null) {
+                    accessChecker.shouldTryNormalAccess(parent, forWriting = true)
+                } else {
+                    false
+                }
+                when {
+                    shouldTry || (!hasAdb() && !hasRoot()) -> {
+                        var hasEscalated = false
+                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
+                            operationName = "create()",
+                            originalOnIssue = options.onIssue,
+                            hasEscalatedRef = { hasEscalated },
+                            markEscalated = { hasEscalated = true }
+                        )
+
+                        try {
+                            log(TAG, VERBOSE) { "create(AUTO->NORMAL, $shouldTry): $target" }
+                            target.createGeneric(
+                                fileSystemOps = fileSystemOps,
+                                type = type,
+                                onIssue = escalationAwareOnIssue,
+                            ).collect { state ->
+                                emit(state)
+                                if (state is CreateAction.State.Completed<*, *>) {
+                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            log(TAG, VERBOSE) { "create(AUTO->NORMAL): Error: ${e.message}" }
+                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                                log(TAG, INFO) { "create(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
+                                when {
+                                    hasRoot() -> {
+                                        log(TAG, VERBOSE) { "create(AUTO->NORMAL->ROOT): $target (type=$type)" }
+                                        rootOps { client ->
+                                            target.createGeneric(
+                                                fileSystemOps = client,
+                                                type = type,
+                                                onIssue = escalationAwareOnIssue,
+                                            ).collect { state ->
+                                                emit(state)
+                                                if (state is CreateAction.State.Completed<*, *>) {
+                                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    hasAdb() -> {
+                                        log(TAG, VERBOSE) { "create(AUTO->NORMAL->ADB): $target (type=$type)" }
+                                        adbOps { client ->
+                                            target.createGeneric(
+                                                fileSystemOps = client,
+                                                type = type,
+                                                onIssue = escalationAwareOnIssue,
+                                            ).collect { state ->
+                                                emit(state)
+                                                if (state is CreateAction.State.Completed<*, *>) {
+                                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                throw e
+                            }
+                        }
+                    }
+                    hasRoot() -> {
+                        log(TAG, VERBOSE) { "create(AUTO->ROOT): $target (type=$type)" }
+                        rootOps { client ->
+                            target.createGeneric(
+                                fileSystemOps = client,
+                                type = type,
+                                onIssue = options.onIssue,
+                            ).collect { state ->
+                                emit(state)
+                                if (state is CreateAction.State.Completed<*, *>) {
+                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                                }
+                            }
+                        }
+                    }
+                    hasAdb() -> {
+                        log(TAG, VERBOSE) { "create(AUTO->ADB): $target (type=$type)" }
+                        adbOps { client ->
+                            target.createGeneric(
+                                fileSystemOps = client,
+                                type = type,
+                                onIssue = options.onIssue,
+                            ).collect { state ->
+                                emit(state)
+                                if (state is CreateAction.State.Completed<*, *>) {
+                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                                }
+                            }
+                        }
+                    }
+                    else -> throw IllegalStateException("No matching mode available.")
+                }
+            }
+        }
+    }.flowOn(dispatcherProvider.IO)
+
+    private fun Throwable.isPermissionError(): Boolean =
+        causeChain.any {
+            it is PathException ||
+                it is SecurityException ||
+                it is java.nio.file.AccessDeniedException ||
+                it is AccessDeniedException ||
+                (it is IOException && it.message?.contains("permission", ignoreCase = true) == true)
+        }
+
+    private fun PathActionIssue.isPermissionIssue(): Boolean = when (this) {
+        is PathActionIssue.InsufficientPermission -> true
+        is PathActionIssue.UnknownError -> exception.isPermissionError()
+        else -> false
+    }
+
+    /**
+     * Creates an escalation-aware issue callback that automatically escalates to ROOT/ADB
+     * on the first permission error, then delegates subsequent issues to the user.
+     *
+     * This wrapper tracks whether escalation has occurred and modifies behavior accordingly:
+     * - First permission error: Throws exception to trigger auto-escalation to ROOT/ADB
+     * - Subsequent errors: Delegates to the original callback for user decision
+     *
+     * @param operationName Name of the operation for logging (e.g., "delete()", "copy()")
+     * @param originalOnIssue The original issue callback to delegate to after escalation
+     * @param hasEscalatedRef Function to check if escalation has occurred
+     * @param markEscalated Function to mark that escalation has occurred
+     * @return Wrapped callback with escalation logic
+     */
+    private inline fun createEscalationAwareOnIssue(
+        operationName: String,
+        noinline originalOnIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
+        crossinline hasEscalatedRef: () -> Boolean,
+        crossinline markEscalated: () -> Unit
+    ): suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
+        when {
+            !hasEscalatedRef() && issue.isPermissionIssue() -> {
+                log(TAG, INFO) { "$operationName: Permission error, escalating" }
+                markEscalated()
+                throw when (issue) {
+                    is PathActionIssue.UnknownError -> issue.exception
+                    is PathActionIssue.InsufficientPermission ->
+                        issue.exception ?: SecurityException("Permission denied: ${issue.destination.lookedUp}")
+                    else -> IllegalStateException("Unexpected permission issue type")
+                }
+            }
+            else -> {
+                if (hasEscalatedRef()) {
+                    log(TAG, WARN) { "$operationName: Error persists after escalation, delegating to user" }
+                }
+                originalOnIssue?.invoke(issue) ?: throw IllegalStateException("No issue handler")
+            }
+        }
+    }
 
     enum class Mode {
         AUTO, NORMAL, ROOT, ADB

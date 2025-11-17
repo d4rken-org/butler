@@ -130,6 +130,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     private var failDeleteException: (() -> Exception)? = null
     private var failCreateDirCount = 0
     private var failCreateDirException: (() -> Exception)? = null
+    private var failCreateFileCount = 0
+    private var failCreateFileException: (() -> Exception)? = null
     private var failListFilesCount = 0
     private var failListFilesException: (() -> Exception)? = null
 
@@ -283,6 +285,12 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
 
     override suspend fun createFile(path: P, createParents: Boolean) {
         createFileCalls.add(path.path)
+
+        // Check for injected failure
+        if (failCreateFileCount > 0) {
+            failCreateFileCount--
+            throw failCreateFileException?.invoke() ?: java.io.IOException("Injected failure")
+        }
 
         if (files.containsKey(path.path)) {
             throw PathAlreadyExistsException(path = path)
@@ -629,6 +637,24 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     }
 
     /**
+     * Configure createFile to fail the next N times with specified exception.
+     */
+    fun setFailCreateFile(
+        count: Int,
+        exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }
+    ) {
+        failCreateFileCount = count
+        failCreateFileException = exceptionFactory
+    }
+
+    /**
+     * Convenience method to fail createFile exactly once with specified exception.
+     */
+    fun failCreateFileOnce(exceptionFactory: () -> Exception = { java.io.IOException("Temporary failure") }) {
+        setFailCreateFile(1, exceptionFactory)
+    }
+
+    /**
      * Configure listFiles to fail the next N times with specified exception.
      */
     fun setFailListFiles(count: Int, exceptionFactory: () -> Exception = { SecurityException("Permission denied") }) {
@@ -648,6 +674,8 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         failDeleteException = null
         failCreateDirCount = 0
         failCreateDirException = null
+        failCreateFileCount = 0
+        failCreateFileException = null
         failListFilesCount = 0
         failListFilesException = null
     }

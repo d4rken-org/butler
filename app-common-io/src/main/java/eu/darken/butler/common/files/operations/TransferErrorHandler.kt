@@ -2,11 +2,15 @@ package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.error.causeChain
+import eu.darken.butler.common.error.causes
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.PathException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
+import java.io.IOException
 
 /**
  * Shared error handling utilities for path operations (copy, move, delete).
@@ -16,7 +20,7 @@ import eu.darken.butler.common.files.local.operations.core.PathOperationProgress
  *
  * ## Error Categories
  *
- * - **Permission errors**: SecurityException, AccessDeniedException
+ * - **Permission errors**: ReadException, WriteException, SecurityException, AccessDeniedException
  * - **Unknown errors**: All other exceptions
  *
  * ## "Apply to All" Support
@@ -51,10 +55,19 @@ class TransferErrorHandler {
      * @return true if error is due to insufficient permissions
      */
     private fun Exception.isPermissionError(): Boolean =
-        this is SecurityException || this is java.nio.file.AccessDeniedException
+        causeChain.any {
+            it is PathException ||
+                it is SecurityException ||
+                it is java.nio.file.AccessDeniedException ||
+                it is AccessDeniedException ||
+                (it is IOException && it.message?.contains("permission", ignoreCase = true) == true)
+        }
 
     /**
      * Checks "apply to all" error flags and executes skip if applicable.
+     *
+     * For scan errors: Since scan errors always use UnknownError issues (even for permission errors)
+     * to support Retry, we check skipAllUnknown for both permission and unknown errors.
      *
      * @return true if error was auto-skipped, false if needs user resolution
      */
@@ -64,7 +77,8 @@ class TransferErrorHandler {
         issueResolver: PathOperationIssueResolver,
         onSkip: (PL) -> Unit,
         onComplete: (() -> Unit)? = null,
-        tag: String
+        tag: String,
+        isScanError: Boolean = false
     ): Boolean {
         val isPermissionError = error.isPermissionError()
 
@@ -75,11 +89,16 @@ class TransferErrorHandler {
                 onComplete?.invoke()
                 return true
             }
-            !isPermissionError && issueResolver.skipAllUnknown -> {
-                log(tag, INFO) { "Skipping unknown error (apply-to-all): ${lookup.lookedUp}" }
-                onSkip(lookup)
-                onComplete?.invoke()
-                return true
+            issueResolver.skipAllUnknown -> {
+                // For scan errors, skipAllUnknown applies to both permission and unknown errors
+                // because scan errors always use UnknownError issues
+                // For other errors, skipAllUnknown only applies to non-permission errors
+                if (isScanError || !isPermissionError) {
+                    log(tag, INFO) { "Skipping ${if (isPermissionError) "permission" else "unknown"} error (apply-to-all): ${lookup.lookedUp}" }
+                    onSkip(lookup)
+                    onComplete?.invoke()
+                    return true
+                }
             }
         }
         return false
@@ -213,8 +232,8 @@ class TransferErrorHandler {
     ) {
         log(tag, ERROR) { "Scan error: ${lookup.lookedUp} - $error" }
 
-        // Fast path: Check "apply to all" flags
-        if (checkApplyToAllErrorFlags(error, lookup, issueResolver, onSkip, onComplete = null, tag)) {
+        // Fast path: Check "apply to all" flags (with isScanError=true for proper flag checking)
+        if (checkApplyToAllErrorFlags(error, lookup, issueResolver, onSkip, onComplete = null, tag, isScanError = true)) {
             return
         }
 

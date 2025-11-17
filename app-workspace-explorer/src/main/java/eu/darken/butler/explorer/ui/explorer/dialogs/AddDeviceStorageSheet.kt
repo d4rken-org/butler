@@ -14,7 +14,6 @@ import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,13 +25,17 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
+import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 @Composable
 fun AddDeviceStorageSheet(
     onDismiss: () -> Unit,
     onContinue: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    PaneScopedBottomSheet(
+        visible = true,
+        onDismiss = onDismiss,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

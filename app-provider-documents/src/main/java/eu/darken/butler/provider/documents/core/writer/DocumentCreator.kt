@@ -1,4 +1,4 @@
-package eu.darken.butler.provider.documents.writer
+package eu.darken.butler.provider.documents.core.writer
 
 import android.content.Context
 import android.provider.DocumentsContract
@@ -11,7 +11,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.provider.documents.ButlerDocumentsProvider
+import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import javax.inject.Inject
 import javax.inject.Singleton

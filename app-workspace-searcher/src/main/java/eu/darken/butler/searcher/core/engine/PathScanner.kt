@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.MetadataRepo
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
@@ -23,12 +24,21 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import eu.darken.butler.workspace.core.Workspace
 
-class PathScanner @Inject constructor(
+class PathScanner @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
     private val gatewaySwitch: GatewaySwitch,
     private val metadataRepo: MetadataRepo,
     private val dispatcherProvider: DispatcherProvider,
+    contentMatcherFactory: ContentMatcher.Factory,
 ) {
+
+    private val tag = logTag("Searcher", "Workspace", workspaceId.shortTag, "PathScanner")
+    private val contentMatcher = contentMatcherFactory.create(workspaceId)
 
     data class PathProgress(
         val currentPath: APath<*>,
@@ -39,12 +49,13 @@ class PathScanner @Inject constructor(
     suspend fun scan(
         path: APath<*>,
         query: SearchQuery,
+        includeBinaries: Boolean,
         onProgress: (PathProgress) -> Unit
     ): Flow<SearchItem> = flow {
-        log(TAG, INFO) { "Scanning path: $path" }
+        log(tag, INFO) { "Scanning path: $path" }
 
         if (!currentCoroutineContext().isActive) {
-            log(TAG) { "Scan cancelled before starting" }
+            log(tag) { "Scan cancelled before starting" }
             throw CancellationException("Scan cancelled")
         }
 
@@ -76,7 +87,7 @@ class PathScanner @Inject constructor(
                             filterLookup(lookup, query.filter)
                         },
                         onError = { lookup, error ->
-                            log(TAG, Logging.Priority.VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
+                            log(tag, Logging.Priority.VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
                             true // Continue walking
                         }
                     )
@@ -84,10 +95,16 @@ class PathScanner @Inject constructor(
                     typedGateway.walk(path, LookupOptions.MAX, walkOptions)
                         .cancellable()
                         .mapNotNull { lookup ->
-                            if (matchesSearch(lookup, query)) {
+                            val matchResult = matchesSearch(lookup, query, includeBinaries)
+                            if (matchResult != null) {
                                 resultsFound++
                                 val metadata = metadataRepo.extract(lookup)
-                                SearchItem.fromLookup(lookup, query.query, metadata = metadata)
+                                SearchItem.fromLookup(
+                                    lookup = lookup,
+                                    matchedQuery = query.query,
+                                    matchContext = matchResult,
+                                    metadata = metadata,
+                                )
                             } else {
                                 null
                             }
@@ -95,9 +112,9 @@ class PathScanner @Inject constructor(
                         .collect { emit(it) }
                 }
             }
-            log(TAG, INFO) { "Completed scan for path: $path" }
+            log(tag, INFO) { "Completed scan for path: $path" }
         } catch (e: CancellationException) {
-            log(TAG, INFO) { "Scan cancelled for path: $path" }
+            log(tag, INFO) { "Scan cancelled for path: $path" }
             throw e
         }
     }.flowOn(dispatcherProvider.IO)
@@ -139,14 +156,15 @@ class PathScanner @Inject constructor(
 
     private suspend fun matchesSearch(
         lookup: APathLookup<*>,
-        searchQuery: SearchQuery
-    ): Boolean = withContext(dispatcherProvider.Default) {
+        searchQuery: SearchQuery,
+        includeBinaries: Boolean,
+    ): SearchItem.MatchContext? = withContext(dispatcherProvider.Default) {
         val query = searchQuery.query
         val filter = searchQuery.filter
 
         // Name matching
         val name = lookup.name
-        val matches = when {
+        val nameMatches = when {
             filter.useRegex -> {
                 try {
                     val regex = if (filter.caseSensitive) {
@@ -156,7 +174,7 @@ class PathScanner @Inject constructor(
                     }
                     regex.containsMatchIn(name)
                 } catch (e: Exception) {
-                    log(TAG, Logging.Priority.VERBOSE) { "Invalid regex: $query" }
+                    log(tag, Logging.Priority.VERBOSE) { "Invalid regex: $query" }
                     false
                 }
             }
@@ -176,10 +194,21 @@ class PathScanner @Inject constructor(
             }
         }
 
-        matches
+        // If filename matches, return empty match context (indicates filename match)
+        if (nameMatches) {
+            return@withContext SearchItem.MatchContext()
+        }
+
+        // If content search is enabled and this is a file, search content
+        if (searchQuery.options.searchContent && lookup.fileType == FileType.FILE) {
+            return@withContext contentMatcher.matchesContent(lookup, searchQuery, includeBinaries)
+        }
+
+        null
     }
 
-    companion object {
-        private val TAG = logTag("Searcher", "PathScanner")
+    @AssistedFactory
+    interface Factory {
+        fun create(workspaceId: Workspace.Id): PathScanner
     }
 }

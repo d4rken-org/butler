@@ -31,18 +31,24 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
-import javax.inject.Singleton
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import eu.darken.butler.workspace.core.Workspace
 
-@Singleton
-class SearchEngine @Inject constructor(
-    private val pathScanner: PathScanner,
+class SearchEngine @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
+    @Assisted private val workspaceScope: CoroutineScope,
+    pathScannerFactory: PathScanner.Factory,
     private val dispatcherProvider: DispatcherProvider,
     private val storageManager2: StorageManager2,
     private val searcherSettings: SearcherSettings,
     private val pathPermissionCheck: PathPermissionCheck,
 ) {
 
-    private val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.IO)
+    private val tag = logTag("Searcher", "Workspace", workspaceId.shortTag, "Engine")
+    private val pathScanner = pathScannerFactory.create(workspaceId)
+    private val scope = workspaceScope
 
     private val _targetState = MutableStateFlow<List<SearchTarget>>(emptyList())
     val targetState: StateFlow<List<SearchTarget>> = _targetState.asStateFlow()
@@ -54,14 +60,14 @@ class SearchEngine @Inject constructor(
     val targetProgressState: StateFlow<List<SearchTargetProgress>> = _targetProgressState.asStateFlow()
 
     init {
-        log(TAG, INFO) { "Initialized" }
+        log(tag, INFO) { "Initialized" }
         scope.launch {
             val savedTargets = searcherSettings.defaultSearchTargets.value()
             if (savedTargets != null) {
-                log(TAG, INFO) { "Loaded ${savedTargets.size} targets from settings" }
+                log(tag, INFO) { "Loaded ${savedTargets.size} targets from settings" }
                 _targetState.value = savedTargets
             } else {
-                log(TAG, INFO) { "No saved targets, using defaults" }
+                log(tag, INFO) { "No saved targets, using defaults" }
                 _targetState.value = getDefaultSearchPaths()
             }
         }
@@ -88,7 +94,7 @@ class SearchEngine @Inject constructor(
 
     fun updateTargets(transform: (List<SearchTarget>) -> List<SearchTarget>) {
         val newTargets = transform(_targetState.value)
-        log(TAG, INFO) { "Updating search targets: ${newTargets.size} targets" }
+        log(tag, INFO) { "Updating search targets: ${newTargets.size} targets" }
         _targetState.value = newTargets
         scope.launch {
             searcherSettings.defaultSearchTargets.value(newTargets)
@@ -96,7 +102,7 @@ class SearchEngine @Inject constructor(
     }
 
     fun addDefaultPaths() {
-        log(TAG, INFO) { "Adding default search paths" }
+        log(tag, INFO) { "Adding default search paths" }
         val defaultPaths = getDefaultSearchPaths()
         _targetState.value = defaultPaths
         scope.launch {
@@ -105,12 +111,12 @@ class SearchEngine @Inject constructor(
     }
 
     fun clearTargetProgress() {
-        log(TAG, INFO) { "Clearing target progress state" }
+        log(tag, INFO) { "Clearing target progress state" }
         _targetProgressState.value = emptyList()
     }
 
     private fun getDefaultSearchPaths(): List<SearchTarget> {
-        log(TAG, INFO) { "Getting default search paths (all public storage volumes)" }
+        log(tag, INFO) { "Getting default search paths (all public storage volumes)" }
 
         val volumes = storageManager2.storageVolumes
             .filter { it.isMounted }
@@ -119,10 +125,10 @@ class SearchEngine @Inject constructor(
                     ?: volume.path?.let { LocalPath.build(it) }
             }
 
-        log(TAG, INFO) { "Found ${volumes.size} public storage volumes: ${volumes.map { it.path }}" }
+        log(tag, INFO) { "Found ${volumes.size} public storage volumes: ${volumes.map { it.path }}" }
 
         if (volumes.isEmpty()) {
-            log(TAG, WARN) { "No mounted storage volumes found, falling back to external storage" }
+            log(tag, WARN) { "No mounted storage volumes found, falling back to external storage" }
             val fallbackPath = LocalPath.build(Environment.getExternalStorageDirectory())
             return listOf(SearchTarget.Path.from(fallbackPath))
         }
@@ -134,17 +140,17 @@ class SearchEngine @Inject constructor(
         command: SearcherCommand.Search,
         onProgress: ((SearchProgress) -> Unit)? = null
     ): Result {
-        log(TAG, INFO) { "search(): ${command.query}" }
+        log(tag, INFO) { "search(): ${command.query}" }
 
         // Validate query
         if (command.query.isBlank()) {
-            log(TAG, WARN) { "Skipping search with blank query" }
+            log(tag, WARN) { "Skipping search with blank query" }
             return Result.InvalidQuery
         }
 
         // Validate targets
         if (command.targets.isEmpty()) {
-            log(TAG, ERROR) { "Cannot start search: No search targets" }
+            log(tag, ERROR) { "Cannot start search: No search targets" }
             return Result.NoTargets
         }
 
@@ -155,7 +161,7 @@ class SearchEngine @Inject constructor(
             .map { it.path }
 
         if (enabledPaths.isEmpty()) {
-            log(TAG, ERROR) { "Cannot start search: No enabled search targets" }
+            log(tag, ERROR) { "Cannot start search: No enabled search targets" }
             return Result.NoTargets
         }
 
@@ -176,7 +182,7 @@ class SearchEngine @Inject constructor(
 
             // Check if setup is needed
             if (setupRequirements.needsSetup) {
-                log(TAG, WARN) { "Cannot start search: Setup required - $setupRequirements" }
+                log(tag, WARN) { "Cannot start search: Setup required - $setupRequirements" }
                 return Result.PermissionsRequired(setupRequirements)
             }
 
@@ -190,10 +196,10 @@ class SearchEngine @Inject constructor(
 
             Result.Success(executeSearch(searchQuery, onProgress))
         } catch (e: CancellationException) {
-            log(TAG, INFO) { "Search cancelled" }
+            log(tag, INFO) { "Search cancelled" }
             throw e
         } catch (e: Exception) {
-            log(TAG, ERROR) { "Search failed: ${e.asLog()}" }
+            log(tag, ERROR) { "Search failed: ${e.asLog()}" }
             Result.Error(e)
         }
     }
@@ -214,7 +220,7 @@ class SearchEngine @Inject constructor(
             .filterIsInstance<SearchTarget.Path>()
             .filter { it.enabled }
 
-        log(TAG, INFO) { "Starting concurrent search with query: ${searchQuery.query} across ${enabledTargets.size} enabled path(s)" }
+        log(tag, INFO) { "Starting concurrent search with query: ${searchQuery.query} across ${enabledTargets.size} enabled path(s)" }
 
         // Initialize target progress states
         val initialProgress = enabledTargets.map { target ->
@@ -230,6 +236,7 @@ class SearchEngine @Inject constructor(
         val progressAggregator = ProgressAggregator()
         val foundCounter = AtomicInteger(0)
         val maxResults = searchQuery.options.maxResults
+        val includeBinaries = searcherSettings.contentSearchBinaries.value()
 
         // Launch concurrent scanner for each path
         enabledTargets.forEach { pathTarget ->
@@ -238,6 +245,7 @@ class SearchEngine @Inject constructor(
                     pathScanner.scan(
                         path = pathTarget.path,
                         query = searchQuery,
+                        includeBinaries = includeBinaries,
                         onProgress = { pathProgress ->
                             progressAggregator.update(pathTarget.path, pathProgress)
 
@@ -269,13 +277,13 @@ class SearchEngine @Inject constructor(
                         // Check max results across all scanners
                         val found = foundCounter.incrementAndGet()
                         if (maxResults != null && found > maxResults) {
-                            log(TAG, INFO) { "Max results reached ($found)" }
+                            log(tag, INFO) { "Max results reached ($found)" }
                             cancel("Max results reached")
                         }
                         send(result) // Send to channelFlow
                     }
 
-                    log(TAG, INFO) { "Completed scan for path: ${pathTarget.path}" }
+                    log(tag, INFO) { "Completed scan for path: ${pathTarget.path}" }
 
                     // Mark as completed
                     _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
@@ -286,7 +294,7 @@ class SearchEngine @Inject constructor(
                         }
                     }
                 } catch (e: CancellationException) {
-                    log(TAG, INFO) { "Scanner cancelled for ${pathTarget.path}" }
+                    log(tag, INFO) { "Scanner cancelled for ${pathTarget.path}" }
 
                     // Mark as cancelled
                     _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
@@ -298,7 +306,7 @@ class SearchEngine @Inject constructor(
                     }
                     throw e
                 } catch (e: Exception) {
-                    log(TAG, WARN) { "Failed to scan ${pathTarget.path}: ${e.message}" }
+                    log(tag, WARN) { "Failed to scan ${pathTarget.path}: ${e.message}" }
 
                     // Mark as error with exception details
                     _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
@@ -317,7 +325,8 @@ class SearchEngine @Inject constructor(
         }
     }.flowOn(dispatcherProvider.IO)
 
-    companion object {
-        private val TAG = logTag("Searcher", "Engine")
+    @AssistedFactory
+    interface Factory {
+        fun create(workspaceId: Workspace.Id, workspaceScope: CoroutineScope): SearchEngine
     }
 }

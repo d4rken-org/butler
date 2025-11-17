@@ -10,11 +10,13 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
+import eu.darken.butler.provider.documents.core.reader.DocumentReader
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
@@ -63,7 +65,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(100)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Can read file contents
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -175,7 +177,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(100)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Can read file contents through pipe
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -207,7 +209,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(150)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Can read all data through pipe
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -240,7 +242,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(100)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Read line by line
         FileInputStream(pfd.fileDescriptor).bufferedReader().use { reader ->
@@ -266,7 +268,7 @@ class DocumentReaderTest {
         val pfd = reader.openDocument(documentId, "r", null)
 
         // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(100)
+        kotlinx.coroutines.delay(1000)
 
         // Then: Can open and read (returns empty)
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -278,7 +280,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument handles large file`() = runTest {
+    fun `openDocument handles large file`() = runBlocking {
         // Given: Large file (100KB) - reduced for faster testing
         val testFile = tempFolder.newFile("large.txt")
         val largeData = ByteArray(100 * 1024) { (it % 256).toByte() }
@@ -293,8 +295,10 @@ class DocumentReaderTest {
         // When
         val pfd = reader.openDocument(documentId, "r", null)
 
-        // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(200)
+        // Allow time for Dispatchers.IO coroutine to transfer data through pipe
+        // Use Thread.sleep (real time) instead of delay (virtual time)
+        // because DocumentReader uses Dispatchers.IO (not TestDispatcher)
+        Thread.sleep(1500)
 
         // Then: Can read all data
         FileInputStream(pfd.fileDescriptor).use { inputStream ->

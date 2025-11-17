@@ -73,9 +73,11 @@ class PathPermissionCheckTest : BaseTest() {
         val storageEnvironment = mockk<StorageEnvironment>(relaxed = true) {
             every { publicDataDirs } returns listOfNotNull(androidDataPath)
             every { publicObbDirs } returns listOfNotNull(androidObbPath)
-            every { publicStorages } returns emptyList<LocalPath>()
-            every { ourPrivateDirs } returns emptyList<LocalPath>()
-            every { ourPublicDirs } returns emptyList<LocalPath>()
+            every { publicStorages } returns emptyList()
+            every { ourPrivateDirs } returns emptyList()
+            every { ourPublicDirs } returns emptyList()
+            every { systemDir } returns LocalPath.build("/system")
+            every { dataDir } returns LocalPath.build("/data")
         }
 
         // SAFLocationManager.toSAFPath: Returns SAFPath only if permission exists
@@ -150,8 +152,8 @@ class PathPermissionCheckTest : BaseTest() {
         val requirements = checker.monitor(testPath).first()
 
         requirements.safPickerGrant.shouldNotBeNull()
-        requirements.safPickerGrant!!.intent shouldBe mockIntent
-        requirements.safPickerGrant!!.targetPath shouldBe testPath
+        requirements.safPickerGrant.intent shouldBe mockIntent
+        requirements.safPickerGrant.targetPath shouldBe testPath
         requirements.alternativePath.shouldBeNull()
         // Also provides ROOT/SHIZUKU as fallback options
         requirements.combos shouldBe setOf(
@@ -174,7 +176,7 @@ class PathPermissionCheckTest : BaseTest() {
         val requirements = checker.monitor(testPath).first()
 
         requirements.alternativePath.shouldNotBeNull()
-        requirements.alternativePath!!.shouldBeInstanceOf<SAFPath>()
+        requirements.alternativePath.shouldBeInstanceOf<SAFPath>()
         requirements.safPickerGrant.shouldBeNull()
         requirements.combos shouldBe emptySet()
     }
@@ -197,7 +199,7 @@ class PathPermissionCheckTest : BaseTest() {
 
         // Should offer SAF picker, NOT return alternativePath
         requirements.safPickerGrant.shouldNotBeNull()
-        requirements.safPickerGrant!!.intent shouldBe mockIntent
+        requirements.safPickerGrant.intent shouldBe mockIntent
         requirements.alternativePath.shouldBeNull()
         // Also provides ROOT/SHIZUKU as fallback options
         requirements.combos shouldBe setOf(
@@ -265,7 +267,7 @@ class PathPermissionCheckTest : BaseTest() {
         val requirements = checker.monitor(testPath).first()
 
         requirements.safPickerGrant.shouldNotBeNull()
-        requirements.safPickerGrant!!.intent shouldBe mockIntent
+        requirements.safPickerGrant.intent shouldBe mockIntent
     }
 
     @Test
@@ -299,10 +301,12 @@ class PathPermissionCheckTest : BaseTest() {
 
         val storageEnvironment = mockk<StorageEnvironment>(relaxed = true) {
             every { publicDataDirs } returns listOf(androidDataPath)
-            every { publicObbDirs } returns emptyList<LocalPath>()
-            every { publicStorages } returns emptyList<LocalPath>()
-            every { ourPrivateDirs } returns emptyList<LocalPath>()
-            every { ourPublicDirs } returns emptyList<LocalPath>()
+            every { publicObbDirs } returns emptyList()
+            every { publicStorages } returns emptyList()
+            every { ourPrivateDirs } returns emptyList()
+            every { ourPublicDirs } returns emptyList()
+            every { systemDir } returns LocalPath.build("/system")
+            every { dataDir } returns LocalPath.build("/data")
         }
 
         val safLocationManager = mockk<SAFLocationManager>(relaxed = true) {

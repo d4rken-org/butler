@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,8 +28,8 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchResultQuickActions(
     result: SearchItem,
@@ -40,9 +38,10 @@ fun SearchResultQuickActions(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        modifier = modifier
+    PaneScopedBottomSheet(
+        visible = true,
+        onDismiss = onDismiss,
+        modifier = modifier,
     ) {
         Column(
             modifier = Modifier

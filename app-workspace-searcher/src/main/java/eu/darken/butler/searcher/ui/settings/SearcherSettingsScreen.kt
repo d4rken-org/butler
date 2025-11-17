@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.twotone.History
 import androidx.compose.material.icons.twotone.ClearAll
+import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.Numbers
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.QueryStats
@@ -51,6 +52,7 @@ fun SearcherSettingsScreen(
     onMaxSearchResultsChange: (Int) -> Unit,
     onMaxHistoryItemsChange: (Int) -> Unit,
     onSaveHistoryChange: (Boolean) -> Unit,
+    onContentSearchBinariesChange: (Boolean) -> Unit,
     onClearSearchHistory: () -> Unit,
 ) {
     var showClearHistoryDialog by remember { mutableStateOf(false) }
@@ -105,6 +107,21 @@ fun SearcherSettingsScreen(
                         }
                         onMaxSearchResultsChange(newValue)
                     }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsCategoryHeader(text = stringResource(R.string.searcher_settings_content_search_category))
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.Code,
+                    title = stringResource(R.string.searcher_settings_include_binaries_title),
+                    subtitle = stringResource(R.string.searcher_settings_include_binaries_subtitle),
+                    checked = state.contentSearchBinaries,
+                    onCheckedChange = onContentSearchBinariesChange
                 )
                 SettingsDivider()
             }
@@ -209,12 +226,14 @@ private fun SearcherSettingsScreenPreview() {
                 maxSearchResults = 1000,
                 maxHistoryItems = 15,
                 saveHistory = true,
+                contentSearchBinaries = false,
                 currentHistoryCount = 7
             ),
             onNavigateUp = {},
             onMaxSearchResultsChange = {},
             onMaxHistoryItemsChange = {},
             onSaveHistoryChange = {},
+            onContentSearchBinariesChange = {},
             onClearSearchHistory = {},
         )
     }
@@ -233,6 +252,7 @@ fun SearcherSettingsScreenHost(vm: SearcherSettingsViewModel = hiltViewModel()) 
             onMaxSearchResultsChange = { vm.updateMaxSearchResults(it) },
             onMaxHistoryItemsChange = { vm.updateMaxHistoryItems(it) },
             onSaveHistoryChange = { vm.updateSaveHistory(it) },
+            onContentSearchBinariesChange = { vm.updateContentSearchBinaries(it) },
             onClearSearchHistory = { vm.clearSearchHistory() },
         )
     }

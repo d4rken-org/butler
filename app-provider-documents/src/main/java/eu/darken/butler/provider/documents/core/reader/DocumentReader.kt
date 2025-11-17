@@ -1,4 +1,4 @@
-package eu.darken.butler.provider.documents.reader
+package eu.darken.butler.provider.documents.core.reader
 
 import android.content.Context
 import android.os.CancellationSignal

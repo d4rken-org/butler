@@ -15,7 +15,10 @@
     <string name="searcher_settings_clear_history_subtitle">Remove all saved searches</string>
     <string name="searcher_settings_search_performance">Performance</string>
     <string name="searcher_settings_max_results_title">Maximum search results</string>
-    <string name="searcher_settings_max_results_subtitle">Limit the number of results returned per search</string>
+    <string name="searcher_settings_max_results_subtitle">Limit the number of results returned per search.</string>
+    <string name="searcher_settings_content_search_category">Content Search</string>
+    <string name="searcher_settings_include_binaries_title">Include binary files</string>
+    <string name="searcher_settings_include_binaries_subtitle">Search content of binary files (may be slow and produce irrelevant results)</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Recent searches</string>
@@ -35,7 +38,9 @@
     <string name="searcher_option_whole_word_desc">Whole word search</string>
     <string name="searcher_option_regex_label">.*</string>
     <string name="searcher_option_regex_desc">Regular expression search</string>
-    
+    <string name="searcher_option_search_content_label">Content</string>
+    <string name="searcher_option_search_content_desc">Search file contents</string>
+
     <!-- Search history actions -->
     <string name="searcher_history_remove_action">Remove from history</string>
     <string name="searcher_history_clear_all_action">Clear all</string>
@@ -81,6 +86,9 @@
         <item quantity="one">%d found</item>
         <item quantity="other">%d found</item>
     </plurals>
+
+    <!-- Match context -->
+    <string name="searcher_match_line_label">Line %1$d</string>
 
     <!-- Action strings -->
     <string name="searcher_action_open_in_editor">Open in editor</string>
