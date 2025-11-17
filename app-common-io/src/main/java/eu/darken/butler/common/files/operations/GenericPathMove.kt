@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.UnknownFileTypeException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.metadata.FileType
@@ -381,7 +382,7 @@ internal class GenericPathMove<
                 return childrenFound
             }
 
-            FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
+            FileType.UNKNOWN -> throw UnknownFileTypeException(lookup)
         }
     }
 

@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.UnknownFileTypeException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.metadata.FileType
@@ -211,7 +212,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
                 }
             }
 
-            FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $lookup")
+            FileType.UNKNOWN -> throw UnknownFileTypeException(lookup)
         }
     }
 

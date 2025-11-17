@@ -11,6 +11,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
+import eu.darken.butler.common.files.errors.UnknownFileTypeException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.metadata.FileType
@@ -331,7 +332,7 @@ internal class GenericPathCopy<
                 return childrenFound
             }
 
-            FileType.UNKNOWN -> throw IllegalStateException("Unknown file type: $effectiveLookup")
+            FileType.UNKNOWN -> throw UnknownFileTypeException(effectiveLookup)
         }
     }
 
