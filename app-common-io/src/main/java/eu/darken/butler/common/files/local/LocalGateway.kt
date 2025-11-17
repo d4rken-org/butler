@@ -9,6 +9,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.error.causes
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
@@ -1156,16 +1157,14 @@ class LocalGateway @Inject constructor(
         }
     }.flowOn(dispatcherProvider.IO)
 
-    private fun Throwable.isPermissionError(): Boolean = this.causes.any {
-        when (it) {
-            is PathException -> true
-            is SecurityException -> true
-            is java.nio.file.AccessDeniedException -> true
-            is AccessDeniedException -> true
-            is IOException -> message?.contains("permission", ignoreCase = true) == true
-            else -> false
+    private fun Throwable.isPermissionError(): Boolean =
+        causeChain.any {
+            it is PathException ||
+                it is SecurityException ||
+                it is java.nio.file.AccessDeniedException ||
+                it is AccessDeniedException ||
+                (it is IOException && it.message?.contains("permission", ignoreCase = true) == true)
         }
-    }
 
     private fun PathActionIssue.isPermissionIssue(): Boolean = when (this) {
         is PathActionIssue.InsufficientPermission -> true
