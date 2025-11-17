@@ -8,41 +8,41 @@ import eu.darken.butler.common.hasApiLevel
 import kotlinx.parcelize.Parcelize
 
 /**
- * Events for copy operation progress streaming.
+ * Events for move operation progress streaming.
  * Sealed interface with Parcelable implementations for IPC.
  */
-sealed interface CopyOperationEvent : Parcelable {
+sealed interface MoveOperationEvent : Parcelable {
 
     companion object {
         /**
          * Custom CREATOR for sealed interface that reads class name and delegates to subtype CREATOR.
          */
         @JvmField
-        val CREATOR: Parcelable.Creator<CopyOperationEvent> = object : Parcelable.Creator<CopyOperationEvent> {
-            override fun createFromParcel(parcel: Parcel): CopyOperationEvent {
+        val CREATOR: Parcelable.Creator<MoveOperationEvent> = object : Parcelable.Creator<MoveOperationEvent> {
+            override fun createFromParcel(parcel: Parcel): MoveOperationEvent {
                 // Read class name written by GenericOperationEventStreaming
                 val className = parcel.readString() ?: throw IllegalStateException("Class name is null")
 
                 // Delegate to appropriate subtype's CREATOR
                 return when (className) {
-                    CopyOperationEvent.ScanProgress::class.java.name ->
+                    MoveOperationEvent.ScanProgress::class.java.name ->
                         parcel.readParcelable<ScanProgress>(ScanProgress::class.java.classLoader)
-                    CopyOperationEvent.CopyProgress::class.java.name ->
-                        parcel.readParcelable<CopyProgress>(CopyProgress::class.java.classLoader)
-                    CopyOperationEvent.Result::class.java.name ->
+                    MoveOperationEvent.MoveProgress::class.java.name ->
+                        parcel.readParcelable<MoveProgress>(MoveProgress::class.java.classLoader)
+                    MoveOperationEvent.Result::class.java.name ->
                         parcel.readParcelable<Result>(Result::class.java.classLoader)
-                    CopyOperationEvent.Error::class.java.name ->
+                    MoveOperationEvent.Error::class.java.name ->
                         parcel.readParcelable<Error>(Error::class.java.classLoader)
-                    else -> throw IllegalArgumentException("Unknown CopyOperationEvent type: $className")
-                } ?: throw IllegalStateException("Failed to read CopyOperationEvent")
+                    else -> throw IllegalArgumentException("Unknown MoveOperationEvent type: $className")
+                } ?: throw IllegalStateException("Failed to read MoveOperationEvent")
             }
 
-            override fun newArray(size: Int): Array<CopyOperationEvent?> = arrayOfNulls(size)
+            override fun newArray(size: Int): Array<MoveOperationEvent?> = arrayOfNulls(size)
         }
     }
 
     /**
-     * Emitted during scanning phase when discovering items to copy.
+     * Emitted during scanning phase when discovering items to move.
      *
      * @param scannedCount Number of items scanned so far
      * @param scannedBytes Total bytes discovered so far
@@ -53,47 +53,47 @@ sealed interface CopyOperationEvent : Parcelable {
         val scannedCount: Long,
         val scannedBytes: Long,
         val currentPath: LocalPathLookup,
-    ) : CopyOperationEvent
+    ) : MoveOperationEvent
 
     /**
-     * Emitted during copy phase for each item being copied.
+     * Emitted during move phase for each item being moved.
      *
-     * @param copiedCount Number of items copied so far
-     * @param totalCount Total number of items to copy (from scan phase)
-     * @param copiedBytes Bytes copied so far
-     * @param totalBytes Total bytes to copy (from scan phase)
-     * @param currentSource Source path currently being copied (with metadata)
+     * @param movedCount Number of items moved so far
+     * @param totalCount Total number of items to move (from scan phase)
+     * @param movedBytes Bytes moved so far
+     * @param totalBytes Total bytes to move (from scan phase)
+     * @param currentSource Source path currently being moved (with metadata)
      * @param currentDestination Destination path (nullable during transfer)
-     * @param currentFileSize Size of current file being copied
-     * @param currentFileBytes Bytes copied of current file
+     * @param currentFileSize Size of current file being moved
+     * @param currentFileBytes Bytes moved of current file
      */
     @Parcelize
-    data class CopyProgress(
-        val copiedCount: Long,
+    data class MoveProgress(
+        val movedCount: Long,
         val totalCount: Long,
-        val copiedBytes: Long,
+        val movedBytes: Long,
         val totalBytes: Long,
         val currentSource: LocalPathLookup,
         val currentDestination: LocalPath?,
         val currentFileSize: Long,
         val currentFileBytes: Long,
-    ) : CopyOperationEvent
+    ) : MoveOperationEvent
 
     /**
      * Final event emitted on successful completion.
      *
-     * @param copiedItems List of source→destination path pairs (with metadata)
+     * @param movedItems List of source→destination path pairs (with metadata)
      * @param skippedItems List of skipped paths (user chose to skip, with metadata)
      * @param errorCount Number of errors encountered (issues that were resolved)
-     * @param copiedBytes Total bytes copied
+     * @param movedBytes Total bytes moved
      */
     @Parcelize
     data class Result(
-        val copiedItems: List<PathPair>,
+        val movedItems: List<PathPair>,
         val skippedItems: List<LocalPathLookup>,
         val errorCount: Int,
-        val copiedBytes: Long,
-    ) : CopyOperationEvent
+        val movedBytes: Long,
+    ) : MoveOperationEvent
 
     /**
      * Emitted when operation fails or is cancelled.
@@ -105,5 +105,5 @@ sealed interface CopyOperationEvent : Parcelable {
     data class Error(
         val error: String,
         val cancelled: Boolean,
-    ) : CopyOperationEvent
+    ) : MoveOperationEvent
 }

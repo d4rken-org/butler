@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.local.ipc
 import android.os.Parcel
 import android.os.Parcelable
 import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.hasApiLevel
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -23,10 +24,14 @@ sealed interface DeleteOperationEvent : Parcelable {
 
                 // Delegate to appropriate subtype's CREATOR
                 return when (className) {
-                    ScanProgress::class.java.name -> parcel.readParcelable(ScanProgress::class.java.classLoader)
-                    DeleteProgress::class.java.name -> parcel.readParcelable(DeleteProgress::class.java.classLoader)
-                    Result::class.java.name -> parcel.readParcelable(Result::class.java.classLoader)
-                    Error::class.java.name -> parcel.readParcelable(Error::class.java.classLoader)
+                    DeleteOperationEvent.ScanProgress::class.java.name ->
+                        parcel.readParcelable<ScanProgress>(ScanProgress::class.java.classLoader)
+                    DeleteOperationEvent.DeleteProgress::class.java.name ->
+                        parcel.readParcelable<DeleteProgress>(DeleteProgress::class.java.classLoader)
+                    DeleteOperationEvent.Result::class.java.name ->
+                        parcel.readParcelable<Result>(Result::class.java.classLoader)
+                    DeleteOperationEvent.Error::class.java.name ->
+                        parcel.readParcelable<Error>(Error::class.java.classLoader)
                     else -> throw IllegalArgumentException("Unknown DeleteOperationEvent type: $className")
                 } ?: throw IllegalStateException("Failed to read DeleteOperationEvent")
             }
