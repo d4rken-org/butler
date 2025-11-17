@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.WrapText
+import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.FormatQuote
 import androidx.compose.material.icons.twotone.TextFormat
 import androidx.compose.material3.FilterChip
@@ -29,9 +30,11 @@ fun SearchOptionsRow(
     caseSensitive: Boolean,
     wholeWord: Boolean,
     useRegex: Boolean,
+    searchContent: Boolean,
     onToggleCaseSensitive: () -> Unit,
     onToggleWholeWord: () -> Unit,
     onToggleRegex: () -> Unit,
+    onToggleSearchContent: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -110,6 +113,30 @@ fun SearchOptionsRow(
                 contentDescription = regexDesc
             }
         )
+
+        val searchContentDesc = stringResource(R.string.searcher_option_search_content_desc)
+        FilterChip(
+            selected = searchContent,
+            onClick = onToggleSearchContent,
+            label = { Text(stringResource(R.string.searcher_option_search_content_label)) },
+            leadingIcon = if (searchContent) {
+                {
+                    Icon(
+                        imageVector = Icons.TwoTone.Description,
+                        contentDescription = null,
+                        modifier = Modifier.size(FilterChipDefaults.IconSize)
+                    )
+                }
+            } else null,
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ),
+            modifier = Modifier.semantics {
+                contentDescription = searchContentDesc
+            }
+        )
     }
 }
 
@@ -121,9 +148,11 @@ private fun SearchOptionsRowPreview() {
             caseSensitive = true,
             wholeWord = false,
             useRegex = false,
+            searchContent = false,
             onToggleCaseSensitive = {},
             onToggleWholeWord = {},
             onToggleRegex = {},
+            onToggleSearchContent = {},
             modifier = Modifier.padding(8.dp)
         )
     }
