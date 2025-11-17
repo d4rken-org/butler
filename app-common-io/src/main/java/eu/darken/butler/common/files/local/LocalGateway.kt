@@ -9,6 +9,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.causes
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -17,6 +18,8 @@ import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.PathException
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
@@ -654,13 +657,40 @@ class LocalGateway @Inject constructor(
                 val shouldTry = accessChecker.shouldTryNormalAccess(targets.first(), forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
+                        var hasEscalated = false
+
+                        // Wrap the original onIssue callback with escalation logic
+                        val escalationAwareOnIssue: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
+                            when {
+                                // Permission error on first attempt -> auto-escalate
+                                !hasEscalated && issue.isPermissionIssue() -> {
+                                    log(TAG, INFO) { "delete(): Permission error, escalating" }
+                                    hasEscalated = true
+                                    // Throw the exception directly to trigger escalation
+                                    throw when (issue) {
+                                        is PathActionIssue.UnknownError -> issue.exception
+                                        is PathActionIssue.InsufficientPermission ->
+                                            issue.exception ?: SecurityException("Permission denied: ${issue.destination.lookedUp}")
+                                        else -> IllegalStateException("Unexpected permission issue type")
+                                    }
+                                }
+                                // Already escalated OR non-permission error -> delegate to original callback
+                                else -> {
+                                    if (hasEscalated) {
+                                        log(TAG, WARN) { "delete(): Error persists after escalation, delegating to user" }
+                                    }
+                                    options.onIssue?.invoke(issue) ?: throw IllegalStateException("No issue handler")
+                                }
+                            }
+                        }
+
                         try {
                             log(TAG, VERBOSE) { "delete(AUTO->NORMAL, $shouldTry): ${targets.size} targets" }
                             targets.delete(
                                 fileSystemOps,
                                 recursive = options.recursive,
                                 ignoreMissing = options.ignoreMissing,
-                                onIssue = options.onIssue,
+                                onIssue = escalationAwareOnIssue,
                             ).collect { state ->
                                 emit(state)
                                 if (state is DeleteAction.State.Completed) {
@@ -668,19 +698,26 @@ class LocalGateway @Inject constructor(
                                 }
                             }
                         } catch (e: Exception) {
-                            if (e.isPermissionError() && (hasRoot() || hasAdb())) {
-                                log(TAG, VERBOSE) { "delete(AUTO->NORMAL): Permission error, escalating: ${e.message}" }
+                            log(TAG, VERBOSE) { "delete(AUTO->NORMAL): Error: ${e.message}" }
+                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                                log(TAG, INFO) { "delete(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
                                 when {
                                     hasRoot() -> {
                                         log(TAG, VERBOSE) { "delete(AUTO->NORMAL->ROOT): ${targets.size} targets" }
                                         rootOps { client ->
-                                            client.delete(targets = targets, options = options).collect { emit(it) }
+                                            client.delete(
+                                                targets = targets,
+                                                options = options.copy(onIssue = escalationAwareOnIssue)
+                                            ).collect { emit(it) }
                                         }
                                     }
                                     hasAdb() -> {
                                         log(TAG, VERBOSE) { "delete(AUTO->NORMAL->ADB): ${targets.size} targets" }
                                         adbOps { client ->
-                                            client.delete(targets = targets, options = options).collect { emit(it) }
+                                            client.delete(
+                                                targets = targets,
+                                                options = options.copy(onIssue = escalationAwareOnIssue)
+                                            ).collect { emit(it) }
                                         }
                                     }
                                 }
@@ -778,13 +815,40 @@ class LocalGateway @Inject constructor(
                 val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
+                        var hasEscalated = false
+
+                        // Wrap the original onIssue callback with escalation logic
+                        val escalationAwareOnIssue: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
+                            when {
+                                // Permission error on first attempt -> auto-escalate
+                                !hasEscalated && issue.isPermissionIssue() -> {
+                                    log(TAG, INFO) { "copy(): Permission error, escalating" }
+                                    hasEscalated = true
+                                    // Throw the exception directly to trigger escalation
+                                    throw when (issue) {
+                                        is PathActionIssue.UnknownError -> issue.exception
+                                        is PathActionIssue.InsufficientPermission ->
+                                            issue.exception ?: SecurityException("Permission denied: ${issue.destination.lookedUp}")
+                                        else -> IllegalStateException("Unexpected permission issue type")
+                                    }
+                                }
+                                // Already escalated OR non-permission error -> delegate to original callback
+                                else -> {
+                                    if (hasEscalated) {
+                                        log(TAG, WARN) { "copy(): Error persists after escalation, delegating to user" }
+                                    }
+                                    onIssue?.invoke(issue) ?: throw IllegalStateException("No issue handler")
+                                }
+                            }
+                        }
+
                         try {
                             log(TAG, VERBOSE) { "copy(AUTO->NORMAL, $shouldTry): To $destination" }
                             sources.copy(
                                 fileSystemOps = fileSystemOps,
                                 destination = destination,
                                 options = options,
-                                onIssue = onIssue,
+                                onIssue = escalationAwareOnIssue,
                             ).collect { state ->
                                 emit(state)
                                 if (state is CopyAction.State.Completed) {
@@ -792,19 +856,20 @@ class LocalGateway @Inject constructor(
                                 }
                             }
                         } catch (e: Exception) {
-                            if (e.isPermissionError() && (hasRoot() || hasAdb())) {
-                                log(TAG, VERBOSE) { "copy(AUTO->NORMAL): Permission error, escalating: ${e.message}" }
+                            log(TAG, VERBOSE) { "copy(AUTO->NORMAL): Error: ${e.message}" }
+                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                                log(TAG, INFO) { "copy(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
                                 when {
                                     hasRoot() -> {
                                         log(TAG, VERBOSE) { "copy(AUTO->NORMAL->ROOT): To $destination" }
                                         rootOps { client ->
-                                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                                            client.copy(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
                                         }
                                     }
                                     hasAdb() -> {
                                         log(TAG, VERBOSE) { "copy(AUTO->NORMAL->ADB): To $destination" }
                                         adbOps { client ->
-                                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                                            client.copy(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
                                         }
                                     }
                                 }
@@ -901,13 +966,40 @@ class LocalGateway @Inject constructor(
                 val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
+                        var hasEscalated = false
+
+                        // Wrap the original onIssue callback with escalation logic
+                        val escalationAwareOnIssue: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
+                            when {
+                                // Permission error on first attempt -> auto-escalate
+                                !hasEscalated && issue.isPermissionIssue() -> {
+                                    log(TAG, INFO) { "move(): Permission error, escalating" }
+                                    hasEscalated = true
+                                    // Throw the exception directly to trigger escalation
+                                    throw when (issue) {
+                                        is PathActionIssue.UnknownError -> issue.exception
+                                        is PathActionIssue.InsufficientPermission ->
+                                            issue.exception ?: SecurityException("Permission denied: ${issue.destination.lookedUp}")
+                                        else -> IllegalStateException("Unexpected permission issue type")
+                                    }
+                                }
+                                // Already escalated OR non-permission error -> delegate to original callback
+                                else -> {
+                                    if (hasEscalated) {
+                                        log(TAG, WARN) { "move(): Error persists after escalation, delegating to user" }
+                                    }
+                                    onIssue?.invoke(issue) ?: throw IllegalStateException("No issue handler")
+                                }
+                            }
+                        }
+
                         try {
                             log(TAG, VERBOSE) { "move(AUTO->NORMAL, $shouldTry): To $destination" }
                             sources.move(
                                 fileSystemOps,
                                 destination,
                                 options,
-                                onIssue = onIssue,
+                                onIssue = escalationAwareOnIssue,
                             ).collect { state ->
                                 emit(state)
                                 if (state is MoveAction.State.Completed<*, *, *, *>) {
@@ -915,19 +1007,20 @@ class LocalGateway @Inject constructor(
                                 }
                             }
                         } catch (e: Exception) {
-                            if (e.isPermissionError() && (hasRoot() || hasAdb())) {
-                                log(TAG, VERBOSE) { "move(AUTO->NORMAL): Permission error, escalating: ${e.message}" }
+                            log(TAG, VERBOSE) { "move(AUTO->NORMAL): Error: ${e.message}" }
+                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                                log(TAG, INFO) { "move(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
                                 when {
                                     hasRoot() -> {
                                         log(TAG, VERBOSE) { "move(AUTO->NORMAL->ROOT): To $destination" }
                                         rootOps { client ->
-                                            client.move(sources, destination, onIssue, options).collect { emit(it) }
+                                            client.move(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
                                         }
                                     }
                                     hasAdb() -> {
                                         log(TAG, VERBOSE) { "move(AUTO->NORMAL->ADB): To $destination" }
                                         adbOps { client ->
-                                            client.move(sources, destination, onIssue, options).collect { emit(it) }
+                                            client.move(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
                                         }
                                     }
                                 }
@@ -1139,13 +1232,15 @@ class LocalGateway @Inject constructor(
         }
     }.flowOn(dispatcherProvider.IO)
 
-    private fun Throwable.isPermissionError(): Boolean = when (this) {
-        is WriteException -> true
-        is SecurityException -> true
-        is java.nio.file.AccessDeniedException -> true
-        is AccessDeniedException -> true
-        is IOException -> message?.contains("permission", ignoreCase = true) == true
-        else -> false
+    private fun Throwable.isPermissionError(): Boolean = this.causes.any {
+        when (it) {
+            is PathException -> true
+            is SecurityException -> true
+            is java.nio.file.AccessDeniedException -> true
+            is AccessDeniedException -> true
+            is IOException -> message?.contains("permission", ignoreCase = true) == true
+            else -> false
+        }
     }
 
     private fun PathActionIssue.isPermissionIssue(): Boolean = when (this) {
