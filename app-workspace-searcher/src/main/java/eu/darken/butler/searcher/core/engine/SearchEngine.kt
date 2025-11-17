@@ -230,6 +230,7 @@ class SearchEngine @Inject constructor(
         val progressAggregator = ProgressAggregator()
         val foundCounter = AtomicInteger(0)
         val maxResults = searchQuery.options.maxResults
+        val includeBinaries = searcherSettings.contentSearchBinaries.value()
 
         // Launch concurrent scanner for each path
         enabledTargets.forEach { pathTarget ->
@@ -238,6 +239,7 @@ class SearchEngine @Inject constructor(
                     pathScanner.scan(
                         path = pathTarget.path,
                         query = searchQuery,
+                        includeBinaries = includeBinaries,
                         onProgress = { pathProgress ->
                             progressAggregator.update(pathTarget.path, pathProgress)
 

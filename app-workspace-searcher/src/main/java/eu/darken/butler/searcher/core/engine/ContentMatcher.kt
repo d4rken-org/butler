@@ -1,10 +1,6 @@
 package eu.darken.butler.searcher.core.engine
 
-import androidx.datastore.dataStore
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.datastore.createValue
-import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
 import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
@@ -14,7 +10,6 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
-import eu.darken.butler.searcher.core.SearcherSettings
 import kotlinx.coroutines.withContext
 import okio.buffer
 import okio.use
@@ -23,22 +18,21 @@ import javax.inject.Inject
 class ContentMatcher @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
     private val dispatcherProvider: DispatcherProvider,
-    private val searcherSettings: SearcherSettings,
 ) {
     private val tag = logTag("Searcher", "ContentMatcher")
-
-    private val includeBinaries = searcherSettings.contentSearchBinaries.valueBlocking
 
     /**
      * Checks if file content matches the search query and returns match context if found.
      *
      * @param lookup The file to search within
      * @param query The search query parameters
+     * @param includeBinaries Whether to search binary files or skip them
      * @return MatchContext with line number and snippet if match found, null otherwise
      */
     suspend fun matchesContent(
         lookup: APathLookup<*>,
         query: SearchQuery,
+        includeBinaries: Boolean,
     ): SearchItem.MatchContext? = withContext(dispatcherProvider.IO) {
         // 1. Size check - skip files that are too large
         val maxSize = 10_485_760L // 10MB

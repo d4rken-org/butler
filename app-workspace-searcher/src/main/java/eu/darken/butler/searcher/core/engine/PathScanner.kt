@@ -41,6 +41,7 @@ class PathScanner @Inject constructor(
     suspend fun scan(
         path: APath<*>,
         query: SearchQuery,
+        includeBinaries: Boolean,
         onProgress: (PathProgress) -> Unit
     ): Flow<SearchItem> = flow {
         log(TAG, INFO) { "Scanning path: $path" }
@@ -86,7 +87,7 @@ class PathScanner @Inject constructor(
                     typedGateway.walk(path, LookupOptions.MAX, walkOptions)
                         .cancellable()
                         .mapNotNull { lookup ->
-                            val matchResult = matchesSearch(lookup, query)
+                            val matchResult = matchesSearch(lookup, query, includeBinaries)
                             if (matchResult != null) {
                                 resultsFound++
                                 val metadata = metadataRepo.extract(lookup)
@@ -147,7 +148,8 @@ class PathScanner @Inject constructor(
 
     private suspend fun matchesSearch(
         lookup: APathLookup<*>,
-        searchQuery: SearchQuery
+        searchQuery: SearchQuery,
+        includeBinaries: Boolean,
     ): SearchItem.MatchContext? = withContext(dispatcherProvider.Default) {
         val query = searchQuery.query
         val filter = searchQuery.filter
@@ -191,7 +193,7 @@ class PathScanner @Inject constructor(
 
         // If content search is enabled and this is a file, search content
         if (searchQuery.options.searchContent && lookup.fileType == FileType.FILE) {
-            return@withContext contentMatcher.matchesContent(lookup, searchQuery)
+            return@withContext contentMatcher.matchesContent(lookup, searchQuery, includeBinaries)
         }
 
         null
