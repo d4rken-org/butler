@@ -16,6 +16,8 @@ import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.session.AppArgumentsSerializer
+import eu.darken.butler.workspace.core.session.AppWorkspaceStateExtractor
 import eu.darken.butler.workspace.core.session.WorkspaceSessionData
 import eu.darken.butler.workspace.core.session.WorkspaceSessionManager
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +49,8 @@ class WorkspaceRepo @Inject constructor(
     workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
     private val sessionManager: WorkspaceSessionManager,
+    private val argumentsSerializer: AppArgumentsSerializer,
+    private val stateExtractor: AppWorkspaceStateExtractor,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
@@ -399,11 +403,17 @@ class WorkspaceRepo @Inject constructor(
 
             val sessionData = workspacesToSave.mapIndexed { index, workspace ->
                 val info = workspace.info.first()
+
+                // Extract current state as arguments for restoration
+                val extractedArguments = stateExtractor.extractArguments(workspace)
+
                 WorkspaceSessionData(
                     id = workspace.id.toString(),
                     type = info.type,
-                    arguments = null, // TODO: Serialize workspace arguments
-                    customState = null, // TODO: Get custom state from workspace if it implements WorkspaceSerializable
+                    arguments = extractedArguments?.let {
+                        argumentsSerializer.serialize(info.type, it)
+                    },
+                    customState = null, // Future: custom state for complex workspaces
                     order = index,
                 )
             }
@@ -434,8 +444,10 @@ class WorkspaceRepo @Inject constructor(
                 try {
                     log(TAG) { "Restoring workspace: ${workspaceData.type}" }
 
-                    // TODO: Deserialize arguments from workspaceData.arguments
-                    val arguments: Workspace.Arguments? = null
+                    // Deserialize arguments from saved data
+                    val arguments: Workspace.Arguments? = workspaceData.arguments?.let {
+                        argumentsSerializer.deserialize(workspaceData.type, it)
+                    }
 
                     val newId = create(
                         type = workspaceData.type,
