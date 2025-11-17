@@ -47,15 +47,13 @@ fun SearchOptionsRow(
             selected = caseSensitive,
             onClick = onToggleCaseSensitive,
             label = { Text(stringResource(R.string.searcher_option_case_sensitive_label)) },
-            leadingIcon = if (caseSensitive) {
-                {
-                    Icon(
-                        imageVector = Icons.TwoTone.TextFormat,
-                        contentDescription = null,
-                        modifier = Modifier.size(FilterChipDefaults.IconSize)
-                    )
-                }
-            } else null,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.TwoTone.TextFormat,
+                    contentDescription = null,
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                )
+            },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -71,15 +69,13 @@ fun SearchOptionsRow(
             selected = wholeWord,
             onClick = onToggleWholeWord,
             label = { Text(stringResource(R.string.searcher_option_whole_word_label)) },
-            leadingIcon = if (wholeWord) {
-                {
-                    Icon(
-                        imageVector = Icons.TwoTone.FormatQuote,
-                        contentDescription = null,
-                        modifier = Modifier.size(FilterChipDefaults.IconSize)
-                    )
-                }
-            } else null,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.TwoTone.FormatQuote,
+                    contentDescription = null,
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                )
+            },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -95,15 +91,13 @@ fun SearchOptionsRow(
             selected = useRegex,
             onClick = onToggleRegex,
             label = { Text(stringResource(R.string.searcher_option_regex_label)) },
-            leadingIcon = if (useRegex) {
-                {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.TwoTone.WrapText,
-                        contentDescription = null,
-                        modifier = Modifier.size(FilterChipDefaults.IconSize)
-                    )
-                }
-            } else null,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.TwoTone.WrapText,
+                    contentDescription = null,
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                )
+            },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -119,15 +113,13 @@ fun SearchOptionsRow(
             selected = searchContent,
             onClick = onToggleSearchContent,
             label = { Text(stringResource(R.string.searcher_option_search_content_label)) },
-            leadingIcon = if (searchContent) {
-                {
-                    Icon(
-                        imageVector = Icons.TwoTone.Description,
-                        contentDescription = null,
-                        modifier = Modifier.size(FilterChipDefaults.IconSize)
-                    )
-                }
-            } else null,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.TwoTone.Description,
+                    contentDescription = null,
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                )
+            },
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
