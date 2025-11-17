@@ -59,9 +59,18 @@ class WorkspacesViewModel @Inject constructor(
         launch {
             val currentWorkspaces = workspaceRepo.state.first()
             if (currentWorkspaces.infos.isEmpty()) {
-                log(tag) { "No workspaces found, auto-creating workspace for testing" }
-                // FIXME: AUTO-CREATE WORKSPACE FOR TESTING - REMOVE BEFORE MERGE, DO NOT COMMIT
-                workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.APPS))
+                log(tag) { "No workspaces found, attempting to restore session" }
+
+                // Try to restore previous session
+                val restoredIds = workspaceRepo.restoreSession()
+
+                if (restoredIds.isEmpty()) {
+                    // No session to restore or restoration failed, create default workspace
+                    log(tag) { "No session restored, creating default workspace" }
+                    workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
+                } else {
+                    log(tag, INFO) { "Restored ${restoredIds.size} workspaces from session" }
+                }
             }
         }
 
