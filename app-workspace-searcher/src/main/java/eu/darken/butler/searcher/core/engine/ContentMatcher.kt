@@ -1,7 +1,10 @@
 package eu.darken.butler.searcher.core.engine
 
+import androidx.datastore.dataStore
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
 import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
@@ -24,6 +27,8 @@ class ContentMatcher @Inject constructor(
 ) {
     private val tag = logTag("Searcher", "ContentMatcher")
 
+    private val includeBinaries = searcherSettings.contentSearchBinaries.valueBlocking
+
     /**
      * Checks if file content matches the search query and returns match context if found.
      *
@@ -36,14 +41,14 @@ class ContentMatcher @Inject constructor(
         query: SearchQuery,
     ): SearchItem.MatchContext? = withContext(dispatcherProvider.IO) {
         // 1. Size check - skip files that are too large
-        val maxSize = searcherSettings.contentSearchMaxFileSize.value()
+        val maxSize = 10_485_760L // 10MB
         if ((lookup.size ?: 0) > maxSize) {
             log(tag, VERBOSE) { "Skipping ${lookup.name} - size ${lookup.size} exceeds max $maxSize" }
             return@withContext null
         }
 
         // 2. Binary detection - skip binary files to avoid wasting time
-        if (searcherSettings.contentSearchSkipBinary.value() && isBinaryFile(lookup)) {
+        if (!includeBinaries && isBinaryFile(lookup)) {
             log(tag, VERBOSE) { "Skipping ${lookup.name} - detected as binary file" }
             return@withContext null
         }
@@ -64,11 +69,9 @@ class ContentMatcher @Inject constructor(
      * Reads file content up to buffer size limit.
      */
     private suspend fun readFileContent(lookup: APathLookup<*>): String {
-        val bufferSize = searcherSettings.contentSearchBufferSize.value().toInt()
-
         return gatewaySwitch.file(lookup.lookedUp, readWrite = false).use { handle ->
             handle.source().buffer().use { source ->
-                val bytes = ByteArray(bufferSize)
+                val bytes = ByteArray(131_072) // 128 KB
                 val bytesRead = source.read(bytes)
                 if (bytesRead > 0) {
                     // Try UTF-8 first (most common)
@@ -135,15 +138,22 @@ class ContentMatcher @Inject constructor(
 
         return null // No match found
     }
+    private val searchableExtensions = setOf(
+        "txt", "log", "md", "markdown", "rst",
+        "json", "xml", "yaml", "yml", "toml", "ini", "conf", "config",
+        "kt", "kts", "java", "py", "js", "ts", "jsx", "tsx", "c", "cpp", "h", "hpp",
+        "html", "css", "scss", "sass", "less",
+        "sh", "bash", "zsh", "fish", "bat", "cmd", "ps1",
+        "sql", "gradle", "properties", "env",
+    )
 
     /**
      * Detects if a file is likely binary (non-text) based on extension and content.
      */
     private suspend fun isBinaryFile(lookup: APathLookup<*>): Boolean {
         // Fast check: whitelist common text file extensions
-        val textExtensions = searcherSettings.contentSearchTextExtensions.value()
         val extension = lookup.name.substringAfterLast('.', "").lowercase()
-        if (extension in textExtensions) {
+        if (extension in searchableExtensions) {
             return false // Definitely text
         }
 

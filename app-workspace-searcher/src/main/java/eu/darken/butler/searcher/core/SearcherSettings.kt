@@ -40,32 +40,9 @@ class SearcherSettings @Inject constructor(
 
     val defaultViewStyle = dataStore.createValue("searcher.view.style.default", SearcherViewStyle.default(), json)
 
-    val contentSearchMaxFileSize = dataStore.createValue(
-        "searcher.content.max_file_size",
-        10_485_760L, // 10MB
-    )
-
-    val contentSearchBufferSize = dataStore.createValue(
-        "searcher.content.buffer_size",
-        131_072, // 128KB
-    )
-
-    val contentSearchSkipBinary = dataStore.createValue(
-        "searcher.content.skip_binary",
-        true,
-    )
-
-    val contentSearchTextExtensions = dataStore.createValue(
-        "searcher.content.text_extensions",
-        setOf(
-            "txt", "log", "md", "markdown", "rst",
-            "json", "xml", "yaml", "yml", "toml", "ini", "conf", "config",
-            "kt", "kts", "java", "py", "js", "ts", "jsx", "tsx", "c", "cpp", "h", "hpp",
-            "html", "css", "scss", "sass", "less",
-            "sh", "bash", "zsh", "fish", "bat", "cmd", "ps1",
-            "sql", "gradle", "properties", "env",
-        ),
-        json,
+    val contentSearchBinaries = dataStore.createValue(
+        "searcher.content.include.binaries",
+        false,
     )
 
     override val mapper = PreferenceStoreMapper(
@@ -80,10 +57,7 @@ class SearcherSettings @Inject constructor(
         defaultSearchTargets,
         sortSettings,
         defaultViewStyle,
-        contentSearchMaxFileSize,
-        contentSearchBufferSize,
-        contentSearchSkipBinary,
-        contentSearchTextExtensions,
+        contentSearchBinaries,
     )
 
     companion object {

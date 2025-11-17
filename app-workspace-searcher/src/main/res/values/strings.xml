@@ -16,6 +16,9 @@
     <string name="searcher_settings_search_performance">Performance</string>
     <string name="searcher_settings_max_results_title">Maximum search results</string>
     <string name="searcher_settings_max_results_subtitle">Limit the number of results returned per search.</string>
+    <string name="searcher_settings_content_search_category">Content Search</string>
+    <string name="searcher_settings_include_binaries_title">Include binary files</string>
+    <string name="searcher_settings_include_binaries_subtitle">Search content of binary files (may be slow and produce irrelevant results)</string>
 
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Recent searches</string>
