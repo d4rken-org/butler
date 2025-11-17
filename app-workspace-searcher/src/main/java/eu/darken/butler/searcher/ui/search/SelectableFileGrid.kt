@@ -16,9 +16,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Description
+import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +38,6 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
-import eu.darken.butler.searcher.ui.search.rows.StandardFileIcon
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -46,9 +49,9 @@ fun SelectableFileGrid(
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Type-specific background color
+    // Type-specific background color (match Explorer's transparency)
     val backgroundColor = when (result.fileType) {
-        FileType.DIRECTORY -> MaterialTheme.colorScheme.primaryContainer
+        FileType.DIRECTORY -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
 
@@ -102,7 +105,21 @@ fun SelectableFileGrid(
                             modifier = Modifier.size(20.dp)
                         )
                     } else {
-                        StandardFileIcon(result)
+                        // Use Material TwoTone icons like Explorer
+                        when (result.fileType) {
+                            FileType.DIRECTORY -> Icon(
+                                imageVector = Icons.TwoTone.Folder,
+                                contentDescription = "Folder",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            else -> Icon(
+                                imageVector = Icons.TwoTone.Description,
+                                contentDescription = "File",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
 

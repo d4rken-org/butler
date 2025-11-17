@@ -29,6 +29,7 @@ class SearcherSettings @Inject constructor(
     val caseSensitive = dataStore.createValue("searcher.case_sensitive", false)
     val wholeWord = dataStore.createValue("searcher.whole_word", false)
     val useRegex = dataStore.createValue("searcher.use_regex", false)
+    val searchContent = dataStore.createValue("searcher.search_content", false)
 
     val defaultSearchTargets = dataStore.createValue<List<SearchTarget>?>("searcher.default.targets", null, json)
     val maxSearchResults = dataStore.createValue("searcher.results.maximum", 1000)
@@ -39,17 +40,24 @@ class SearcherSettings @Inject constructor(
 
     val defaultViewStyle = dataStore.createValue("searcher.view.style.default", SearcherViewStyle.default(), json)
 
+    val contentSearchBinaries = dataStore.createValue(
+        "searcher.content.include.binaries",
+        false,
+    )
+
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         caseSensitive,
         wholeWord,
         useRegex,
+        searchContent,
         maxHistoryItems,
         saveHistory,
         maxSearchResults,
         defaultSearchTargets,
         sortSettings,
         defaultViewStyle,
+        contentSearchBinaries,
     )
 
     companion object {

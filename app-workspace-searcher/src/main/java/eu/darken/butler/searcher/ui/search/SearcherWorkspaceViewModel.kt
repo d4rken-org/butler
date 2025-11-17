@@ -128,7 +128,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             currentFilter.value = currentFilter.value.copy(
                 caseSensitive = caseSensitive,
                 wholeWord = wholeWord,
-                useRegex = useRegex
+                useRegex = useRegex,
             )
         }.launchIn(vmScope)
 
@@ -242,12 +242,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceSearchState,
         searcherSettings.maxHistoryItems.flow.flatMapLatest { searchHistory.getSearches(it) },
         currentFilter,
+        searcherSettings.searchContent.flow,
         selectionState,
         quickActionsResult,
         dialogStateFlow,
         currentSortSettings,
         viewStyleFlow,
-    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewStyle: SearcherViewStyle ->
+    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, searchContent: Boolean, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewStyle: SearcherViewStyle ->
         val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -301,6 +302,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
+            searchContent = searchContent,
             setupRequirements = workspaceState.setupRequirements,
             selectionState = updatedSelectionState,
             quickActionsResult = quickActions,
@@ -367,7 +369,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 targets = targets,
                 filter = currentFilter.value,
                 options = SearchQuery.Options(
-                    maxResults = searcherSettings.maxSearchResults.value()
+                    searchContent = searcherSettings.searchContent.value(),
+                    maxResults = searcherSettings.maxSearchResults.value(),
                 ),
                 saveToHistory = saveToHistory,
             )
@@ -694,6 +697,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,
+        val searchContent: Boolean = false,
         val setupRequirements: PathRequirements = PathRequirements(),
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
         val quickActionsResult: SearchItem? = null,
@@ -934,6 +938,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 vmScope.launch {
                     val current = searcherSettings.useRegex.flow.first()
                     searcherSettings.useRegex.update { !current }
+                }
+            }
+            is SearcherPageAction.Options.ToggleSearchContent -> {
+                vmScope.launch {
+                    val current = searcherSettings.searchContent.flow.first()
+                    searcherSettings.searchContent.update { !current }
                 }
             }
 

@@ -558,6 +558,7 @@ fun SearcherWorkspacePage(
                 onToggleCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleCaseSensitive) },
                 onToggleWholeWord = { onPageAction(SearcherPageAction.Options.ToggleWholeWord) },
                 onToggleRegex = { onPageAction(SearcherPageAction.Options.ToggleRegex) },
+                onToggleSearchContent = { onPageAction(SearcherPageAction.Options.ToggleSearchContent) },
                 onOpenPathPicker = { onPageAction(SearcherPageAction.Targets.OpenPicker) },
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,
