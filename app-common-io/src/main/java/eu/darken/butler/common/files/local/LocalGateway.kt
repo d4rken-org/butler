@@ -658,31 +658,12 @@ class LocalGateway @Inject constructor(
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
                         var hasEscalated = false
-
-                        // Wrap the original onIssue callback with escalation logic
-                        val escalationAwareOnIssue: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
-                            when {
-                                // Permission error on first attempt -> auto-escalate
-                                !hasEscalated && issue.isPermissionIssue() -> {
-                                    log(TAG, INFO) { "delete(): Permission error, escalating" }
-                                    hasEscalated = true
-                                    // Throw the exception directly to trigger escalation
-                                    throw when (issue) {
-                                        is PathActionIssue.UnknownError -> issue.exception
-                                        is PathActionIssue.InsufficientPermission ->
-                                            issue.exception ?: SecurityException("Permission denied: ${issue.destination.lookedUp}")
-                                        else -> IllegalStateException("Unexpected permission issue type")
-                                    }
-                                }
-                                // Already escalated OR non-permission error -> delegate to original callback
-                                else -> {
-                                    if (hasEscalated) {
-                                        log(TAG, WARN) { "delete(): Error persists after escalation, delegating to user" }
-                                    }
-                                    options.onIssue?.invoke(issue) ?: throw IllegalStateException("No issue handler")
-                                }
-                            }
-                        }
+                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
+                            operationName = "delete()",
+                            originalOnIssue = options.onIssue,
+                            hasEscalatedRef = { hasEscalated },
+                            markEscalated = { hasEscalated = true }
+                        )
 
                         try {
                             log(TAG, VERBOSE) { "delete(AUTO->NORMAL, $shouldTry): ${targets.size} targets" }
@@ -816,31 +797,12 @@ class LocalGateway @Inject constructor(
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
                         var hasEscalated = false
-
-                        // Wrap the original onIssue callback with escalation logic
-                        val escalationAwareOnIssue: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
-                            when {
-                                // Permission error on first attempt -> auto-escalate
-                                !hasEscalated && issue.isPermissionIssue() -> {
-                                    log(TAG, INFO) { "copy(): Permission error, escalating" }
-                                    hasEscalated = true
-                                    // Throw the exception directly to trigger escalation
-                                    throw when (issue) {
-                                        is PathActionIssue.UnknownError -> issue.exception
-                                        is PathActionIssue.InsufficientPermission ->
-                                            issue.exception ?: SecurityException("Permission denied: ${issue.destination.lookedUp}")
-                                        else -> IllegalStateException("Unexpected permission issue type")
-                                    }
-                                }
-                                // Already escalated OR non-permission error -> delegate to original callback
-                                else -> {
-                                    if (hasEscalated) {
-                                        log(TAG, WARN) { "copy(): Error persists after escalation, delegating to user" }
-                                    }
-                                    onIssue?.invoke(issue) ?: throw IllegalStateException("No issue handler")
-                                }
-                            }
-                        }
+                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
+                            operationName = "copy()",
+                            originalOnIssue = onIssue,
+                            hasEscalatedRef = { hasEscalated },
+                            markEscalated = { hasEscalated = true }
+                        )
 
                         try {
                             log(TAG, VERBOSE) { "copy(AUTO->NORMAL, $shouldTry): To $destination" }
@@ -967,31 +929,12 @@ class LocalGateway @Inject constructor(
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
                         var hasEscalated = false
-
-                        // Wrap the original onIssue callback with escalation logic
-                        val escalationAwareOnIssue: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
-                            when {
-                                // Permission error on first attempt -> auto-escalate
-                                !hasEscalated && issue.isPermissionIssue() -> {
-                                    log(TAG, INFO) { "move(): Permission error, escalating" }
-                                    hasEscalated = true
-                                    // Throw the exception directly to trigger escalation
-                                    throw when (issue) {
-                                        is PathActionIssue.UnknownError -> issue.exception
-                                        is PathActionIssue.InsufficientPermission ->
-                                            issue.exception ?: SecurityException("Permission denied: ${issue.destination.lookedUp}")
-                                        else -> IllegalStateException("Unexpected permission issue type")
-                                    }
-                                }
-                                // Already escalated OR non-permission error -> delegate to original callback
-                                else -> {
-                                    if (hasEscalated) {
-                                        log(TAG, WARN) { "move(): Error persists after escalation, delegating to user" }
-                                    }
-                                    onIssue?.invoke(issue) ?: throw IllegalStateException("No issue handler")
-                                }
-                            }
-                        }
+                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
+                            operationName = "move()",
+                            originalOnIssue = onIssue,
+                            hasEscalatedRef = { hasEscalated },
+                            markEscalated = { hasEscalated = true }
+                        )
 
                         try {
                             log(TAG, VERBOSE) { "move(AUTO->NORMAL, $shouldTry): To $destination" }
@@ -1117,31 +1060,12 @@ class LocalGateway @Inject constructor(
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
                         var hasEscalated = false
-
-                        // Wrap the original onIssue callback with escalation logic
-                        val escalationAwareOnIssue: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
-                            when {
-                                // Permission error on first attempt -> auto-escalate
-                                !hasEscalated && issue.isPermissionIssue() -> {
-                                    log(TAG, INFO) { "create(): Permission error, escalating" }
-                                    hasEscalated = true
-                                    // Throw the exception directly to trigger escalation
-                                    throw when (issue) {
-                                        is PathActionIssue.UnknownError -> issue.exception
-                                        is PathActionIssue.InsufficientPermission ->
-                                            issue.exception ?: SecurityException("Permission denied: ${issue.destination.lookedUp}")
-                                        else -> IllegalStateException("Unexpected permission issue type")
-                                    }
-                                }
-                                // Already escalated OR non-permission error -> delegate to original callback
-                                else -> {
-                                    if (hasEscalated) {
-                                        log(TAG, WARN) { "create(): Error persists after escalation, delegating to user" }
-                                    }
-                                    options.onIssue?.invoke(issue) ?: throw IllegalStateException("No issue handler")
-                                }
-                            }
-                        }
+                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
+                            operationName = "create()",
+                            originalOnIssue = options.onIssue,
+                            hasEscalatedRef = { hasEscalated },
+                            markEscalated = { hasEscalated = true }
+                        )
 
                         try {
                             log(TAG, VERBOSE) { "create(AUTO->NORMAL, $shouldTry): $target" }
@@ -1247,6 +1171,46 @@ class LocalGateway @Inject constructor(
         is PathActionIssue.InsufficientPermission -> true
         is PathActionIssue.UnknownError -> exception.isPermissionError()
         else -> false
+    }
+
+    /**
+     * Creates an escalation-aware issue callback that automatically escalates to ROOT/ADB
+     * on the first permission error, then delegates subsequent issues to the user.
+     *
+     * This wrapper tracks whether escalation has occurred and modifies behavior accordingly:
+     * - First permission error: Throws exception to trigger auto-escalation to ROOT/ADB
+     * - Subsequent errors: Delegates to the original callback for user decision
+     *
+     * @param operationName Name of the operation for logging (e.g., "delete()", "copy()")
+     * @param originalOnIssue The original issue callback to delegate to after escalation
+     * @param hasEscalatedRef Function to check if escalation has occurred
+     * @param markEscalated Function to mark that escalation has occurred
+     * @return Wrapped callback with escalation logic
+     */
+    private inline fun createEscalationAwareOnIssue(
+        operationName: String,
+        noinline originalOnIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
+        crossinline hasEscalatedRef: () -> Boolean,
+        crossinline markEscalated: () -> Unit
+    ): suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
+        when {
+            !hasEscalatedRef() && issue.isPermissionIssue() -> {
+                log(TAG, INFO) { "$operationName: Permission error, escalating" }
+                markEscalated()
+                throw when (issue) {
+                    is PathActionIssue.UnknownError -> issue.exception
+                    is PathActionIssue.InsufficientPermission ->
+                        issue.exception ?: SecurityException("Permission denied: ${issue.destination.lookedUp}")
+                    else -> IllegalStateException("Unexpected permission issue type")
+                }
+            }
+            else -> {
+                if (hasEscalatedRef()) {
+                    log(TAG, WARN) { "$operationName: Error persists after escalation, delegating to user" }
+                }
+                originalOnIssue?.invoke(issue) ?: throw IllegalStateException("No issue handler")
+            }
+        }
     }
 
     enum class Mode {
