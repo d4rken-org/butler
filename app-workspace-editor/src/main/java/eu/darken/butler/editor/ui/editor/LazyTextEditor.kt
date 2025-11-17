@@ -677,7 +677,7 @@ private fun TextLineItem(
             )
         } else {
             infiniteRepeatable(
-                animation = tween(0),
+                animation = tween(1),
                 repeatMode = RepeatMode.Restart
             )
         },
