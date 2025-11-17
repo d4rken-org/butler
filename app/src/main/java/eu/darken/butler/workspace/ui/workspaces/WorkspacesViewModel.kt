@@ -56,6 +56,24 @@ class WorkspacesViewModel @Inject constructor(
     val bannerStates = _bannerStates.asStateFlow()
 
     init {
+        launch {
+            val currentWorkspaces = workspaceRepo.state.first()
+            if (currentWorkspaces.infos.isEmpty()) {
+                log(tag) { "No workspaces found, attempting to restore session" }
+
+                // Try to restore previous session
+                val restoredIds = workspaceRepo.restoreSession()
+
+                if (restoredIds.isEmpty()) {
+                    // No session to restore or restoration failed, create default workspace
+                    log(tag) { "No session restored, creating default workspace" }
+                    workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
+                } else {
+                    log(tag, INFO) { "Restored ${restoredIds.size} workspaces from session" }
+                }
+            }
+        }
+
         // Initialize the WorkspaceUIManager with saved state
         workspacePageManager.initializeFromSavedState(savedStateHandle)
 

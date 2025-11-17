@@ -16,6 +16,8 @@ import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.session.WorkspaceSessionData
+import eu.darken.butler.workspace.core.session.WorkspaceSessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -43,6 +46,7 @@ class WorkspaceRepo @Inject constructor(
     private val appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
     workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
+    private val sessionManager: WorkspaceSessionManager,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
@@ -372,6 +376,106 @@ class WorkspaceRepo @Inject constructor(
                 _workspaces.value = emptyList()
                 _events.emit(WorkspaceEvent.AllClosed)
                 WorkspaceAction.CloseAll.Result
+            }
+        }
+    }
+
+    /**
+     * Save the current workspace session
+     */
+    private suspend fun saveCurrentSession() {
+        try {
+            val currentWorkspaces = _workspaces.value
+            if (currentWorkspaces.isEmpty()) {
+                log(TAG, DEBUG) { "No workspaces to save" }
+                return
+            }
+
+            // Don't save sub-workspaces (modal pickers)
+            val workspacesToSave = currentWorkspaces.filter { workspace ->
+                val info = workspace.info.first()
+                info.callerWorkspaceId == null // Only save top-level workspaces
+            }
+
+            val sessionData = workspacesToSave.mapIndexed { index, workspace ->
+                val info = workspace.info.first()
+                WorkspaceSessionData(
+                    id = workspace.id.toString(),
+                    type = info.type,
+                    arguments = null, // TODO: Serialize workspace arguments
+                    customState = null, // TODO: Get custom state from workspace if it implements WorkspaceSerializable
+                    order = index,
+                )
+            }
+
+            sessionManager.saveSession(sessionData)
+            log(TAG, INFO) { "Saved session with ${sessionData.size} workspaces" }
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Failed to save session: ${e.asLog()}" }
+        }
+    }
+
+    /**
+     * Restore workspaces from a saved session
+     */
+    suspend fun restoreSession(): List<Workspace.Id> {
+        try {
+            val session = sessionManager.loadSession()
+            if (session == null) {
+                log(TAG, DEBUG) { "No session to restore" }
+                return emptyList()
+            }
+
+            sessionManager.setRestorationState(WorkspaceSessionManager.RestorationState.RESTORING)
+            val restoredIds = mutableListOf<Workspace.Id>()
+
+            // Sort by order and restore
+            session.workspaces.sortedBy { it.order }.forEach { workspaceData ->
+                try {
+                    log(TAG) { "Restoring workspace: ${workspaceData.type}" }
+
+                    // TODO: Deserialize arguments from workspaceData.arguments
+                    val arguments: Workspace.Arguments? = null
+
+                    val newId = create(
+                        type = workspaceData.type,
+                        arguments = arguments,
+                    )
+
+                    restoredIds.add(newId)
+
+                    // TODO: If workspace implements WorkspaceSerializable, restore custom state
+
+                    _events.emit(
+                        WorkspaceEvent.Created(
+                            workspaceId = newId,
+                            replacedId = null,
+                            autoFocus = false, // Don't auto-focus during restoration
+                        )
+                    )
+                } catch (e: Exception) {
+                    log(TAG, ERROR) { "Failed to restore workspace ${workspaceData.type}: ${e.asLog()}" }
+                }
+            }
+
+            sessionManager.setRestorationState(WorkspaceSessionManager.RestorationState.RESTORED)
+            log(TAG, INFO) { "Restored ${restoredIds.size} workspaces" }
+            return restoredIds
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Session restoration failed: ${e.asLog()}" }
+            sessionManager.setRestorationState(WorkspaceSessionManager.RestorationState.FAILED)
+            return emptyList()
+        }
+    }
+
+    /**
+     * Initialize workspace state monitoring for auto-save
+     */
+    init {
+        // Auto-save session when workspaces change
+        appScope.launch {
+            _workspaces.collect {
+                saveCurrentSession()
             }
         }
     }
