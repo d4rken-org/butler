@@ -24,13 +24,21 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import eu.darken.butler.workspace.core.Workspace
 
-class PathScanner @Inject constructor(
+class PathScanner @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
     private val gatewaySwitch: GatewaySwitch,
     private val metadataRepo: MetadataRepo,
     private val dispatcherProvider: DispatcherProvider,
-    private val contentMatcher: ContentMatcher,
+    contentMatcherFactory: ContentMatcher.Factory,
 ) {
+
+    private val tag = logTag("Searcher", "Workspace", workspaceId.shortTag, "PathScanner")
+    private val contentMatcher = contentMatcherFactory.create(workspaceId)
 
     data class PathProgress(
         val currentPath: APath<*>,
@@ -44,10 +52,10 @@ class PathScanner @Inject constructor(
         includeBinaries: Boolean,
         onProgress: (PathProgress) -> Unit
     ): Flow<SearchItem> = flow {
-        log(TAG, INFO) { "Scanning path: $path" }
+        log(tag, INFO) { "Scanning path: $path" }
 
         if (!currentCoroutineContext().isActive) {
-            log(TAG) { "Scan cancelled before starting" }
+            log(tag) { "Scan cancelled before starting" }
             throw CancellationException("Scan cancelled")
         }
 
@@ -79,7 +87,7 @@ class PathScanner @Inject constructor(
                             filterLookup(lookup, query.filter)
                         },
                         onError = { lookup, error ->
-                            log(TAG, Logging.Priority.VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
+                            log(tag, Logging.Priority.VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
                             true // Continue walking
                         }
                     )
@@ -104,9 +112,9 @@ class PathScanner @Inject constructor(
                         .collect { emit(it) }
                 }
             }
-            log(TAG, INFO) { "Completed scan for path: $path" }
+            log(tag, INFO) { "Completed scan for path: $path" }
         } catch (e: CancellationException) {
-            log(TAG, INFO) { "Scan cancelled for path: $path" }
+            log(tag, INFO) { "Scan cancelled for path: $path" }
             throw e
         }
     }.flowOn(dispatcherProvider.IO)
@@ -166,7 +174,7 @@ class PathScanner @Inject constructor(
                     }
                     regex.containsMatchIn(name)
                 } catch (e: Exception) {
-                    log(TAG, Logging.Priority.VERBOSE) { "Invalid regex: $query" }
+                    log(tag, Logging.Priority.VERBOSE) { "Invalid regex: $query" }
                     false
                 }
             }
@@ -199,7 +207,8 @@ class PathScanner @Inject constructor(
         null
     }
 
-    companion object {
-        private val TAG = logTag("Searcher", "PathScanner")
+    @AssistedFactory
+    interface Factory {
+        fun create(workspaceId: Workspace.Id): PathScanner
     }
 }

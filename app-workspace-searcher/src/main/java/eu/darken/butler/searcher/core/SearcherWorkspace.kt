@@ -45,7 +45,7 @@ class SearcherWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val operationsManager: OperationsManager,
     private val deleteOperationFactory: DeleteOperation.Factory,
-    private val searchEngine: SearchEngine,
+    searchEngineFactory: SearchEngine.Factory,
 ) : Workspace {
 
     private val tag = logTag( "Searcher","Workspace", id.shortTag)
@@ -57,6 +57,8 @@ class SearcherWorkspace @AssistedInject constructor(
                 // TODO: Add error state to workspace if needed
             }
     )
+
+    private val searchEngine = searchEngineFactory.create(id, scope)
 
     override val type: Workspace.Type = Workspace.Type.SEARCHER
 

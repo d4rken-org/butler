@@ -14,12 +14,17 @@ import kotlinx.coroutines.withContext
 import okio.buffer
 import okio.use
 import javax.inject.Inject
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import eu.darken.butler.workspace.core.Workspace
 
-class ContentMatcher @Inject constructor(
+class ContentMatcher @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
     private val gatewaySwitch: GatewaySwitch,
     private val dispatcherProvider: DispatcherProvider,
 ) {
-    private val tag = logTag("Searcher", "ContentMatcher")
+    private val tag = logTag("Searcher", "Workspace", workspaceId.shortTag, "ContentMatcher")
 
     /**
      * Checks if file content matches the search query and returns match context if found.
@@ -170,5 +175,10 @@ class ContentMatcher @Inject constructor(
             log(tag, WARN) { "Failed binary detection for ${lookup.name}: ${e.asLog()}" }
             true // Assume binary if we can't read it
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(workspaceId: Workspace.Id): ContentMatcher
     }
 }
