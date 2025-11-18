@@ -106,6 +106,13 @@
     <string name="searcher_action_sort">Sort</string>
     <string name="searcher_action_view">View</string>
 
+    <!-- Share dialog titles -->
+    <string name="searcher_share_single_title">Share %s</string>
+    <plurals name="searcher_share_multiple_title">
+        <item quantity="one">Share %d file</item>
+        <item quantity="other">Share %d files</item>
+    </plurals>
+
     <!-- Sort options -->
     <string name="searcher_sort_mode_label">Sort by</string>
     <string name="searcher_sort_mode_name_label">Name</string>

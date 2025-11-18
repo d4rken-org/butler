@@ -654,14 +654,16 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             val intent = shareIntentUseCase.createShareIntent(shareItems)
 
             if (intent != null) {
-                val chooser = Intent.createChooser(
-                    intent,
-                    if (results.size == 1) {
-                        "Share ${results.first().name}"
-                    } else {
-                        "Share ${results.size} files"
-                    }
-                )
+                val chooserTitle = if (results.size == 1) {
+                    appContext.getString(R.string.searcher_share_single_title, results.first().name)
+                } else {
+                    appContext.resources.getQuantityString(
+                        R.plurals.searcher_share_multiple_title,
+                        results.size,
+                        results.size
+                    )
+                }
+                val chooser = Intent.createChooser(intent, chooserTitle)
                 chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 appContext.startActivity(chooser)
                 log(TAG, INFO) { "Share intent launched successfully" }
