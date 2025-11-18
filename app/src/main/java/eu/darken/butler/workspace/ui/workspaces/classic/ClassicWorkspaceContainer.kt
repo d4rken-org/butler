@@ -55,6 +55,7 @@ internal fun ClassicWorkspaceContainer(
 
     var isCreatingWorkspace by remember { mutableStateOf(false) }
     var previousPage by remember { mutableStateOf<Int?>(null) }
+    var isAnimatingProgrammatically by remember { mutableStateOf(false) }
 
     // Track workspace switches for position indicator
     var workspaceSwitchTrigger by remember { mutableStateOf<Workspace.Id?>(null) }
@@ -83,7 +84,9 @@ internal fun ClassicWorkspaceContainer(
         if (selectedIndex >= state.all.size || selectedIndex == pagerState.currentPage) return@LaunchedEffect
 
         log(TAG, VERBOSE) { "Animating pager to page $selectedIndex" }
+        isAnimatingProgrammatically = true
         pagerState.animateScrollToPage(selectedIndex)
+        isAnimatingProgrammatically = false
     }
 
     val currentPage by remember { derivedStateOf { pagerState.currentPage } }
@@ -91,7 +94,7 @@ internal fun ClassicWorkspaceContainer(
 
     // Sync selected tab with pager when user swipes
     LaunchedEffect(currentPage, isScrolling, state.all) {
-        if (isScrolling) return@LaunchedEffect
+        if (isScrolling || isAnimatingProgrammatically) return@LaunchedEffect
 
         log(TAG, VERBOSE) { "Pager scroll completed at page: $currentPage" }
 
