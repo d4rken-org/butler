@@ -232,9 +232,6 @@ class WorkspaceRepo @Inject constructor(
                     )
                 )
 
-                // Update session with new workspace
-                saveCurrentSession()
-
                 WorkspaceAction.Create.Result(newId)
             }
 
@@ -309,9 +306,6 @@ class WorkspaceRepo @Inject constructor(
                     )
                 )
 
-                // Update session with newly created workspaces
-                if (successCount > 0) saveCurrentSession()
-
                 WorkspaceAction.CreateBatch.Result.Success(
                     results = results,
                     skippedCount = 0,
@@ -379,9 +373,6 @@ class WorkspaceRepo @Inject constructor(
                 _workspaces.value = _workspaces.value.filter { it.id != action.id }
                 _events.emit(WorkspaceEvent.Closed(workspaceId = action.id))
 
-                // Update session to remove closed workspace
-                saveCurrentSession()
-
                 WorkspaceAction.Close.Result
             }
             is WorkspaceAction.Reorder -> {
@@ -402,9 +393,6 @@ class WorkspaceRepo @Inject constructor(
                 _workspaces.value = reordered
                 _events.emit(WorkspaceEvent.Reordered(workspaceIds = action.workspaceIds))
 
-                // Update session to reflect new workspace order
-                saveCurrentSession()
-
                 WorkspaceAction.Reorder.Result(true)
             }
             WorkspaceAction.CloseAll -> {
@@ -415,9 +403,6 @@ class WorkspaceRepo @Inject constructor(
                 }
                 _workspaces.value = emptyList()
                 _events.emit(WorkspaceEvent.AllClosed)
-
-                // Clear session when all workspaces are closed
-                sessionManager.clearSession()
 
                 WorkspaceAction.CloseAll.Result
             }
