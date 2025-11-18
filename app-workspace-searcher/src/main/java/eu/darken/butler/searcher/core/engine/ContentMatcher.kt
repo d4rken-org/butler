@@ -94,8 +94,9 @@ class ContentMatcher @AssistedInject constructor(
         val useRegex = query.filter.useRegex
         val wholeWord = query.filter.wholeWord
 
-        // Use line sequence for lazy evaluation (don't split entire file into memory)
-        val lines = content.lineSequence()
+        // Split into lines (content is already limited to 128KB, so this is safe)
+        val lines = content.lines()
+        val maxContextLineLength = 500 // Limit context line length to avoid memory issues
 
         lines.forEachIndexed { index, line ->
             val matchIndex = when {
@@ -126,11 +127,30 @@ class ContentMatcher @AssistedInject constructor(
 
             // Return first match found (early exit optimization)
             if (matchIndex != null && matchIndex != -1) {
+                // Capture context lines (2 before, 2 after)
+                val contextBefore = if (index >= 2) {
+                    lines.subList(index - 2, index).map { it.take(maxContextLineLength) }
+                } else if (index == 1) {
+                    listOf(lines[0].take(maxContextLineLength))
+                } else {
+                    null
+                }
+
+                val contextAfter = if (index + 2 < lines.size) {
+                    lines.subList(index + 1, index + 3).map { it.take(maxContextLineLength) }
+                } else if (index + 1 < lines.size) {
+                    listOf(lines[index + 1].take(maxContextLineLength))
+                } else {
+                    null
+                }
+
                 return SearchItem.MatchContext(
                     lineNumber = index + 1, // 1-based line numbers for UI
-                    matchedLine = line.take(200), // Truncate very long lines
+                    matchedLine = line, // Keep full line, UI will handle display truncation
                     startIndex = matchIndex,
                     endIndex = matchIndex + searchText.length,
+                    contextBefore = contextBefore,
+                    contextAfter = contextAfter,
                 )
             }
         }
