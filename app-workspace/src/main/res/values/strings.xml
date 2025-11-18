@@ -214,8 +214,4 @@
     <string name="workspace_settings_session_title">Session restoration</string>
     <string name="workspace_settings_session_restore_title">Restore workspaces on startup</string>
     <string name="workspace_settings_session_restore_desc">Automatically restore previously open workspaces when the app starts.</string>
-    <string name="workspace_settings_restore_search_results_title">Restore search results</string>
-    <string name="workspace_settings_restore_search_results_desc">Include search results when restoring workspaces (may use more memory).</string>
-    <string name="workspace_settings_clear_session_title">Clear saved session</string>
-    <string name="workspace_settings_clear_session_desc">Remove the currently saved workspace session.</string>
 </resources>

@@ -12,11 +12,9 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.AutoAwesome
+import androidx.compose.material.icons.twotone.RestorePage
 import androidx.compose.material.icons.twotone.StayPrimaryLandscape
 import androidx.compose.material.icons.twotone.StayPrimaryPortrait
-import androidx.compose.material.icons.twotone.ClearAll
-import androidx.compose.material.icons.twotone.RestorePage
-import androidx.compose.material.icons.twotone.SavedSearch
 import androidx.compose.material.icons.twotone.SwipeLeft
 import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.AlertDialog
@@ -59,8 +57,6 @@ fun WorkspaceSettingsScreen(
     onSetLayoutModePortrait: (WorkspacePanelMode) -> Unit,
     onSetLayoutModeLandscape: (WorkspacePanelMode) -> Unit,
     onToggleSessionRestore: () -> Unit,
-    onToggleRestoreSearchResults: () -> Unit,
-    onClearSession: () -> Unit,
 ) {
     var showPortraitDialog by remember { mutableStateOf(false) }
     var showLandscapeDialog by remember { mutableStateOf(false) }
@@ -157,27 +153,6 @@ fun WorkspaceSettingsScreen(
                     subtitle = stringResource(R.string.workspace_settings_session_restore_desc),
                     checked = state.sessionRestoreEnabled,
                     onCheckedChange = { onToggleSessionRestore() }
-                )
-            }
-
-            item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.SavedSearch,
-                    title = stringResource(R.string.workspace_settings_restore_search_results_title),
-                    subtitle = stringResource(R.string.workspace_settings_restore_search_results_desc),
-                    checked = state.restoreSearchResults,
-                    onCheckedChange = { onToggleRestoreSearchResults() },
-                    enabled = state.sessionRestoreEnabled,
-                )
-            }
-
-            item {
-                SettingsPreferenceItem(
-                    icon = Icons.TwoTone.ClearAll,
-                    title = stringResource(R.string.workspace_settings_clear_session_title),
-                    subtitle = stringResource(R.string.workspace_settings_clear_session_desc),
-                    onClick = onClearSession,
-                    enabled = state.sessionRestoreEnabled,
                 )
             }
         }
@@ -287,8 +262,6 @@ private fun WorkspaceSettingsScreenPreview() {
                 layoutModePortrait = WorkspacePanelMode.AUTO,
                 layoutModeLandscape = WorkspacePanelMode.AUTO,
                 sessionRestoreEnabled = true,
-                restoreSearchResults = false,
-                maxWorkspacesToRestore = 10,
             ),
             onNavigateUp = {},
             onToggleSwipeGestures = {},
@@ -297,8 +270,6 @@ private fun WorkspaceSettingsScreenPreview() {
             onSetLayoutModePortrait = {},
             onSetLayoutModeLandscape = {},
             onToggleSessionRestore = {},
-            onToggleRestoreSearchResults = {},
-            onClearSession = {},
         )
     }
 }
@@ -319,8 +290,6 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             onSetLayoutModePortrait = { mode -> vm.setLayoutModePortrait(mode) },
             onSetLayoutModeLandscape = { mode -> vm.setLayoutModeLandscape(mode) },
             onToggleSessionRestore = { vm.toggleSessionRestore() },
-            onToggleRestoreSearchResults = { vm.toggleRestoreSearchResults() },
-            onClearSession = { vm.clearSession() },
         )
     }
 }

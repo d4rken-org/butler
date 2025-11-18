@@ -4,6 +4,7 @@ import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.coroutine.AppScope
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -24,18 +25,23 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
 
 @Singleton
 class WorkspaceRepo @Inject constructor(
@@ -46,7 +52,7 @@ class WorkspaceRepo @Inject constructor(
     private val editorWorkspaceFactory: EditorWorkspace.Factory,
     private val appsWorkspaceFactory: AppsWorkspace.Factory,
     private val appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
-    workspaceSettings: WorkspaceSettings,
+    private val workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
     private val sessionManager: WorkspaceSessionManager,
     private val argumentsSerializer: AppArgumentsSerializer,
@@ -118,6 +124,21 @@ class WorkspaceRepo @Inject constructor(
     override val events: Flow<WorkspaceEvent> = _events
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "WorkspaceEvents" }
         .replayingShare(appScope)
+
+    init {
+        // Auto-save session when workspace state changes
+        state
+            .map { it.infos }
+            .distinctUntilChanged()
+            .debounce(500.milliseconds)
+            .onEach {
+                if (workspaceSettings.sessionRestoreEnabled.value()) {
+                    saveCurrentSession()
+                }
+            }
+            .catch { e -> log(TAG, ERROR) { "Auto-save session failed: ${e.asLog()}" } }
+            .launchIn(appScope)
+    }
 
     override suspend fun emitEvent(event: WorkspaceEvent) {
         log(TAG) { "emitEvent($event)" }
@@ -210,6 +231,10 @@ class WorkspaceRepo @Inject constructor(
                         autoFocus = action.autoFocus,
                     )
                 )
+
+                // Update session with new workspace
+                saveCurrentSession()
+
                 WorkspaceAction.Create.Result(newId)
             }
 
@@ -284,6 +309,9 @@ class WorkspaceRepo @Inject constructor(
                     )
                 )
 
+                // Update session with newly created workspaces
+                if (successCount > 0) saveCurrentSession()
+
                 WorkspaceAction.CreateBatch.Result.Success(
                     results = results,
                     skippedCount = 0,
@@ -350,6 +378,10 @@ class WorkspaceRepo @Inject constructor(
 
                 _workspaces.value = _workspaces.value.filter { it.id != action.id }
                 _events.emit(WorkspaceEvent.Closed(workspaceId = action.id))
+
+                // Update session to remove closed workspace
+                saveCurrentSession()
+
                 WorkspaceAction.Close.Result
             }
             is WorkspaceAction.Reorder -> {
@@ -369,6 +401,10 @@ class WorkspaceRepo @Inject constructor(
 
                 _workspaces.value = reordered
                 _events.emit(WorkspaceEvent.Reordered(workspaceIds = action.workspaceIds))
+
+                // Update session to reflect new workspace order
+                saveCurrentSession()
+
                 WorkspaceAction.Reorder.Result(true)
             }
             WorkspaceAction.CloseAll -> {
@@ -379,6 +415,10 @@ class WorkspaceRepo @Inject constructor(
                 }
                 _workspaces.value = emptyList()
                 _events.emit(WorkspaceEvent.AllClosed)
+
+                // Clear session when all workspaces are closed
+                sessionManager.clearSession()
+
                 WorkspaceAction.CloseAll.Result
             }
         }
@@ -480,17 +520,6 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
-    /**
-     * Initialize workspace state monitoring for auto-save
-     */
-    init {
-        // Auto-save session when workspaces change
-        appScope.launch {
-            _workspaces.collect {
-                saveCurrentSession()
-            }
-        }
-    }
 
     companion object {
         private val TAG = logTag("Workspace", "Repo")

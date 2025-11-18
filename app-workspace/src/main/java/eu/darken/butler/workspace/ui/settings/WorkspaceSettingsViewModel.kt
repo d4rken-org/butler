@@ -4,22 +4,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
-import eu.darken.butler.workspace.core.session.WorkspaceSessionManager
-import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
 @HiltViewModel
-class WorkspaceSettingsViewModel
-@Inject
-constructor(
+class WorkspaceSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
     private val workspaceSettings: WorkspaceSettings,
-    private val sessionManager: WorkspaceSessionManager,
 ) : ViewModel4(dispatcherProvider, logTag("Workspace", "Settings", "Screen", "VM"), navCtrl) {
 
     val state = combine(
@@ -29,18 +25,14 @@ constructor(
         workspaceSettings.layoutModePortrait.flow,
         workspaceSettings.layoutModeLandscape.flow,
         workspaceSettings.sessionRestoreEnabled.flow,
-        workspaceSettings.restoreSearchResults.flow,
-        workspaceSettings.maxWorkspacesToRestore.flow,
-    ) { values ->
+    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, sessionRestoreEnabled ->
         State(
-            swipeGesturesEnabled = values[0] as Boolean,
-            onDemandWorkspaceCreation = values[1] as Boolean,
-            livePreview = values[2] as Boolean,
-            layoutModePortrait = values[3] as WorkspacePanelMode,
-            layoutModeLandscape = values[4] as WorkspacePanelMode,
-            sessionRestoreEnabled = values[5] as Boolean,
-            restoreSearchResults = values[6] as Boolean,
-            maxWorkspacesToRestore = values[7] as Int,
+            swipeGesturesEnabled = swipeGesturesEnabled,
+            onDemandWorkspaceCreation = onDemandWorkspaceCreation,
+            livePreview = livePreview,
+            layoutModePortrait = layoutModePortrait,
+            layoutModeLandscape = layoutModeLandscape,
+            sessionRestoreEnabled = sessionRestoreEnabled,
         )
     }.asStateFlow()
 
@@ -72,19 +64,6 @@ constructor(
         workspaceSettings.sessionRestoreEnabled.value(!current)
     }
 
-    fun toggleRestoreSearchResults() = launch {
-        val current = workspaceSettings.restoreSearchResults.value()
-        workspaceSettings.restoreSearchResults.value(!current)
-    }
-
-    fun clearSession() = launch {
-        sessionManager.clearSession()
-    }
-
-    fun setMaxWorkspacesToRestore(max: Int) = launch {
-        workspaceSettings.maxWorkspacesToRestore.value(max)
-    }
-
     data class State(
         val swipeGesturesEnabled: Boolean,
         val onDemandWorkspaceCreation: Boolean,
@@ -92,7 +71,5 @@ constructor(
         val layoutModePortrait: WorkspacePanelMode,
         val layoutModeLandscape: WorkspacePanelMode,
         val sessionRestoreEnabled: Boolean,
-        val restoreSearchResults: Boolean,
-        val maxWorkspacesToRestore: Int,
     )
 }
