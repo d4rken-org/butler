@@ -67,7 +67,6 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.picker.PickerConfig
-import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
@@ -83,6 +82,7 @@ import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.picker.ExplorerPickerTopBar
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
@@ -406,7 +406,7 @@ fun ExplorerWorkspacePage(
                 val pickerConfig = mainState.pickerConfig
                 if (pickerConfig != null) {
                     // Picker mode - use simplified picker top bar
-                    eu.darken.butler.explorer.ui.picker.ExplorerPickerTopBar(
+                    ExplorerPickerTopBar(
                         selection = pickerConfig.selection,
                         selectionCount = mainState.selectionState.selectedItems.size,
                         breadcrumbs = mainState.breadcrumbs.takeIf { it.isNotEmpty() },
@@ -448,8 +448,7 @@ fun ExplorerWorkspacePage(
                             info = mainState.info,
                             selectedCount = mainState.selectionState.selectedItems.size,
                             onClearSelection = { vm?.clearSelection() },
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
 
                         mainState.error?.let { error ->
