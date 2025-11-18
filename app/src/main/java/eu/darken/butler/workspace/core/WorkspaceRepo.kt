@@ -2,7 +2,6 @@ package eu.darken.butler.workspace.core
 
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
-import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.Bugs
@@ -63,37 +62,8 @@ class WorkspaceRepo @Inject constructor(
     private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
     private val _events = MutableSharedFlow<WorkspaceEvent>()
 
-    // Generic confirmation system
-    data class PendingConfirmation(
-        val id: String,
-        val sourceWorkspaceId: Workspace.Id?,
-        val data: ConfirmationData,
-    )
-
-    sealed interface ConfirmationData {
-        /**
-         * Confirmation for creating multiple workspaces at once
-         */
-        data class BatchWorkspaceCreation(
-            val totalCount: Int,
-            val skippedCount: Int = 0,
-        ) : ConfirmationData
-
-        /**
-         * Confirmation for closing a workspace
-         */
-        data class WorkspaceCloseConfirmation(
-            val workspaceId: Workspace.Id,
-            val workspaceTitle: CaString,
-        ) : ConfirmationData
-
-        // Future confirmation types can be added here:
-        // data class BulkDelete(val itemCount: Int, val itemType: String) : ConfirmationData
-        // data class DangerousOperation(val message: String) : ConfirmationData
-    }
-
-    private val _pendingConfirmations = MutableStateFlow<Map<String, PendingConfirmation>>(emptyMap())
-    val pendingConfirmations: Flow<Map<String, PendingConfirmation>> = _pendingConfirmations
+    private val _pendingConfirmations = MutableStateFlow<Map<String, PendingWorkspaceConfirmation>>(emptyMap())
+    val pendingConfirmations: Flow<Map<String, PendingWorkspaceConfirmation>> = _pendingConfirmations
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "PendingConfirmations" }
         .replayingShare(appScope)
 
@@ -242,16 +212,19 @@ class WorkspaceRepo @Inject constructor(
                 val needsConfirmation = action.requests.size >= CONFIRMATION_THRESHOLD
 
                 if (needsConfirmation) {
-                    log(TAG, INFO) { "Batch size (${action.requests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation" }
+                    log(
+                        TAG,
+                        INFO
+                    ) { "Batch size (${action.requests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation" }
                     val confirmationId = kotlin.uuid.Uuid.random().toString()
 
                     val confirmed = suspendCancellableCoroutine { continuation ->
                         confirmationContinuations[confirmationId] = continuation
                         _pendingConfirmations.update {
-                            it + (confirmationId to PendingConfirmation(
+                            it + (confirmationId to PendingWorkspaceConfirmation(
                                 id = confirmationId,
                                 sourceWorkspaceId = action.sourceWorkspaceId,
-                                data = ConfirmationData.BatchWorkspaceCreation(
+                                data = PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation(
                                     totalCount = action.requests.size,
                                     skippedCount = 0, // Could be passed in action if needed
                                 ),
@@ -331,10 +304,10 @@ class WorkspaceRepo @Inject constructor(
                     val confirmed = suspendCancellableCoroutine { continuation ->
                         confirmationContinuations[confirmationId] = continuation
                         _pendingConfirmations.update {
-                            it + (confirmationId to PendingConfirmation(
+                            it + (confirmationId to PendingWorkspaceConfirmation(
                                 id = confirmationId,
                                 sourceWorkspaceId = action.id,
-                                data = ConfirmationData.WorkspaceCloseConfirmation(
+                                data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
                                     workspaceId = action.id,
                                     workspaceTitle = workspaceInfo.title,
                                 ),

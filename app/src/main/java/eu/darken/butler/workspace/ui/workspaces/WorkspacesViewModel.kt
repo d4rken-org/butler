@@ -13,6 +13,7 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.workspace.core.PendingWorkspaceConfirmation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -99,14 +100,14 @@ class WorkspacesViewModel @Inject constructor(
                         }
 
                     val dialogState = when (val data = confirmation.data) {
-                        is WorkspaceRepo.ConfirmationData.BatchWorkspaceCreation -> {
+                        is PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation -> {
                             WorkspaceManagerDialogState.OpenInNewTabsConfirmation(
                                 confirmationId = confirmationId,
                                 targetWorkspaceId = targetWorkspaceId,
                                 totalCount = data.totalCount,
                             )
                         }
-                        is WorkspaceRepo.ConfirmationData.WorkspaceCloseConfirmation -> {
+                        is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation -> {
                             WorkspaceManagerDialogState.WorkspaceCloseConfirmation(
                                 confirmationId = confirmationId,
                                 targetWorkspaceId = targetWorkspaceId,
