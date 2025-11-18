@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -186,49 +188,68 @@ private fun SelectionHandle(
     contentListState: LazyListState,
     lineNumberWidth: Dp,
     horizontalScrollState: ScrollState,
+    actualCharWidth: Float,
     onDrag: (Offset) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
     val handleColor = MaterialTheme.colorScheme.primary
 
-    // Calculate position based on text position
-    val lineInfo = contentListState.layoutInfo.visibleItemsInfo.find { it.index == position.line }
+    // Pre-calculate constant values that don't change during composition
+    val charWidth = actualCharWidth
+    val contentPaddingPx = with(density) { 8.dp.toPx() }
+    val lineNumberWidthPx = with(density) { lineNumberWidth.toPx() }
+    val handleHalfWidth = with(density) { 12.dp.toPx() }  // Half of 24.dp handle width
 
-    if (lineInfo != null) {
-        val lineContent = visibleLineContent[position.line] ?: ""
-        val expandedContent = lineContent.expandTabs(tabSize)
+    // Use rememberUpdatedState to get current position without restarting gesture
+    val currentPositionColumn by rememberUpdatedState(position.column)
+    val currentPositionLine by rememberUpdatedState(position.line)
 
-        val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-        val contentPaddingPx = with(density) { 8.dp.toPx() }
-        val lineNumberWidthPx = with(density) { lineNumberWidth.toPx() }
-        val horizontalScrollOffset = horizontalScrollState.value.toFloat()
-        val handleHalfWidth = with(density) { 12.dp.toPx() }  // Half of 24.dp handle width
+    // Use simple state to store Y position, updated via LaunchedEffect observing layout
+    var yPosition by remember { mutableStateOf<Float?>(null) }
 
-        // Calculate X position based on column
-        // Add lineNumberWidth because handles are in outer Box coordinate space
-        // Subtract horizontal scroll offset to move with content
-        // Subtract half handle width to center the visual handle on the text position
-        val baseX = lineNumberWidthPx + contentPaddingPx + (position.column * charWidth) - horizontalScrollOffset
-        val xPosition = baseX - handleHalfWidth
+    // Observe layout changes and update Y position
+    // This isolates layout reading from composition/offset lambda
+    LaunchedEffect(position.line) {
+        snapshotFlow {
+            contentListState.layoutInfo.visibleItemsInfo.find { it.index == position.line }?.offset
+        }.collect { offset ->
+            yPosition = offset?.toFloat()
+        }
+    }
 
-        // Calculate Y position based on line offset in the list
-        val yPosition = lineInfo.offset.toFloat()
-        val lineHeight = lineInfo.size.toFloat()
-
-        // Position the handle
+    if (yPosition != null) {
+        // Position the handle using graphicsLayer for hardware-accelerated smooth dragging
         Box(
             modifier = modifier
-                .offset {
-                    androidx.compose.ui.unit.IntOffset(
-                        x = xPosition.toInt(),
-                        y = yPosition.toInt()  // Both handles at the same Y position (top of line)
-                    )
-                }
                 .size(24.dp, 24.dp)
-                .pointerInput(Unit) {
+                .graphicsLayer {
+                    // Calculate position - hardware accelerated, no recomposition
+                    val horizontalScrollOffset = horizontalScrollState.value.toFloat()
+
+                    // Calculate X position based on column
+                    // Use currentPositionColumn to ensure consistency with drag gesture
+                    val baseX = lineNumberWidthPx + contentPaddingPx + (currentPositionColumn * charWidth) - horizontalScrollOffset
+                    val xPosition = baseX - handleHalfWidth
+
+                    // Use translation for GPU-accelerated positioning
+                    translationX = xPosition
+                    translationY = yPosition!!
+                }
+                .pointerInput(lineNumberWidthPx) {
                     detectDragGestures { change, _ ->
-                        onDrag(change.position)
+                        // Calculate current handle position for drag conversion
+                        // Use currentPositionColumn to get latest value, not closure-captured value
+                        val horizontalScrollOffset = horizontalScrollState.value.toFloat()
+                        val baseX = lineNumberWidthPx + contentPaddingPx + (currentPositionColumn * charWidth) - horizontalScrollOffset
+                        val xPosition = baseX - handleHalfWidth
+                        val currentYPosition = yPosition ?: 0f
+
+                        // Convert handle-relative position to LazyColumn coordinates
+                        val lazyColumnX = (change.position.x + xPosition) - lineNumberWidthPx + horizontalScrollOffset
+                        val lazyColumnY = change.position.y + currentYPosition
+
+                        onDrag(Offset(lazyColumnX, lazyColumnY))
                         change.consume()
                     }
                 }
@@ -283,6 +304,19 @@ private fun DualColumnEditorContent(
     var tapCount by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
+
+    // Measure actual character width for accurate positioning
+    val textMeasurer = rememberTextMeasurer()
+    val actualCharWidth = remember(fontSize) {
+        val measured = textMeasurer.measure(
+            text = "M",  // Measure a typical monospace character
+            style = TextStyle(
+                fontSize = fontSize.sp,
+                fontFamily = FontFamily.Monospace
+            )
+        )
+        measured.size.width.toFloat()
+    }
 
     // Sync textFieldValue with visible content
     LaunchedEffect(visibleLineContent) {
@@ -570,6 +604,7 @@ private fun DualColumnEditorContent(
                 contentListState = contentListState,
                 lineNumberWidth = lineNumberWidth,
                 horizontalScrollState = horizontalScrollState,
+                actualCharWidth = actualCharWidth,
                 onDrag = { offset ->
                     val result = calculatePositionFromOffset(
                         offset = offset,
@@ -588,6 +623,7 @@ private fun DualColumnEditorContent(
                         } else {
                             end to result.position
                         }
+
                         onSelectionChange(newStart to newEnd)
                     }
                 }
@@ -603,6 +639,7 @@ private fun DualColumnEditorContent(
                 contentListState = contentListState,
                 lineNumberWidth = lineNumberWidth,
                 horizontalScrollState = horizontalScrollState,
+                actualCharWidth = actualCharWidth,
                 onDrag = { offset ->
                     val result = calculatePositionFromOffset(
                         offset = offset,
@@ -621,6 +658,7 @@ private fun DualColumnEditorContent(
                         } else {
                             result.position to start
                         }
+
                         onSelectionChange(newStart to newEnd)
                     }
                 }
@@ -897,7 +935,9 @@ private fun calculatePositionFromOffset(
         offset.y >= item.offset && offset.y < (item.offset + item.size)
     }
 
-    if (clickedItem == null) return null
+    if (clickedItem == null) {
+        return null
+    }
 
     val lineIndex = clickedItem.index
     val contentPaddingPx = with(density) { 8.dp.toPx() }
