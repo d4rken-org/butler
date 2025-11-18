@@ -57,7 +57,7 @@ sealed interface SearcherAction : WorkspaceAction {
         val results: List<SearchItem>,
     ) : SearcherAction {
         override val icon = Icons.TwoTone.Share
-        override val label = R.string.searcher_action_share.toCaString()
+        override val label = eu.darken.butler.common.R.string.general_share_action.toCaString()
         override val isVisible: Boolean get() = results.size <= 10 // Reasonable limit for sharing
     }
 

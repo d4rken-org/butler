@@ -640,40 +640,29 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     private fun shareFiles(results: List<SearchItem>) {
-        log(TAG, INFO) { "Sharing ${results.size} file(s)" }
+        log(TAG) { "shareFiles(): ${results.size} items" }
 
-        try {
-            val shareItems = results.map { result ->
-                object : ShareIntentUseCase.Item {
-                    override val path = result.path
-                    override val mimeType = getMimeType(result.name)
-                    override val displayName = result.name
-                }
+        val shareItems = results.map { result ->
+            object : ShareIntentUseCase.Item {
+                override val path = result.path
+                override val mimeType = getMimeType(result.name)
+                override val displayName = result.name
             }
+        }
 
-            val intent = shareIntentUseCase.createShareIntent(shareItems)
+        val chooserTitle = if (results.size == 1) {
+            appContext.getString(eu.darken.butler.common.R.string.general_share_single_title, results.first().name)
+        } else {
+            appContext.resources.getQuantityString(
+                eu.darken.butler.common.R.plurals.general_share_multiple_title,
+                results.size,
+                results.size
+            )
+        }
 
-            if (intent != null) {
-                val chooserTitle = if (results.size == 1) {
-                    appContext.getString(R.string.searcher_share_single_title, results.first().name)
-                } else {
-                    appContext.resources.getQuantityString(
-                        R.plurals.searcher_share_multiple_title,
-                        results.size,
-                        results.size
-                    )
-                }
-                val chooser = Intent.createChooser(intent, chooserTitle)
-                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                appContext.startActivity(chooser)
-                log(TAG, INFO) { "Share intent launched successfully" }
-            } else {
-                log(TAG, WARN) { "Failed to create share intent" }
-                throw Exception("Failed to create share intent for selected files")
-            }
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Error creating share intent: ${e.asLog()}" }
-            throw e
+        val success = shareIntentUseCase.shareWithChooser(shareItems, chooserTitle)
+        if (!success) {
+            throw Exception("Failed to create share intent for selected files")
         }
     }
 

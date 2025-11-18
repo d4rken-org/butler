@@ -64,7 +64,6 @@
     <string name="explorer_action_copy">Copy</string>
     <string name="explorer_action_cut">Cut</string>
     <string name="explorer_action_delete">Delete</string>
-    <string name="explorer_action_share">Share</string>
     <string name="explorer_action_select_all">Select all</string>
     <string name="explorer_action_deselect_all">Deselect all</string>
     <string name="explorer_action_add_location">Add location</string>

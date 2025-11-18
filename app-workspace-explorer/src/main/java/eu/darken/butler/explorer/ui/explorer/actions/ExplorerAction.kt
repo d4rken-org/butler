@@ -124,7 +124,7 @@ sealed interface ExplorerAction : WorkspaceAction {
             override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.Share
-            override val label = R.string.explorer_action_share.toCaString()
+            override val label = eu.darken.butler.common.R.string.general_share_action.toCaString()
         }
 
         object SelectAll : Directory {
