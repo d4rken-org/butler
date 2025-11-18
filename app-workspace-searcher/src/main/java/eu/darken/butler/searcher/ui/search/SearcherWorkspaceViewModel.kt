@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.webkit.MimeTypeMap
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.core.content.FileProvider
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -31,6 +30,7 @@ import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
@@ -562,9 +562,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 log(TAG, INFO) { "Copying path to system clipboard: ${action.result.path.path}" }
                 systemClipboardHelper.copyToClipboard(action.result.path.path)
             }
-            is SearcherAction.Properties -> {
-                showFileProperties(action.result)
-            }
             is SearcherAction.SelectAll -> selectAll()
             is SearcherAction.DeselectAll -> deselectAll()
             is SearcherAction.Common.Sort -> {
@@ -773,11 +770,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow.value = SearcherDialogState.None
         searcherSettings.sortSettings.value(result.sortSettings)
         currentSortSettings.value = result.sortSettings
-    }
-
-    private fun showFileProperties(result: SearchItem) {
-        log(TAG) { "showFileProperties(${result.name})" }
-        dialogStateFlow.value = SearcherDialogState.FileInfo(result)
     }
 
     fun navigateToClipboardSource(clip: ClipboardClip) = launch {

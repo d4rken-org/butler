@@ -17,21 +17,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
-import eu.darken.butler.common.formatDate
-import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.formatDate
+import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 @Composable
-fun SearchResultQuickActions(
+fun SearchResultItemDetails(
     result: SearchItem,
     onAction: (SearcherAction) -> Unit,
     onLongPress: (SearchItem) -> Unit,
@@ -52,7 +57,7 @@ fun SearchResultQuickActions(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                    .padding(horizontal = 24.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Preview/Icon
@@ -94,8 +99,80 @@ fun SearchResultQuickActions(
                 }
             }
 
+            // Match context - shown if this file was found via content search
+            result.matchContext?.let { match ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 0.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.searcher_match_context_label),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    val previewFontStyle =
+                        MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp, fontFamily = FontFamily.Monospace)
+                    // Context lines before match
+                    match.contextBefore?.forEachIndexed { index, line ->
+                        val lineNumber = (match.lineNumber ?: 0) - match.contextBefore.size + index
+                        Text(
+                            text = stringResource(
+                                R.string.searcher_match_line_label,
+                                lineNumber,
+                                line
+                            ),
+                            style = previewFontStyle,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(vertical = 1.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+
+                    // The matched line (highlighted)
+                    val ellipsizedLine = getEllipsizedMatchLine(
+                        line = match.matchedLine ?: "",
+                        startIndex = match.startIndex ?: 0,
+                        endIndex = match.endIndex ?: 0,
+                        maxLength = 100
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.searcher_match_line_label,
+                            match.lineNumber ?: 0,
+                            ellipsizedLine
+                        ),
+                        style = previewFontStyle,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(vertical = 1.dp)
+                    )
+
+                    // Context lines after match
+                    match.contextAfter?.forEachIndexed { index, line ->
+                        val lineNumber = (match.lineNumber ?: 0) + index + 1
+                        Text(
+                            text = stringResource(
+                                R.string.searcher_match_line_label,
+                                lineNumber,
+                                line
+                            ),
+                            style = previewFontStyle,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(vertical = 1.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+
             HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 color = MaterialTheme.colorScheme.outlineVariant
             )
 
@@ -146,11 +223,6 @@ fun SearchResultQuickActions(
 
                 QuickActionItem(
                     action = SearcherAction.CopyPath(result),
-                    onClick = onAction
-                )
-
-                QuickActionItem(
-                    action = SearcherAction.Properties(result),
                     onClick = onAction
                 )
 
@@ -223,9 +295,54 @@ private fun isTextFile(result: SearchItem): Boolean {
     )
 }
 
+/**
+ * Intelligently truncates a line to show a window around the matched content.
+ * Adds ellipsis before/after when the line is too long.
+ */
+private fun getEllipsizedMatchLine(
+    line: String,
+    startIndex: Int,
+    endIndex: Int,
+    maxLength: Int = 100
+): String {
+    // Validate indices are within bounds (defensive check for data consistency issues)
+    if (startIndex < 0 || endIndex > line.length || startIndex >= endIndex) {
+        // Invalid indices, return truncated line from start
+        return if (line.length <= maxLength) {
+            line
+        } else {
+            line.take(maxLength) + "..."
+        }
+    }
+
+    if (line.length <= maxLength) return line
+
+    val matchLength = endIndex - startIndex
+    // Reserve 6 chars for "..." on both sides
+    val availableSpace = maxLength - matchLength - 6
+    if (availableSpace < 0) {
+        // Match itself is too long, just show it with minimal context
+        return "...${line.substring(startIndex, endIndex)}..."
+    }
+
+    val windowSize = availableSpace / 2
+
+    // Calculate how much context we can show before and after
+    val contextBefore = startIndex.coerceAtMost(windowSize)
+    val contextAfter = (line.length - endIndex).coerceAtMost(windowSize)
+
+    val showStart = startIndex - contextBefore
+    val showEnd = endIndex + contextAfter
+
+    val prefix = if (showStart > 0) "..." else ""
+    val suffix = if (showEnd < line.length) "..." else ""
+
+    return prefix + line.substring(showStart, showEnd) + suffix
+}
+
 @Preview2
 @Composable
-private fun SearchResultQuickActionsPreview() {
+private fun SearchResultItemDetailsPreview() {
     val mockPath = LocalPath.build("/storage/emulated/0/Documents/example.txt")
     val mockLookup = LocalPathLookup(
         lookedUp = mockPath,
@@ -236,10 +353,51 @@ private fun SearchResultQuickActionsPreview() {
     )
 
     PreviewWrapper {
-        SearchResultQuickActions(
+        SearchResultItemDetails(
             result = SearchItem.fromLookup(
                 lookup = mockLookup,
-                matchedQuery = "example"
+                matchedQuery = "example",
+            ),
+            onAction = {},
+            onLongPress = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun SearchResultItemDetailsWithContextPreview() {
+    val mockPath = LocalPath.build("/storage/emulated/0/Documents/example.txt")
+    val mockLookup = LocalPathLookup(
+        lookedUp = mockPath,
+        fileType = FileType.FILE,
+        size = 1024L,
+        modifiedAt = kotlin.time.Clock.System.now(),
+        target = null
+    )
+
+    val mockMatchContext = SearchItem.MatchContext(
+        lineNumber = 42,
+        matchedLine = "This is a very long line at the beginning with lots of text before the example match occurs in the middle and then continues with even more text after it to demonstrate the ellipsis functionality",
+        startIndex = 72,
+        endIndex = 79,
+        contextBefore = listOf(
+            "// Previous context line 1",
+            "// Previous context line 2"
+        ),
+        contextAfter = listOf(
+            "// Following context line 1",
+            "// Following context line 2"
+        )
+    )
+
+    PreviewWrapper {
+        SearchResultItemDetails(
+            result = SearchItem.fromLookup(
+                lookup = mockLookup,
+                matchedQuery = "example",
+                matchContext = mockMatchContext
             ),
             onAction = {},
             onLongPress = {},

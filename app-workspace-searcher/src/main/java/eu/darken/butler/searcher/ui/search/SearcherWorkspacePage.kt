@@ -706,9 +706,9 @@ fun SearcherWorkspacePage(
             }
         }
 
-        // Quick actions bottom sheet
+        // Item details bottom sheet
         currentState.quickActionsResult?.let { result ->
-            SearchResultQuickActions(
+            SearchResultItemDetails(
                 result = result,
                 onAction = { action ->
                     onPageAction(SearcherPageAction.WorkspaceAction(action))

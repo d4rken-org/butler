@@ -6,8 +6,6 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
-import eu.darken.butler.workspace.ui.dialogs.FileInfo
-import eu.darken.butler.workspace.ui.dialogs.FileInfoBottomSheet
 
 @Composable
 fun SearcherDialogHost(
@@ -29,16 +27,6 @@ fun SearcherDialogHost(
                 items = dialogState.paths,
                 onDismiss = onDismiss,
                 onConfirm = onDeleteConfirmed
-            )
-        }
-        is SearcherDialogState.FileInfo -> {
-            FileInfoBottomSheet(
-                fileInfo = FileInfo(
-                    lookup = dialogState.result.lookup,
-                    // Searcher doesn't have extended info (ownership, permissions, etc.)
-                ),
-                onDismiss = onDismiss,
-                onCopyToClipboard = onCopyToClipboard,
             )
         }
         is SearcherDialogState.ClipboardInfo -> {

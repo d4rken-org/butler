@@ -88,7 +88,8 @@
     </plurals>
 
     <!-- Match context -->
-    <string name="searcher_match_line_label">Line %1$d</string>
+    <string name="searcher_match_context_label">Match Context</string>
+    <string name="searcher_match_line_label">Line %1$d: %2$s</string>
 
     <!-- Action strings -->
     <string name="searcher_action_open_in_editor">Open in editor</string>

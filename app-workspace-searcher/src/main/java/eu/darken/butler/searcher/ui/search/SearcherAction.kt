@@ -7,7 +7,6 @@ import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.GridView
-import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Link
 import androidx.compose.material.icons.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.SelectAll
@@ -82,13 +81,6 @@ sealed interface SearcherAction : WorkspaceAction {
     ) : SearcherAction {
         override val icon = Icons.TwoTone.Link
         override val label = R.string.searcher_action_copy_path.toCaString()
-    }
-
-    data class Properties(
-        val result: SearchItem,
-    ) : SearcherAction {
-        override val icon = Icons.TwoTone.Info
-        override val label = R.string.searcher_action_properties.toCaString()
     }
 
     // Selection management actions
