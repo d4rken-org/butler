@@ -80,8 +80,6 @@ fun ThemeColorSelectorDialog(
 @Composable
 private fun ColorPreviewIcon(themeColor: ThemeColor) {
     val (lightColor, darkColor) = when (themeColor) {
-        ThemeColor.TEAL -> Color(0xFF006A63) to Color(0xFF81D5CB)
-        ThemeColor.PURPLE -> Color(0xFF5E35B1) to Color(0xFFC2B2FF)
         ThemeColor.GREEN -> Color(0xFF2E7D32) to Color(0xFF8AD68D)
         ThemeColor.BLUE -> Color(0xFF1565C0) to Color(0xFFA6C8FF)
         ThemeColor.AMOLED -> Color(0xFFE65100) to Color(0xFFFFB74D)
