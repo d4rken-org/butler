@@ -117,7 +117,7 @@ fun EditorToolbarCard(
 
                     if (design.isSingle) {
                         WorkspaceButton(
-                            modifier = Modifier.size(32.dp),
+                            buttonSize = 40.dp,
                             state = workspaceButtonState,
                             workspaceActionHandler = workspaceActionHandler,
                         )

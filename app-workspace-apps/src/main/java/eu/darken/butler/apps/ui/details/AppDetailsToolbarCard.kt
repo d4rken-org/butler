@@ -33,7 +33,6 @@ import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -139,7 +138,7 @@ fun AppDetailsToolbarCard(
             // Workspace button (non-modal mode, single pane)
             if (!isModal && design.isSingle && workspaceButtonState != null && workspaceActionHandler != null) {
                 WorkspaceButton(
-                    modifier = Modifier.size(40.dp),
+                    buttonSize = 40.dp,
                     state = workspaceButtonState,
                     workspaceActionHandler = workspaceActionHandler,
                 )
