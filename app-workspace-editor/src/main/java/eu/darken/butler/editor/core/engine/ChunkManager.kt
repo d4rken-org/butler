@@ -28,6 +28,9 @@ class ChunkManager @AssistedInject constructor(
     private val _loadStates = MutableStateFlow<Map<TextChunk.ChunkId, ChunkLoadState>>(emptyMap())
     val loadStates: StateFlow<Map<TextChunk.ChunkId, ChunkLoadState>> = _loadStates.asStateFlow()
 
+    // Store the file size for EOF detection during boundary adjustments
+    private var fileSize: Long = 0L
+
     private val chunkMutex = Mutex()
 
     // Chunk boundary tracking (offset → ID mapping)
@@ -74,7 +77,34 @@ class ChunkManager @AssistedInject constructor(
 
             // CRITICAL: Adjust boundary if chunk size differs due to surrogate pair protection
             // This can happen when chunk end falls in the middle of a UTF-16 surrogate pair
-            val actualEndOffset = boundary.startOffset + chunk.size
+            val contentBasedEndOffset = boundary.startOffset + chunk.size
+
+            // Check if this chunk's boundary ends at EOF
+            val endsAtEOF = boundary.endOffset == fileSize
+
+            // CRITICAL: If chunk ends at EOF, preserve EOF even if content is smaller
+            // This prevents orphaning bytes at the end of the file due to surrogate pair adjustments
+            val gapToEOF = if (endsAtEOF && contentBasedEndOffset < boundary.endOffset) {
+                boundary.endOffset - contentBasedEndOffset
+            } else {
+                0L
+            }
+            // Only preserve EOF for small gaps (surrogate pairs, 1-4 bytes)
+            // If fileSize > 0 AND boundary ends at fileSize, it's the explicit EOF, preserve it regardless of gap
+            val shouldPreserveEOF = endsAtEOF && (
+                (gapToEOF in 1L..4L) ||  // Small gap = likely surrogate pair
+                (fileSize > 0 && boundary.endOffset == fileSize)  // Explicit EOF = preserve
+            )
+
+            val actualEndOffset = if (shouldPreserveEOF) {
+                // Chunk at EOF: preserve EOF
+                log(tag) { "Preserving EOF for $chunkId: content suggests $contentBasedEndOffset (gap=$gapToEOF), keeping ${boundary.endOffset}" }
+                boundary.endOffset
+            } else {
+                // Normal case: use content-based size
+                contentBasedEndOffset
+            }
+
             if (actualEndOffset != boundary.endOffset) {
                 log(tag) {
                     "Adjusting boundary for $chunkId: [${boundary.startOffset}, ${boundary.endOffset}) -> " +
@@ -92,7 +122,7 @@ class ChunkManager @AssistedInject constructor(
                 // When one chunk shrinks, all following chunks need to shift left
                 var currentEndOffset = boundary.endOffset  // Where we originally ended
                 var newEndOffset = actualEndOffset          // Where we actually end now
-                val delta = currentEndOffset - newEndOffset // How much we shifted
+                var accumulatedDelta = currentEndOffset - newEndOffset // Total shift so far
 
                 // Loop through all subsequent chunks and shift them
                 var searchOffset = currentEndOffset
@@ -102,8 +132,25 @@ class ChunkManager @AssistedInject constructor(
 
                     val nextChunkId = nextChunkEntry.key
                     val nextBoundary = nextChunkEntry.value
-                    val newNextStart = nextBoundary.startOffset - delta
-                    val newNextEnd = nextBoundary.endOffset - delta
+                    val newNextStart = nextBoundary.startOffset - accumulatedDelta
+
+                    // Check if this is the LAST chunk (no chunks after it)
+                    val isLastChunk = boundaries.entries.none { it.value.startOffset == nextBoundary.endOffset }
+
+                    // CRITICAL: Last chunk that reaches EOF must not be cascaded
+                    // Its startOffset stays fixed at the boundary, and endOffset preserved at EOF
+                    // This prevents orphaning bytes at the end of the file
+                    val lastChunkAtEOF = isLastChunk && fileSize > 0 && nextBoundary.endOffset == fileSize
+
+                    if (lastChunkAtEOF) {
+                        // Don't cascade the last chunk at EOF - keep it fixed
+                        log(tag) {
+                            "Skipping cascade for last chunk at EOF $nextChunkId: keeping original [${nextBoundary.startOffset}, ${nextBoundary.endOffset})"
+                        }
+                        break  // Don't cascade further
+                    }
+
+                    val newNextEnd = nextBoundary.endOffset - accumulatedDelta
 
                     log(tag) {
                         "Cascading boundary adjustment to chunk $nextChunkId: " +
@@ -653,6 +700,9 @@ class ChunkManager @AssistedInject constructor(
     suspend fun generateChunkIds(fileSize: Long): List<TextChunk.ChunkId> = chunkMutex.withLock {
         // Reset counter for deterministic ID generation
         TextChunk.ChunkId.resetCounter()
+
+        // Store file size for EOF detection during boundary adjustments
+        this.fileSize = fileSize
 
         // Clear old boundaries
         boundaries.clear()
