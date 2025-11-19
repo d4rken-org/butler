@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.issues
+package eu.darken.butler.workspace.ui.issues
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -45,9 +45,13 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.workspace.R
+import java.io.IOException
+import kotlin.time.Instant
 
 @Composable
 fun UnknownErrorIssueSheet(
@@ -94,7 +98,7 @@ fun UnknownErrorIssueSheet(
         // Show source file if available
         issue.source?.let { source ->
             Text(
-                text = stringResource(R.string.explorer_issue_common_source_file),
+                text = stringResource(R.string.workspace_issue_common_source_file),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -104,7 +108,7 @@ fun UnknownErrorIssueSheet(
         // Show destination file if available
         issue.destination?.let { destination ->
             Text(
-                text = stringResource(R.string.explorer_issue_common_destination_file),
+                text = stringResource(R.string.workspace_issue_common_destination_file),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -133,9 +137,9 @@ fun UnknownErrorIssueSheet(
                     Text(
                         text = stringResource(
                             if (showTechnicalDetails) {
-                                eu.darken.butler.workspace.R.string.workspace_error_hide_details_action
+                                R.string.workspace_error_hide_details_action
                             } else {
-                                eu.darken.butler.workspace.R.string.workspace_error_show_details_action
+                                R.string.workspace_error_show_details_action
                             }
                         ),
                         style = MaterialTheme.typography.bodyMedium,
@@ -196,7 +200,7 @@ fun UnknownErrorIssueSheet(
                     onCheckedChange = null,
                 )
                 Text(
-                    text = stringResource(R.string.explorer_issue_apply_all),
+                    text = stringResource(R.string.workspace_issue_apply_all),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
@@ -254,7 +258,7 @@ fun UnknownErrorIssueSheet(
                                 modifier = Modifier.size(18.dp),
                             )
                             Text(
-                                text = stringResource(R.string.explorer_issue_common_skip),
+                                text = stringResource(R.string.workspace_issue_common_skip),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -279,7 +283,7 @@ fun UnknownErrorIssueSheet(
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
-                        text = stringResource(R.string.explorer_issue_common_cancel),
+                        text = stringResource(R.string.workspace_issue_common_cancel),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -294,13 +298,24 @@ fun UnknownErrorIssueSheet(
 private fun UnknownErrorIssueSheetIOErrorPreview() {
     PreviewWrapper {
         UnknownErrorIssueSheet(
-            issue = MockDataProvider.createMockUnknownErrorIssue(
-                source = MockDataProvider.createMockPdfFile("corrupted_file.pdf", sizeMB = 1),
-                destination = MockDataProvider.createMockLocalPathLookup(
-                    path = "/storage/emulated/0/Backup/corrupted_file.pdf",
-                    sizeKB = 0
+            issue = PathActionIssue.UnknownError(
+                exception = IOException("Failed to read file: corrupted_file.pdf"),
+                source = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/corrupted_file.pdf"),
+                    fileType = FileType.FILE,
+                    size = 1 * 1024 * 1024,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+                    target = null,
                 ),
-                errorType = MockDataProvider.ErrorType.IO
+                destination = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Backup/corrupted_file.pdf"),
+                    fileType = FileType.FILE,
+                    size = 0,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+                    target = null,
+                ),
+                canRetry = true,
+                canSkip = true,
             ),
             onResolution = {},
         )
@@ -312,14 +327,18 @@ private fun UnknownErrorIssueSheetIOErrorPreview() {
 private fun UnknownErrorIssueSheetSecurityErrorPreview() {
     PreviewWrapper {
         UnknownErrorIssueSheet(
-            issue = MockDataProvider.createMockUnknownErrorIssue(
-                source = MockDataProvider.createMockLocalPathLookup(
-                    path = "/data/data/com.example.app/files/sensitive.dat",
-                    sizeKB = 256,
-                    hoursAgo = 24
+            issue = PathActionIssue.UnknownError(
+                exception = SecurityException("Access denied: /data/data/com.example.app/files/sensitive.dat"),
+                source = LocalPathLookup(
+                    lookedUp = LocalPath.build("/data/data/com.example.app/files/sensitive.dat"),
+                    fileType = FileType.FILE,
+                    size = 256 * 1024,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+                    target = null,
                 ),
-                errorType = MockDataProvider.ErrorType.SECURITY,
-                canRetry = false
+                destination = null,
+                canRetry = false,
+                canSkip = true,
             ),
             onResolution = {},
         )
@@ -331,7 +350,13 @@ private fun UnknownErrorIssueSheetSecurityErrorPreview() {
 private fun UnknownErrorIssueSheetUnknownErrorPreview() {
     PreviewWrapper {
         UnknownErrorIssueSheet(
-            issue = MockDataProvider.createMockUnknownErrorIssue(errorType = MockDataProvider.ErrorType.UNKNOWN),
+            issue = PathActionIssue.UnknownError(
+                exception = RuntimeException("Unknown error occurred during operation"),
+                source = null,
+                destination = null,
+                canRetry = true,
+                canSkip = true,
+            ),
             onResolution = {},
         )
     }

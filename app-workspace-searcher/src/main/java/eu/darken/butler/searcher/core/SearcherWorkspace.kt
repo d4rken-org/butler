@@ -10,12 +10,14 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.searcher.core.operations.DeleteOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -43,6 +45,7 @@ class SearcherWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
     @Assisted private val arguments: Arguments?,
     dispatcherProvider: DispatcherProvider,
+    private val issueHandler: IssueHandler,
     private val operationsManager: OperationsManager,
     private val deleteOperationFactory: DeleteOperation.Factory,
     searchEngineFactory: SearchEngine.Factory,
@@ -342,6 +345,13 @@ class SearcherWorkspace @AssistedInject constructor(
     fun updateTargets(transform: (List<SearchTarget>) -> List<SearchTarget>) {
         log(tag, INFO) { "updateTargets() - delegating to engine" }
         searchEngine.updateTargets(transform)
+    }
+
+    fun resolveConflict(operationId: Operation.Id, resolution: PathActionIssue.Resolution) {
+        log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
+        scope.launch {
+            issueHandler.resolveIssue(operationId, resolution)
+        }
     }
 
     override suspend fun release() {

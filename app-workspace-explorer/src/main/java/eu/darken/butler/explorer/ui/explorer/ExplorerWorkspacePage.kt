@@ -71,7 +71,7 @@ import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
-import eu.darken.butler.explorer.ui.explorer.issues.IssueBottomSheet
+import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
@@ -762,7 +762,7 @@ fun ExplorerWorkspacePage(
 
         // Show conflict bottom sheet when needed
         if (issueState != null && showIssueSheet) {
-            IssueBottomSheet(
+            IssuesBottomSheet(
                 issue = issueState!!,
                 onResolution = { resolution -> vm?.resolveConflict(resolution) },
                 onDismiss = { showIssueSheet = false },

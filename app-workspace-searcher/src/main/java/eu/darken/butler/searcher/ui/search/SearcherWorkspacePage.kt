@@ -722,6 +722,16 @@ fun SearcherWorkspacePage(
             )
         }
 
+        // Issue/conflict resolution bottom sheet
+        val issueState by (vm?.issueState?.collectAsState() ?: remember { mutableStateOf(null) })
+        if (issueState != null) {
+            eu.darken.butler.workspace.ui.issues.IssuesBottomSheet(
+                issue = issueState!!,
+                onResolution = { resolution -> vm?.resolveIssue(resolution) },
+                onDismiss = { /* Issue will auto-clear when resolved or cancelled */ },
+            )
+        }
+
         // Clear history confirmation dialog
         if (showClearHistoryDialog) {
             AlertDialog(

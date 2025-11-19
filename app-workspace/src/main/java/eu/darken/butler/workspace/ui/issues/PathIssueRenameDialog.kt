@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.issues
+package eu.darken.butler.workspace.ui.issues
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
@@ -13,7 +13,7 @@ import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.validation.FilenameValidator
-import eu.darken.butler.explorer.R
+import eu.darken.butler.workspace.R
 
 @Composable
 fun PathIssueRenameDialog(
@@ -22,7 +22,7 @@ fun PathIssueRenameDialog(
     onValidate: (String) -> FilenameValidator.ValidationResult = { FilenameValidator.ValidationResult.Valid },
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit,
-    dialogTitle: String = stringResource(R.string.explorer_issue_common_rename),
+    dialogTitle: String = stringResource(R.string.workspace_issue_common_rename),
 ) {
     var newName by remember { mutableStateOf(initialValue ?: currentName) }
     val validation = remember(newName) { onValidate(newName) }
@@ -36,12 +36,12 @@ fun PathIssueRenameDialog(
             OutlinedTextField(
                 value = newName,
                 onValueChange = { newName = it },
-                label = { Text(stringResource(R.string.explorer_rename_new_name)) },
+                label = { Text(stringResource(R.string.workspace_issue_rename_new_name)) },
                 singleLine = true,
                 isError = isError,
                 supportingText = if (isError) {
                     {
-                        val chars = (validation as FilenameValidator.ValidationResult.Invalid).invalidChars.joinToString(" ")
+                        val chars = validation.invalidChars.joinToString(" ")
                         Text(stringResource(eu.darken.butler.common.R.string.general_filename_validation_error, chars))
                     }
                 } else null,

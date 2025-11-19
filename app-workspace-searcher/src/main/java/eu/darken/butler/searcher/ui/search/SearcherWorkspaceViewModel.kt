@@ -112,6 +112,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private var lastAutoExecutedQuery: String? = null
     private var currentSearchId: String? = null
 
+    // Issue/conflict handling
+    private val issueStateFlow = MutableStateFlow<eu.darken.butler.common.issue.Issue?>(null)
+    val issueState = issueStateFlow
+    private var currentIssueOperationId: Operation.Id? = null
+
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
     // Observe workspace search state
@@ -151,6 +156,25 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                             }
                         }
                     }
+                }
+            }
+            .launchIn(vmScope)
+
+        // Observe pending issues/conflicts from operations
+        workspaceSource
+            .filterNotNull()
+            .flatMapLatest { it.operations }
+            .map { operationsState ->
+                operationsState.pendingConflicts.entries.firstOrNull()
+            }
+            .onEach { pending ->
+                if (pending != null) {
+                    log(TAG, INFO) { "Detected pending issue for operation ${pending.key}: ${pending.value}" }
+                    issueStateFlow.value = pending.value
+                    currentIssueOperationId = pending.key
+                } else {
+                    issueStateFlow.value = null
+                    currentIssueOperationId = null
                 }
             }
             .launchIn(vmScope)
@@ -864,19 +888,19 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun showConflictSheet(operationId: Operation.Id) = launch {
-        log(TAG) { "showConflictSheet($operationId): Requesting to show conflict sheet" }
+        log(TAG) { "showConflictSheet($operationId): Conflict sheet is automatically shown via issueState observation" }
+        // Note: Issue sheets are automatically displayed when issueState is set by the init block observer
+        // No manual action needed here - the UI observes issueState and shows IssuesBottomSheet when non-null
+    }
 
-        // Get current conflicts map
-        val workspace = getWorkspace()
-        val operationsState = workspace.operations.first()
-        val conflicts = operationsState.pendingConflicts
-        val issue = conflicts[operationId]
-
-        if (issue != null) {
-            // TODO: Show conflict sheet for searcher
-            log(TAG, WARN) { "Conflict sheet not yet implemented for searcher: $issue" }
+    fun resolveIssue(resolution: eu.darken.butler.common.files.actions.PathActionIssue.Resolution) = launch {
+        val operationId = currentIssueOperationId
+        if (operationId != null) {
+            log(TAG, INFO) { "Resolving issue for operation $operationId with resolution: $resolution" }
+            val workspace = getWorkspace()
+            workspace.resolveConflict(operationId, resolution)
         } else {
-            log(TAG, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
+            log(TAG, WARN) { "Cannot resolve issue: no current issue operation ID" }
         }
     }
 

@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.issues
+package eu.darken.butler.workspace.ui.issues
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,9 +25,12 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.workspace.R
+import kotlin.time.Instant
 import eu.darken.butler.common.R as CommonR
 
 @Composable
@@ -59,14 +62,14 @@ fun InsufficientSpaceIssueSheet(
         )
 
         Text(
-            text = stringResource(R.string.explorer_issue_common_source_file),
+            text = stringResource(R.string.workspace_issue_common_source_file),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         PathIssueFileComparisonCard(lookup = issue.source)
 
         Text(
-            text = stringResource(R.string.explorer_issue_common_destination_file),
+            text = stringResource(R.string.workspace_issue_common_destination_file),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -115,7 +118,7 @@ fun InsufficientSpaceIssueSheet(
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
-                        text = stringResource(R.string.explorer_issue_common_cancel),
+                        text = stringResource(R.string.workspace_issue_common_cancel),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -130,7 +133,22 @@ fun InsufficientSpaceIssueSheet(
 private fun InsufficientSpaceIssueSheetPreview() {
     PreviewWrapper {
         InsufficientSpaceIssueSheet(
-            issue = MockDataProvider.createMockInsufficientSpaceIssue(),
+            issue = PathActionIssue.InsufficientSpace(
+                source = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/large_file.mp4"),
+                    fileType = FileType.FILE,
+                    size = 2L * 1024 * 1024 * 1024, // 2GB
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                    target = null,
+                ),
+                destination = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/sdcard/large_file.mp4"),
+                    fileType = FileType.FILE,
+                    size = 0,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+                    target = null,
+                ),
+            ),
             onResolution = {},
         )
     }

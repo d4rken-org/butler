@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.issues
+package eu.darken.butler.workspace.ui.issues
 
 import androidx.compose.runtime.Composable
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -6,7 +6,7 @@ import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 @Composable
-fun IssueBottomSheet(
+fun IssuesBottomSheet(
     issue: Issue,
     onResolution: (PathActionIssue.Resolution) -> Unit,
     onDismiss: () -> Unit,
