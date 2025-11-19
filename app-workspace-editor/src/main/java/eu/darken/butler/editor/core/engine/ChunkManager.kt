@@ -182,24 +182,18 @@ class ChunkManager @AssistedInject constructor(
             val boundaryWasAdjusted = actualEndOffset != boundary.endOffset
             log(tag) { "Chunk $chunkId: boundaryWasAdjusted=$boundaryWasAdjusted (actual=$actualEndOffset, expected=${boundary.endOffset})" }
 
-            if (!boundaryWasAdjusted) {
-                // Update state (only if boundary wasn't adjusted)
-                _chunks.value += (chunkId to chunk)
-                _loadStates.value += (chunkId to ChunkLoadState(
-                    isLoading = false,
-                    loadedAt = System.currentTimeMillis()
-                ))
+            // Update state and cache
+            _chunks.value += (chunkId to chunk)
+            _loadStates.value += (chunkId to ChunkLoadState(
+                isLoading = false,
+                loadedAt = System.currentTimeMillis()
+            ))
 
-                // Update LRU: add to end (most recently used)
-                chunkAccessOrder.remove(chunkId)
-                chunkAccessOrder.add(chunkId)
+            // Update LRU: add to end (most recently used)
+            chunkAccessOrder.remove(chunkId)
+            chunkAccessOrder.add(chunkId)
 
-                log(tag) { "✓ Cached chunk: $chunkId (${chunk.size} chars)" }
-            } else {
-                // Boundary was adjusted - don't cache chunk, it will reload with correct boundary on next access
-                log(tag) { "✗ NOT caching $chunkId (boundary adjusted [${boundary.startOffset}, ${boundary.endOffset}) → [${boundary.startOffset}, $actualEndOffset), will force reload)" }
-                _loadStates.value -= chunkId  // Clear loading state
-            }
+            log(tag) { "✓ Cached chunk: $chunkId (${chunk.size} chars)" }
 
             // Trigger eviction if cache is full
             evictOldChunksIfNeeded()
