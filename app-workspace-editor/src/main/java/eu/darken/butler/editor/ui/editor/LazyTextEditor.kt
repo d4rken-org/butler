@@ -365,8 +365,8 @@ private fun DualColumnEditorContent(
                                         2 -> {
                                             // Double tap: Select word
                                             val wordSelection = selectWordAt(
-                                                result.lineIndex,
-                                                result.column,
+                                                result.position.line,
+                                                result.position.column,
                                                 visibleLineContent
                                             )
                                             onSelectionChange(wordSelection)
@@ -374,7 +374,7 @@ private fun DualColumnEditorContent(
                                         else -> {
                                             // Triple tap and beyond: Select line
                                             val lineSelection = selectLineAt(
-                                                result.lineIndex,
+                                                result.position.line,
                                                 visibleLineContent
                                             )
                                             onSelectionChange(lineSelection)
@@ -405,8 +405,8 @@ private fun DualColumnEditorContent(
                                 if (result != null) {
                                     // Long press: Select word at cursor
                                     val wordSelection = selectWordAt(
-                                        result.lineIndex,
-                                        result.column,
+                                        result.position.line,
+                                        result.position.column,
                                         visibleLineContent
                                     )
                                     onSelectionChange(wordSelection)
@@ -444,8 +444,6 @@ private fun DualColumnEditorContent(
             // Start handle
             SelectionHandle(
                 position = start,
-                visibleLineContent = visibleLineContent,
-                tabSize = tabSize,
                 contentListState = contentListState,
                 lineNumberWidth = lineNumberWidth,
                 horizontalScrollState = horizontalScrollState,
@@ -477,8 +475,6 @@ private fun DualColumnEditorContent(
             // End handle
             SelectionHandle(
                 position = end,
-                visibleLineContent = visibleLineContent,
-                tabSize = tabSize,
                 contentListState = contentListState,
                 lineNumberWidth = lineNumberWidth,
                 horizontalScrollState = horizontalScrollState,

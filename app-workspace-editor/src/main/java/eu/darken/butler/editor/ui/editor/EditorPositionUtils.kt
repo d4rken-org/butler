@@ -25,8 +25,6 @@ internal fun createUiTextPosition(line: Int, column: Int): TextPosition {
 }
 
 internal data class PositionCalculationResult(
-    val lineIndex: Int,
-    val column: Int,
     val position: TextPosition
 )
 
@@ -67,7 +65,7 @@ internal fun calculatePositionFromOffset(
         column = clickedColumn
     )
 
-    return PositionCalculationResult(lineIndex, clickedColumn, position)
+    return PositionCalculationResult(position)
 }
 
 internal fun findWordBoundaries(text: String, column: Int): Pair<Int, Int> {

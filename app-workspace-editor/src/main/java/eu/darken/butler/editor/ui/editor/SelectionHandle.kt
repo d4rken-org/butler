@@ -32,8 +32,6 @@ import kotlinx.coroutines.flow.collect
 @Composable
 internal fun SelectionHandle(
     position: TextPosition,
-    visibleLineContent: Map<Int, String>,
-    tabSize: Int,
     contentListState: LazyListState,
     lineNumberWidth: Dp,
     horizontalScrollState: ScrollState,
@@ -176,8 +174,6 @@ private fun SelectionHandlePreview() {
             // Overlay selection handles on line 1, column 10
             SelectionHandle(
                 position = TextPosition(offset = 0, line = 1, column = 10),
-                visibleLineContent = lines.mapIndexed { index, line -> index to line }.toMap(),
-                tabSize = 4,
                 contentListState = contentListState,
                 lineNumberWidth = 0.dp,
                 horizontalScrollState = rememberScrollState(),
@@ -188,8 +184,6 @@ private fun SelectionHandlePreview() {
             // End handle
             SelectionHandle(
                 position = TextPosition(offset = 0, line = 1, column = 16),
-                visibleLineContent = lines.mapIndexed { index, line -> index to line }.toMap(),
-                tabSize = 4,
                 contentListState = contentListState,
                 lineNumberWidth = 0.dp,
                 horizontalScrollState = rememberScrollState(),
