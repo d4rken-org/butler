@@ -1,30 +1,23 @@
 package eu.darken.butler.searcher.ui.search.input
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.WrapText
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.FormatQuote
 import androidx.compose.material.icons.twotone.TextFormat
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.ToggleFilterChip
 import eu.darken.butler.searcher.R
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchOptionsRow(
     caseSensitive: Boolean,
@@ -37,97 +30,41 @@ fun SearchOptionsRow(
     onToggleSearchContent: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    FlowRow(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        val caseSensitiveDesc = stringResource(R.string.searcher_option_case_sensitive_desc)
-        FilterChip(
+        ToggleFilterChip(
             selected = caseSensitive,
             onClick = onToggleCaseSensitive,
-            label = { Text(stringResource(R.string.searcher_option_case_sensitive_label)) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.TwoTone.TextFormat,
-                    contentDescription = null,
-                    modifier = Modifier.size(FilterChipDefaults.IconSize)
-                )
-            },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ),
-            modifier = Modifier.semantics {
-                contentDescription = caseSensitiveDesc
-            }
+            labelRes = R.string.searcher_option_case_sensitive_label,
+            iconVector = Icons.TwoTone.TextFormat,
+            contentDescriptionRes = R.string.searcher_option_case_sensitive_desc,
         )
 
-        val wholeWordDesc = stringResource(R.string.searcher_option_whole_word_desc)
-        FilterChip(
+        ToggleFilterChip(
             selected = wholeWord,
             onClick = onToggleWholeWord,
-            label = { Text(stringResource(R.string.searcher_option_whole_word_label)) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.TwoTone.FormatQuote,
-                    contentDescription = null,
-                    modifier = Modifier.size(FilterChipDefaults.IconSize)
-                )
-            },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ),
-            modifier = Modifier.semantics {
-                contentDescription = wholeWordDesc
-            }
+            labelRes = R.string.searcher_option_whole_word_label,
+            iconVector = Icons.TwoTone.FormatQuote,
+            contentDescriptionRes = R.string.searcher_option_whole_word_desc,
         )
 
-        val regexDesc = stringResource(R.string.searcher_option_regex_desc)
-        FilterChip(
+        ToggleFilterChip(
             selected = useRegex,
             onClick = onToggleRegex,
-            label = { Text(stringResource(R.string.searcher_option_regex_label)) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.AutoMirrored.TwoTone.WrapText,
-                    contentDescription = null,
-                    modifier = Modifier.size(FilterChipDefaults.IconSize)
-                )
-            },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ),
-            modifier = Modifier.semantics {
-                contentDescription = regexDesc
-            }
+            labelRes = R.string.searcher_option_regex_label,
+            iconVector = Icons.AutoMirrored.TwoTone.WrapText,
+            contentDescriptionRes = R.string.searcher_option_regex_desc,
         )
 
-        val searchContentDesc = stringResource(R.string.searcher_option_search_content_desc)
-        FilterChip(
+        ToggleFilterChip(
             selected = searchContent,
             onClick = onToggleSearchContent,
-            label = { Text(stringResource(R.string.searcher_option_search_content_label)) },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.TwoTone.Description,
-                    contentDescription = null,
-                    modifier = Modifier.size(FilterChipDefaults.IconSize)
-                )
-            },
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ),
-            modifier = Modifier.semantics {
-                contentDescription = searchContentDesc
-            }
+            labelRes = R.string.searcher_option_search_content_label,
+            iconVector = Icons.TwoTone.Description,
+            contentDescriptionRes = R.string.searcher_option_search_content_desc,
         )
     }
 }
