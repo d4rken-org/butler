@@ -267,6 +267,7 @@ private fun DualColumnEditorContent(
             if (showLineNumbers) {
                 LazyColumn(
                     state = lineNumbersListState,
+                    contentPadding = PaddingValues(bottom = 52.dp),
                     modifier = Modifier
                         .width(lineNumberWidth)
                         .fillMaxHeight()
@@ -318,9 +319,9 @@ private fun DualColumnEditorContent(
 
             LazyColumn(
                 state = contentListState,
+                contentPadding = PaddingValues(bottom = 52.dp),
                 modifier = contentModifier
                     .then(focusBorderModifier)
-                    .clipToBounds()
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onTap = { offset ->

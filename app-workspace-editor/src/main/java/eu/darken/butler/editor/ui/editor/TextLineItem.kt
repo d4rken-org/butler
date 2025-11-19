@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -249,7 +250,11 @@ internal fun SelectableText(
                     layoutResult = result
                     onTextLayout(result)
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = if (wordWrap) {
+                    Modifier.fillMaxWidth()
+                } else {
+                    Modifier.wrapContentWidth()
+                }
             )
     }
 }
