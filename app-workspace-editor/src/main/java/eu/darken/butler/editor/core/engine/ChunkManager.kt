@@ -43,12 +43,14 @@ class ChunkManager @AssistedInject constructor(
     private var maxCachedChunks: Int = DEFAULT_MAX_CACHED_CHUNKS
 
     suspend fun loadChunk(chunkId: TextChunk.ChunkId): Result<TextChunk> = chunkMutex.withLock {
-        log(tag) { "Loading chunk: $chunkId" }
+        val boundary = boundaries[chunkId]
+        log(tag) { "Loading chunk: $chunkId with boundary [${boundary?.startOffset}, ${boundary?.endOffset})" }
 
-        // Check if already loaded
+        // Check if already loaded - but always reload if chunk was evicted/cache cleared
+        // This ensures we don't serve stale cached chunks after boundary changes
         _chunks.value[chunkId]?.let { existingChunk ->
             if (existingChunk.isLoaded) {
-                log(tag) { "Chunk $chunkId already loaded (cached)" }
+                log(tag) { "Chunk $chunkId already loaded (cached), content.length=${existingChunk.content.length}" }
                 // Update LRU: move to end (most recently used)
                 chunkAccessOrder.remove(chunkId)
                 chunkAccessOrder.add(chunkId)
@@ -72,11 +74,17 @@ class ChunkManager @AssistedInject constructor(
             _loadStates.value = _loadStates.value + (chunkId to ChunkLoadState(isLoading = true))
 
             // Load from repository with boundary information
-            log(tag) { "Loading chunk $chunkId from disk" }
+            log(tag) { "Loading chunk $chunkId from source, boundary=[${boundary.startOffset}, ${boundary.endOffset})" }
             val chunk = chunkRepository.loadChunk(chunkId, boundary)
+            log(tag) { "Loaded chunk $chunkId: content.length=${chunk.content.length}, first 10 chars='${chunk.content.take(10)}', expecting ${boundary.size}" }
 
-            // CRITICAL: Adjust boundary if chunk size differs due to surrogate pair protection
-            // This can happen when chunk end falls in the middle of a UTF-16 surrogate pair
+            // FLEXIBLE CHUNK SIZES: Adjust boundary if chunk size differs due to surrogate pair protection
+            // When a chunk shrinks due to surrogate pair truncation, the next chunk will grow to absorb the gap.
+            // This eliminates the need for cascading boundary shifts through all subsequent chunks.
+            // Chunks can vary in size within a tolerance (5% = ~3.2KB for 64KB chunks).
+            //
+            // This can happen when chunk end falls in the middle of a UTF-16 surrogate pair - the incomplete
+            // character is truncated from this chunk and becomes part of the next chunk.
             val contentBasedEndOffset = boundary.startOffset + chunk.size
 
             // Check if this chunk's boundary ends at EOF
@@ -101,86 +109,91 @@ class ChunkManager @AssistedInject constructor(
                 log(tag) { "Preserving EOF for $chunkId: content suggests $contentBasedEndOffset (gap=$gapToEOF), keeping ${boundary.endOffset}" }
                 boundary.endOffset
             } else {
-                // Normal case: use content-based size
+                // Normal case: use content-based size (next chunk will grow to absorb any gap)
                 contentBasedEndOffset
             }
 
             if (actualEndOffset != boundary.endOffset) {
+                val delta = boundary.endOffset - actualEndOffset
                 log(tag) {
                     "Adjusting boundary for $chunkId: [${boundary.startOffset}, ${boundary.endOffset}) -> " +
-                            "[${boundary.startOffset}, $actualEndOffset) (surrogate pair protection)"
+                            "[${boundary.startOffset}, $actualEndOffset) (delta=$delta bytes, surrogate pair protection)"
+                }
+
+                // Validate adjustment is within expected tolerance
+                val tolerance = (chunkSize * CHUNK_SIZE_TOLERANCE_PERCENT).toLong()
+                if (delta > tolerance) {
+                    log(tag, WARN) {
+                        "Chunk $chunkId adjustment $delta bytes exceeds tolerance $tolerance bytes (${(delta.toDouble() / chunkSize * 100).toInt()}% of chunk size)"
+                    }
                 }
 
                 // Update this chunk's boundary
                 boundaries = (boundaries + (chunkId to ChunkBoundary(
                     startOffset = boundary.startOffset,
                     endOffset = actualEndOffset,
-                    lineCount = chunk.lineCount
+                    lineCount = -1  // Invalidate (-1 = needs recalculation, ChunkRepository uses isLastChunk=true by default)
                 ))).toMutableMap()
 
-                // CASCADE: Adjust ALL subsequent chunks' start AND end offsets
-                // When one chunk shrinks, all following chunks need to shift left
-                var currentEndOffset = boundary.endOffset  // Where we originally ended
-                var newEndOffset = actualEndOffset          // Where we actually end now
-                var accumulatedDelta = currentEndOffset - newEndOffset // Total shift so far
-
-                // Loop through all subsequent chunks and shift them
-                var searchOffset = currentEndOffset
-                while (true) {
-                    val nextChunkEntry = boundaries.entries.find { it.value.startOffset == searchOffset }
-                    if (nextChunkEntry == null) break  // No more chunks to cascade
-
+                // FLEXIBLE CHUNK SIZE: Adjust ONLY the adjacent chunk's start offset
+                // This makes the next chunk grow/shrink to absorb the gap, eliminating the need
+                // to cascade adjustments through all subsequent chunks (O(1) instead of O(N))
+                val nextChunkEntry = boundaries.entries.find { it.value.startOffset == boundary.endOffset }
+                if (nextChunkEntry != null) {
                     val nextChunkId = nextChunkEntry.key
                     val nextBoundary = nextChunkEntry.value
-                    val newNextStart = nextBoundary.startOffset - accumulatedDelta
 
-                    // Check if this is the LAST chunk (no chunks after it)
-                    val isLastChunk = boundaries.entries.none { it.value.startOffset == nextBoundary.endOffset }
-
-                    // CRITICAL: Last chunk that reaches EOF must not be cascaded
-                    // Its startOffset stays fixed at the boundary, and endOffset preserved at EOF
-                    // This prevents orphaning bytes at the end of the file
-                    val lastChunkAtEOF = isLastChunk && fileSize > 0 && nextBoundary.endOffset == fileSize
-
-                    if (lastChunkAtEOF) {
-                        // Don't cascade the last chunk at EOF - keep it fixed
-                        log(tag) {
-                            "Skipping cascade for last chunk at EOF $nextChunkId: keeping original [${nextBoundary.startOffset}, ${nextBoundary.endOffset})"
-                        }
-                        break  // Don't cascade further
-                    }
-
-                    val newNextEnd = nextBoundary.endOffset - accumulatedDelta
-
+                    // CRITICAL: Always adjust next chunk's START to connect with current chunk's new END
+                    // For last chunk at EOF, we only preserve the END (EOF), not the START
+                    // Otherwise we create a gap where data is lost!
+                    val newNextStart = actualEndOffset
                     log(tag) {
-                        "Cascading boundary adjustment to chunk $nextChunkId: " +
+                        "Adjusting adjacent chunk $nextChunkId start: " +
                                 "[${nextBoundary.startOffset}, ${nextBoundary.endOffset}) -> " +
-                                "[$newNextStart, $newNextEnd)"
+                                "[$newNextStart, ${nextBoundary.endOffset}) " +
+                                "(absorbs ${boundary.endOffset - actualEndOffset} byte gap)"
                     }
 
                     boundaries[nextChunkId] = ChunkBoundary(
                         startOffset = newNextStart,
-                        endOffset = newNextEnd,
-                        lineCount = nextBoundary.lineCount
+                        endOffset = nextBoundary.endOffset,  // Keep END (preserves EOF if last chunk)
+                        lineCount = -1  // Invalidate (-1 = needs recalculation, boundary changed)
                     )
 
-                    // Move to next chunk in chain
-                    searchOffset = nextBoundary.endOffset
+                    // CRITICAL: Evict next chunk from cache if it was already loaded
+                    // Its boundary changed, so cached content (from old boundary) is now stale
+                    // It will be reloaded with the new boundary when accessed
+                    if (_chunks.value.containsKey(nextChunkId)) {
+                        log(tag) { "Evicting $nextChunkId from cache (boundary changed, content is stale)" }
+                        _chunks.value = _chunks.value - nextChunkId
+                        _loadStates.value = _loadStates.value - nextChunkId
+                        chunkAccessOrder.remove(nextChunkId)
+                    }
                 }
             }
 
-            // Update state
-            _chunks.value = _chunks.value + (chunkId to chunk)
-            _loadStates.value = _loadStates.value + (chunkId to ChunkLoadState(
-                isLoading = false,
-                loadedAt = System.currentTimeMillis()
-            ))
+            // Check if boundary was adjusted for this chunk
+            val boundaryWasAdjusted = actualEndOffset != boundary.endOffset
+            log(tag) { "Chunk $chunkId: boundaryWasAdjusted=$boundaryWasAdjusted (actual=$actualEndOffset, expected=${boundary.endOffset})" }
 
-            // Update LRU: add to end (most recently used)
-            chunkAccessOrder.remove(chunkId)
-            chunkAccessOrder.add(chunkId)
+            if (!boundaryWasAdjusted) {
+                // Update state (only if boundary wasn't adjusted)
+                _chunks.value = _chunks.value + (chunkId to chunk)
+                _loadStates.value = _loadStates.value + (chunkId to ChunkLoadState(
+                    isLoading = false,
+                    loadedAt = System.currentTimeMillis()
+                ))
 
-            log(tag) { "Successfully loaded chunk: $chunkId (${chunk.size} chars)" }
+                // Update LRU: add to end (most recently used)
+                chunkAccessOrder.remove(chunkId)
+                chunkAccessOrder.add(chunkId)
+
+                log(tag) { "✓ Cached chunk: $chunkId (${chunk.size} chars)" }
+            } else {
+                // Boundary was adjusted - don't cache chunk, it will reload with correct boundary on next access
+                log(tag) { "✗ NOT caching $chunkId (boundary adjusted [${boundary.startOffset}, ${boundary.endOffset}) → [${boundary.startOffset}, $actualEndOffset), will force reload)" }
+                _loadStates.value = _loadStates.value - chunkId  // Clear loading state
+            }
 
             // Trigger eviction if cache is full
             evictOldChunksIfNeeded()
@@ -257,22 +270,24 @@ class ChunkManager @AssistedInject constructor(
 
         log(tag) { "Found ${relevantChunkIds.size} chunks in range $startOffset-$endOffset" }
 
-        // Load chunks if not already loaded (outside mutex to avoid reentrant lock)
-        val loadedChunks = mutableListOf<TextChunk>()
+        // Load all chunks first (may evict stale chunks due to boundary adjustments)
         for (chunkId in relevantChunkIds) {
+            // Always call loadChunk() - it validates cached chunks and evicts stale ones
+            val loadResult = loadChunk(chunkId)
+            if (loadResult.isFailure) {
+                log(tag, WARN) { "Failed to load chunk $chunkId for range $startOffset-$endOffset" }
+            }
+        }
+
+        // CRITICAL: Collect chunks AFTER all loading completes to avoid returning evicted chunks
+        // During loading, boundary adjustments may evict chunks - we must get fresh refs from cache
+        val loadedChunks = relevantChunkIds.mapNotNull { chunkId ->
             val chunk = _chunks.value[chunkId]
-            if (chunk != null && chunk.isLoaded) {
-                // Chunk already in cache
-                loadedChunks.add(chunk)
+            if (chunk == null || !chunk.isLoaded) {
+                log(tag, WARN) { "Chunk $chunkId not in cache after loading" }
+                null
             } else {
-                // Chunk not in cache, need to load it
-                val loadResult = loadChunk(chunkId)
-                loadResult.fold(
-                    onSuccess = { loadedChunks.add(it) },
-                    onFailure = {
-                        log(tag, WARN) { "Failed to load chunk $chunkId for range $startOffset-$endOffset" }
-                    }
-                )
+                chunk
             }
         }
 
@@ -753,6 +768,7 @@ class ChunkManager @AssistedInject constructor(
     companion object {
         const val DEFAULT_CHUNK_SIZE = 64 * 1024L // 64KB for testing
         const val DEFAULT_MAX_CACHED_CHUNKS = 5 // Keep 5 chunks in memory (320KB with 64KB chunks)
+        const val CHUNK_SIZE_TOLERANCE_PERCENT = 0.05 // 5% tolerance for chunk size variations (~3.2KB for 64KB chunks)
 
         /**
          * Merges dirty chunks into original file content, correctly handling chunk size changes.
