@@ -685,25 +685,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
 
-                val intent = shareIntentUseCase.createShareIntent(shareItems)
-                if (intent != null) {
-                    try {
-                        val chooserIntent = Intent.createChooser(
-                            intent,
-                            if (selectedFiles.size == 1) {
-                                "Share ${selectedFiles.first().lookup.name}"
-                            } else {
-                                "Share ${selectedFiles.size} files"
-                            }
-                        )
-                        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        context.startActivity(chooserIntent)
-                    } catch (e: Exception) {
-                        log(tag, ERROR) { "Failed to share files: ${e.asLog()}" }
-                        errorEvents.emit(e)
-                    }
+                val chooserTitle = if (selectedFiles.size == 1) {
+                    context.getString(
+                        eu.darken.butler.common.R.string.general_share_single_title,
+                        selectedFiles.first().lookup.name
+                    )
                 } else {
-                    log(tag, ERROR) { "Failed to create share intent for ${selectedFiles.size} files" }
+                    context.resources.getQuantityString(
+                        eu.darken.butler.common.R.plurals.general_share_multiple_title,
+                        selectedFiles.size,
+                        selectedFiles.size
+                    )
+                }
+
+                val success = shareIntentUseCase.shareWithChooser(shareItems, chooserTitle)
+                if (!success) {
                     errorEvents.emit(Exception("Failed to share ${selectedFiles.size} files"))
                 }
             }
@@ -888,18 +884,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             override val displayName = item.lookup.name
         }
 
-        val intent = shareIntentUseCase.createShareIntent(listOf(shareItem))
-        if (intent != null) {
-            try {
-                val chooserIntent = Intent.createChooser(intent, "Share ${item.lookup.name}")
-                chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(chooserIntent)
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to share file: ${e.asLog()}" }
-                errorEvents.emit(e)
-            }
-        } else {
-            log(tag, WARN) { "Failed to create share intent for: ${item.lookup.name}" }
+        val chooserTitle = context.getString(
+            eu.darken.butler.common.R.string.general_share_single_title,
+            item.lookup.name
+        )
+
+        val success = shareIntentUseCase.shareWithChooser(listOf(shareItem), chooserTitle)
+        if (!success) {
             errorEvents.emit(Exception("Failed to share file: ${item.lookup.name}"))
         }
     }

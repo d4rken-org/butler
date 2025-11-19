@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.issues
+package eu.darken.butler.workspace.ui.issues
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,10 +36,12 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.R
+import kotlin.time.Instant
 
 @Composable
 fun PathAlreadyExistsIssueSheet(
@@ -76,8 +78,8 @@ fun PathAlreadyExistsIssueSheet(
 
         Text(
             text = stringResource(
-                if (isDirectory) R.string.explorer_issue_collision_existing_folder_label
-                else R.string.explorer_issue_collision_existing_file_label
+                if (isDirectory) R.string.workspace_issue_collision_existing_folder_label
+                else R.string.workspace_issue_collision_existing_file_label
             ),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -87,8 +89,8 @@ fun PathAlreadyExistsIssueSheet(
         issue.source?.let { source ->
             Text(
                 text = stringResource(
-                    if (isDirectory) R.string.explorer_issue_collision_new_folder
-                    else R.string.explorer_issue_collision_new_file
+                    if (isDirectory) R.string.workspace_issue_collision_new_folder
+                    else R.string.workspace_issue_collision_new_file
                 ),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -112,7 +114,7 @@ fun PathAlreadyExistsIssueSheet(
                 onCheckedChange = null,
             )
             Text(
-                text = stringResource(R.string.explorer_issue_apply_all),
+                text = stringResource(R.string.workspace_issue_apply_all),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -139,7 +141,7 @@ fun PathAlreadyExistsIssueSheet(
                             modifier = Modifier.size(18.dp),
                         )
                         Text(
-                            text = stringResource(R.string.explorer_issue_common_skip),
+                            text = stringResource(R.string.workspace_issue_common_skip),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -170,7 +172,7 @@ fun PathAlreadyExistsIssueSheet(
                                     modifier = Modifier.size(18.dp),
                                 )
                                 Text(
-                                    text = stringResource(R.string.explorer_issue_collision_merge),
+                                    text = stringResource(R.string.workspace_issue_collision_merge),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
@@ -195,7 +197,7 @@ fun PathAlreadyExistsIssueSheet(
                                     modifier = Modifier.size(18.dp),
                                 )
                                 Text(
-                                    text = stringResource(R.string.explorer_issue_collision_overwrite),
+                                    text = stringResource(R.string.workspace_issue_collision_overwrite),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
@@ -232,7 +234,7 @@ fun PathAlreadyExistsIssueSheet(
                                     modifier = Modifier.size(18.dp),
                                 )
                                 Text(
-                                    text = stringResource(R.string.explorer_issue_common_rename_new),
+                                    text = stringResource(R.string.workspace_issue_common_rename_new),
                                     maxLines = 1,
                                     overflow = TextOverflow.MiddleEllipsis,
                                 )
@@ -261,7 +263,7 @@ fun PathAlreadyExistsIssueSheet(
                                     modifier = Modifier.size(18.dp),
                                 )
                                 Text(
-                                    text = stringResource(R.string.explorer_issue_common_rename_existing),
+                                    text = stringResource(R.string.workspace_issue_common_rename_existing),
                                     maxLines = 1,
                                     overflow = TextOverflow.MiddleEllipsis,
                                 )
@@ -288,7 +290,7 @@ fun PathAlreadyExistsIssueSheet(
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
-                        text = stringResource(R.string.explorer_issue_common_cancel),
+                        text = stringResource(R.string.workspace_issue_common_cancel),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -303,7 +305,7 @@ fun PathAlreadyExistsIssueSheet(
         PathIssueRenameDialog(
             currentName = originalName,
             initialValue = issue.suggestedName,
-            dialogTitle = stringResource(R.string.explorer_rename_dialog_title_new),
+            dialogTitle = stringResource(R.string.workspace_issue_rename_dialog_title_new),
             onConfirm = { newName ->
                 onResolution(PathActionIssue.PathAlreadyExists.Resolution.RenameSource(newName, applyToAll = false))
                 showRenameNewDialog = false
@@ -316,7 +318,7 @@ fun PathAlreadyExistsIssueSheet(
     if (showRenameExistingDialog) {
         PathIssueRenameDialog(
             currentName = issue.destination.name,
-            dialogTitle = stringResource(R.string.explorer_rename_dialog_title_existing),
+            dialogTitle = stringResource(R.string.workspace_issue_rename_dialog_title_existing),
             onConfirm = { newName ->
                 onResolution(PathActionIssue.PathAlreadyExists.Resolution.RenameDestination(newName, applyToAll = false))
                 showRenameExistingDialog = false
@@ -331,13 +333,25 @@ fun PathAlreadyExistsIssueSheet(
 private fun PathAlreadyExistsIssueSheetFilePreview() {
     PreviewWrapper {
         PathAlreadyExistsIssueSheet(
-            issue = MockDataProvider.createMockPathExistsIssue(
-                source = MockDataProvider.createMockPdfFile("document.pdf", sizeMB = 5, hoursAgo = 1),
-                destination = MockDataProvider.createMockLocalPathLookup(
-                    path = "/storage/emulated/0/Download/document.pdf",
-                    sizeKB = 3 * 1024,
-                    hoursAgo = 24
-                )
+            issue = PathActionIssue.PathAlreadyExists(
+                source = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Desktop/document.pdf"),
+                    fileType = FileType.FILE,
+                    size = 5 * 1024 * 1024,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                    target = null,
+                ),
+                destination = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
+                    fileType = FileType.FILE,
+                    size = 3 * 1024 * 1024,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+                    target = null,
+                ),
+                canSkip = true,
+                canOverwrite = true,
+                canRenameSource = false,
+                canRenameDestination = false,
             ),
             onResolution = {},
         )
@@ -350,11 +364,19 @@ private fun PathAlreadyExistsIssueSheetRenameOptionsPreview() {
     PreviewWrapper {
         PathAlreadyExistsIssueSheet(
             issue = PathActionIssue.PathAlreadyExists(
-                destination = MockDataProvider.createMockPdfFile("document.pdf", sizeMB = 2, hoursAgo = 24),
-                source = MockDataProvider.createMockLocalPathLookup(
-                    path = "/storage/emulated/0/Desktop/document.pdf",
-                    sizeKB = 3 * 1024,
-                    hoursAgo = 1
+                destination = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
+                    fileType = FileType.FILE,
+                    size = 2 * 1024 * 1024,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+                    target = null,
+                ),
+                source = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Desktop/document.pdf"),
+                    fileType = FileType.FILE,
+                    size = 3 * 1024 * 1024,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                    target = null,
                 ),
                 canSkip = true,
                 canOverwrite = true,
@@ -372,17 +394,19 @@ private fun PathAlreadyExistsIssueSheetFolderPreview() {
     PreviewWrapper {
         PathAlreadyExistsIssueSheet(
             issue = PathActionIssue.PathAlreadyExists(
-                destination = MockDataProvider.createMockLocalPathLookup(
-                    path = "/storage/emulated/0/Pictures/Vacation",
+                destination = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Vacation"),
                     fileType = FileType.DIRECTORY,
-                    sizeKB = 0,
-                    hoursAgo = 168 // 1 week
+                    size = 0,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 604800000), // 1 week
+                    target = null,
                 ),
-                source = MockDataProvider.createMockLocalPathLookup(
-                    path = "/storage/emulated/0/Desktop/Vacation",
+                source = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Desktop/Vacation"),
                     fileType = FileType.DIRECTORY,
-                    sizeKB = 0,
-                    hoursAgo = 1
+                    size = 0,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                    target = null,
                 ),
                 canSkip = true,
                 canMerge = true,

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.webkit.MimeTypeMap
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.core.content.FileProvider
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -31,6 +30,7 @@ import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
@@ -112,6 +112,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private var lastAutoExecutedQuery: String? = null
     private var currentSearchId: String? = null
 
+    // Issue/conflict handling
+    private val issueStateFlow = MutableStateFlow<eu.darken.butler.common.issue.Issue?>(null)
+    val issueState = issueStateFlow
+    private var currentIssueOperationId: Operation.Id? = null
+
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
     // Observe workspace search state
@@ -151,6 +156,25 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                             }
                         }
                     }
+                }
+            }
+            .launchIn(vmScope)
+
+        // Observe pending issues/conflicts from operations
+        workspaceSource
+            .filterNotNull()
+            .flatMapLatest { it.operations }
+            .map { operationsState ->
+                operationsState.pendingConflicts.entries.firstOrNull()
+            }
+            .onEach { pending ->
+                if (pending != null) {
+                    log(TAG, INFO) { "Detected pending issue for operation ${pending.key}: ${pending.value}" }
+                    issueStateFlow.value = pending.value
+                    currentIssueOperationId = pending.key
+                } else {
+                    issueStateFlow.value = null
+                    currentIssueOperationId = null
                 }
             }
             .launchIn(vmScope)
@@ -562,9 +586,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 log(TAG, INFO) { "Copying path to system clipboard: ${action.result.path.path}" }
                 systemClipboardHelper.copyToClipboard(action.result.path.path)
             }
-            is SearcherAction.Properties -> {
-                showFileProperties(action.result)
-            }
             is SearcherAction.SelectAll -> selectAll()
             is SearcherAction.DeselectAll -> deselectAll()
             is SearcherAction.Common.Sort -> {
@@ -643,38 +664,29 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     private fun shareFiles(results: List<SearchItem>) {
-        log(TAG, INFO) { "Sharing ${results.size} file(s)" }
+        log(TAG) { "shareFiles(): ${results.size} items" }
 
-        try {
-            val shareItems = results.map { result ->
-                object : ShareIntentUseCase.Item {
-                    override val path = result.path
-                    override val mimeType = getMimeType(result.name)
-                    override val displayName = result.name
-                }
+        val shareItems = results.map { result ->
+            object : ShareIntentUseCase.Item {
+                override val path = result.path
+                override val mimeType = getMimeType(result.name)
+                override val displayName = result.name
             }
+        }
 
-            val intent = shareIntentUseCase.createShareIntent(shareItems)
+        val chooserTitle = if (results.size == 1) {
+            appContext.getString(eu.darken.butler.common.R.string.general_share_single_title, results.first().name)
+        } else {
+            appContext.resources.getQuantityString(
+                eu.darken.butler.common.R.plurals.general_share_multiple_title,
+                results.size,
+                results.size
+            )
+        }
 
-            if (intent != null) {
-                val chooser = Intent.createChooser(
-                    intent,
-                    if (results.size == 1) {
-                        "Share ${results.first().name}"
-                    } else {
-                        "Share ${results.size} files"
-                    }
-                )
-                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                appContext.startActivity(chooser)
-                log(TAG, INFO) { "Share intent launched successfully" }
-            } else {
-                log(TAG, WARN) { "Failed to create share intent" }
-                throw Exception("Failed to create share intent for selected files")
-            }
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Error creating share intent: ${e.asLog()}" }
-            throw e
+        val success = shareIntentUseCase.shareWithChooser(shareItems, chooserTitle)
+        if (!success) {
+            throw Exception("Failed to create share intent for selected files")
         }
     }
 
@@ -773,11 +785,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow.value = SearcherDialogState.None
         searcherSettings.sortSettings.value(result.sortSettings)
         currentSortSettings.value = result.sortSettings
-    }
-
-    private fun showFileProperties(result: SearchItem) {
-        log(TAG) { "showFileProperties(${result.name})" }
-        dialogStateFlow.value = SearcherDialogState.FileInfo(result)
     }
 
     fun navigateToClipboardSource(clip: ClipboardClip) = launch {
@@ -881,19 +888,19 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun showConflictSheet(operationId: Operation.Id) = launch {
-        log(TAG) { "showConflictSheet($operationId): Requesting to show conflict sheet" }
+        log(TAG) { "showConflictSheet($operationId): Conflict sheet is automatically shown via issueState observation" }
+        // Note: Issue sheets are automatically displayed when issueState is set by the init block observer
+        // No manual action needed here - the UI observes issueState and shows IssuesBottomSheet when non-null
+    }
 
-        // Get current conflicts map
-        val workspace = getWorkspace()
-        val operationsState = workspace.operations.first()
-        val conflicts = operationsState.pendingConflicts
-        val issue = conflicts[operationId]
-
-        if (issue != null) {
-            // TODO: Show conflict sheet for searcher
-            log(TAG, WARN) { "Conflict sheet not yet implemented for searcher: $issue" }
+    fun resolveIssue(resolution: eu.darken.butler.common.files.actions.PathActionIssue.Resolution) = launch {
+        val operationId = currentIssueOperationId
+        if (operationId != null) {
+            log(TAG, INFO) { "Resolving issue for operation $operationId with resolution: $resolution" }
+            val workspace = getWorkspace()
+            workspace.resolveConflict(operationId, resolution)
         } else {
-            log(TAG, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
+            log(TAG, WARN) { "Cannot resolve issue: no current issue operation ID" }
         }
     }
 

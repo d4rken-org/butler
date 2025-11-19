@@ -171,6 +171,26 @@
     <string name="workspace_error_hide_details_action">Hide technical details</string>
     <string name="workspace_error_copy_action">Copy error</string>
 
+    <!-- Issue Resolution (conflict handling) -->
+    <string name="workspace_issue_collision_existing_file_label">Existing file</string>
+    <string name="workspace_issue_collision_existing_folder_label">Existing folder</string>
+    <string name="workspace_issue_collision_new_file">New file</string>
+    <string name="workspace_issue_collision_new_folder">New folder</string>
+    <string name="workspace_issue_collision_overwrite">Replace</string>
+    <string name="workspace_issue_collision_merge">Merge</string>
+    <string name="workspace_issue_common_source_file">Source file</string>
+    <string name="workspace_issue_common_destination_file">Destination</string>
+    <string name="workspace_issue_common_skip">Skip</string>
+    <string name="workspace_issue_common_rename">Rename</string>
+    <string name="workspace_issue_common_rename_new">Rename new</string>
+    <string name="workspace_issue_common_rename_existing">Rename existing</string>
+    <string name="workspace_issue_common_cancel">Cancel</string>
+    <string name="workspace_issue_apply_all">Apply to all remaining issues</string>
+    <string name="workspace_issue_rename_new_name">New name</string>
+    <string name="workspace_issue_rename_dialog_title_new">Rename incoming file</string>
+    <string name="workspace_issue_rename_dialog_title_existing">Rename existing file</string>
+    <string name="workspace_issue_type_folder">Folder</string>
+
     <!-- Open in New Tabs Confirmation Dialog -->
     <string name="workspace_open_tabs_confirmation_title">Open multiple tabs?</string>
     <string name="workspace_open_tabs_confirmation_message">This will open %1$d workspaces.</string>

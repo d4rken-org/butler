@@ -706,9 +706,9 @@ fun SearcherWorkspacePage(
             }
         }
 
-        // Quick actions bottom sheet
+        // Item details bottom sheet
         currentState.quickActionsResult?.let { result ->
-            SearchResultQuickActions(
+            SearchResultItemDetails(
                 result = result,
                 onAction = { action ->
                     onPageAction(SearcherPageAction.WorkspaceAction(action))
@@ -719,6 +719,16 @@ fun SearcherWorkspacePage(
                     onPageAction(SearcherPageAction.Results.HideQuickActions)
                 },
                 onDismiss = { onPageAction(SearcherPageAction.Results.HideQuickActions) }
+            )
+        }
+
+        // Issue/conflict resolution bottom sheet
+        val issueState by (vm?.issueState?.collectAsState() ?: remember { mutableStateOf(null) })
+        if (issueState != null) {
+            eu.darken.butler.workspace.ui.issues.IssuesBottomSheet(
+                issue = issueState!!,
+                onResolution = { resolution -> vm?.resolveIssue(resolution) },
+                onDismiss = { /* Issue will auto-clear when resolved or cancelled */ },
             )
         }
 

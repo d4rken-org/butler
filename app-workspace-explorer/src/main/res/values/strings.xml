@@ -64,7 +64,6 @@
     <string name="explorer_action_copy">Copy</string>
     <string name="explorer_action_cut">Cut</string>
     <string name="explorer_action_delete">Delete</string>
-    <string name="explorer_action_share">Share</string>
     <string name="explorer_action_select_all">Select all</string>
     <string name="explorer_action_deselect_all">Deselect all</string>
     <string name="explorer_action_add_location">Add location</string>
@@ -193,27 +192,6 @@
     <!-- Status Messages -->
     <string name="explorer_loading">Loading…</string>
     <string name="explorer_file_peek_loading_text">Loading…</string>
-
-    <!-- Issue Messages -->
-    <string name="explorer_issue_collision_existing_file_label">Existing file</string>
-    <string name="explorer_issue_collision_existing_folder_label">Existing folder</string>
-    <string name="explorer_issue_collision_new_file">New file</string>
-    <string name="explorer_issue_collision_new_folder">New folder</string>
-    <string name="explorer_issue_collision_overwrite">Replace</string>
-    <string name="explorer_issue_collision_merge">Merge</string>
-
-    <string name="explorer_issue_common_source_file">Source file</string>
-    <string name="explorer_issue_common_destination_file">Destination</string>
-    <string name="explorer_issue_common_skip">Skip</string>
-    <string name="explorer_issue_common_rename">Rename</string>
-    <string name="explorer_issue_common_rename_new">Rename new</string>
-    <string name="explorer_issue_common_rename_existing">Rename existing</string>
-    <string name="explorer_issue_common_cancel">Cancel</string>
-    <string name="explorer_issue_apply_all">Apply to all remaining issues</string>
-    <string name="explorer_rename_new_name">New name</string>
-    <string name="explorer_rename_dialog_title_new">Rename incoming file</string>
-    <string name="explorer_rename_dialog_title_existing">Rename existing file</string>
-    <string name="explorer_type_folder">Folder</string>
 
     <!-- Empty Folder Captions -->
     <string name="explorer_empty_folder_caption_1">Nothing to see here… move along 🕵️</string>

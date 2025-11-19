@@ -78,19 +78,13 @@ fun FileInfo(
 
         // Line 4: Match context (if available)
         result.matchContext?.let { context ->
-            val matchText = buildString {
-                context.lineNumber?.let { lineNum ->
-                    append(stringResource(R.string.searcher_match_line_label, lineNum))
-                }
-                context.matchedLine?.let { line ->
-                    if (isNotEmpty()) append(": ")
-                    append(line.trim())
-                }
-            }
-
-            if (matchText.isNotEmpty()) {
+            if (context.lineNumber != null && context.matchedLine != null) {
                 Text(
-                    text = matchText,
+                    text = stringResource(
+                        R.string.searcher_match_line_label,
+                        context.lineNumber,
+                        context.matchedLine.trim()
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                     maxLines = 1,

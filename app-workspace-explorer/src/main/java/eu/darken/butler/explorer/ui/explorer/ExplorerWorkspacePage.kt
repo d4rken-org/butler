@@ -66,11 +66,12 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
-import eu.darken.butler.explorer.ui.explorer.issues.IssueBottomSheet
+import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
@@ -81,6 +82,7 @@ import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.picker.ExplorerPickerTopBar
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
@@ -404,10 +406,10 @@ fun ExplorerWorkspacePage(
                 val pickerConfig = mainState.pickerConfig
                 if (pickerConfig != null) {
                     // Picker mode - use simplified picker top bar
-                    eu.darken.butler.explorer.ui.picker.ExplorerPickerTopBar(
+                    ExplorerPickerTopBar(
                         selection = pickerConfig.selection,
                         selectionCount = mainState.selectionState.selectedItems.size,
-                        breadcrumbs = mainState.breadcrumbs,
+                        breadcrumbs = mainState.breadcrumbs.takeIf { it.isNotEmpty() },
                         currentLocation = mainState.currentLocation,
                         scrollBehavior = scrollBehavior,
                         onBreadcrumbClick = { navigation -> vm?.navigate(navigation) },
@@ -446,8 +448,7 @@ fun ExplorerWorkspacePage(
                             info = mainState.info,
                             selectedCount = mainState.selectionState.selectedItems.size,
                             onClearSelection = { vm?.clearSelection() },
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
 
                         mainState.error?.let { error ->
@@ -761,7 +762,7 @@ fun ExplorerWorkspacePage(
 
         // Show conflict bottom sheet when needed
         if (issueState != null && showIssueSheet) {
-            IssueBottomSheet(
+            IssuesBottomSheet(
                 issue = issueState!!,
                 onResolution = { resolution -> vm?.resolveConflict(resolution) },
                 onDismiss = { showIssueSheet = false },
@@ -956,6 +957,214 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
             operationsStateSource = flowOf(mockOperations),
             workspaceStateSource = flowOf(null),
             vm = null,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ExplorerPickerMode_DirectorySinglePreview() {
+    val mockPickerConfig = PickerConfig(
+        selection = PickerConfig.Selection.DirectorySingle,
+        callerWorkspaceId = Workspace.Id(),
+    )
+
+    val mockDirectories = listOf(
+        MockDataProvider.createMockDirectory("Projects", childCount = 12),
+        MockDataProvider.createMockDirectory("Work", childCount = 8),
+        MockDataProvider.createMockDirectory("Archive", childCount = 45),
+        MockDataProvider.createMockDirectory("Backups", childCount = 3),
+    )
+
+    val mockState = ExplorerWorkspaceViewModel.State(
+        pickerConfig = mockPickerConfig,
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/sdcard/Documents"),
+            items = mockDirectories,
+            info = ExplorerLocation.Directory.Info(
+                fileCount = 0,
+                directoryCount = 4,
+                totalSize = 1024L * 1024L * 150L,
+                volumeFreeSpace = 1024L * 1024L * 1024L * 32L,
+                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
+                isWritable = true,
+            ),
+            progress = null,
+        ),
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_home.toCaString(),
+                target = ExplorerNavigation.Target.Home
+            ),
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_device.toCaString(),
+                target = ExplorerNavigation.Target.Device
+            ),
+            ExplorerBreadcrumb(
+                label = "sdcard".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard"))
+            ),
+            ExplorerBreadcrumb(
+                label = "Documents".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Documents"))
+            )
+        ),
+        items = mockDirectories,
+    )
+
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
+            vm = null,
+            workspaceActionHandler = null,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ExplorerPickerMode_MixedMultiPreview() {
+    val mockPickerConfig = PickerConfig(
+        selection = PickerConfig.Selection.MixedMulti,
+        callerWorkspaceId = Workspace.Id(),
+    )
+
+    val mockItems = listOf(
+        MockDataProvider.createMockDirectory("Photos", childCount = 234),
+        MockDataProvider.createMockDirectory("Videos", childCount = 56),
+        MockDataProvider.createMockDirectory("Music", childCount = 189),
+        MockDataProvider.createMockRegularFile("vacation.jpg"),
+        MockDataProvider.createMockRegularFile("recipe.pdf"),
+        MockDataProvider.createMockRegularFile("notes.txt"),
+        MockDataProvider.createMockRegularFile("budget.xlsx"),
+    )
+
+    val mockState = ExplorerWorkspaceViewModel.State(
+        pickerConfig = mockPickerConfig,
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/sdcard/Documents"),
+            items = mockItems,
+            info = ExplorerLocation.Directory.Info(
+                fileCount = 4,
+                directoryCount = 3,
+                totalSize = 1024L * 1024L * 512L,
+                volumeFreeSpace = 1024L * 1024L * 1024L * 28L,
+                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
+                isWritable = true,
+            ),
+            progress = null,
+        ),
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_home.toCaString(),
+                target = ExplorerNavigation.Target.Home
+            ),
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_device.toCaString(),
+                target = ExplorerNavigation.Target.Device
+            ),
+            ExplorerBreadcrumb(
+                label = "sdcard".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard"))
+            ),
+            ExplorerBreadcrumb(
+                label = "Documents".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Documents"))
+            )
+        ),
+        items = mockItems,
+        selectionState = ExplorerSelectionState(
+            selectedItems = setOf(mockItems[0], mockItems[2], mockItems[3], mockItems[5], mockItems[6]),
+            selectableItems = mockItems.toSet(),
+        ),
+    )
+
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
+            vm = null,
+            workspaceActionHandler = null,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ExplorerPickerMode_FileMultiPreview() {
+    val mockPickerConfig = PickerConfig(
+        selection = PickerConfig.Selection.FileMulti,
+        callerWorkspaceId = Workspace.Id(),
+    )
+
+    val mockFiles = listOf(
+        MockDataProvider.createMockRegularFile("report.pdf"),
+        MockDataProvider.createMockRegularFile("presentation.pptx"),
+        MockDataProvider.createMockRegularFile("data.xlsx"),
+        MockDataProvider.createMockRegularFile("notes.txt"),
+        MockDataProvider.createMockRegularFile("photo.jpg"),
+        MockDataProvider.createMockRegularFile("video.mp4"),
+    )
+
+    val mockState = ExplorerWorkspaceViewModel.State(
+        pickerConfig = mockPickerConfig,
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build("/sdcard/Downloads"),
+            items = mockFiles,
+            info = ExplorerLocation.Directory.Info(
+                fileCount = 6,
+                directoryCount = 0,
+                totalSize = 1024L * 1024L * 87L,
+                volumeFreeSpace = 1024L * 1024L * 1024L * 45L,
+                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
+                isWritable = true,
+            ),
+            progress = null,
+        ),
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_home.toCaString(),
+                target = ExplorerNavigation.Target.Home
+            ),
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_device.toCaString(),
+                target = ExplorerNavigation.Target.Device
+            ),
+            ExplorerBreadcrumb(
+                label = "sdcard".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard"))
+            ),
+            ExplorerBreadcrumb(
+                label = "Downloads".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Downloads"))
+            )
+        ),
+        items = mockFiles,
+        selectionState = ExplorerSelectionState(
+            selectedItems = setOf(mockFiles[0], mockFiles[2], mockFiles[4], mockFiles[5]),
+            selectableItems = mockFiles.toSet(),
+        ),
+    )
+
+    PreviewWrapper {
+        ExplorerWorkspacePage(
+            workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
+            mainStateSource = flowOf(mockState),
+            workspaceStateSource = flowOf(null),
+            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
+            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
+            vm = null,
+            workspaceActionHandler = null,
         )
     }
 }

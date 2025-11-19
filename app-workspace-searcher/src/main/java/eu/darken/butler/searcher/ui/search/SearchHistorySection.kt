@@ -72,6 +72,7 @@ fun LazyListScope.searchHistorySection(
                 )
                 Text(
                     text = stringResource(R.string.searcher_recent_searches),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.titleMedium
                 )
             }

@@ -15,6 +15,11 @@
     <string name="slogan_message_8">Never gonna lose your files.</string>
 
     <string name="general_share_action">Share</string>
+    <string name="general_share_single_title">Share %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Share %d file</item>
+        <item quantity="other">Share %d files</item>
+    </plurals>
     <string name="general_done_action">Done</string>
     <string name="general_copy_action">Copy</string>
     <string name="general_cut_action">Cut</string>
