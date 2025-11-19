@@ -1,57 +1,53 @@
 package eu.darken.butler.editor.ui.editor
 
-import android.graphics.Paint
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.border
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.editor.core.engine.TextPosition
 import kotlinx.coroutines.launch
 
+private val tag = logTag("Editor", "LazyTextEditor")
+
 @Composable
 fun LazyTextEditor(
+    modifier: Modifier = Modifier,
     content: String,
     totalLines: Int,
     cursorPosition: TextPosition,
@@ -65,7 +61,6 @@ fun LazyTextEditor(
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     onVisibleRangeChange: (IntRange) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     // Create a map of visible line content indexed by line number
     val visibleLineContent = remember(content, visibleRange) {
@@ -139,40 +134,6 @@ fun LazyTextEditor(
     )
 }
 
-@Preview2
-@Composable
-private fun LazyTextEditorPreview() {
-    PreviewWrapper {
-        val sampleContent = """
-            fun calculateSum(a: Int, b: Int): Int {
-                return a + b
-            }
-
-            fun main() {
-                val result = calculateSum(5, 3)
-                println("Result: ${'$'}result")
-            }
-        """.trimIndent()
-
-        LazyTextEditor(
-            content = sampleContent,
-            totalLines = sampleContent.split('\n').size,
-            cursorPosition = TextPosition(offset = 50, line = 1, column = 10),
-            selection = null,
-            visibleRange = 0..7,
-            showLineNumbers = true,
-            wordWrap = false,
-            fontSize = 14,
-            tabSize = 4,
-            onTextChange = {},
-            onCursorPositionChange = {},
-            onSelectionChange = {},
-            onVisibleRangeChange = {},
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
-
 @Composable
 private fun DualColumnEditorContent(
     totalLines: Int,
@@ -195,7 +156,24 @@ private fun DualColumnEditorContent(
 ) {
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     var isFocused by remember { mutableStateOf(false) }
+    var lastTapTime by remember { mutableStateOf(0L) }
+    var lastTapPosition by remember { mutableStateOf<Offset?>(null) }
+    var tapCount by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+
+    // Measure actual character width for accurate positioning
+    val textMeasurer = rememberTextMeasurer()
+    val actualCharWidth = remember(fontSize) {
+        val measured = textMeasurer.measure(
+            text = "M",  // Measure a typical monospace character
+            style = TextStyle(
+                fontSize = fontSize.sp,
+                fontFamily = FontFamily.Monospace
+            )
+        )
+        measured.size.width.toFloat()
+    }
 
     // Sync textFieldValue with visible content
     LaunchedEffect(visibleLineContent) {
@@ -210,7 +188,6 @@ private fun DualColumnEditorContent(
         }
     }
 
-    // Calculate line number width
     val lineNumberWidth = if (showLineNumbers) {
         remember(totalLines) {
             (totalLines.toString().length * 8 + 16).dp
@@ -287,7 +264,6 @@ private fun DualColumnEditorContent(
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Line numbers column
             if (showLineNumbers) {
                 LazyColumn(
                     state = lineNumbersListState,
@@ -322,8 +298,7 @@ private fun DualColumnEditorContent(
                     }
                 }
             }
-            
-            // Content column with horizontal scrolling when not wrapping
+
             val contentModifier = if (wordWrap) {
                 Modifier.fillMaxSize()
             } else {
@@ -332,7 +307,6 @@ private fun DualColumnEditorContent(
                     .horizontalScroll(horizontalScrollState)
             }
 
-            // Add focus border when editor is focused
             val focusBorderModifier = if (isFocused) {
                 Modifier.border(
                     width = 1.dp,
@@ -348,22 +322,104 @@ private fun DualColumnEditorContent(
                     .then(focusBorderModifier)
                     .clipToBounds()
                     .pointerInput(Unit) {
-                        detectTapGestures {
-                            try {
-                                focusRequester.requestFocus()
-                            } catch (e: Exception) {
-                                // Ignore focus errors
+                        detectTapGestures(
+                            onTap = { offset ->
+                                // Request focus first
+                                try {
+                                    focusRequester.requestFocus()
+                                } catch (e: Exception) {
+                                    log(tag, WARN) { "Failed to request focus: ${e.message}" }
+                                }
+
+                                val currentTime = System.currentTimeMillis()
+                                val timeSinceLastTap = currentTime - lastTapTime
+                                val isSameLocation = lastTapPosition?.let { lastPos ->
+                                    (offset - lastPos).getDistance() < 20f
+                                } ?: false
+
+                                if (timeSinceLastTap < 300 && isSameLocation) {
+                                    tapCount++
+                                } else {
+                                    tapCount = 1
+                                }
+
+                                lastTapTime = currentTime
+                                lastTapPosition = offset
+
+                                val result = calculatePositionFromOffset(
+                                    offset = offset,
+                                    contentListState = contentListState,
+                                    visibleLineContent = visibleLineContent,
+                                    density = density,
+                                    fontSize = fontSize,
+                                    tabSize = tabSize
+                                )
+
+                                if (result != null) {
+                                    when (tapCount) {
+                                        1 -> {
+                                            // Single tap: Place cursor and clear selection
+                                            onCursorPositionChange(result.position)
+                                            onSelectionChange(null)
+                                        }
+                                        2 -> {
+                                            // Double tap: Select word
+                                            val wordSelection = selectWordAt(
+                                                result.position.line,
+                                                result.position.column,
+                                                visibleLineContent
+                                            )
+                                            onSelectionChange(wordSelection)
+                                        }
+                                        else -> {
+                                            // Triple tap and beyond: Select line
+                                            val lineSelection = selectLineAt(
+                                                result.position.line,
+                                                visibleLineContent
+                                            )
+                                            onSelectionChange(lineSelection)
+                                            tapCount = 0 // Reset for next tap sequence
+                                        }
+                                    }
+                                } else {
+                                    log(tag, DEBUG) { "No line found at Y offset ${offset.y}" }
+                                }
+                            },
+                            onLongPress = { offset ->
+                                // Request focus
+                                try {
+                                    focusRequester.requestFocus()
+                                } catch (e: Exception) {
+                                    log(tag, WARN) { "Failed to request focus: ${e.message}" }
+                                }
+
+                                val result = calculatePositionFromOffset(
+                                    offset = offset,
+                                    contentListState = contentListState,
+                                    visibleLineContent = visibleLineContent,
+                                    density = density,
+                                    fontSize = fontSize,
+                                    tabSize = tabSize
+                                )
+
+                                if (result != null) {
+                                    // Long press: Select word at cursor
+                                    val wordSelection = selectWordAt(
+                                        result.position.line,
+                                        result.position.column,
+                                        visibleLineContent
+                                    )
+                                    onSelectionChange(wordSelection)
+                                }
                             }
-                        }
+                        )
                     }
             ) {
                 items(
                     count = totalLines,
                     key = { index -> "line_content_$index" }
                 ) { lineIndex ->
-                    // Get line content from map, or show loading placeholder if not available
                     val lineContent = visibleLineContent[lineIndex] ?: ""
-                    val isInVisibleRange = lineIndex in visibleRange
 
                     TextLineItem(
                         lineIndex = lineIndex,
@@ -375,18 +431,77 @@ private fun DualColumnEditorContent(
                         wordWrap = wordWrap,
                         fontSize = fontSize,
                         tabSize = tabSize,
-                        onLineClick = { clickPosition ->
-                            val newPosition = TextPosition(
-                                offset = calculateOffsetForLine(visibleLineContent, lineIndex, clickPosition),
-                                line = lineIndex,
-                                column = clickPosition
-                            )
-                            onCursorPositionChange(newPosition)
-                        },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
+        }
+
+        // Selection handles
+        if (selection != null && isFocused) {
+            val (start, end) = selection
+
+            // Start handle
+            SelectionHandle(
+                position = start,
+                contentListState = contentListState,
+                lineNumberWidth = lineNumberWidth,
+                horizontalScrollState = horizontalScrollState,
+                actualCharWidth = actualCharWidth,
+                onDrag = { offset ->
+                    val result = calculatePositionFromOffset(
+                        offset = offset,
+                        contentListState = contentListState,
+                        visibleLineContent = visibleLineContent,
+                        density = density,
+                        fontSize = fontSize,
+                        tabSize = tabSize
+                    )
+
+                    if (result != null) {
+                        // Update selection start, keep end fixed
+                        val (newStart, newEnd) = if (result.position.line < end.line ||
+                            (result.position.line == end.line && result.position.column < end.column)) {
+                            result.position to end
+                        } else {
+                            end to result.position
+                        }
+
+                        onSelectionChange(newStart to newEnd)
+                    }
+                }
+            )
+
+            // End handle
+            SelectionHandle(
+                position = end,
+                contentListState = contentListState,
+                lineNumberWidth = lineNumberWidth,
+                horizontalScrollState = horizontalScrollState,
+                actualCharWidth = actualCharWidth,
+                onDrag = { offset ->
+                    val result = calculatePositionFromOffset(
+                        offset = offset,
+                        contentListState = contentListState,
+                        visibleLineContent = visibleLineContent,
+                        density = density,
+                        fontSize = fontSize,
+                        tabSize = tabSize
+                    )
+
+                    if (result != null) {
+                        // Update selection end, keep start fixed
+                        val (newStart, newEnd) = if (result.position.line > start.line ||
+                            (result.position.line == start.line && result.position.column > start.column)) {
+                            start to result.position
+                        } else {
+                            result.position to start
+                        }
+
+                        onSelectionChange(newStart to newEnd)
+                    }
+                }
+            )
         }
     }
 
@@ -400,288 +515,36 @@ private fun DualColumnEditorContent(
     }
 }
 
-
+@Preview2
 @Composable
-private fun TextLineItem(
-    lineIndex: Int,
-    lineContent: String,
-    cursorPosition: TextPosition,
-    selection: Pair<TextPosition, TextPosition>?,
-    isCurrentLine: Boolean,
-    isFocused: Boolean,
-    wordWrap: Boolean,
-    fontSize: Int,
-    tabSize: Int,
-    onLineClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val density = LocalDensity.current
-    val cursorColor = MaterialTheme.colorScheme.primary
-
-    // Blinking animation when focused
-    val infiniteTransition = rememberInfiniteTransition(label = "cursor_blink")
-    val cursorAlpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = if (isFocused) 0f else 1f,
-        animationSpec = if (isFocused) {
-            infiniteRepeatable(
-                animation = keyframes {
-                    durationMillis = 1060
-                    1f at 0
-                    1f at 530
-                    0f at 531
-                    0f at 1060
-                },
-                repeatMode = RepeatMode.Restart
-            )
-        } else {
-            infiniteRepeatable(
-                animation = tween(0),
-                repeatMode = RepeatMode.Restart
-            )
-        },
-        label = "cursor_alpha"
-    )
-
-    val backgroundColor = if (isCurrentLine) {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-    } else {
-        Color.Transparent
-    }
-
-    // Draw cursor using drawWithContent to ensure it's on top
-    val cursorModifier = if (isCurrentLine && selection == null) {
-        Modifier.drawWithContent {
-            // Draw content first (text and background)
-            drawContent()
-
-            // Calculate cursor position
-            val expandedText = lineContent.expandTabs(tabSize)
-            val position = cursorPosition.column
-
-            val layoutResult = textLayoutResult
-            val cursorX = if (layoutResult != null && position <= expandedText.length) {
-                val boundingBox = layoutResult.getBoundingBox(position.coerceIn(0, expandedText.length))
-                boundingBox.left
-            } else {
-                val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-                position.coerceIn(0, expandedText.length) * charWidth
+private fun LazyTextEditorPreview() {
+    PreviewWrapper {
+        val sampleContent = """
+            fun calculateSum(a: Int, b: Int): Int {
+                return a + b
             }
 
-            // Draw cursor on top
-            if (isFocused) {
-                // Focused: Blinking line cursor
-                drawLine(
-                    color = cursorColor.copy(alpha = cursorAlpha),
-                    start = Offset(cursorX, 0f),
-                    end = Offset(cursorX, size.height),
-                    strokeWidth = 3.dp.toPx()
-                )
-            } else {
-                // Unfocused: Block cursor
-                val layoutResultForWidth = textLayoutResult
-                val charWidth = if (layoutResultForWidth != null && position < expandedText.length) {
-                    val currentBox = layoutResultForWidth.getBoundingBox(position)
-                    val nextBox = if (position + 1 <= expandedText.length) {
-                        layoutResultForWidth.getBoundingBox(position + 1)
-                    } else {
-                        currentBox
-                    }
-                    (nextBox.left - currentBox.left).coerceAtLeast(0f)
-                } else {
-                    with(density) { (fontSize * 0.6f).sp.toPx() }
-                }
-
-                val blockWidth = if (position < expandedText.length) {
-                    charWidth
-                } else {
-                    charWidth * 0.3f
-                }
-
-                drawRect(
-                    color = cursorColor.copy(alpha = 0.4f),
-                    topLeft = Offset(cursorX, 0f),
-                    size = Size(blockWidth, size.height)
-                )
+            fun main() {
+                val result = calculateSum(5, 3)
+                println("Result: ${'$'}result")
             }
-        }
-    } else {
-        Modifier
-    }
+        """.trimIndent()
 
-    Box(
-        modifier = modifier
-            .background(backgroundColor)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
-            .then(cursorModifier)
-    ) {
-        // Text content with selection highlighting
-        SelectableText(
-            text = lineContent.expandTabs(tabSize).ifEmpty { " " }, // Ensure empty lines have height
-            lineIndex = lineIndex,
-            cursorPosition = cursorPosition,
-            selection = selection,
-            wordWrap = wordWrap,
-            fontSize = fontSize,
-            onTextClick = onLineClick,
-            onTextLayout = { layoutResult ->
-                textLayoutResult = layoutResult
-            },
-            modifier = Modifier.fillMaxWidth()
+        LazyTextEditor(
+            content = sampleContent,
+            totalLines = sampleContent.split('\n').size,
+            cursorPosition = TextPosition(offset = 50, line = 1, column = 10),
+            selection = null,
+            visibleRange = 0..7,
+            showLineNumbers = true,
+            wordWrap = false,
+            fontSize = 14,
+            tabSize = 4,
+            onTextChange = {},
+            onCursorPositionChange = {},
+            onSelectionChange = {},
+            onVisibleRangeChange = {},
+            modifier = Modifier.fillMaxSize()
         )
     }
-}
-
-@Composable
-private fun SelectableText(
-    text: String,
-    lineIndex: Int,
-    cursorPosition: TextPosition,
-    selection: Pair<TextPosition, TextPosition>?,
-    wordWrap: Boolean,
-    fontSize: Int,
-    onTextClick: (Int) -> Unit,
-    onTextLayout: (TextLayoutResult) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val density = LocalDensity.current
-    val textColor = MaterialTheme.colorScheme.onSurface
-    var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val useCanvasRendering = false // Switch to compose text rendering for now
-    
-    if (useCanvasRendering) {
-        Canvas(
-            modifier = modifier
-                .height(with(density) { (fontSize + 4).sp.toDp() })
-                .pointerInput(lineIndex) {
-                    detectTapGestures { offset ->
-                        // Calculate character position from click
-                        val charWidth = fontSize * density.density * 0.6f // Approximate monospace char width
-                        val clickedColumn = (offset.x / charWidth).toInt().coerceIn(0, text.length)
-                        onTextClick(clickedColumn)
-                    }
-                }
-        ) {
-            drawTextLine(
-                text = text,
-                lineIndex = lineIndex,
-                selection = selection,
-                fontSize = fontSize.sp.toPx(),
-                normalColor = textColor,
-                selectionColor = Color.Blue.copy(alpha = 0.3f)
-            )
-        }
-    } else {
-        // Use Compose Text rendering (more reliable)
-        Box(
-            modifier = modifier
-                .pointerInput(lineIndex, layoutResult) {
-                    detectTapGestures { offset ->
-                        val clickedColumn = if (layoutResult != null) {
-                            // Use precise text layout measurements
-                            layoutResult!!.getOffsetForPosition(offset).coerceIn(0, text.length)
-                        } else {
-                            // Fallback to approximate calculation
-                            val charWidth = fontSize * density.density * 0.6f
-                            (offset.x / charWidth).toInt().coerceIn(0, text.length)
-                        }
-                        onTextClick(clickedColumn)
-                    }
-                }
-        ) {
-            // Selection background
-            selection?.let { (start, end) ->
-                if (lineIndex >= start.line && lineIndex <= end.line) {
-                    val selectionStart = if (lineIndex == start.line) start.column else 0
-                    val selectionEnd = if (lineIndex == end.line) end.column else text.length
-                    
-                    if (selectionStart < selectionEnd) {
-                        val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-                        val startX = selectionStart * charWidth
-                        val width = (selectionEnd - selectionStart) * charWidth
-                        
-                        Box(
-                            modifier = Modifier
-                                .offset(x = with(density) { startX.toDp() })
-                                .width(with(density) { width.toDp() })
-                                .fillMaxHeight()
-                                .background(Color.Blue.copy(alpha = 0.3f))
-                        )
-                    }
-                }
-            }
-            
-            Text(
-                text = if (text.isEmpty()) " " else text, // Show at least a space for empty lines
-                style = TextStyle(
-                    fontSize = fontSize.sp,
-                    fontFamily = FontFamily.Monospace,
-                    color = textColor
-                ),
-                softWrap = wordWrap,
-                overflow = TextOverflow.Visible,
-                onTextLayout = { result ->
-                    layoutResult = result
-                    onTextLayout(result)
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-}
-
-private fun DrawScope.drawTextLine(
-    text: String,
-    lineIndex: Int,
-    selection: Pair<TextPosition, TextPosition>?,
-    fontSize: Float,
-    normalColor: Color,
-    selectionColor: Color
-) {
-    // Draw selection background if this line is selected
-    selection?.let { (start, end) ->
-        if (lineIndex >= start.line && lineIndex <= end.line) {
-            val selectionStart = if (lineIndex == start.line) start.column else 0
-            val selectionEnd = if (lineIndex == end.line) end.column else text.length
-            
-            if (selectionStart < selectionEnd) {
-                val charWidth = fontSize * 0.6f
-                val startX = selectionStart * charWidth
-                val endX = selectionEnd * charWidth
-                
-                drawRect(
-                    color = selectionColor,
-                    topLeft = Offset(startX, 0f),
-                    size = Size(endX - startX, size.height)
-                )
-            }
-        }
-    }
-
-    // Draw text using native canvas
-    val paint = Paint().apply {
-        color = normalColor.toArgb()
-        textSize = fontSize
-        isAntiAlias = true
-        typeface = android.graphics.Typeface.MONOSPACE
-    }
-    
-    drawContext.canvas.nativeCanvas.drawText(
-        text,
-        0f,
-        fontSize * 0.8f, // Baseline offset
-        paint
-    )
-}
-
-private fun String.expandTabs(tabSize: Int): String {
-    return this.replace("\t", " ".repeat(tabSize))
-}
-
-private fun calculateOffsetForLine(visibleLineContent: Map<Int, String>, lineIndex: Int, column: Int): Long {
-    // Note: With virtual scrolling, we can't accurately calculate offset without all lines
-    // The engine should recalculate the correct offset based on line/column
-    // For now, return 0 as a placeholder
-    return 0L
 }
