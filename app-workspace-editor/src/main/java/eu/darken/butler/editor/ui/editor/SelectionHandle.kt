@@ -71,6 +71,9 @@ internal fun SelectionHandle(
             modifier = modifier
                 .size(24.dp, 24.dp)
                 .graphicsLayer {
+                    // Safely capture yPosition at start of lambda to prevent race conditions
+                    val currentYPos = yPosition ?: return@graphicsLayer
+
                     // Calculate position - hardware accelerated, no recomposition
                     val horizontalScrollOffset = horizontalScrollState.value.toFloat()
 
@@ -81,7 +84,7 @@ internal fun SelectionHandle(
 
                     // Use translation for GPU-accelerated positioning
                     translationX = xPosition
-                    translationY = yPosition!!
+                    translationY = currentYPos
                 }
                 .pointerInput(lineNumberWidthPx) {
                     detectDragGestures { change, _ ->
