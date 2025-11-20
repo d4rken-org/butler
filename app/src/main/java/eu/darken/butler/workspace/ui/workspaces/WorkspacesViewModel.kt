@@ -10,6 +10,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.upgrade.UpgradeRepo
@@ -68,7 +69,12 @@ class WorkspacesViewModel @Inject constructor(
                 if (restoredIds.isEmpty()) {
                     // No session to restore or restoration failed, create default workspace
                     log(tag) { "No session restored, creating default workspace" }
-                    workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
+                    workspaceRepo.execute(
+                        WorkspaceAction.Create(
+                            type = Workspace.Type.EXPLORER,
+                            arguments = ExplorerArguments.Default()
+                        )
+                    )
                 } else {
                     log(tag, INFO) { "Restored ${restoredIds.size} workspaces from session" }
                 }
@@ -337,8 +343,8 @@ class WorkspacesViewModel @Inject constructor(
                 state.infos
                     .filter { info ->
                         info.isSubWorkspace &&
-                        info.modalPresentation == Workspace.ModalPresentationMode.PANE_LOCAL &&
-                        info.callerWorkspaceId != null
+                            info.modalPresentation == Workspace.ModalPresentationMode.PANE_LOCAL &&
+                            info.callerWorkspaceId != null
                     }
                     .associateBy { it.callerWorkspaceId!! }
             }

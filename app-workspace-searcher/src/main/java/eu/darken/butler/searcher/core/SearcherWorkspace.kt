@@ -12,10 +12,12 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.searcher.core.arguments.SearcherArguments
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.searcher.core.operations.DeleteOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -36,19 +38,22 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 
 
 class SearcherWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
-    @Assisted private val arguments: Arguments?,
+    @Assisted private val creationArguments: SearcherArguments,
     dispatcherProvider: DispatcherProvider,
     private val operationsManager: OperationsManager,
     private val deleteOperationFactory: DeleteOperation.Factory,
     searchEngineFactory: SearchEngine.Factory,
-) : Workspace {
+) : Workspace<SearcherArguments> {
 
-    private val tag = logTag( "Searcher","Workspace", id.shortTag)
+    private val tag = logTag("Searcher", "Workspace", id.shortTag)
     private val scope = CoroutineScope(
         dispatcherProvider.IO +
             CoroutineName(tag) +
@@ -61,6 +66,10 @@ class SearcherWorkspace @AssistedInject constructor(
     private val searchEngine = searchEngineFactory.create(id, scope)
 
     override val type: Workspace.Type = Workspace.Type.SEARCHER
+
+    override suspend fun createArguments(): SearcherArguments {
+        return creationArguments
+    }
 
     override val info: MutableStateFlow<Workspace.Info> = MutableStateFlow(
         Workspace.Info(
@@ -134,9 +143,10 @@ class SearcherWorkspace @AssistedInject constructor(
 
         // Initialize search targets from arguments if provided
         scope.launch {
-            if (arguments?.startTargets != null) {
-                log(tag, INFO) { "Using targets from arguments: ${arguments.startTargets}" }
-                searchEngine.updateTargets { arguments.startTargets!! }
+            val args = creationArguments as? SearcherArguments.Default
+            if (args?.startTargets != null) {
+                log(tag, INFO) { "Using targets from arguments: ${args.startTargets}" }
+                searchEngine.updateTargets { args.startTargets!! }
             }
         }
 
@@ -349,16 +359,18 @@ class SearcherWorkspace @AssistedInject constructor(
         scope.cancel()
     }
 
-    @Parcelize
-    data class Arguments(
-        val startTargets: List<SearchTarget>? = null,
-    ) : Workspace.Arguments {
-        override val type: Workspace.Type
-            get() = Workspace.Type.SEARCHER
-    }
-
     @AssistedFactory
-    interface Factory {
-        fun create(id: Workspace.Id, arguments: Arguments?): SearcherWorkspace
+    interface Factory : WorkspaceFactory<SearcherArguments> {
+
+        override fun create(id: Workspace.Id, arguments: SearcherArguments): SearcherWorkspace
+
+        override fun serialize(json: Json, arguments: SearcherArguments): JsonElement {
+
+            return json.encodeToJsonElement(arguments)
+        }
+
+        override fun deserialize(json: Json, element: JsonElement): SearcherArguments {
+            return json.decodeFromJsonElement<SearcherArguments>(element)
+        }
     }
 }

@@ -35,7 +35,7 @@ import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -47,6 +47,7 @@ import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.PatternMatcher
+import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
@@ -819,8 +820,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // Create workspace requests
         val requests = openInNewTabsUseCase.createRequests(
             analysis = analysis,
-            createExplorerArguments = { path -> ExplorerWorkspace.Arguments(startPath = path) },
-            createEditorArguments = { path -> EditorWorkspace.Arguments(filePath = path) },
+            createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
+            createEditorArguments = { path -> EditorArguments.Default(filePath = path) },
         )
 
         // Execute batch creation directly - WorkspaceRepo handles confirmation and banner
@@ -850,7 +851,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         try {
             val action = WorkspaceAction.Create(
                 type = Workspace.Type.EDITOR,
-                arguments = EditorWorkspace.Arguments(filePath = item.lookup.lookedUp)
+                arguments = EditorArguments.Default(filePath = item.lookup.lookedUp)
             )
 
             workspaceRemote.execute(action)

@@ -1,8 +1,11 @@
 package eu.darken.butler.workspace.core.session
 
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 /**
  * Represents a saved workspace session that can be restored on app startup
@@ -10,8 +13,10 @@ import kotlinx.serialization.json.JsonElement
 @Serializable
 data class WorkspaceSession(
     val version: Int = 1,
-    val timestamp: String, // Will be Instant when serialization is ready
+    @Contextual val timestamp: Instant = Clock.System.now(),
     val workspaces: List<WorkspaceSessionData>,
+//    val focused: Workspace.Id,
+//    val selected: SparseArray<Workspace.Id>,
 )
 
 /**
@@ -21,31 +26,5 @@ data class WorkspaceSession(
 data class WorkspaceSessionData(
     val id: String,
     val type: Workspace.Type,
-    val arguments: JsonElement? = null,
-    val customState: JsonElement? = null,
-    val order: Int = 0,
+    val arguments: JsonElement,
 )
-
-/**
- * Interface for workspaces to implement their own session persistence
- */
-interface WorkspaceSerializable {
-    /**
-     * Serialize workspace-specific state to JSON
-     */
-    fun serializeState(): JsonElement?
-
-    /**
-     * Deserialize and restore workspace-specific state from JSON
-     */
-    suspend fun restoreState(state: JsonElement)
-}
-
-/**
- * Restoration result for a single workspace
- */
-sealed class WorkspaceRestorationResult {
-    data class Success(val workspaceId: Workspace.Id) : WorkspaceRestorationResult()
-    data class PartialSuccess(val workspaceId: Workspace.Id, val warning: String) : WorkspaceRestorationResult()
-    data class Failed(val type: Workspace.Type, val error: String) : WorkspaceRestorationResult()
-}

@@ -16,8 +16,6 @@ import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
 import eu.darken.butler.workspace.core.operations.OperationsManager
-import eu.darken.butler.workspace.core.session.AppArgumentsSerializer
-import eu.darken.butler.workspace.core.session.AppWorkspaceStateExtractor
 import eu.darken.butler.workspace.core.session.WorkspaceSessionData
 import eu.darken.butler.workspace.core.session.WorkspaceSessionManager
 import kotlinx.coroutines.CoroutineScope
@@ -38,6 +36,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.milliseconds
@@ -45,21 +44,32 @@ import kotlin.time.Duration.Companion.milliseconds
 @Singleton
 class WorkspaceRepo @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
-    private val templatesWorkspaceFactory: TemplatesWorkspace.Factory,
-    private val explorerWorkspaceFactory: ExplorerWorkspace.Factory,
-    private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
-    private val editorWorkspaceFactory: EditorWorkspace.Factory,
-    private val appsWorkspaceFactory: AppsWorkspace.Factory,
-    private val appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
+    templatesWorkspaceFactory: TemplatesWorkspace.Factory,
+    explorerWorkspaceFactory: ExplorerWorkspace.Factory,
+    searcherWorkspaceFactory: SearcherWorkspace.Factory,
+    editorWorkspaceFactory: EditorWorkspace.Factory,
+    appsWorkspaceFactory: AppsWorkspace.Factory,
+    appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
     private val workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
     private val sessionManager: WorkspaceSessionManager,
-    private val argumentsSerializer: AppArgumentsSerializer,
-    private val stateExtractor: AppWorkspaceStateExtractor,
+    private val json: Json,
 ) : WorkspaceProvider, WorkspaceRemote {
 
+    private val factoryMap: Map<Workspace.Type, WorkspaceFactory<*>> = Workspace.Type.entries
+        .associateWith { type ->
+            when (type) {
+                Workspace.Type.TEMPLATES -> templatesWorkspaceFactory
+                Workspace.Type.EXPLORER -> explorerWorkspaceFactory
+                Workspace.Type.SEARCHER -> searcherWorkspaceFactory
+                Workspace.Type.EDITOR -> editorWorkspaceFactory
+                Workspace.Type.APPS -> appsWorkspaceFactory
+                Workspace.Type.APP_DETAILS -> appDetailsWorkspaceFactory
+            }
+        }
+
     private val lock = Mutex()
-    private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
+    private val _workspaces = MutableStateFlow<List<Workspace<*>>>(emptyList())
     private val _events = MutableSharedFlow<WorkspaceEvent>()
 
     private val _pendingConfirmations = MutableStateFlow<Map<String, PendingWorkspaceConfirmation>>(emptyMap())
@@ -117,38 +127,19 @@ class WorkspaceRepo @Inject constructor(
 
     private fun create(
         type: Workspace.Type,
-        arguments: Workspace.Arguments? = null,
+        arguments: Workspace.Arguments,
         idToReplace: Workspace.Id? = null,
     ): Workspace.Id {
         log(TAG) { "create($type, $arguments, $idToReplace)" }
         val wip = _workspaces.value.toMutableList()
 
-        val newWorkspace = when (type) {
-            Workspace.Type.TEMPLATES -> templatesWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as TemplatesWorkspace.Arguments?
-            )
-            Workspace.Type.EXPLORER -> explorerWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments
-            )
-            Workspace.Type.SEARCHER -> searcherWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as SearcherWorkspace.Arguments?
-            )
-            Workspace.Type.EDITOR -> editorWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as EditorWorkspace.Arguments?
-            )
-            Workspace.Type.APPS -> appsWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as AppsWorkspace.Arguments?
-            )
-            Workspace.Type.APP_DETAILS -> appDetailsWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments
-            )
-        }
+        @Suppress("UNCHECKED_CAST")
+        val factory = factoryMap[type] as? WorkspaceFactory<Workspace.Arguments>
+            ?: throw IllegalArgumentException("No factory found for workspace type: $type")
+        val newWorkspace = factory.create(
+            id = Workspace.Id(),
+            arguments = arguments
+        ) as Workspace<out Workspace.Arguments>
         if (idToReplace != null) {
             val index = wip.indexOfFirst { it.id == idToReplace }
             if (index == -1) throw IllegalStateException("Tab not found")
@@ -171,7 +162,7 @@ class WorkspaceRepo @Inject constructor(
         return newWorkspace.id
     }
 
-    override fun retrieve(id: Workspace.Id): Flow<Workspace?> {
+    override fun retrieve(id: Workspace.Id): Flow<Workspace<out Workspace.Arguments>?> {
         return _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
     }
 
@@ -402,17 +393,17 @@ class WorkspaceRepo @Inject constructor(
             val sessionData = workspacesToSave.mapIndexed { index, workspace ->
                 val info = workspace.info.first()
 
-                // Extract current state as arguments for restoration
-                val extractedArguments = stateExtractor.extractArguments(workspace)
+                // Get current arguments from workspace (includes extracted state)
+                val currentArguments = workspace.createArguments()
+
+                @Suppress("UNCHECKED_CAST")
+                val factory = factoryMap.getValue(info.type) as WorkspaceFactory<Workspace.Arguments>
+                val serializedArguments = factory.serialize(json, currentArguments)
 
                 WorkspaceSessionData(
                     id = workspace.id.toString(),
                     type = info.type,
-                    arguments = extractedArguments?.let {
-                        argumentsSerializer.serialize(info.type, it)
-                    },
-                    customState = null, // Future: custom state for complex workspaces
-                    order = index,
+                    arguments = serializedArguments,
                 )
             }
 
@@ -438,13 +429,19 @@ class WorkspaceRepo @Inject constructor(
             val restoredIds = mutableListOf<Workspace.Id>()
 
             // Sort by order and restore
-            session.workspaces.sortedBy { it.order }.forEach { workspaceData ->
+            session.workspaces.forEach { workspaceData ->
                 try {
                     log(TAG) { "Restoring workspace: ${workspaceData.type}" }
 
                     // Deserialize arguments from saved data
-                    val arguments: Workspace.Arguments? = workspaceData.arguments?.let {
-                        argumentsSerializer.deserialize(workspaceData.type, it)
+                    val factory = factoryMap.getValue(workspaceData.type)
+                    val arguments: Workspace.Arguments = try {
+                        workspaceData.arguments.let {
+                            factory.deserialize(json, it)
+                        }
+                    } catch (e: Exception) {
+                        log(TAG, ERROR) { "Failed to deserialize arguments: ${e.asLog()}" }
+                        workspaceData.type.defaultArguments
                     }
 
                     val newId = create(

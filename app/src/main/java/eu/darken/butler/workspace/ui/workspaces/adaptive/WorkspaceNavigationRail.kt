@@ -178,7 +178,11 @@ fun WorkspaceNavigationRail(
             Spacer(modifier = Modifier.height(16.dp))
 
             AddWorkspaceButton(
-                onClick = { onTabAction(WorkspaceAction.Create(Workspace.Type.TEMPLATES)) }
+                onClick = {
+                    onTabAction(
+                        WorkspaceAction.Create()
+                    )
+                }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
