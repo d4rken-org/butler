@@ -71,8 +71,13 @@ class ChunkRepository @AssistedInject constructor(
      * ChunkManager will adjust chunk boundaries accordingly and the "missing" character
      * will become the first character of the next chunk.
      *
+     * NOTE: We do NOT remove orphaned low surrogates from the start, as this would cause
+     * data loss. Instead, we rely on loading chunks in order so that when a chunk ends
+     * mid-pair (and shrinks), the next chunk's boundary is adjusted to include the complete
+     * pair before it's loaded.
+     *
      * @param content The decoded string content from DataSource
-     * @return Content with complete surrogate pairs only
+     * @return Content with complete surrogate pairs only at the end
      */
     private fun adjustForSurrogatePairs(content: String): String {
         if (content.isEmpty()) return content

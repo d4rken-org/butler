@@ -892,9 +892,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
             val chunkEnd = boundary.endOffset
             val lineCount: Int
 
-            // Check if line count needs initialization (first time building metadata)
-            if (boundary.lineCount == 0) {
-                // Load chunk to count lines (only on first initialization)
+            // Check if line count needs initialization or recalculation (-1 = invalidated, needs recalc)
+            if (boundary.lineCount <= 0) {
+                // Load chunk to count lines (first initialization or after boundary adjustment)
                 val chunk = chunkManager.getChunk(chunkId)
                     ?: chunkManager.loadChunk(chunkId).getOrThrow()
 
