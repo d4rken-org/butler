@@ -154,6 +154,10 @@ private fun DualColumnEditorContent(
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Ensure drag handlers always see latest values, not captured closures
+    val currentVisibleLineContent by rememberUpdatedState(visibleLineContent)
+    val currentVisibleRange by rememberUpdatedState(visibleRange)
+
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     var isFocused by remember { mutableStateOf(false) }
     var lastTapTime by remember { mutableStateOf(0L) }
@@ -453,7 +457,7 @@ private fun DualColumnEditorContent(
                     val result = calculatePositionFromOffset(
                         offset = offset,
                         contentListState = contentListState,
-                        visibleLineContent = visibleLineContent,
+                        visibleLineContent = currentVisibleLineContent,
                         density = density,
                         fontSize = fontSize,
                         tabSize = tabSize
@@ -484,7 +488,7 @@ private fun DualColumnEditorContent(
                     val result = calculatePositionFromOffset(
                         offset = offset,
                         contentListState = contentListState,
-                        visibleLineContent = visibleLineContent,
+                        visibleLineContent = currentVisibleLineContent,
                         density = density,
                         fontSize = fontSize,
                         tabSize = tabSize
