@@ -11,9 +11,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.recyclebin.RecycleBinSettings
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.common.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
 import kotlinx.parcelize.Parcelize
@@ -24,7 +23,6 @@ import kotlin.time.Duration.Companion.days
 class StorageSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
-    private val generalSettings: GeneralSettings,
     private val imageLoader: ImageLoader,
     private val recycleBinSettings: RecycleBinSettings,
 ) : ViewModel4(dispatcherProvider, logTag("Settings", "Storage", "ViewModel"), navCtrl) {
@@ -37,13 +35,13 @@ class StorageSettingsViewModel @Inject constructor(
         recycleBinSettings.enabled.flow,
         recycleBinSettings.expiresAfter.flow,
         recycleBinSettings.maxRecycleBinSize.flow,
-    ) { values: Array<Any> ->
+    ) { _, _, enabled, expiresAfter, maxSize ->
         State(
             previewDiskCacheSize = imageLoader.diskCache?.size ?: 0L,
             previewMemoryCacheSize = imageLoader.memoryCache?.size ?: 0L,
-            recycleBinEnabled = values[2] as Boolean,
-            recycleBinAutoDeleteDays = values[3] as Int,
-            recycleBinMaxSizeMB = values[4] as Long,
+            recycleBinEnabled = enabled,
+            recycleBinAutoDeleteDays = expiresAfter.inWholeDays.toInt(),
+            recycleBinMaxSizeMB = maxSize / 1048576L,
         )
     }.asStateFlow()
 
