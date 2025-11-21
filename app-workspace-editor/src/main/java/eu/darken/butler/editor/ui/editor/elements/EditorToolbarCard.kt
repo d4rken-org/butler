@@ -32,8 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.EditorPageAction
 import eu.darken.butler.workspace.core.Workspace
@@ -44,18 +47,18 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
 fun EditorToolbarCard(
+    modifier: Modifier = Modifier,
     workspaceId: Workspace.Id,
     design: WorkspaceDesign,
-    fileName: String,
+    title: CaString,
+    subTitle: CaString,
     isModified: Boolean,
-    hasFile: Boolean,
     isLoading: Boolean,
     canUndo: Boolean,
     canRedo: Boolean,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceActionHandler: WorkspaceActionHandler?,
     onAction: (EditorPageAction) -> Unit,
-    modifier: Modifier = Modifier,
     collapsedFraction: Float = 0f,
 ) {
     val isCollapsed = collapsedFraction > 0.5f
@@ -95,7 +98,7 @@ fun EditorToolbarCard(
                     )
 
                     Text(
-                        text = fileName,
+                        text = title.asComposable(),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
@@ -126,19 +129,30 @@ fun EditorToolbarCard(
                 }
             } else {
                 // Expanded state - full interactive card
-                // Title section on top
                 Row(
+                    modifier = Modifier,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = fileName,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
+
+                    ) {
+
+                    Column(
                         modifier = Modifier
                             .weight(1f)
                             .padding(start = 8.dp),
-                    )
+                    ) {
+                        Text(
+                            text = title.asComposable(),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+
+                        Text(
+                            text = subTitle.asComposable(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+
 
                     // Show loading indicator or modified indicator in same position
                     if (isLoading) {
@@ -180,52 +194,49 @@ fun EditorToolbarCard(
                         )
                     }
 
-                    // Show save/edit actions when there's content or a file
-                    if (hasFile) {
-                        IconButton(
-                            onClick = { onAction(EditorPageAction.File.Save) },
-                            enabled = isModified
-                        ) {
-                            Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
-                        }
+                    IconButton(
+                        onClick = { onAction(EditorPageAction.File.Save) },
+                        enabled = isModified
+                    ) {
+                        Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
+                    }
 
-                        IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
-                            Icon(Icons.TwoTone.Close, contentDescription = stringResource(R.string.editor_action_close))
-                        }
+                    IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
+                        Icon(Icons.TwoTone.Close, contentDescription = stringResource(R.string.editor_action_close))
+                    }
 
-                        IconButton(
-                            onClick = { onAction(EditorPageAction.Edit.Undo) },
-                            enabled = canUndo
-                        ) {
-                            Icon(
-                                Icons.TwoTone.KeyboardArrowUp,
-                                contentDescription = stringResource(R.string.editor_action_undo)
-                            )
-                        }
+                    IconButton(
+                        onClick = { onAction(EditorPageAction.Edit.Undo) },
+                        enabled = canUndo
+                    ) {
+                        Icon(
+                            Icons.TwoTone.KeyboardArrowUp,
+                            contentDescription = stringResource(R.string.editor_action_undo)
+                        )
+                    }
 
-                        IconButton(
-                            onClick = { onAction(EditorPageAction.Edit.Redo) },
-                            enabled = canRedo
-                        ) {
-                            Icon(
-                                Icons.TwoTone.KeyboardArrowDown,
-                                contentDescription = stringResource(R.string.editor_action_redo)
-                            )
-                        }
+                    IconButton(
+                        onClick = { onAction(EditorPageAction.Edit.Redo) },
+                        enabled = canRedo
+                    ) {
+                        Icon(
+                            Icons.TwoTone.KeyboardArrowDown,
+                            contentDescription = stringResource(R.string.editor_action_redo)
+                        )
+                    }
 
-                        IconButton(onClick = { onAction(EditorPageAction.Navigation.Search("")) }) {
-                            Icon(
-                                Icons.TwoTone.Search,
-                                contentDescription = stringResource(R.string.editor_action_search)
-                            )
-                        }
+                    IconButton(onClick = { onAction(EditorPageAction.Navigation.Search("")) }) {
+                        Icon(
+                            Icons.TwoTone.Search,
+                            contentDescription = stringResource(R.string.editor_action_search)
+                        )
+                    }
 
-                        IconButton(onClick = { onAction(EditorPageAction.Navigation.GoToLine(0)) }) {
-                            Icon(
-                                Icons.TwoTone.FormatListNumbered,
-                                contentDescription = stringResource(R.string.editor_action_go_to_line)
-                            )
-                        }
+                    IconButton(onClick = { onAction(EditorPageAction.Navigation.GoToLine(0)) }) {
+                        Icon(
+                            Icons.TwoTone.FormatListNumbered,
+                            contentDescription = stringResource(R.string.editor_action_go_to_line)
+                        )
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -242,37 +253,15 @@ private fun EditorToolbarCardPreview() {
         EditorToolbarCard(
             workspaceId = Workspace.Id(),
             design = WorkspaceDesign(),
-            fileName = "example.txt",
+            title = "example.txt".toCaString(),
+            subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = true,
-            hasFile = true,
             isLoading = false,
             canUndo = true,
             canRedo = false,
             workspaceButtonState = null,
             workspaceActionHandler = null,
             onAction = {},
-            modifier = Modifier.padding(16.dp)
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun EditorToolbarCardLoadingPreview() {
-    PreviewWrapper {
-        EditorToolbarCard(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            fileName = "loading.txt",
-            isModified = false,
-            hasFile = true,
-            isLoading = true,
-            canUndo = false,
-            canRedo = false,
-            workspaceButtonState = null,
-            workspaceActionHandler = null,
-            onAction = {},
-            modifier = Modifier.padding(16.dp)
         )
     }
 }
@@ -284,38 +273,16 @@ private fun EditorToolbarCardCollapsedPreview() {
         EditorToolbarCard(
             workspaceId = Workspace.Id(),
             design = WorkspaceDesign(),
-            fileName = "example.txt",
+            title = "example.txt".toCaString(),
+            subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = true,
-            hasFile = true,
             isLoading = false,
             canUndo = true,
             canRedo = false,
             workspaceButtonState = null,
             workspaceActionHandler = null,
             onAction = {},
-            modifier = Modifier.padding(16.dp),
             collapsedFraction = 1f
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun EditorToolbarCardNoFilePreview() {
-    PreviewWrapper {
-        EditorToolbarCard(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            fileName = "Untitled",
-            isModified = false,
-            hasFile = false,
-            isLoading = false,
-            canUndo = false,
-            canRedo = false,
-            workspaceButtonState = null,
-            workspaceActionHandler = null,
-            onAction = {},
-            modifier = Modifier.padding(16.dp)
         )
     }
 }

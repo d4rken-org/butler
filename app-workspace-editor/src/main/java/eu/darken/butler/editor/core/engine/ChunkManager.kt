@@ -44,13 +44,11 @@ class ChunkManager @AssistedInject constructor(
 
     suspend fun loadChunk(chunkId: TextChunk.ChunkId): Result<TextChunk> = chunkMutex.withLock {
         val boundary = boundaries[chunkId]
-        log(tag) { "Loading chunk: $chunkId with boundary [${boundary?.startOffset}, ${boundary?.endOffset})" }
 
         // Check if already loaded - but always reload if chunk was evicted/cache cleared
         // This ensures we don't serve stale cached chunks after boundary changes
         _chunks.value[chunkId]?.let { existingChunk ->
             if (existingChunk.isLoaded) {
-                log(tag) { "Chunk $chunkId already loaded (cached), content.length=${existingChunk.content.length}" }
                 // Update LRU: move to end (most recently used)
                 chunkAccessOrder.remove(chunkId)
                 chunkAccessOrder.add(chunkId)
