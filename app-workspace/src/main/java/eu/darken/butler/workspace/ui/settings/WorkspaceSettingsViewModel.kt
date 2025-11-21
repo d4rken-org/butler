@@ -68,6 +68,9 @@ class WorkspaceSettingsViewModel @Inject constructor(
     fun toggleSessionRestore() = launch {
         val current = workspaceSettings.sessionRestoreEnabled.value()
         workspaceSettings.sessionRestoreEnabled.value(!current)
+        if (current) {
+            sessionStorage.dao.clearAllSessionData(WorkspaceSessionStorage.DEFAULT_SESSION_ID)
+        }
     }
 
     data class State(

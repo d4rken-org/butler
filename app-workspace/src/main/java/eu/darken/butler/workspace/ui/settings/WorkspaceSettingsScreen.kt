@@ -159,19 +159,21 @@ fun WorkspaceSettingsScreen(
                 )
             }
 
-            item {
-                SettingsPreferenceItem(
-                    icon = Icons.TwoTone.Storage,
-                    title = stringResource(R.string.workspace_settings_session_data_title),
-                    subtitle = pluralStringResource(
-                        R.plurals.workspace_settings_session_data_desc,
-                        state.sessionWorkspaceCount,
-                        state.sessionWorkspaceCount,
-                        state.sessionDatabaseSizeBytes.formatAsFileSize(),
-                    ),
-                    value = null,
-                    onClick = {},
-                )
+            if (state.sessionRestoreEnabled) {
+                item {
+                    SettingsPreferenceItem(
+                        icon = Icons.TwoTone.Storage,
+                        title = stringResource(R.string.workspace_settings_session_data_title),
+                        subtitle = pluralStringResource(
+                            R.plurals.workspace_settings_session_data_desc,
+                            state.sessionWorkspaceCount,
+                            state.sessionWorkspaceCount,
+                            state.sessionDatabaseSizeBytes.formatAsFileSize(),
+                        ),
+                        value = null,
+                        onClick = {},
+                    )
+                }
             }
         }
     }
