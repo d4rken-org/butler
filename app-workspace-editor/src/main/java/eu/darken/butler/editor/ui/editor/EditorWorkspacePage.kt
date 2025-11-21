@@ -47,6 +47,7 @@ import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
+import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
 import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
 import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
 import eu.darken.butler.workspace.core.Workspace
@@ -88,6 +89,11 @@ fun EditorWorkspacePageHost(
             onActionExecute = vm::executeAction,
             onDismissGoToLineDialog = vm::dismissGoToLineDialog,
             onDismissSearchDialog = vm::dismissSearchDialog,
+            onSearchQueryChange = vm::updateSearchQuery,
+            onCaseSensitiveToggle = vm::toggleCaseSensitivity,
+            onNextSearchResult = vm::nextSearchResult,
+            onPreviousSearchResult = vm::previousSearchResult,
+            onCloseSearch = vm::closeSearch,
         )
     }
 }
@@ -104,6 +110,11 @@ fun EditorWorkspacePage(
     onActionExecute: (EditorAction) -> Unit = {},
     onDismissGoToLineDialog: () -> Unit = {},
     onDismissSearchDialog: () -> Unit = {},
+    onSearchQueryChange: (String) -> Unit = {},
+    onCaseSensitiveToggle: () -> Unit = {},
+    onNextSearchResult: () -> Unit = {},
+    onPreviousSearchResult: () -> Unit = {},
+    onCloseSearch: () -> Unit = {},
 ) {
     rememberCoroutineScope()
 
@@ -253,6 +264,32 @@ fun EditorWorkspacePage(
             )
         }
 
+        // Floating Search Bar (above action bar)
+        if (state.isSearchBarVisible) {
+            EditorSearchBar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .padding(
+                        bottom = if (hasActions && bottomBarScrollBehavior.state.collapsedFraction <= 0.1f) {
+                            64.dp  // Action bar visible - offset above it
+                        } else {
+                            0.dp   // Action bar hidden or no actions - sit at bottom
+                        }
+                    ),
+                scrollState = bottomBarScrollBehavior.state,
+                searchQuery = state.searchQueryInput,
+                searchResults = state.searchResults,
+                currentIndex = state.currentSearchResultIndex,
+                caseSensitive = state.searchCaseSensitive,
+                onSearchQueryChange = onSearchQueryChange,
+                onCaseSensitiveToggle = onCaseSensitiveToggle,
+                onPrevious = onPreviousSearchResult,
+                onNext = onNextSearchResult,
+                onClose = onCloseSearch,
+            )
+        }
+
         // Floating Bottom ActionBar
         if (hasActions) {
             EditorActionBar(
@@ -273,16 +310,6 @@ fun EditorWorkspacePage(
                 onDismissGoToLineDialog()
             },
             onDismiss = onDismissGoToLineDialog,
-        )
-    }
-
-    if (state.showSearchDialog) {
-        SearchDialog(
-            onSearch = { query ->
-                onPageAction(EditorPageAction.Navigation.Search(query))
-                onDismissSearchDialog()
-            },
-            onDismiss = onDismissSearchDialog,
         )
     }
 }

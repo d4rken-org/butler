@@ -448,7 +448,7 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun search(query: String): Result<List<SearchResult>> = stateMutex.withLock {
+    suspend fun search(query: String, caseSensitive: Boolean = false): Result<List<SearchResult>> = stateMutex.withLock {
         _searchQuery.value = query
 
         if (query.isEmpty()) {
@@ -461,7 +461,7 @@ class EditorEngine @AssistedInject constructor(
                 try {
                     coroutineContext.ensureActive()
                     val results =
-                        currentState.resources.textBuffer.search(query, _cursorPosition.value, ignoreCase = true)
+                        currentState.resources.textBuffer.search(query, _cursorPosition.value, ignoreCase = !caseSensitive)
                     _searchResults.value = results
                     Result.success(results)
                 } catch (e: Exception) {

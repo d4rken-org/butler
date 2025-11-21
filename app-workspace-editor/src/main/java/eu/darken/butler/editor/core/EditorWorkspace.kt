@@ -265,7 +265,7 @@ class EditorWorkspace @AssistedInject constructor(
         }
     }
 
-    suspend fun search(query: String) = engineHolder.value().search(query)
+    suspend fun search(query: String, caseSensitive: Boolean = false) = engineHolder.value().search(query, caseSensitive)
     suspend fun goToLine(lineNumber: Int) = engineHolder.value().goToLine(lineNumber)
     suspend fun undo() = engineHolder.value().undo()
     suspend fun redo() = engineHolder.value().redo()

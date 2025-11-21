@@ -41,6 +41,10 @@
     <string name="editor_modified_indicator">•</string>
     <string name="editor_error_unknown">Unknown error</string>
     <string name="editor_search_results_format">%1$d of %2$d results</string>
+    <string name="editor_search_placeholder">Search…</string>
+    <string name="editor_search_previous">Previous result</string>
+    <string name="editor_search_next">Next result</string>
+    <string name="editor_search_case_sensitive_label">Case sensitive</string>
 
     <!-- Editor dialogs -->
     <string name="editor_dialog_go_to_line_title">Go to line</string>
