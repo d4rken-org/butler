@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.DataUsage
-import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Memory
 import androidx.compose.material.icons.twotone.Storage
@@ -39,7 +38,6 @@ import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
-import eu.darken.butler.common.settings.SettingsSwitchItem
 import eu.darken.butler.common.ui.waitForState
 import kotlinx.coroutines.launch
 
@@ -57,7 +55,6 @@ fun StorageSettingsScreenHost(vm: StorageSettingsViewModel = hiltViewModel()) {
             onClearMemoryCache = { vm.clearPreviewMemoryCache() },
             onClearAllCaches = { vm.clearAllPreviewCaches() },
             onRefreshStats = { vm.refreshCacheStats() },
-            onToggleRecycleBin = { vm.toggleRecycleBin(it) },
         )
     }
 }
@@ -70,7 +67,6 @@ fun StorageSettingsScreen(
     onClearMemoryCache: () -> Unit,
     onClearAllCaches: () -> Unit,
     onRefreshStats: () -> Unit,
-    onToggleRecycleBin: (Boolean) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -136,57 +132,6 @@ fun StorageSettingsScreen(
                     subtitle = stringResource(R.string.storage_clear_all_subtitle),
                     onClick = { showClearAllDialog = true }
                 )
-            }
-
-            item {
-                SettingsCategoryHeader(text = stringResource(R.string.storage_category_recyclebin_label))
-            }
-
-            item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.Delete,
-                    title = stringResource(R.string.storage_recyclebin_enabled_title),
-                    subtitle = stringResource(R.string.storage_recyclebin_enabled_desc),
-                    checked = state.recycleBinEnabled,
-                    onCheckedChange = onToggleRecycleBin,
-                )
-            }
-
-            if (state.recycleBinEnabled) {
-                item {
-                    SettingsPreferenceItem(
-                        icon = Icons.TwoTone.DeleteSweep,
-                        title = stringResource(R.string.storage_recyclebin_auto_delete_title),
-                        subtitle = stringResource(
-                            R.string.storage_recyclebin_auto_delete_desc,
-                            state.recycleBinAutoDeleteDays
-                        ),
-                        value = stringResource(
-                            R.string.storage_recyclebin_auto_delete_value,
-                            state.recycleBinAutoDeleteDays
-                        ),
-                        onClick = { /* Could open a dialog to change value */ },
-                        enabled = false, // Read-only for now
-                    )
-                    SettingsDivider()
-                }
-
-                item {
-                    SettingsPreferenceItem(
-                        icon = Icons.TwoTone.Storage,
-                        title = stringResource(R.string.storage_recyclebin_max_size_title),
-                        subtitle = stringResource(
-                            R.string.storage_recyclebin_max_size_desc,
-                            state.recycleBinMaxSizeMB
-                        ),
-                        value = stringResource(
-                            R.string.storage_recyclebin_max_size_value,
-                            state.recycleBinMaxSizeMB
-                        ),
-                        onClick = { /* Could open a dialog to change value */ },
-                        enabled = false, // Read-only for now
-                    )
-                }
             }
         }
     }
@@ -331,16 +276,12 @@ private fun StorageSettingsScreenPreview() {
             state = StorageSettingsViewModel.State(
                 previewDiskCacheSize = 125_300_100,
                 previewMemoryCacheSize = 45_200_000,
-                recycleBinEnabled = true,
-                recycleBinAutoDeleteDays = 30,
-                recycleBinMaxSizeMB = 500L,
             ),
             onNavigateUp = {},
             onClearDiskCache = {},
             onClearMemoryCache = {},
             onClearAllCaches = {},
             onRefreshStats = {},
-            onToggleRecycleBin = {},
         )
     }
 }
