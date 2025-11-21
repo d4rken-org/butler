@@ -347,13 +347,97 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
+    suspend fun copySelection(): Result<String> = stateMutex.withLock {
+        return when (val currentState = _state.value) {
+            is EditorState.Loaded -> {
+                val selection = _selectionRange.value ?: return Result.failure(
+                    IllegalStateException("No selection to copy")
+                )
+
+                try {
+                    log(tag) { "Copying selection: ${selection.first} to ${selection.second}" }
+                    currentState.resources.textBuffer.getText(selection.first.offset, selection.second.offset)
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
+            }
+            else -> {
+                val error = IllegalStateException("Cannot copy selection - no file open")
+                log(tag, WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
+        }
+    }
+
+    suspend fun selectAll(): Result<Pair<TextPosition, TextPosition>> = stateMutex.withLock {
+        return when (val currentState = _state.value) {
+            is EditorState.Loaded -> {
+                try {
+                    val startPosition = TextPosition(offset = 0, line = 0, column = 0)
+
+                    val totalLength = currentState.resources.textBuffer.totalLength.value
+                    val totalLines = _totalLines.value
+
+                    // Get the last line to calculate its length for the column
+                    val lastLineNumber = (totalLines - 1).coerceAtLeast(0)
+                    val lastLineResult = currentState.resources.textBuffer.getTextForLine(lastLineNumber)
+                    val lastLineLength = lastLineResult.getOrNull()?.length ?: 0
+
+                    val endPosition = TextPosition(
+                        offset = totalLength,
+                        line = lastLineNumber,
+                        column = lastLineLength
+                    )
+
+                    log(tag) { "Selecting all text: $startPosition to $endPosition" }
+
+                    val selection = startPosition to endPosition
+                    _selectionRange.value = selection
+
+                    Result.success(selection)
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to select all - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
+            }
+            else -> {
+                val error = IllegalStateException("Cannot select all - no file open")
+                log(tag, WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
+        }
+    }
+
     suspend fun setCursorPosition(position: TextPosition) = stateMutex.withLock {
         _cursorPosition.value = position
         _selectionRange.value = null
     }
 
     suspend fun setSelection(start: TextPosition, end: TextPosition) = stateMutex.withLock {
-        _selectionRange.value = start to end
+        when (val currentState = _state.value) {
+            is EditorState.Loaded -> {
+                // Recalculate actual offsets from line/column positions
+                // UI may send placeholder offset=0 with virtual scrolling
+                val correctedStart = TextPosition(
+                    offset = currentState.resources.textBuffer.findOffset(start.line, start.column),
+                    line = start.line,
+                    column = start.column
+                )
+                val correctedEnd = TextPosition(
+                    offset = currentState.resources.textBuffer.findOffset(end.line, end.column),
+                    line = end.line,
+                    column = end.column
+                )
+                _selectionRange.value = correctedStart to correctedEnd
+            }
+            else -> {
+                // No file loaded, store as-is
+                _selectionRange.value = start to end
+            }
+        }
     }
 
     suspend fun search(query: String): Result<List<SearchResult>> = stateMutex.withLock {
