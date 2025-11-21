@@ -412,7 +412,15 @@ class EditorEngine @AssistedInject constructor(
     }
 
     suspend fun setCursorPosition(position: TextPosition) = stateMutex.withLock {
-        _cursorPosition.value = position
+        val correctedPosition = when (val currentState = _state.value) {
+            is EditorState.Loaded -> TextPosition(
+                offset = currentState.resources.textBuffer.findOffset(position.line, position.column),
+                line = position.line,
+                column = position.column
+            )
+            else -> position
+        }
+        _cursorPosition.value = correctedPosition
         _selectionRange.value = null
     }
 
