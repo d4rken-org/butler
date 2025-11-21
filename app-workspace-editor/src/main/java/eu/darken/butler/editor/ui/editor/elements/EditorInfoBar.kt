@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.ui.editor
+package eu.darken.butler.editor.ui.editor.elements
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons

@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.ui.editor
+package eu.darken.butler.editor.ui.editor.text
 
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.geometry.Offset

@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.ui.editor
+package eu.darken.butler.editor.ui.editor.elements
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
+import eu.darken.butler.editor.ui.editor.EditorPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton

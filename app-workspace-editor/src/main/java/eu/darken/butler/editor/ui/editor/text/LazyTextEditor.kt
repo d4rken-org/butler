@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.ui.editor
+package eu.darken.butler.editor.ui.editor.text
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background

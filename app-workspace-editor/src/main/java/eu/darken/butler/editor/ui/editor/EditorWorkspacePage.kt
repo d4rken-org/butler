@@ -46,6 +46,9 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
+import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
+import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
+import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
