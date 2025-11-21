@@ -52,6 +52,26 @@ sealed interface EditorPageAction {
         data object DeleteSelection : Edit
 
         /**
+         * Copy selected text to clipboard
+         */
+        data object Copy : Edit
+
+        /**
+         * Cut selected text to clipboard (copy + delete)
+         */
+        data object Cut : Edit
+
+        /**
+         * Paste clipboard content at cursor or replace selection
+         */
+        data object Paste : Edit
+
+        /**
+         * Select all text in the document
+         */
+        data object SelectAll : Edit
+
+        /**
          * Undo last change
          */
         data object Undo : Edit

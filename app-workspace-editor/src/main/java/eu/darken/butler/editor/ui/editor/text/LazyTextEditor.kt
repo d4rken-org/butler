@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.ui.editor
+package eu.darken.butler.editor.ui.editor.text
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -356,7 +356,7 @@ private fun DualColumnEditorContent(
                                 val result = calculatePositionFromOffset(
                                     offset = offset,
                                     contentListState = contentListState,
-                                    visibleLineContent = visibleLineContent,
+                                    visibleLineContent = currentVisibleLineContent,
                                     density = density,
                                     fontSize = fontSize,
                                     tabSize = tabSize
@@ -365,16 +365,16 @@ private fun DualColumnEditorContent(
                                 if (result != null) {
                                     when (tapCount) {
                                         1 -> {
-                                            // Single tap: Place cursor and clear selection
+                                            // Single tap: Place cursor
+                                            // Selection is cleared automatically by setCursorPosition in the engine
                                             onCursorPositionChange(result.position)
-                                            onSelectionChange(null)
                                         }
                                         2 -> {
                                             // Double tap: Select word
                                             val wordSelection = selectWordAt(
                                                 result.position.line,
                                                 result.position.column,
-                                                visibleLineContent
+                                                currentVisibleLineContent
                                             )
                                             onSelectionChange(wordSelection)
                                         }
@@ -382,7 +382,7 @@ private fun DualColumnEditorContent(
                                             // Triple tap and beyond: Select line
                                             val lineSelection = selectLineAt(
                                                 result.position.line,
-                                                visibleLineContent
+                                                currentVisibleLineContent
                                             )
                                             onSelectionChange(lineSelection)
                                             tapCount = 0 // Reset for next tap sequence
@@ -403,7 +403,7 @@ private fun DualColumnEditorContent(
                                 val result = calculatePositionFromOffset(
                                     offset = offset,
                                     contentListState = contentListState,
-                                    visibleLineContent = visibleLineContent,
+                                    visibleLineContent = currentVisibleLineContent,
                                     density = density,
                                     fontSize = fontSize,
                                     tabSize = tabSize
@@ -414,7 +414,7 @@ private fun DualColumnEditorContent(
                                     val wordSelection = selectWordAt(
                                         result.position.line,
                                         result.position.column,
-                                        visibleLineContent
+                                        currentVisibleLineContent
                                     )
                                     onSelectionChange(wordSelection)
                                 }

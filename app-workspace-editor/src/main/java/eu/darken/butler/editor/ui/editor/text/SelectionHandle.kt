@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.ui.editor
+package eu.darken.butler.editor.ui.editor.text
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -10,7 +10,9 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -27,7 +29,6 @@ import androidx.compose.runtime.snapshotFlow
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.core.engine.TextPosition
-import kotlinx.coroutines.flow.collect
 
 @Composable
 internal fun SelectionHandle(
@@ -158,12 +159,12 @@ private fun SelectionHandlePreview() {
 
         Box(modifier = Modifier.fillMaxSize()) {
             // Background content (LazyColumn) so SelectionHandle can position itself
-            androidx.compose.foundation.lazy.LazyColumn(
+            LazyColumn(
                 state = contentListState,
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(count = lines.size) { index ->
-                    androidx.compose.material3.Text(
+                    Text(
                         text = lines[index].ifEmpty { " " },
                         style = TextStyle(
                             fontSize = fontSize.sp,

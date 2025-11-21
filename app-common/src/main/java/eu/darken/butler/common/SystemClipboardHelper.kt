@@ -44,6 +44,18 @@ class SystemClipboardHelper @Inject constructor(
         clipboard.setPrimaryClip(clip)
     }
 
+    fun getClipboardText(): String? {
+        val primaryClip = clipboard.primaryClip ?: return null
+        if (primaryClip.itemCount == 0) return null
+
+        val item = primaryClip.getItemAt(0)
+        return item.text?.toString()
+    }
+
+    fun hasClipboardContent(): Boolean {
+        return clipboard.hasPrimaryClip() && clipboard.primaryClipDescription?.hasMimeType("text/plain") == true
+    }
+
     companion object {
         private val TAG = logTag("SystemClipboardHelper")
     }
