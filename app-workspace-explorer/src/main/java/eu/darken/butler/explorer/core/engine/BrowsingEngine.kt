@@ -35,6 +35,7 @@ class BrowsingEngine @AssistedInject constructor(
     private val dispatcherProvider: DispatcherProvider,
     private val homeLocationLoader: HomeLocationLoader,
     private val deviceLocationLoader: DeviceLocationLoader,
+    private val recycleBinLocationLoader: RecycleBinLocationLoader,
     directoryLoaderFactory: DirectoryLocationLoader.Factory,
     private val breadcrumbGenerator: BreadcrumbGenerator,
 ) {
@@ -77,6 +78,7 @@ class BrowsingEngine @AssistedInject constructor(
                         when (target) {
                             is ExplorerNavigation.Target.Home -> homeLocationLoader.loadHome()
                             is ExplorerNavigation.Target.Device -> deviceLocationLoader.loadDevice()
+                            is ExplorerNavigation.Target.RecycleBin -> recycleBinLocationLoader.loadRecycleBin()
                             is ExplorerNavigation.Target.Directory -> directoryLoader.loadDirectory(target.path)
                         }
                             .flowOn(dispatcherProvider.IO)

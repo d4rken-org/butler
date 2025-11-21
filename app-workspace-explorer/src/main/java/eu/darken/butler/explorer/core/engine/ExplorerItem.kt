@@ -137,4 +137,18 @@ sealed interface ExplorerItem {
             metadata = metadata ?: this.metadata,
         )
     }
+
+    data class RecycleBinItem(
+        val itemId: String,
+        val originalPath: APath<*>,
+        val recycleBinPath: APath<*>,
+        override val displayName: CaString,
+        val displayIcon: ImageVector,
+        val size: Long,
+        val deletedAt: Instant,
+        val isAvailable: Boolean,
+        val subtitle: CaString? = null,
+    ) : ExplorerItem {
+        override val id: String get() = "recyclebin-$itemId"
+    }
 }

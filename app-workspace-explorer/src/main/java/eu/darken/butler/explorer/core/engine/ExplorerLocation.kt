@@ -69,4 +69,27 @@ sealed interface ExplorerLocation {
             val isReadable: Boolean = true,
         ) : LocationInfo
     }
+
+    data class RecycleBin(
+        override val items: List<ExplorerItem>? = null,
+        override val info: Info? = null,
+        override val setupRequirements: PathRequirements = PathRequirements(),
+        override val progress: Progress.Data? = Progress.Data(),
+    ) : ExplorerLocation {
+
+        override val locationId: String get() = "location://recyclebin"
+
+        data class Info(
+            val itemCount: Int,
+            val totalSize: Long,
+            val oldestItem: kotlin.time.Instant? = null,
+            val storageBreakdown: Map<String?, StorageInfo> = emptyMap(),
+        ) : LocationInfo
+
+        data class StorageInfo(
+            val label: String,
+            val itemCount: Int,
+            val size: Long,
+        )
+    }
 }

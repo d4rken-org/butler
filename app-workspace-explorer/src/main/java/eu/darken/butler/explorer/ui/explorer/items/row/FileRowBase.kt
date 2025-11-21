@@ -1,6 +1,5 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -65,7 +64,6 @@ private fun String.withProblematicCharsUnderlined(color: Color): AnnotatedString
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun FileRowBase(
     modifier: Modifier = Modifier,

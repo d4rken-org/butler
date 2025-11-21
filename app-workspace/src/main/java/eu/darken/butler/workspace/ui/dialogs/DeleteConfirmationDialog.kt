@@ -25,6 +25,7 @@ import eu.darken.butler.common.R as CommonR
 @Composable
 fun DeleteConfirmationDialog(
     items: Set<APath<*>>,
+    recycleBinEnabled: Boolean = false,
     onDismiss: () -> Unit,
     onConfirm: (items: Set<APath<*>>) -> Unit,
 ) {
@@ -36,10 +37,18 @@ fun DeleteConfirmationDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = if (itemCount == 1) {
-                    stringResource(R.string.workspace_dialog_delete_title_single)
+                text = if (recycleBinEnabled) {
+                    if (itemCount == 1) {
+                        stringResource(R.string.workspace_dialog_recyclebin_title_single)
+                    } else {
+                        pluralStringResource(R.plurals.workspace_dialog_recyclebin_title_multiple, itemCount, itemCount)
+                    }
                 } else {
-                    pluralStringResource(R.plurals.workspace_dialog_delete_title_multiple, itemCount, itemCount)
+                    if (itemCount == 1) {
+                        stringResource(R.string.workspace_dialog_delete_title_single)
+                    } else {
+                        pluralStringResource(R.plurals.workspace_dialog_delete_title_multiple, itemCount, itemCount)
+                    }
                 },
                 style = MaterialTheme.typography.headlineSmall
             )
@@ -49,10 +58,18 @@ fun DeleteConfirmationDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = if (itemCount == 1) {
-                        stringResource(R.string.workspace_dialog_delete_message_single)
+                    text = if (recycleBinEnabled) {
+                        if (itemCount == 1) {
+                            stringResource(R.string.workspace_dialog_recyclebin_message_single)
+                        } else {
+                            stringResource(R.string.workspace_dialog_recyclebin_message_multiple)
+                        }
                     } else {
-                        stringResource(R.string.workspace_dialog_delete_message_multiple)
+                        if (itemCount == 1) {
+                            stringResource(R.string.workspace_dialog_delete_message_single)
+                        } else {
+                            stringResource(R.string.workspace_dialog_delete_message_multiple)
+                        }
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -84,10 +101,18 @@ fun DeleteConfirmationDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = stringResource(R.string.workspace_dialog_delete_warning),
+                    text = if (recycleBinEnabled) {
+                        stringResource(R.string.workspace_dialog_recyclebin_hint)
+                    } else {
+                        stringResource(R.string.workspace_dialog_delete_warning)
+                    },
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    fontWeight = FontWeight.Medium
+                    color = if (recycleBinEnabled) {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+                    fontWeight = if (recycleBinEnabled) FontWeight.Normal else FontWeight.Medium
                 )
             }
         },
@@ -96,8 +121,16 @@ fun DeleteConfirmationDialog(
                 onClick = { onConfirm(items) }
             ) {
                 Text(
-                    stringResource(CommonR.string.general_delete_action),
-                    color = MaterialTheme.colorScheme.error
+                    text = if (recycleBinEnabled) {
+                        stringResource(R.string.workspace_dialog_move_to_recyclebin_action)
+                    } else {
+                        stringResource(R.string.workspace_dialog_delete_permanently_action)
+                    },
+                    color = if (recycleBinEnabled) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    }
                 )
             }
         },
@@ -119,6 +152,24 @@ private fun DeleteConfirmationDialogPreview() {
                 LocalPath.build("/test/file2.txt"),
                 LocalPath.build("/test/folder1"),
             ),
+            recycleBinEnabled = false,
+            onDismiss = {},
+            onConfirm = {}
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun DeleteConfirmationDialogRecycleBinPreview() {
+    PreviewWrapper {
+        DeleteConfirmationDialog(
+            items = setOf(
+                LocalPath.build("/test/file1.txt"),
+                LocalPath.build("/test/file2.txt"),
+                LocalPath.build("/test/folder1"),
+            ),
+            recycleBinEnabled = true,
             onDismiss = {},
             onConfirm = {}
         )
@@ -133,6 +184,7 @@ private fun DeleteConfirmationDialogManyItemsPreview() {
             items = (1..10).map {
                 LocalPath.build("/test/file$it.txt")
             }.toSet(),
+            recycleBinEnabled = false,
             onDismiss = {},
             onConfirm = {}
         )

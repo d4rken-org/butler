@@ -1,6 +1,5 @@
 package eu.darken.butler.workspace.ui.manager
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,7 +41,6 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WorkspaceManagerFAB(
     workspaceCount: Int,

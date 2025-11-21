@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.core
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.Home
@@ -20,6 +21,7 @@ class BreadcrumbGenerator @Inject constructor(
     suspend fun getBreadcrumbs(location: ExplorerLocation): List<ExplorerBreadcrumb> = when (location) {
         is ExplorerLocation.Home -> listOf(HOME)
         is ExplorerLocation.Device -> listOf(HOME, DEVICE)
+        is ExplorerLocation.RecycleBin -> listOf(HOME, RECYCLE_BIN)
         is ExplorerLocation.Directory -> buildList {
             when (location.parent) {
                 is ExplorerNavigation.Target.Home -> {
@@ -28,6 +30,10 @@ class BreadcrumbGenerator @Inject constructor(
                 is ExplorerNavigation.Target.Device -> {
                     add(HOME)
                     add(DEVICE)
+                }
+                is ExplorerNavigation.Target.RecycleBin -> {
+                    add(HOME)
+                    add(RECYCLE_BIN)
                 }
                 is ExplorerNavigation.Target.Directory -> {
                     add(HOME)
@@ -138,6 +144,14 @@ class BreadcrumbGenerator @Inject constructor(
             label = R.string.explorer_navigation_home.toCaString(),
             icon = Icons.TwoTone.Home,
             target = ExplorerNavigation.Target.Home,
+            showIcon = true,
+            showText = false,
+        )
+
+        val RECYCLE_BIN = ExplorerBreadcrumb(
+            label = R.string.explorer_navigation_recyclebin.toCaString(),
+            icon = Icons.TwoTone.Delete,
+            target = ExplorerNavigation.Target.RecycleBin,
             showIcon = true,
             showText = false,
         )

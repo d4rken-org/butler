@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.ui.explorer
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Home
@@ -84,6 +85,24 @@ fun ExplorerInfoBar(
                     )
                 }
 
+                is ExplorerLocation.RecycleBin.Info -> {
+                    if (info.itemCount > 0) {
+                        InfoChip(
+                            icon = Icons.TwoTone.Delete,
+                            label = pluralStringResource(
+                                R.plurals.explorer_infobar_files_count,
+                                info.itemCount,
+                                info.itemCount
+                            ),
+                        )
+                    } else {
+                        InfoChip(
+                            icon = Icons.TwoTone.Delete,
+                            label = stringResource(R.string.explorer_recyclebin_empty_state),
+                        )
+                    }
+                }
+
                 null -> {
                     // No info available
                 }
@@ -130,6 +149,16 @@ fun ExplorerInfoBar(
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
                             label = stringResource(R.string.explorer_infobar_storage_free, formatFileSize(freeSpace)),
+                        )
+                    }
+                }
+
+                is ExplorerLocation.RecycleBin.Info -> {
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (info.totalSize > 0) {
+                        InfoChip(
+                            icon = Icons.TwoTone.Storage,
+                            label = formatFileSize(info.totalSize),
                         )
                     }
                 }

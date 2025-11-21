@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.webkit.MimeTypeMap
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.core.content.FileProvider
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -28,9 +27,11 @@ import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
+import eu.darken.butler.common.recyclebin.RecycleBinSettings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
@@ -55,8 +56,6 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.permissions.core.PathPermissionCheck
-import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
@@ -74,7 +73,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
 class SearcherWorkspaceViewModel @AssistedInject constructor(
@@ -91,6 +89,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val systemClipboardHelper: SystemClipboardHelper,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val shareIntentUseCase: ShareIntentUseCase,
+    private val recycleBinSettings: RecycleBinSettings,
     itemSorterFactory: eu.darken.butler.searcher.core.sorting.SearchItemSorter.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
@@ -251,7 +250,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow,
         currentSortSettings,
         viewModeFlow,
-    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewMode: ViewMode ->
+        recycleBinSettings.enabled.flow,
+    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewMode: ViewMode, recycleBinEnabled: Boolean ->
         val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -308,6 +308,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             availableActions = actions,
             viewMode = viewMode,
             sortSettings = sortSettings,
+            recycleBinEnabled = recycleBinEnabled,
         )
     }
         .distinctUntilChanged()
@@ -701,6 +702,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<SearcherAction> = emptyList(),
         val viewMode: ViewMode = ViewMode.LIST,
         val sortSettings: eu.darken.butler.searcher.core.SearchSortSettings = eu.darken.butler.searcher.core.SearchSortSettings(),
+        val recycleBinEnabled: Boolean = false,
     ) {
         val isSearching: Boolean
             get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING

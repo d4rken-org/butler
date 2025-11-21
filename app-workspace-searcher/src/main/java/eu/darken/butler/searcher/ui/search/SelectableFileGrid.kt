@@ -1,7 +1,6 @@
 package eu.darken.butler.searcher.ui.search
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +27,6 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.rows.StandardFileIcon
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SelectableFileGrid(
     result: SearchItem,

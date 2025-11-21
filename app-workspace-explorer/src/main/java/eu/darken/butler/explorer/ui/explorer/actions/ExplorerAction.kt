@@ -172,4 +172,35 @@ sealed interface ExplorerAction : WorkspaceAction {
     }
 
     sealed interface Home : ExplorerAction
+
+    sealed interface RecycleBin : ExplorerAction {
+        data class RestoreSelected(
+            override val icon: ImageVector,
+            val labelRes: Int,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+        ) : RecycleBin {
+            override val label = labelRes.toCaString()
+        }
+
+        data class DeletePermanentlySelected(
+            override val icon: ImageVector,
+            val labelRes: Int,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+        ) : RecycleBin {
+            override val label = labelRes.toCaString()
+            override val isDestructive = true
+        }
+
+        data class EmptyBin(
+            override val icon: ImageVector,
+            val labelRes: Int,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
+        ) : RecycleBin {
+            override val label = labelRes.toCaString()
+            override val isDestructive = true
+        }
+    }
 }

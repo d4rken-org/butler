@@ -9,17 +9,23 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.formatItemSpeed
 import eu.darken.butler.common.getQuantityString2
+import eu.darken.butler.common.recyclebin.RecycleBinManager
+import eu.darken.butler.common.recyclebin.RecycleBinSettings
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
@@ -36,6 +42,8 @@ class DeleteOperation @AssistedInject constructor(
     @Assisted private val command: SearcherCommand.Delete,
     private val issueHandler: IssueHandler,
     private val gatewaySwitch: GatewaySwitch,
+    private val recycleBinManager: RecycleBinManager,
+    private val recycleBinSettings: RecycleBinSettings,
 ) : SearcherOperation() {
 
     private val tag = logTag("Searcher", "Workspace", workspaceId.shortTag, "Operation", "Delete")
@@ -71,6 +79,63 @@ class DeleteOperation @AssistedInject constructor(
         var stateActive = State.Active(startedAt = operationContext.startedAt)
         emit(stateActive)
 
+        val reportBuilder = DeleteOperationReport.Builder()
+        var lastPerformanceHistory: PerformanceHistory? = null
+
+        // Check if recycle bin is enabled and paths are supported
+        val recycleBinEnabled = recycleBinSettings.enabled.value()
+        val supportsRecycleBin = command.targets.all { it is LocalPath }
+
+        if (recycleBinEnabled && supportsRecycleBin) {
+            log(tag, INFO) { "Attempting to move ${command.targets.size} items to recycle bin" }
+
+            try {
+                // Try to move to recycle bin
+                val recycleBinReport = recycleBinManager.moveToRecycleBin(
+                    paths = command.targets.toList()
+                )
+
+                if (recycleBinReport.failedToMove.isNotEmpty()) {
+                    log(
+                        tag,
+                        WARN
+                    ) { "${recycleBinReport.failedToMove.size} items failed to move to recycle bin, will perform direct delete" }
+                    // Continue to direct deletion for failed items below
+                } else {
+                    // All items moved to recycle bin successfully
+                    log(
+                        tag,
+                        INFO
+                    ) { "Successfully moved ${recycleBinReport.movedToRecycleBin.size} items to recycle bin" }
+
+                    @Suppress("UNCHECKED_CAST")
+                    reportBuilder.setDeletions(recycleBinReport.movedToRecycleBin as Set<APathLookup<APath<*>>>)
+                    reportBuilder.setBytesFreed(recycleBinReport.bytesMoved)
+
+                    emit(
+                        State.Completed(
+                            startedAt = operationContext.startedAt,
+                            report = reportBuilder.build()
+                        )
+                    )
+                    return@flow // Early exit - all done via recycle bin
+                }
+            } catch (e: Exception) {
+                log(tag, WARN) { "Recycle bin move failed: ${e.asLog()}, falling back to direct delete" }
+                // Continue to direct deletion below
+            }
+        } else {
+            if (recycleBinEnabled && !supportsRecycleBin) {
+                log(
+                    tag,
+                    INFO
+                ) { "Recycle bin enabled but paths not supported (non-LocalPath), performing direct delete" }
+            } else {
+                log(tag) { "Recycle bin disabled, performing direct delete" }
+            }
+        }
+
+        // Direct deletion (if recycle bin failed or disabled)
         data class SpeedSample(
             val timestamp: Instant,
             val itemsPerSecond: Long,
@@ -81,9 +146,6 @@ class DeleteOperation @AssistedInject constructor(
         var lastItemsProcessed = 0L
         var lastBytesDeleted = 0L
         var lastSpeedUpdate = TimeSource.Monotonic.markNow()
-
-        val reportBuilder = DeleteOperationReport.Builder()
-        var lastPerformanceHistory: PerformanceHistory? = null
 
         command.targets
             .delete(

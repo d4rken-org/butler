@@ -544,6 +544,17 @@ fun ExplorerWorkspacePage(
                                                         showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
                                                             item in mainStateSnap.selectionState.selectableItems
                                                     )
+
+                                                    is ExplorerItem.RecycleBinItem -> RecycleBinItemRow(
+                                                        item = item,
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
+                                                            item
+                                                        ),
+                                                        onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                        onClick = { vm?.onItemClick(item) },
+                                                        onLongClick = { vm?.onItemLongClick(item) },
+                                                        showSelection = mainStateSnap.shouldShowSelection(item)
+                                                    )
                                                 }
                                             }
                                         }
@@ -612,6 +623,17 @@ fun ExplorerWorkspacePage(
 
                                                     is ExplorerItem.Peek -> PeekGrid(
                                                         item = item
+                                                    )
+
+                                                    is ExplorerItem.RecycleBinItem -> RecycleBinItemGrid(
+                                                        item = item,
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
+                                                            item
+                                                        ),
+                                                        onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                        onClick = { vm?.onItemClick(item) },
+                                                        onLongClick = { vm?.onItemLongClick(item) },
+                                                        showSelection = mainStateSnap.shouldShowSelection(item)
                                                     )
                                                 }
                                             }
@@ -718,6 +740,7 @@ fun ExplorerWorkspacePage(
 
         ExplorerDialogHost(
             dialogState = mainState.dialogState,
+            recycleBinEnabled = mainState.recycleBinEnabled,
             vm = vm
         )
 
