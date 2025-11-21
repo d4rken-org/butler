@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.CheckBox
 import androidx.compose.material.icons.twotone.Close
@@ -37,10 +38,12 @@ fun WorkspaceInfoBar(
     leadingContent: @Composable RowScope.() -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
+    val scrollState = rememberScrollState()
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+            .propagateScrollAtBoundary(scrollState)
+            .horizontalScroll(scrollState),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -309,6 +310,7 @@ private fun DualColumnEditorContent(
             } else {
                 Modifier
                     .fillMaxSize()
+                    .propagateScrollAtBoundary(horizontalScrollState)
                     .horizontalScroll(horizontalScrollState)
             }
 

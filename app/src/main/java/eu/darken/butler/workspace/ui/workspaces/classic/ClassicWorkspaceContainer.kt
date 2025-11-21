@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -52,6 +53,13 @@ internal fun ClassicWorkspaceContainer(
         state.all.size
     }
     val pagerState = rememberPagerState(pageCount = { effectivePageCount })
+
+    // Custom fling behavior requiring ~50% drag before committing to page change
+    // snapPositionalThreshold: fraction of page that must be scrolled before switching (for low velocity flings)
+    val flingBehavior = PagerDefaults.flingBehavior(
+        state = pagerState,
+        snapPositionalThreshold = 0.5f,
+    )
 
     var isCreatingWorkspace by remember { mutableStateOf(false) }
     var previousPage by remember { mutableStateOf<Int?>(null) }
@@ -151,6 +159,7 @@ internal fun ClassicWorkspaceContainer(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
+                    flingBehavior = flingBehavior,
                     userScrollEnabled = state.swipeGesturesEnabled,
                 ) { page ->
                     val paneInfo = state.all.getOrNull(page)?.asPaneInfo()
