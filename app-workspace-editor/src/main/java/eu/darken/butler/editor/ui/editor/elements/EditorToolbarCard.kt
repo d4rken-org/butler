@@ -13,11 +13,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Description
-import androidx.compose.material.icons.twotone.FormatListNumbered
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
 import androidx.compose.material.icons.twotone.KeyboardArrowUp
 import androidx.compose.material.icons.twotone.Save
-import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -222,20 +220,6 @@ fun EditorToolbarCard(
                         Icon(
                             Icons.TwoTone.KeyboardArrowDown,
                             contentDescription = stringResource(R.string.editor_action_redo)
-                        )
-                    }
-
-                    IconButton(onClick = { onAction(EditorPageAction.Navigation.Search("")) }) {
-                        Icon(
-                            Icons.TwoTone.Search,
-                            contentDescription = stringResource(R.string.editor_action_search)
-                        )
-                    }
-
-                    IconButton(onClick = { onAction(EditorPageAction.Navigation.GoToLine(0)) }) {
-                        Icon(
-                            Icons.TwoTone.FormatListNumbered,
-                            contentDescription = stringResource(R.string.editor_action_go_to_line)
                         )
                     }
 

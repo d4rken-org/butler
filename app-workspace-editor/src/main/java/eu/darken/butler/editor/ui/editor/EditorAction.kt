@@ -5,6 +5,8 @@ import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.ContentPaste
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.FormatListNumbered
+import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
@@ -67,6 +69,24 @@ sealed interface EditorAction : WorkspaceAction {
     data object SelectAll : EditorAction {
         override val icon = Icons.TwoTone.SelectAll
         override val label = R.string.editor_action_select_all.toCaString()
+        override val group = WorkspaceAction.Group.SECONDARY
+    }
+
+    /**
+     * Go to a specific line number
+     */
+    data object GoToLine : EditorAction {
+        override val icon = Icons.TwoTone.FormatListNumbered
+        override val label = R.string.editor_action_go_to_line.toCaString()
+        override val group = WorkspaceAction.Group.SECONDARY
+    }
+
+    /**
+     * Search for text in the document
+     */
+    data object Search : EditorAction {
+        override val icon = Icons.TwoTone.Search
+        override val label = R.string.editor_action_search.toCaString()
         override val group = WorkspaceAction.Group.SECONDARY
     }
 }

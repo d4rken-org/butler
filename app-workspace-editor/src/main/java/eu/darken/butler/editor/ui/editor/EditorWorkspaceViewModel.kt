@@ -52,13 +52,17 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private suspend fun getWorkspace(): EditorWorkspace = workspaceSource.filterNotNull().first()
 
     private val _isLoading = MutableStateFlow(true)
+    private val _showGoToLineDialog = MutableStateFlow(false)
+    private val _showSearchDialog = MutableStateFlow(false)
     private var currentWorkspace: EditorWorkspace? = null
 
     val state = combine(
         workspaceSource.filterNotNull().flatMapLatest { it.editorState },
         _isLoading,
+        _showGoToLineDialog,
+        _showSearchDialog,
         flowOf(id),
-    ) { editorState, isLoading, workspaceId ->
+    ) { editorState, isLoading, showGoToLineDialog, showSearchDialog, workspaceId ->
         State(
             id = workspaceId,
             fileInfo = editorState.fileInfo,
@@ -76,6 +80,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             visibleRange = editorState.visibleRange,
             showLineNumbers = editorState.showLineNumbers,
             wordWrap = editorState.wordWrap,
+            showGoToLineDialog = showGoToLineDialog,
+            showSearchDialog = showSearchDialog,
         )
     }
         .asStateFlow()
@@ -207,6 +213,22 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().goToLine(lineNumber)
     }
 
+    fun showGoToLineDialog() {
+        _showGoToLineDialog.value = true
+    }
+
+    fun dismissGoToLineDialog() {
+        _showGoToLineDialog.value = false
+    }
+
+    fun showSearchDialog() {
+        _showSearchDialog.value = true
+    }
+
+    fun dismissSearchDialog() {
+        _showSearchDialog.value = false
+    }
+
     fun undo() = launch {
         getWorkspace().undo()
     }
@@ -230,6 +252,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             EditorAction.Paste -> pasteFromClipboard()
             EditorAction.Delete -> deleteSelection()
             EditorAction.SelectAll -> selectAll()
+            EditorAction.GoToLine -> showGoToLineDialog()
+            EditorAction.Search -> showSearchDialog()
         }
     }
 
@@ -285,6 +309,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val visibleRange: IntRange = 0..50,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
+        val showGoToLineDialog: Boolean = false,
+        val showSearchDialog: Boolean = false,
     ) {
         val hasFile: Boolean get() = fileInfo != null
         val hasSelection: Boolean get() = selectionRange != null
@@ -337,6 +363,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 // Select All - always visible when there's a file/content
                 if (hasFile || currentContent.isNotEmpty()) {
                     add(EditorAction.SelectAll)
+                }
+
+                // Go to Line - always visible when there's a file
+                if (hasFile) {
+                    add(EditorAction.GoToLine)
+                }
+
+                // Search - always visible when there's a file
+                if (hasFile) {
+                    add(EditorAction.Search)
                 }
             }
     }

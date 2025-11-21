@@ -86,6 +86,8 @@ fun EditorWorkspacePageHost(
             state = state,
             onPageAction = vm::onPageAction,
             onActionExecute = vm::executeAction,
+            onDismissGoToLineDialog = vm::dismissGoToLineDialog,
+            onDismissSearchDialog = vm::dismissSearchDialog,
         )
     }
 }
@@ -100,10 +102,10 @@ fun EditorWorkspacePage(
     state: EditorWorkspaceViewModel.State,
     onPageAction: (EditorPageAction) -> Unit,
     onActionExecute: (EditorAction) -> Unit = {},
+    onDismissGoToLineDialog: () -> Unit = {},
+    onDismissSearchDialog: () -> Unit = {},
 ) {
     rememberCoroutineScope()
-    var showGoToLineDialog by remember { mutableStateOf(false) }
-    var showSearchDialog by remember { mutableStateOf(false) }
 
     val hasActions by remember {
         derivedStateOf { state.availableActions.isNotEmpty() }
@@ -232,13 +234,7 @@ fun EditorWorkspacePage(
                 canRedo = false,
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,
-                onAction = { action ->
-                    when (action) {
-                        is EditorPageAction.Navigation.Search -> showSearchDialog = true
-                        is EditorPageAction.Navigation.GoToLine -> showGoToLineDialog = true
-                        else -> onPageAction(action)
-                    }
-                },
+                onAction = onPageAction,
                 collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
             )
 
@@ -269,24 +265,24 @@ fun EditorWorkspacePage(
     }
 
     // Dialogs
-    if (showGoToLineDialog) {
+    if (state.showGoToLineDialog) {
         GoToLineDialog(
             totalLines = state.totalLines,
             onGoToLine = { line ->
                 onPageAction(EditorPageAction.Navigation.GoToLine(line))
-                showGoToLineDialog = false
+                onDismissGoToLineDialog()
             },
-            onDismiss = { showGoToLineDialog = false }
+            onDismiss = onDismissGoToLineDialog,
         )
     }
 
-    if (showSearchDialog) {
+    if (state.showSearchDialog) {
         SearchDialog(
             onSearch = { query ->
                 onPageAction(EditorPageAction.Navigation.Search(query))
-                showSearchDialog = false
+                onDismissSearchDialog()
             },
-            onDismiss = { showSearchDialog = false }
+            onDismiss = onDismissSearchDialog,
         )
     }
 }
