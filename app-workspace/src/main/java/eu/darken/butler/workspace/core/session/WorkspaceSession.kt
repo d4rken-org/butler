@@ -6,17 +6,18 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlin.time.Clock
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 /**
  * Represents a saved workspace session that can be restored on app startup
  */
 @Serializable
 data class WorkspaceSession(
-    val version: Int = 1,
-    @Contextual val timestamp: Instant = Clock.System.now(),
-    val workspaces: List<WorkspaceSessionData>,
-//    val focused: Workspace.Id,
-//    val selected: SparseArray<Workspace.Id>,
+    val sessionId: Uuid = Uuid.random(),
+    @Contextual val createdAt: Instant = Clock.System.now(),
+    val workspaces: List<WorkspaceSessionData> = emptyList(),
+    val focusedWorkspaceId: String? = null,
+    val selectedWorkspaces: Map<Int, String> = emptyMap(),
 )
 
 /**

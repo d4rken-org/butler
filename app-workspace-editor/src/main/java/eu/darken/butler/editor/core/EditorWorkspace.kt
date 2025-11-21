@@ -315,7 +315,7 @@ class EditorWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: EditorArguments): EditorWorkspace
 
         override fun serialize(json: Json, arguments: EditorArguments): JsonElement {
-            return json.encodeToJsonElement(arguments)
+            return json.encodeToJsonElement<EditorArguments>(arguments)
         }
 
         override fun deserialize(json: Json, element: JsonElement): EditorArguments {

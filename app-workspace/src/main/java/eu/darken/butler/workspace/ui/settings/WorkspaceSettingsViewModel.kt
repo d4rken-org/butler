@@ -9,6 +9,7 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage
 import javax.inject.Inject
 
 @HiltViewModel
@@ -16,6 +17,7 @@ class WorkspaceSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
     private val workspaceSettings: WorkspaceSettings,
+    private val sessionStorage: eu.darken.butler.workspace.core.session.WorkspaceSessionStorage,
 ) : ViewModel4(dispatcherProvider, logTag("Workspace", "Settings", "Screen", "VM"), navCtrl) {
 
     val state = combine(
@@ -25,7 +27,9 @@ class WorkspaceSettingsViewModel @Inject constructor(
         workspaceSettings.layoutModePortrait.flow,
         workspaceSettings.layoutModeLandscape.flow,
         workspaceSettings.sessionRestoreEnabled.flow,
-    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, sessionRestoreEnabled ->
+        sessionStorage.getWorkspaceCount(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
+        sessionStorage.getDatabaseSizeBytes(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
+    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, sessionRestoreEnabled, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
         State(
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = onDemandWorkspaceCreation,
@@ -33,6 +37,8 @@ class WorkspaceSettingsViewModel @Inject constructor(
             layoutModePortrait = layoutModePortrait,
             layoutModeLandscape = layoutModeLandscape,
             sessionRestoreEnabled = sessionRestoreEnabled,
+            sessionWorkspaceCount = sessionWorkspaceCount,
+            sessionDatabaseSizeBytes = sessionDatabaseSizeBytes,
         )
     }.asStateFlow()
 
@@ -71,5 +77,7 @@ class WorkspaceSettingsViewModel @Inject constructor(
         val layoutModePortrait: WorkspacePanelMode,
         val layoutModeLandscape: WorkspacePanelMode,
         val sessionRestoreEnabled: Boolean,
+        val sessionWorkspaceCount: Int = 0,
+        val sessionDatabaseSizeBytes: Long = 0L,
     )
 }

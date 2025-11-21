@@ -53,6 +53,7 @@ dependencies {
     addCoroutines()
     addSerialization()
     addIO()
+    addRoomDb()
     addTesting()
 
     // Performance graphs

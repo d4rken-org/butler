@@ -110,7 +110,7 @@ class AppsWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: AppsArguments): AppsWorkspace
 
         override fun serialize(json: Json, arguments: AppsArguments): JsonElement {
-            return json.encodeToJsonElement(arguments)
+            return json.encodeToJsonElement<AppsArguments>(arguments)
         }
 
         override fun deserialize(json: Json, element: JsonElement): AppsArguments {

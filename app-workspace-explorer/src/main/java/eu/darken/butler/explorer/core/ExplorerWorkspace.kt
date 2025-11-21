@@ -377,10 +377,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: ExplorerArguments): ExplorerWorkspace
 
         override fun serialize(json: Json, arguments: ExplorerArguments): JsonElement {
-            return when (arguments) {
-                is ExplorerArguments.Default -> json.encodeToJsonElement(arguments)
-                is ExplorerArguments.Picker -> json.encodeToJsonElement(arguments)
-            }
+            return json.encodeToJsonElement<ExplorerArguments>(arguments)
         }
 
         override fun deserialize(json: Json, element: JsonElement): ExplorerArguments {

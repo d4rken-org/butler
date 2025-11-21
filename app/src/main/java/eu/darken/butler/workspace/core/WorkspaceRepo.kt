@@ -1,9 +1,6 @@
 package eu.darken.butler.workspace.core
 
-import eu.darken.butler.apps.core.AppsWorkspace
-import eu.darken.butler.apps.core.details.AppDetailsWorkspace
 import eu.darken.butler.common.coroutine.AppScope
-import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -11,62 +8,30 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
-import eu.darken.butler.editor.core.EditorWorkspace
-import eu.darken.butler.explorer.core.ExplorerWorkspace
-import eu.darken.butler.searcher.core.SearcherWorkspace
-import eu.darken.butler.templates.core.TemplatesWorkspace
 import eu.darken.butler.workspace.core.operations.OperationsManager
-import eu.darken.butler.workspace.core.session.WorkspaceSessionData
-import eu.darken.butler.workspace.core.session.WorkspaceSessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.time.Duration.Companion.milliseconds
 
 @Singleton
 class WorkspaceRepo @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
-    templatesWorkspaceFactory: TemplatesWorkspace.Factory,
-    explorerWorkspaceFactory: ExplorerWorkspace.Factory,
-    searcherWorkspaceFactory: SearcherWorkspace.Factory,
-    editorWorkspaceFactory: EditorWorkspace.Factory,
-    appsWorkspaceFactory: AppsWorkspace.Factory,
-    appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
+    private val factoryMap: Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>>,
     private val workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
-    private val sessionManager: WorkspaceSessionManager,
-    private val json: Json,
 ) : WorkspaceProvider, WorkspaceRemote {
-
-    private val factoryMap: Map<Workspace.Type, WorkspaceFactory<*>> = Workspace.Type.entries
-        .associateWith { type ->
-            when (type) {
-                Workspace.Type.TEMPLATES -> templatesWorkspaceFactory
-                Workspace.Type.EXPLORER -> explorerWorkspaceFactory
-                Workspace.Type.SEARCHER -> searcherWorkspaceFactory
-                Workspace.Type.EDITOR -> editorWorkspaceFactory
-                Workspace.Type.APPS -> appsWorkspaceFactory
-                Workspace.Type.APP_DETAILS -> appDetailsWorkspaceFactory
-            }
-        }
 
     private val lock = Mutex()
     private val _workspaces = MutableStateFlow<List<Workspace<*>>>(emptyList())
@@ -104,21 +69,6 @@ class WorkspaceRepo @Inject constructor(
     override val events: Flow<WorkspaceEvent> = _events
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "WorkspaceEvents" }
         .replayingShare(appScope)
-
-    init {
-        // Auto-save session when workspace state changes
-        state
-            .map { it.infos }
-            .distinctUntilChanged()
-            .debounce(500.milliseconds)
-            .onEach {
-                if (workspaceSettings.sessionRestoreEnabled.value()) {
-                    saveCurrentSession()
-                }
-            }
-            .catch { e -> log(TAG, ERROR) { "Auto-save session failed: ${e.asLog()}" } }
-            .launchIn(appScope)
-    }
 
     override suspend fun emitEvent(event: WorkspaceEvent) {
         log(TAG) { "emitEvent($event)" }
@@ -163,7 +113,9 @@ class WorkspaceRepo @Inject constructor(
     }
 
     override fun retrieve(id: Workspace.Id): Flow<Workspace<out Workspace.Arguments>?> {
-        return _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
+        return _workspaces.flatMapLatest { wss ->
+            flowOf(wss.singleOrNull { it.id == id })
+        }
     }
 
     fun resolveConfirmation(confirmationId: String, confirmed: Boolean) {
@@ -372,109 +324,6 @@ class WorkspaceRepo @Inject constructor(
             }
         }
     }
-
-    /**
-     * Save the current workspace session
-     */
-    private suspend fun saveCurrentSession() {
-        try {
-            val currentWorkspaces = _workspaces.value
-            if (currentWorkspaces.isEmpty()) {
-                log(TAG, DEBUG) { "No workspaces to save" }
-                return
-            }
-
-            // Don't save sub-workspaces (modal pickers)
-            val workspacesToSave = currentWorkspaces.filter { workspace ->
-                val info = workspace.info.first()
-                info.callerWorkspaceId == null // Only save top-level workspaces
-            }
-
-            val sessionData = workspacesToSave.mapIndexed { index, workspace ->
-                val info = workspace.info.first()
-
-                // Get current arguments from workspace (includes extracted state)
-                val currentArguments = workspace.createArguments()
-
-                @Suppress("UNCHECKED_CAST")
-                val factory = factoryMap.getValue(info.type) as WorkspaceFactory<Workspace.Arguments>
-                val serializedArguments = factory.serialize(json, currentArguments)
-
-                WorkspaceSessionData(
-                    id = workspace.id.toString(),
-                    type = info.type,
-                    arguments = serializedArguments,
-                )
-            }
-
-            sessionManager.saveSession(sessionData)
-            log(TAG, INFO) { "Saved session with ${sessionData.size} workspaces" }
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to save session: ${e.asLog()}" }
-        }
-    }
-
-    /**
-     * Restore workspaces from a saved session
-     */
-    suspend fun restoreSession(): List<Workspace.Id> {
-        try {
-            val session = sessionManager.loadSession()
-            if (session == null) {
-                log(TAG, DEBUG) { "No session to restore" }
-                return emptyList()
-            }
-
-            sessionManager.setRestorationState(WorkspaceSessionManager.RestorationState.RESTORING)
-            val restoredIds = mutableListOf<Workspace.Id>()
-
-            // Sort by order and restore
-            session.workspaces.forEach { workspaceData ->
-                try {
-                    log(TAG) { "Restoring workspace: ${workspaceData.type}" }
-
-                    // Deserialize arguments from saved data
-                    val factory = factoryMap.getValue(workspaceData.type)
-                    val arguments: Workspace.Arguments = try {
-                        workspaceData.arguments.let {
-                            factory.deserialize(json, it)
-                        }
-                    } catch (e: Exception) {
-                        log(TAG, ERROR) { "Failed to deserialize arguments: ${e.asLog()}" }
-                        workspaceData.type.defaultArguments
-                    }
-
-                    val newId = create(
-                        type = workspaceData.type,
-                        arguments = arguments,
-                    )
-
-                    restoredIds.add(newId)
-
-                    // TODO: If workspace implements WorkspaceSerializable, restore custom state
-
-                    _events.emit(
-                        WorkspaceEvent.Created(
-                            workspaceId = newId,
-                            replacedId = null,
-                            autoFocus = false, // Don't auto-focus during restoration
-                        )
-                    )
-                } catch (e: Exception) {
-                    log(TAG, ERROR) { "Failed to restore workspace ${workspaceData.type}: ${e.asLog()}" }
-                }
-            }
-
-            sessionManager.setRestorationState(WorkspaceSessionManager.RestorationState.RESTORED)
-            log(TAG, INFO) { "Restored ${restoredIds.size} workspaces" }
-            return restoredIds
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Session restoration failed: ${e.asLog()}" }
-            sessionManager.setRestorationState(WorkspaceSessionManager.RestorationState.FAILED)
-            return emptyList()
-        }
-    }
-
 
     companion object {
         private val TAG = logTag("Workspace", "Repo")

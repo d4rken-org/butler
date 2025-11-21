@@ -112,7 +112,7 @@ class TemplatesWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: TemplatesArguments): TemplatesWorkspace
 
         override fun serialize(json: Json, arguments: TemplatesArguments): JsonElement {
-            return json.encodeToJsonElement(arguments)
+            return json.encodeToJsonElement<TemplatesArguments>(arguments)
         }
 
         override fun deserialize(json: Json, element: JsonElement): TemplatesArguments {

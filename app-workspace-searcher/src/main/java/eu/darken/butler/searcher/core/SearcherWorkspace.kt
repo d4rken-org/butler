@@ -365,8 +365,7 @@ class SearcherWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: SearcherArguments): SearcherWorkspace
 
         override fun serialize(json: Json, arguments: SearcherArguments): JsonElement {
-
-            return json.encodeToJsonElement(arguments)
+            return json.encodeToJsonElement<SearcherArguments>(arguments)
         }
 
         override fun deserialize(json: Json, element: JsonElement): SearcherArguments {
