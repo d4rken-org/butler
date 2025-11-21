@@ -4,20 +4,20 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
-import kotlinx.coroutines.flow.combine
+import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage
 import javax.inject.Inject
 
 @HiltViewModel
-class WorkspaceSettingsViewModel
-@Inject
-constructor(
+class WorkspaceSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
     private val workspaceSettings: WorkspaceSettings,
+    private val sessionStorage: eu.darken.butler.workspace.core.session.WorkspaceSessionStorage,
 ) : ViewModel4(dispatcherProvider, logTag("Workspace", "Settings", "Screen", "VM"), navCtrl) {
 
     val state = combine(
@@ -26,13 +26,19 @@ constructor(
         workspaceSettings.livePreview.flow,
         workspaceSettings.layoutModePortrait.flow,
         workspaceSettings.layoutModeLandscape.flow,
-    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape ->
+        workspaceSettings.sessionRestoreEnabled.flow,
+        sessionStorage.getWorkspaceCount(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
+        sessionStorage.getDatabaseSizeBytes(WorkspaceSessionStorage.DEFAULT_SESSION_ID),
+    ) { swipeGesturesEnabled, onDemandWorkspaceCreation, livePreview, layoutModePortrait, layoutModeLandscape, sessionRestoreEnabled, sessionWorkspaceCount, sessionDatabaseSizeBytes ->
         State(
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = onDemandWorkspaceCreation,
             livePreview = livePreview,
             layoutModePortrait = layoutModePortrait,
             layoutModeLandscape = layoutModeLandscape,
+            sessionRestoreEnabled = sessionRestoreEnabled,
+            sessionWorkspaceCount = sessionWorkspaceCount,
+            sessionDatabaseSizeBytes = sessionDatabaseSizeBytes,
         )
     }.asStateFlow()
 
@@ -59,11 +65,22 @@ constructor(
         workspaceSettings.layoutModeLandscape.value(mode)
     }
 
+    fun toggleSessionRestore() = launch {
+        val current = workspaceSettings.sessionRestoreEnabled.value()
+        workspaceSettings.sessionRestoreEnabled.value(!current)
+        if (current) {
+            sessionStorage.dao.clearAllSessionData(WorkspaceSessionStorage.DEFAULT_SESSION_ID)
+        }
+    }
+
     data class State(
         val swipeGesturesEnabled: Boolean,
         val onDemandWorkspaceCreation: Boolean,
         val livePreview: Boolean,
         val layoutModePortrait: WorkspacePanelMode,
         val layoutModeLandscape: WorkspacePanelMode,
+        val sessionRestoreEnabled: Boolean,
+        val sessionWorkspaceCount: Int = 0,
+        val sessionDatabaseSizeBytes: Long = 0L,
     )
 }

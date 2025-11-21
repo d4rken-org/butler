@@ -9,26 +9,22 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.apps.R
-import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsWorkspace
-import eu.darken.butler.apps.core.details.AppDetailsArguments
+import eu.darken.butler.apps.core.arguments.AppDetailsArguments
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.core.engine.SortSettings
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
+import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -53,7 +49,8 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 ) : ViewModel4(dispatchers, logTag("Apps", "Workspace", id.shortTag, "Page"), navController) {
 
     private val workspaceSource: Flow<AppsWorkspace?> =
-        workspaceProvider.retrieve(id).map { workspace: Workspace? -> workspace as? AppsWorkspace }
+        workspaceProvider.retrieve(id)
+            .map { workspace: Workspace<out Workspace.Arguments>? -> workspace as? AppsWorkspace }
 
     private suspend fun getWorkspace(): AppsWorkspace = workspaceSource.filterNotNull().first()
 
@@ -362,7 +359,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 log(tag) { "Browse path action for ${action.app.packageName}: ${action.path}" }
                 workspaceRemote.createAndFocus(
                     type = Workspace.Type.EXPLORER,
-                    arguments = ExternalExplorerArguments(startPath = action.path),
+                    arguments = ExplorerArguments.Default(startPath = action.path),
                 )
             }
         }

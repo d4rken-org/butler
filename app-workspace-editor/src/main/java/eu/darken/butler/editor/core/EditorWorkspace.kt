@@ -14,11 +14,13 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.combine
+import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
@@ -35,21 +37,31 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 import okio.buffer
 import okio.use
 
 
 class EditorWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
-    @Assisted private val arguments: Arguments?,
+    @Assisted private val creationArguments: EditorArguments,
     private val gatewaySwitch: GatewaySwitch,
     private val editorEngineFactory: EditorEngine.Factory,
     private val editorSettings: EditorSettings,
     private val operationsManager: OperationsManager,
-) : Workspace {
+) : Workspace<EditorArguments> {
 
     private val tag = logTag("Editor", "Workspace", id.shortTag)
+
+    override suspend fun createArguments(): EditorArguments {
+        return EditorArguments.Default(
+            filePath = filePath, // Current file being edited
+            goToLine = null
+        )
+    }
 
     private val workspaceScope = CoroutineScope(
         SupervisorJob() +
@@ -70,13 +82,14 @@ class EditorWorkspace @AssistedInject constructor(
     )
     override val info: MutableStateFlow<Workspace.Info> = _info
 
-    val filePath: APath<*>? get() = arguments?.filePath
+    val filePath: APath<*>? get() = (creationArguments as? EditorArguments.Default)?.filePath
 
     private val engineHolder = DynamicStateFlow<EditorEngine>(
         loggingTag = tag,
         parentScope = workspaceScope,
         startValueProvider = {
-            val initialPath = arguments?.filePath ?: LocalPath.build("/sdcard/test-3MB.log")
+            val initialPath =
+                (creationArguments as? EditorArguments.Default)?.filePath ?: LocalPath.build("/sdcard/test-3MB.log")
             log(tag, INFO) { "Creating initial engine with: ${initialPath?.name ?: "scratch buffer"}" }
             editorEngineFactory.create(id, initialPath).apply {
                 initialize().getOrThrow()
@@ -191,7 +204,7 @@ class EditorWorkspace @AssistedInject constructor(
 
     private fun generateTitle(): CaString {
         return when {
-            arguments?.filePath != null -> arguments.filePath.name.toCaString()
+            (creationArguments as? EditorArguments.Default)?.filePath != null -> (creationArguments as EditorArguments.Default).filePath!!.name.toCaString()
             else -> "Editor ${id.shortTag}".toCaString()
         }
     }
@@ -251,6 +264,7 @@ class EditorWorkspace @AssistedInject constructor(
             Result.failure(e)
         }
     }
+
     suspend fun search(query: String) = engineHolder.value().search(query)
     suspend fun goToLine(lineNumber: Int) = engineHolder.value().goToLine(lineNumber)
     suspend fun undo() = engineHolder.value().undo()
@@ -260,7 +274,9 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun insertText(text: String) = engineHolder.value().insertText(text)
     suspend fun setCursorPosition(position: TextPosition) = engineHolder.value().setCursorPosition(position)
     suspend fun setSelection(start: TextPosition, end: TextPosition) = engineHolder.value().setSelection(start, end)
-    suspend fun updateVisibleRange(startLine: Int, endLine: Int) = engineHolder.value().updateVisibleRange(startLine, endLine)
+    suspend fun updateVisibleRange(startLine: Int, endLine: Int) =
+        engineHolder.value().updateVisibleRange(startLine, endLine)
+
     fun clearError() = runBlocking { engineHolder.value().clearError() }
     fun canUndo() = runBlocking { engineHolder.value().canUndo() }
     fun canRedo() = runBlocking { engineHolder.value().canRedo() }
@@ -269,20 +285,6 @@ class EditorWorkspace @AssistedInject constructor(
         log(tag, INFO) { "release()" }
         workspaceScope.cancel()
         // DynamicStateFlow's onRelease callback handles engine cleanup automatically
-    }
-
-    @Parcelize
-    data class Arguments(
-        val filePath: APath<*>? = null,
-        val goToLine: Int? = null,
-    ) : Workspace.Arguments {
-        override val type: Workspace.Type
-            get() = Workspace.Type.EDITOR
-    }
-
-    @AssistedFactory
-    interface Factory {
-        fun create(id: Workspace.Id, arguments: Arguments?): EditorWorkspace
     }
 
     data class EditorState(
@@ -306,4 +308,19 @@ class EditorWorkspace @AssistedInject constructor(
         val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
         val hasError: Boolean get() = error != null
     }
+
+    @AssistedFactory
+    interface Factory : WorkspaceFactory<EditorArguments> {
+
+        override fun create(id: Workspace.Id, arguments: EditorArguments): EditorWorkspace
+
+        override fun serialize(json: Json, arguments: EditorArguments): JsonElement {
+            return json.encodeToJsonElement<EditorArguments>(arguments)
+        }
+
+        override fun deserialize(json: Json, element: JsonElement): EditorArguments {
+            return json.decodeFromJsonElement<EditorArguments>(element)
+        }
+    }
+
 }

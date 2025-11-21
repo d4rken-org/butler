@@ -43,10 +43,6 @@ class WorkspaceSettings @Inject constructor(
 
     val sessionRestoreEnabled = dataStore.createValue("workspace.session.restore.enabled", true)
 
-    val restoreSearchResults = dataStore.createValue("workspace.session.restore.searchresults", false)
-
-    val maxWorkspacesToRestore = dataStore.createValue("workspace.session.restore.max", 10)
-
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
         showTipBadgeExplanation,
@@ -57,8 +53,6 @@ class WorkspaceSettings @Inject constructor(
         layoutModePortrait,
         layoutModeLandscape,
         sessionRestoreEnabled,
-        restoreSearchResults,
-        maxWorkspacesToRestore,
     )
 
     companion object {

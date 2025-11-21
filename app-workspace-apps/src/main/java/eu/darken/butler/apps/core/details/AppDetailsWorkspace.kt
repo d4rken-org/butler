@@ -5,6 +5,8 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppPath
+import eu.darken.butler.apps.core.arguments.AppDetailsArguments
+import eu.darken.butler.apps.core.arguments.DetailTab
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -15,6 +17,7 @@ import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.features.InstallDetails
 import eu.darken.butler.common.pkgs.pkgs
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceFactory
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -22,21 +25,27 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.parcelize.IgnoredOnParcel
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 
 class AppDetailsWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
-    @Assisted private val arguments: Workspace.Arguments?,
+    @Assisted private val creationArguments: AppDetailsArguments,
     dispatcherProvider: DispatcherProvider,
     private val pkgRepo: PkgRepo,
-) : Workspace {
+) : Workspace<AppDetailsArguments> {
 
     private val tag = logTag("AppDetails", "Workspace", id.shortTag)
     private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
 
-    private val args = arguments as AppDetailsArguments
+    private val args = creationArguments
     override val type: Workspace.Type = Workspace.Type.APP_DETAILS
+
+    override suspend fun createArguments(): AppDetailsArguments {
+        return args
+    }
 
     private val selectedTabFlow = MutableStateFlow(args.initialTab)
 
@@ -131,44 +140,16 @@ class AppDetailsWorkspace @AssistedInject constructor(
     }
 
     @AssistedFactory
-    interface Factory {
-        fun create(id: Workspace.Id, arguments: Workspace.Arguments?): AppDetailsWorkspace
+    interface Factory : WorkspaceFactory<AppDetailsArguments> {
+        override fun create(id: Workspace.Id, arguments: AppDetailsArguments): AppDetailsWorkspace
+
+        override fun serialize(json: Json, arguments: AppDetailsArguments): JsonElement {
+            return json.encodeToJsonElement(arguments)
+        }
+
+        override fun deserialize(json: Json, element: JsonElement): AppDetailsArguments {
+            return json.decodeFromJsonElement<AppDetailsArguments>(element)
+        }
     }
 }
 
-/**
- * Arguments for launching an App Details workspace.
- * Implements ArgumentsWithCaller to support modal rendering when callerWorkspaceId is set.
- *
- * This is a detail/informational workspace (not a picker), so it defaults to PANE_LOCAL
- * presentation mode, allowing it to render as an overlay within the parent's pane on tablets
- * while appearing as a full-screen modal on phones.
- *
- * @param packageName The package name of the app to display details for
- * @param initialTab The tab to show initially (defaults to OVERVIEW)
- * @param callerWorkspaceId If set, this workspace will render as a modal
- */
-@Parcelize
-data class AppDetailsArguments(
-    val packageName: String,
-    val initialTab: DetailTab = DetailTab.OVERVIEW,
-    override val callerWorkspaceId: Workspace.Id? = null,
-) : Workspace.ArgumentsWithCaller {
-    @IgnoredOnParcel
-    override val type: Workspace.Type = Workspace.Type.APP_DETAILS
-}
-
-/**
- * Available tabs in the App Details workspace
- */
-enum class DetailTab {
-    /**
-     * Overview tab showing basic app info, storage locations, and quick actions
-     */
-    OVERVIEW,
-
-    /**
-     * Package info tab showing APK details, manifest, components, signing info
-     */
-    PACKAGE_INFO,
-}

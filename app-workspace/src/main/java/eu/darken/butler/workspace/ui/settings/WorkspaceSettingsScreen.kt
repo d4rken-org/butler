@@ -12,8 +12,10 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.AutoAwesome
+import androidx.compose.material.icons.twotone.RestorePage
 import androidx.compose.material.icons.twotone.StayPrimaryLandscape
 import androidx.compose.material.icons.twotone.StayPrimaryPortrait
+import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.SwipeLeft
 import androidx.compose.material.icons.twotone.Visibility
 import androidx.compose.material3.AlertDialog
@@ -30,12 +32,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.formatAsFileSize
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
@@ -55,6 +59,7 @@ fun WorkspaceSettingsScreen(
     onToggleLivePreview: () -> Unit,
     onSetLayoutModePortrait: (WorkspacePanelMode) -> Unit,
     onSetLayoutModeLandscape: (WorkspacePanelMode) -> Unit,
+    onToggleSessionRestore: () -> Unit,
 ) {
     var showPortraitDialog by remember { mutableStateOf(false) }
     var showLandscapeDialog by remember { mutableStateOf(false) }
@@ -138,6 +143,37 @@ fun WorkspaceSettingsScreen(
                     value = state.layoutModeLandscape.label(),
                     onClick = { showLandscapeDialog = true }
                 )
+            }
+
+            item {
+                SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_session_title))
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.RestorePage,
+                    title = stringResource(R.string.workspace_settings_session_restore_title),
+                    subtitle = stringResource(R.string.workspace_settings_session_restore_desc),
+                    checked = state.sessionRestoreEnabled,
+                    onCheckedChange = { onToggleSessionRestore() }
+                )
+            }
+
+            if (state.sessionRestoreEnabled) {
+                item {
+                    SettingsPreferenceItem(
+                        icon = Icons.TwoTone.Storage,
+                        title = stringResource(R.string.workspace_settings_session_data_title),
+                        subtitle = pluralStringResource(
+                            R.plurals.workspace_settings_session_data_desc,
+                            state.sessionWorkspaceCount,
+                            state.sessionWorkspaceCount,
+                            state.sessionDatabaseSizeBytes.formatAsFileSize(),
+                        ),
+                        value = null,
+                        onClick = {},
+                    )
+                }
             }
         }
     }
@@ -245,6 +281,9 @@ private fun WorkspaceSettingsScreenPreview() {
                 livePreview = true,
                 layoutModePortrait = WorkspacePanelMode.AUTO,
                 layoutModeLandscape = WorkspacePanelMode.AUTO,
+                sessionRestoreEnabled = true,
+                sessionWorkspaceCount = 3,
+                sessionDatabaseSizeBytes = 131072,
             ),
             onNavigateUp = {},
             onToggleSwipeGestures = {},
@@ -252,6 +291,7 @@ private fun WorkspaceSettingsScreenPreview() {
             onToggleLivePreview = {},
             onSetLayoutModePortrait = {},
             onSetLayoutModeLandscape = {},
+            onToggleSessionRestore = {},
         )
     }
 }
@@ -271,6 +311,7 @@ fun WorkspaceSettingsScreenHost(vm: WorkspaceSettingsViewModel = hiltViewModel()
             onToggleLivePreview = { vm.toggleLivePreview() },
             onSetLayoutModePortrait = { mode -> vm.setLayoutModePortrait(mode) },
             onSetLayoutModeLandscape = { mode -> vm.setLayoutModeLandscape(mode) },
+            onToggleSessionRestore = { vm.toggleSessionRestore() },
         )
     }
 }

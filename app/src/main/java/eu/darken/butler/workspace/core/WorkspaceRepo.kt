@@ -1,8 +1,5 @@
 package eu.darken.butler.workspace.core
 
-import eu.darken.butler.apps.core.AppsWorkspace
-import eu.darken.butler.apps.core.details.AppDetailsWorkspace
-import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -11,13 +8,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
-import eu.darken.butler.editor.core.EditorWorkspace
-import eu.darken.butler.explorer.core.ExplorerWorkspace
-import eu.darken.butler.searcher.core.SearcherWorkspace
-import eu.darken.butler.templates.core.TemplatesWorkspace
 import eu.darken.butler.workspace.core.operations.OperationsManager
-import eu.darken.butler.workspace.core.session.WorkspaceSessionData
-import eu.darken.butler.workspace.core.session.WorkspaceSessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -26,9 +17,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -38,52 +28,17 @@ import javax.inject.Singleton
 @Singleton
 class WorkspaceRepo @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
-    private val templatesWorkspaceFactory: TemplatesWorkspace.Factory,
-    private val explorerWorkspaceFactory: ExplorerWorkspace.Factory,
-    private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
-    private val editorWorkspaceFactory: EditorWorkspace.Factory,
-    private val appsWorkspaceFactory: AppsWorkspace.Factory,
-    private val appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
-    workspaceSettings: WorkspaceSettings,
+    private val factoryMap: Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>>,
+    private val workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
-    private val sessionManager: WorkspaceSessionManager,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
-    private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
+    private val _workspaces = MutableStateFlow<List<Workspace<*>>>(emptyList())
     private val _events = MutableSharedFlow<WorkspaceEvent>()
 
-    // Generic confirmation system
-    data class PendingConfirmation(
-        val id: String,
-        val sourceWorkspaceId: Workspace.Id?,
-        val data: ConfirmationData,
-    )
-
-    sealed interface ConfirmationData {
-        /**
-         * Confirmation for creating multiple workspaces at once
-         */
-        data class BatchWorkspaceCreation(
-            val totalCount: Int,
-            val skippedCount: Int = 0,
-        ) : ConfirmationData
-
-        /**
-         * Confirmation for closing a workspace
-         */
-        data class WorkspaceCloseConfirmation(
-            val workspaceId: Workspace.Id,
-            val workspaceTitle: CaString,
-        ) : ConfirmationData
-
-        // Future confirmation types can be added here:
-        // data class BulkDelete(val itemCount: Int, val itemType: String) : ConfirmationData
-        // data class DangerousOperation(val message: String) : ConfirmationData
-    }
-
-    private val _pendingConfirmations = MutableStateFlow<Map<String, PendingConfirmation>>(emptyMap())
-    val pendingConfirmations: Flow<Map<String, PendingConfirmation>> = _pendingConfirmations
+    private val _pendingConfirmations = MutableStateFlow<Map<String, PendingWorkspaceConfirmation>>(emptyMap())
+    val pendingConfirmations: Flow<Map<String, PendingWorkspaceConfirmation>> = _pendingConfirmations
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "PendingConfirmations" }
         .replayingShare(appScope)
 
@@ -122,38 +77,19 @@ class WorkspaceRepo @Inject constructor(
 
     private fun create(
         type: Workspace.Type,
-        arguments: Workspace.Arguments? = null,
+        arguments: Workspace.Arguments,
         idToReplace: Workspace.Id? = null,
     ): Workspace.Id {
         log(TAG) { "create($type, $arguments, $idToReplace)" }
         val wip = _workspaces.value.toMutableList()
 
-        val newWorkspace = when (type) {
-            Workspace.Type.TEMPLATES -> templatesWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as TemplatesWorkspace.Arguments?
-            )
-            Workspace.Type.EXPLORER -> explorerWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments
-            )
-            Workspace.Type.SEARCHER -> searcherWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as SearcherWorkspace.Arguments?
-            )
-            Workspace.Type.EDITOR -> editorWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as EditorWorkspace.Arguments?
-            )
-            Workspace.Type.APPS -> appsWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as AppsWorkspace.Arguments?
-            )
-            Workspace.Type.APP_DETAILS -> appDetailsWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments
-            )
-        }
+        @Suppress("UNCHECKED_CAST")
+        val factory = factoryMap[type] as? WorkspaceFactory<Workspace.Arguments>
+            ?: throw IllegalArgumentException("No factory found for workspace type: $type")
+        val newWorkspace = factory.create(
+            id = Workspace.Id(),
+            arguments = arguments
+        ) as Workspace<out Workspace.Arguments>
         if (idToReplace != null) {
             val index = wip.indexOfFirst { it.id == idToReplace }
             if (index == -1) throw IllegalStateException("Tab not found")
@@ -176,8 +112,10 @@ class WorkspaceRepo @Inject constructor(
         return newWorkspace.id
     }
 
-    override fun retrieve(id: Workspace.Id): Flow<Workspace?> {
-        return _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
+    override fun retrieve(id: Workspace.Id): Flow<Workspace<out Workspace.Arguments>?> {
+        return _workspaces.flatMapLatest { wss ->
+            flowOf(wss.singleOrNull { it.id == id })
+        }
     }
 
     fun resolveConfirmation(confirmationId: String, confirmed: Boolean) {
@@ -206,6 +144,7 @@ class WorkspaceRepo @Inject constructor(
                         autoFocus = action.autoFocus,
                     )
                 )
+
                 WorkspaceAction.Create.Result(newId)
             }
 
@@ -216,16 +155,19 @@ class WorkspaceRepo @Inject constructor(
                 val needsConfirmation = action.requests.size >= CONFIRMATION_THRESHOLD
 
                 if (needsConfirmation) {
-                    log(TAG, INFO) { "Batch size (${action.requests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation" }
+                    log(
+                        TAG,
+                        INFO
+                    ) { "Batch size (${action.requests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation" }
                     val confirmationId = kotlin.uuid.Uuid.random().toString()
 
                     val confirmed = suspendCancellableCoroutine { continuation ->
                         confirmationContinuations[confirmationId] = continuation
                         _pendingConfirmations.update {
-                            it + (confirmationId to PendingConfirmation(
+                            it + (confirmationId to PendingWorkspaceConfirmation(
                                 id = confirmationId,
                                 sourceWorkspaceId = action.sourceWorkspaceId,
-                                data = ConfirmationData.BatchWorkspaceCreation(
+                                data = PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation(
                                     totalCount = action.requests.size,
                                     skippedCount = 0, // Could be passed in action if needed
                                 ),
@@ -305,10 +247,10 @@ class WorkspaceRepo @Inject constructor(
                     val confirmed = suspendCancellableCoroutine { continuation ->
                         confirmationContinuations[confirmationId] = continuation
                         _pendingConfirmations.update {
-                            it + (confirmationId to PendingConfirmation(
+                            it + (confirmationId to PendingWorkspaceConfirmation(
                                 id = confirmationId,
                                 sourceWorkspaceId = action.id,
-                                data = ConfirmationData.WorkspaceCloseConfirmation(
+                                data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
                                     workspaceId = action.id,
                                     workspaceTitle = workspaceInfo.title,
                                 ),
@@ -346,6 +288,7 @@ class WorkspaceRepo @Inject constructor(
 
                 _workspaces.value = _workspaces.value.filter { it.id != action.id }
                 _events.emit(WorkspaceEvent.Closed(workspaceId = action.id))
+
                 WorkspaceAction.Close.Result
             }
             is WorkspaceAction.Reorder -> {
@@ -365,6 +308,7 @@ class WorkspaceRepo @Inject constructor(
 
                 _workspaces.value = reordered
                 _events.emit(WorkspaceEvent.Reordered(workspaceIds = action.workspaceIds))
+
                 WorkspaceAction.Reorder.Result(true)
             }
             WorkspaceAction.CloseAll -> {
@@ -375,107 +319,8 @@ class WorkspaceRepo @Inject constructor(
                 }
                 _workspaces.value = emptyList()
                 _events.emit(WorkspaceEvent.AllClosed)
+
                 WorkspaceAction.CloseAll.Result
-            }
-        }
-    }
-
-    /**
-     * Save the current workspace session
-     */
-    private suspend fun saveCurrentSession() {
-        try {
-            val currentWorkspaces = _workspaces.value
-            if (currentWorkspaces.isEmpty()) {
-                log(TAG, DEBUG) { "No workspaces to save" }
-                return
-            }
-
-            // Don't save sub-workspaces (modal pickers)
-            val workspacesToSave = currentWorkspaces.filter { workspace ->
-                val info = workspace.info.first()
-                info.callerWorkspaceId == null // Only save top-level workspaces
-            }
-
-            val sessionData = workspacesToSave.mapIndexed { index, workspace ->
-                val info = workspace.info.first()
-                WorkspaceSessionData(
-                    id = workspace.id.toString(),
-                    type = info.type,
-                    arguments = null, // TODO: Serialize workspace arguments
-                    customState = null, // TODO: Get custom state from workspace if it implements WorkspaceSerializable
-                    order = index,
-                )
-            }
-
-            sessionManager.saveSession(sessionData)
-            log(TAG, INFO) { "Saved session with ${sessionData.size} workspaces" }
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to save session: ${e.asLog()}" }
-        }
-    }
-
-    /**
-     * Restore workspaces from a saved session
-     */
-    suspend fun restoreSession(): List<Workspace.Id> {
-        try {
-            val session = sessionManager.loadSession()
-            if (session == null) {
-                log(TAG, DEBUG) { "No session to restore" }
-                return emptyList()
-            }
-
-            sessionManager.setRestorationState(WorkspaceSessionManager.RestorationState.RESTORING)
-            val restoredIds = mutableListOf<Workspace.Id>()
-
-            // Sort by order and restore
-            session.workspaces.sortedBy { it.order }.forEach { workspaceData ->
-                try {
-                    log(TAG) { "Restoring workspace: ${workspaceData.type}" }
-
-                    // TODO: Deserialize arguments from workspaceData.arguments
-                    val arguments: Workspace.Arguments? = null
-
-                    val newId = create(
-                        type = workspaceData.type,
-                        arguments = arguments,
-                    )
-
-                    restoredIds.add(newId)
-
-                    // TODO: If workspace implements WorkspaceSerializable, restore custom state
-
-                    _events.emit(
-                        WorkspaceEvent.Created(
-                            workspaceId = newId,
-                            replacedId = null,
-                            autoFocus = false, // Don't auto-focus during restoration
-                        )
-                    )
-                } catch (e: Exception) {
-                    log(TAG, ERROR) { "Failed to restore workspace ${workspaceData.type}: ${e.asLog()}" }
-                }
-            }
-
-            sessionManager.setRestorationState(WorkspaceSessionManager.RestorationState.RESTORED)
-            log(TAG, INFO) { "Restored ${restoredIds.size} workspaces" }
-            return restoredIds
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Session restoration failed: ${e.asLog()}" }
-            sessionManager.setRestorationState(WorkspaceSessionManager.RestorationState.FAILED)
-            return emptyList()
-        }
-    }
-
-    /**
-     * Initialize workspace state monitoring for auto-save
-     */
-    init {
-        // Auto-save session when workspaces change
-        appScope.launch {
-            _workspaces.collect {
-                saveCurrentSession()
             }
         }
     }

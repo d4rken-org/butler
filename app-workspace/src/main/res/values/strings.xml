@@ -229,4 +229,14 @@
     <string name="workspace_settings_layout_mode_triple_sidebar_right_desc">Two smaller panes stacked on left, one large pane on right.</string>
     <string name="workspace_settings_layout_mode_quad_grid">Quad grid</string>
     <string name="workspace_settings_layout_mode_quad_grid_desc">Four panes in a 2×2 grid.</string>
+
+    <!-- Session Restoration -->
+    <string name="workspace_settings_session_title">Session restoration</string>
+    <string name="workspace_settings_session_restore_title">Restore workspaces on startup</string>
+    <string name="workspace_settings_session_restore_desc">Automatically restore previously open workspaces when the app starts.</string>
+    <string name="workspace_settings_session_data_title">Session data</string>
+    <plurals name="workspace_settings_session_data_desc">
+        <item quantity="one">%1$d workspace • %2$s</item>
+        <item quantity="other">%1$d workspaces • %2$s</item>
+    </plurals>
 </resources>

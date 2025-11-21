@@ -13,6 +13,7 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.workspace.core.PendingWorkspaceConfirmation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -23,9 +24,9 @@ import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
 import eu.darken.butler.workspace.ui.feedback.BannerState
+import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -41,6 +42,7 @@ class WorkspacesViewModel @Inject constructor(
     workspaceSettings: WorkspaceSettings,
     private val savedStateHandle: SavedStateHandle,
     private val workspacePageManager: WorkspacePageManager,
+    private val sessionManager: WorkspaceSessionManager,
     private val motdRepo: MotdRepo,
     private val webpageTool: WebpageTool,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM"), navCtrl) {
@@ -56,32 +58,16 @@ class WorkspacesViewModel @Inject constructor(
     val bannerStates = _bannerStates.asStateFlow()
 
     init {
-        launch {
-            val currentWorkspaces = workspaceRepo.state.first()
-            if (currentWorkspaces.infos.isEmpty()) {
-                log(tag) { "No workspaces found, attempting to restore session" }
-
-                // Try to restore previous session
-                val restoredIds = workspaceRepo.restoreSession()
-
-                if (restoredIds.isEmpty()) {
-                    // No session to restore or restoration failed, create default workspace
-                    log(tag) { "No session restored, creating default workspace" }
-                    workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.EXPLORER))
-                } else {
-                    log(tag, INFO) { "Restored ${restoredIds.size} workspaces from session" }
-                }
+        sessionManager.state
+            .onEach {
+                log(tag, INFO) { "Restoration state updated: $it" }
             }
-        }
+            .launchInViewModel()
 
-        // Initialize the WorkspaceUIManager with saved state
+        // Store and restore WorkspacePageManager from saved state
         workspacePageManager.initializeFromSavedState(savedStateHandle)
-
-        // Persist the entire state object when it changes
         workspacePageManager.state
-            .onEach { state ->
-                savedStateHandle["workspaceUIState"] = state
-            }
+            .onEach { state -> savedStateHandle["workspaceUIState"] = state }
             .launchInViewModel()
 
         // Observe pending confirmations and show dialogs
@@ -99,14 +85,14 @@ class WorkspacesViewModel @Inject constructor(
                         }
 
                     val dialogState = when (val data = confirmation.data) {
-                        is WorkspaceRepo.ConfirmationData.BatchWorkspaceCreation -> {
+                        is PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation -> {
                             WorkspaceManagerDialogState.OpenInNewTabsConfirmation(
                                 confirmationId = confirmationId,
                                 targetWorkspaceId = targetWorkspaceId,
                                 totalCount = data.totalCount,
                             )
                         }
-                        is WorkspaceRepo.ConfirmationData.WorkspaceCloseConfirmation -> {
+                        is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation -> {
                             WorkspaceManagerDialogState.WorkspaceCloseConfirmation(
                                 confirmationId = confirmationId,
                                 targetWorkspaceId = targetWorkspaceId,
@@ -159,16 +145,18 @@ class WorkspacesViewModel @Inject constructor(
         log(tag) { "WorkspacesViewModel initialization complete" }
     }
 
+    private val visibleMotd = kotlinx.coroutines.flow.combine(motdRepo.motd, hiddenMotdIds) { motd, hiddenIds ->
+        motd?.takeIf { it.id !in hiddenIds }
+    }
+
     val state = combine(
         workspaceRepo.state,
         upgradeRepo.upgradeInfo,
         workspaceSettings.swipeGesturesEnabled.flow,
         workspaceSettings.onDemandWorkspaceCreation.flow,
         workspacePageManager.state,
-        kotlinx.coroutines.flow.combine(motdRepo.motd, hiddenMotdIds) { motd, hiddenIds ->
-            motd?.takeIf { it.id !in hiddenIds }
-        },
-    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, uiState, visibleMotd ->
+        visibleMotd,
+    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, uiState, motd ->
         State(
             state = repoState,
             focusedWorkspace = uiState.focusedWorkspaceId,
@@ -176,7 +164,7 @@ class WorkspacesViewModel @Inject constructor(
             isUpgraded = upgradeInfo.isUpgraded,
             swipeGesturesEnabled = swipeGesturesEnabled,
             onDemandWorkspaceCreation = swipeGesturesEnabled && onDemandWorkspaceCreation,
-            motd = visibleMotd,
+            motd = motd,
             currentPaneCount = uiState.currentPaneCount,
         )
     }.asStateFlow()
@@ -336,8 +324,8 @@ class WorkspacesViewModel @Inject constructor(
                 state.infos
                     .filter { info ->
                         info.isSubWorkspace &&
-                        info.modalPresentation == Workspace.ModalPresentationMode.PANE_LOCAL &&
-                        info.callerWorkspaceId != null
+                            info.modalPresentation == Workspace.ModalPresentationMode.PANE_LOCAL &&
+                            info.callerWorkspaceId != null
                     }
                     .associateBy { it.callerWorkspaceId!! }
             }

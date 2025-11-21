@@ -28,8 +28,9 @@ import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
+import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
@@ -56,8 +57,6 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.permissions.core.PathPermissionCheck
-import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
@@ -75,7 +74,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 
 @HiltViewModel(assistedFactory = SearcherWorkspaceViewModel.Factory::class)
 class SearcherWorkspaceViewModel @AssistedInject constructor(
@@ -98,7 +96,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val itemSorter = itemSorterFactory.create(id)
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
-        workspaceProvider.retrieve(id).map { workspace: Workspace? -> workspace as? SearcherWorkspace }
+        workspaceProvider.retrieve(id)
+            .map { workspace: Workspace<out Workspace.Arguments>? -> workspace as? SearcherWorkspace }
 
     private suspend fun getWorkspace(): SearcherWorkspace = workspaceSource.filterNotNull().first()
 
@@ -574,7 +573,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         if (parentPath != null) {
                             workspaceRemote.createAndFocus(
                                 type = Workspace.Type.EXPLORER,
-                                arguments = ExternalExplorerArguments(
+                                arguments = ExplorerArguments.Default(
                                     startPath = parentPath
                                 )
                             )
@@ -639,7 +638,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         // Create workspace requests
         val requests = openInNewTabsUseCase.createRequests(
             analysis = analysis,
-            createExplorerArguments = { path -> ExternalExplorerArguments(startPath = path) },
+            createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
             createEditorArguments = { path -> EditorArguments(filePath = path) },
         )
 
@@ -800,7 +799,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         // Open Explorer at the source path and switch to it
                         workspaceRemote.createAndFocus(
                             type = Workspace.Type.EXPLORER,
-                            arguments = ExternalExplorerArguments(startPath = parentPath)
+                            arguments = ExplorerArguments.Default(startPath = parentPath)
                         )
                     }
                 }
@@ -827,7 +826,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 log(TAG) { "Opening Explorer at common parent: $commonParent" }
                 workspaceRemote.createAndFocus(
                     type = Workspace.Type.EXPLORER,
-                    arguments = ExternalExplorerArguments(startPath = commonParent)
+                    arguments = ExplorerArguments.Default(startPath = commonParent)
                 )
             }
         }
