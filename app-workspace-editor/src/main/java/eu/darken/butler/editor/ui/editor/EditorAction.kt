@@ -4,6 +4,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.ContentPaste
+import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
@@ -48,5 +50,23 @@ sealed interface EditorAction : WorkspaceAction {
     data object Paste : EditorAction {
         override val icon = Icons.TwoTone.ContentPaste
         override val label = eu.darken.butler.common.R.string.general_paste_action.toCaString()
+    }
+
+    /**
+     * Delete selected text
+     */
+    data object Delete : EditorAction {
+        override val icon = Icons.TwoTone.Delete
+        override val label = R.string.editor_action_delete.toCaString()
+        override val isDestructive = true
+    }
+
+    /**
+     * Select all text in document
+     */
+    data object SelectAll : EditorAction {
+        override val icon = Icons.TwoTone.SelectAll
+        override val label = R.string.editor_action_select_all.toCaString()
+        override val group = WorkspaceAction.Group.SECONDARY
     }
 }

@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,12 +42,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -82,6 +83,7 @@ fun EditorWorkspacePageHost(
             design = design,
             state = state,
             onPageAction = vm::onPageAction,
+            onActionExecute = vm::executeAction,
         )
     }
 }
@@ -95,10 +97,15 @@ fun EditorWorkspacePage(
     design: WorkspaceDesign,
     state: EditorWorkspaceViewModel.State,
     onPageAction: (EditorPageAction) -> Unit,
+    onActionExecute: (EditorAction) -> Unit = {},
 ) {
     rememberCoroutineScope()
     var showGoToLineDialog by remember { mutableStateOf(false) }
     var showSearchDialog by remember { mutableStateOf(false) }
+
+    val hasActions by remember {
+        derivedStateOf { state.availableActions.isNotEmpty() }
+    }
 
     // Setup scroll behavior for collapsing header
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
@@ -212,47 +219,66 @@ fun EditorWorkspacePage(
             }
         }
 
-        // Floating toolbar card at top
-        EditorToolbarCard(
-            workspaceId = workspaceId,
-            design = design,
-            fileName = if (state.hasFile) state.fileName else stringResource(R.string.editor_file_untitled),
-            isModified = state.isModified,
-            hasFile = state.hasFile || state.currentContent.isNotEmpty(),
-            isLoading = state.isLoading,
-            canUndo = state.isModified,
-            canRedo = false,
-            workspaceButtonState = workspaceButtonState,
-            workspaceActionHandler = workspaceActionHandler,
-            onAction = { action ->
-                when (action) {
-                    is EditorPageAction.Navigation.Search -> showSearchDialog = true
-                    is EditorPageAction.Navigation.GoToLine -> showGoToLineDialog = true
-                    else -> onPageAction(action)
-                }
-            },
-            collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
+        // Floating toolbar card and info bar at top
+        Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .onGloballyPositioned { layoutCoordinates ->
                     actualToolbarHeightPx = layoutCoordinates.size.height
                 }
-        )
+        ) {
+            EditorToolbarCard(
+                workspaceId = workspaceId,
+                design = design,
+                fileName = if (state.hasFile) state.fileName else stringResource(R.string.editor_file_untitled),
+                isModified = state.isModified,
+                hasFile = state.hasFile || state.currentContent.isNotEmpty(),
+                isLoading = state.isLoading,
+                canUndo = state.isModified,
+                canRedo = false,
+                workspaceButtonState = workspaceButtonState,
+                workspaceActionHandler = workspaceActionHandler,
+                onAction = { action ->
+                    when (action) {
+                        is EditorPageAction.Navigation.Search -> showSearchDialog = true
+                        is EditorPageAction.Navigation.GoToLine -> showGoToLineDialog = true
+                        else -> onPageAction(action)
+                    }
+                },
+                collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
+            )
 
-        EditorInfoCard(
-            cursorPosition = state.cursorPosition,
-            totalLines = state.totalLines,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .graphicsLayer {
-                    // Immediate snap behavior: fully visible or fully hidden
-                    alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
-                    translationY =
-                        if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) memoryCardHeight.toPx() else 0f
-                }
-        )
+            // Info bar below toolbar
+            EditorInfoBar(
+                fileSize = state.fileSize,
+                totalLines = state.totalLines,
+                cursorLine = state.cursorPosition.line,
+                cursorColumn = state.cursorPosition.column,
+                selectedLineCount = state.selectedLineCount,
+                selectedCharacterCount = state.selectedCharacterCount,
+                onClearSelection = {
+                    onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
+                },
+            )
+        }
+
+        // Floating Bottom ActionBar
+        if (hasActions) {
+            WorkspaceActionBar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .graphicsLayer {
+                        // Immediate snap behavior: fully visible or fully hidden
+                        alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
+                        translationY = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
+                    },
+                actions = state.availableActions,
+                onActionClick = { action -> onActionExecute(action as EditorAction) },
+            )
+        }
     }
 
     // Dialogs

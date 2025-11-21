@@ -21,70 +21,61 @@ fun EditorInfoBar(
     modifier: Modifier = Modifier,
     fileSize: Long? = null,
     totalLines: Int = 0,
-    totalCharacters: Int = 0,
     cursorLine: Int = 0,
     cursorColumn: Int = 0,
-    encoding: String? = null,
     selectedCharacterCount: Int = 0,
+    selectedLineCount: Int = 0,
     onClearSelection: () -> Unit = {},
 ) {
     WorkspaceInfoBar(
         modifier = modifier,
-        selectedCount = selectedCharacterCount,
-        onClearSelection = if (selectedCharacterCount > 0) onClearSelection else null,
+        selectedCount = selectedLineCount,
+        onClearSelection = onClearSelection,
+        selectionText = {
+            val lines = pluralStringResource(
+                R.plurals.editor_infobar_lines,
+                selectedLineCount,
+                selectedLineCount
+            )
+            val characters = pluralStringResource(
+                R.plurals.editor_infobar_characters,
+                selectedCharacterCount,
+                selectedCharacterCount
+            )
+            stringResource(
+                R.string.editor_infobar_selected_x_y,
+                lines,
+                characters
+            )
+        },
         leadingContent = {
-            // Show file size if available
-            if (fileSize != null && selectedCharacterCount == 0) {
-                InfoChip(
-                    icon = Icons.TwoTone.Storage,
-                    label = formatFileSize(fileSize),
-                )
-            }
-
-            // Show total lines
-            if (totalLines > 0 && selectedCharacterCount == 0) {
-                InfoChip(
-                    icon = Icons.TwoTone.Description,
-                    label = pluralStringResource(
-                        R.plurals.editor_infobar_total_lines,
-                        totalLines,
-                        totalLines
-                    ),
-                )
-            }
-
-            // Show total characters
-            if (totalCharacters > 0 && selectedCharacterCount == 0) {
-                InfoChip(
-                    icon = Icons.TwoTone.TextFields,
-                    label = pluralStringResource(
-                        R.plurals.editor_infobar_total_characters,
-                        totalCharacters,
-                        totalCharacters
-                    ),
-                )
-            }
-
-            // Show cursor position
             if (selectedCharacterCount == 0) {
                 InfoChip(
                     icon = Icons.TwoTone.TextFields,
-                    label = stringResource(
-                        R.string.editor_infobar_cursor_position,
-                        cursorLine + 1, // Display as 1-based
-                        cursorColumn + 1
-                    ),
+                    label = "${cursorLine + 1}:${cursorColumn + 1}",
                 )
             }
         },
         trailingContent = {
             Spacer(modifier = Modifier.weight(1f))
 
-            // Show encoding
-            if (encoding != null && selectedCharacterCount == 0) {
+            // Show total lines
+            if (totalLines > 0 && selectedCharacterCount == 0) {
                 InfoChip(
                     icon = Icons.TwoTone.Description,
-                    label = encoding,
+                    label = pluralStringResource(
+                        R.plurals.editor_infobar_lines,
+                        totalLines,
+                        totalLines
+                    ),
+                )
+            }
+
+            // Show file size if available
+            if (fileSize != null && selectedCharacterCount == 0) {
+                InfoChip(
+                    icon = Icons.TwoTone.Storage,
+                    label = formatFileSize(fileSize),
                 )
             }
         }
@@ -98,11 +89,8 @@ private fun EditorInfoBarWithFilePreview() {
         EditorInfoBar(
             fileSize = 1024L * 512L,
             totalLines = 42,
-            totalCharacters = 15234,
             cursorLine = 10,
             cursorColumn = 5,
-            encoding = "UTF-8",
-            selectedCharacterCount = 0,
         )
     }
 }
@@ -114,10 +102,9 @@ private fun EditorInfoBarWithSelectionPreview() {
         EditorInfoBar(
             fileSize = 1024L * 512L,
             totalLines = 42,
-            totalCharacters = 15234,
             cursorLine = 10,
             cursorColumn = 5,
-            encoding = "UTF-8",
+            selectedLineCount = 10,
             selectedCharacterCount = 150,
         )
     }
@@ -127,14 +114,6 @@ private fun EditorInfoBarWithSelectionPreview() {
 @Composable
 private fun EditorInfoBarNoFilePreview() {
     PreviewWrapper {
-        EditorInfoBar(
-            fileSize = null,
-            totalLines = 0,
-            totalCharacters = 0,
-            cursorLine = 0,
-            cursorColumn = 0,
-            encoding = null,
-            selectedCharacterCount = 0,
-        )
+        EditorInfoBar()
     }
 }

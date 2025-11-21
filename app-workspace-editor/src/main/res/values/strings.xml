@@ -19,14 +19,29 @@
     <string name="editor_action_dismiss">Dismiss</string>
     <string name="editor_action_previous">Previous</string>
     <string name="editor_action_next">Next</string>
-    
+    <string name="editor_action_copy">Copy</string>
+    <string name="editor_action_cut">Cut</string>
+    <string name="editor_action_paste">Paste</string>
+    <string name="editor_action_select_all">Select all</string>
+    <string name="editor_action_delete">Delete</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d line</item>
+        <item quantity="other">%1$d lines</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d characters</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Selected %1$s, %2$s</string>
+
     <!-- Editor UI elements -->
     <string name="editor_modified_indicator">•</string>
-    <string name="editor_status_line_format">Line %1$d:%2$d</string>
-    <string name="editor_status_total_lines">Total: %1$d lines</string>
     <string name="editor_error_unknown">Unknown error</string>
     <string name="editor_search_results_format">%1$d of %2$d results</string>
-    
+
     <!-- Editor dialogs -->
     <string name="editor_dialog_go_to_line_title">Go to line</string>
     <string name="editor_dialog_go_to_line_label">Line number (1-%1$d)</string>

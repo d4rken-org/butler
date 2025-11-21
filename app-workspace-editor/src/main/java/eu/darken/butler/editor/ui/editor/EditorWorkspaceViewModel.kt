@@ -4,6 +4,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
@@ -42,6 +43,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val editorSettings: EditorSettings,
+    private val clipboardHelper: SystemClipboardHelper,
 ) : ViewModel4(dispatchers, logTag("Editor", "Workspace", id.shortTag, "Page"), navCtrl) {
 
     private val workspaceFlow = flow {
@@ -201,6 +203,77 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    fun copyToClipboard() {
+        launch {
+            try {
+                val workspace = workspaceFlow.first() as? EditorWorkspace
+                val result = workspace?.copySelection()
+                result?.fold(
+                    onSuccess = { text ->
+                        clipboardHelper.copyToClipboard(text)
+                        log(tag) { "Copied ${text.length} characters to clipboard" }
+                    },
+                    onFailure = { e ->
+                        log(tag, Logging.Priority.ERROR) { "Failed to copy selection - ${e.asLog()}" }
+                    }
+                )
+            } catch (e: Exception) {
+                log(tag, Logging.Priority.ERROR) { "Failed to copy to clipboard - ${e.asLog()}" }
+            }
+        }
+    }
+
+    fun cutToClipboard() {
+        launch {
+            try {
+                val workspace = workspaceFlow.first() as? EditorWorkspace
+                // First copy to clipboard
+                val copyResult = workspace?.copySelection()
+                copyResult?.fold(
+                    onSuccess = { text ->
+                        clipboardHelper.copyToClipboard(text)
+                        // Then delete the selection
+                        workspace.deleteSelection()
+                        log(tag) { "Cut ${text.length} characters to clipboard" }
+                    },
+                    onFailure = { e ->
+                        log(tag, Logging.Priority.ERROR) { "Failed to cut selection - ${e.asLog()}" }
+                    }
+                )
+            } catch (e: Exception) {
+                log(tag, Logging.Priority.ERROR) { "Failed to cut to clipboard - ${e.asLog()}" }
+            }
+        }
+    }
+
+    fun pasteFromClipboard() {
+        launch {
+            try {
+                val text = clipboardHelper.getClipboardText()
+                if (text != null) {
+                    val workspace = workspaceFlow.first() as? EditorWorkspace
+                    workspace?.insertText(text)
+                    log(tag) { "Pasted ${text.length} characters from clipboard" }
+                } else {
+                    log(tag) { "No text content in clipboard to paste" }
+                }
+            } catch (e: Exception) {
+                log(tag, Logging.Priority.ERROR) { "Failed to paste from clipboard - ${e.asLog()}" }
+            }
+        }
+    }
+
+    fun selectAll() {
+        launch {
+            try {
+                val workspace = workspaceFlow.first() as? EditorWorkspace
+                workspace?.selectAll()
+            } catch (e: Exception) {
+                log(tag, Logging.Priority.ERROR) { "Failed to select all - ${e.asLog()}" }
+            }
+        }
+    }
+
     fun setCursorPosition(position: TextPosition) = launch {
         getCurrentWorkspace()?.setCursorPosition(position)
     }
@@ -259,6 +332,20 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         workspace?.clearError()
     }
 
+    /**
+     * Executes workspace-level domain actions from action bar.
+     * Routes EditorAction objects to appropriate handlers.
+     */
+    fun executeAction(action: EditorAction) {
+        when (action) {
+            EditorAction.Copy -> copyToClipboard()
+            EditorAction.Cut -> cutToClipboard()
+            EditorAction.Paste -> pasteFromClipboard()
+            EditorAction.Delete -> deleteSelection()
+            EditorAction.SelectAll -> selectAll()
+        }
+    }
+
     private fun getCurrentWorkspace(): EditorWorkspace? {
         return currentWorkspace
     }
@@ -278,6 +365,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
             is EditorPageAction.Edit.DeleteSelection -> deleteSelection()
+            is EditorPageAction.Edit.Copy -> copyToClipboard()
+            is EditorPageAction.Edit.Cut -> cutToClipboard()
+            is EditorPageAction.Edit.Paste -> pasteFromClipboard()
+            is EditorPageAction.Edit.SelectAll -> selectAll()
             is EditorPageAction.Edit.Undo -> undo()
             is EditorPageAction.Edit.Redo -> redo()
 
@@ -300,7 +391,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val totalLines: Int = 0,
         val isModified: Boolean = false,
         val currentContent: String = "",
-        val cursorPosition: TextPosition = TextPosition.Companion.ZERO,
+        val cursorPosition: TextPosition = TextPosition.ZERO,
         val selectionRange: Pair<TextPosition, TextPosition>? = null,
         val isLoading: Boolean = false,
         val error: Throwable? = null,
@@ -317,6 +408,54 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val hasSearchResults: Boolean get() = searchResults.isNotEmpty()
         val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
         val hasError: Boolean get() = error != null
+
+        // Info bar properties
+        val fileSize: Long? get() = fileInfo?.size
+        val totalCharacters: Int get() = fileSize?.toInt() ?: 0
+        val fileEncoding: String get() = "UTF-8" // Default encoding for now
+        val selectedCharacterCount: Int
+            get() {
+                if (selectionRange == null) return 0
+                val (start, end) = selectionRange
+                // Calculate character count from offset difference
+                return (end.offset - start.offset).toInt()
+            }
+
+        val selectedLineCount: Int
+            get() {
+                if (selectionRange == null) return 0
+                val (start, end) = selectionRange
+                return (end.line - start.line) + 1
+            }
+
+        // Available actions based on current state
+        val availableActions: List<EditorAction>
+            get() = buildList {
+                // Copy - visible when there's a selection
+                if (hasSelection) {
+                    add(EditorAction.Copy)
+                }
+
+                // Cut - visible when there's a selection
+                if (hasSelection) {
+                    add(EditorAction.Cut)
+                }
+
+                // Delete - visible when there's a selection
+                if (hasSelection) {
+                    add(EditorAction.Delete)
+                }
+
+                // Paste - always visible when there's a file/content
+                if (hasFile || currentContent.isNotEmpty()) {
+                    add(EditorAction.Paste)
+                }
+
+                // Select All - always visible when there's a file/content
+                if (hasFile || currentContent.isNotEmpty()) {
+                    add(EditorAction.SelectAll)
+                }
+            }
     }
 
     @AssistedFactory
