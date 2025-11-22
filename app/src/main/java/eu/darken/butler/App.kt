@@ -25,12 +25,14 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.debug.recorder.core.RecorderModule
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.recyclebin.RecycleBinCleanupScheduler
 import eu.darken.butler.common.theming.Theming
 import eu.darken.butler.common.updater.UpdateService
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.release.ReleaseManager
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
+import eu.darken.butler.provider.documents.core.DocumentsProviderManager
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
@@ -59,7 +61,8 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var safLocationManager: SAFLocationManager
     @Inject lateinit var imageLoaderProvider: Provider<ImageLoader>
     @Inject lateinit var workspacePreviewManager: WorkspacePreviewManager
-    @Inject lateinit var documentsProviderManager: eu.darken.butler.provider.documents.core.DocumentsProviderManager
+    @Inject lateinit var documentsProviderManager: DocumentsProviderManager
+    @Inject lateinit var recycleBinCleanupScheduler: RecycleBinCleanupScheduler
 
     private val logCatLogger = LogCatLogger()
 
@@ -111,6 +114,8 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         shortcutManager.initialize()
 
         workspacePreviewManager.start()
+
+        recycleBinCleanupScheduler.schedule()
 
         // Automatically refresh SAF permissions when app comes to foreground
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {

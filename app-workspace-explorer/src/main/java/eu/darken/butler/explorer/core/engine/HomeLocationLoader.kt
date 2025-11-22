@@ -4,6 +4,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
@@ -11,16 +12,20 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.common.recyclebin.RecycleBinRepo
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.permissions.core.PathRequirements
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class HomeLocationLoader @Inject constructor() {
+class HomeLocationLoader @Inject constructor(
+    private val recycleBinRepo: RecycleBinRepo,
+) {
 
     private val tag = logTag("Explorer", "HomeLocationLoader")
 
@@ -44,6 +49,11 @@ class HomeLocationLoader @Inject constructor() {
         )
         context.emitState()
 
+        // Get recycle bin stats for the subtitle
+        val recycleBinItems = recycleBinRepo.getAllItems().first()
+        recycleBinItems.sumOf { it.size }
+        val recycleBinCount = recycleBinItems.size
+
         val shortcuts = listOf(
             ExplorerItem.Shortcut(
                 shortcutId = "device",
@@ -51,6 +61,22 @@ class HomeLocationLoader @Inject constructor() {
                 displayName = R.string.explorer_navigation_device.toCaString(),
                 target = ExplorerNavigation.Target.Device,
                 subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.SDK_INT})" },
+            ),
+            ExplorerItem.Shortcut(
+                shortcutId = "recyclebin",
+                displayIcon = Icons.TwoTone.Delete,
+                displayName = R.string.explorer_navigation_recyclebin.toCaString(),
+                target = ExplorerNavigation.Target.RecycleBin,
+                subtitle = caString { cx ->
+                    when {
+                        recycleBinCount == 0 -> cx.getString(R.string.explorer_recyclebin_empty_state)
+                        else -> cx.resources.getQuantityString(
+                            R.plurals.explorer_recyclebin_item_count,
+                            recycleBinCount,
+                            recycleBinCount
+                        )
+                    }
+                },
             ),
         )
 

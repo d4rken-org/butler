@@ -7,17 +7,22 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
 @Parcelize
+@Serializable
+@SerialName("LOCAL_LOOKUP")
 data class LocalPathLookup(
     override val lookedUp: LocalPath,
     override val fileType: FileType,
     override val size: Long?,
-    override val modifiedAt: Instant?,
+    @Contextual override val modifiedAt: Instant?,
     override val target: LocalPath? = null,
     override val error: String? = null,
     override val ownership: Ownership? = null,
     override val permissions: Permissions? = null,
-    override val createdAt: Instant? = null,
+    @Contextual override val createdAt: Instant? = null,
 ) : APathLookup<LocalPath>, Parcelable

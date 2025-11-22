@@ -9,6 +9,7 @@ class DefaultActionProvider @Inject constructor(
     private val homeProvider: HomeActionProvider,
     private val deviceProvider: DeviceActionProvider,
     private val directoryProvider: DirectoryActionProvider,
+    private val recycleBinProvider: RecycleBinActionProvider,
 ) : ExplorerActionProvider {
 
     override fun getActions(
@@ -20,6 +21,7 @@ class DefaultActionProvider @Inject constructor(
             is ExplorerLocation.Home -> homeProvider
             is ExplorerLocation.Device -> deviceProvider
             is ExplorerLocation.Directory -> directoryProvider
+            is ExplorerLocation.RecycleBin -> recycleBinProvider
         }
 
         return provider.getActions(location, selectionState, viewStyle)

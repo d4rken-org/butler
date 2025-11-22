@@ -34,6 +34,8 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.navigation.upgrade
+import eu.darken.butler.common.recyclebin.RecycleBinManager
+import eu.darken.butler.common.recyclebin.RecycleBinRepo
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.R
@@ -47,6 +49,7 @@ import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.PatternMatcher
+import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -121,6 +124,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val filenameValidator: FilenameValidator,
     private val gatewaySwitch: GatewaySwitch,
     internal val safLocationManager: SAFLocationManager,
+    private val recycleBinManager: RecycleBinManager,
+    private val recycleBinRepo: RecycleBinRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
@@ -205,7 +210,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val useRegexPatterns: Boolean = false,
         val useBackButtonForNavigation: Boolean = false,
         val pickerConfig: PickerConfig? = null,
-        val sortSettings: eu.darken.butler.explorer.core.SortSettings = eu.darken.butler.explorer.core.SortSettings(),
+        val sortSettings: SortSettings = SortSettings(),
+        val recycleBinEnabled: Boolean = false,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -242,7 +248,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         explorerSettings.useRegexPatterns.flow,
         explorerSettings.useBackButtonForNavigation.flow,
         pickerConfigFlow,
-    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig ->
+        recycleBinManager.isEnabled,
+    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled ->
         val items = wsState.currentLocation?.items
             ?.let { items -> applyPickerFilter(items, pickerConfig) }
             ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
@@ -252,8 +259,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             selectedItems = selectedItems,
             selectableItems = items
                 ?.filter { item ->
-                    // Base filter: must be a Path or Storage (includes both Local and SAF storage)
-                    val isBaseSelectable = item is ExplorerItem.Path || item is ExplorerItem.Storage
+                    // Base filter: must be a Path, Storage, or RecycleBinItem
+                    val isBaseSelectable = item is ExplorerItem.Path ||
+                        item is ExplorerItem.Storage ||
+                        item is ExplorerItem.RecycleBinItem
                     if (!isBaseSelectable) return@filter false
 
                     // In picker mode, filter by what can actually be selected
@@ -330,6 +339,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             useBackButtonForNavigation = useBackButtonForNavigation,
             pickerConfig = pickerConfig,
             sortSettings = sortSetting,
+            recycleBinEnabled = recycleBinEnabled,
         )
     }
         .distinctUntilChanged()
@@ -505,6 +515,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 getWorkspace().navigate(item.target)
                 clearSelection()
             }
+            is ExplorerItem.RecycleBinItem -> {
+                if (selectedItemsFlow.value.isNotEmpty()) {
+                    toggleItemSelection(item)
+                } else {
+                    dialogStateFlow.value = RecycleBinItemOptions(item)
+                }
+            }
         }
     }
 
@@ -531,8 +548,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         return position
     }
 
+    // TODO we should introduce something like an "isSelectable" interface
     fun toggleItemSelection(item: ExplorerItem) {
-        if (item !is ExplorerItem.Path && item !is ExplorerItem.Storage) {
+        if (item !is ExplorerItem.Path && item !is ExplorerItem.Storage && item !is ExplorerItem.RecycleBinItem) {
             log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
             return
         }
@@ -806,6 +824,34 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     currentName = selectedItem.location.userLabel,
                 )
             }
+            is ExplorerAction.RecycleBin.RestoreSelected -> {
+                log(tag) { "restoreSelectedRecycleBinItems(): ${selectedItemsFlow.value.size} items" }
+                val selectedRecycleBinItems = selectedItemsFlow.value
+                    .filterIsInstance<ExplorerItem.RecycleBinItem>()
+
+                if (selectedRecycleBinItems.isNotEmpty()) {
+                    selectedRecycleBinItems.forEach { item ->
+                        restoreRecycleBinItem(item)
+                    }
+                    clearSelection()
+                }
+            }
+            is ExplorerAction.RecycleBin.DeletePermanentlySelected -> {
+                log(tag) { "deleteSelectedRecycleBinItems(): ${selectedItemsFlow.value.size} items" }
+                val selectedRecycleBinItems = selectedItemsFlow.value
+                    .filterIsInstance<ExplorerItem.RecycleBinItem>()
+
+                if (selectedRecycleBinItems.isNotEmpty()) {
+                    selectedRecycleBinItems.forEach { item ->
+                        deleteRecycleBinItemPermanently(item)
+                    }
+                    clearSelection()
+                }
+            }
+            is ExplorerAction.RecycleBin.EmptyBin -> {
+                log(tag) { "Showing empty recycle bin confirmation" }
+                dialogStateFlow.value = EmptyRecycleBinConfirmation
+            }
         }
     }
 
@@ -1030,6 +1076,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().navigate(ExplorerNavigation.Refresh)
     }
 
+    fun onEmptyRecycleBinConfirmed() = launch {
+        log(tag) { "onEmptyRecycleBinConfirmed()" }
+        dialogStateFlow.value = None
+
+        try {
+            val deletedCount = recycleBinManager.emptyRecycleBin()
+            log(tag, INFO) { "Emptied recycle bin: $deletedCount items deleted" }
+            getWorkspace().navigate(ExplorerNavigation.Refresh)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to empty recycle bin: ${e.asLog()}" }
+            errorEvents.emit(e)
+        }
+    }
+
     fun onLocationStorageName(name: String?) = launch {
         val dialogState = dialogStateFlow.value as? LocationStorageName ?: return@launch
         log(tag) { "onLocationStorageName(locationId=${dialogState.locationId}, name=$name)" }
@@ -1043,6 +1103,63 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clearSelection()
         delay(500.milliseconds)
         getWorkspace().navigate(ExplorerNavigation.Refresh)
+    }
+
+    fun restoreRecycleBinItem(item: ExplorerItem.RecycleBinItem) = launch {
+        log(tag) { "restoreRecycleBinItem(${item.itemId})" }
+        dismissDialog()
+
+        try {
+            val repoItem = recycleBinRepo.getById(item.itemId)
+            if (repoItem == null) {
+                log(tag, ERROR) { "Recycle bin item not found: ${item.itemId}" }
+                errorEvents.emit(Exception("Item not found in recycle bin"))
+                return@launch
+            }
+
+            val result = recycleBinManager.restore(listOf(repoItem))
+
+            if (result.restored.isNotEmpty()) {
+                log(tag, INFO) { "Successfully restored ${result.restored.size} items" }
+                getWorkspace().navigate(ExplorerNavigation.Refresh)
+            } else if (result.failed.isNotEmpty()) {
+                log(tag, ERROR) { "Failed to restore ${result.failed.size} items" }
+                errorEvents.emit(Exception("Failed to restore ${item.displayName.get(context)}"))
+            } else if (result.conflicts.isNotEmpty()) {
+                log(tag, WARN) { "Conflicts when restoring ${result.conflicts.size} items" }
+                errorEvents.emit(Exception("File already exists at original location"))
+            }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Error restoring recycle bin item: ${e.asLog()}" }
+            errorEvents.emit(e)
+        }
+    }
+
+    fun deleteRecycleBinItemPermanently(item: ExplorerItem.RecycleBinItem) = launch {
+        log(tag) { "deleteRecycleBinItemPermanently(${item.itemId})" }
+        dismissDialog()
+
+        try {
+            val repoItem = recycleBinRepo.getById(item.itemId)
+            if (repoItem == null) {
+                log(tag, ERROR) { "Recycle bin item not found: ${item.itemId}" }
+                errorEvents.emit(Exception("Item not found in recycle bin"))
+                return@launch
+            }
+
+            val deletedCount = recycleBinManager.deletePermanently(listOf(repoItem))
+
+            if (deletedCount > 0) {
+                log(tag, INFO) { "Successfully deleted $deletedCount items permanently" }
+                getWorkspace().navigate(ExplorerNavigation.Refresh)
+            } else {
+                log(tag, ERROR) { "Failed to delete item permanently" }
+                errorEvents.emit(Exception("Failed to delete ${item.displayName.get(context)}"))
+            }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Error deleting recycle bin item permanently: ${e.asLog()}" }
+            errorEvents.emit(e)
+        }
     }
 
     fun onRename(result: RenameResult) = launch {
@@ -1394,7 +1511,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Directory.SelectAll,
             is ExplorerAction.Directory.DeselectAll -> true
 
-            // Blocked: modification, clipboard, and device actions
+            // Blocked: modification, clipboard, device, and recycle bin actions
             is ExplorerAction.Directory.Copy,
             is ExplorerAction.Directory.Cut,
             is ExplorerAction.Directory.Delete,
@@ -1404,7 +1521,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Common.Info,
             is ExplorerAction.Device.AddLocation,
             is ExplorerAction.Device.RemoveLocation,
-            is ExplorerAction.Device.RenameLocation -> false
+            is ExplorerAction.Device.RenameLocation,
+            is ExplorerAction.RecycleBin.RestoreSelected,
+            is ExplorerAction.RecycleBin.DeletePermanentlySelected,
+            is ExplorerAction.RecycleBin.EmptyBin -> false
         }
     }
 

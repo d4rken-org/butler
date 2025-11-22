@@ -12,6 +12,7 @@ import eu.darken.butler.workspace.ui.dialogs.MultipleItemsInfoBottomSheet
 @Composable
 fun ExplorerDialogHost(
     dialogState: ExplorerDialogState,
+    recycleBinEnabled: Boolean,
     vm: ExplorerWorkspaceViewModel?,
 ) {
     when (dialogState) {
@@ -30,6 +31,7 @@ fun ExplorerDialogHost(
         is ExplorerDialogState.DeleteConfirmation -> {
             DeleteConfirmationDialog(
                 items = dialogState.items,
+                recycleBinEnabled = recycleBinEnabled,
                 onDismiss = { vm?.dismissDialog() },
                 onConfirm = { vm?.onDeleteConfirmed(dialogState.items) }
             )
@@ -84,6 +86,22 @@ fun ExplorerDialogHost(
                 onRename = { vm?.renameFile(dialogState.item) },
                 onDelete = { vm?.deleteFile(dialogState.item) },
                 onProperties = { vm?.showFileProperties(dialogState.item) },
+            )
+        }
+
+        is ExplorerDialogState.RecycleBinItemOptions -> {
+            RecycleBinItemOptionsBottomSheet(
+                item = dialogState.item,
+                onRestore = { vm?.restoreRecycleBinItem(dialogState.item) },
+                onDeletePermanently = { vm?.deleteRecycleBinItemPermanently(dialogState.item) },
+                onDismiss = { vm?.dismissDialog() },
+            )
+        }
+
+        is ExplorerDialogState.EmptyRecycleBinConfirmation -> {
+            EmptyRecycleBinConfirmationDialog(
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { vm?.onEmptyRecycleBinConfirmed() }
             )
         }
 

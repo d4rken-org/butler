@@ -53,6 +53,7 @@ dependencies {
     addSerialization()
     addIO()
     addRoomDb()
+    addWorkerManager()
 
     addTesting()
     testImplementation(project(":app-common-test"))

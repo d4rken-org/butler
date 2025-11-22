@@ -1,6 +1,5 @@
 package eu.darken.butler.apps.ui.apps.items
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +27,6 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppListItem(
     item: AppItem,

@@ -18,6 +18,11 @@ sealed interface ExplorerNavigation {
             override val label: CaString = R.string.explorer_navigation_device.toCaString()
         }
 
+        data object RecycleBin : Target {
+            override val label: CaString = R.string.explorer_navigation_recyclebin.toCaString()
+            override val description: CaString = R.string.explorer_navigation_recyclebin_desc.toCaString()
+        }
+
         data class Directory(val path: APath<*>) : Target {
             override val label: CaString = path.userReadableName
             override val description: CaString = path.userReadablePath

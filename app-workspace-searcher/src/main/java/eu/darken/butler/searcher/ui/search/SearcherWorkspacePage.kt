@@ -19,9 +19,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -61,7 +61,6 @@ import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
-import eu.darken.butler.searcher.ui.search.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.input.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.workspace.core.Workspace
@@ -768,6 +767,7 @@ fun SearcherWorkspacePage(
         // Dialog host
         SearcherDialogHost(
             dialogState = currentState.dialogState,
+            recycleBinEnabled = currentState.recycleBinEnabled,
             onDismiss = { vm?.dismissDialog() },
             onDeleteConfirmed = { vm?.onDeleteConfirmed(it) },
             onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },

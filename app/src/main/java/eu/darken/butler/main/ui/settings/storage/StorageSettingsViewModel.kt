@@ -4,12 +4,12 @@ import android.os.Parcelable
 import coil3.ImageLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.main.core.GeneralSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -21,7 +21,6 @@ import javax.inject.Inject
 class StorageSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     navCtrl: NavigationController,
-    private val generalSettings: GeneralSettings,
     private val imageLoader: ImageLoader,
 ) : ViewModel4(dispatcherProvider, logTag("Settings", "Storage", "ViewModel"), navCtrl) {
 
@@ -31,7 +30,6 @@ class StorageSettingsViewModel @Inject constructor(
         flowOf(Unit),
         refreshTrigger.onStart { refreshCacheStats() },
     ) { _, _ ->
-
         State(
             previewDiskCacheSize = imageLoader.diskCache?.size ?: 0L,
             previewMemoryCacheSize = imageLoader.memoryCache?.size ?: 0L,
