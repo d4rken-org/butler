@@ -12,7 +12,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.common.recyclebin.RecycleBinRepository
+import eu.darken.butler.common.recyclebin.RecycleBinRepo
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.permissions.core.PathRequirements
@@ -24,7 +24,7 @@ import javax.inject.Singleton
 
 @Singleton
 class HomeLocationLoader @Inject constructor(
-    private val recycleBinRepository: RecycleBinRepository,
+    private val recycleBinRepo: RecycleBinRepo,
 ) {
 
     private val tag = logTag("Explorer", "HomeLocationLoader")
@@ -50,7 +50,7 @@ class HomeLocationLoader @Inject constructor(
         context.emitState()
 
         // Get recycle bin stats for the subtitle
-        val recycleBinItems = recycleBinRepository.getAllItems().first()
+        val recycleBinItems = recycleBinRepo.getAllItems().first()
         recycleBinItems.sumOf { it.size }
         val recycleBinCount = recycleBinItems.size
 

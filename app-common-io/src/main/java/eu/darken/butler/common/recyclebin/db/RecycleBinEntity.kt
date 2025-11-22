@@ -3,6 +3,8 @@ package eu.darken.butler.common.recyclebin.db
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
@@ -13,9 +15,10 @@ import kotlin.uuid.Uuid
     ]
 )
 data class RecycleBinEntity(
-    @PrimaryKey val id: String = Uuid.random().toString(),
-    val originalPath: String,
-    val recycleBinPath: String,
+    @PrimaryKey val id: Uuid = Uuid.random(),
+    val originalPath: APath<*>,
+    val originalLookup: APathLookup<*>,
+    val recycleBinPath: APath<*>,
     val deletedAt: Instant,
     val size: Long,
 )

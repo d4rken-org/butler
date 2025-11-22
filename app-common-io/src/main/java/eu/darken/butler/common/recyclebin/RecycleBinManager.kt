@@ -16,13 +16,9 @@ import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.files.extensions.move
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.recyclebin.db.RecycleBinDao
-import eu.darken.butler.common.recyclebin.db.RecycleBinDatabase
-import eu.darken.butler.common.recyclebin.db.RecycleBinEntity
 import eu.darken.butler.common.storage.StorageEnvironment
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -34,15 +30,12 @@ import kotlin.uuid.Uuid
 
 @Singleton
 class RecycleBinManager @Inject constructor(
-    private val database: RecycleBinDatabase,
+    private val repository: RecycleBinRepo,
     private val storageEnv: StorageEnvironment,
     private val gatewaySwitch: GatewaySwitch,
     private val settings: RecycleBinSettings,
     private val dispatcherProvider: DispatcherProvider,
 ) {
-    private val dao: RecycleBinDao
-        get() = database.recycleBinDao()
-
     data class RecycleBinMoveReport(
         val movedToRecycleBin: Set<APathLookup<*>>,
         val failedToMove: Set<APathLookup<*>>,
@@ -85,8 +78,8 @@ class RecycleBinManager @Inject constructor(
             try {
                 val localPath = path as LocalPath
 
-                // Look up the item to get size and type info
-                val lookup = gatewaySwitch.lookup(localPath, LookupOptions(fetchSize = true))
+                // Look up the item to get full metadata
+                val lookup = gatewaySwitch.lookup(localPath, LookupOptions.MAX)
                 if (lookup.fileType == FileType.UNKNOWN) {
                     log(TAG, WARN) { "Path does not exist: $localPath" }
                     failedItems.add(lookup)
@@ -106,16 +99,16 @@ class RecycleBinManager @Inject constructor(
                 ).last()
 
                 if (moveState is MoveAction.State.Completed<*, *, *, *>) {
-                    // Record in database
-                    val entity = RecycleBinEntity(
-                        id = Uuid.random().toString(),
-                        originalPath = localPath.toString(),
-                        recycleBinPath = recycleBinPath.toString(),
-                        deletedAt = Clock.System.now(),
-                        size = lookup.size ?: 0L,
+                    // Record in repository with full lookup data
+                    val item = RecycleBinRepo.RecycleBinItem(
+                        id = Uuid.random(),
+                        originalLookup = lookup,
+                        recycleBinPath = recycleBinPath,
+                        recycleBinLookup = moveState.movedFiles.first().second,
+                        size = lookup.size!!,
                     )
 
-                    dao.insert(entity)
+                    repository.insert(item)
 
                     movedItems.add(lookup)
                     totalBytes += lookup.size ?: 0L
@@ -151,7 +144,7 @@ class RecycleBinManager @Inject constructor(
     }
 
     suspend fun restore(
-        items: List<RecycleBinEntity>,
+        items: List<RecycleBinRepo.RecycleBinItem>,
     ): RecycleBinRestoreReport = withContext(dispatcherProvider.IO) {
         log(TAG, INFO) { "Restoring ${items.size} items from recycle bin" }
 
@@ -161,8 +154,9 @@ class RecycleBinManager @Inject constructor(
 
         for (item in items) {
             try {
-                val recycleBinPath = LocalPath.build(item.recycleBinPath)
-                val originalPath = LocalPath.build(item.originalPath)
+                // TODO
+                val recycleBinPath = item.recycleBinLookup as LocalPath
+                val originalPath = item.originalPath as LocalPath
 
                 // Check if original path already exists
                 val existingLookup = gatewaySwitch.lookup(originalPath, LookupOptions(fallbackToUnknown = true))
@@ -179,9 +173,10 @@ class RecycleBinManager @Inject constructor(
                 ).last()
 
                 if (restoreState is MoveAction.State.Completed<*, *, *, *>) {
-                    // Remove from database
-                    dao.delete(item)
+                    // Remove from repository
+                    repository.deleteById(item.id)
 
+                    // TODO: Restore ownership/permissions from item.originalLookup if possible
                     val lookup = gatewaySwitch.lookup(originalPath, LookupOptions(fetchSize = true))
                     restoredItems.add(lookup)
 
@@ -194,7 +189,7 @@ class RecycleBinManager @Inject constructor(
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Error restoring item ${item.id}: ${e.asLog()}" }
                 try {
-                    val path = LocalPath.build(item.recycleBinPath)
+                    val path = item.recycleBinLookup as LocalPath
                     val lookup = gatewaySwitch.lookup(path, LookupOptions(fallbackToUnknown = true))
                     failedItems.add(lookup)
                 } catch (e2: Exception) {
@@ -211,14 +206,14 @@ class RecycleBinManager @Inject constructor(
     }
 
     suspend fun deletePermanently(
-        items: List<RecycleBinEntity>,
+        items: List<RecycleBinRepo.RecycleBinItem>,
     ): Int = withContext(dispatcherProvider.IO) {
         log(TAG, INFO) { "Permanently deleting ${items.size} items from recycle bin" }
 
         var deletedCount = 0
         for (item in items) {
             try {
-                val recycleBinPath = LocalPath.build(item.recycleBinPath)
+                val recycleBinPath = item.recycleBinLookup as LocalPath
 
                 // Delete the actual file/directory
                 val deleteState = recycleBinPath.delete(
@@ -227,8 +222,8 @@ class RecycleBinManager @Inject constructor(
                 ).last()
 
                 if (deleteState is DeleteAction.State.Completed<*, *>) {
-                    // Remove from database
-                    dao.delete(item)
+                    // Remove from repository
+                    repository.deleteById(item.id)
                     deletedCount++
 
                     log(TAG, DEBUG) { "Permanently deleted: $recycleBinPath" }
@@ -243,7 +238,7 @@ class RecycleBinManager @Inject constructor(
 
     suspend fun emptyRecycleBin(): Int = withContext(dispatcherProvider.IO) {
         log(TAG, INFO) { "Emptying recycle bin" }
-        val items = dao.getAll().first()
+        val items = repository.getAllItems().first()
         return@withContext deletePermanently(items)
     }
 
@@ -253,7 +248,7 @@ class RecycleBinManager @Inject constructor(
 
         log(TAG, INFO) { "Cleaning up items older than $retention (before $cutoffTime)" }
 
-        val expiredItems = dao.getOlderThan(cutoffTime)
+        val expiredItems = repository.getOlderThan(cutoffTime)
 
         if (expiredItems.isEmpty()) {
             log(TAG, DEBUG) { "No expired items to clean up" }
@@ -263,17 +258,16 @@ class RecycleBinManager @Inject constructor(
         return@withContext deletePermanently(expiredItems)
     }
 
-    fun getStats(): Flow<RecycleBinStats> = dao.getAll()
+    fun getStats(): Flow<RecycleBinStats> = repository.getAllItems()
         .map { items ->
             RecycleBinStats(
                 totalItems = items.size,
-                totalSize = items.sumOf { it.size },
+                totalSize = items.sumOf { it.originalLookup.size ?: 0L },
                 oldestItem = items.minByOrNull { it.deletedAt }?.deletedAt,
             )
         }
-        .flowOn(dispatcherProvider.IO)
 
-    private suspend fun getRecycleBinRoot(path: LocalPath): LocalPath {
+    private suspend fun getRecycleBinRoot(path: APath<*>): APath<*> {
         // Find the appropriate cache directory for this storage
         val cacheDir = storageEnv.ourPublicDirs.firstOrNull { cache ->
             // Check if path is on the same storage volume
@@ -283,7 +277,7 @@ class RecycleBinManager @Inject constructor(
         return cacheDir.child(".recyclebin")
     }
 
-    private suspend fun getRecycleBinPath(originalPath: LocalPath): LocalPath {
+    private suspend fun getRecycleBinPath(originalPath: APath<*>): APath<*> {
         val recycleBinRoot = getRecycleBinRoot(originalPath)
 
         // Generate unique filename to avoid collisions
@@ -293,7 +287,7 @@ class RecycleBinManager @Inject constructor(
         return recycleBinRoot.child(safeName)
     }
 
-    private suspend fun ensureRecycleBinDirectory(dir: LocalPath) {
+    private suspend fun ensureRecycleBinDirectory(dir: APath<*>) {
         try {
             if (!gatewaySwitch.exists(dir)) {
                 gatewaySwitch.createDir(dir)

@@ -1,5 +1,8 @@
 package eu.darken.butler.common.recyclebin.db
 
+import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.room.InstantConverter
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -15,36 +18,57 @@ import kotlin.uuid.Uuid
  * - RecycleBinEntity structure and creation
  * - Type converters (InstantConverter)
  * - Entity equality and copying
+ * - JSON serialization of lookup data
  *
  * Note: Full DAO integration tests require instrumented tests with a real database.
  * This test focuses on entity structure and type conversion logic.
  */
 class RecycleBinDatabaseTest : BaseTest() {
 
+    private fun createTestLookup(
+        path: String = "/storage/emulated/0/test.txt",
+        fileType: FileType = FileType.FILE,
+        size: Long = 1024L,
+    ): LocalPathLookup {
+        return LocalPathLookup(
+            lookedUp = LocalPath.build(path),
+            fileType = fileType,
+            size = size,
+            modifiedAt = null,
+        )
+    }
+
     // ============ ENTITY TESTS ============
 
     @Test
     fun `RecycleBinEntity - creates entity with all fields`() {
         // Given
-        val id = Uuid.random().toString()
+        val id = Uuid.random()
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        val originalPath = LocalPath.build("/storage/emulated/0/test.txt")
+        val recycleBinPath = LocalPath.build("/storage/emulated/0/.recycle_bin/test.txt")
+        val lookup = createTestLookup("/storage/emulated/0/test.txt")
 
         // When
         val entity = RecycleBinEntity(
             id = id,
-            originalPath = "/storage/emulated/0/test.txt",
-            recycleBinPath = "/storage/emulated/0/.recycle_bin/test.txt",
+            originalPath = originalPath,
+            originalLookup = lookup,
+            recycleBinPath = recycleBinPath,
             deletedAt = now,
             size = 1024L,
+            fileType = FileType.FILE,
         )
 
         // Then
         entity.apply {
             this.id shouldBe id
-            originalPath shouldBe "/storage/emulated/0/test.txt"
-            recycleBinPath shouldBe "/storage/emulated/0/.recycle_bin/test.txt"
-            deletedAt shouldBe now
-            size shouldBe 1024L
+            this.originalPath shouldBe originalPath
+            this.originalLookup shouldBe lookup
+            this.recycleBinPath shouldBe recycleBinPath
+            this.deletedAt shouldBe now
+            this.size shouldBe 1024L
+            this.fileType shouldBe FileType.FILE
         }
     }
 
@@ -52,38 +76,47 @@ class RecycleBinDatabaseTest : BaseTest() {
     fun `RecycleBinEntity - generates UUID when not provided`() {
         // When
         val entity = RecycleBinEntity(
-            originalPath = "/test.txt",
-            recycleBinPath = "/recycle_bin/test.txt",
+            originalPath = LocalPath.build("/test.txt"),
+            originalLookup = createTestLookup("/test.txt"),
+            recycleBinPath = LocalPath.build("/recycle_bin/test.txt"),
             deletedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
             size = 100L,
+            fileType = FileType.FILE,
         )
 
         // Then
-        entity.id shouldNotBe ""
-        // Verify it's a valid UUID string
-        Uuid.parse(entity.id) shouldNotBe null
+        entity.id shouldNotBe null
+        // Verify it's a valid UUID
+        entity.id.toString() shouldNotBe ""
     }
 
     @Test
     fun `RecycleBinEntity - equality works correctly`() {
         // Given
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val id = "same-id"
+        val id = Uuid.parse("00000000-0000-0000-0000-000000000001")
+        val originalPath = LocalPath.build("/test.txt")
+        val recycleBinPath = LocalPath.build("/recycle_bin/test.txt")
+        val lookupJson = createTestLookup("/test.txt")
 
         val entity1 = RecycleBinEntity(
             id = id,
-            originalPath = "/test.txt",
-            recycleBinPath = "/recycle_bin/test.txt",
+            originalPath = originalPath,
+            originalLookup = lookupJson,
+            recycleBinPath = recycleBinPath,
             deletedAt = now,
             size = 100L,
+            fileType = FileType.FILE,
         )
 
         val entity2 = RecycleBinEntity(
             id = id,
-            originalPath = "/test.txt",
-            recycleBinPath = "/recycle_bin/test.txt",
+            originalPath = originalPath,
+            originalLookup = lookupJson,
+            recycleBinPath = recycleBinPath,
             deletedAt = now,
             size = 100L,
+            fileType = FileType.FILE,
         )
 
         // Then
@@ -93,12 +126,17 @@ class RecycleBinDatabaseTest : BaseTest() {
     @Test
     fun `RecycleBinEntity - copy works correctly`() {
         // Given
+        val testId = Uuid.parse("00000000-0000-0000-0000-000000000002")
+        val originalPath = LocalPath.build("/original.txt")
+        val recycleBinPath = LocalPath.build("/recycle_bin/original.txt")
         val original = RecycleBinEntity(
-            id = "test-id",
-            originalPath = "/original.txt",
-            recycleBinPath = "/recycle_bin/original.txt",
+            id = testId,
+            originalPath = originalPath,
+            originalLookup = createTestLookup("/original.txt"),
+            recycleBinPath = recycleBinPath,
             deletedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
             size = 1024L,
+            fileType = FileType.FILE,
         )
 
         // When
@@ -106,11 +144,37 @@ class RecycleBinDatabaseTest : BaseTest() {
 
         // Then
         modified.apply {
-            id shouldBe "test-id"
-            originalPath shouldBe "/original.txt"
-            recycleBinPath shouldBe "/recycle_bin/original.txt"
+            id shouldBe testId
+            this.recycleBinPath shouldBe recycleBinPath
             size shouldBe 2048L
+            fileType shouldBe FileType.FILE
         }
+    }
+
+    @Test
+    fun `RecycleBinEntity - stores different file types`() {
+        // Given/When
+        val fileEntity = RecycleBinEntity(
+            originalPath = LocalPath.build("/file.txt"),
+            originalLookup = createTestLookup("/file.txt", FileType.FILE),
+            recycleBinPath = LocalPath.build("/bin/file.txt"),
+            deletedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+            size = 100L,
+            fileType = FileType.FILE,
+        )
+
+        val dirEntity = RecycleBinEntity(
+            originalPath = LocalPath.build("/folder"),
+            originalLookup = createTestLookup("/folder", FileType.DIRECTORY),
+            recycleBinPath = LocalPath.build("/bin/folder"),
+            deletedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+            size = 4096L,
+            fileType = FileType.DIRECTORY,
+        )
+
+        // Then
+        fileEntity.fileType shouldBe FileType.FILE
+        dirEntity.fileType shouldBe FileType.DIRECTORY
     }
 
     // ============ TYPE CONVERTER TESTS ============

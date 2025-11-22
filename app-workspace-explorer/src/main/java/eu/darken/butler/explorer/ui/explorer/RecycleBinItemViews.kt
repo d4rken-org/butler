@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.QuestionMark
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -20,10 +22,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 
 @Composable
@@ -53,13 +58,21 @@ fun RecycleBinItemRow(
             )
         }
 
-        Icon(
-            imageVector = item.displayIcon,
-            contentDescription = null,
-            modifier = Modifier.size(40.dp),
-            tint = if (!item.isAvailable) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-            else MaterialTheme.colorScheme.onSurface
-        )
+
+        if (item.recycleBinLookup != null) {
+            TintedAsyncImage(
+                model = item.recycleBinLookup,
+                contentDescription = item.originalLookup.name,
+                modifier = Modifier.size(40.dp)
+            )
+        } else {
+            Icon(
+                imageVector = Icons.TwoTone.QuestionMark,
+                contentDescription = item.originalLookup.name,
+                modifier = Modifier.size(40.dp),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+            )
+        }
 
         Spacer(modifier = Modifier.width(16.dp))
 
@@ -85,12 +98,13 @@ fun RecycleBinItemRow(
                 )
             }
         }
-
-        Text(
-            text = formatFileSize(item.size),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        item.recycleBinLookup?.size?.let {
+            Text(
+                text = formatFileSize(it),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -125,12 +139,10 @@ fun RecycleBinItemGrid(
             Box(
                 contentAlignment = Alignment.TopEnd
             ) {
-                Icon(
-                    imageVector = item.displayIcon,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = if (!item.isAvailable) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                    else MaterialTheme.colorScheme.onSurface
+                TintedAsyncImage(
+                    model = item.recycleBinLookup,
+                    contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
+                    modifier = Modifier.size(32.dp)
                 )
 
                 if (showSelection) {
@@ -153,11 +165,13 @@ fun RecycleBinItemGrid(
                 modifier = Modifier.padding(top = 4.dp)
             )
 
-            Text(
-                text = formatFileSize(item.size),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            item.recycleBinLookup?.size?.let {
+                Text(
+                    text = formatFileSize(it),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

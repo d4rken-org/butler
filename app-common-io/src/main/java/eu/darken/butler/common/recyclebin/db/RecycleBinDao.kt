@@ -8,6 +8,7 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 @Dao
 interface RecycleBinDao {
@@ -16,7 +17,7 @@ interface RecycleBinDao {
     fun getAll(): Flow<List<RecycleBinEntity>>
 
     @Query("SELECT * FROM recycle_bin_items WHERE id = :id")
-    suspend fun getById(id: String): RecycleBinEntity?
+    suspend fun getById(id: Uuid): RecycleBinEntity?
 
     @Query("SELECT * FROM recycle_bin_items WHERE deletedAt < :cutoffTime")
     suspend fun getOlderThan(cutoffTime: Instant): List<RecycleBinEntity>
@@ -37,13 +38,13 @@ interface RecycleBinDao {
     suspend fun update(entity: RecycleBinEntity)
 
     @Delete
-    suspend fun delete(entity: RecycleBinEntity)
-
-    @Delete
     suspend fun deleteAll(entities: List<RecycleBinEntity>)
 
     @Query("DELETE FROM recycle_bin_items WHERE id = :id")
-    suspend fun deleteById(id: String)
+    suspend fun delete(id: Uuid)
+
+    @Query("DELETE FROM recycle_bin_items WHERE id IN (:ids)")
+    suspend fun delete(ids: List<Uuid>)
 
     @Query("DELETE FROM recycle_bin_items")
     suspend fun deleteAll()

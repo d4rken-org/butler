@@ -1,15 +1,12 @@
 package eu.darken.butler.explorer.core.engine
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.InsertDriveFile
-import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.common.recyclebin.RecycleBinRepository
+import eu.darken.butler.common.recyclebin.RecycleBinRepo
 import eu.darken.butler.explorer.R
 import eu.darken.butler.permissions.core.PathRequirements
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +17,7 @@ import javax.inject.Singleton
 
 @Singleton
 class RecycleBinLocationLoader @Inject constructor(
-    private val recycleBinRepository: RecycleBinRepository,
+    private val recycleBinRepo: RecycleBinRepo,
 ) {
 
     private val tag = logTag("Explorer", "RecycleBinLocationLoader")
@@ -47,27 +44,16 @@ class RecycleBinLocationLoader @Inject constructor(
 
         try {
             // Get all recycle bin items
-            val recycleBinItems = recycleBinRepository.getAllItems().first()
+            val recycleBinItems = recycleBinRepo.getAllItems().first()
             log(tag, DEBUG) { "loadRecycleBin(): Found ${recycleBinItems.size} items in recycle bin" }
-
 
             // Convert repository items to ExplorerItems
             val explorerItems = recycleBinItems.map { item ->
-                val displayPath = item.originalPath
-
                 ExplorerItem.RecycleBinItem(
                     itemId = item.id,
-                    originalPath = item.originalPath,
-                    recycleBinPath = item.recycleBinPath,
-                    displayName = displayPath.name.toCaString(),
-                    displayIcon = Icons.TwoTone.InsertDriveFile, // TODO path type?
-                    size = item.size,
+                    originalLookup = item.originalLookup,
+                    recycleBinLookup = item.recycleBinLookup,
                     deletedAt = item.deletedAt,
-                    isAvailable = item.isAvailable,
-                    subtitle = caString { cx ->
-                        val location = item.originalPath.parent?.userReadablePath?.get(cx) ?: ""
-                        location
-                    },
                 )
             }.sortedByDescending { it.deletedAt }
 

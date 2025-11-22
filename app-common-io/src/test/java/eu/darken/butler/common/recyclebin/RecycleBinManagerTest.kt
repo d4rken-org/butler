@@ -7,9 +7,8 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
-import eu.darken.butler.common.recyclebin.db.RecycleBinDao
-import eu.darken.butler.common.recyclebin.db.RecycleBinDatabase
-import eu.darken.butler.common.recyclebin.db.RecycleBinEntity
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.storage.StorageEnvironment
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
@@ -37,8 +36,7 @@ import kotlin.uuid.Uuid
  */
 class RecycleBinManagerTest : BaseTest() {
 
-    private lateinit var database: RecycleBinDatabase
-    private lateinit var dao: RecycleBinDao
+    private lateinit var repository: RecycleBinRepo
     private lateinit var storageEnv: StorageEnvironment
     private lateinit var gatewaySwitch: GatewaySwitch
     private lateinit var settings: RecycleBinSettings
@@ -48,10 +46,7 @@ class RecycleBinManagerTest : BaseTest() {
 
     @BeforeEach
     fun setup() {
-        dao = mockk(relaxed = true)
-        database = mockk {
-            every { recycleBinDao() } returns dao
-        }
+        repository = mockk(relaxed = true)
 
         storageEnv = mockk {
             every { ourPublicDirs } returns listOf(
@@ -79,11 +74,34 @@ class RecycleBinManagerTest : BaseTest() {
         dispatcherProvider = TestDispatcherProvider()
 
         manager = RecycleBinManager(
-            database = database,
+            repository = repository,
             storageEnv = storageEnv,
             gatewaySwitch = gatewaySwitch,
             settings = settings,
             dispatcherProvider = dispatcherProvider,
+        )
+    }
+
+    private fun createTestItem(
+        id: String = Uuid.random().toString(),
+        originalPath: String = "/storage/emulated/0/test.txt",
+        recycleBinPath: String = "/storage/emulated/0/.recycle_bin/test.txt",
+        deletedAt: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+        size: Long = 1024L,
+        fileType: FileType = FileType.FILE,
+    ): RecycleBinRepo.RecycleBinItem {
+        val lookup = LocalPathLookup(
+            lookedUp = LocalPath.build(originalPath),
+            fileType = fileType,
+            size = size,
+            modifiedAt = null,
+        )
+        return RecycleBinRepo.RecycleBinItem(
+            id = id,
+            originalLookup = lookup,
+            recycleBinPath = LocalPath.build(recycleBinPath),
+            deletedAt = deletedAt,
+            size = size,
         )
     }
 
@@ -94,7 +112,7 @@ class RecycleBinManagerTest : BaseTest() {
         // Given - SAFPath is not supported (only LocalPath is)
         val unsupportedPath = mockk<SAFPath>()
         val lookupMock = mockk<APathLookup<APath<*>>> {
-            every { fileType } returns eu.darken.butler.common.files.metadata.FileType.UNKNOWN
+            every { fileType } returns FileType.UNKNOWN
         }
 
         // Mock lookup to handle the unsupported path lookup with fallback
@@ -114,7 +132,7 @@ class RecycleBinManagerTest : BaseTest() {
         // Given
         val localPath = LocalPath.build("/storage/test.txt")
         val lookupMock = mockk<APathLookup<APath<*>>> {
-            every { fileType } returns eu.darken.butler.common.files.metadata.FileType.UNKNOWN
+            every { fileType } returns FileType.UNKNOWN
         }
 
         coEvery { gatewaySwitch.lookup(any(), any()) } returns lookupMock
@@ -134,20 +152,20 @@ class RecycleBinManagerTest : BaseTest() {
     fun `cleanupExpired - calculates correct cutoff time`() = runTest {
         // Given - 30 day retention period
         coEvery { settings.expiresAfter.flow } returns flowOf(30.days)
-        coEvery { dao.getOlderThan(any()) } returns emptyList()
+        coEvery { repository.getOlderThan(any()) } returns emptyList()
 
         // When
         manager.cleanupExpired()
 
         // Then - verify getOlderThan was called (cutoff time calculation happens internally)
-        coEvery { dao.getOlderThan(any()) }
+        coEvery { repository.getOlderThan(any()) }
     }
 
     @Test
     fun `cleanupExpired - returns zero when no expired items`() = runTest {
         // Given
         coEvery { settings.expiresAfter.flow } returns flowOf(30.days)
-        coEvery { dao.getOlderThan(any()) } returns emptyList()
+        coEvery { repository.getOlderThan(any()) } returns emptyList()
 
         // When
         val deletedCount = manager.cleanupExpired()
@@ -161,7 +179,7 @@ class RecycleBinManagerTest : BaseTest() {
     @Test
     fun `getStats - handles empty recycle bin`() = runTest {
         // Given
-        every { dao.getAll() } returns flowOf(emptyList())
+        coEvery { repository.getAllItems() } returns flowOf(emptyList())
 
         // When
         val stats = manager.getStats().first()
@@ -173,17 +191,17 @@ class RecycleBinManagerTest : BaseTest() {
     }
 
     @Test
-    fun `getStats - calculates totals from entities`() = runTest {
+    fun `getStats - calculates totals from items`() = runTest {
         // Given
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val entity1 = RecycleBinEntity(
+        val item1 = createTestItem(
             id = Uuid.random().toString(),
             originalPath = "/storage/file1.txt",
             recycleBinPath = "/storage/.recycle_bin/file1.txt",
             deletedAt = now - 1.days,
             size = 1024L,
         )
-        val entity2 = RecycleBinEntity(
+        val item2 = createTestItem(
             id = Uuid.random().toString(),
             originalPath = "/storage/file2.txt",
             recycleBinPath = "/storage/.recycle_bin/file2.txt",
@@ -191,7 +209,7 @@ class RecycleBinManagerTest : BaseTest() {
             size = 2048L,
         )
 
-        every { dao.getAll() } returns flowOf(listOf(entity1, entity2))
+        coEvery { repository.getAllItems() } returns flowOf(listOf(item1, item2))
 
         // When
         val stats = manager.getStats().first()

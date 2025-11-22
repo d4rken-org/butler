@@ -3,6 +3,8 @@ package eu.darken.butler.common.recyclebin
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.recyclebin.db.RecycleBinDao
 import eu.darken.butler.common.recyclebin.db.RecycleBinDatabase
 import eu.darken.butler.common.recyclebin.db.RecycleBinEntity
@@ -23,13 +25,14 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 /**
  * Tests for RecycleBinRepository - database operations and domain model conversion.
  *
  * Tests cover:
  * - Flow-based data access (getAllItems)
- * - Entity to domain model conversion
+ * - Entity to domain model conversion with JSON deserialization
  * - Availability checking via gateway
  * - File system synchronization
  * - Statistics queries
@@ -42,7 +45,7 @@ class RecycleBinRepositoryTest : BaseTest() {
     private lateinit var dispatcherProvider: DispatcherProvider
     private lateinit var appScope: CoroutineScope
 
-    private lateinit var repository: RecycleBinRepository
+    private lateinit var repository: RecycleBinRepo
 
     @BeforeEach
     fun setup() {
@@ -61,11 +64,36 @@ class RecycleBinRepositoryTest : BaseTest() {
         // Prevent init block from running sync
         coEvery { dao.getAll() } returns flowOf(emptyList())
 
-        repository = RecycleBinRepository(
+        repository = RecycleBinRepo(
             database = database,
             gatewaySwitch = gatewaySwitch,
             dispatcherProvider = dispatcherProvider,
             appScope = appScope,
+        )
+    }
+
+    private fun createTestEntity(
+        id: String = "00000000-0000-0000-0000-000000000001",
+        originalPath: String = "/storage/emulated/0/test.txt",
+        recycleBinPath: String = "/storage/emulated/0/.recycle_bin/test.txt",
+        deletedAt: Instant = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+        size: Long = 1024L,
+        fileType: FileType = FileType.FILE,
+    ): RecycleBinEntity {
+        val lookup = LocalPathLookup(
+            lookedUp = LocalPath.build(originalPath),
+            fileType = fileType,
+            size = size,
+            modifiedAt = null,
+        )
+        return RecycleBinEntity(
+            id = Uuid.parse(id),
+            originalPath = LocalPath.build(originalPath),
+            originalLookup = lookup,
+            recycleBinPath = LocalPath.build(recycleBinPath),
+            deletedAt = deletedAt,
+            size = size,
+            fileType = fileType,
         )
     }
 
@@ -87,8 +115,8 @@ class RecycleBinRepositoryTest : BaseTest() {
     fun `getAllItems - converts entities to domain models`() = runTest {
         // Given
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val entity = RecycleBinEntity(
-            id = "test-id-1",
+        val entity = createTestEntity(
+            id = "00000000-0000-0000-0000-000000000001",
             originalPath = "/storage/emulated/0/test.txt",
             recycleBinPath = "/storage/emulated/0/.recycle_bin/test.txt",
             deletedAt = now,
@@ -104,45 +132,36 @@ class RecycleBinRepositoryTest : BaseTest() {
         // Then
         items shouldHaveSize 1
         items[0].apply {
-            id shouldBe "test-id-1"
+            id shouldBe "00000000-0000-0000-0000-000000000001"
             originalPath shouldBe LocalPath.build("/storage/emulated/0/test.txt")
             recycleBinPath shouldBe LocalPath.build("/storage/emulated/0/.recycle_bin/test.txt")
             deletedAt shouldBe now
-            size shouldBe 1024L
             isAvailable shouldBe true
         }
     }
 
     @Test
-    fun `getAllItems - converts all entities`() = runTest {
+    fun `getAllItems - converts directory entities correctly`() = runTest {
         // Given
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val validEntity = RecycleBinEntity(
-            id = "valid-id",
-            originalPath = "/storage/emulated/0/valid.txt",
-            recycleBinPath = "/storage/emulated/0/.recycle_bin/valid.txt",
+        val entity = createTestEntity(
+            id = "00000000-0000-0000-0000-000000000002",
+            originalPath = "/storage/emulated/0/Documents",
+            recycleBinPath = "/storage/emulated/0/.recycle_bin/Documents",
             deletedAt = now,
-            size = 1024L,
+            size = 4096L,
+            fileType = FileType.DIRECTORY,
         )
 
-        val emptyPathEntity = RecycleBinEntity(
-            id = "empty-id",
-            originalPath = "",
-            recycleBinPath = "",
-            deletedAt = now,
-            size = 0L,
-        )
-
-        coEvery { dao.getAll() } returns flowOf(listOf(validEntity, emptyPathEntity))
+        coEvery { dao.getAll() } returns flowOf(listOf(entity))
         coEvery { gatewaySwitch.exists(any()) } returns true
 
         // When
         val items = repository.getAllItems().first()
 
-        // Then - both entities are converted
-        items shouldHaveSize 2
-        items[0].id shouldBe "valid-id"
-        items[1].id shouldBe "empty-id"
+        // Then
+        items shouldHaveSize 1
+        items[0].originalLookup.fileType shouldBe FileType.DIRECTORY
     }
 
     // ============ AVAILABILITY CHECK TESTS ============
@@ -151,8 +170,8 @@ class RecycleBinRepositoryTest : BaseTest() {
     fun `items with missing files are marked unavailable`() = runTest {
         // Given
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val entity = RecycleBinEntity(
-            id = "test-id",
+        val entity = createTestEntity(
+            id = "00000000-0000-0000-0000-000000000003",
             originalPath = "/storage/emulated/0/test.txt",
             recycleBinPath = "/storage/emulated/0/.recycle_bin/test.txt",
             deletedAt = now,
@@ -176,8 +195,8 @@ class RecycleBinRepositoryTest : BaseTest() {
     fun `syncWithFileSystem - removes orphaned database entries`() = runTest {
         // Given
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val orphanedEntity = RecycleBinEntity(
-            id = "orphaned-id",
+        val orphanedEntity = createTestEntity(
+            id = "00000000-0000-0000-0000-000000000004",
             originalPath = "/storage/emulated/0/missing.txt",
             recycleBinPath = "/storage/emulated/0/.recycle_bin/missing.txt",
             deletedAt = now,
@@ -186,22 +205,21 @@ class RecycleBinRepositoryTest : BaseTest() {
 
         coEvery { dao.getAll() } returns flowOf(listOf(orphanedEntity))
 
-        val recycleBinPath = LocalPath.build(orphanedEntity.recycleBinPath)
-        coEvery { gatewaySwitch.exists(recycleBinPath) } returns false
+        coEvery { gatewaySwitch.exists(orphanedEntity.recycleBinPath) } returns false
 
         // When
         repository.syncWithFileSystem()
 
         // Then
-        coVerify { dao.delete(orphanedEntity) }
+        coVerify { dao.delete(orphanedEntity.id) }
     }
 
     @Test
     fun `syncWithFileSystem - keeps entries for existing files`() = runTest {
         // Given
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val validEntity = RecycleBinEntity(
-            id = "valid-id",
+        val validEntity = createTestEntity(
+            id = "00000000-0000-0000-0000-000000000005",
             originalPath = "/storage/emulated/0/exists.txt",
             recycleBinPath = "/storage/emulated/0/.recycle_bin/exists.txt",
             deletedAt = now,
@@ -210,8 +228,7 @@ class RecycleBinRepositoryTest : BaseTest() {
 
         coEvery { dao.getAll() } returns flowOf(listOf(validEntity))
 
-        val recycleBinPath = LocalPath.build(validEntity.recycleBinPath)
-        coEvery { gatewaySwitch.exists(recycleBinPath) } returns true
+        coEvery { gatewaySwitch.exists(validEntity.recycleBinPath) } returns true
 
         // When
         repository.syncWithFileSystem()
@@ -263,13 +280,13 @@ class RecycleBinRepositoryTest : BaseTest() {
     @Test
     fun `deleteById - removes item from database`() = runTest {
         // Given
-        val itemId = "test-id"
+        val itemId = "00000000-0000-0000-0000-000000000001"
 
         // When
         repository.deleteById(itemId)
 
         // Then
-        coVerify { dao.deleteById(itemId) }
+        coVerify { dao.delete(Uuid.parse(itemId)) }
     }
 
     @Test

@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.core.engine
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.MimeInfo
@@ -11,6 +12,7 @@ import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 sealed interface ExplorerItem {
     val displayName: CaString
@@ -73,7 +75,12 @@ sealed interface ExplorerItem {
         override val id: String get() = lookup.path
         override val displayName: CaString get() = lookup.userReadableName
 
-        fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?, metadata: FileMetadata? = null): Path
+        fun withExtendedData(
+            ownership: Ownership?,
+            permissions: Permissions?,
+            createdAt: Instant?,
+            metadata: FileMetadata? = null
+        ): Path
     }
 
     sealed interface Directory : Lookup {
@@ -96,7 +103,12 @@ sealed interface ExplorerItem {
         override val childCount: Int? = null,
         override val metadata: FileMetadata? = null,
     ) : Directory {
-        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?, metadata: FileMetadata?) = copy(
+        override fun withExtendedData(
+            ownership: Ownership?,
+            permissions: Permissions?,
+            createdAt: Instant?,
+            metadata: FileMetadata?
+        ) = copy(
             ownership = ownership ?: this.ownership,
             permissions = permissions ?: this.permissions,
             createdAt = createdAt ?: this.createdAt,
@@ -112,7 +124,12 @@ sealed interface ExplorerItem {
         override val createdAt: Instant? = null,
         override val metadata: FileMetadata? = null,
     ) : File {
-        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?, metadata: FileMetadata?) = copy(
+        override fun withExtendedData(
+            ownership: Ownership?,
+            permissions: Permissions?,
+            createdAt: Instant?,
+            metadata: FileMetadata?
+        ) = copy(
             ownership = ownership ?: this.ownership,
             permissions = permissions ?: this.permissions,
             createdAt = createdAt ?: this.createdAt,
@@ -130,7 +147,12 @@ sealed interface ExplorerItem {
         val isBroken: Boolean = false,
         override val metadata: FileMetadata? = null,
     ) : File {
-        override fun withExtendedData(ownership: Ownership?, permissions: Permissions?, createdAt: Instant?, metadata: FileMetadata?) = copy(
+        override fun withExtendedData(
+            ownership: Ownership?,
+            permissions: Permissions?,
+            createdAt: Instant?,
+            metadata: FileMetadata?
+        ) = copy(
             ownership = ownership ?: this.ownership,
             permissions = permissions ?: this.permissions,
             createdAt = createdAt ?: this.createdAt,
@@ -139,16 +161,16 @@ sealed interface ExplorerItem {
     }
 
     data class RecycleBinItem(
-        val itemId: String,
-        val originalPath: APath<*>,
-        val recycleBinPath: APath<*>,
-        override val displayName: CaString,
-        val displayIcon: ImageVector,
-        val size: Long,
+        val itemId: Uuid,
         val deletedAt: Instant,
-        val isAvailable: Boolean,
-        val subtitle: CaString? = null,
+        val originalLookup: APathLookup<*>,
+        val recycleBinLookup: APathLookup<*>?,
     ) : ExplorerItem {
+        val isAvailable get() = recycleBinLookup != null
         override val id: String get() = "recyclebin-$itemId"
+        override val displayName: CaString
+            get() = originalLookup.userReadableName
+        val subtitle: CaString
+            get() = originalLookup.parent?.userReadablePath ?: "?".toCaString()
     }
 }

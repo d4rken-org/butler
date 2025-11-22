@@ -83,7 +83,6 @@ sealed interface ExplorerLocation {
             val itemCount: Int,
             val totalSize: Long,
             val oldestItem: kotlin.time.Instant? = null,
-            val storageBreakdown: Map<String?, StorageInfo> = emptyMap(),
         ) : LocationInfo
 
         data class StorageInfo(

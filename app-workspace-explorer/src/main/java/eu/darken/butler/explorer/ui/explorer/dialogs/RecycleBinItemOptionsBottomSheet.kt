@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.DeleteForever
+import androidx.compose.material.icons.twotone.QuestionMark
 import androidx.compose.material.icons.twotone.Restore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -55,16 +57,20 @@ fun RecycleBinItemOptionsBottomSheet(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = item.displayIcon,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = if (!item.isAvailable) {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    }
-                )
+                if (item.recycleBinLookup?.lookedUp != null) {
+                    TintedAsyncImage(
+                        model = item.recycleBinLookup,
+                        contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
+                        modifier = Modifier.size(40.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.TwoTone.QuestionMark,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
@@ -87,12 +93,13 @@ fun RecycleBinItemOptionsBottomSheet(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-
-                    Text(
-                        text = formatFileSize(item.size),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                    item.recycleBinLookup?.size?.let {
+                        Text(
+                            text = formatFileSize(it),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 

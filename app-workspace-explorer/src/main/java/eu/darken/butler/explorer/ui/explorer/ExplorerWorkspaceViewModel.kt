@@ -35,7 +35,7 @@ import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.recyclebin.RecycleBinManager
-import eu.darken.butler.common.recyclebin.db.RecycleBinEntity
+import eu.darken.butler.common.recyclebin.RecycleBinRepo
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.R
@@ -122,6 +122,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val gatewaySwitch: GatewaySwitch,
     internal val safLocationManager: SAFLocationManager,
     private val recycleBinManager: RecycleBinManager,
+    private val recycleBinRepo: RecycleBinRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
@@ -1117,15 +1118,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         dismissDialog()
 
         try {
-            val entity = RecycleBinEntity(
-                id = item.itemId,
-                originalPath = item.originalPath.toString(),
-                recycleBinPath = item.recycleBinPath.toString(),
-                deletedAt = item.deletedAt,
-                size = item.size,
-            )
+            val repoItem = recycleBinRepo.getById(item.itemId)
+            if (repoItem == null) {
+                log(tag, ERROR) { "Recycle bin item not found: ${item.itemId}" }
+                errorEvents.emit(Exception("Item not found in recycle bin"))
+                return@launch
+            }
 
-            val result = recycleBinManager.restore(listOf(entity))
+            val result = recycleBinManager.restore(listOf(repoItem))
 
             if (result.restored.isNotEmpty()) {
                 log(tag, INFO) { "Successfully restored ${result.restored.size} items" }
@@ -1148,15 +1148,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         dismissDialog()
 
         try {
-            val entity = RecycleBinEntity(
-                id = item.itemId,
-                originalPath = item.originalPath.toString(),
-                recycleBinPath = item.recycleBinPath.toString(),
-                deletedAt = item.deletedAt,
-                size = item.size,
-            )
+            val repoItem = recycleBinRepo.getById(item.itemId)
+            if (repoItem == null) {
+                log(tag, ERROR) { "Recycle bin item not found: ${item.itemId}" }
+                errorEvents.emit(Exception("Item not found in recycle bin"))
+                return@launch
+            }
 
-            val deletedCount = recycleBinManager.deletePermanently(listOf(entity))
+            val deletedCount = recycleBinManager.deletePermanently(listOf(repoItem))
 
             if (deletedCount > 0) {
                 log(tag, INFO) { "Successfully deleted $deletedCount items permanently" }
