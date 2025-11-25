@@ -20,3 +20,8 @@
 - Can there be name collision when deleting files with the same name from ultiple locations?
 
 - Show nested items in recycle bin, browsable.
+
+- Max size enforcement - Setting exists (500MB default) but not enforced
+- Restore ownership/permissions - Data stored but not restored (TODO at line 179)
+- System cache deletion handling - DB inconsistency risk
+- Browsable nested items - Flat list only
