@@ -2,7 +2,7 @@
 - Recycle bin path is not displayed correct, neither is the name
 - Recycle bin should show when the file was deleted
 - Recycle bin size should be displayed, besides the count at device level
-- Recycle bin should be OFF by default, turning it on should add a detailed explained that deletion in Butler will not increase the free space shown by the system, because the system doesn't know about file explorer "trash bins". Butlers recycle bin is stored in it's official cache folder though, so if the system requires space it could clear caches and that would also empty Butlers recycle bin.
+
 - When is RecycleBinCleanupScheduler.cancel() called? If disable it via settings, does cancel get called? Do we clear the recycle bin?
 - Store settings need on click actions to change trash max age and trash max size
 

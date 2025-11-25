@@ -24,7 +24,7 @@ class RecycleBinSettings @Inject constructor(
     override val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    val enabled = dataStore.createValue("recyclebin.enabled", true)
+    val enabled = dataStore.createValue("recyclebin.enabled", false)
 
     val expiresAfter = dataStore.createValue("recyclebin.expiration.duration", 30.days, json)
 

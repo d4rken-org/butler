@@ -19,6 +19,9 @@
     <string name="explorer_settings_recyclebin_max_size_title">Maximum size per storage</string>
     <string name="explorer_settings_recyclebin_max_size_desc">%d MB maximum per storage location</string>
     <string name="explorer_settings_recyclebin_max_size_value">%d MB</string>
+    <string name="explorer_settings_recyclebin_enable_dialog_title">Enable recycle bin?</string>
+    <string name="explorer_settings_recyclebin_enable_dialog_message">Unlike desktop systems, Android has no built-in recycle bin. Butler provides one using its cache folder.\n\nKeep in mind:\n• Your device\'s storage indicator won\'t reflect freed space until items are permanently deleted\n• If your device runs low on storage, Android may clear app caches, removing recycled files</string>
+    <string name="explorer_settings_recyclebin_enable_action">Enable</string>
 
     <!-- File Row Content Descriptions -->
     <string name="explorer_file_regular_content_desc">File</string>

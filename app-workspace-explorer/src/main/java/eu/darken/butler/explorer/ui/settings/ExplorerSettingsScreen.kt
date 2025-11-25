@@ -11,13 +11,18 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.Storage
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +42,7 @@ fun ExplorerSettingsScreen(
     onToggleBackButtonNavigation: (Boolean) -> Unit,
     onToggleRecycleBin: (Boolean) -> Unit,
 ) {
+    var showEnableRecycleBinDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -99,7 +105,13 @@ fun ExplorerSettingsScreen(
                     title = stringResource(R.string.explorer_settings_recyclebin_enabled_title),
                     subtitle = stringResource(R.string.explorer_settings_recyclebin_enabled_desc),
                     checked = state.recycleBinEnabled,
-                    onCheckedChange = onToggleRecycleBin,
+                    onCheckedChange = { enabled ->
+                        if (enabled) {
+                            showEnableRecycleBinDialog = true
+                        } else {
+                            onToggleRecycleBin(false)
+                        }
+                    },
                 )
             }
 
@@ -140,6 +152,35 @@ fun ExplorerSettingsScreen(
                 }
             }
         }
+    }
+
+    if (showEnableRecycleBinDialog) {
+        AlertDialog(
+            onDismissRequest = { showEnableRecycleBinDialog = false },
+            title = {
+                Text(text = stringResource(R.string.explorer_settings_recyclebin_enable_dialog_title))
+            },
+            text = {
+                Text(text = stringResource(R.string.explorer_settings_recyclebin_enable_dialog_message))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onToggleRecycleBin(true)
+                        showEnableRecycleBinDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(R.string.explorer_settings_recyclebin_enable_action))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showEnableRecycleBinDialog = false }
+                ) {
+                    Text(text = stringResource(eu.darken.butler.common.R.string.general_cancel_action))
+                }
+            }
+        )
     }
 }
 
