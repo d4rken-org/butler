@@ -11,6 +11,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.explorer.R
@@ -51,7 +52,7 @@ class HomeLocationLoader @Inject constructor(
 
         // Get trash stats for the subtitle
         val trashItems = trashRepo.getAllItems().first()
-        trashItems.sumOf { it.size }
+        val trashSize = trashItems.sumOf { it.size }
         val trashCount = trashItems.size
 
         val shortcuts = listOf(
@@ -70,11 +71,15 @@ class HomeLocationLoader @Inject constructor(
                 subtitle = caString { cx ->
                     when {
                         trashCount == 0 -> cx.getString(R.string.explorer_trash_empty_state)
-                        else -> cx.resources.getQuantityString(
-                            R.plurals.explorer_trash_item_count,
-                            trashCount,
-                            trashCount
-                        )
+                        else -> {
+                            val countText = cx.resources.getQuantityString(
+                                R.plurals.explorer_trash_item_count,
+                                trashCount,
+                                trashCount,
+                            )
+                            val sizeText = formatFileSize(cx, trashSize)
+                            "$countText • $sizeText"
+                        }
                     }
                 },
             ),
