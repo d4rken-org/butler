@@ -10,32 +10,21 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.R
 
 @Composable
-fun ButlerIcon(
+fun ButlerMascot(
     modifier: Modifier = Modifier,
-    contentDescription: String? = stringResource(R.string.butler_icon_description),
-    variant: ButlerIconVariant = ButlerIconVariant.NORMAL,
+    contentDescription: String? = stringResource(R.string.butler_mascot_description),
 ) {
     Image(
-        painter = painterResource(
-            id = when (variant) {
-                ButlerIconVariant.NORMAL -> R.drawable.app_icon_normal
-                ButlerIconVariant.RELAXED -> R.drawable.app_icon_relaxed
-            }
-        ),
+        painter = painterResource(id = R.drawable.mascot_normal),
         contentDescription = contentDescription,
         modifier = modifier
     )
-}
-
-enum class ButlerIconVariant {
-    NORMAL,
-    RELAXED,
 }
 
 @Preview2
 @Composable
 private fun ButlerIconPreview() {
     PreviewWrapper {
-        ButlerIcon(Modifier.size(48.dp))
+        ButlerMascot(Modifier.size(96.dp))
     }
 }

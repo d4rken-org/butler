@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,11 +25,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
-import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
@@ -72,7 +69,7 @@ internal fun WelcomePage(
                     message = stringResource(R.string.onboarding_welcome_message),
                     spacingAfterTitle = 24.dp,
                     icon = {
-                        ButlerIcon(
+                        ButlerMascot(
                             modifier = Modifier.size(172.dp),
                         )
                         Spacer(modifier = Modifier.height(24.dp))

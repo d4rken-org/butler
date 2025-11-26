@@ -1,7 +1,6 @@
 package eu.darken.butler.searcher.ui.search
 
 import android.content.Context
-import android.content.Intent
 import android.webkit.MimeTypeMap
 import androidx.compose.ui.text.input.TextFieldValue
 import dagger.assisted.Assisted
@@ -32,7 +31,6 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.permissions.core.PathRequirements
-import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchSortSettings
@@ -275,7 +273,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         currentSortSettings,
         viewStyleFlow,
         trashSettings.enabled.flow,
-    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, searchContent: Boolean, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, recycleBinEnabled: Boolean ->
+    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, searchContent: Boolean, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean ->
         val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -721,7 +719,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<SearcherAction> = emptyList(),
         val viewStyle: SearcherViewStyle = SearcherViewStyle.default(),
         val sortSettings: SearchSortSettings = SearchSortSettings(),
-        val trashSettings: Boolean = false,
+        val trashEnabled: Boolean = false,
     ) {
         val isSearching: Boolean
             get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING

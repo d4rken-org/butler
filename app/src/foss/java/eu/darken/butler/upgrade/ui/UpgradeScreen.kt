@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.ButlerIconVariant
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -76,7 +77,10 @@ fun UpgradeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ButlerIcon(
-                modifier = Modifier.padding(bottom = 8.dp).size(96.dp),
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .size(96.dp),
+                variant = ButlerIconVariant.RELAXED,
             )
 
             ColoredTitleText(

@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.Slogans
 import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.ButlerIconVariant
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -157,10 +158,11 @@ fun TemplatesWorkspacePage(
                             .clickable { onNavToSettings() }
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         ButlerIcon(
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(64.dp),
+                            variant = if (state.isUpgraded) ButlerIconVariant.RELAXED else ButlerIconVariant.NORMAL
                         )
 
                         Column(modifier = Modifier.weight(1f)) {

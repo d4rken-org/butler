@@ -2,6 +2,7 @@
     <string name="app_name">Butler</string>
     <string name="app_name_subtitle">File explorer extraordinaire</string>
 
+    <string name="butler_icon_description">Butler app icon</string>
     <string name="butler_mascot_description">Butler mascot</string>
 
     <string name="slogan_message_0">At your service.</string>

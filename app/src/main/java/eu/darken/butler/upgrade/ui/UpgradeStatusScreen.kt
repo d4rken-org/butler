@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.ButlerIconVariant
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -86,6 +87,7 @@ fun UpgradeStatusScreen(
             // Mascot
             ButlerIcon(
                 modifier = Modifier.size(120.dp),
+                variant = if (state.isUpgraded) ButlerIconVariant.RELAXED else ButlerIconVariant.NORMAL
             )
 
             // App name

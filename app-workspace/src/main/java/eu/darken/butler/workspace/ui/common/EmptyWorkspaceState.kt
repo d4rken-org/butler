@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -46,7 +45,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import kotlinx.coroutines.delay
@@ -132,7 +131,7 @@ fun EnhancedEmptyWorkspaceState(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    ButlerIcon(
+                    ButlerMascot(
                         modifier = Modifier.size(72.dp)
                     )
                 }
@@ -197,12 +196,11 @@ fun EnhancedEmptyWorkspaceState(
 
                 // Action buttons
                 if (actions.isNotEmpty()) {
-                    LazyColumn(
+                    Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        items(actions.size) { index ->
-                            val action = actions[index]
+                        actions.forEachIndexed { index, action ->
                             EmptyStateActionCard(
                                 action = action,
                                 isHighlighted = index == 0
