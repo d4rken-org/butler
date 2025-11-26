@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.BadgedIcon
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
@@ -46,18 +48,29 @@ fun ShortcutRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Icon with background
+        val hasBadge = item.badge != null
+        val badgeIcon = when (item.badge) {
+            ExplorerItem.Shortcut.Badge.PAUSED -> Icons.TwoTone.PauseCircle
+            null -> null
+        }
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
+                .background(
+                    if (hasBadge) MaterialTheme.colorScheme.surfaceVariant
+                    else MaterialTheme.colorScheme.primaryContainer
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = item.displayIcon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(20.dp)
+            BadgedIcon(
+                icon = item.displayIcon,
+                badge = badgeIcon,
+                iconSize = 20.dp,
+                badgeSize = 12.dp,
+                iconTint = if (hasBadge) MaterialTheme.colorScheme.onSurfaceVariant
+                else MaterialTheme.colorScheme.onPrimaryContainer,
+                badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 

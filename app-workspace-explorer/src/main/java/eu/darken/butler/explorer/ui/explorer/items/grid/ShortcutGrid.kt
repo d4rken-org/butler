@@ -1,13 +1,15 @@
 package eu.darken.butler.explorer.ui.explorer.items.grid
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.BadgedIcon
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -19,6 +21,11 @@ fun ShortcutGrid(
     item: ExplorerItem.Shortcut,
     onClick: () -> Unit,
 ) {
+    val hasBadge = item.badge != null
+    val badgeIcon = when (item.badge) {
+        ExplorerItem.Shortcut.Badge.PAUSED -> Icons.TwoTone.PauseCircle
+        null -> null
+    }
     FileGridBase(
         modifier = modifier,
         item = item,
@@ -28,16 +35,22 @@ fun ShortcutGrid(
         onLongClick = {},
         showSelection = false,
         icon = {
-            Icon(
-                imageVector = item.displayIcon,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(20.dp)
+            BadgedIcon(
+                icon = item.displayIcon,
+                badge = badgeIcon,
+                iconSize = 20.dp,
+                badgeSize = 10.dp,
+                iconTint = if (hasBadge) Color.White.copy(alpha = 0.7f) else Color.White,
+                badgeTint = Color.White,
             )
         },
         primaryText = item.displayName.get(LocalContext.current),
         secondaryText = null,
-        backgroundColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+        backgroundColor = if (hasBadge) {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        } else {
+            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+        }
     )
 }
 

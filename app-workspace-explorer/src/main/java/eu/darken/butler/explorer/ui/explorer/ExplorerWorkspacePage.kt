@@ -425,6 +425,7 @@ fun ExplorerWorkspacePage(
                             info = mainState.info,
                             selectedCount = mainState.selectionState.selectedItems.size,
                             onClearSelection = { vm?.clearSelection() },
+                            isTrashDisabled = !mainState.trashEnabled,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                         )

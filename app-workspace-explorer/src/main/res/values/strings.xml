@@ -153,6 +153,7 @@
     <string name="explorer_trash_restore_desc">Restore to original location</string>
     <string name="explorer_trash_item_unavailable">Item unavailable</string>
     <string name="explorer_trash_delete_warning">This cannot be undone</string>
+    <string name="explorer_trash_disabled_warning">Trash disabled</string>
 
     <string name="explorer_navigation_root">Root directory</string>
     <string name="explorer_navigation_rom">System ROM</string>

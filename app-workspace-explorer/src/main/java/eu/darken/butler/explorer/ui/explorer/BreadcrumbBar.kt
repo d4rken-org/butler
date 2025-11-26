@@ -53,6 +53,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.BadgedIcon
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -374,15 +375,17 @@ fun BreadcrumbBar(
                         ) {
                             // Show icon if showIcon is true and icon exists
                             if (breadcrumb.showIcon && breadcrumb.icon != null) {
-                                Icon(
-                                    imageVector = breadcrumb.icon,
-                                    contentDescription = breadcrumb.label.get(context),
-                                    tint = if (isLast) {
+                                BadgedIcon(
+                                    icon = breadcrumb.icon,
+                                    badge = breadcrumb.badgeIcon,
+                                    iconSize = 20.dp,
+                                    badgeSize = 10.dp,
+                                    iconTint = if (isLast) {
                                         MaterialTheme.colorScheme.onSurface
                                     } else {
                                         MaterialTheme.colorScheme.onSurfaceVariant
                                     },
-                                    modifier = Modifier.size(20.dp)
+                                    badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
 

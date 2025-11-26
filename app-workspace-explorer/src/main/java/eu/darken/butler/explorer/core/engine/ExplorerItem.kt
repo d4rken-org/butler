@@ -24,8 +24,13 @@ sealed interface ExplorerItem {
         val displayIcon: ImageVector,
         val target: ExplorerNavigation.Target,
         val subtitle: CaString? = null,
+        val badge: Badge? = null,
     ) : ExplorerItem {
         override val id: String get() = "shortcut-$shortcutId"
+
+        enum class Badge {
+            PAUSED,
+        }
     }
 
     sealed interface Storage : ExplorerItem {

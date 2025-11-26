@@ -6,6 +6,7 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Home
+import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,6 +26,7 @@ fun ExplorerInfoBar(
     info: ExplorerLocation.LocationInfo?,
     selectedCount: Int = 0,
     onClearSelection: () -> Unit = {},
+    isTrashDisabled: Boolean = false,
 ) {
     WorkspaceInfoBar(
         modifier = modifier,
@@ -86,19 +88,10 @@ fun ExplorerInfoBar(
                 }
 
                 is ExplorerLocation.Trash.Info -> {
-                    if (info.itemCount > 0) {
+                    if (isTrashDisabled && selectedCount == 0) {
                         InfoChip(
-                            icon = Icons.TwoTone.Delete,
-                            label = pluralStringResource(
-                                R.plurals.explorer_infobar_files_count,
-                                info.itemCount,
-                                info.itemCount
-                            ),
-                        )
-                    } else {
-                        InfoChip(
-                            icon = Icons.TwoTone.Delete,
-                            label = stringResource(R.string.explorer_trash_empty_state),
+                            icon = Icons.TwoTone.PauseCircle,
+                            label = stringResource(R.string.explorer_trash_disabled_warning),
                         )
                     }
                 }
@@ -154,11 +147,27 @@ fun ExplorerInfoBar(
                 }
 
                 is ExplorerLocation.Trash.Info -> {
+                    if(selectedCount > 0) return@WorkspaceInfoBar
                     Spacer(modifier = Modifier.weight(1f))
                     if (info.totalSize > 0) {
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
                             label = formatFileSize(info.totalSize),
+                        )
+                    }
+                    if (info.itemCount > 0) {
+                        InfoChip(
+                            icon = Icons.TwoTone.Delete,
+                            label = pluralStringResource(
+                                R.plurals.explorer_infobar_files_count,
+                                info.itemCount,
+                                info.itemCount
+                            ),
+                        )
+                    } else {
+                        InfoChip(
+                            icon = Icons.TwoTone.Delete,
+                            label = stringResource(R.string.explorer_trash_empty_state),
                         )
                     }
                 }

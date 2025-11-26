@@ -5,23 +5,39 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.Home
+import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import javax.inject.Inject
 
 class BreadcrumbGenerator @Inject constructor(
     private val safLocationManager: SAFLocationManager,
+    private val trashSettings: TrashSettings,
 ) {
+
+    private suspend fun getTrashBreadcrumb(): ExplorerBreadcrumb {
+        val trashEnabled = trashSettings.enabled.value()
+        return ExplorerBreadcrumb(
+            label = R.string.explorer_navigation_trash.toCaString(),
+            icon = Icons.TwoTone.Delete,
+            badgeIcon = if (!trashEnabled) Icons.TwoTone.PauseCircle else null,
+            target = ExplorerNavigation.Target.Trash,
+            showIcon = true,
+            showText = false,
+        )
+    }
 
     suspend fun getBreadcrumbs(location: ExplorerLocation): List<ExplorerBreadcrumb> = when (location) {
         is ExplorerLocation.Home -> listOf(HOME)
         is ExplorerLocation.Device -> listOf(HOME, DEVICE)
-        is ExplorerLocation.Trash -> listOf(HOME, TRASH)
+        is ExplorerLocation.Trash -> listOf(HOME, getTrashBreadcrumb())
         is ExplorerLocation.Directory -> buildList {
             when (location.parent) {
                 is ExplorerNavigation.Target.Home -> {
@@ -33,7 +49,7 @@ class BreadcrumbGenerator @Inject constructor(
                 }
                 is ExplorerNavigation.Target.Trash -> {
                     add(HOME)
-                    add(TRASH)
+                    add(getTrashBreadcrumb())
                 }
                 is ExplorerNavigation.Target.Directory -> {
                     add(HOME)
@@ -144,14 +160,6 @@ class BreadcrumbGenerator @Inject constructor(
             label = R.string.explorer_navigation_home.toCaString(),
             icon = Icons.TwoTone.Home,
             target = ExplorerNavigation.Target.Home,
-            showIcon = true,
-            showText = false,
-        )
-
-        val TRASH = ExplorerBreadcrumb(
-            label = R.string.explorer_navigation_trash.toCaString(),
-            icon = Icons.TwoTone.Delete,
-            target = ExplorerNavigation.Target.Trash,
             showIcon = true,
             showText = false,
         )
