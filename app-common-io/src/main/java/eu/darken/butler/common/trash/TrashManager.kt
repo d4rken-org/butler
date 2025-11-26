@@ -1,4 +1,4 @@
-package eu.darken.butler.common.recyclebin
+package eu.darken.butler.common.trash
 
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
@@ -29,28 +29,28 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Singleton
-class RecycleBinManager @Inject constructor(
-    private val repository: RecycleBinRepo,
+class TrashManager @Inject constructor(
+    private val repository: TrashRepo,
     private val storageEnv: StorageEnvironment,
     private val gatewaySwitch: GatewaySwitch,
-    private val settings: RecycleBinSettings,
+    private val settings: TrashSettings,
     private val dispatcherProvider: DispatcherProvider,
 ) {
-    data class RecycleBinMoveReport(
-        val movedToRecycleBin: Set<APathLookup<*>>,
+    data class TrashMoveReport(
+        val movedToTrash: Set<APathLookup<*>>,
         val failedToMove: Set<APathLookup<*>>,
         val bytesMoved: Long,
-        val recycleBinPath: APath<*>? = null,
+        val trashPath: APath<*>? = null,
         val canUndo: Boolean = true,
     )
 
-    data class RecycleBinRestoreReport(
+    data class TrashRestoreReport(
         val restored: Set<APathLookup<*>>,
         val failed: Set<APathLookup<*>>,
         val conflicts: Set<APathLookup<*>>,
     )
 
-    data class RecycleBinStats(
+    data class TrashStats(
         val totalItems: Int,
         val totalSize: Long,
         val oldestItem: Instant?,
@@ -58,16 +58,16 @@ class RecycleBinManager @Inject constructor(
 
     val isEnabled: Flow<Boolean> = settings.enabled.flow
 
-    suspend fun moveToRecycleBin(
+    suspend fun moveToTrash(
         paths: List<APath<*>>,
-    ): RecycleBinMoveReport = withContext(dispatcherProvider.IO) {
-        log(TAG, INFO) { "Moving ${paths.size} items to recycle bin" }
+    ): TrashMoveReport = withContext(dispatcherProvider.IO) {
+        log(TAG, INFO) { "Moving ${paths.size} items to trash" }
 
         // Filter supported path types (LocalPath only for now)
         val (supported, unsupported) = paths.partition { it is LocalPath }
 
         if (unsupported.isNotEmpty()) {
-            log(TAG, WARN) { "${unsupported.size} paths are not supported for recycle bin" }
+            log(TAG, WARN) { "${unsupported.size} paths are not supported for trash" }
         }
 
         val movedItems = mutableSetOf<APathLookup<*>>()
@@ -86,25 +86,25 @@ class RecycleBinManager @Inject constructor(
                     continue
                 }
 
-                // Get recycle bin path for this item
-                val recycleBinPath = getRecycleBinPath(localPath)
+                // Get trash path for this item
+                val trashPath = getTrashPath(localPath)
 
-                // Ensure recycle bin directory exists
-                ensureRecycleBinDirectory(recycleBinPath.parent!!)
+                // Ensure trash directory exists
+                ensureTrashDirectory(trashPath.parent!!)
 
                 // Move the file/directory
                 val moveState = localPath.move(
                     gateway = gatewaySwitch,
-                    destination = recycleBinPath,
+                    destination = trashPath,
                 ).last()
 
                 if (moveState is MoveAction.State.Completed<*, *, *, *>) {
                     // Record in repository with full lookup data
-                    val item = RecycleBinRepo.RecycleBinItem(
+                    val item = TrashRepo.TrashItem(
                         id = Uuid.random(),
                         originalLookup = lookup,
-                        recycleBinPath = recycleBinPath,
-                        recycleBinLookup = moveState.movedFiles.first().second,
+                        trashPath = trashPath,
+                        trashLookup = moveState.movedFiles.first().second,
                         size = lookup.size!!,
                     )
 
@@ -113,13 +113,13 @@ class RecycleBinManager @Inject constructor(
                     movedItems.add(lookup)
                     totalBytes += lookup.size ?: 0L
 
-                    log(TAG, DEBUG) { "Successfully moved to recycle bin: $localPath -> $recycleBinPath" }
+                    log(TAG, DEBUG) { "Successfully moved to trash: $localPath -> $trashPath" }
                 } else {
                     failedItems.add(lookup)
-                    log(TAG, ERROR) { "Failed to move to recycle bin: $localPath" }
+                    log(TAG, ERROR) { "Failed to move to trash: $localPath" }
                 }
             } catch (e: Exception) {
-                log(TAG, ERROR) { "Error moving $path to recycle bin: ${e.asLog()}" }
+                log(TAG, ERROR) { "Error moving $path to trash: ${e.asLog()}" }
                 val lookup = gatewaySwitch.lookup(path, LookupOptions(fallbackToUnknown = true))
                 failedItems.add(lookup)
             }
@@ -131,21 +131,21 @@ class RecycleBinManager @Inject constructor(
             failedItems.add(lookup)
         }
 
-        val recycleBinRoot = if (supported.isNotEmpty()) {
-            getRecycleBinRoot(supported.first() as LocalPath)
+        val trashRoot = if (supported.isNotEmpty()) {
+            getTrashRoot(supported.first() as LocalPath)
         } else null
 
-        return@withContext RecycleBinMoveReport(
-            movedToRecycleBin = movedItems,
+        return@withContext TrashMoveReport(
+            movedToTrash = movedItems,
             failedToMove = failedItems,
             bytesMoved = totalBytes,
-            recycleBinPath = recycleBinRoot,
+            trashPath = trashRoot,
         )
     }
 
     suspend fun restore(
-        items: List<RecycleBinRepo.RecycleBinItem>,
-    ): RecycleBinRestoreReport = withContext(dispatcherProvider.IO) {
+        items: List<TrashRepo.TrashItem>,
+    ): TrashRestoreReport = withContext(dispatcherProvider.IO) {
         log(TAG, INFO) { "Restoring ${items.size} items from recycle bin" }
 
         val restoredItems = mutableSetOf<APathLookup<*>>()
@@ -155,7 +155,7 @@ class RecycleBinManager @Inject constructor(
         for (item in items) {
             try {
                 // TODO
-                val recycleBinPath = item.recycleBinLookup as LocalPath
+                val trashPath = item.trashLookup as LocalPath
                 val originalPath = item.originalPath as LocalPath
 
                 // Check if original path already exists
@@ -167,7 +167,7 @@ class RecycleBinManager @Inject constructor(
                 }
 
                 // Restore the file
-                val restoreState = recycleBinPath.move(
+                val restoreState = trashPath.move(
                     gateway = gatewaySwitch,
                     destination = originalPath,
                 ).last()
@@ -180,16 +180,16 @@ class RecycleBinManager @Inject constructor(
                     val lookup = gatewaySwitch.lookup(originalPath, LookupOptions(fetchSize = true))
                     restoredItems.add(lookup)
 
-                    log(TAG, DEBUG) { "Successfully restored: $recycleBinPath -> $originalPath" }
+                    log(TAG, DEBUG) { "Successfully restored: $trashPath -> $originalPath" }
                 } else {
-                    val lookup = gatewaySwitch.lookup(recycleBinPath, LookupOptions(fallbackToUnknown = true))
+                    val lookup = gatewaySwitch.lookup(trashPath, LookupOptions(fallbackToUnknown = true))
                     failedItems.add(lookup)
-                    log(TAG, ERROR) { "Failed to restore: $recycleBinPath" }
+                    log(TAG, ERROR) { "Failed to restore: $trashPath" }
                 }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Error restoring item ${item.id}: ${e.asLog()}" }
                 try {
-                    val path = item.recycleBinLookup as LocalPath
+                    val path = item.trashLookup as LocalPath
                     val lookup = gatewaySwitch.lookup(path, LookupOptions(fallbackToUnknown = true))
                     failedItems.add(lookup)
                 } catch (e2: Exception) {
@@ -198,7 +198,7 @@ class RecycleBinManager @Inject constructor(
             }
         }
 
-        return@withContext RecycleBinRestoreReport(
+        return@withContext TrashRestoreReport(
             restored = restoredItems,
             failed = failedItems,
             conflicts = conflicts,
@@ -206,17 +206,17 @@ class RecycleBinManager @Inject constructor(
     }
 
     suspend fun deletePermanently(
-        items: List<RecycleBinRepo.RecycleBinItem>,
+        items: List<TrashRepo.TrashItem>,
     ): Int = withContext(dispatcherProvider.IO) {
         log(TAG, INFO) { "Permanently deleting ${items.size} items from recycle bin" }
 
         var deletedCount = 0
         for (item in items) {
             try {
-                val recycleBinPath = item.recycleBinLookup as LocalPath
+                val trashPath = item.trashLookup as LocalPath
 
                 // Delete the actual file/directory
-                val deleteState = recycleBinPath.delete(
+                val deleteState = trashPath.delete(
                     gateway = gatewaySwitch,
                     options = DeleteAction.Options(),
                 ).last()
@@ -226,7 +226,7 @@ class RecycleBinManager @Inject constructor(
                     repository.deleteById(item.id)
                     deletedCount++
 
-                    log(TAG, DEBUG) { "Permanently deleted: $recycleBinPath" }
+                    log(TAG, DEBUG) { "Permanently deleted: $trashPath" }
                 }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Error permanently deleting item ${item.id}: ${e.asLog()}" }
@@ -236,8 +236,8 @@ class RecycleBinManager @Inject constructor(
         return@withContext deletedCount
     }
 
-    suspend fun emptyRecycleBin(): Int = withContext(dispatcherProvider.IO) {
-        log(TAG, INFO) { "Emptying recycle bin" }
+    suspend fun emptyTrash(): Int = withContext(dispatcherProvider.IO) {
+        log(TAG, INFO) { "Emptying trasg" }
         val items = repository.getAllItems().first()
         return@withContext deletePermanently(items)
     }
@@ -258,48 +258,48 @@ class RecycleBinManager @Inject constructor(
         return@withContext deletePermanently(expiredItems)
     }
 
-    fun getStats(): Flow<RecycleBinStats> = repository.getAllItems()
+    fun getStats(): Flow<TrashStats> = repository.getAllItems()
         .map { items ->
-            RecycleBinStats(
+            TrashStats(
                 totalItems = items.size,
                 totalSize = items.sumOf { it.originalLookup.size ?: 0L },
                 oldestItem = items.minByOrNull { it.deletedAt }?.deletedAt,
             )
         }
 
-    private suspend fun getRecycleBinRoot(path: APath<*>): APath<*> {
+    private suspend fun getTrashRoot(path: APath<*>): APath<*> {
         // Find the appropriate cache directory for this storage
         val cacheDir = storageEnv.ourPublicDirs.firstOrNull { cache ->
             // Check if path is on the same storage volume
             path.path.startsWith(cache.parent!!.parent!!.path)
         } ?: storageEnv.ourPublicDirs.first()
 
-        return cacheDir.child(".recyclebin")
+        return cacheDir.child(".trash")
     }
 
-    private suspend fun getRecycleBinPath(originalPath: APath<*>): APath<*> {
-        val recycleBinRoot = getRecycleBinRoot(originalPath)
+    private suspend fun getTrashPath(originalPath: APath<*>): APath<*> {
+        val trashRoot = getTrashRoot(originalPath)
 
         // Generate unique filename to avoid collisions
         val hash = originalPath.path.hashCode().toString(16).take(8)
         val safeName = "${originalPath.name}_$hash"
 
-        return recycleBinRoot.child(safeName)
+        return trashRoot.child(safeName)
     }
 
-    private suspend fun ensureRecycleBinDirectory(dir: APath<*>) {
+    private suspend fun ensureTrashDirectory(dir: APath<*>) {
         try {
             if (!gatewaySwitch.exists(dir)) {
                 gatewaySwitch.createDir(dir)
-                log(TAG, DEBUG) { "Created recycle bin directory: $dir" }
+                log(TAG, DEBUG) { "Created trash directory: $dir" }
             }
         } catch (e: Exception) {
-            log(TAG, ERROR) { "Failed to create recycle bin directory: ${e.asLog()}" }
+            log(TAG, ERROR) { "Failed to create trash directory: ${e.asLog()}" }
             throw e
         }
     }
 
     companion object {
-        private val TAG = logTag("RecycleBin", "Manager")
+        private val TAG = logTag("Trash", "Manager")
     }
 }

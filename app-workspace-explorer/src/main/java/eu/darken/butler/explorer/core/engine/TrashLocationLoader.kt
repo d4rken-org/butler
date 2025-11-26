@@ -1,12 +1,14 @@
 package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.common.recyclebin.RecycleBinRepo
+import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.explorer.R
 import eu.darken.butler.permissions.core.PathRequirements
 import kotlinx.coroutines.flow.Flow
@@ -16,26 +18,27 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class RecycleBinLocationLoader @Inject constructor(
-    private val recycleBinRepo: RecycleBinRepo,
+class TrashLocationLoader @Inject constructor(
+    private val trashRepo: TrashRepo,
 ) {
 
-    private val tag = logTag("Explorer", "RecycleBinLocationLoader")
+    // TODO inject workspace id?
+    private val tag = logTag("Explorer", "Trash", "LocationLoader")
 
     private suspend fun checkLocationRequirements(): PathRequirements {
-        log(tag) { "checkLocationRequirements(): Checking requirements for RecycleBin" }
+        log(tag) { "checkLocationRequirements(): Checking requirements for trash" }
         return PathRequirements()
     }
 
-    fun loadRecycleBin(): Flow<ExplorerLocation> = flow {
-        log(tag, INFO) { "loadRecycleBin(): Loading recycle bin location" }
+    fun loadTrash(): Flow<ExplorerLocation> = flow {
+        log(tag, INFO) { "loadTrash(): Loading trash location" }
 
         val setupRequirements = checkLocationRequirements()
         val context = LocationLoaderContext(
-            initialState = ExplorerLocation.RecycleBin(
+            initialState = ExplorerLocation.Trash(
                 setupRequirements = setupRequirements,
                 progress = Progress.Data(
-                    primary = R.string.explorer_loader_progress_recyclebin_loading.toCaString(),
+                    primary = R.string.explorer_loader_progress_trash_loading.toCaString(),
                 ),
             ),
             emit = ::emit
@@ -43,27 +46,27 @@ class RecycleBinLocationLoader @Inject constructor(
         context.emitState()
 
         try {
-            // Get all recycle bin items
-            val recycleBinItems = recycleBinRepo.getAllItems().first()
-            log(tag, DEBUG) { "loadRecycleBin(): Found ${recycleBinItems.size} items in recycle bin" }
+            // Get all trash items
+            val trashItems = trashRepo.getAllItems().first()
+            log(tag, DEBUG) { "loadTrash(): Found ${trashItems.size} items in trash" }
 
             // Convert repository items to ExplorerItems
-            val explorerItems = recycleBinItems.map { item ->
-                ExplorerItem.RecycleBinItem(
+            val explorerItems = trashItems.map { item ->
+                ExplorerItem.TrashItem(
                     itemId = item.id,
                     originalLookup = item.originalLookup,
-                    recycleBinLookup = item.recycleBinLookup,
+                    trashLookup = item.trashLookup,
                     deletedAt = item.deletedAt,
                 )
             }.sortedByDescending { it.deletedAt }
 
-            val info = ExplorerLocation.RecycleBin.Info(
-                itemCount = recycleBinItems.size,
-                totalSize = recycleBinItems.sumOf { it.size },
-                oldestItem = recycleBinItems.minByOrNull { it.deletedAt }?.deletedAt,
+            val info = ExplorerLocation.Trash.Info(
+                itemCount = trashItems.size,
+                totalSize = trashItems.sumOf { it.size },
+                oldestItem = trashItems.minByOrNull { it.deletedAt }?.deletedAt,
             )
 
-            log(tag, INFO) { "loadRecycleBin(): Loaded ${explorerItems.size} items" }
+            log(tag, INFO) { "loadTrash(): Loaded ${explorerItems.size} items" }
 
             context.updateState {
                 copy(
@@ -74,7 +77,7 @@ class RecycleBinLocationLoader @Inject constructor(
             }
             context.emitState()
         } catch (e: Exception) {
-            log(tag, ERROR) { "loadRecycleBin(): Failed to load recycle bin: ${e.asLog()}" }
+            log(tag, ERROR) { "loadTrash(): Failed to load trash: ${e.asLog()}" }
             throw e
         }
     }

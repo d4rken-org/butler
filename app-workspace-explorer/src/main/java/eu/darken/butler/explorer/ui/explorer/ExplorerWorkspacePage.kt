@@ -545,7 +545,7 @@ fun ExplorerWorkspacePage(
                                                             item in mainStateSnap.selectionState.selectableItems
                                                     )
 
-                                                    is ExplorerItem.RecycleBinItem -> RecycleBinItemRow(
+                                                    is ExplorerItem.TrashItem -> TrashItemRow(
                                                         item = item,
                                                         isSelected = mainStateSnap.selectionState.selectedItems.contains(
                                                             item
@@ -625,7 +625,7 @@ fun ExplorerWorkspacePage(
                                                         item = item
                                                     )
 
-                                                    is ExplorerItem.RecycleBinItem -> RecycleBinItemGrid(
+                                                    is ExplorerItem.TrashItem -> TrashItemGrid(
                                                         item = item,
                                                         isSelected = mainStateSnap.selectionState.selectedItems.contains(
                                                             item
@@ -740,7 +740,7 @@ fun ExplorerWorkspacePage(
 
         ExplorerDialogHost(
             dialogState = mainState.dialogState,
-            recycleBinEnabled = mainState.recycleBinEnabled,
+            trashEnabled = mainState.trashEnabled,
             vm = vm
         )
 

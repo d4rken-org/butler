@@ -8,22 +8,22 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
 import javax.inject.Inject
 
-class RecycleBinActionProvider @Inject constructor() : ExplorerActionProvider {
+class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
 
     override fun getActions(
         location: ExplorerLocation,
         selectionState: ExplorerSelectionState,
     ): List<ExplorerAction> {
-        if (location !is ExplorerLocation.RecycleBin) return emptyList()
+        if (location !is ExplorerLocation.Trash) return emptyList()
 
         val actions = mutableListOf<ExplorerAction>()
 
         // Show restore action if items are selected
         if (selectionState.selectedItems.isNotEmpty()) {
             actions.add(
-                ExplorerAction.RecycleBin.RestoreSelected(
+                ExplorerAction.Trash.RestoreSelected(
                     icon = Icons.TwoTone.Restore,
-                    labelRes = R.string.explorer_recyclebin_restore_selected_action,
+                    labelRes = R.string.explorer_trash_restore_selected_action,
                     isEnabled = true,
                 )
             )
@@ -32,19 +32,19 @@ class RecycleBinActionProvider @Inject constructor() : ExplorerActionProvider {
         // Show delete permanently action if items are selected
         if (selectionState.selectedItems.isNotEmpty()) {
             actions.add(
-                ExplorerAction.RecycleBin.DeletePermanentlySelected(
+                ExplorerAction.Trash.DeletePermanentlySelected(
                     icon = Icons.TwoTone.DeleteForever,
-                    labelRes = R.string.explorer_recyclebin_delete_selected_action,
+                    labelRes = R.string.explorer_trash_delete_selected_action,
                     isEnabled = true,
                 )
             )
         }
 
-        // Always show empty bin action
+        // Always show empty trash action
         actions.add(
-            ExplorerAction.RecycleBin.EmptyBin(
+            ExplorerAction.Trash.EmptyBin(
                 icon = Icons.TwoTone.DeleteForever,
-                labelRes = R.string.explorer_recyclebin_empty_bin_action,
+                labelRes = R.string.explorer_trash_empty_trash_action,
                 isEnabled = location.info?.itemCount?.let { it > 0 } ?: false,
             )
         )

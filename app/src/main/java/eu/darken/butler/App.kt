@@ -25,7 +25,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.debug.recorder.core.RecorderModule
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
-import eu.darken.butler.common.recyclebin.RecycleBinCleanupScheduler
+import eu.darken.butler.common.trash.TrashCleanupScheduler
 import eu.darken.butler.common.theming.Theming
 import eu.darken.butler.common.updater.UpdateService
 import eu.darken.butler.main.core.CurriculumVitae
@@ -60,7 +60,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var safLocationManager: SAFLocationManager
     @Inject lateinit var imageLoaderProvider: Provider<ImageLoader>
     @Inject lateinit var workspacePreviewManager: WorkspacePreviewManager
-    @Inject lateinit var recycleBinCleanupScheduler: RecycleBinCleanupScheduler
+    @Inject lateinit var trashCleanupScheduler: TrashCleanupScheduler
 
     private val logCatLogger = LogCatLogger()
 
@@ -113,7 +113,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
 
         workspacePreviewManager.start()
 
-        recycleBinCleanupScheduler.schedule()
+        trashCleanupScheduler.schedule()
 
         // Automatically refresh SAF permissions when app comes to foreground
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {

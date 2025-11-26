@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a60341c7fe629fcb39a56b35aaa9bd1f",
+    "identityHash": "67a5d61cc559fd6bac2ca5d0b7d072f5",
     "entities": [
       {
-        "tableName": "recycle_bin_items",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `originalPath` TEXT NOT NULL, `originalLookup` TEXT NOT NULL, `recycleBinPath` TEXT NOT NULL, `deletedAt` INTEGER NOT NULL, `size` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "tableName": "trash_items",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `originalPath` TEXT NOT NULL, `originalLookup` TEXT NOT NULL, `trashPath` TEXT NOT NULL, `deletedAt` INTEGER NOT NULL, `size` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -27,8 +27,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "recycleBinPath",
-            "columnName": "recycleBinPath",
+            "fieldPath": "trashPath",
+            "columnName": "trashPath",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -53,20 +53,20 @@
         },
         "indices": [
           {
-            "name": "index_recycle_bin_items_deletedAt",
+            "name": "index_trash_items_deletedAt",
             "unique": false,
             "columnNames": [
               "deletedAt"
             ],
             "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_recycle_bin_items_deletedAt` ON `${TABLE_NAME}` (`deletedAt`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_trash_items_deletedAt` ON `${TABLE_NAME}` (`deletedAt`)"
           }
         ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a60341c7fe629fcb39a56b35aaa9bd1f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '67a5d61cc559fd6bac2ca5d0b7d072f5')"
     ]
   }
 }

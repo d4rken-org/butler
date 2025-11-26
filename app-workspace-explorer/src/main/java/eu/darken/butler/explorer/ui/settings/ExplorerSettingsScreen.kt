@@ -43,11 +43,11 @@ fun ExplorerSettingsScreen(
     onNavigateUp: () -> Unit,
     onToggleRegexPatterns: (Boolean) -> Unit,
     onToggleBackButtonNavigation: (Boolean) -> Unit,
-    onToggleRecycleBin: (Boolean) -> Unit,
+    onToggleTrash: (Boolean) -> Unit,
     onAutoDeleteDaysChanged: (Int) -> Unit,
     onMaxSizeChanged: (Long) -> Unit,
 ) {
-    var showEnableRecycleBinDialog by remember { mutableStateOf(false) }
+    var showEnableTrashDialog by remember { mutableStateOf(false) }
     var showAutoDeleteDialog by remember { mutableStateOf(false) }
     var showMaxSizeDialog by remember { mutableStateOf(false) }
 
@@ -103,37 +103,37 @@ fun ExplorerSettingsScreen(
             }
 
             item {
-                SettingsCategoryHeader(text = stringResource(R.string.explorer_settings_recyclebin_category))
+                SettingsCategoryHeader(text = stringResource(R.string.explorer_settings_trash_category))
             }
 
             item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.Delete,
-                    title = stringResource(R.string.explorer_settings_recyclebin_enabled_title),
-                    subtitle = stringResource(R.string.explorer_settings_recyclebin_enabled_desc),
-                    checked = state.recycleBinEnabled,
+                    title = stringResource(R.string.explorer_settings_trash_enabled_title),
+                    subtitle = stringResource(R.string.explorer_settings_trash_enabled_desc),
+                    checked = state.trashEnabled,
                     onCheckedChange = { enabled ->
                         if (enabled) {
-                            showEnableRecycleBinDialog = true
+                            showEnableTrashDialog = true
                         } else {
-                            onToggleRecycleBin(false)
+                            onToggleTrash(false)
                         }
                     },
                 )
             }
 
-            if (state.recycleBinEnabled) {
+            if (state.trashEnabled) {
                 item {
                     SettingsPreferenceItem(
                         icon = Icons.TwoTone.DeleteSweep,
-                        title = stringResource(R.string.explorer_settings_recyclebin_auto_delete_title),
+                        title = stringResource(R.string.explorer_settings_trash_auto_delete_title),
                         subtitle = stringResource(
-                            R.string.explorer_settings_recyclebin_auto_delete_desc,
-                            state.recycleBinAutoDeleteDays
+                            R.string.explorer_settings_trash_auto_delete_desc,
+                            state.trashAutoDeleteDays
                         ),
                         value = stringResource(
-                            R.string.explorer_settings_recyclebin_auto_delete_value,
-                            state.recycleBinAutoDeleteDays
+                            R.string.explorer_settings_trash_auto_delete_value,
+                            state.trashAutoDeleteDays
                         ),
                         onClick = { showAutoDeleteDialog = true },
                     )
@@ -143,14 +143,14 @@ fun ExplorerSettingsScreen(
                 item {
                     SettingsPreferenceItem(
                         icon = Icons.TwoTone.Storage,
-                        title = stringResource(R.string.explorer_settings_recyclebin_max_size_title),
+                        title = stringResource(R.string.explorer_settings_trash_max_size_title),
                         subtitle = stringResource(
-                            R.string.explorer_settings_recyclebin_max_size_desc,
-                            state.recycleBinMaxSizeMB
+                            R.string.explorer_settings_trash_max_size_desc,
+                            state.trashMaxSizeMB
                         ),
                         value = stringResource(
-                            R.string.explorer_settings_recyclebin_max_size_value,
-                            state.recycleBinMaxSizeMB
+                            R.string.explorer_settings_trash_max_size_value,
+                            state.trashMaxSizeMB
                         ),
                         onClick = { showMaxSizeDialog = true },
                     )
@@ -159,28 +159,28 @@ fun ExplorerSettingsScreen(
         }
     }
 
-    if (showEnableRecycleBinDialog) {
+    if (showEnableTrashDialog) {
         AlertDialog(
-            onDismissRequest = { showEnableRecycleBinDialog = false },
+            onDismissRequest = { showEnableTrashDialog = false },
             title = {
-                Text(text = stringResource(R.string.explorer_settings_recyclebin_enable_dialog_title))
+                Text(text = stringResource(R.string.explorer_settings_trash_enable_dialog_title))
             },
             text = {
-                Text(text = stringResource(R.string.explorer_settings_recyclebin_enable_dialog_message))
+                Text(text = stringResource(R.string.explorer_settings_trash_enable_dialog_message))
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onToggleRecycleBin(true)
-                        showEnableRecycleBinDialog = false
+                        onToggleTrash(true)
+                        showEnableTrashDialog = false
                     }
                 ) {
-                    Text(text = stringResource(R.string.explorer_settings_recyclebin_enable_action))
+                    Text(text = stringResource(R.string.explorer_settings_trash_enable_action))
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showEnableRecycleBinDialog = false }
+                    onClick = { showEnableTrashDialog = false }
                 ) {
                     Text(text = stringResource(eu.darken.butler.common.R.string.general_cancel_action))
                 }
@@ -190,8 +190,8 @@ fun ExplorerSettingsScreen(
 
     if (showAutoDeleteDialog) {
         DurationInputDialog(
-            title = stringResource(R.string.explorer_settings_recyclebin_auto_delete_dialog_title),
-            currentDuration = state.recycleBinAutoDeleteDays.days,
+            title = stringResource(R.string.explorer_settings_trash_auto_delete_dialog_title),
+            currentDuration = state.trashAutoDeleteDays.days,
             minimumDuration = 1.days,
             maximumDuration = 365.days,
             defaultDuration = 30.days,
@@ -205,8 +205,8 @@ fun ExplorerSettingsScreen(
 
     if (showMaxSizeDialog) {
         SizeInputDialog(
-            title = stringResource(R.string.explorer_settings_recyclebin_max_size_dialog_title),
-            currentSize = state.recycleBinMaxSizeMB * 1024L * 1024L,
+            title = stringResource(R.string.explorer_settings_trash_max_size_dialog_title),
+            currentSize = state.trashMaxSizeMB * 1024L * 1024L,
             minimumSize = 1L * 1024L * 1024L,
             maximumSize = 10L * 1024L * 1024L * 1024L,
             defaultSize = 500L * 1024L * 1024L,
@@ -232,9 +232,9 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
             onNavigateUp = { vm.navUp() },
             onToggleRegexPatterns = { vm.toggleRegexPatterns(it) },
             onToggleBackButtonNavigation = { vm.toggleBackButtonNavigation(it) },
-            onToggleRecycleBin = { vm.toggleRecycleBin(it) },
-            onAutoDeleteDaysChanged = { vm.setRecycleBinAutoDeleteDays(it) },
-            onMaxSizeChanged = { vm.setRecycleBinMaxSizeMB(it) },
+            onToggleTrash = { vm.toggleTrash(it) },
+            onAutoDeleteDaysChanged = { vm.setTrashAutoDeleteDays(it) },
+            onMaxSizeChanged = { vm.setTrashMaxSizeMB(it) },
         )
     }
 }

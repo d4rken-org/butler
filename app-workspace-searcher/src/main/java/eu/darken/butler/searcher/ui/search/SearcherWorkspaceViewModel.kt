@@ -27,7 +27,7 @@ import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
-import eu.darken.butler.common.recyclebin.RecycleBinSettings
+import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
@@ -89,7 +89,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val systemClipboardHelper: SystemClipboardHelper,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val shareIntentUseCase: ShareIntentUseCase,
-    private val recycleBinSettings: RecycleBinSettings,
+    private val trashSettings: TrashSettings,
     itemSorterFactory: eu.darken.butler.searcher.core.sorting.SearchItemSorter.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
@@ -250,8 +250,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow,
         currentSortSettings,
         viewModeFlow,
-        recycleBinSettings.enabled.flow,
-    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewMode: ViewMode, recycleBinEnabled: Boolean ->
+        trashSettings.enabled.flow,
+    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewMode: ViewMode, trashEnabled: Boolean ->
         val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -308,7 +308,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             availableActions = actions,
             viewMode = viewMode,
             sortSettings = sortSettings,
-            recycleBinEnabled = recycleBinEnabled,
+            trashEnabled = trashEnabled,
         )
     }
         .distinctUntilChanged()
@@ -702,7 +702,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val availableActions: List<SearcherAction> = emptyList(),
         val viewMode: ViewMode = ViewMode.LIST,
         val sortSettings: eu.darken.butler.searcher.core.SearchSortSettings = eu.darken.butler.searcher.core.SearchSortSettings(),
-        val recycleBinEnabled: Boolean = false,
+        val trashEnabled: Boolean = false,
     ) {
         val isSearching: Boolean
             get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING

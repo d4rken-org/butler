@@ -1,4 +1,4 @@
-package eu.darken.butler.common.recyclebin
+package eu.darken.butler.common.trash
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
@@ -12,19 +12,19 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 
 @HiltWorker
-class RecycleBinCleanupWorker @AssistedInject constructor(
+class TrashCleanupWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
-    private val recycleBinManager: RecycleBinManager,
+    private val trashManager: TrashManager,
 ) : CoroutineWorker(appContext, workerParams) {
 
-    private val tag = logTag("RecycleBin", "CleanupWorker")
+    private val tag = logTag("Trash", "CleanupWorker")
 
     override suspend fun doWork(): Result {
         log(tag, INFO) { "Starting recycle bin cleanup..." }
 
         return try {
-            val deletedCount = recycleBinManager.cleanupExpired()
+            val deletedCount = trashManager.cleanupExpired()
             log(tag, INFO) { "Cleanup complete: Deleted $deletedCount expired items" }
             Result.success()
         } catch (e: Exception) {

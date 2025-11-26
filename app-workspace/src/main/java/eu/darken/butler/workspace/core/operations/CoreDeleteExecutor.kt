@@ -18,8 +18,8 @@ import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.formatItemSpeed
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.common.recyclebin.RecycleBinManager
-import eu.darken.butler.common.recyclebin.RecycleBinSettings
+import eu.darken.butler.common.trash.TrashManager
+import eu.darken.butler.common.trash.TrashSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
@@ -28,8 +28,8 @@ import javax.inject.Inject
 
 class CoreDeleteExecutor @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
-    private val recycleBinManager: RecycleBinManager,
-    private val recycleBinSettings: RecycleBinSettings,
+    private val trashManager: TrashManager,
+    private val trashSettings: TrashSettings,
 ) {
 
     fun execute(
@@ -40,34 +40,34 @@ class CoreDeleteExecutor @Inject constructor(
 
         var lastPerformanceHistory: PerformanceHistory? = null
 
-        // Check if recycle bin is enabled and paths are supported
-        val recycleBinEnabled = recycleBinSettings.enabled.value()
-        val supportsRecycleBin = targets.all { it is LocalPath }
+        // Check if trash is enabled and paths are supported
+        val trashEnabled = trashSettings.enabled.value()
+        val supportsTrash = targets.all { it is LocalPath }
 
-        if (recycleBinEnabled && supportsRecycleBin) {
-            log(config.tag, INFO) { "Attempting to move ${targets.size} items to recycle bin" }
+        if (trashEnabled && supportsTrash) {
+            log(config.tag, INFO) { "Attempting to move ${targets.size} items to trash" }
 
             try {
-                // Try to move to recycle bin
-                val recycleBinReport = recycleBinManager.moveToRecycleBin(
+                // Try to move to trash
+                val trashReport = trashManager.moveToTrash(
                     paths = targets.toList()
                 )
 
-                if (recycleBinReport.failedToMove.isNotEmpty()) {
+                if (trashReport.failedToMove.isNotEmpty()) {
                     log(
                         config.tag,
                         WARN
-                    ) { "${recycleBinReport.failedToMove.size} items failed to move to recycle bin, will perform direct delete" }
+                    ) { "${trashReport.failedToMove.size} items failed to move to trash, will perform direct delete" }
                     // Continue to direct deletion for failed items below
                 } else {
-                    // All items moved to recycle bin successfully
+                    // All items moved to trash successfully
                     log(
                         config.tag,
                         INFO
-                    ) { "Successfully moved ${recycleBinReport.movedToRecycleBin.size} items to recycle bin" }
+                    ) { "Successfully moved ${trashReport.movedToTrash.size} items to trash" }
 
                     @Suppress("UNCHECKED_CAST")
-                    val movedPaths = recycleBinReport.movedToRecycleBin as Set<APathLookup<APath<*>>>
+                    val movedPaths = trashReport.movedToTrash as Set<APathLookup<APath<*>>>
 
                     config.onPathsRemoved(movedPaths)
 
@@ -76,25 +76,25 @@ class CoreDeleteExecutor @Inject constructor(
                             result = Result(
                                 deleted = movedPaths,
                                 skipped = emptySet(),
-                                bytesFreed = recycleBinReport.bytesMoved,
+                                bytesFreed = trashReport.bytesMoved,
                                 performanceHistory = null,
                             )
                         )
                     )
-                    return@flow // Early exit - all done via recycle bin
+                    return@flow // Early exit - all done via trash
                 }
             } catch (e: Exception) {
-                log(config.tag, WARN) { "Recycle bin move failed: ${e.asLog()}, falling back to direct delete" }
+                log(config.tag, WARN) { "Trash move failed: ${e.asLog()}, falling back to direct delete" }
                 // Continue to direct deletion below
             }
         } else {
-            if (recycleBinEnabled && !supportsRecycleBin) {
+            if (trashEnabled && !supportsTrash) {
                 log(
                     config.tag,
                     INFO
-                ) { "Recycle bin enabled but paths not supported (non-LocalPath), performing direct delete" }
+                ) { "Trash enabled but paths not supported (non-LocalPath), performing direct delete" }
             } else {
-                log(config.tag) { "Recycle bin disabled, performing direct delete" }
+                log(config.tag) { "Trash disabled, performing direct delete" }
             }
         }
 

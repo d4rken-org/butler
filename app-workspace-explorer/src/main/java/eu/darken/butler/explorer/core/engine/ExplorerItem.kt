@@ -160,14 +160,14 @@ sealed interface ExplorerItem {
         )
     }
 
-    data class RecycleBinItem(
+    data class TrashItem(
         val itemId: Uuid,
         val deletedAt: Instant,
         val originalLookup: APathLookup<*>,
-        val recycleBinLookup: APathLookup<*>?,
+        val trashLookup: APathLookup<*>?,
     ) : ExplorerItem {
-        val isAvailable get() = recycleBinLookup != null
-        override val id: String get() = "recyclebin-$itemId"
+        val isAvailable get() = trashLookup != null
+        override val id: String get() = "trash-$itemId"
         override val displayName: CaString
             get() = originalLookup.userReadableName
         val subtitle: CaString

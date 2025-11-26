@@ -9,8 +9,8 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.recyclebin.RecycleBinManager
-import eu.darken.butler.common.recyclebin.RecycleBinSettings
+import eu.darken.butler.common.trash.TrashManager
+import eu.darken.butler.common.trash.TrashSettings
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -30,30 +30,30 @@ import kotlin.time.Duration.Companion.days
 class CoreDeleteExecutorTest : BaseTest() {
 
     private lateinit var gatewaySwitch: GatewaySwitch
-    private lateinit var recycleBinManager: RecycleBinManager
-    private lateinit var recycleBinSettings: RecycleBinSettings
+    private lateinit var trashManager: TrashManager
+    private lateinit var trashSettings: TrashSettings
     private lateinit var executor: CoreDeleteExecutor
 
     @BeforeEach
     fun setup() {
         gatewaySwitch = mockk(relaxed = true)
-        recycleBinManager = mockk(relaxed = true)
-        recycleBinSettings = mockk {
+        trashManager = mockk(relaxed = true)
+        trashSettings = mockk {
             every { enabled } returns mockk<DataStoreValue<Boolean>>().also {
                 every { it.flow } returns flowOf(false)
             }
             every { expiresAfter } returns mockk<DataStoreValue<kotlin.time.Duration>>().also {
                 every { it.flow } returns flowOf(30.days)
             }
-            every { maxRecycleBinSize } returns mockk<DataStoreValue<Long>>().also {
+            every { maxTrashSize } returns mockk<DataStoreValue<Long>>().also {
                 every { it.flow } returns flowOf(1000 * 1048576L)
             }
         }
 
         executor = CoreDeleteExecutor(
             gatewaySwitch = gatewaySwitch,
-            recycleBinManager = recycleBinManager,
-            recycleBinSettings = recycleBinSettings,
+            trashManager = trashManager,
+            trashSettings = trashSettings,
         )
     }
 
@@ -67,7 +67,7 @@ class CoreDeleteExecutorTest : BaseTest() {
     }
 
     @Test
-    fun `execute - direct delete when recycle bin disabled`() = runTest {
+    fun `execute - direct delete when trash disabled`() = runTest {
         // Given
         val testPath = LocalPath.build("/test.txt")
         val testLookup = createTestLookup("/test.txt")
@@ -105,17 +105,17 @@ class CoreDeleteExecutorTest : BaseTest() {
     }
 
     @Test
-    fun `execute - move to recycle bin when enabled and all items succeed`() = runTest {
+    fun `execute - move to trash when enabled and all items succeed`() = runTest {
         // Given
         val testPath = LocalPath.build("/test.txt")
         val testLookup = createTestLookup("/test.txt")
 
-        // Enable recycle bin
-        every { recycleBinSettings.enabled.flow } returns flowOf(true)
+        // Enable trash
+        every { trashSettings.enabled.flow } returns flowOf(true)
 
-        // Mock successful recycle bin move
-        coEvery { recycleBinManager.moveToRecycleBin(any()) } returns RecycleBinManager.RecycleBinMoveReport(
-            movedToRecycleBin = setOf(testLookup),
+        // Mock successful trash move
+        coEvery { trashManager.moveToTrash(any()) } returns TrashManager.TrashMoveReport(
+            movedToTrash = setOf(testLookup),
             failedToMove = emptySet(),
             bytesMoved = 1024L,
         )
@@ -147,22 +147,22 @@ class CoreDeleteExecutorTest : BaseTest() {
         // Verify onPathsRemoved was called
         coVerify { onPathsRemovedCallback(any()) }
 
-        // Verify recycle bin manager was called
-        coVerify { recycleBinManager.moveToRecycleBin(listOf(testPath)) }
+        // Verify trash manager was called
+        coVerify { trashManager.moveToTrash(listOf(testPath)) }
     }
 
     @Test
-    fun `execute - fallback to direct delete when recycle bin partially fails`() = runTest {
+    fun `execute - fallback to direct delete when trash partially fails`() = runTest {
         // Given
         val testPath = LocalPath.build("/test.txt")
         val testLookup = createTestLookup("/test.txt")
 
-        // Enable recycle bin
-        every { recycleBinSettings.enabled.flow } returns flowOf(true)
+        // Enable trash
+        every { trashSettings.enabled.flow } returns flowOf(true)
 
-        // Mock partial failure in recycle bin move
-        coEvery { recycleBinManager.moveToRecycleBin(any()) } returns RecycleBinManager.RecycleBinMoveReport(
-            movedToRecycleBin = emptySet(),
+        // Mock partial failure in trash move
+        coEvery { trashManager.moveToTrash(any()) } returns TrashManager.TrashMoveReport(
+            movedToTrash = emptySet(),
             failedToMove = setOf(testLookup),
             bytesMoved = 0L,
         )
@@ -192,21 +192,21 @@ class CoreDeleteExecutorTest : BaseTest() {
         val completedState = states.last()
         completedState.shouldBeInstanceOf<CoreDeleteExecutor.State.Completed>()
 
-        // Verify both recycle bin and direct delete were attempted
-        coVerify { recycleBinManager.moveToRecycleBin(any()) }
+        // Verify both trash and direct delete were attempted
+        coVerify { trashManager.moveToTrash(any()) }
     }
 
     @Test
-    fun `execute - fallback to direct delete when recycle bin throws exception`() = runTest {
+    fun `execute - fallback to direct delete when trash throws exception`() = runTest {
         // Given
         val testPath = LocalPath.build("/test.txt")
         val testLookup = createTestLookup("/test.txt")
 
-        // Enable recycle bin
-        every { recycleBinSettings.enabled.flow } returns flowOf(true)
+        // Enable trash
+        every { trashSettings.enabled.flow } returns flowOf(true)
 
-        // Mock exception in recycle bin move
-        coEvery { recycleBinManager.moveToRecycleBin(any()) } throws Exception("Recycle bin error")
+        // Mock exception in trash move
+        coEvery { trashManager.moveToTrash(any()) } throws Exception("Trash error")
 
         // Mock direct delete fallback
         coEvery { gatewaySwitch.lookup(any<APath<*>>(), any()) } returns testLookup as APathLookup<APath<*>>
@@ -233,8 +233,8 @@ class CoreDeleteExecutorTest : BaseTest() {
         val completedState = states.last()
         completedState.shouldBeInstanceOf<CoreDeleteExecutor.State.Completed>()
 
-        // Verify recycle bin was attempted despite exception
-        coVerify { recycleBinManager.moveToRecycleBin(any()) }
+        // Verify trash was attempted despite exception
+        coVerify { trashManager.moveToTrash(any()) }
     }
 
     @Test
@@ -274,7 +274,7 @@ class CoreDeleteExecutorTest : BaseTest() {
     }
 
     @Test
-    fun `execute - supports non-LocalPath but skips recycle bin`() = runTest {
+    fun `execute - supports non-LocalPath but skips trash`() = runTest {
         // Given - Using a custom path type that's not LocalPath (using SAFPath as example)
         val customPath = mockk<eu.darken.butler.common.files.SAFPath> {
             every { path } returns "/custom/path"
@@ -289,8 +289,8 @@ class CoreDeleteExecutorTest : BaseTest() {
             every { size } returns 512L
         }
 
-        // Enable recycle bin - but it should be skipped for non-LocalPath
-        every { recycleBinSettings.enabled.flow } returns flowOf(true)
+        // Enable trash - but it should be skipped for non-LocalPath
+        every { trashSettings.enabled.flow } returns flowOf(true)
 
         coEvery { gatewaySwitch.lookup(any<APath<*>>(), any()) } returns customLookup
         coEvery { gatewaySwitch.delete(any<Set<APath<*>>>(), any()) } returns flowOf(
@@ -312,11 +312,11 @@ class CoreDeleteExecutorTest : BaseTest() {
             config = config,
         ).toList()
 
-        // Then - should complete with direct delete (skipped recycle bin)
+        // Then - should complete with direct delete (skipped trash)
         val completedState = states.last()
         completedState.shouldBeInstanceOf<CoreDeleteExecutor.State.Completed>()
 
-        // Verify recycle bin was NOT called (unsupported path type)
-        coVerify(exactly = 0) { recycleBinManager.moveToRecycleBin(any()) }
+        // Verify trash was NOT called (unsupported path type)
+        coVerify(exactly = 0) { trashManager.moveToTrash(any()) }
     }
 }

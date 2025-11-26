@@ -1,4 +1,4 @@
-package eu.darken.butler.common.recyclebin.db
+package eu.darken.butler.common.trash.db
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import java.io.File
 
-class RecycleBinDatabaseSchemaTest : BaseTest() {
+class TrashDatabaseSchemaTest : BaseTest() {
 
-    private val schemaDir = "schemas/eu.darken.butler.common.recyclebin.db.RecycleBinDatabase"
+    private val schemaDir = "schemas/eu.darken.butler.common.trash.db.TrashDatabase"
 
     @Test
     fun `schema file exists for current version`() {
@@ -32,12 +32,12 @@ class RecycleBinDatabaseSchemaTest : BaseTest() {
     }
 
     @Test
-    fun `recycle_bin_items table has expected columns`() {
+    fun `trash_items table has expected columns`() {
         val schemaFile = File("$schemaDir/1.json")
         val schema = Json.parseToJsonElement(schemaFile.readText()).jsonObject
         val entities = schema["database"]?.jsonObject?.get("entities")?.jsonArray
         val table = entities?.firstOrNull {
-            it.jsonObject["tableName"]?.jsonPrimitive?.content == "recycle_bin_items"
+            it.jsonObject["tableName"]?.jsonPrimitive?.content == "trash_items"
         }?.jsonObject
 
         table shouldBe table // Table exists
@@ -49,24 +49,24 @@ class RecycleBinDatabaseSchemaTest : BaseTest() {
             "id",
             "originalPath",
             "originalLookup",
-            "recycleBinPath",
+            "trashPath",
             "deletedAt",
             "size",
         )
     }
 
     @Test
-    fun `recycle_bin_items table has deletedAt index`() {
+    fun `trash_items table has deletedAt index`() {
         val schemaFile = File("$schemaDir/1.json")
         val schema = Json.parseToJsonElement(schemaFile.readText()).jsonObject
         val entities = schema["database"]?.jsonObject?.get("entities")?.jsonArray
         val table = entities?.firstOrNull {
-            it.jsonObject["tableName"]?.jsonPrimitive?.content == "recycle_bin_items"
+            it.jsonObject["tableName"]?.jsonPrimitive?.content == "trash_items"
         }?.jsonObject
 
         val indices = table?.get("indices")?.jsonArray
         val indexNames = indices?.map { it.jsonObject["name"]?.jsonPrimitive?.content }
 
-        indexNames shouldContainExactlyInAnyOrder listOf("index_recycle_bin_items_deletedAt")
+        indexNames shouldContainExactlyInAnyOrder listOf("index_trash_items_deletedAt")
     }
 }

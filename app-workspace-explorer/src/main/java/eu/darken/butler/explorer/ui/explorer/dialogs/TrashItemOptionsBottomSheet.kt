@@ -32,8 +32,8 @@ import eu.darken.butler.explorer.core.engine.ExplorerItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecycleBinItemOptionsBottomSheet(
-    item: ExplorerItem.RecycleBinItem,
+fun TrashItemOptionsBottomSheet(
+    item: ExplorerItem.TrashItem,
     onRestore: () -> Unit,
     onDeletePermanently: () -> Unit,
     onDismiss: () -> Unit,
@@ -57,9 +57,9 @@ fun RecycleBinItemOptionsBottomSheet(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (item.recycleBinLookup?.lookedUp != null) {
+                if (item.trashLookup?.lookedUp != null) {
                     TintedAsyncImage(
-                        model = item.recycleBinLookup,
+                        model = item.trashLookup,
                         contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
                         modifier = Modifier.size(40.dp)
                     )
@@ -93,7 +93,7 @@ fun RecycleBinItemOptionsBottomSheet(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                    item.recycleBinLookup?.size?.let {
+                    item.trashLookup?.size?.let {
                         Text(
                             text = formatFileSize(it),
                             style = MaterialTheme.typography.bodySmall,
@@ -127,11 +127,11 @@ fun RecycleBinItemOptionsBottomSheet(
 
                     Column {
                         Text(
-                            text = stringResource(R.string.explorer_recyclebin_restore_action),
+                            text = stringResource(R.string.explorer_trash_restore_action),
                             style = MaterialTheme.typography.bodyLarge,
                         )
                         Text(
-                            text = stringResource(R.string.explorer_recyclebin_restore_desc),
+                            text = stringResource(R.string.explorer_trash_restore_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -156,12 +156,12 @@ fun RecycleBinItemOptionsBottomSheet(
 
                     Column {
                         Text(
-                            text = stringResource(R.string.explorer_recyclebin_restore_action),
+                            text = stringResource(R.string.explorer_trash_restore_action),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         )
                         Text(
-                            text = stringResource(R.string.explorer_recyclebin_storage_unavailable),
+                            text = stringResource(R.string.explorer_trash_storage_unavailable),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                         )
@@ -191,12 +191,12 @@ fun RecycleBinItemOptionsBottomSheet(
 
                 Column {
                     Text(
-                        text = stringResource(R.string.explorer_recyclebin_delete_permanently_action),
+                        text = stringResource(R.string.explorer_trash_delete_permanently_action),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.error,
                     )
                     Text(
-                        text = stringResource(R.string.explorer_recyclebin_delete_warning),
+                        text = stringResource(R.string.explorer_trash_delete_warning),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

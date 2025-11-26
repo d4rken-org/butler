@@ -102,16 +102,16 @@
     <string name="workspace_dialog_delete_warning">This action cannot be undone.</string>
     <string name="workspace_dialog_delete_permanently_action">Delete Permanently</string>
 
-    <!-- Recycle Bin Dialog -->
-    <string name="workspace_dialog_recyclebin_title_single">Move to Recycle Bin?</string>
-    <plurals name="workspace_dialog_recyclebin_title_multiple">
-        <item quantity="one">Move %1$d item to Recycle Bin?</item>
-        <item quantity="other">Move %1$d items to Recycle Bin?</item>
+    <!-- Trash Dialog -->
+    <string name="workspace_dialog_trash_title_single">Move to Trash?</string>
+    <plurals name="workspace_dialog_trash_title_multiple">
+        <item quantity="one">Move %1$d item to Trash?</item>
+        <item quantity="other">Move %1$d items to Trash?</item>
     </plurals>
-    <string name="workspace_dialog_recyclebin_message_single">This item will be moved to recycle bin:</string>
-    <string name="workspace_dialog_recyclebin_message_multiple">These items will be moved to recycle bin:</string>
-    <string name="workspace_dialog_recyclebin_hint">Find them in Recycle Bin location</string>
-    <string name="workspace_dialog_move_to_recyclebin_action">Move</string>
+    <string name="workspace_dialog_trash_message_single">This item will be moved to trash:</string>
+    <string name="workspace_dialog_trash_message_multiple">These items will be moved to trash:</string>
+    <string name="workspace_dialog_trash_hint">Find them in Trash location</string>
+    <string name="workspace_dialog_move_to_trash_action">Move</string>
 
     <!-- Action Bar -->
     <plurals name="workspace_selection_count">

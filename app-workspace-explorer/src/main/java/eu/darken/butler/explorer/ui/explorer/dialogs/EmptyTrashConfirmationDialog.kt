@@ -15,7 +15,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.common.R as CommonR
 
 @Composable
-fun EmptyRecycleBinConfirmationDialog(
+fun EmptyTrashConfirmationDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -30,13 +30,13 @@ fun EmptyRecycleBinConfirmationDialog(
         },
         title = {
             Text(
-                text = stringResource(R.string.explorer_recyclebin_empty_confirm),
+                text = stringResource(R.string.explorer_trash_empty_confirm),
                 style = MaterialTheme.typography.headlineSmall,
             )
         },
         text = {
             Text(
-                text = stringResource(R.string.explorer_recyclebin_empty_message),
+                text = stringResource(R.string.explorer_trash_empty_message),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -46,7 +46,7 @@ fun EmptyRecycleBinConfirmationDialog(
                 onClick = onConfirm
             ) {
                 Text(
-                    stringResource(R.string.explorer_recyclebin_empty_confirm_action),
+                    stringResource(R.string.explorer_trash_empty_confirm_action),
                     color = MaterialTheme.colorScheme.error,
                 )
             }
@@ -61,9 +61,9 @@ fun EmptyRecycleBinConfirmationDialog(
 
 @Preview2
 @Composable
-private fun EmptyRecycleBinConfirmationDialogPreview() {
+private fun EmptyTrashConfirmationDialogPreview() {
     PreviewWrapper {
-        EmptyRecycleBinConfirmationDialog(
+        EmptyTrashConfirmationDialog(
             onDismiss = {},
             onConfirm = {}
         )

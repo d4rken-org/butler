@@ -1,4 +1,4 @@
-package eu.darken.butler.common.recyclebin
+package eu.darken.butler.common.trash
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -14,25 +14,25 @@ import javax.inject.Singleton
 import kotlin.time.Duration.Companion.days
 
 @Singleton
-class RecycleBinSettings @Inject constructor(
+class TrashSettings @Inject constructor(
     @ApplicationContext private val context: Context,
     json: Json,
 ) : PreferenceScreenData {
 
-    private val Context.dataStore by preferencesDataStore(name = "settings_recyclebin")
+    private val Context.dataStore by preferencesDataStore(name = "settings_trash")
 
     override val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    val enabled = dataStore.createValue("recyclebin.enabled", false)
+    val enabled = dataStore.createValue("trash.enabled", false)
 
-    val expiresAfter = dataStore.createValue("recyclebin.expiration.duration", 30.days, json)
+    val expiresAfter = dataStore.createValue("trash.expiration.duration", 30.days, json)
 
-    val maxRecycleBinSize = dataStore.createValue("recyclebin.storage.maxsize", 524_288_000L)
+    val maxTrashSize = dataStore.createValue("trash.storage.maxsize", 524_288_000L)
 
     override val mapper = PreferenceStoreMapper(
         enabled,
         expiresAfter,
-        maxRecycleBinSize,
+        maxTrashSize,
     )
 }

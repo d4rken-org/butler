@@ -1,4 +1,4 @@
-package eu.darken.butler.common.recyclebin.db
+package eu.darken.butler.common.trash.db
 
 import androidx.room.Entity
 import androidx.room.Index
@@ -9,16 +9,16 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Entity(
-    tableName = "recycle_bin_items",
+    tableName = "trash_items",
     indices = [
         Index(value = ["deletedAt"]),
     ]
 )
-data class RecycleBinEntity(
+data class TrashEntity(
     @PrimaryKey val id: Uuid = Uuid.random(),
     val originalPath: APath<*>,
     val originalLookup: APathLookup<*>,
-    val recycleBinPath: APath<*>,
+    val trashPath: APath<*>,
     val deletedAt: Instant,
     val size: Long,
 )

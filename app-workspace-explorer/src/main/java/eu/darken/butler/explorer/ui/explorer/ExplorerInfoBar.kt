@@ -85,7 +85,7 @@ fun ExplorerInfoBar(
                     )
                 }
 
-                is ExplorerLocation.RecycleBin.Info -> {
+                is ExplorerLocation.Trash.Info -> {
                     if (info.itemCount > 0) {
                         InfoChip(
                             icon = Icons.TwoTone.Delete,
@@ -98,7 +98,7 @@ fun ExplorerInfoBar(
                     } else {
                         InfoChip(
                             icon = Icons.TwoTone.Delete,
-                            label = stringResource(R.string.explorer_recyclebin_empty_state),
+                            label = stringResource(R.string.explorer_trash_empty_state),
                         )
                     }
                 }
@@ -153,7 +153,7 @@ fun ExplorerInfoBar(
                     }
                 }
 
-                is ExplorerLocation.RecycleBin.Info -> {
+                is ExplorerLocation.Trash.Info -> {
                     Spacer(modifier = Modifier.weight(1f))
                     if (info.totalSize > 0) {
                         InfoChip(

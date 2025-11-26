@@ -1,4 +1,4 @@
-package eu.darken.butler.common.recyclebin.db
+package eu.darken.butler.common.trash.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -9,7 +9,7 @@ import eu.darken.butler.common.room.InstantConverter
 import eu.darken.butler.common.room.UuidConverter
 
 @Database(
-    entities = [RecycleBinEntity::class],
+    entities = [TrashEntity::class],
     version = 1,
     exportSchema = true
 )
@@ -19,6 +19,6 @@ import eu.darken.butler.common.room.UuidConverter
     APathConverter::class,
     APathLookupConverter::class,
 )
-abstract class RecycleBinDatabase : RoomDatabase() {
-    abstract fun recycleBinDao(): RecycleBinDao
+abstract class TrashDatabase : RoomDatabase() {
+    abstract fun trashDao(): TrashDao
 }

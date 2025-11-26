@@ -21,7 +21,7 @@ class BreadcrumbGenerator @Inject constructor(
     suspend fun getBreadcrumbs(location: ExplorerLocation): List<ExplorerBreadcrumb> = when (location) {
         is ExplorerLocation.Home -> listOf(HOME)
         is ExplorerLocation.Device -> listOf(HOME, DEVICE)
-        is ExplorerLocation.RecycleBin -> listOf(HOME, RECYCLE_BIN)
+        is ExplorerLocation.Trash -> listOf(HOME, TRASH)
         is ExplorerLocation.Directory -> buildList {
             when (location.parent) {
                 is ExplorerNavigation.Target.Home -> {
@@ -31,9 +31,9 @@ class BreadcrumbGenerator @Inject constructor(
                     add(HOME)
                     add(DEVICE)
                 }
-                is ExplorerNavigation.Target.RecycleBin -> {
+                is ExplorerNavigation.Target.Trash -> {
                     add(HOME)
-                    add(RECYCLE_BIN)
+                    add(TRASH)
                 }
                 is ExplorerNavigation.Target.Directory -> {
                     add(HOME)
@@ -148,10 +148,10 @@ class BreadcrumbGenerator @Inject constructor(
             showText = false,
         )
 
-        val RECYCLE_BIN = ExplorerBreadcrumb(
-            label = R.string.explorer_navigation_recyclebin.toCaString(),
+        val TRASH = ExplorerBreadcrumb(
+            label = R.string.explorer_navigation_trash.toCaString(),
             icon = Icons.TwoTone.Delete,
-            target = ExplorerNavigation.Target.RecycleBin,
+            target = ExplorerNavigation.Target.Trash,
             showIcon = true,
             showText = false,
         )

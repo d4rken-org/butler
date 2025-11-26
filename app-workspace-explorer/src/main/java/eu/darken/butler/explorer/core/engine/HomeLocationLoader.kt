@@ -12,7 +12,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.common.recyclebin.RecycleBinRepo
+import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.permissions.core.PathRequirements
@@ -24,7 +24,7 @@ import javax.inject.Singleton
 
 @Singleton
 class HomeLocationLoader @Inject constructor(
-    private val recycleBinRepo: RecycleBinRepo,
+    private val trashRepo: TrashRepo,
 ) {
 
     private val tag = logTag("Explorer", "HomeLocationLoader")
@@ -49,10 +49,10 @@ class HomeLocationLoader @Inject constructor(
         )
         context.emitState()
 
-        // Get recycle bin stats for the subtitle
-        val recycleBinItems = recycleBinRepo.getAllItems().first()
-        recycleBinItems.sumOf { it.size }
-        val recycleBinCount = recycleBinItems.size
+        // Get trash stats for the subtitle
+        val trashItems = trashRepo.getAllItems().first()
+        trashItems.sumOf { it.size }
+        val trashCount = trashItems.size
 
         val shortcuts = listOf(
             ExplorerItem.Shortcut(
@@ -63,17 +63,17 @@ class HomeLocationLoader @Inject constructor(
                 subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.SDK_INT})" },
             ),
             ExplorerItem.Shortcut(
-                shortcutId = "recyclebin",
+                shortcutId = "trash",
                 displayIcon = Icons.TwoTone.Delete,
-                displayName = R.string.explorer_navigation_recyclebin.toCaString(),
-                target = ExplorerNavigation.Target.RecycleBin,
+                displayName = R.string.explorer_navigation_trash.toCaString(),
+                target = ExplorerNavigation.Target.Trash,
                 subtitle = caString { cx ->
                     when {
-                        recycleBinCount == 0 -> cx.getString(R.string.explorer_recyclebin_empty_state)
+                        trashCount == 0 -> cx.getString(R.string.explorer_trash_empty_state)
                         else -> cx.resources.getQuantityString(
-                            R.plurals.explorer_recyclebin_item_count,
-                            recycleBinCount,
-                            recycleBinCount
+                            R.plurals.explorer_trash_item_count,
+                            trashCount,
+                            trashCount
                         )
                     }
                 },

@@ -10,20 +10,20 @@
     <string name="explorer_settings_navigation">Navigation</string>
     <string name="explorer_settings_back_button_title">Back button navigation</string>
     <string name="explorer_settings_back_button_desc">Navigate through history with back button/gesture. At top-level the workspace closes.</string>
-    <string name="explorer_settings_recyclebin_category">Recycle Bin</string>
-    <string name="explorer_settings_recyclebin_enabled_title">Enable recycle bin</string>
-    <string name="explorer_settings_recyclebin_enabled_desc">Move deleted files to recycle bin instead of permanently deleting them</string>
-    <string name="explorer_settings_recyclebin_auto_delete_title">Auto-delete after</string>
-    <string name="explorer_settings_recyclebin_auto_delete_desc">Automatically delete items older than %d days</string>
-    <string name="explorer_settings_recyclebin_auto_delete_value">%d days</string>
-    <string name="explorer_settings_recyclebin_max_size_title">Maximum size per storage</string>
-    <string name="explorer_settings_recyclebin_max_size_desc">%d MB maximum per storage location</string>
-    <string name="explorer_settings_recyclebin_max_size_value">%d MB</string>
-    <string name="explorer_settings_recyclebin_auto_delete_dialog_title">Auto-delete period</string>
-    <string name="explorer_settings_recyclebin_max_size_dialog_title">Maximum size per storage</string>
-    <string name="explorer_settings_recyclebin_enable_dialog_title">Enable recycle bin?</string>
-    <string name="explorer_settings_recyclebin_enable_dialog_message">Unlike desktop systems, Android has no built-in recycle bin. Butler provides one using its cache folder.\n\nKeep in mind:\n• Your device\'s storage indicator won\'t reflect freed space until items are permanently deleted\n• If your device runs low on storage, Android may clear app caches, removing recycled files</string>
-    <string name="explorer_settings_recyclebin_enable_action">Enable</string>
+    <string name="explorer_settings_trash_category">Trash</string>
+    <string name="explorer_settings_trash_enabled_title">Enable trash</string>
+    <string name="explorer_settings_trash_enabled_desc">Move deleted files to trash instead of permanently deleting them</string>
+    <string name="explorer_settings_trash_auto_delete_title">Auto-delete after</string>
+    <string name="explorer_settings_trash_auto_delete_desc">Automatically delete items older than %d days</string>
+    <string name="explorer_settings_trash_auto_delete_value">%d days</string>
+    <string name="explorer_settings_trash_max_size_title">Maximum size per storage</string>
+    <string name="explorer_settings_trash_max_size_desc">%d MB maximum per storage location</string>
+    <string name="explorer_settings_trash_max_size_value">%d MB</string>
+    <string name="explorer_settings_trash_auto_delete_dialog_title">Auto-delete period</string>
+    <string name="explorer_settings_trash_max_size_dialog_title">Maximum size per storage</string>
+    <string name="explorer_settings_trash_enable_dialog_title">Enable trash?</string>
+    <string name="explorer_settings_trash_enable_dialog_message">Unlike desktop systems, Android has no built-in trash. Butler provides one using its cache folder.\n\nKeep in mind:\n• Your device\'s storage indicator won\'t reflect freed space until items are permanently deleted\n• If your device runs low on storage, Android may clear app caches, removing trashed files</string>
+    <string name="explorer_settings_trash_enable_action">Enable</string>
 
     <!-- File Row Content Descriptions -->
     <string name="explorer_file_regular_content_desc">File</string>
@@ -129,27 +129,27 @@
     <!-- Navigation -->
     <string name="explorer_navigation_home">Home</string>
     <string name="explorer_navigation_device">Device</string>
-    <string name="explorer_navigation_recyclebin">Recycle Bin</string>
-    <string name="explorer_navigation_recyclebin_desc">Recover deleted files</string>
+    <string name="explorer_navigation_trash">Trash</string>
+    <string name="explorer_navigation_trash_desc">Recover deleted files</string>
 
-    <!-- Recycle Bin -->
-    <string name="explorer_recyclebin_empty_state">No deleted items</string>
-    <plurals name="explorer_recyclebin_item_count">
+    <!-- Trash -->
+    <string name="explorer_trash_empty_state">No deleted items</string>
+    <plurals name="explorer_trash_item_count">
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
-    <string name="explorer_recyclebin_storage_header">%s storage</string>
-    <string name="explorer_recyclebin_restore_action">Restore</string>
-    <string name="explorer_recyclebin_restore_selected_action">Restore Selected</string>
-    <string name="explorer_recyclebin_delete_permanently_action">Delete Permanently</string>
-    <string name="explorer_recyclebin_delete_selected_action">Delete Selected</string>
-    <string name="explorer_recyclebin_empty_bin_action">Empty Recycle bin</string>
-    <string name="explorer_recyclebin_empty_confirm">Empty recycle bin?</string>
-    <string name="explorer_recyclebin_empty_message">All items in the Recycle Bin will be permanently deleted. This cannot be undone.</string>
-    <string name="explorer_recyclebin_empty_confirm_action">Empty Recycle Bin</string>
-    <string name="explorer_recyclebin_restore_desc">Restore to original location</string>
-    <string name="explorer_recyclebin_storage_unavailable">Storage unavailable</string>
-    <string name="explorer_recyclebin_delete_warning">This cannot be undone</string>
+    <string name="explorer_trash_storage_header">%s storage</string>
+    <string name="explorer_trash_restore_action">Restore</string>
+    <string name="explorer_trash_restore_selected_action">Restore Selected</string>
+    <string name="explorer_trash_delete_permanently_action">Delete Permanently</string>
+    <string name="explorer_trash_delete_selected_action">Delete Selected</string>
+    <string name="explorer_trash_empty_trash_action">Empty Trash</string>
+    <string name="explorer_trash_empty_confirm">Empty trash?</string>
+    <string name="explorer_trash_empty_message">All items in the Trash will be permanently deleted. This cannot be undone.</string>
+    <string name="explorer_trash_empty_confirm_action">Empty Trash</string>
+    <string name="explorer_trash_restore_desc">Restore to original location</string>
+    <string name="explorer_trash_storage_unavailable">Storage unavailable</string>
+    <string name="explorer_trash_delete_warning">This cannot be undone</string>
 
     <string name="explorer_navigation_root">Root directory</string>
     <string name="explorer_navigation_rom">System ROM</string>
@@ -167,7 +167,7 @@
     <string name="explorer_loader_progress_device_locations">Loading storage locations</string>
 
     <string name="explorer_loader_progress_home_loading">Loading home</string>
-    <string name="explorer_loader_progress_recyclebin_loading">Loading recycle bin…</string>
+    <string name="explorer_loader_progress_trash_loading">Loading trash…</string>
 
     <!-- InfoBar -->
     <plurals name="explorer_infobar_selected_count">

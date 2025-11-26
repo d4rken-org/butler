@@ -32,8 +32,8 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 
 @Composable
-fun RecycleBinItemRow(
-    item: ExplorerItem.RecycleBinItem,
+fun TrashItemRow(
+    item: ExplorerItem.TrashItem,
     isSelected: Boolean = false,
     onToggleSelection: (() -> Unit)? = null,
     onClick: () -> Unit = {},
@@ -59,9 +59,9 @@ fun RecycleBinItemRow(
         }
 
 
-        if (item.recycleBinLookup != null) {
+        if (item.trashLookup != null) {
             TintedAsyncImage(
-                model = item.recycleBinLookup,
+                model = item.trashLookup,
                 contentDescription = item.originalLookup.name,
                 modifier = Modifier.size(40.dp)
             )
@@ -98,7 +98,7 @@ fun RecycleBinItemRow(
                 )
             }
         }
-        item.recycleBinLookup?.size?.let {
+        item.trashLookup?.size?.let {
             Text(
                 text = formatFileSize(it),
                 style = MaterialTheme.typography.bodySmall,
@@ -109,8 +109,8 @@ fun RecycleBinItemRow(
 }
 
 @Composable
-fun RecycleBinItemGrid(
-    item: ExplorerItem.RecycleBinItem,
+fun TrashItemGrid(
+    item: ExplorerItem.TrashItem,
     isSelected: Boolean = false,
     onToggleSelection: (() -> Unit)? = null,
     onClick: () -> Unit = {},
@@ -140,7 +140,7 @@ fun RecycleBinItemGrid(
                 contentAlignment = Alignment.TopEnd
             ) {
                 TintedAsyncImage(
-                    model = item.recycleBinLookup,
+                    model = item.trashLookup,
                     contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
                     modifier = Modifier.size(32.dp)
                 )
@@ -165,7 +165,7 @@ fun RecycleBinItemGrid(
                 modifier = Modifier.padding(top = 4.dp)
             )
 
-            item.recycleBinLookup?.size?.let {
+            item.trashLookup?.size?.let {
                 Text(
                     text = formatFileSize(it),
                     style = MaterialTheme.typography.bodySmall,

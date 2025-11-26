@@ -1,4 +1,4 @@
-package eu.darken.butler.common.recyclebin
+package eu.darken.butler.common.trash
 
 import android.content.Context
 import androidx.room.Room
@@ -17,9 +17,9 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.common.files.room.APathConverter
 import eu.darken.butler.common.files.room.APathLookupConverter
-import eu.darken.butler.common.recyclebin.db.RecycleBinDao
-import eu.darken.butler.common.recyclebin.db.RecycleBinDatabase
-import eu.darken.butler.common.recyclebin.db.RecycleBinEntity
+import eu.darken.butler.common.trash.db.TrashDao
+import eu.darken.butler.common.trash.db.TrashDatabase
+import eu.darken.butler.common.trash.db.TrashEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -34,7 +34,7 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Singleton
-class RecycleBinRepo @Inject constructor(
+class TrashRepo @Inject constructor(
     @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
@@ -46,11 +46,11 @@ class RecycleBinRepo @Inject constructor(
     private val database by lazy {
         Room.databaseBuilder(
             context,
-            RecycleBinDatabase::class.java,
-            "recycle_bin.db"
+            TrashDatabase::class.java,
+            "trash.db"
         ).apply {
             if (BuildConfigWrap.DEBUG) {
-                log(TAG) { "Debug mode: Enabling destructive migration for recycle bin database" }
+                log(TAG) { "Debug mode: Enabling destructive migration for trash database" }
                 fallbackToDestructiveMigration()
             }
 //        addTypeConverter(InstantConverter())
@@ -60,8 +60,8 @@ class RecycleBinRepo @Inject constructor(
         }.build()
     }
 
-    private val dao: RecycleBinDao
-        get() = database.recycleBinDao()
+    private val dao: TrashDao
+        get() = database.trashDao()
 
     init {
         appScope.launch(dispatcherProvider.IO) {
@@ -73,18 +73,18 @@ class RecycleBinRepo @Inject constructor(
         }
     }
 
-    fun getAllItems(): Flow<List<RecycleBinItem>> = dao.getAll()
+    fun getAllItems(): Flow<List<TrashItem>> = dao.getAll()
         .map { entities ->
             entities.map { entity -> entity.toDomainModel() }
         }
         .flowOn(dispatcherProvider.IO)
 
 
-    suspend fun getById(id: Uuid): RecycleBinItem? = withContext(dispatcherProvider.IO) {
+    suspend fun getById(id: Uuid): TrashItem? = withContext(dispatcherProvider.IO) {
         dao.getById(id)?.toDomainModel()
     }
 
-    suspend fun getOlderThan(cutoffTime: Instant): List<RecycleBinItem> = withContext(dispatcherProvider.IO) {
+    suspend fun getOlderThan(cutoffTime: Instant): List<TrashItem> = withContext(dispatcherProvider.IO) {
         dao.getOlderThan(cutoffTime).map { it.toDomainModel() }
     }
 
@@ -96,7 +96,7 @@ class RecycleBinRepo @Inject constructor(
         dao.getTotalSize() ?: 0L
     }
 
-    suspend fun insert(item: RecycleBinItem) = withContext(dispatcherProvider.IO) {
+    suspend fun insert(item: TrashItem) = withContext(dispatcherProvider.IO) {
         val entity = item.toEntity()
         dao.insert(entity)
     }
@@ -114,14 +114,14 @@ class RecycleBinRepo @Inject constructor(
     }
 
     suspend fun syncWithFileSystem() = withContext(dispatcherProvider.IO) {
-        log(TAG, INFO) { "Syncing recycle bin database with file system" }
+        log(TAG, INFO) { "Syncing trash database with file system" }
 
         val allItems = dao.getAll().first()
         var removedCount = 0
 
         for (entity in allItems) {
             try {
-                if (!gatewaySwitch.exists(entity.recycleBinPath)) {
+                if (!gatewaySwitch.exists(entity.trashPath)) {
                     // File no longer exists in recycle bin, remove from database
                     dao.delete(entity.id)
                     removedCount++
@@ -135,38 +135,38 @@ class RecycleBinRepo @Inject constructor(
         log(TAG, INFO) { "Sync complete. Removed $removedCount non-existent items." }
     }
 
-    private fun RecycleBinItem.toEntity(): RecycleBinEntity = RecycleBinEntity(
+    private fun TrashItem.toEntity(): TrashEntity = TrashEntity(
         id = id,
         originalPath = originalLookup.lookedUp,
         originalLookup = originalLookup,
-        recycleBinPath = recycleBinPath,
+        trashPath = trashPath,
         deletedAt = deletedAt,
         size = size,
     )
 
-    private suspend fun RecycleBinEntity.toDomainModel(): RecycleBinItem {
-        val recycleBinLookup = try {
-            this.recycleBinPath.lookup(gatewaySwitch, LookupOptions.BASE)
+    private suspend fun TrashEntity.toDomainModel(): TrashItem {
+        val trashLookup = try {
+            this.trashPath.lookup(gatewaySwitch, LookupOptions.BASE)
         } catch (e: Exception) {
-            log(TAG, WARN) { "recycleBinLookup failed on ${this.recycleBinPath}: $e" }
+            log(TAG, WARN) { "trashLookup failed on ${this.trashPath}: $e" }
             null
         }
 
-        return RecycleBinItem(
+        return TrashItem(
             id = this.id,
             deletedAt = this.deletedAt,
             originalLookup = this.originalLookup,
-            recycleBinPath = this.recycleBinPath,
-            recycleBinLookup = recycleBinLookup,
+            trashPath = this.trashPath,
+            trashLookup = trashLookup,
             size = this.size,
         )
     }
 
-    data class RecycleBinItem(
+    data class TrashItem(
         val id: Uuid,
         val originalLookup: APathLookup<*>,
-        val recycleBinPath: APath<*>,
-        val recycleBinLookup: APathLookup<*>?,
+        val trashPath: APath<*>,
+        val trashLookup: APathLookup<*>?,
         val deletedAt: Instant = Clock.System.now(),
         val size: Long,
     ) {
@@ -174,6 +174,6 @@ class RecycleBinRepo @Inject constructor(
     }
 
     companion object {
-        private val TAG = logTag("RecycleBin", "Repo")
+        private val TAG = logTag("Trash", "Repo")
     }
 }

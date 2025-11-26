@@ -7,7 +7,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.NavigationController
-import eu.darken.butler.common.recyclebin.RecycleBinSettings
+import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.SortSettings
@@ -19,24 +19,24 @@ class ExplorerSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     navigationController: NavigationController,
     private val explorerSettings: ExplorerSettings,
-    private val recycleBinSettings: RecycleBinSettings,
+    private val trashSettings: TrashSettings,
 ) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings", "Screen", "VM"), navigationController) {
 
     val state = combine(
         explorerSettings.sortSettings.flow,
         explorerSettings.useRegexPatterns.flow,
         explorerSettings.useBackButtonForNavigation.flow,
-        recycleBinSettings.enabled.flow,
-        recycleBinSettings.expiresAfter.flow,
-        recycleBinSettings.maxRecycleBinSize.flow,
+        trashSettings.enabled.flow,
+        trashSettings.expiresAfter.flow,
+        trashSettings.maxTrashSize.flow,
     ) { sortSettings, useRegexPatterns, useBackButtonForNavigation, recycleBinEnabled, expiresAfter, maxSize ->
         State(
             sortSettings = sortSettings,
             useRegexPatterns = useRegexPatterns,
             useBackButtonForNavigation = useBackButtonForNavigation,
-            recycleBinEnabled = recycleBinEnabled,
-            recycleBinAutoDeleteDays = expiresAfter.inWholeDays.toInt(),
-            recycleBinMaxSizeMB = maxSize / 1048576L,
+            trashEnabled = recycleBinEnabled,
+            trashAutoDeleteDays = expiresAfter.inWholeDays.toInt(),
+            trashMaxSizeMB = maxSize / 1048576L,
         )
     }.asStateFlow()
 
@@ -48,27 +48,27 @@ class ExplorerSettingsViewModel @Inject constructor(
         explorerSettings.useBackButtonForNavigation.value(enabled)
     }
 
-    fun toggleRecycleBin(enabled: Boolean) = launch {
-        log(tag) { "toggleRecycleBin($enabled)" }
-        recycleBinSettings.enabled.value(enabled)
+    fun toggleTrash(enabled: Boolean) = launch {
+        log(tag) { "toggleTrash($enabled)" }
+        trashSettings.enabled.value(enabled)
     }
 
-    fun setRecycleBinAutoDeleteDays(days: Int) = launch {
-        log(tag) { "setRecycleBinAutoDeleteDays($days)" }
-        recycleBinSettings.expiresAfter.value(days.days)
+    fun setTrashAutoDeleteDays(days: Int) = launch {
+        log(tag) { "setTrashAutoDeleteDays($days)" }
+        trashSettings.expiresAfter.value(days.days)
     }
 
-    fun setRecycleBinMaxSizeMB(sizeMB: Long) = launch {
-        log(tag) { "setRecycleBinMaxSizeMB($sizeMB)" }
-        recycleBinSettings.maxRecycleBinSize.value(sizeMB * 1048576L)
+    fun setTrashMaxSizeMB(sizeMB: Long) = launch {
+        log(tag) { "setTrashMaxSizeMB($sizeMB)" }
+        trashSettings.maxTrashSize.value(sizeMB * 1048576L)
     }
 
     data class State(
         val sortSettings: SortSettings,
         val useRegexPatterns: Boolean,
         val useBackButtonForNavigation: Boolean,
-        val recycleBinEnabled: Boolean = true,
-        val recycleBinAutoDeleteDays: Int = 30,
-        val recycleBinMaxSizeMB: Long = 500L,
+        val trashEnabled: Boolean = true,
+        val trashAutoDeleteDays: Int = 30,
+        val trashMaxSizeMB: Long = 500L,
     )
 }
