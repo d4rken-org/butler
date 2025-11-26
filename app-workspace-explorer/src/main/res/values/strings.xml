@@ -138,7 +138,6 @@
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
-    <string name="explorer_trash_storage_header">%s storage</string>
     <string name="explorer_trash_restore_action">Restore</string>
     <string name="explorer_trash_restore_selected_action">Restore Selected</string>
     <string name="explorer_trash_delete_permanently_action">Delete Permanently</string>

@@ -164,16 +164,6 @@
     <string name="storage_size_512mb">512 MB</string>
     <string name="storage_size_1gb">1 GB</string>
 
-    <string name="storage_category_trash_label">Trash</string>
-    <string name="storage_trash_enabled_title">Enable trash</string>
-    <string name="storage_trash_enabled_desc">Move deleted items to trash instead of permanently deleting them</string>
-    <string name="storage_trash_auto_delete_title">Auto-delete old items</string>
-    <string name="storage_trash_auto_delete_desc">Automatically delete items older than %d days</string>
-    <string name="storage_trash_auto_delete_value">%d days</string>
-    <string name="storage_trash_max_size_title">Maximum size per storage</string>
-    <string name="storage_trash_max_size_desc">Maximum trash size: %d MB per storage location</string>
-    <string name="storage_trash_max_size_value">%d MB</string>
-
     <string name="updater_check_enabled_setting_title">Check for updates</string>
     <string name="updater_check_enabled_setting_description">Allow Butler to check online if a new version is available.</string>
     <string name="motd_check_enabled_setting_title">Check for messages of the day</string>
