@@ -53,13 +53,11 @@ class ExplorerSettingsViewModel @Inject constructor(
         recycleBinSettings.enabled.value(enabled)
     }
 
-    // TODO implement
     fun setRecycleBinAutoDeleteDays(days: Int) = launch {
         log(tag) { "setRecycleBinAutoDeleteDays($days)" }
         recycleBinSettings.expiresAfter.value(days.days)
     }
 
-    // TODO implement
     fun setRecycleBinMaxSizeMB(sizeMB: Long) = launch {
         log(tag) { "setRecycleBinMaxSizeMB($sizeMB)" }
         recycleBinSettings.maxRecycleBinSize.value(sizeMB * 1048576L)

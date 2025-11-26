@@ -31,8 +31,11 @@ import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
+import eu.darken.butler.common.ui.DurationInputDialog
+import eu.darken.butler.common.ui.SizeInputDialog
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.explorer.R
+import kotlin.time.Duration.Companion.days
 
 @Composable
 fun ExplorerSettingsScreen(
@@ -41,8 +44,12 @@ fun ExplorerSettingsScreen(
     onToggleRegexPatterns: (Boolean) -> Unit,
     onToggleBackButtonNavigation: (Boolean) -> Unit,
     onToggleRecycleBin: (Boolean) -> Unit,
+    onAutoDeleteDaysChanged: (Int) -> Unit,
+    onMaxSizeChanged: (Long) -> Unit,
 ) {
     var showEnableRecycleBinDialog by remember { mutableStateOf(false) }
+    var showAutoDeleteDialog by remember { mutableStateOf(false) }
+    var showMaxSizeDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -128,8 +135,7 @@ fun ExplorerSettingsScreen(
                             R.string.explorer_settings_recyclebin_auto_delete_value,
                             state.recycleBinAutoDeleteDays
                         ),
-                        onClick = { /* Could open a dialog to change value */ },
-                        enabled = false, // Read-only for now
+                        onClick = { showAutoDeleteDialog = true },
                     )
                     SettingsDivider()
                 }
@@ -146,8 +152,7 @@ fun ExplorerSettingsScreen(
                             R.string.explorer_settings_recyclebin_max_size_value,
                             state.recycleBinMaxSizeMB
                         ),
-                        onClick = { /* Could open a dialog to change value */ },
-                        enabled = false, // Read-only for now
+                        onClick = { showMaxSizeDialog = true },
                     )
                 }
             }
@@ -182,6 +187,36 @@ fun ExplorerSettingsScreen(
             }
         )
     }
+
+    if (showAutoDeleteDialog) {
+        DurationInputDialog(
+            title = stringResource(R.string.explorer_settings_recyclebin_auto_delete_dialog_title),
+            currentDuration = state.recycleBinAutoDeleteDays.days,
+            minimumDuration = 1.days,
+            maximumDuration = 365.days,
+            defaultDuration = 30.days,
+            onDismiss = { showAutoDeleteDialog = false },
+            onConfirm = { duration ->
+                onAutoDeleteDaysChanged(duration.inWholeDays.toInt())
+                showAutoDeleteDialog = false
+            },
+        )
+    }
+
+    if (showMaxSizeDialog) {
+        SizeInputDialog(
+            title = stringResource(R.string.explorer_settings_recyclebin_max_size_dialog_title),
+            currentSize = state.recycleBinMaxSizeMB * 1024L * 1024L,
+            minimumSize = 1L * 1024L * 1024L,
+            maximumSize = 10L * 1024L * 1024L * 1024L,
+            defaultSize = 500L * 1024L * 1024L,
+            onDismiss = { showMaxSizeDialog = false },
+            onConfirm = { bytes ->
+                onMaxSizeChanged(bytes / (1024L * 1024L))
+                showMaxSizeDialog = false
+            },
+        )
+    }
 }
 
 
@@ -198,6 +233,8 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
             onToggleRegexPatterns = { vm.toggleRegexPatterns(it) },
             onToggleBackButtonNavigation = { vm.toggleBackButtonNavigation(it) },
             onToggleRecycleBin = { vm.toggleRecycleBin(it) },
+            onAutoDeleteDaysChanged = { vm.setRecycleBinAutoDeleteDays(it) },
+            onMaxSizeChanged = { vm.setRecycleBinMaxSizeMB(it) },
         )
     }
 }
