@@ -41,8 +41,7 @@ class ExplorerItemSorter @AssistedInject constructor(
         }
 
         val sortedPathItems = sortPathItems(context, pathItems, sortSettings)
-        // Sort trash items by deletion date (most recent first)
-        val sortedTrashItems = trashItems.sortedByDescending { it.deletedAt }
+        val sortedTrashItems = sortTrashItems(context, trashItems, sortSettings)
 
         return if (sortSettings.reversed) {
             sortedTrashItems + sortedPathItems + storage + shortcuts
@@ -70,6 +69,32 @@ class ExplorerItemSorter @AssistedInject constructor(
         } else {
             peeks + sortedDirectories + sortedFiles
         }
+    }
+
+    private fun sortTrashItems(
+        context: Context,
+        items: List<ExplorerItem.TrashItem>,
+        sortSettings: SortSettings,
+    ): List<ExplorerItem.TrashItem> {
+        if (items.isEmpty()) return items
+
+        val sorted = when (sortSettings.mode) {
+            SortSettings.Mode.NAME -> items.sortedWith { a, b ->
+                NaturalSortComparator.compare(
+                    a.originalLookup.userReadableName.get(context),
+                    b.originalLookup.userReadableName.get(context)
+                )
+            }
+            SortSettings.Mode.SIZE -> items.sortedBy { it.originalLookup.size ?: 0L }
+            SortSettings.Mode.MODIFIED_AT -> items.sortedBy {
+                it.originalLookup.modifiedAt ?: Instant.DISTANT_PAST
+            }
+            SortSettings.Mode.CREATED_AT -> items.sortedBy {
+                it.originalLookup.createdAt ?: Instant.DISTANT_PAST
+            }
+        }
+
+        return if (sortSettings.reversed) sorted.reversed() else sorted
     }
 
     private fun <T : ExplorerItem.Path> applySortMode(

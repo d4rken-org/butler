@@ -19,8 +19,11 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
 
         val actions = mutableListOf<ExplorerAction>()
 
-        // Show restore action if items are selected
-        if (selectionState.selectedItems.isNotEmpty()) {
+        if (selectionState.isSelectionMode) {
+            if (!selectionState.isAllSelected) {
+                actions.add(ExplorerAction.Trash.SelectAll)
+            }
+
             actions.add(
                 ExplorerAction.Trash.RestoreSelected(
                     icon = Icons.TwoTone.Restore,
@@ -28,10 +31,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                     isEnabled = true,
                 )
             )
-        }
 
-        // Show delete permanently action if items are selected
-        if (selectionState.selectedItems.isNotEmpty()) {
             actions.add(
                 ExplorerAction.Trash.DeletePermanentlySelected(
                     icon = Icons.TwoTone.DeleteForever,
@@ -39,10 +39,12 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                     isEnabled = true,
                 )
             )
-        }
+        } else {
+            actions.add(ExplorerAction.Common.Refresh())
+            actions.add(ExplorerAction.Common.Sort())
+            actions.add(ExplorerAction.Common.Filter())
+            actions.add(ExplorerAction.Common.ToggleView())
 
-        // Show empty trash action only when nothing is selected
-        if (selectionState.selectedItems.isEmpty()) {
             actions.add(
                 ExplorerAction.Trash.EmptyBin(
                     icon = Icons.TwoTone.DeleteSweep,

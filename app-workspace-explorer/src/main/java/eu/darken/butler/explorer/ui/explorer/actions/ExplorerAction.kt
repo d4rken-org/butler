@@ -174,6 +174,11 @@ sealed interface ExplorerAction : WorkspaceAction {
     sealed interface Home : ExplorerAction
 
     sealed interface Trash : ExplorerAction {
+        object SelectAll : Trash {
+            override val icon = Icons.TwoTone.SelectAll
+            override val label = R.string.explorer_action_select_all.toCaString()
+        }
+
         data class RestoreSelected(
             override val icon: ImageVector,
             val labelRes: Int,

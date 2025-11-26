@@ -45,6 +45,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation.Target.*
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.FileIntentHelper
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.PatternMatcher
@@ -352,6 +353,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         return items.filter { item ->
             val itemName = when (item) {
                 is ExplorerItem.Path -> item.path.name
+                is ExplorerItem.TrashItem -> item.originalLookup.name
                 else -> return@filter true // Keep non-path items (like peek items)
             }
 
@@ -373,8 +375,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
             // Apply file type filter
             when (filterState.fileTypeFilter) {
-                FileTypeFilter.FILES_ONLY -> if (item is ExplorerItem.Directory) return@filter false
-                FileTypeFilter.FOLDERS_ONLY -> if (item is ExplorerItem.File) return@filter false
+                FileTypeFilter.FILES_ONLY -> {
+                    if (item is ExplorerItem.Directory) return@filter false
+                    if (item is ExplorerItem.TrashItem && item.originalLookup.fileType == FileType.DIRECTORY) return@filter false
+                }
+                FileTypeFilter.FOLDERS_ONLY -> {
+                    if (item is ExplorerItem.File) return@filter false
+                    if (item is ExplorerItem.TrashItem && item.originalLookup.fileType == FileType.FILE) return@filter false
+                }
                 FileTypeFilter.ALL -> {} // No filtering needed
             }
 
@@ -826,6 +834,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     locationId = selectedItem.location.id,
                     currentName = selectedItem.location.userLabel,
                 )
+            }
+            is ExplorerAction.Trash.SelectAll -> {
+                selectedItemsFlow.value = stateSnap.selectionState.selectableItems
             }
             is ExplorerAction.Trash.RestoreSelected -> {
                 log(tag) { "restoreSelectedTrashItems(): ${selectedItemsFlow.value.size} items" }
@@ -1517,7 +1528,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Common.ToggleView,
             is ExplorerAction.Directory.Create,
             is ExplorerAction.Directory.SelectAll,
-            is ExplorerAction.Directory.DeselectAll -> true
+            is ExplorerAction.Directory.DeselectAll,
+            is ExplorerAction.Trash.SelectAll -> true
 
             // Blocked: modification, clipboard, device, and recycle bin actions
             is ExplorerAction.Directory.Copy,
