@@ -1,8 +1,6 @@
 - When is TrashCleanupScheduler.cancel() called? If disable it via settings, does cancel get called? Do we clear the trash?
 
 - How does trash handle SAF based path deletion?
-- Shouldn't TrashRepository be named "Repo"?
-- Shouldn't TrashRepository delete based via ID and not construct the whole item?
 
 - Root based deletion moves files where? Same as SAF?
 - TrashItemOptionsBottomSheet should show when the file was deleted.

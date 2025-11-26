@@ -1,7 +1,6 @@
 package eu.darken.butler.common.trash.db
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -36,9 +35,6 @@ interface TrashDao {
 
     @Update
     suspend fun update(entity: TrashEntity)
-
-    @Delete
-    suspend fun deleteAll(entities: List<TrashEntity>)
 
     @Query("DELETE FROM trash_items WHERE id = :id")
     suspend fun delete(id: Uuid)
