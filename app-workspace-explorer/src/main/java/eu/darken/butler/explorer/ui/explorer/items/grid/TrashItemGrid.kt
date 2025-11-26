@@ -1,28 +1,23 @@
 package eu.darken.butler.explorer.ui.explorer.items.grid
 
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Description
+import androidx.compose.material.icons.twotone.Folder
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
+import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatSmartTime
 import eu.darken.butler.explorer.R
@@ -31,78 +26,45 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 fun TrashItemGrid(
+    modifier: Modifier = Modifier,
     item: ExplorerItem.TrashItem,
     isSelected: Boolean = false,
-    onToggleSelection: (() -> Unit)? = null,
+    onToggleSelection: () -> Unit = {},
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
     showSelection: Boolean = false,
 ) {
-    Card(
-        modifier = Modifier
-            .padding(4.dp)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick,
-            ),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surface
-        ),
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Box(
-                modifier = Modifier.size(32.dp),
-            ) {
-                if (showSelection) {
-                    Checkbox(
-                        checked = isSelected,
-                        onCheckedChange = { onToggleSelection?.invoke() },
-                        modifier = Modifier.size(20.dp),
-                    )
-                } else {
-                    TintedAsyncImage(
-                        model = item.trashLookup,
-                        contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
-                        modifier = Modifier.size(32.dp),
-                    )
-                }
-            }
+    val context = LocalContext.current
+    val isDirectory = item.originalLookup.isDirectory
 
-            Text(
-                text = item.displayName.get(LocalContext.current),
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                color = if (!item.isAvailable) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = 4.dp)
+    FileGridBase(
+        modifier = modifier.alpha(if (item.isAvailable) 1f else 0.5f),
+        item = item,
+        isSelected = isSelected,
+        onToggleSelection = onToggleSelection,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        showSelection = showSelection,
+        icon = {
+            Icon(
+                imageVector = if (isDirectory) Icons.TwoTone.Folder else Icons.TwoTone.Description,
+                contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
+                tint = Color.White,
+                modifier = Modifier.size(20.dp),
             )
-
-            item.trashLookup?.size?.let {
-                Text(
-                    text = formatFileSize(it),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            Text(
-                text = formatSmartTime(item.deletedAt),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+        },
+        primaryText = item.displayName.get(context),
+        secondaryText = item.trashLookup?.size?.let { formatFileSize(it) },
+        tertiaryText = formatSmartTime(item.deletedAt),
+        previewContent = {
+            TintedAsyncImage(
+                model = item.trashLookup ?: item.originalLookup,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
             )
-        }
-    }
+        },
+    )
 }
 
 @Preview2
