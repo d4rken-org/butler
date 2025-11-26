@@ -508,4 +508,63 @@ object MockDataProvider {
             target = ExplorerNavigation.Target.Device
         )
     }
+
+    // MARK: - Trash Item Factories
+
+    fun createMockTrashItem(
+        name: String = "deleted_file.txt",
+        originalPath: String = "/storage/emulated/0/Documents",
+        sizeKB: Long = 128,
+        deletedHoursAgo: Long = 2,
+        isAvailable: Boolean = true,
+    ): ExplorerItem.TrashItem {
+        val originalLookup = createMockLocalPathLookup(
+            path = "$originalPath/$name",
+            fileType = FileType.FILE,
+            sizeKB = sizeKB,
+            hoursAgo = deletedHoursAgo + 24, // Original file modified before deletion
+        )
+        val trashLookup = if (isAvailable) {
+            createMockLocalPathLookup(
+                path = "/data/user/0/eu.darken.butler/trash/${Uuid.random()}/$name",
+                fileType = FileType.FILE,
+                sizeKB = sizeKB,
+                hoursAgo = deletedHoursAgo,
+            )
+        } else null
+
+        return ExplorerItem.TrashItem(
+            itemId = Uuid.random(),
+            deletedAt = MockTimes.hoursAgo(deletedHoursAgo),
+            originalLookup = originalLookup,
+            trashLookup = trashLookup,
+        )
+    }
+
+    fun createMockTrashItemOld(
+        name: String = "old_backup.zip",
+        originalPath: String = "/storage/emulated/0/Downloads",
+        sizeKB: Long = 5120,
+        deletedDaysAgo: Long = 14,
+    ): ExplorerItem.TrashItem {
+        val originalLookup = createMockLocalPathLookup(
+            path = "$originalPath/$name",
+            fileType = FileType.FILE,
+            sizeKB = sizeKB,
+            hoursAgo = deletedDaysAgo * 24 + 48,
+        )
+        val trashLookup = createMockLocalPathLookup(
+            path = "/data/user/0/eu.darken.butler/trash/${Uuid.random()}/$name",
+            fileType = FileType.FILE,
+            sizeKB = sizeKB,
+            hoursAgo = deletedDaysAgo * 24,
+        )
+
+        return ExplorerItem.TrashItem(
+            itemId = Uuid.random(),
+            deletedAt = MockTimes.daysAgo(deletedDaysAgo),
+            originalLookup = originalLookup,
+            trashLookup = trashLookup,
+        )
+    }
 }

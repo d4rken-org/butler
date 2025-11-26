@@ -20,10 +20,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.common.formatSmartTime
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 fun TrashItemGrid(
@@ -89,6 +93,46 @@ fun TrashItemGrid(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+
+            Text(
+                text = formatSmartTime(item.deletedAt),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
+    }
+}
+
+@Preview2
+@Composable
+private fun TrashItemGridPreview() {
+    PreviewWrapper {
+        TrashItemGrid(
+            item = MockDataProvider.createMockTrashItem(),
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun TrashItemGridSelectedPreview() {
+    PreviewWrapper {
+        TrashItemGrid(
+            item = MockDataProvider.createMockTrashItem("photo.jpg"),
+            isSelected = true,
+            showSelection = true,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun TrashItemGridOldPreview() {
+    PreviewWrapper {
+        TrashItemGrid(
+            item = MockDataProvider.createMockTrashItemOld(),
+        )
     }
 }

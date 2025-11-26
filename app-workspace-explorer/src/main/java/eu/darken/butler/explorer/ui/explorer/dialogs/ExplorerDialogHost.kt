@@ -90,10 +90,11 @@ fun ExplorerDialogHost(
         }
 
         is ExplorerDialogState.TrashItemOptions -> {
-            TrashItemOptionsBottomSheet(
+            TrashItemDetailsBottomSheet(
                 item = dialogState.item,
                 onRestore = { vm?.restoreTrashItem(dialogState.item) },
                 onDeletePermanently = { vm?.deleteTrashItemPermanently(dialogState.item) },
+                onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
                 onDismiss = { vm?.dismissDialog() },
             )
         }

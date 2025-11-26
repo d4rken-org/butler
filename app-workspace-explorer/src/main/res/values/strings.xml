@@ -89,6 +89,7 @@
     <string name="explorer_info_name_label">Name</string>
     <string name="explorer_info_path_label">Path</string>
     <string name="explorer_info_type_label">Type</string>
+    <string name="explorer_info_type_file">File</string>
     <string name="explorer_info_type_directory">Directory</string>
     <string name="explorer_info_size_label">Size</string>
     <string name="explorer_info_modified_label">Modified</string>
@@ -101,6 +102,9 @@
     <string name="explorer_info_symlink_broken">Broken link</string>
     <string name="explorer_info_unknown">Unknown</string>
     <string name="explorer_info_copy_action">Copy to clipboard</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Deleted</string>
 
     <!-- SAF Info -->
     <string name="explorer_info_saf_uri_label">URI</string>
@@ -147,7 +151,7 @@
     <string name="explorer_trash_empty_message">All items in the Trash will be permanently deleted. This cannot be undone.</string>
     <string name="explorer_trash_empty_confirm_action">Empty Trash</string>
     <string name="explorer_trash_restore_desc">Restore to original location</string>
-    <string name="explorer_trash_storage_unavailable">Storage unavailable</string>
+    <string name="explorer_trash_item_unavailable">Item unavailable</string>
     <string name="explorer_trash_delete_warning">This cannot be undone</string>
 
     <string name="explorer_navigation_root">Root directory</string>

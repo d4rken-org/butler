@@ -21,9 +21,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.common.formatSmartTime
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
 fun TrashItemRow(
@@ -94,6 +98,13 @@ fun TrashItemRow(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+
+            Text(
+                text = formatSmartTime(item.deletedAt),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
         }
         item.trashLookup?.size?.let {
             Text(
@@ -102,5 +113,50 @@ fun TrashItemRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+@Preview2
+@Composable
+private fun TrashItemRowPreview() {
+    PreviewWrapper {
+        TrashItemRow(
+            item = MockDataProvider.createMockTrashItem(),
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun TrashItemRowSelectedPreview() {
+    PreviewWrapper {
+        TrashItemRow(
+            item = MockDataProvider.createMockTrashItem("photo.jpg"),
+            isSelected = true,
+            showSelection = true,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun TrashItemRowOldPreview() {
+    PreviewWrapper {
+        TrashItemRow(
+            item = MockDataProvider.createMockTrashItemOld(),
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun TrashItemRowUnavailablePreview() {
+    PreviewWrapper {
+        TrashItemRow(
+            item = MockDataProvider.createMockTrashItem(
+                name = "missing_file.txt",
+                isAvailable = false,
+            ),
+        )
     }
 }
