@@ -4,7 +4,6 @@
 - Recycle bin size should be displayed, besides the count at device level
 
 - When is RecycleBinCleanupScheduler.cancel() called? If disable it via settings, does cancel get called? Do we clear the recycle bin?
-- Store settings need on click actions to change trash max age and trash max size
 
 - Check if we are using all of the added strings or if there are unused strings
 
