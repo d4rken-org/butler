@@ -1,9 +1,10 @@
 package eu.darken.butler.explorer.core.engine
 
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -11,19 +12,17 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.explorer.R
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class TrashLocationLoader @Inject constructor(
+class TrashLocationLoader @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
     private val trashRepo: TrashRepo,
 ) {
 
-    // TODO inject workspace id?
-    private val tag = logTag("Explorer", "Trash", "LocationLoader")
+    private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "TrashLoader")
 
     private suspend fun checkLocationRequirements(): PathRequirements {
         log(tag) { "checkLocationRequirements(): Checking requirements for trash" }
@@ -80,5 +79,10 @@ class TrashLocationLoader @Inject constructor(
             log(tag, ERROR) { "loadTrash(): Failed to load trash: ${e.asLog()}" }
             throw e
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(workspaceId: Workspace.Id): TrashLocationLoader
     }
 }

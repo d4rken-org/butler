@@ -6,6 +6,9 @@ import android.os.StatFs
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.PhoneAndroid
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -17,18 +20,17 @@ import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class HomeLocationLoader @Inject constructor(
+class HomeLocationLoader @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
     private val trashRepo: TrashRepo,
 ) {
 
-    private val tag = logTag("Explorer", "HomeLocationLoader")
+    private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "HomeLoader")
 
     private suspend fun checkLocationRequirements(): PathRequirements {
         log(tag) { "checkLocationRequirements(): Checking requirements for Home" }
@@ -108,5 +110,10 @@ class HomeLocationLoader @Inject constructor(
                 progress = null,
             )
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(workspaceId: Workspace.Id): HomeLocationLoader
     }
 }

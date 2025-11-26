@@ -8,6 +8,9 @@ import androidx.compose.material.icons.twotone.PrivacyTip
 import androidx.compose.material.icons.twotone.Public
 import androidx.compose.material.icons.twotone.SdCard
 import androidx.compose.material.icons.twotone.Storage
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.canUseAdbNow
@@ -27,16 +30,15 @@ import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class DeviceLocationLoader @Inject constructor(
+class DeviceLocationLoader @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
     private val storageEnvironment: StorageEnvironment,
     private val gatewaySwitch: GatewaySwitch,
     private val storageManager2: StorageManager2,
@@ -45,7 +47,7 @@ class DeviceLocationLoader @Inject constructor(
     private val adbManager: AdbManager,
 ) {
 
-    private val tag = logTag("Explorer", "DeviceLocationLoader")
+    private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "DeviceLoader")
 
     private suspend fun checkLocationRequirements(): PathRequirements {
         log(tag) { "checkLocationRequirements(): Checking requirements for Device" }
@@ -256,5 +258,10 @@ class DeviceLocationLoader @Inject constructor(
         }
 
         log(tag) { "loadFilesystemInfo(): Completed updating ${currentItems.size} items with filesystem info" }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(workspaceId: Workspace.Id): DeviceLocationLoader
     }
 }

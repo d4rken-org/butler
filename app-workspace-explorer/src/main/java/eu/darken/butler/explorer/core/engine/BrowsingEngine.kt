@@ -33,14 +33,17 @@ class BrowsingEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val workspaceScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
-    private val homeLocationLoader: HomeLocationLoader,
-    private val deviceLocationLoader: DeviceLocationLoader,
-    private val trashLocationLoader: TrashLocationLoader,
+    homeLocationLoaderFactory: HomeLocationLoader.Factory,
+    deviceLocationLoaderFactory: DeviceLocationLoader.Factory,
+    trashLocationLoaderFactory: TrashLocationLoader.Factory,
     directoryLoaderFactory: DirectoryLocationLoader.Factory,
     private val breadcrumbGenerator: BreadcrumbGenerator,
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "BrowsingEngine")
+    private val homeLocationLoader = homeLocationLoaderFactory.create(workspaceId)
+    private val deviceLocationLoader = deviceLocationLoaderFactory.create(workspaceId)
+    private val trashLocationLoader = trashLocationLoaderFactory.create(workspaceId)
     private val directoryLoader = directoryLoaderFactory.create(workspaceId)
 
     private val targetFlow = MutableStateFlow<ExplorerNavigation.Target?>(null)
