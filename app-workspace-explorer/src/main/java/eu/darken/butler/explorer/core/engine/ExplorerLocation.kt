@@ -70,14 +70,14 @@ sealed interface ExplorerLocation {
         ) : LocationInfo
     }
 
-    data class RecycleBin(
+    data class Trash(
         override val items: List<ExplorerItem>? = null,
         override val info: Info? = null,
         override val setupRequirements: PathRequirements = PathRequirements(),
         override val progress: Progress.Data? = Progress.Data(),
     ) : ExplorerLocation {
 
-        override val locationId: String get() = "location://recyclebin"
+        override val locationId: String get() = "location://trash"
 
         data class Info(
             val itemCount: Int,

@@ -767,7 +767,7 @@ fun SearcherWorkspacePage(
         // Dialog host
         SearcherDialogHost(
             dialogState = currentState.dialogState,
-            recycleBinEnabled = currentState.recycleBinEnabled,
+            trashEnabled = currentState.trashEnabled,
             onDismiss = { vm?.dismissDialog() },
             onDeleteConfirmed = { vm?.onDeleteConfirmed(it) },
             onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },

@@ -25,7 +25,7 @@ import eu.darken.butler.common.R as CommonR
 @Composable
 fun DeleteConfirmationDialog(
     items: Set<APath<*>>,
-    recycleBinEnabled: Boolean = false,
+    trashEnabled: Boolean = false,
     onDismiss: () -> Unit,
     onConfirm: (items: Set<APath<*>>) -> Unit,
 ) {
@@ -37,11 +37,11 @@ fun DeleteConfirmationDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = if (recycleBinEnabled) {
+                text = if (trashEnabled) {
                     if (itemCount == 1) {
-                        stringResource(R.string.workspace_dialog_recyclebin_title_single)
+                        stringResource(R.string.workspace_dialog_trash_title_single)
                     } else {
-                        pluralStringResource(R.plurals.workspace_dialog_recyclebin_title_multiple, itemCount, itemCount)
+                        pluralStringResource(R.plurals.workspace_dialog_trash_title_multiple, itemCount, itemCount)
                     }
                 } else {
                     if (itemCount == 1) {
@@ -58,11 +58,11 @@ fun DeleteConfirmationDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = if (recycleBinEnabled) {
+                    text = if (trashEnabled) {
                         if (itemCount == 1) {
-                            stringResource(R.string.workspace_dialog_recyclebin_message_single)
+                            stringResource(R.string.workspace_dialog_trash_message_single)
                         } else {
-                            stringResource(R.string.workspace_dialog_recyclebin_message_multiple)
+                            stringResource(R.string.workspace_dialog_trash_message_multiple)
                         }
                     } else {
                         if (itemCount == 1) {
@@ -101,18 +101,18 @@ fun DeleteConfirmationDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = if (recycleBinEnabled) {
-                        stringResource(R.string.workspace_dialog_recyclebin_hint)
+                    text = if (trashEnabled) {
+                        stringResource(R.string.workspace_dialog_trash_hint)
                     } else {
                         stringResource(R.string.workspace_dialog_delete_warning)
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (recycleBinEnabled) {
+                    color = if (trashEnabled) {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     } else {
                         MaterialTheme.colorScheme.error
                     },
-                    fontWeight = if (recycleBinEnabled) FontWeight.Normal else FontWeight.Medium
+                    fontWeight = if (trashEnabled) FontWeight.Normal else FontWeight.Medium
                 )
             }
         },
@@ -121,12 +121,12 @@ fun DeleteConfirmationDialog(
                 onClick = { onConfirm(items) }
             ) {
                 Text(
-                    text = if (recycleBinEnabled) {
-                        stringResource(R.string.workspace_dialog_move_to_recyclebin_action)
+                    text = if (trashEnabled) {
+                        stringResource(R.string.workspace_dialog_move_to_trash_action)
                     } else {
                         stringResource(R.string.workspace_dialog_delete_permanently_action)
                     },
-                    color = if (recycleBinEnabled) {
+                    color = if (trashEnabled) {
                         MaterialTheme.colorScheme.primary
                     } else {
                         MaterialTheme.colorScheme.error
@@ -152,7 +152,7 @@ private fun DeleteConfirmationDialogPreview() {
                 LocalPath.build("/test/file2.txt"),
                 LocalPath.build("/test/folder1"),
             ),
-            recycleBinEnabled = false,
+            trashEnabled = false,
             onDismiss = {},
             onConfirm = {}
         )
@@ -161,7 +161,7 @@ private fun DeleteConfirmationDialogPreview() {
 
 @Preview2
 @Composable
-private fun DeleteConfirmationDialogRecycleBinPreview() {
+private fun DeleteConfirmationDialogTrashPreview() {
     PreviewWrapper {
         DeleteConfirmationDialog(
             items = setOf(
@@ -169,7 +169,7 @@ private fun DeleteConfirmationDialogRecycleBinPreview() {
                 LocalPath.build("/test/file2.txt"),
                 LocalPath.build("/test/folder1"),
             ),
-            recycleBinEnabled = true,
+            trashEnabled = true,
             onDismiss = {},
             onConfirm = {}
         )
@@ -184,7 +184,7 @@ private fun DeleteConfirmationDialogManyItemsPreview() {
             items = (1..10).map {
                 LocalPath.build("/test/file$it.txt")
             }.toSet(),
-            recycleBinEnabled = false,
+            trashEnabled = false,
             onDismiss = {},
             onConfirm = {}
         )

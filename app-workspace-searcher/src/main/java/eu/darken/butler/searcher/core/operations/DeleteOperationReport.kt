@@ -62,7 +62,7 @@ data class DeleteOperationReport(
         private var deletedDirectories: Int = 0
         private var performanceHistory: PerformanceHistory? = null
 
-        fun setDeletions(items: Set<APathLookup<APath<*>>>) {
+        fun setDeletions(items: Set<APathLookup<*>>) {
             val affected = items.map {
                 if (it.isDirectory) deletedDirectories++ else deletedFiles++
                 PathChange(it.lookedUp, PathChange.Change.REMOVED)
@@ -70,7 +70,7 @@ data class DeleteOperationReport(
             affectedPaths.addAll(affected)
         }
 
-        fun setSkipped(items: Set<APathLookup<APath<*>>>) {
+        fun setSkipped(items: Set<APathLookup<*>>) {
             skipped.addAll(items)
         }
 

@@ -1,0 +1,71 @@
+package eu.darken.butler.explorer.ui.explorer.dialogs
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.DeleteForever
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.explorer.R
+import eu.darken.butler.common.R as CommonR
+
+@Composable
+fun EmptyTrashConfirmationDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.TwoTone.DeleteForever,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+            )
+        },
+        title = {
+            Text(
+                text = stringResource(R.string.explorer_trash_empty_confirm),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(R.string.explorer_trash_empty_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm
+            ) {
+                Text(
+                    stringResource(R.string.explorer_trash_empty_confirm_action),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(CommonR.string.general_cancel_action))
+            }
+        }
+    )
+}
+
+@Preview2
+@Composable
+private fun EmptyTrashConfirmationDialogPreview() {
+    PreviewWrapper {
+        EmptyTrashConfirmationDialog(
+            onDismiss = {},
+            onConfirm = {}
+        )
+    }
+}

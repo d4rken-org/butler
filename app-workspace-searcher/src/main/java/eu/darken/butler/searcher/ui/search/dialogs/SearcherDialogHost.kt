@@ -11,7 +11,7 @@ import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
 fun SearcherDialogHost(
     modifier: Modifier = Modifier,
     dialogState: SearcherDialogState,
-    recycleBinEnabled: Boolean,
+    trashEnabled: Boolean,
     onDismiss: () -> Unit,
     onDeleteConfirmed: (items: Set<APath<*>>) -> Unit,
     onCopyToClipboard: (String) -> Unit,
@@ -26,7 +26,7 @@ fun SearcherDialogHost(
         is SearcherDialogState.DeleteConfirmation -> {
             DeleteConfirmationDialog(
                 items = dialogState.paths,
-                recycleBinEnabled = recycleBinEnabled,
+                trashEnabled = trashEnabled,
                 onDismiss = onDismiss,
                 onConfirm = onDeleteConfirmed
             )

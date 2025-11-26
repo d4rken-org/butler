@@ -29,25 +29,25 @@ class ExplorerItemSorter @AssistedInject constructor(
         val shortcuts = mutableListOf<ExplorerItem.Shortcut>()
         val storage = mutableListOf<ExplorerItem.Storage>()
         val pathItems = mutableListOf<ExplorerItem.Path>()
-        val recycleBinItems = mutableListOf<ExplorerItem.RecycleBinItem>()
+        val trashItems = mutableListOf<ExplorerItem.TrashItem>()
 
         items.forEach { item ->
             when (item) {
                 is ExplorerItem.Shortcut -> shortcuts.add(item)
                 is ExplorerItem.Storage -> storage.add(item)
                 is ExplorerItem.Path -> pathItems.add(item)
-                is ExplorerItem.RecycleBinItem -> recycleBinItems.add(item)
+                is ExplorerItem.TrashItem -> trashItems.add(item)
             }
         }
 
         val sortedPathItems = sortPathItems(context, pathItems, sortSettings)
-        // Sort RecycleBin items by deletion date (most recent first)
-        val sortedRecycleBinItems = recycleBinItems.sortedByDescending { it.deletedAt }
+        // Sort trash items by deletion date (most recent first)
+        val sortedTrashItems = trashItems.sortedByDescending { it.deletedAt }
 
         return if (sortSettings.reversed) {
-            sortedRecycleBinItems + sortedPathItems + storage + shortcuts
+            sortedTrashItems + sortedPathItems + storage + shortcuts
         } else {
-            shortcuts + storage + sortedPathItems + sortedRecycleBinItems
+            shortcuts + storage + sortedPathItems + sortedTrashItems
         }
     }
 
