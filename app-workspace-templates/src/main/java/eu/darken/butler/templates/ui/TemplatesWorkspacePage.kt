@@ -101,8 +101,7 @@ fun TemplatesWorkspacePage(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp)
-                    .padding(top = 8.dp),
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -204,7 +203,7 @@ fun TemplatesWorkspacePage(
             WorkspaceButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 8.dp, end = 16.dp),
+                    .padding(top = 16.dp, end = 16.dp),
                 buttonSize = 40.dp,
                 state = workspaceButtonState,
                 currentWorkspaceId = workspaceId,
