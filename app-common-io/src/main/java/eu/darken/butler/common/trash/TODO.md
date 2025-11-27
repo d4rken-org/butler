@@ -1,13 +1,9 @@
-- When is TrashCleanupScheduler.cancel() called? If disable it via settings, does cancel get called? Do we clear the trash?
+- How does trash handle SAF based path deletion? (Currently unsupported - only LocalPath)
 
-- How does trash handle SAF based path deletion?
-
-- Root based deletion moves files where? Same as SAF?
+- Root based deletion moves files where? Same as SAF? (Uses LocalPath with root gateway)
 
 - How do we handle the system deleting our app cache and the trash folder
-- System cache deletion handling - DB inconsistency risk
-
-- Can there be name collision when deleting files with the same name from multiple locations?
+- System cache deletion handling - DB inconsistency risk (syncWithFileSystem() runs at app init)
 
 - Max size enforcement - Setting exists (500MB default) but not enforced
 - Restore ownership/permissions - Data stored but not restored (TODO at line 179)

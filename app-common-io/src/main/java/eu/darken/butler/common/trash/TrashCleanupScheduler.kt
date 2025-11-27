@@ -12,11 +12,14 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
 
 @Singleton
 class TrashCleanupScheduler @Inject constructor(
@@ -25,42 +28,39 @@ class TrashCleanupScheduler @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
 ) {
 
-    fun schedule() {
-        appScope.launch {
-            val enabled = trashSettings.enabled.flow.first()
+    fun setup() {
+        trashSettings.enabled.flow
+            .debounce(500.milliseconds)
+            .distinctUntilChanged()
+            .onEach { enabled ->
+                if (enabled) {
+                    log(TAG, INFO) { "Trash enabled, scheduling cleanup worker" }
 
-            if (enabled) {
-                log(TAG, INFO) { "Scheduling trash cleanup worker" }
+                    val constraints = Constraints.Builder().apply {
+                        setRequiresBatteryNotLow(true)
+                        setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+                    }.build()
 
-                val constraints = Constraints.Builder().apply {
-                    setRequiresBatteryNotLow(true)
-                    setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-                }.build()
+                    val cleanupWork = PeriodicWorkRequestBuilder<TrashCleanupWorker>(
+                        repeatInterval = 1,
+                        repeatIntervalTimeUnit = TimeUnit.DAYS
+                    ).apply {
+                        setConstraints(constraints)
+                    }.build()
 
-                val cleanupWork = PeriodicWorkRequestBuilder<TrashCleanupWorker>(
-                    repeatInterval = 1,
-                    repeatIntervalTimeUnit = TimeUnit.DAYS
-                ).apply {
-                    setConstraints(constraints)
-                }.build()
+                    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                        WORK_NAME,
+                        ExistingPeriodicWorkPolicy.KEEP,
+                        cleanupWork
+                    )
 
-                WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                    WORK_NAME,
-                    ExistingPeriodicWorkPolicy.KEEP,
-                    cleanupWork
-                )
-
-                log(TAG, INFO) { "Trash cleanup worker scheduled successfully" }
-            } else {
-                log(TAG, INFO) { "Trash disabled, canceling cleanup worker" }
-                WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+                    log(TAG, INFO) { "Trash cleanup worker scheduled successfully" }
+                } else {
+                    log(TAG, INFO) { "Trash disabled, canceling cleanup worker" }
+                    WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+                }
             }
-        }
-    }
-
-    fun cancel() {
-        log(TAG, INFO) { "Canceling trash cleanup worker" }
-        WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+            .launchIn(appScope)
     }
 
     companion object {
