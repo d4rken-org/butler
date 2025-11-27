@@ -89,9 +89,7 @@ class ExplorerItemSorter @AssistedInject constructor(
                 )
             }
             SortSettings.Mode.SIZE -> items.sortedBy { it.originalLookup.size ?: 0L }
-            SortSettings.Mode.MODIFIED_AT -> items.sortedBy {
-                it.originalLookup.modifiedAt ?: Instant.DISTANT_PAST
-            }
+            SortSettings.Mode.MODIFIED_AT -> items.sortedBy { it.deletedAt }
             SortSettings.Mode.CREATED_AT -> items.sortedBy {
                 it.originalLookup.createdAt ?: Instant.DISTANT_PAST
             }
