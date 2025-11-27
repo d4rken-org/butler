@@ -174,6 +174,7 @@ private fun SaverHeader(
             Text(
                 text = stringResource(R.string.saver_workspace_title),
                 style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             subtitle?.let {
                 Text(
