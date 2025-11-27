@@ -1,5 +1,6 @@
 package eu.darken.butler.saver.core.arguments
 
+import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
@@ -19,7 +20,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
         val args = SaverArguments.Default(
             sourceUri = "content://media/external/images/1234",
             mimeType = "image/jpeg",
-            callerPackage = "com.example.app",
+            callerPackage = "com.example.app".toPkgId(),
             destinationPath = "/sdcard/Download",
             customFilename = "my_photo.jpg",
         )
@@ -30,7 +31,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
                 "type": "default",
                 "sourceUri": "content://media/external/images/1234",
                 "mimeType": "image/jpeg",
-                "callerPackage": "com.example.app",
+                "callerPackage": {"name":"com.example.app"},
                 "destinationPath": "/sdcard/Download",
                 "customFilename": "my_photo.jpg"
             }
@@ -61,7 +62,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
                 "type": "default",
                 "sourceUri": "content://media/external/video/5678",
                 "mimeType": "video/mp4",
-                "callerPackage": "com.another.app",
+                "callerPackage": {"name":"com.another.app"},
                 "destinationPath": "/storage/emulated/0/Movies",
                 "customFilename": "movie.mp4"
             }
@@ -72,7 +73,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
         args shouldBe SaverArguments.Default(
             sourceUri = "content://media/external/video/5678",
             mimeType = "video/mp4",
-            callerPackage = "com.another.app",
+            callerPackage = "com.another.app".toPkgId(),
             destinationPath = "/storage/emulated/0/Movies",
             customFilename = "movie.mp4",
         )
@@ -101,7 +102,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
         val original = SaverArguments.Default(
             sourceUri = "content://com.google.photos/shared/image123",
             mimeType = "image/png",
-            callerPackage = "com.google.android.apps.photos",
+            callerPackage = "com.google.android.apps.photos".toPkgId(),
             destinationPath = "/sdcard/Pictures",
             customFilename = "screenshot.png",
         )

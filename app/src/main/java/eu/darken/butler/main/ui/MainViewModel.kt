@@ -11,6 +11,7 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
 import android.net.Uri
+import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.saver.core.arguments.SaverArguments
@@ -102,7 +103,7 @@ class MainViewModel @Inject constructor(
                 arguments = SaverArguments.Default(
                     sourceUri = sourceUri.toString(),
                     mimeType = mimeType,
-                    callerPackage = callerPackage,
+                    callerPackage = callerPackage?.toPkgId(),
                 )
             )
         } catch (e: Exception) {

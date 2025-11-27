@@ -1,19 +1,20 @@
 package eu.darken.butler.saver.core
 
 import android.net.Uri
+import androidx.core.net.toUri
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.flow.DynamicStateFlow
+import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.saver.R
 import eu.darken.butler.saver.core.arguments.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
@@ -38,6 +39,7 @@ class SaverWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val contentUriHelper: ContentUriHelper,
     private val saveOperation: SaveOperation,
+    private val pkgOps: PkgOps,
     private val json: Json,
 ) : Workspace<SaverArguments> {
 
@@ -49,7 +51,7 @@ class SaverWorkspace @AssistedInject constructor(
 
     private val creationArguments: SaverArguments.Default = arguments as SaverArguments.Default
 
-    val sourceUri: Uri = Uri.parse(creationArguments.sourceUri)
+    val sourceUri: Uri = creationArguments.sourceUri.toUri()
 
     // State flows for UI
     private val _sourceInfo = MutableStateFlow<ContentUriHelper.SourceInfo?>(null)
@@ -64,6 +66,8 @@ class SaverWorkspace @AssistedInject constructor(
     private val _saveState = MutableStateFlow<SaveOperation.State>(SaveOperation.State.Idle)
     val saveState: Flow<SaveOperation.State> = _saveState
 
+    private val _callerLabel = MutableStateFlow<String?>(creationArguments.callerPackage?.name)
+
     private val _state = DynamicStateFlow<State>(parentScope = scope) { State() }
     val state: Flow<State> = _state.flow
 
@@ -72,7 +76,7 @@ class SaverWorkspace @AssistedInject constructor(
         val destination: APath<*>? = null,
         val filename: String = "",
         val saveState: SaveOperation.State = SaveOperation.State.Idle,
-        val callerPackage: String? = null,
+        val callerLabel: String? = null,
     )
 
     override val info: Flow<Workspace.Info> = combine(
@@ -111,6 +115,19 @@ class SaverWorkspace @AssistedInject constructor(
             }
         }
 
+        // Resolve caller package name to app label
+        creationArguments.callerPackage?.let { pkgId ->
+            scope.launch {
+                try {
+                    val label = pkgOps.getLabel(pkgId)
+                    _callerLabel.value = label ?: pkgId.name
+                    log(tag) { "Resolved caller label: $pkgId -> ${_callerLabel.value}" }
+                } catch (e: Exception) {
+                    log(tag, WARN) { "Failed to resolve caller label for $pkgId: ${e.asLog()}" }
+                }
+            }
+        }
+
         // Restore destination if previously selected
         creationArguments.destinationPath?.let { pathJson ->
             try {
@@ -128,13 +145,14 @@ class SaverWorkspace @AssistedInject constructor(
             _destination,
             _filename,
             _saveState,
-        ) { sourceInfo, destination, filename, saveState ->
+            _callerLabel,
+        ) { sourceInfo, destination, filename, saveState, callerLabel ->
             State(
                 sourceInfo = sourceInfo,
                 destination = destination,
                 filename = filename,
                 saveState = saveState,
-                callerPackage = creationArguments.callerPackage,
+                callerLabel = callerLabel,
             )
         }
             .onEach { _state.updateBlocking { it } }

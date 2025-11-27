@@ -1,5 +1,6 @@
 package eu.darken.butler.saver.core.arguments
 
+import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -24,7 +25,7 @@ sealed interface SaverArguments : Workspace.Arguments {
         /** MIME type of the shared content */
         val mimeType: String?,
         /** Package name of the app that shared the file */
-        val callerPackage: String?,
+        val callerPackage: Pkg.Id?,
         /** Selected destination path (serialized APath), null if not yet selected */
         val destinationPath: String? = null,
         /** User-edited filename, null to extract from ContentUriHelper */
