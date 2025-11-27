@@ -23,6 +23,7 @@ import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -517,7 +518,7 @@ object MockDataProvider {
         sizeKB: Long = 128,
         deletedHoursAgo: Long = 2,
         isAvailable: Boolean = true,
-    ): ExplorerItem.TrashItem {
+    ): ExplorerItem.Trash.Root {
         val originalLookup = createMockLocalPathLookup(
             path = "$originalPath/$name",
             fileType = FileType.FILE,
@@ -533,7 +534,7 @@ object MockDataProvider {
             )
         } else null
 
-        return ExplorerItem.TrashItem(
+        return ExplorerItem.Trash.Root(
             itemId = Uuid.random(),
             deletedAt = MockTimes.hoursAgo(deletedHoursAgo),
             originalLookup = originalLookup,
@@ -546,7 +547,7 @@ object MockDataProvider {
         originalPath: String = "/storage/emulated/0/Downloads",
         sizeKB: Long = 5120,
         deletedDaysAgo: Long = 14,
-    ): ExplorerItem.TrashItem {
+    ): ExplorerItem.Trash.Root {
         val originalLookup = createMockLocalPathLookup(
             path = "$originalPath/$name",
             fileType = FileType.FILE,
@@ -560,11 +561,77 @@ object MockDataProvider {
             hoursAgo = deletedDaysAgo * 24,
         )
 
-        return ExplorerItem.TrashItem(
+        return ExplorerItem.Trash.Root(
             itemId = Uuid.random(),
             deletedAt = MockTimes.daysAgo(deletedDaysAgo),
             originalLookup = originalLookup,
             trashLookup = trashLookup,
+        )
+    }
+
+    // MARK: - Trash Nested Item Factories
+
+    private fun createMockParentRef(
+        originalPath: String = "/storage/emulated/0/Documents/MyFolder",
+        trashPath: String = "/data/user/0/eu.darken.butler/trash",
+    ): TrashItemReference {
+        val itemId = Uuid.random()
+        return TrashItemReference(
+            itemId = itemId,
+            displayName = originalPath.substringAfterLast("/").toCaString(),
+            originalPath = LocalPath.build(originalPath),
+            trashPath = LocalPath.build("$trashPath/$itemId"),
+            deletedAt = MockTimes.hoursAgo(2),
+        )
+    }
+
+    fun createMockTrashNestedItem(
+        name: String = "nested_file.txt",
+        relativePath: String? = null,
+        sizeKB: Long = 64,
+    ): ExplorerItem.Trash.Nested {
+        val actualRelativePath = relativePath ?: name
+        val parentRef = createMockParentRef()
+
+        val lookup = createMockLocalPathLookup(
+            path = "${parentRef.trashPath.path}/$actualRelativePath",
+            fileType = FileType.FILE,
+            sizeKB = sizeKB,
+            hoursAgo = 2,
+        )
+
+        return ExplorerItem.Trash.Nested(
+            inner = ExplorerItem.RegularFile(
+                lookup = lookup,
+                mimeType = MimeInfo("application/octet-stream"),
+            ),
+            parentRef = parentRef,
+            relativePath = actualRelativePath,
+        )
+    }
+
+    fun createMockTrashNestedDirectory(
+        name: String = "nested_folder",
+        relativePath: String? = null,
+        childCount: Int = 5,
+    ): ExplorerItem.Trash.Nested {
+        val actualRelativePath = relativePath ?: name
+        val parentRef = createMockParentRef()
+
+        val lookup = createMockLocalPathLookup(
+            path = "${parentRef.trashPath.path}/$actualRelativePath",
+            fileType = FileType.DIRECTORY,
+            sizeKB = 0,
+            hoursAgo = 2,
+        )
+
+        return ExplorerItem.Trash.Nested(
+            inner = ExplorerItem.RegularDirectory(
+                lookup = lookup,
+                childCount = childCount,
+            ),
+            parentRef = parentRef,
+            relativePath = actualRelativePath,
         )
     }
 }

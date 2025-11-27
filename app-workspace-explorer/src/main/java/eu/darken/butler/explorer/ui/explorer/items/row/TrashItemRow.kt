@@ -23,7 +23,7 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 @Composable
 fun TrashItemRow(
     modifier: Modifier = Modifier,
-    item: ExplorerItem.TrashItem,
+    item: ExplorerItem.Trash.Root,
     isSelected: Boolean = false,
     onToggleSelection: () -> Unit = {},
     onClick: () -> Unit = {},

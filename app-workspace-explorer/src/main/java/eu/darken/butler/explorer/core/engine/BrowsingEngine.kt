@@ -81,7 +81,11 @@ class BrowsingEngine @AssistedInject constructor(
                         when (target) {
                             is ExplorerNavigation.Target.Home -> homeLocationLoader.loadHome()
                             is ExplorerNavigation.Target.Device -> deviceLocationLoader.loadDevice()
-                            is ExplorerNavigation.Target.Trash -> trashLocationLoader.loadTrash()
+                            is ExplorerNavigation.Target.Trash.Root -> trashLocationLoader.loadRoot()
+                            is ExplorerNavigation.Target.Trash.Nested -> trashLocationLoader.loadNested(
+                                target.parentItem,
+                                target.relativePath,
+                            )
                             is ExplorerNavigation.Target.Directory -> directoryLoader.loadDirectory(target.path)
                         }
                             .flowOn(dispatcherProvider.IO)

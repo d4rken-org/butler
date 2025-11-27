@@ -99,6 +99,16 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.TrashNestedItemOptions -> {
+            TrashNestedItemDetailsBottomSheet(
+                item = dialogState.item,
+                onRestore = { vm?.restoreNestedTrashItem(dialogState.item) },
+                onDeletePermanently = { vm?.deleteNestedTrashItemPermanently(dialogState.item) },
+                onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+                onDismiss = { vm?.dismissDialog() },
+            )
+        }
+
         is ExplorerDialogState.EmptyTrashConfirmation -> {
             EmptyTrashConfirmationDialog(
                 onDismiss = { vm?.dismissDialog() },

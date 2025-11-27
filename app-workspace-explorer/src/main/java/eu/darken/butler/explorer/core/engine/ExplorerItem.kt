@@ -165,17 +165,56 @@ sealed interface ExplorerItem {
         )
     }
 
-    data class TrashItem(
-        val itemId: Uuid,
-        val deletedAt: Instant,
-        val originalLookup: APathLookup<*>,
-        val trashLookup: APathLookup<*>?,
-    ) : ExplorerItem {
-        val isAvailable get() = trashLookup != null
-        override val id: String get() = "trash-$itemId"
-        override val displayName: CaString
-            get() = originalLookup.userReadableName
-        val subtitle: CaString
-            get() = originalLookup.parent?.userReadablePath ?: "?".toCaString()
+    sealed interface Trash : ExplorerItem {
+        val deletedAt: Instant
+
+        /**
+         * Root-level item directly deleted by user.
+         */
+        data class Root(
+            val itemId: Uuid,
+            override val deletedAt: Instant,
+            val originalLookup: APathLookup<*>,
+            val trashLookup: APathLookup<*>?,
+        ) : Trash {
+            val isAvailable get() = trashLookup != null
+            override val id: String get() = "trash-$itemId"
+            override val displayName: CaString
+                get() = originalLookup.userReadableName
+            val subtitle: CaString
+                get() = originalLookup.parent?.userReadablePath ?: "?".toCaString()
+        }
+
+        /**
+         * Item inside a trashed folder.
+         * Wraps a regular Lookup item with trash context for operations.
+         */
+        data class Nested(
+            val inner: Lookup,
+            val parentRef: TrashItemReference,
+            val relativePath: String,
+        ) : Trash {
+            override val deletedAt: Instant get() = parentRef.deletedAt
+            override val id: String
+                get() = "trash-nested-${parentRef.itemId}/$relativePath"
+            override val displayName: CaString
+                get() = inner.displayName
+
+            /**
+             * The path this item would have if fully restored.
+             */
+            val originalRestoredPath: APath<*>
+                get() = parentRef.originalPath.child(relativePath)
+
+            /**
+             * The current physical path in the trash filesystem.
+             */
+            val currentTrashPath: APath<*>
+                get() = parentRef.trashPath.child(relativePath)
+
+            val lookup: APathLookup<*> get() = inner.lookup
+            val isDirectory: Boolean get() = inner is Directory
+            val isFile: Boolean get() = inner is File
+        }
     }
 }

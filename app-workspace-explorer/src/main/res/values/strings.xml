@@ -135,6 +135,7 @@
     <string name="explorer_navigation_device">Device</string>
     <string name="explorer_navigation_trash">Trash</string>
     <string name="explorer_navigation_trash_desc">Recover deleted files</string>
+    <string name="explorer_navigation_trash_nested_desc">Inside trashed folder</string>
 
     <!-- Trash -->
     <string name="explorer_trash_empty_state">No deleted items</string>
@@ -154,6 +155,14 @@
     <string name="explorer_trash_item_unavailable">Item unavailable</string>
     <string name="explorer_trash_delete_warning">This cannot be undone</string>
     <string name="explorer_trash_disabled_warning">Trash disabled</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Loading trashed folder contents…</string>
+    <string name="explorer_trash_nested_restore_action">Restore to original location</string>
+    <string name="explorer_trash_nested_delete_action">Delete permanently</string>
+    <string name="explorer_trash_nested_restore_conflict">File already exists at original location</string>
+    <string name="explorer_trash_nested_parent_missing">Parent item no longer exists in trash</string>
+    <string name="explorer_trash_nested_path_missing">Path no longer exists</string>
 
     <string name="explorer_navigation_root">Root directory</string>
     <string name="explorer_navigation_rom">System ROM</string>

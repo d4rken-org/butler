@@ -8,7 +8,6 @@ import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -17,17 +16,15 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
-import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.formatFileSize
-import eu.darken.butler.common.formatSmartTime
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
-fun TrashItemGrid(
+fun TrashNestedItemGrid(
     modifier: Modifier = Modifier,
-    item: ExplorerItem.Trash.Root,
+    item: ExplorerItem.Trash.Nested,
     isSelected: Boolean = false,
     onToggleSelection: () -> Unit = {},
     onClick: () -> Unit = {},
@@ -35,10 +32,9 @@ fun TrashItemGrid(
     showSelection: Boolean = false,
 ) {
     val context = LocalContext.current
-    val isDirectory = item.originalLookup.isDirectory
 
     FileGridBase(
-        modifier = modifier.alpha(if (item.isAvailable) 1f else 0.5f),
+        modifier = modifier,
         item = item,
         isSelected = isSelected,
         onToggleSelection = onToggleSelection,
@@ -47,18 +43,18 @@ fun TrashItemGrid(
         showSelection = showSelection,
         icon = {
             Icon(
-                imageVector = if (isDirectory) Icons.TwoTone.Folder else Icons.TwoTone.Description,
+                imageVector = if (item.isDirectory) Icons.TwoTone.Folder else Icons.TwoTone.Description,
                 contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
                 tint = Color.White,
                 modifier = Modifier.size(20.dp),
             )
         },
         primaryText = item.displayName.get(context),
-        secondaryText = item.trashLookup?.size?.let { formatFileSize(it) },
-        tertiaryText = formatSmartTime(item.deletedAt),
+        secondaryText = item.lookup.size?.let { formatFileSize(it) },
+        tertiaryText = null,
         previewContent = {
             TintedAsyncImage(
-                model = item.trashLookup ?: item.originalLookup,
+                model = item.lookup,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
@@ -69,20 +65,20 @@ fun TrashItemGrid(
 
 @Preview2
 @Composable
-private fun TrashItemGridPreview() {
+private fun TrashNestedItemGridPreview() {
     PreviewWrapper {
-        TrashItemGrid(
-            item = MockDataProvider.createMockTrashItem(),
+        TrashNestedItemGrid(
+            item = MockDataProvider.createMockTrashNestedItem(),
         )
     }
 }
 
 @Preview2
 @Composable
-private fun TrashItemGridSelectedPreview() {
+private fun TrashNestedItemGridSelectedPreview() {
     PreviewWrapper {
-        TrashItemGrid(
-            item = MockDataProvider.createMockTrashItem("photo.jpg"),
+        TrashNestedItemGrid(
+            item = MockDataProvider.createMockTrashNestedItem("photo.jpg"),
             isSelected = true,
             showSelection = true,
         )
@@ -91,10 +87,10 @@ private fun TrashItemGridSelectedPreview() {
 
 @Preview2
 @Composable
-private fun TrashItemGridOldPreview() {
+private fun TrashNestedItemGridDirectoryPreview() {
     PreviewWrapper {
-        TrashItemGrid(
-            item = MockDataProvider.createMockTrashItemOld(),
+        TrashNestedItemGrid(
+            item = MockDataProvider.createMockTrashNestedDirectory(),
         )
     }
 }

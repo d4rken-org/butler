@@ -79,7 +79,7 @@ class HomeLocationLoader @AssistedInject constructor(
                         shortcutId = "trash",
                         displayIcon = Icons.TwoTone.Delete,
                         displayName = R.string.explorer_navigation_trash.toCaString(),
-                        target = ExplorerNavigation.Target.Trash,
+                        target = ExplorerNavigation.Target.Trash.Root,
                         badge = trashBadge,
                         subtitle = caString { cx ->
                             val countText = cx.resources.getQuantityString(

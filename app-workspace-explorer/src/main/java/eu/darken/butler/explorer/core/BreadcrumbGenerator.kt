@@ -28,7 +28,7 @@ class BreadcrumbGenerator @Inject constructor(
             label = R.string.explorer_navigation_trash.toCaString(),
             icon = Icons.TwoTone.Delete,
             badgeIcon = if (!trashEnabled) Icons.TwoTone.PauseCircle else null,
-            target = ExplorerNavigation.Target.Trash,
+            target = ExplorerNavigation.Target.Trash.Root,
             showIcon = true,
             showText = false,
         )
@@ -37,7 +37,36 @@ class BreadcrumbGenerator @Inject constructor(
     suspend fun getBreadcrumbs(location: ExplorerLocation): List<ExplorerBreadcrumb> = when (location) {
         is ExplorerLocation.Home -> listOf(HOME)
         is ExplorerLocation.Device -> listOf(HOME, DEVICE)
-        is ExplorerLocation.Trash -> listOf(HOME, getTrashBreadcrumb())
+        is ExplorerLocation.Trash.Root -> listOf(HOME, getTrashBreadcrumb())
+        is ExplorerLocation.Trash.Nested -> buildList {
+            add(HOME)
+            add(getTrashBreadcrumb())
+
+            // Breadcrumb for the root trashed item
+            add(
+                ExplorerBreadcrumb(
+                    label = location.parentItem.displayName,
+                    icon = Icons.TwoTone.FolderOpen,
+                    showIcon = true,
+                    target = ExplorerNavigation.Target.Trash.Nested(location.parentItem, ""),
+                )
+            )
+
+            // Breadcrumbs for nested path segments
+            if (location.relativePath.isNotEmpty()) {
+                var accumulated = ""
+                location.relativePath.split("/").forEach { segment ->
+                    accumulated = if (accumulated.isEmpty()) segment else "$accumulated/$segment"
+                    add(
+                        ExplorerBreadcrumb(
+                            label = segment.toCaString(),
+                            icon = Icons.TwoTone.FolderOpen,
+                            target = ExplorerNavigation.Target.Trash.Nested(location.parentItem, accumulated),
+                        )
+                    )
+                }
+            }
+        }
         is ExplorerLocation.Directory -> buildList {
             when (location.parent) {
                 is ExplorerNavigation.Target.Home -> {
@@ -48,6 +77,10 @@ class BreadcrumbGenerator @Inject constructor(
                     add(DEVICE)
                 }
                 is ExplorerNavigation.Target.Trash -> {
+                    add(HOME)
+                    add(getTrashBreadcrumb())
+                }
+                is ExplorerNavigation.Target.Trash.Nested -> {
                     add(HOME)
                     add(getTrashBreadcrumb())
                 }

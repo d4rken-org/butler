@@ -87,12 +87,37 @@ fun ExplorerInfoBar(
                     )
                 }
 
-                is ExplorerLocation.Trash.Info -> {
+                is ExplorerLocation.Trash.Root.Info -> {
                     if (isTrashDisabled && selectedCount == 0) {
                         InfoChip(
                             icon = Icons.TwoTone.PauseCircle,
                             label = stringResource(R.string.explorer_trash_disabled_warning),
                         )
+                    }
+                }
+
+                is ExplorerLocation.Trash.Nested.Info -> {
+                    if (selectedCount == 0) {
+                        if (info.directoryCount != null && info.directoryCount > 0) {
+                            InfoChip(
+                                icon = Icons.TwoTone.Folder,
+                                label = pluralStringResource(
+                                    R.plurals.explorer_infobar_folders_count,
+                                    info.directoryCount,
+                                    info.directoryCount
+                                ),
+                            )
+                        }
+                        if (info.fileCount != null && info.fileCount > 0) {
+                            InfoChip(
+                                icon = Icons.TwoTone.Description,
+                                label = pluralStringResource(
+                                    R.plurals.explorer_infobar_files_count,
+                                    info.fileCount,
+                                    info.fileCount
+                                ),
+                            )
+                        }
                     }
                 }
 
@@ -146,7 +171,7 @@ fun ExplorerInfoBar(
                     }
                 }
 
-                is ExplorerLocation.Trash.Info -> {
+                is ExplorerLocation.Trash.Root.Info -> {
                     if(selectedCount > 0) return@WorkspaceInfoBar
                     Spacer(modifier = Modifier.weight(1f))
                     if (info.totalSize > 0) {
@@ -168,6 +193,17 @@ fun ExplorerInfoBar(
                         InfoChip(
                             icon = Icons.TwoTone.Delete,
                             label = stringResource(R.string.explorer_trash_empty_state),
+                        )
+                    }
+                }
+
+                is ExplorerLocation.Trash.Nested.Info -> {
+                    if (selectedCount > 0) return@WorkspaceInfoBar
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (info.totalSize != null && info.totalSize > 0) {
+                        InfoChip(
+                            icon = Icons.TwoTone.Storage,
+                            label = formatFileSize(info.totalSize),
                         )
                     }
                 }

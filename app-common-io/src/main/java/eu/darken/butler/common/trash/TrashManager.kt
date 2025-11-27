@@ -45,9 +45,9 @@ class TrashManager @Inject constructor(
     )
 
     data class TrashRestoreReport(
-        val restored: Set<APathLookup<*>>,
-        val failed: Set<APathLookup<*>>,
-        val conflicts: Set<APathLookup<*>>,
+        val restored: Set<APath<*>>,
+        val failed: Set<APath<*>>,
+        val conflicts: Set<APath<*>>,
     )
 
     data class TrashStats(
@@ -76,7 +76,7 @@ class TrashManager @Inject constructor(
 
         for (path in supported) {
             try {
-                val localPath = path as LocalPath
+                val localPath = path
 
                 // Look up the item to get full metadata
                 val lookup = gatewaySwitch.lookup(localPath, LookupOptions.MAX)
@@ -132,7 +132,7 @@ class TrashManager @Inject constructor(
         }
 
         val trashRoot = if (supported.isNotEmpty()) {
-            getTrashRoot(supported.first() as LocalPath)
+            getTrashRoot(supported.first())
         } else null
 
         return@withContext TrashMoveReport(
@@ -148,53 +148,51 @@ class TrashManager @Inject constructor(
     ): TrashRestoreReport = withContext(dispatcherProvider.IO) {
         log(TAG, INFO) { "Restoring ${items.size} items from recycle bin" }
 
-        val restoredItems = mutableSetOf<APathLookup<*>>()
-        val failedItems = mutableSetOf<APathLookup<*>>()
-        val conflicts = mutableSetOf<APathLookup<*>>()
+        val restoredItems = mutableSetOf<APath<*>>()
+        val failedItems = mutableSetOf<APath<*>>()
+        val conflicts = mutableSetOf<APath<*>>()
 
         for (item in items) {
             try {
                 // TODO
-                val trashPath = item.trashLookup as LocalPath
-                val originalPath = item.originalPath as LocalPath
+                val trashLookup = item.trashLookup
+
+                if (trashLookup == null) {
+                    failedItems.add(item.trashPath)
+                    log(TAG, ERROR) { "Failed to restore: $item (no trash path)" }
+                    continue
+                }
+
+                val originalPath = item.originalPath
 
                 // Check if original path already exists
                 val existingLookup = gatewaySwitch.lookup(originalPath, LookupOptions(fallbackToUnknown = true))
                 if (existingLookup.fileType != FileType.UNKNOWN) {
                     log(TAG, WARN) { "Original path already exists: $originalPath" }
-                    conflicts.add(existingLookup)
+                    conflicts.add(originalPath)
                     continue
                 }
 
                 // Restore the file
-                val restoreState = trashPath.move(
+                val restoreState = trashLookup.lookedUp.move(
                     gateway = gatewaySwitch,
                     destination = originalPath,
                 ).last()
 
+                // TODO: Restore ownership/permissions from item.originalLookup if possible
+
                 if (restoreState is MoveAction.State.Completed<*, *, *, *>) {
                     // Remove from repository
                     repository.deleteById(item.id)
-
-                    // TODO: Restore ownership/permissions from item.originalLookup if possible
-                    val lookup = gatewaySwitch.lookup(originalPath, LookupOptions(fetchSize = true))
-                    restoredItems.add(lookup)
-
-                    log(TAG, DEBUG) { "Successfully restored: $trashPath -> $originalPath" }
+                    restoredItems.add(originalPath)
+                    log(TAG, DEBUG) { "Successfully restored: $trashLookup -> $originalPath" }
                 } else {
-                    val lookup = gatewaySwitch.lookup(trashPath, LookupOptions(fallbackToUnknown = true))
-                    failedItems.add(lookup)
-                    log(TAG, ERROR) { "Failed to restore: $trashPath" }
+                    failedItems.add(item.trashPath)
+                    log(TAG, ERROR) { "Failed to restore: $item" }
                 }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Error restoring item ${item.id}: ${e.asLog()}" }
-                try {
-                    val path = item.trashLookup as LocalPath
-                    val lookup = gatewaySwitch.lookup(path, LookupOptions(fallbackToUnknown = true))
-                    failedItems.add(lookup)
-                } catch (e2: Exception) {
-                    log(TAG, ERROR) { "Failed to create lookup for error item: ${e2.asLog()}" }
-                }
+                failedItems.add(item.trashPath)
             }
         }
 
@@ -212,34 +210,130 @@ class TrashManager @Inject constructor(
 
         var deletedCount = 0
         for (item in items) {
-            try {
-                val trashPath = item.trashLookup as LocalPath
+            val trashPath = item.trashPath
 
+            val deleteState = try {
                 // Delete the actual file/directory
-                val deleteState = trashPath.delete(
+                trashPath.delete(
                     gateway = gatewaySwitch,
-                    options = DeleteAction.Options(),
+                    options = DeleteAction.Options(recursive = true),
                 ).last()
-
-                if (deleteState is DeleteAction.State.Completed<*, *>) {
-                    // Remove from repository
-                    repository.deleteById(item.id)
-                    deletedCount++
-
-                    log(TAG, DEBUG) { "Permanently deleted: $trashPath" }
-                }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Error permanently deleting item ${item.id}: ${e.asLog()}" }
+                continue
             }
+
+            if (deleteState is DeleteAction.State.Completed<*, *>) {
+                // Remove from repository
+                repository.deleteById(item.id)
+                deletedCount++
+
+                log(TAG, DEBUG) { "Permanently deleted: $trashPath" }
+            }
+
         }
 
         return@withContext deletedCount
     }
 
     suspend fun emptyTrash(): Int = withContext(dispatcherProvider.IO) {
-        log(TAG, INFO) { "Emptying trasg" }
+        log(TAG, INFO) { "Emptying trash" }
         val items = repository.getAllItems().first()
         return@withContext deletePermanently(items)
+    }
+
+    /**
+     * Restores a specific item from within a trashed folder to its original location.
+     * The parent trash item remains in trash.
+     */
+    suspend fun restoreNested(
+        parentItem: TrashRepo.TrashItem,
+        relativePath: String,
+    ): TrashRestoreReport = withContext(dispatcherProvider.IO) {
+        log(TAG, INFO) { "Restoring nested item: '$relativePath' from ${parentItem.id}" }
+
+        val sourcePath = parentItem.trashPath.child(relativePath)
+        val destinationPath = parentItem.originalPath.child(relativePath)
+
+        val restoredItems = mutableSetOf<APath<*>>()
+        val failedItems = mutableSetOf<APath<*>>()
+        val conflicts = mutableSetOf<APath<*>>()
+
+        try {
+            // Check if destination already exists
+            val destLookup = gatewaySwitch.lookup(destinationPath, LookupOptions(fallbackToUnknown = true))
+            if (destLookup.fileType != FileType.UNKNOWN) {
+                log(TAG, WARN) { "Destination already exists: $destinationPath" }
+                conflicts.add(destinationPath)
+                return@withContext TrashRestoreReport(
+                    restored = restoredItems,
+                    failed = failedItems,
+                    conflicts = conflicts,
+                )
+            }
+
+            // Ensure parent directories exist
+            val parentDir = destinationPath.parent
+            if (parentDir != null && !gatewaySwitch.exists(parentDir)) {
+                gatewaySwitch.createDir(parentDir)
+                log(TAG, DEBUG) { "Created parent directory: $parentDir" }
+            }
+
+            // Move the item
+            val moveState = sourcePath.move(
+                gateway = gatewaySwitch,
+                destination = destinationPath,
+            ).last()
+
+            if (moveState is MoveAction.State.Completed<*, *, *, *>) {
+                restoredItems.add(destinationPath)
+                log(TAG, DEBUG) { "Successfully restored: $sourcePath -> $destinationPath" }
+            } else {
+                failedItems.add(sourcePath)
+                log(TAG, ERROR) { "Failed to restore: $sourcePath" }
+            }
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Error restoring nested item: ${e.asLog()}" }
+            failedItems.add(sourcePath)
+        }
+
+        // Note: We do NOT remove from database - parent item still exists
+        // Database cleanup happens when entire trashed folder is restored/deleted
+
+        return@withContext TrashRestoreReport(
+            restored = restoredItems,
+            failed = failedItems,
+            conflicts = conflicts,
+        )
+    }
+
+    /**
+     * Permanently deletes a specific item from within a trashed folder.
+     * The parent trash item remains in trash.
+     */
+    suspend fun deleteNestedPermanently(
+        parentItem: TrashRepo.TrashItem,
+        relativePath: String,
+    ): Int = withContext(dispatcherProvider.IO) {
+        log(TAG, INFO) { "Permanently deleting nested item: '$relativePath' from ${parentItem.id}" }
+
+        val targetPath = parentItem.trashPath.child(relativePath)
+
+        try {
+            val deleteState = targetPath.delete(
+                gateway = gatewaySwitch,
+                options = DeleteAction.Options(recursive = true),
+            ).last()
+
+            if (deleteState is DeleteAction.State.Completed<*, *>) {
+                log(TAG, DEBUG) { "Permanently deleted: $targetPath" }
+                return@withContext 1
+            }
+        } catch (e: Exception) {
+            log(TAG, ERROR) { "Error deleting nested item: ${e.asLog()}" }
+        }
+
+        return@withContext 0
     }
 
     suspend fun cleanupExpired(): Int = withContext(dispatcherProvider.IO) {

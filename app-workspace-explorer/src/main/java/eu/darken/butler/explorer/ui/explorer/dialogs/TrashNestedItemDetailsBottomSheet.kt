@@ -14,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.DeleteForever
-import androidx.compose.material.icons.twotone.QuestionMark
 import androidx.compose.material.icons.twotone.Restore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,21 +28,18 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
-import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import java.text.DateFormat
 import java.util.Date
-import kotlin.time.Clock
-import kotlin.uuid.Uuid
 
 @Composable
-fun TrashItemDetailsBottomSheet(
-    item: ExplorerItem.Trash.Root,
+fun TrashNestedItemDetailsBottomSheet(
+    item: ExplorerItem.Trash.Nested,
     onRestore: () -> Unit,
     onDeletePermanently: () -> Unit,
     onCopyToClipboard: (String) -> Unit,
@@ -55,7 +51,7 @@ fun TrashItemDetailsBottomSheet(
         onDismiss = onDismiss,
         modifier = modifier,
     ) {
-        TrashItemOptionsContent(
+        TrashNestedItemOptionsContent(
             item = item,
             onRestore = onRestore,
             onDeletePermanently = onDeletePermanently,
@@ -66,15 +62,15 @@ fun TrashItemDetailsBottomSheet(
 }
 
 @Composable
-private fun TrashItemOptionsContent(
-    item: ExplorerItem.Trash.Root,
+private fun TrashNestedItemOptionsContent(
+    item: ExplorerItem.Trash.Nested,
     onRestore: () -> Unit,
     onDeletePermanently: () -> Unit,
     onCopyToClipboard: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    val lookup = item.originalLookup
+    val lookup = item.lookup
 
     Column(
         modifier = Modifier
@@ -93,20 +89,11 @@ private fun TrashItemOptionsContent(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (item.trashLookup?.lookedUp != null) {
-                TintedAsyncImage(
-                    model = item.trashLookup,
-                    contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
-                    modifier = Modifier.size(40.dp)
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.TwoTone.QuestionMark,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                )
-            }
+            TintedAsyncImage(
+                model = lookup,
+                contentDescription = stringResource(R.string.explorer_file_folder_content_desc),
+                modifier = Modifier.size(40.dp)
+            )
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -121,7 +108,7 @@ private fun TrashItemOptionsContent(
                 )
 
                 Text(
-                    text = item.subtitle.get(context),
+                    text = item.relativePath,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -133,19 +120,13 @@ private fun TrashItemOptionsContent(
         // Details card
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             InfoCard {
-                // Deleted at - trash specific
-                InfoRow(
-                    label = stringResource(R.string.explorer_trash_info_deleted_label),
-                    value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                        .format(Date(item.deletedAt.toEpochMilliseconds()))
-                )
-
-                // Original path
+                // Original restore path
+                val restorePath = item.originalRestoredPath.path
                 InfoRow(
                     label = stringResource(R.string.explorer_info_path_label),
-                    value = lookup.path,
+                    value = restorePath,
                     isCopyable = true,
-                    onCopy = { onCopyToClipboard(lookup.path) }
+                    onCopy = { onCopyToClipboard(restorePath) }
                 )
 
                 // Type
@@ -176,102 +157,51 @@ private fun TrashItemOptionsContent(
                     )
                 }
 
-                // Created date
-                lookup.createdAt?.let { createdAt ->
-                    InfoRow(
-                        label = stringResource(R.string.explorer_info_created_label),
-                        value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                            .format(Date(createdAt.toEpochMilliseconds()))
-                    )
-                }
-
-                // Permissions
-                lookup.permissions?.let { permissions ->
-                    InfoRow(
-                        label = stringResource(R.string.explorer_info_permissions_label),
-                        value = permissions.toReadableString()
-                    )
-                }
-
-                // Owner
-                lookup.ownership?.let { ownership ->
-                    InfoRow(
-                        label = stringResource(R.string.explorer_info_owner_label),
-                        value = ownership.userName ?: ownership.userId.toString()
-                    )
-                }
+                // Parent deleted at
+                InfoRow(
+                    label = stringResource(R.string.explorer_trash_info_deleted_label),
+                    value = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+                        .format(Date(item.parentRef.deletedAt.toEpochMilliseconds()))
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Options
-        if (item.isAvailable) {
-            // Restore option - only available if item is still available
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onRestore()
-                        onDismiss()
-                    }
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.Restore,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column {
-                    Text(
-                        text = stringResource(R.string.explorer_trash_restore_action),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    Text(
-                        text = stringResource(R.string.explorer_trash_restore_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+        // Restore option
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    onRestore()
+                    onDismiss()
                 }
-            }
-        } else {
-            // Show message that item cannot be restored (storage unavailable)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.Restore,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.TwoTone.Restore,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(
+                    text = stringResource(R.string.explorer_trash_restore_action),
+                    style = MaterialTheme.typography.bodyLarge,
                 )
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Column {
-                    Text(
-                        text = stringResource(R.string.explorer_trash_restore_action),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
-                    Text(
-                        text = stringResource(R.string.explorer_trash_item_unavailable),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.explorer_trash_nested_restore_action),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
 
-        // Delete permanently option - always available
+        // Delete permanently option
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -309,28 +239,24 @@ private fun TrashItemOptionsContent(
 
 @Preview2
 @Composable
-private fun TrashItemOptionsBottomSheetPreview() {
+private fun TrashNestedItemOptionsBottomSheetPreview() {
     PreviewWrapper {
-        val mockPath = LocalPath.build("/storage/emulated/0/Documents/test.txt")
-        val mockItem = ExplorerItem.Trash.Root(
-            itemId = Uuid.random(),
-            deletedAt = Clock.System.now(),
-            originalLookup = LocalPathLookup(
-                lookedUp = mockPath,
-                fileType = FileType.FILE,
-                size = 1024L * 50,
-                modifiedAt = Clock.System.now(),
-            ),
-            trashLookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/.Trash/test.txt"),
-                fileType = FileType.FILE,
-                size = 1024L * 50,
-                modifiedAt = Clock.System.now(),
-            ),
+        TrashNestedItemOptionsContent(
+            item = MockDataProvider.createMockTrashNestedItem(),
+            onRestore = {},
+            onDeletePermanently = {},
+            onCopyToClipboard = {},
+            onDismiss = {},
         )
+    }
+}
 
-        TrashItemOptionsContent(
-            item = mockItem,
+@Preview2
+@Composable
+private fun TrashNestedItemOptionsBottomSheetDirectoryPreview() {
+    PreviewWrapper {
+        TrashNestedItemOptionsContent(
+            item = MockDataProvider.createMockTrashNestedDirectory(),
             onRestore = {},
             onDeletePermanently = {},
             onCopyToClipboard = {},

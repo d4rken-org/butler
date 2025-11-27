@@ -29,24 +29,27 @@ class ExplorerItemSorter @AssistedInject constructor(
         val shortcuts = mutableListOf<ExplorerItem.Shortcut>()
         val storage = mutableListOf<ExplorerItem.Storage>()
         val pathItems = mutableListOf<ExplorerItem.Path>()
-        val trashItems = mutableListOf<ExplorerItem.TrashItem>()
+        val trashItems = mutableListOf<ExplorerItem.Trash.Root>()
+        val trashNestedItems = mutableListOf<ExplorerItem.Trash.Nested>()
 
         items.forEach { item ->
             when (item) {
                 is ExplorerItem.Shortcut -> shortcuts.add(item)
                 is ExplorerItem.Storage -> storage.add(item)
                 is ExplorerItem.Path -> pathItems.add(item)
-                is ExplorerItem.TrashItem -> trashItems.add(item)
+                is ExplorerItem.Trash.Root -> trashItems.add(item)
+                is ExplorerItem.Trash.Nested -> trashNestedItems.add(item)
             }
         }
 
         val sortedPathItems = sortPathItems(context, pathItems, sortSettings)
         val sortedTrashItems = sortTrashItems(context, trashItems, sortSettings)
+        val sortedTrashNestedItems = sortTrashNestedItems(context, trashNestedItems, sortSettings)
 
         return if (sortSettings.reversed) {
-            sortedTrashItems + sortedPathItems + storage + shortcuts
+            sortedTrashNestedItems + sortedTrashItems + sortedPathItems + storage + shortcuts
         } else {
-            shortcuts + storage + sortedPathItems + sortedTrashItems
+            shortcuts + storage + sortedPathItems + sortedTrashItems + sortedTrashNestedItems
         }
     }
 
@@ -73,9 +76,9 @@ class ExplorerItemSorter @AssistedInject constructor(
 
     private fun sortTrashItems(
         context: Context,
-        items: List<ExplorerItem.TrashItem>,
+        items: List<ExplorerItem.Trash.Root>,
         sortSettings: SortSettings,
-    ): List<ExplorerItem.TrashItem> {
+    ): List<ExplorerItem.Trash.Root> {
         if (items.isEmpty()) return items
 
         val sorted = when (sortSettings.mode) {
@@ -95,6 +98,49 @@ class ExplorerItemSorter @AssistedInject constructor(
         }
 
         return if (sortSettings.reversed) sorted.reversed() else sorted
+    }
+
+    private fun sortTrashNestedItems(
+        context: Context,
+        items: List<ExplorerItem.Trash.Nested>,
+        sortSettings: SortSettings,
+    ): List<ExplorerItem.Trash.Nested> {
+        if (items.isEmpty()) return items
+
+        // Separate directories and files
+        val directories = items.filter { it.isDirectory }
+        val files = items.filter { it.isFile }
+
+        val sortedDirectories = applySortModeNested(context, directories, sortSettings)
+        val sortedFiles = applySortModeNested(context, files, sortSettings)
+
+        return if (sortSettings.reversed) {
+            sortedFiles.reversed() + sortedDirectories.reversed()
+        } else {
+            sortedDirectories + sortedFiles
+        }
+    }
+
+    private fun applySortModeNested(
+        context: Context,
+        items: List<ExplorerItem.Trash.Nested>,
+        sortSettings: SortSettings,
+    ): List<ExplorerItem.Trash.Nested> {
+        return when (sortSettings.mode) {
+            SortSettings.Mode.NAME -> items.sortedWith { a, b ->
+                NaturalSortComparator.compare(
+                    a.displayName.get(context),
+                    b.displayName.get(context)
+                )
+            }
+            SortSettings.Mode.SIZE -> items.sortedBy { it.lookup.size ?: 0L }
+            SortSettings.Mode.MODIFIED_AT -> items.sortedBy {
+                it.lookup.modifiedAt ?: Instant.DISTANT_PAST
+            }
+            SortSettings.Mode.CREATED_AT -> items.sortedBy {
+                it.lookup.createdAt ?: Instant.DISTANT_PAST
+            }
+        }
     }
 
     private fun <T : ExplorerItem.Path> applySortMode(

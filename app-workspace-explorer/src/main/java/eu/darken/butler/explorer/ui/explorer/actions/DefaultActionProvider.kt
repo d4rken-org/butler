@@ -10,7 +10,7 @@ class DefaultActionProvider @Inject constructor(
     private val directoryProvider: DirectoryActionProvider,
     private val trashActionProvider: TrashActionProvider,
 ) : ExplorerActionProvider {
-    
+
     override fun getActions(
         location: ExplorerLocation,
         selectionState: ExplorerSelectionState,

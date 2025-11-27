@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.permissions.core.PathRequirements
+import kotlin.uuid.Uuid
 
 sealed interface ExplorerLocation {
     val locationId: String
@@ -70,25 +71,55 @@ sealed interface ExplorerLocation {
         ) : LocationInfo
     }
 
-    data class Trash(
-        override val items: List<ExplorerItem>? = null,
-        override val info: Info? = null,
-        override val setupRequirements: PathRequirements = PathRequirements(),
-        override val progress: Progress.Data? = Progress.Data(),
-    ) : ExplorerLocation {
+    sealed interface Trash : ExplorerLocation {
+        /**
+         * Root trash view showing all deleted items.
+         */
+        data class Root(
+            override val items: List<ExplorerItem>? = null,
+            override val info: Info? = null,
+            override val setupRequirements: PathRequirements = PathRequirements(),
+            override val progress: Progress.Data? = Progress.Data(),
+        ) : Trash {
 
-        override val locationId: String get() = "location://trash"
+            override val locationId: String get() = "location://trash"
 
-        data class Info(
-            val itemCount: Int,
-            val totalSize: Long,
-            val oldestItem: kotlin.time.Instant? = null,
-        ) : LocationInfo
+            data class Info(
+                val itemCount: Int,
+                val totalSize: Long,
+                val oldestItem: kotlin.time.Instant? = null,
+            ) : LocationInfo
 
-        data class StorageInfo(
-            val label: String,
-            val itemCount: Int,
-            val size: Long,
-        )
+            data class StorageInfo(
+                val label: String,
+                val itemCount: Int,
+                val size: Long,
+            )
+        }
+
+        /**
+         * Nested view inside a trashed folder.
+         * Read-only: no create/paste/rename operations allowed.
+         */
+        data class Nested(
+            override val items: List<ExplorerItem>? = null,
+            override val info: Info? = null,
+            override val setupRequirements: PathRequirements = PathRequirements(),
+            override val progress: Progress.Data? = Progress.Data(),
+            val parentItem: TrashItemReference,
+            val currentPath: APath<*>,
+            val relativePath: String,
+            val parent: ExplorerNavigation.Target? = null,
+        ) : Trash {
+
+            override val locationId: String
+                get() = "location://trash/${parentItem.itemId}/$relativePath"
+
+            data class Info(
+                val fileCount: Int? = null,
+                val directoryCount: Int? = null,
+                val totalSize: Long? = null,
+            ) : LocationInfo
+        }
     }
 }
