@@ -11,7 +11,6 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
@@ -27,8 +26,6 @@ import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -43,7 +40,6 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     navController: NavigationController,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
-    private val filenameValidator: FilenameValidator,
 ) : ViewModel4(dispatchers, logTag("Saver", "Workspace", id.shortTag, "Page"), navController) {
 
     private val workspaceSource: Flow<SaverWorkspace?> =
@@ -52,20 +48,16 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
 
     private suspend fun getWorkspace(): SaverWorkspace = workspaceSource.filterNotNull().first()
 
-    private val filenameErrorFlow = MutableStateFlow<String?>(null)
-
     data class State(
         val sourceInfo: ContentUriHelper.SourceInfo? = null,
         val destination: APath<*>? = null,
         val filename: String = "",
-        val filenameError: String? = null,
         val saveState: SaveOperation.State = SaveOperation.State.Idle,
         val callerPackage: String? = null,
     ) {
         val canSave: Boolean
             get() = destination != null
                 && filename.isNotBlank()
-                && filenameError == null
                 && sourceInfo?.isAccessible == true
                 && saveState !is SaveOperation.State.Saving
 
@@ -82,19 +74,18 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
             get() = (saveState as? SaveOperation.State.Success)?.savedPath
     }
 
-    val state: Flow<State> = combine(
-        workspaceSource.filterNotNull().flatMapLatest { it.state },
-        filenameErrorFlow,
-    ) { wsState, filenameError ->
-        State(
-            sourceInfo = wsState.sourceInfo,
-            destination = wsState.destination,
-            filename = wsState.filename,
-            filenameError = filenameError,
-            saveState = wsState.saveState,
-            callerPackage = wsState.callerPackage,
-        )
-    }
+    val state: Flow<State> = workspaceSource
+        .filterNotNull()
+        .flatMapLatest { it.state }
+        .map { wsState ->
+            State(
+                sourceInfo = wsState.sourceInfo,
+                destination = wsState.destination,
+                filename = wsState.filename,
+                saveState = wsState.saveState,
+                callerPackage = wsState.callerPackage,
+            )
+        }
 
     init {
         // Listen for picker results (SaveAs mode returns both path and filename)
@@ -108,33 +99,10 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
                     // Update filename if returned by SaveAs picker
                     result.filename?.let { filename ->
                         workspace.updateFilename(filename)
-                        // Clear any filename error since user confirmed in picker
-                        filenameErrorFlow.value = null
                     }
                 }
             }
             .launchIn(vmScope)
-    }
-
-    fun onFilenameChanged(filename: String) = launch {
-        log(tag) { "onFilenameChanged($filename)" }
-        val workspace = getWorkspace()
-        workspace.updateFilename(filename)
-
-        // Validate filename - requires destination to determine storage context
-        val destination = workspace.state.first().destination
-        filenameErrorFlow.value = if (filename.isBlank()) {
-            "Filename cannot be empty"
-        } else if (destination != null) {
-            when (val validation = filenameValidator.validate(filename, destination)) {
-                is FilenameValidator.ValidationResult.Valid -> null
-                is FilenameValidator.ValidationResult.Invalid -> {
-                    "Invalid characters: ${validation.invalidChars.joinToString()}"
-                }
-            }
-        } else {
-            null // Can't validate without destination
-        }
     }
 
     fun onPickDestination() = launch {

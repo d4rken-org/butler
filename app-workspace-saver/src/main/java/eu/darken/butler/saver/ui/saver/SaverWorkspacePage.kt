@@ -129,21 +129,11 @@ private fun SaverWorkspacePage(
                 )
             }
 
-            // Destination selector
+            // Destination selector (shows path + filename)
             DestinationCard(
                 destination = state.destination,
+                filename = state.filename,
                 onClick = { vm?.onPickDestination() },
-            )
-
-            // Filename input
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = state.filename,
-                onValueChange = { vm?.onFilenameChanged(it) },
-                label = { Text(stringResource(R.string.saver_filename_label)) },
-                isError = state.filenameError != null,
-                supportingText = state.filenameError?.let { { Text(it) } },
-                singleLine = true,
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -346,6 +336,7 @@ private fun WarningCard(
 private fun DestinationCard(
     modifier: Modifier = Modifier,
     destination: APath<*>?,
+    filename: String,
     onClick: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -369,18 +360,23 @@ private fun DestinationCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text(
-                    text = destination?.userReadablePath?.get(context)
-                        ?: stringResource(R.string.saver_select_destination_hint),
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    color = if (destination == null) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                )
+                if (destination != null && filename.isNotBlank()) {
+                    // Show full path with filename
+                    Text(
+                        text = "${destination.userReadablePath.get(context)}/$filename",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                } else {
+                    // Prompt to select destination
+                    Text(
+                        text = stringResource(R.string.saver_select_destination_hint),
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }
