@@ -62,6 +62,10 @@
         <item quantity="one">Select %d</item>
         <item quantity="other">Select %d</item>
     </plurals>
+    <string name="explorer_picker_save_as_title">Save file</string>
+    <string name="explorer_picker_save_here_action">Save here</string>
+    <string name="explorer_picker_save_as_filename_label">Filename</string>
+    <string name="explorer_picker_save_as_filename_hint">Enter filename</string>
 
     <!-- Explorer Actions -->
     <string name="explorer_action_refresh">Refresh</string>

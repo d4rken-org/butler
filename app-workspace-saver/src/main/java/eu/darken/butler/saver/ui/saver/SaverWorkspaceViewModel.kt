@@ -97,12 +97,20 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     }
 
     init {
-        // Listen for picker results
+        // Listen for picker results (SaveAs mode returns both path and filename)
         workspaceRemote.events
             .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
-                log(tag, INFO) { "Received picker result: ${result.selectedPaths}" }
+                log(tag, INFO) { "Received picker result: paths=${result.selectedPaths}, filename=${result.filename}" }
                 result.selectedPaths.firstOrNull()?.let { path ->
-                    getWorkspace().setDestination(path)
+                    val workspace = getWorkspace()
+                    workspace.setDestination(path)
+
+                    // Update filename if returned by SaveAs picker
+                    result.filename?.let { filename ->
+                        workspace.updateFilename(filename)
+                        // Clear any filename error since user confirmed in picker
+                        filenameErrorFlow.value = null
+                    }
                 }
             }
             .launchIn(vmScope)
@@ -131,10 +139,16 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
 
     fun onPickDestination() = launch {
         log(tag) { "onPickDestination()" }
+        val workspace = getWorkspace()
+        val currentFilename = workspace.state.first().filename
+        val currentDestination = workspace.state.first().destination
+
         workspaceRemote.launchPicker(
             callerWorkspaceId = id,
-            startPath = null,
-            selection = PickerConfig.Selection.DirectorySingle,
+            startPath = currentDestination,
+            selection = PickerConfig.Selection.SaveAs(
+                suggestedFilename = currentFilename.ifBlank { "file" }
+            ),
         )
     }
 
