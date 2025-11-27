@@ -19,6 +19,7 @@ import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.saver.core.SaveOperation
 import eu.darken.butler.saver.core.SaverWorkspace
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -53,7 +54,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         val destination: APath<*>? = null,
         val filename: String = "",
         val saveState: SaveOperation.State = SaveOperation.State.Idle,
-        val callerPackage: String? = null,
+        val callerLabel: String? = null,
     ) {
         val canSave: Boolean
             get() = destination != null
@@ -83,7 +84,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
                 destination = wsState.destination,
                 filename = wsState.filename,
                 saveState = wsState.saveState,
-                callerPackage = wsState.callerPackage,
+                callerLabel = wsState.callerLabel,
             )
         }
 
@@ -148,6 +149,11 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     fun onRefreshAccessibility() = launch {
         log(tag) { "onRefreshAccessibility()" }
         getWorkspace().refreshSourceAccessibility()
+    }
+
+    fun onClose() = launch {
+        log(tag) { "onClose()" }
+        workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
     @AssistedFactory

@@ -73,7 +73,7 @@ private fun SaverWorkspacePage(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             SaverHeader(
-                subtitle = state.callerPackage,
+                subtitle = state.callerLabel,
                 workspaceButtonState = workspaceButtonState,
                 workspaceId = workspaceId,
                 workspaceActionHandler = workspaceActionHandler,
@@ -87,14 +87,15 @@ private fun SaverWorkspacePage(
                 WarningCard(
                     message = stringResource(R.string.saver_source_expired_warning),
                     onRetry = { vm?.onRefreshAccessibility() },
+                    onClose = { vm?.onClose() },
+                )
+            } else {
+                DestinationCard(
+                    destination = state.destination,
+                    filename = state.filename,
+                    onClick = { vm?.onPickDestination() },
                 )
             }
-
-            DestinationCard(
-                destination = state.destination,
-                filename = state.filename,
-                onClick = { vm?.onPickDestination() },
-            )
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -117,7 +118,7 @@ private fun SaverWorkspacePagePreview() {
             stateSource = flowOf(
                 SaverWorkspaceViewModel.State(
                     filename = "image.jpg",
-                    callerPackage = "org.telegram.messenger",
+                    callerLabel = "Telegram",
                 )
             ),
             workspaceButtonStateSource = flowOf(null),

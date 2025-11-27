@@ -1,5 +1,7 @@
 package eu.darken.butler.saver.ui.saver
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,12 +9,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Warning
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +30,7 @@ internal fun WarningCard(
     modifier: Modifier = Modifier,
     message: String,
     onRetry: () -> Unit,
+    onClose: () -> Unit,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -34,24 +38,36 @@ internal fun WarningCard(
             containerColor = MaterialTheme.colorScheme.errorContainer,
         ),
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Icon(
-                imageVector = Icons.TwoTone.Warning,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer,
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                modifier = Modifier.weight(1f),
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-            )
-            OutlinedButton(onClick = onRetry) {
-                Text(stringResource(R.string.saver_retry_action))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.TwoTone.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = onRetry) {
+                    Text(stringResource(R.string.saver_retry_action))
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                Button(onClick = onClose) {
+                    Text(stringResource(R.string.saver_close_tab_action))
+                }
             }
         }
     }
@@ -64,6 +80,7 @@ private fun WarningCardPreview() {
         WarningCard(
             message = "The source file is no longer accessible. The sharing app may have revoked access.",
             onRetry = {},
+            onClose = {},
         )
     }
 }
