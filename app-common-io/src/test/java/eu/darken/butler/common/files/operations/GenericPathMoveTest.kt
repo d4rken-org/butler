@@ -1,11 +1,17 @@
 package eu.darken.butler.common.files.operations
 
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.metadata.Ownership
+import eu.darken.butler.common.files.metadata.Permissions
 import io.kotest.matchers.should
+import java.nio.file.AtomicMoveNotSupportedException
+import kotlin.time.Instant
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.last
@@ -1390,5 +1396,145 @@ class GenericPathMoveTest : BaseTest() {
         counters.size shouldNotBe 0
         counters.last().current shouldBe 3L
         counters.last().max shouldBe 3L
+    }
+
+    // ============ CROSS-DEVICE ATOMIC MOVE FALLBACK (BUG FIX TEST) ============
+
+    @Test
+    fun `nested directory with cross-device atomic move fallback succeeds`() = runTest {
+        // This test verifies the bug fix: when atomic move fails with cross-device error
+        // for a top-level directory, nested subdirectories should still move correctly
+        // via the recursive fallback pattern.
+        //
+        // The bug: after top-level atomic move fails, children are added to FRONT of queue
+        // and parent's CreateDirectory is added to BACK. When a nested directory is processed,
+        // it tries atomic move which fails with NoSuchFileException because parent doesn't exist.
+
+        // Given - nested directory structure, cross-device mock
+        val crossDeviceOps = CrossDeviceMockFileSystemOps<LocalPath, LocalPathLookup> { path, type, size, modifiedAt, permissions, ownership, createdAt ->
+            LocalPathLookup(
+                lookedUp = path,
+                fileType = type,
+                size = size,
+                modifiedAt = modifiedAt ?: Instant.fromEpochMilliseconds(0),
+                target = null,
+                ownership = ownership,
+                permissions = permissions,
+                createdAt = createdAt,
+            )
+        }
+        crossDeviceOps.addMockDir("/source/parentdir")
+        crossDeviceOps.addMockDir("/source/parentdir/childdir")
+        crossDeviceOps.addMockFile("/source/parentdir/childdir/file.txt", "content".toByteArray())
+        crossDeviceOps.addMockDir("/dest")
+
+        // When - attempt move with atomicMove enabled (will fail, should use fallback)
+        val result = setOf(LocalPath.build("/source/parentdir")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = true),
+            destination = LocalPath.build("/dest/parentdir"),
+            sourceOps = crossDeviceOps,
+            destOps = crossDeviceOps,
+            strategy = strategy,
+            onIssue = null
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - should succeed via recursive fallback (not throw exception)
+        crossDeviceOps.hasFile("/dest/parentdir") shouldBe true
+        crossDeviceOps.hasFile("/dest/parentdir/childdir") shouldBe true
+        crossDeviceOps.hasFile("/dest/parentdir/childdir/file.txt") shouldBe true
+        crossDeviceOps.getFileContent("/dest/parentdir/childdir/file.txt") shouldBe "content".toByteArray()
+
+        // Source should be deleted
+        crossDeviceOps.hasFile("/source/parentdir") shouldBe false
+        crossDeviceOps.hasFile("/source/parentdir/childdir") shouldBe false
+        crossDeviceOps.hasFile("/source/parentdir/childdir/file.txt") shouldBe false
+
+        // Verify moved items
+        result.movedFiles.size shouldBe 3 // parentdir + childdir + file.txt
+    }
+
+    @Test
+    fun `deeply nested directories with cross-device atomic move fallback succeeds`() = runTest {
+        // Test with deeper nesting to ensure the fix works at all levels
+
+        val crossDeviceOps = CrossDeviceMockFileSystemOps<LocalPath, LocalPathLookup> { path, type, size, modifiedAt, permissions, ownership, createdAt ->
+            LocalPathLookup(
+                lookedUp = path,
+                fileType = type,
+                size = size,
+                modifiedAt = modifiedAt ?: Instant.fromEpochMilliseconds(0),
+                target = null,
+                ownership = ownership,
+                permissions = permissions,
+                createdAt = createdAt,
+            )
+        }
+        // 4 levels deep: /source/a/b/c/d/file.txt
+        crossDeviceOps.addMockDir("/source/a")
+        crossDeviceOps.addMockDir("/source/a/b")
+        crossDeviceOps.addMockDir("/source/a/b/c")
+        crossDeviceOps.addMockDir("/source/a/b/c/d")
+        crossDeviceOps.addMockFile("/source/a/b/c/d/file.txt", "deep content".toByteArray())
+        crossDeviceOps.addMockDir("/dest")
+
+        // When
+        val result = setOf(LocalPath.build("/source/a")).moveGeneric(
+            options = TransferStrategy.Options(attemptAtomicMove = true),
+            destination = LocalPath.build("/dest/a"),
+            sourceOps = crossDeviceOps,
+            destOps = crossDeviceOps,
+            strategy = strategy,
+            onIssue = null
+        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+        // Then - all levels should be created
+        crossDeviceOps.hasFile("/dest/a") shouldBe true
+        crossDeviceOps.hasFile("/dest/a/b") shouldBe true
+        crossDeviceOps.hasFile("/dest/a/b/c") shouldBe true
+        crossDeviceOps.hasFile("/dest/a/b/c/d") shouldBe true
+        crossDeviceOps.hasFile("/dest/a/b/c/d/file.txt") shouldBe true
+        crossDeviceOps.getFileContent("/dest/a/b/c/d/file.txt") shouldBe "deep content".toByteArray()
+
+        // Source should be deleted
+        crossDeviceOps.hasFile("/source/a") shouldBe false
+
+        // 4 directories + 1 file = 5 items
+        result.movedFiles.size shouldBe 5
+    }
+}
+
+/**
+ * MockFileSystemOps that simulates cross-device moves.
+ *
+ * This accurately simulates the real-world bug scenario:
+ * 1. If destination's parent directory doesn't exist → throws NoSuchFileException
+ *    (This is what happens on real file systems when trying atomic move to non-existent path)
+ * 2. If parent exists → throws AtomicMoveNotSupportedException (cross-device link)
+ *
+ * The bug occurs because:
+ * - Top-level directory atomic move fails with AtomicMoveNotSupportedException (caught, falls back)
+ * - Nested directory atomic move fails with NoSuchFileException (NOT caught, propagates up)
+ */
+private class CrossDeviceMockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
+    lookupFactory: (path: P, type: FileType, size: Long?, modifiedAt: Instant?, permissions: Permissions?, ownership: Ownership?, createdAt: Instant?) -> PL
+) : MockFileSystemOps<P, PL>(lookupFactory) {
+
+    override suspend fun move(source: P, destination: P): Boolean {
+        // Check if destination's parent directory exists
+        val destParentPath = destination.path.substringBeforeLast('/', "")
+        val parentExists = destParentPath.isEmpty() || files.containsKey(destParentPath)
+
+        if (!parentExists) {
+            // Parent doesn't exist - this is what causes the real bug
+            // Real file systems throw IOException/NoSuchFileException in this case
+            throw java.nio.file.NoSuchFileException(
+                source.path,
+                destination.path,
+                "Parent directory does not exist: $destParentPath"
+            )
+        }
+
+        // Parent exists but cross-device - throw AtomicMoveNotSupportedException
+        throw AtomicMoveNotSupportedException(source.path, destination.path, "Cross-device link")
     }
 }
