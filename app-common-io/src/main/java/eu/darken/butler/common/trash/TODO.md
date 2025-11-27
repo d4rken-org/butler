@@ -9,9 +9,6 @@
 
 - Can there be name collision when deleting files with the same name from multiple locations?
 
-- Show nested items in trash, browsable.
-- Browsable nested items - Flat list only
-
 - Max size enforcement - Setting exists (500MB default) but not enforced
 - Restore ownership/permissions - Data stored but not restored (TODO at line 179)
 
