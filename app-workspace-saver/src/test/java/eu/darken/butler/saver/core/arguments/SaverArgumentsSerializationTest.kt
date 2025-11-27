@@ -1,9 +1,9 @@
 package eu.darken.butler.saver.core.arguments
 
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.pkgs.toPkgId
-import eu.darken.butler.common.serialization.SerializationCommonModule
+import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
@@ -11,9 +11,7 @@ import testhelpers.json.toComparableJson
 
 class SaverArgumentsSerializationTest : BaseTest() {
 
-    private val json = Json(SerializationCommonModule().json()) {
-        serializersModule = SerializationCommonModule().json().serializersModule
-    }
+    private val json = SerializationIOModule().json()
 
     @Test
     fun `serialize Default with all fields`() {
@@ -21,7 +19,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
             sourceUri = "content://media/external/images/1234",
             mimeType = "image/jpeg",
             callerPackage = "com.example.app".toPkgId(),
-            destinationPath = "/sdcard/Download",
+            destinationPath = LocalPath.build("/sdcard/Download"),
             customFilename = "my_photo.jpg",
         )
         val serialized = json.encodeToJsonElement<SaverArguments>(args)
@@ -32,7 +30,10 @@ class SaverArgumentsSerializationTest : BaseTest() {
                 "sourceUri": "content://media/external/images/1234",
                 "mimeType": "image/jpeg",
                 "callerPackage": {"name":"com.example.app"},
-                "destinationPath": "/sdcard/Download",
+                "destinationPath": {
+                    "type": "LOCAL",
+                    "file": "/sdcard/Download"
+                },
                 "customFilename": "my_photo.jpg"
             }
         """.toComparableJson()
@@ -63,7 +64,10 @@ class SaverArgumentsSerializationTest : BaseTest() {
                 "sourceUri": "content://media/external/video/5678",
                 "mimeType": "video/mp4",
                 "callerPackage": {"name":"com.another.app"},
-                "destinationPath": "/storage/emulated/0/Movies",
+                "destinationPath": {
+                    "type": "LOCAL",
+                    "file": "/storage/emulated/0/Movies"
+                },
                 "customFilename": "movie.mp4"
             }
         """
@@ -74,7 +78,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
             sourceUri = "content://media/external/video/5678",
             mimeType = "video/mp4",
             callerPackage = "com.another.app".toPkgId(),
-            destinationPath = "/storage/emulated/0/Movies",
+            destinationPath = LocalPath.build("/storage/emulated/0/Movies"),
             customFilename = "movie.mp4",
         )
     }
@@ -103,7 +107,7 @@ class SaverArgumentsSerializationTest : BaseTest() {
             sourceUri = "content://com.google.photos/shared/image123",
             mimeType = "image/png",
             callerPackage = "com.google.android.apps.photos".toPkgId(),
-            destinationPath = "/sdcard/Pictures",
+            destinationPath = LocalPath.build("/sdcard/Pictures"),
             customFilename = "screenshot.png",
         )
 

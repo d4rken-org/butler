@@ -129,14 +129,9 @@ class SaverWorkspace @AssistedInject constructor(
         }
 
         // Restore destination if previously selected
-        creationArguments.destinationPath?.let { pathJson ->
-            try {
-                // Note: This requires polymorphic serialization of APath
-                // For now we'll handle restoration in a simpler way
-                log(tag) { "Destination path restoration not yet implemented: $pathJson" }
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to restore destination: ${e.asLog()}" }
-            }
+        creationArguments.destinationPath?.let { destinationPath ->
+            _destination.value = destinationPath
+            log(tag, INFO) { "Restored destination: $destinationPath" }
         }
 
         // Combine all state flows into single state
@@ -163,7 +158,7 @@ class SaverWorkspace @AssistedInject constructor(
         sourceUri = creationArguments.sourceUri,
         mimeType = creationArguments.mimeType,
         callerPackage = creationArguments.callerPackage,
-        destinationPath = null, // TODO: Serialize destination path
+        destinationPath = _destination.value,
         customFilename = _filename.value.takeIf { it.isNotEmpty() },
     )
 
