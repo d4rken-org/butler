@@ -10,8 +10,10 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
+import android.net.Uri
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.saver.core.arguments.SaverArguments
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -85,6 +87,26 @@ class MainViewModel @Inject constructor(
             )
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to create new Explorer workspace: ${e.message}" }
+        }
+    }
+
+    fun createSaverWorkspace(
+        sourceUri: Uri,
+        mimeType: String?,
+        callerPackage: String?,
+    ) = launch {
+        log(tag) { "createSaverWorkspace(uri=$sourceUri)" }
+        try {
+            workspaceRemote.createAndFocus(
+                type = Workspace.Type.SAVER,
+                arguments = SaverArguments.Default(
+                    sourceUri = sourceUri.toString(),
+                    mimeType = mimeType,
+                    callerPackage = callerPackage,
+                )
+            )
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to create Saver workspace: ${e.asLog()}" }
         }
     }
 }

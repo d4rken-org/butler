@@ -2,6 +2,7 @@ package eu.darken.butler.main.ui
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
@@ -100,6 +101,10 @@ class MainActivity : Activity2() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        savedIntent = intent
+    }
 
     @Composable
     private fun Navigation(state: MainViewModel.State) {
@@ -164,6 +169,10 @@ class MainActivity : Activity2() {
                     handleNewExplorerIntent()
                     savedIntent = null
                 }
+                Intent.ACTION_SEND -> {
+                    handleShareIntent(intent)
+                    savedIntent = null
+                }
             }
         }
     }
@@ -181,6 +190,23 @@ class MainActivity : Activity2() {
         log(TAG) { "Creating new Explorer workspace from shortcut" }
         vm.createNewExplorerWorkspace()
         shortcutManager.reportNewExplorerShortcutUsed()
+    }
+
+    @Suppress("DEPRECATION")
+    private fun handleShareIntent(intent: Intent) {
+        val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+        if (uri == null) {
+            log(TAG) { "ACTION_SEND received but no EXTRA_STREAM URI found" }
+            return
+        }
+
+        log(TAG) { "Handling share intent with URI: $uri" }
+
+        vm.createSaverWorkspace(
+            sourceUri = uri,
+            mimeType = intent.type,
+            callerPackage = intent.`package` ?: referrer?.host,
+        )
     }
 
     private var savedIntent: Intent? = null

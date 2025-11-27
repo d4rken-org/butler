@@ -16,6 +16,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
+import eu.darken.butler.saver.ui.saver.SaverWorkspacePageHost
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
 import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
@@ -103,6 +104,12 @@ fun WorkspaceModalContent(
         }
         Workspace.Type.APP_DETAILS -> {
             AppDetailsWorkspacePageHost(
+                id = workspace.id,
+                design = design,
+            )
+        }
+        Workspace.Type.SAVER -> {
+            SaverWorkspacePageHost(
                 id = workspace.id,
                 design = design,
             )
