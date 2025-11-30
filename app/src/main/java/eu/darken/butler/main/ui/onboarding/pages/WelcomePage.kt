@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
@@ -71,6 +72,7 @@ internal fun WelcomePage(
                     icon = {
                         ButlerMascot(
                             modifier = Modifier.size(172.dp),
+                            variant = ButlerMascotMode.Animated.Greeting,
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                     }

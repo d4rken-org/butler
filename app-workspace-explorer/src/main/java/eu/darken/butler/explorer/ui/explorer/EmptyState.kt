@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import kotlinx.coroutines.delay
@@ -88,7 +89,8 @@ fun EmptyState(
                     modifier = Modifier
                         .size(120.dp)
                         .scale(scale)
-                        .alpha(alpha)
+                        .alpha(alpha),
+                    variant = ButlerMascotMode.Animated.Random,
                 )
                 Text(
                     text = slogan,

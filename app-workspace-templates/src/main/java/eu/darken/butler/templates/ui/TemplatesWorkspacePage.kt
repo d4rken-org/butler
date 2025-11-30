@@ -32,8 +32,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.Slogans
-import eu.darken.butler.common.compose.ButlerIcon
-import eu.darken.butler.common.compose.ButlerIconVariant
+import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -160,9 +160,9 @@ fun TemplatesWorkspacePage(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        ButlerIcon(
+                        ButlerMascot(
                             modifier = Modifier.size(64.dp),
-                            variant = if (state.isUpgraded) ButlerIconVariant.HAPPY else ButlerIconVariant.NORMAL
+                            variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy else ButlerMascotMode.Static.Normal
                         )
 
                         Column(modifier = Modifier.weight(1f)) {

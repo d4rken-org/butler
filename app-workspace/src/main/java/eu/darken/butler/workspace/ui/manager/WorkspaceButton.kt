@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -81,7 +82,7 @@ fun WorkspaceButton(
 
             ButlerMascot(
                 modifier = Modifier.size(iconSize),
-                contentDescription = null,
+                variant = ButlerMascotMode.Animated.RandomCycling
             )
         }
 

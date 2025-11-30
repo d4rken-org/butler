@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import kotlinx.coroutines.delay
@@ -132,7 +133,8 @@ fun EnhancedEmptyWorkspaceState(
                     contentAlignment = Alignment.Center
                 ) {
                     ButlerMascot(
-                        modifier = Modifier.size(72.dp)
+                        modifier = Modifier.size(80.dp),
+                        variant = ButlerMascotMode.Animated.Random,
                     )
                 }
 
