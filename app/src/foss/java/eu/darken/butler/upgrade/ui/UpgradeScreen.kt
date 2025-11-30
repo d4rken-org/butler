@@ -80,7 +80,7 @@ fun UpgradeScreen(
                 modifier = Modifier
                     .padding(bottom = 8.dp)
                     .size(96.dp),
-                variant = ButlerIconVariant.RELAXED,
+                variant = ButlerIconVariant.HAPPY,
             )
 
             ColoredTitleText(

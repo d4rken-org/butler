@@ -87,7 +87,7 @@ fun UpgradeStatusScreen(
             // Mascot
             ButlerIcon(
                 modifier = Modifier.size(120.dp),
-                variant = if (state.isUpgraded) ButlerIconVariant.RELAXED else ButlerIconVariant.NORMAL
+                variant = if (state.isUpgraded) ButlerIconVariant.HAPPY else ButlerIconVariant.NORMAL
             )
 
             // App name

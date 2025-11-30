@@ -162,7 +162,7 @@ fun TemplatesWorkspacePage(
                     ) {
                         ButlerIcon(
                             modifier = Modifier.size(64.dp),
-                            variant = if (state.isUpgraded) ButlerIconVariant.RELAXED else ButlerIconVariant.NORMAL
+                            variant = if (state.isUpgraded) ButlerIconVariant.HAPPY else ButlerIconVariant.NORMAL
                         )
 
                         Column(modifier = Modifier.weight(1f)) {

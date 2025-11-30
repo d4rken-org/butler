@@ -1,6 +1,7 @@
 package eu.darken.butler.common.compose
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,7 +20,9 @@ fun ButlerIcon(
         painter = painterResource(
             id = when (variant) {
                 ButlerIconVariant.NORMAL -> R.drawable.app_icon_normal
-                ButlerIconVariant.RELAXED -> R.drawable.app_icon_relaxed
+                ButlerIconVariant.HAPPY -> R.drawable.app_icon_happy
+                ButlerIconVariant.SAD -> R.drawable.app_icon_sad
+                ButlerIconVariant.KO -> R.drawable.app_icon_ko
             }
         ),
         contentDescription = contentDescription,
@@ -29,13 +32,20 @@ fun ButlerIcon(
 
 enum class ButlerIconVariant {
     NORMAL,
-    RELAXED,
+    HAPPY,
+    SAD,
+    KO,
 }
 
 @Preview2
 @Composable
 private fun ButlerIconPreview() {
     PreviewWrapper {
-        ButlerIcon(Modifier.size(48.dp))
+        Column {
+            ButlerIcon(Modifier.size(64.dp), variant = ButlerIconVariant.NORMAL)
+            ButlerIcon(Modifier.size(64.dp), variant = ButlerIconVariant.HAPPY)
+            ButlerIcon(Modifier.size(64.dp), variant = ButlerIconVariant.SAD)
+            ButlerIcon(Modifier.size(64.dp), variant = ButlerIconVariant.KO)
+        }
     }
 }
