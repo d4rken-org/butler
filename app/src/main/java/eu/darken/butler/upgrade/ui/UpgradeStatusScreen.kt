@@ -200,7 +200,17 @@ fun UpgradeStatusScreen(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = stringResource(R.string.upgrade_benefit_unlimited),
+                            text = stringResource(R.string.upgrade_benefit_multitasking),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            text = stringResource(R.string.upgrade_benefit_customization),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            text = stringResource(R.string.upgrade_benefit_extra_options),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )

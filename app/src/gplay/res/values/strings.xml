@@ -31,8 +31,10 @@
     <string name="upgrades_no_purchases_found_check_account">No purchases found. Are you using the right account?</string>
 
     <string name="upgrade_benefits_title">Upgrade benefits</string>
-    <string name="upgrade_benefit_unlimited">• Unlimited tabs and workspaces</string>
-    <string name="upgrade_benefit_early_access">• Access to new features first</string>
+    <string name="upgrade_benefit_multitasking">• Unlimited tabs and operations</string>
+    <string name="upgrade_benefit_customization">• Customize design, feel and look</string>
+    <string name="upgrade_benefit_extra_options">• Extra options and features for each tool</string>
+    <string name="upgrade_benefit_early_access">• Early access to new features</string>
     <string name="upgrade_benefit_motivation">• A motivated developer 🧙</string>
     <string name="upgrade_benefit_and_more">and more…</string>
 </resources>

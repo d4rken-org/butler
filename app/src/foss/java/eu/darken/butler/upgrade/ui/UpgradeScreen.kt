@@ -80,7 +80,7 @@ fun UpgradeScreen(
                 modifier = Modifier
                     .padding(bottom = 8.dp)
                     .size(96.dp),
-                variant = ButlerMascotMode.Static.Happy,
+                variant = ButlerMascotMode.Animated.Greeting,
             )
 
             ColoredTitleText(
@@ -132,7 +132,17 @@ fun UpgradeScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = stringResource(R.string.upgrade_benefit_unlimited),
+                        text = stringResource(R.string.upgrade_benefit_multitasking),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Text(
+                        text = stringResource(R.string.upgrade_benefit_customization),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Text(
+                        text = stringResource(R.string.upgrade_benefit_extra_options),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
