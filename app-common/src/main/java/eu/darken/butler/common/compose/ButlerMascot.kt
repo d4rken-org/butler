@@ -50,14 +50,14 @@ fun ButlerMascot(
                 ButlerMascotMode.Animated.RandomCycling -> {
                     val winkComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_wink))
                     val drinkComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_drink))
-                    val wiggleComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_wiggle))
+                    val moustacheComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_moustache_stroke))
                     val sleepComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_sleep))
                     val greetingComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_greeting))
 
                     val compositions = listOfNotNull(
                         winkComposition,
                         drinkComposition,
-                        wiggleComposition,
+                        moustacheComposition,
                         sleepComposition,
                         greetingComposition,
                     )
@@ -86,12 +86,12 @@ fun ButlerMascot(
                                 ButlerMascotMode.Animated.Wink -> R.raw.mascot_lottie_wink
                                 ButlerMascotMode.Animated.Greeting -> R.raw.mascot_lottie_greeting
                                 ButlerMascotMode.Animated.Drink -> R.raw.mascot_lottie_drink
-                                ButlerMascotMode.Animated.Wiggle -> R.raw.mascot_lottie_wiggle
+                                ButlerMascotMode.Animated.MoustacheStroke -> R.raw.mascot_lottie_moustache_stroke
                                 ButlerMascotMode.Animated.Sleep -> R.raw.mascot_lottie_sleep
                                 ButlerMascotMode.Animated.Random -> listOf(
                                     R.raw.mascot_lottie_wink,
                                     R.raw.mascot_lottie_drink,
-                                    R.raw.mascot_lottie_wiggle,
+                                    R.raw.mascot_lottie_moustache_stroke,
                                     R.raw.mascot_lottie_sleep,
                                     R.raw.mascot_lottie_greeting,
                                 ).random()
@@ -124,7 +124,7 @@ sealed interface ButlerMascotMode {
         data object Wink : Animated
         data object Greeting : Animated
         data object Drink : Animated
-        data object Wiggle : Animated
+        data object MoustacheStroke : Animated
         data object Sleep : Animated
     }
 }
@@ -147,6 +147,12 @@ private fun ButlerMascotStaticPreview() {
 @Composable
 private fun ButlerMascotAnimatedPreview() {
     PreviewWrapper {
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Random)
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.RandomCycling)
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Wink)
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Greeting)
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Drink)
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.MoustacheStroke)
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Sleep)
     }
 }
