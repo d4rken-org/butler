@@ -259,7 +259,9 @@
     <string name="explorer_issue_common_rename_new">Rename new</string>
     <string name="explorer_issue_common_rename_existing">Rename existing</string>
     <string name="explorer_issue_common_cancel">Cancel</string>
+    <string name="explorer_issue_common_delete_permanently">Delete permanently</string>
     <string name="explorer_issue_apply_all">Apply to all remaining issues</string>
+    <string name="explorer_issue_trash_size_limit_file_label">File</string>
     <string name="explorer_rename_new_name">New name</string>
     <string name="explorer_rename_dialog_title_new">Rename incoming file</string>
     <string name="explorer_rename_dialog_title_existing">Rename existing file</string>

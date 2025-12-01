@@ -104,4 +104,28 @@ sealed interface PathActionIssue : Issue {
             data class Cancel(val error: Exception? = null) : Resolution
         }
     }
+
+    data class TrashSizeLimitExceeded(
+        override val id: Issue.Id = Issue.Id(),
+        val source: APathLookup<out APath<*>>,
+        val itemSize: Long,
+        val trashMaxSize: Long,
+    ) : PathActionIssue {
+        override val title: CaString = caString {
+            getString(eu.darken.butler.common.io.R.string.path_action_trash_size_limit_title)
+        }
+        override val description: CaString = caString {
+            getString(
+                eu.darken.butler.common.io.R.string.path_action_trash_size_limit_description,
+                source.lookedUp.name,
+                android.text.format.Formatter.formatFileSize(it, itemSize),
+                android.text.format.Formatter.formatFileSize(it, trashMaxSize),
+            )
+        }
+        sealed interface Resolution : PathActionIssue.Resolution {
+            data object DeletePermanently : Resolution
+            data class Skip(val applyToAll: Boolean = false) : Resolution
+            data class Cancel(val error: Exception? = null) : Resolution
+        }
+    }
 }

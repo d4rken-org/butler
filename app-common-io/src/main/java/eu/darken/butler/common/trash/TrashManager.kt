@@ -70,6 +70,27 @@ class TrashManager @Inject constructor(
             log(TAG, WARN) { "${unsupported.size} paths are not supported for trash" }
         }
 
+        // Pre-calculate space needed and cleanup if necessary
+        val maxSize = settings.maxTrashSize.value()
+        val currentSize = repository.getTotalSize()
+        var estimatedIncomingSize = 0L
+
+        for (path in supported) {
+            try {
+                val lookup = gatewaySwitch.lookup(path, LookupOptions.MAX)
+                estimatedIncomingSize += lookup.size ?: 0L
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to get size for $path: ${e.asLog()}" }
+            }
+        }
+
+        // Cleanup oldest items if needed BEFORE moving
+        if (currentSize + estimatedIncomingSize > maxSize) {
+            val spaceNeeded = (currentSize + estimatedIncomingSize) - (maxSize * 0.8).toLong()
+            log(TAG, INFO) { "Pre-move cleanup: need $spaceNeeded bytes for incoming $estimatedIncomingSize bytes" }
+            cleanupBySize(minBytesToFree = spaceNeeded)
+        }
+
         val movedItems = mutableSetOf<APathLookup<*>>()
         val failedItems = mutableSetOf<APathLookup<*>>()
         var totalBytes = 0L
@@ -350,6 +371,46 @@ class TrashManager @Inject constructor(
         }
 
         return@withContext deletePermanently(expiredItems)
+    }
+
+    suspend fun cleanupBySize(minBytesToFree: Long = 0L): Int = withContext(dispatcherProvider.IO) {
+        val maxSize = settings.maxTrashSize.value()
+        val currentSize = repository.getTotalSize()
+
+        // Calculate how much we need to free
+        val sizeToFree = if (minBytesToFree > 0L) {
+            // Caller requested specific amount - free that plus headroom to reach 80%
+            val targetSize = (maxSize * 0.8).toLong()
+            val normalFree = if (currentSize > maxSize) currentSize - targetSize else 0L
+            maxOf(minBytesToFree, normalFree)
+        } else if (currentSize > maxSize) {
+            // Target 80% of max to provide headroom
+            val targetSize = (maxSize * 0.8).toLong()
+            currentSize - targetSize
+        } else {
+            log(TAG, DEBUG) { "Trash size ($currentSize) within limit ($maxSize)" }
+            return@withContext 0
+        }
+
+        log(TAG, INFO) { "Trash size $currentSize, freeing $sizeToFree bytes (limit: $maxSize)" }
+
+        val allItems = repository.getAllItems().first()
+        val itemsToDelete = mutableListOf<TrashRepo.TrashItem>()
+        var accumulated = 0L
+
+        for (item in allItems.sortedBy { it.deletedAt }) {
+            if (accumulated >= sizeToFree) break
+            itemsToDelete.add(item)
+            accumulated += item.size
+        }
+
+        if (itemsToDelete.isEmpty()) {
+            log(TAG, DEBUG) { "No items to delete for size cleanup" }
+            return@withContext 0
+        }
+
+        log(TAG, INFO) { "Deleting ${itemsToDelete.size} oldest items to free space" }
+        return@withContext deletePermanently(itemsToDelete)
     }
 
     fun getStats(): Flow<TrashStats> = repository.getAllItems()

@@ -58,6 +58,10 @@ fun PathActionIssue.toFileOperationIssue(): FileOperationIssue {
             canSkip = canSkip,
             canRetry = canRetry,
         )
+
+        is PathActionIssue.TrashSizeLimitExceeded -> throw IllegalArgumentException(
+            "TrashSizeLimitExceeded is not an IPC-transportable issue type"
+        )
     }
 }
 
@@ -219,6 +223,8 @@ fun FileOperationIssueResolution.toPathActionIssueResolution(
                 PathActionIssue.InsufficientSpace.Resolution.Cancel(error)
             is PathActionIssue.UnknownError ->
                 PathActionIssue.UnknownError.Resolution.Cancel(error)
+            is PathActionIssue.TrashSizeLimitExceeded ->
+                throw IllegalArgumentException("TrashSizeLimitExceeded is not an IPC-transportable issue type")
         }
     }
 
@@ -256,5 +262,8 @@ fun FileOperationIssueResolution.toPathActionIssueResolution(
                 PathActionIssue.UnknownError.Resolution.Retry
             else -> throw IllegalArgumentException("Invalid resolution $resolutionType for UnknownError")
         }
+
+        is PathActionIssue.TrashSizeLimitExceeded ->
+            throw IllegalArgumentException("TrashSizeLimitExceeded is not an IPC-transportable issue type")
     }
 }

@@ -97,6 +97,14 @@ class PathOperationIssueResolver(
                     throw CancellationException("User cancelled operation", resolution.error)
                 }
             }
+
+            is PathActionIssue.TrashSizeLimitExceeded -> {
+                // TrashSizeLimitExceeded is handled at CoreDeleteExecutor level, not here
+                // But if it does come through, handle Cancel appropriately
+                if (resolution is PathActionIssue.TrashSizeLimitExceeded.Resolution.Cancel) {
+                    throw CancellationException("User cancelled operation", resolution.error)
+                }
+            }
         }
 
         return resolution

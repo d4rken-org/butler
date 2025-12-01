@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 class CoreDeleteExecutor @Inject constructor(
     private val gatewaySwitch: GatewaySwitch,
@@ -44,62 +45,148 @@ class CoreDeleteExecutor @Inject constructor(
         val trashEnabled = trashSettings.enabled.value()
         val supportsTrash = targets.all { it is LocalPath }
 
+        // Initialize collections for tracking items during trash/delete operations
+        val itemsForDirectDelete = mutableListOf<APath<*>>()
+        val skippedItems = mutableSetOf<APathLookup<*>>()
+
         if (trashEnabled && supportsTrash) {
             log(config.tag, INFO) { "Attempting to move ${targets.size} items to trash" }
 
-            try {
-                // Try to move to trash
-                val trashReport = trashManager.moveToTrash(
-                    paths = targets.toList()
-                )
+            // Check for items that exceed trash size limit
+            val maxTrashSize = trashSettings.maxTrashSize.value()
+            val itemsForTrash = mutableListOf<APath<*>>()
+            var applyDeletePermanentlyToAll = false
+            var applySkipToAll = false
 
-                if (trashReport.failedToMove.isNotEmpty()) {
-                    log(
-                        config.tag,
-                        WARN
-                    ) { "${trashReport.failedToMove.size} items failed to move to trash, will perform direct delete" }
-                    // Continue to direct deletion for failed items below
+            for (target in targets) {
+                val lookup = gatewaySwitch.lookup(target, eu.darken.butler.common.files.LookupOptions.MAX)
+                val itemSize = lookup.size ?: 0L
+
+                if (itemSize > maxTrashSize) {
+                    log(config.tag, INFO) { "Item $target ($itemSize bytes) exceeds trash limit ($maxTrashSize bytes)" }
+
+                    // Check if we should apply a previous "apply to all" decision
+                    if (applyDeletePermanentlyToAll) {
+                        itemsForDirectDelete.add(target)
+                        continue
+                    }
+                    if (applySkipToAll) {
+                        skippedItems.add(lookup)
+                        continue
+                    }
+
+                    // Emit issue and wait for user resolution
+                    val issue = PathActionIssue.TrashSizeLimitExceeded(
+                        source = lookup,
+                        itemSize = itemSize,
+                        trashMaxSize = maxTrashSize,
+                    )
+                    emit(State.Waiting(issue = issue))
+                    val resolution = config.onIssue(issue)
+
+                    when (resolution) {
+                        is PathActionIssue.TrashSizeLimitExceeded.Resolution.DeletePermanently -> {
+                            itemsForDirectDelete.add(target)
+                        }
+                        is PathActionIssue.TrashSizeLimitExceeded.Resolution.Skip -> {
+                            skippedItems.add(lookup)
+                            if (resolution.applyToAll) applySkipToAll = true
+                        }
+                        is PathActionIssue.TrashSizeLimitExceeded.Resolution.Cancel -> {
+                            throw CancellationException("User cancelled operation")
+                        }
+                    }
                 } else {
-                    // All items moved to trash successfully
-                    log(
-                        config.tag,
-                        INFO
-                    ) { "Successfully moved ${trashReport.movedToTrash.size} items to trash" }
+                    itemsForTrash.add(target)
+                }
+            }
 
-                    @Suppress("UNCHECKED_CAST")
-                    val movedPaths = trashReport.movedToTrash as Set<APathLookup<APath<*>>>
+            // Move suitable items to trash
+            var trashedItems = emptySet<APathLookup<*>>()
+            var trashedBytes = 0L
 
-                    config.onPathsRemoved(movedPaths)
+            if (itemsForTrash.isNotEmpty()) {
+                try {
+                    val trashReport = trashManager.moveToTrash(paths = itemsForTrash)
 
-                    emit(
-                        State.Completed(
-                            result = Result(
-                                deleted = movedPaths,
-                                skipped = emptySet(),
-                                bytesFreed = trashReport.bytesMoved,
-                                performanceHistory = null,
-                            )
+                    if (trashReport.failedToMove.isNotEmpty()) {
+                        log(config.tag, WARN) {
+                            "${trashReport.failedToMove.size} items failed to move to trash, will perform direct delete"
+                        }
+                        // Add failed items to direct delete list
+                        itemsForDirectDelete.addAll(trashReport.failedToMove.map { it.lookedUp })
+                    }
+
+                    if (trashReport.movedToTrash.isNotEmpty()) {
+                        log(config.tag, INFO) {
+                            "Successfully moved ${trashReport.movedToTrash.size} items to trash"
+                        }
+                        trashedItems = trashReport.movedToTrash
+                        trashedBytes = trashReport.bytesMoved
+
+                        @Suppress("UNCHECKED_CAST")
+                        config.onPathsRemoved(trashedItems as Set<APathLookup<APath<*>>>)
+                    }
+                } catch (e: Exception) {
+                    log(config.tag, WARN) { "Trash move failed: ${e.asLog()}, falling back to direct delete" }
+                    itemsForDirectDelete.addAll(itemsForTrash)
+                }
+            }
+
+            // If no direct deletes needed and we have trashed items, we're done
+            if (itemsForDirectDelete.isEmpty() && trashedItems.isNotEmpty()) {
+                @Suppress("UNCHECKED_CAST")
+                emit(
+                    State.Completed(
+                        result = Result(
+                            deleted = trashedItems as Set<APathLookup<APath<*>>>,
+                            skipped = skippedItems,
+                            bytesFreed = trashedBytes,
+                            performanceHistory = null,
                         )
                     )
-                    return@flow // Early exit - all done via trash
-                }
-            } catch (e: Exception) {
-                log(config.tag, WARN) { "Trash move failed: ${e.asLog()}, falling back to direct delete" }
-                // Continue to direct deletion below
+                )
+                return@flow
+            }
+
+            // If we have items for direct delete, fall through to direct deletion below
+            if (itemsForDirectDelete.isNotEmpty()) {
+                log(config.tag, INFO) { "Performing direct delete for ${itemsForDirectDelete.size} items" }
             }
         } else {
             if (trashEnabled && !supportsTrash) {
-                log(
-                    config.tag,
-                    INFO
-                ) { "Trash enabled but paths not supported (non-LocalPath), performing direct delete" }
+                log(config.tag, INFO) {
+                    "Trash enabled but paths not supported (non-LocalPath), performing direct delete"
+                }
             } else {
                 log(config.tag) { "Trash disabled, performing direct delete" }
             }
         }
 
-        // Direct deletion (if recycle bin failed or disabled)
-        targets
+        // Direct deletion (if recycle bin failed, disabled, or items too large)
+        val targetsForDirectDelete = if (trashEnabled && supportsTrash) {
+            // Use itemsForDirectDelete if we went through the trash path
+            itemsForDirectDelete.toSet()
+        } else {
+            targets
+        }
+
+        if (targetsForDirectDelete.isEmpty()) {
+            // Nothing to delete directly
+            emit(
+                State.Completed(
+                    result = Result(
+                        deleted = emptySet(),
+                        skipped = emptySet(),
+                        bytesFreed = 0L,
+                        performanceHistory = null,
+                    )
+                )
+            )
+            return@flow
+        }
+
+        targetsForDirectDelete
             .delete(
                 gateway = gatewaySwitch,
                 options = DeleteAction.Options(

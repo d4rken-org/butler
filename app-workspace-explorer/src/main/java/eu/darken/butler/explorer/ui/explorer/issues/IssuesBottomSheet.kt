@@ -32,6 +32,10 @@ fun IssueBottomSheet(
                 issue = issue,
                 onResolution = onResolution,
             )
+            is PathActionIssue.TrashSizeLimitExceeded -> TrashSizeLimitIssueSheet(
+                issue = issue,
+                onResolution = onResolution,
+            )
             else -> throw IllegalArgumentException("Unknown issue type: $issue")
         }
     }

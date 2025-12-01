@@ -24,4 +24,7 @@
     <string name="path_action_insufficient_space_description">There is not enough storage space available to copy \"%1$s\" from \"%2$s\".</string>
 
     <string name="path_action_unknown_error_title">Operation failed</string>
+
+    <string name="path_action_trash_size_limit_title">Item too large for Recycle Bin</string>
+    <string name="path_action_trash_size_limit_description">\"%1$s\" (%2$s) exceeds the recycle bin size limit (%3$s).</string>
 </resources>
