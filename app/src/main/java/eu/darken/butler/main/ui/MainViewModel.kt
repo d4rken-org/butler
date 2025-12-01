@@ -2,7 +2,6 @@ package eu.darken.butler.main.ui
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -11,7 +10,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
+import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
@@ -70,7 +69,7 @@ class MainViewModel @Inject constructor(
             val path = json.decodeFromString(PolymorphicSerializer(APath::class), serializedPath)
             workspaceRemote.createAndFocus(
                 type = Workspace.Type.EXPLORER,
-                arguments = ExternalExplorerArguments(startPath = path)
+                arguments = ExplorerArguments.Default(startPath = path)
             )
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to open directory from shortcut: ${e.asLog()}" }
@@ -80,7 +79,10 @@ class MainViewModel @Inject constructor(
     fun createNewExplorerWorkspace() = launch {
         log(tag) { "createNewExplorerWorkspace()" }
         try {
-            workspaceRemote.createAndFocus(type = Workspace.Type.EXPLORER)
+            workspaceRemote.createAndFocus(
+                type = Workspace.Type.EXPLORER,
+                arguments = ExplorerArguments.Default()
+            )
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to create new Explorer workspace: ${e.message}" }
         }

@@ -69,7 +69,7 @@ class TextPreviewGenerator @Inject constructor(
             started = SharingStarted.Eagerly,
             initialValue = run {
                 val colorScheme = ThemeColorProvider.getDarkColorScheme(
-                    ThemeColor.TEAL,
+                    ThemeColor.GREEN,
                     ThemeStyle.DEFAULT
                 )
                 colorScheme.background.toArgb() to colorScheme.onBackground.toArgb()

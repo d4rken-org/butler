@@ -16,7 +16,10 @@ import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +27,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okio.Source
+import java.util.concurrent.atomic.AtomicBoolean
 
 class EditorEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -66,7 +70,7 @@ class EditorEngine @AssistedInject constructor(
     private val _error = MutableStateFlow<Throwable?>(null)
     val error: StateFlow<Throwable?> = _error.asStateFlow()
 
-    private var isInitializing = true
+    private val isInitializing = AtomicBoolean(true)
 
     val fileInfo: Flow<FileInfo?> = state.map { s ->
         when (s) {
@@ -159,9 +163,11 @@ class EditorEngine @AssistedInject constructor(
 
             // Open data source
             resources.dataSource.open()
+            currentCoroutineContext().ensureActive()
 
             // Initialize text buffer
             val bufferInitResult = resources.textBuffer.initialize()
+            currentCoroutineContext().ensureActive()
             if (bufferInitResult.isFailure) {
                 val error = bufferInitResult.exceptionOrNull() ?: Exception("Unknown error")
                 _state.value = EditorState.Error(error, _state.value)
@@ -196,7 +202,7 @@ class EditorEngine @AssistedInject constructor(
             )
 
             log(tag) { "Successfully initialized engine with: ${filePath?.name ?: "in-memory editor"}" }
-            isInitializing = false
+            isInitializing.set(false)
             Result.success(Unit)
 
         } catch (e: Exception) {
@@ -207,7 +213,7 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun saveFile(): Result<Unit> {
+    suspend fun saveFile(): Result<Unit> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 try {
@@ -253,7 +259,7 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun insertText(text: String) {
+    suspend fun insertText(text: String) = stateMutex.withLock {
         when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 val cursorPos = _cursorPosition.value
@@ -288,6 +294,9 @@ class EditorEngine @AssistedInject constructor(
                         // Update total lines from text buffer
                         _totalLines.value = currentState.resources.textBuffer.totalLines.value
 
+                        // Invalidate search results (positions are now stale)
+                        invalidateSearchResults()
+
                         // Refresh visible content from updated chunks
                         refreshVisibleContent()
                     },
@@ -303,7 +312,7 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun deleteSelection(): Result<String> {
+    suspend fun deleteSelection(): Result<String> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 val selection = _selectionRange.value ?: return Result.failure(
@@ -317,6 +326,8 @@ class EditorEngine @AssistedInject constructor(
                         _cursorPosition.value = selection.first
                         _state.value = currentState.copy(isModified = true)
                         _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        // Invalidate search results (positions are now stale)
+                        invalidateSearchResults()
                         refreshVisibleContent()
                     } else {
                         _error.value = result.exceptionOrNull()
@@ -336,16 +347,108 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    fun setCursorPosition(position: TextPosition) {
-        _cursorPosition.value = position
+    suspend fun copySelection(): Result<String> = stateMutex.withLock {
+        return when (val currentState = _state.value) {
+            is EditorState.Loaded -> {
+                val selection = _selectionRange.value ?: return Result.failure(
+                    IllegalStateException("No selection to copy")
+                )
+
+                try {
+                    log(tag) { "Copying selection: ${selection.first} to ${selection.second}" }
+                    currentState.resources.textBuffer.getText(selection.first.offset, selection.second.offset)
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
+            }
+            else -> {
+                val error = IllegalStateException("Cannot copy selection - no file open")
+                log(tag, WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
+        }
+    }
+
+    suspend fun selectAll(): Result<Pair<TextPosition, TextPosition>> = stateMutex.withLock {
+        return when (val currentState = _state.value) {
+            is EditorState.Loaded -> {
+                try {
+                    val startPosition = TextPosition(offset = 0, line = 0, column = 0)
+
+                    val totalLength = currentState.resources.textBuffer.totalLength.value
+                    val totalLines = _totalLines.value
+
+                    // Get the last line to calculate its length for the column
+                    val lastLineNumber = (totalLines - 1).coerceAtLeast(0)
+                    val lastLineResult = currentState.resources.textBuffer.getTextForLine(lastLineNumber)
+                    val lastLineLength = lastLineResult.getOrNull()?.length ?: 0
+
+                    val endPosition = TextPosition(
+                        offset = totalLength,
+                        line = lastLineNumber,
+                        column = lastLineLength
+                    )
+
+                    log(tag) { "Selecting all text: $startPosition to $endPosition" }
+
+                    val selection = startPosition to endPosition
+                    _selectionRange.value = selection
+
+                    Result.success(selection)
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to select all - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
+            }
+            else -> {
+                val error = IllegalStateException("Cannot select all - no file open")
+                log(tag, WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
+        }
+    }
+
+    suspend fun setCursorPosition(position: TextPosition) = stateMutex.withLock {
+        val correctedPosition = when (val currentState = _state.value) {
+            is EditorState.Loaded -> TextPosition(
+                offset = currentState.resources.textBuffer.findOffset(position.line, position.column),
+                line = position.line,
+                column = position.column
+            )
+            else -> position
+        }
+        _cursorPosition.value = correctedPosition
         _selectionRange.value = null
     }
 
-    fun setSelection(start: TextPosition, end: TextPosition) {
-        _selectionRange.value = start to end
+    suspend fun setSelection(start: TextPosition, end: TextPosition) = stateMutex.withLock {
+        when (val currentState = _state.value) {
+            is EditorState.Loaded -> {
+                // Recalculate actual offsets from line/column positions
+                // UI may send placeholder offset=0 with virtual scrolling
+                val correctedStart = TextPosition(
+                    offset = currentState.resources.textBuffer.findOffset(start.line, start.column),
+                    line = start.line,
+                    column = start.column
+                )
+                val correctedEnd = TextPosition(
+                    offset = currentState.resources.textBuffer.findOffset(end.line, end.column),
+                    line = end.line,
+                    column = end.column
+                )
+                _selectionRange.value = correctedStart to correctedEnd
+            }
+            else -> {
+                // No file loaded, store as-is
+                _selectionRange.value = start to end
+            }
+        }
     }
 
-    suspend fun search(query: String): Result<List<SearchResult>> {
+    suspend fun search(query: String, caseSensitive: Boolean = false): Result<List<SearchResult>> = stateMutex.withLock {
         _searchQuery.value = query
 
         if (query.isEmpty()) {
@@ -356,8 +459,9 @@ class EditorEngine @AssistedInject constructor(
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 try {
+                    coroutineContext.ensureActive()
                     val results =
-                        currentState.resources.textBuffer.search(query, _cursorPosition.value, ignoreCase = true)
+                        currentState.resources.textBuffer.search(query, _cursorPosition.value, ignoreCase = !caseSensitive)
                     _searchResults.value = results
                     Result.success(results)
                 } catch (e: Exception) {
@@ -376,19 +480,21 @@ class EditorEngine @AssistedInject constructor(
 
     suspend fun goToLine(lineNumber: Int): Result<Unit> {
         return try {
+            val currentState = _state.value as? EditorState.Loaded
+                ?: return Result.failure(IllegalStateException("Cannot go to line - no file open"))
+
             val totalLines = _totalLines.value
-            if (lineNumber < 0 || lineNumber >= totalLines) {
-                return Result.failure(IllegalArgumentException("Line number out of range"))
+            if (lineNumber !in 0..<totalLines) {
+                return Result.failure(
+                    IllegalArgumentException("Line $lineNumber out of range (0..$totalLines)")
+                )
             }
 
-            val lines = _currentContent.value.split('\n')
-            var offset = 0
-            for (i in 0 until lineNumber) {
-                offset += lines[i].length + 1 // +1 for newline
-            }
+            // Use textBuffer to find correct offset (works for any line, not just visible range)
+            val offset = currentState.resources.textBuffer.findOffset(lineNumber, 0)
 
             val position = TextPosition(
-                offset = offset.toLong(),
+                offset = offset,
                 line = lineNumber,
                 column = 0
             )
@@ -407,11 +513,17 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
+    private fun invalidateSearchResults() {
+        _searchResults.value = emptyList()
+        _searchQuery.value = ""
+    }
+
     private suspend fun refreshVisibleContent() {
         val currentState = _state.value as? EditorState.Loaded ?: return
         val currentRange = _visibleRange.value
 
         try {
+            currentCoroutineContext().ensureActive()
             val contentResult = currentState.resources.textBuffer.getTextForRange(
                 currentRange.first,
                 currentRange.last
@@ -427,8 +539,8 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun updateVisibleRange(startLine: Int, endLine: Int) {
-        if (isInitializing) {
+    suspend fun updateVisibleRange(startLine: Int, endLine: Int) = stateMutex.withLock {
+        if (isInitializing.get()) {
             log(tag) { "Ignoring visible range update during initialization: $startLine..$endLine" }
             return
         }
@@ -464,18 +576,16 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun undo(): Result<EditOperation?> {
+    suspend fun undo(): Result<EditOperation?> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 try {
                     val result = currentState.resources.textBuffer.undo()
                     if (result.isSuccess) {
                         _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        invalidateSearchResults()
                         refreshVisibleContent()
                     }
-                    // Clear search results as they're now stale
-                    _searchResults.value = emptyList()
-                    _searchQuery.value = ""
                     result
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to undo - ${e.asLog()}" }
@@ -491,18 +601,16 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun redo(): Result<EditOperation?> {
+    suspend fun redo(): Result<EditOperation?> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 try {
                     val result = currentState.resources.textBuffer.redo()
                     if (result.isSuccess) {
                         _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        invalidateSearchResults()
                         refreshVisibleContent()
                     }
-                    // Clear search results as they're now stale
-                    _searchResults.value = emptyList()
-                    _searchQuery.value = ""
                     result
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to redo - ${e.asLog()}" }
@@ -532,12 +640,13 @@ class EditorEngine @AssistedInject constructor(
         _error.value = null
     }
 
-    suspend fun release() {
+    suspend fun release() = stateMutex.withLock {
         log(tag, INFO) { "release()" }
         val currentState = _state.value
         if (currentState is EditorState.Loaded) {
             try {
                 disposeResources(currentState.resources)
+                _state.value = EditorState.Empty
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to dispose resources: ${e.asLog()}" }
             }

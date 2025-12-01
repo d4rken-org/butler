@@ -66,6 +66,11 @@ sealed interface SearcherPageAction {
          * Toggle regex search mode
          */
         data object ToggleRegex : Options
+
+        /**
+         * Toggle file content search
+         */
+        data object ToggleSearchContent : Options
     }
 
     /**

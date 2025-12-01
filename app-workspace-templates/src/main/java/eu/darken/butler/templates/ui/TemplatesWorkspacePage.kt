@@ -32,7 +32,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.Slogans
-import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -48,10 +49,12 @@ import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.templates.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
-import eu.darken.butler.workspace.core.icon
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
+import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun TemplatesWorkspacePageHost(
@@ -61,6 +64,7 @@ fun TemplatesWorkspacePageHost(
         key = id.longTag,
         creationCallback = { factory: TemplatesWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
 
@@ -72,6 +76,8 @@ fun TemplatesWorkspacePageHost(
             workspaceId = id,
             design = design,
             state = state,
+            workspaceStateSource = workspaceButtonVm.state,
+            workspaceActionHandler = workspaceButtonVm,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
             onCreateWorkspace = { vm.createWorkspace(it) },
         )
@@ -83,10 +89,13 @@ fun TemplatesWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     state: TemplatesWorkspaceViewModel.State,
+    workspaceStateSource: Flow<WorkspaceButtonViewModel.State?>,
+    workspaceActionHandler: WorkspaceActionHandler?,
     onNavToSettings: () -> Unit,
     onCreateWorkspace: (WorkspaceAction.Create) -> Unit = {},
 ) {
     val randomSlogan = remember { Slogans.random }
+    val workspaceButtonState by workspaceStateSource.collectAsState(null)
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -127,7 +136,8 @@ fun TemplatesWorkspacePage(
                                         WorkspaceAction.Create(
                                             type = template.type,
                                             arguments = template.arguments,
-                                            replace = state.id
+                                            replace = state.id,
+                                            autoFocus = true,
                                         )
                                     )
                                 })
@@ -148,10 +158,11 @@ fun TemplatesWorkspacePage(
                             .clickable { onNavToSettings() }
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        ButlerIcon(
-                            modifier = Modifier.size(40.dp)
+                        ButlerMascot(
+                            modifier = Modifier.size(64.dp),
+                            variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy else ButlerMascotMode.Static.Normal
                         )
 
                         Column(modifier = Modifier.weight(1f)) {
@@ -189,6 +200,18 @@ fun TemplatesWorkspacePage(
                     }
                 }
             }
+        }
+
+        if (design.isSingle) {
+            WorkspaceButton(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 8.dp, end = 16.dp),
+                buttonSize = 40.dp,
+                state = workspaceButtonState,
+                currentWorkspaceId = workspaceId,
+                workspaceActionHandler = workspaceActionHandler,
+            )
         }
     }
 }
@@ -301,9 +324,16 @@ private fun TemplatesWorkspacePagePreview() {
                     EditorWorkspaceTemplate(),
                 ),
                 isUpgraded = true,
-                panelMode = WorkspacePanelMode.AUTO,
                 versionDescription = "1.0.0-preview",
             ),
+            workspaceStateSource = kotlinx.coroutines.flow.flowOf(
+                WorkspaceButtonViewModel.State(
+                    workspaceCount = 1,
+                    operationsCount = 0,
+                    attentionCount = 0,
+                )
+            ),
+            workspaceActionHandler = null,
             onNavToSettings = {},
         )
     }

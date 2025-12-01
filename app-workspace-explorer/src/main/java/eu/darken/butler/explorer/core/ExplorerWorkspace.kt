@@ -10,13 +10,12 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.shareLatest
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
+import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
@@ -25,9 +24,9 @@ import eu.darken.butler.explorer.core.operations.CreateOperation
 import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.MoveOperation
-import eu.darken.butler.explorer.core.picker.ExplorerPickerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
@@ -48,12 +47,15 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 
 
 class ExplorerWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
-    @Assisted private val arguments: Workspace.Arguments?,
+    @Assisted private val creationArguments: ExplorerArguments,
     dispatcherProvider: DispatcherProvider,
     browsingEngineFactory: BrowsingEngine.Factory,
     fileSystemHinter: FileSystemHinter,
@@ -64,7 +66,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val createOperationFactory: CreateOperation.Factory,
     private val copyOperationFactory: CopyOperation.Factory,
     private val moveOperationFactory: MoveOperation.Factory,
-) : Workspace {
+) : Workspace<ExplorerArguments> {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
 
@@ -82,10 +84,18 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val _state: DynamicStateFlow<State> = DynamicStateFlow<State>(parentScope = scope) { State() }
     val state: Flow<State> = _state.flow
 
+
+    override suspend fun createArguments(): ExplorerArguments {
+        // Extract current path from state for session restoration
+        val currentState = _state.value()
+        val currentPath = (currentState.currentLocation as? ExplorerLocation.Directory)?.path
+        return ExplorerArguments.Default(startPath = currentPath)
+    }
+
     private val browsingEngine = browsingEngineFactory.create(id, scope)
 
     // Picker configuration if this is a picker workspace
-    val pickerConfig: PickerConfig? = (arguments as? ExplorerPickerArguments)?.let {
+    val pickerConfig: PickerConfig? = (creationArguments as? ExplorerArguments.Picker)?.let {
         PickerConfig(
             callerWorkspaceId = it.callerWorkspaceId
                 ?: error("callerWorkspaceId required for picker mode"),
@@ -168,7 +178,6 @@ class ExplorerWorkspace @AssistedInject constructor(
                         error = engineState.error
                     )
                 }
-
             }
             .launchIn(scope)
 
@@ -207,17 +216,11 @@ class ExplorerWorkspace @AssistedInject constructor(
 
         // Load initial location
         scope.launch {
-            log(tag, INFO) { "Loading initial data... ($arguments)" }
+            log(tag, INFO) { "Loading initial data... ($creationArguments)" }
             try {
-                val startPath = when (arguments) {
-                    is ExplorerPickerArguments -> arguments.startPath
-                    is ExternalExplorerArguments -> arguments.startPath
-                    is Arguments -> arguments.startPath
-                    null -> null
-                    else -> error(
-                        "ExplorerWorkspace received unsupported arguments type: ${arguments::class.qualifiedName}. " +
-                            "Expected ExplorerWorkspace.Arguments, ExplorerPickerArguments, or ExplorerArguments."
-                    )
+                val startPath = when (creationArguments) {
+                    is ExplorerArguments.Picker -> creationArguments.startPath
+                    is ExplorerArguments.Default -> creationArguments.startPath
                 }
                 if (startPath != null) {
                     navigationRequests.emit(ExplorerNavigation.Target.Directory(startPath))
@@ -316,7 +319,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     }
 
     fun navigate(request: ExplorerNavigation) {
-        log(tag,INFO) { "navigate(): $request" }
+        log(tag, INFO) { "navigate(): $request" }
         scope.launch {
             navigationRequests.emit(request)
         }
@@ -368,15 +371,17 @@ class ExplorerWorkspace @AssistedInject constructor(
         scope.cancel()
     }
 
-    @Parcelize
-    data class Arguments(
-        val startPath: APath<*>? = null,
-    ) : Workspace.Arguments {
-        override val type: Workspace.Type get() = Workspace.Type.EXPLORER
-    }
-
     @AssistedFactory
-    interface Factory {
-        fun create(id: Workspace.Id, arguments: Workspace.Arguments?): ExplorerWorkspace
+    interface Factory : WorkspaceFactory<ExplorerArguments> {
+
+        override fun create(id: Workspace.Id, arguments: ExplorerArguments): ExplorerWorkspace
+
+        override fun serialize(json: Json, arguments: ExplorerArguments): JsonElement {
+            return json.encodeToJsonElement<ExplorerArguments>(arguments)
+        }
+
+        override fun deserialize(json: Json, element: JsonElement): ExplorerArguments {
+            return json.decodeFromJsonElement<ExplorerArguments>(element)
+        }
     }
 }

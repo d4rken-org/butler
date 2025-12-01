@@ -37,18 +37,21 @@ import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.trash.TrashManager
 import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerNavigation.Target.*
 import eu.darken.butler.explorer.core.ExplorerSettings
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.PatternMatcher
+import eu.darken.butler.explorer.core.SortSettings
+import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
@@ -129,7 +132,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
-    private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
+    private val viewStyleFlow = MutableStateFlow<ExplorerViewStyle>(explorerSettings.defaultViewStyle.valueBlocking)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(None)
     private val issueStateFlow = MutableStateFlow<Issue?>(null)
     private val filterStateFlow = MutableStateFlow(FilterState())
@@ -191,11 +194,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .launchInViewModel()
     }
 
-    enum class ViewMode {
-        LIST,
-        GRID
-    }
-
     data class State(
         internal val currentLocation: ExplorerLocation? = null,
         val locationId: String? = null,
@@ -203,7 +201,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val items: List<ExplorerItem>? = null,
         val error: Throwable? = null,
         val selectionState: ExplorerSelectionState = ExplorerSelectionState(),
-        val viewMode: ViewMode = ViewMode.LIST,
+        val viewStyle: ExplorerViewStyle = ExplorerViewStyle.default(),
         val canGoBack: Boolean = false,
         val canGoForward: Boolean = false,
         val availableActions: List<ExplorerAction> = emptyList(),
@@ -214,6 +212,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val useRegexPatterns: Boolean = false,
         val useBackButtonForNavigation: Boolean = false,
         val pickerConfig: PickerConfig? = null,
+        val sortSettings: SortSettings = SortSettings(),
         val trashEnabled: Boolean = false,
     ) {
         val progress = currentLocation?.progress
@@ -243,7 +242,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val state = combine(
         workspaceState,
         selectedItemsFlow,
-        viewModeFlow,
+        viewStyleFlow,
         dialogStateFlow,
         currentSortSettings,
         upgradeRepo.upgradeInfo,
@@ -252,7 +251,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         explorerSettings.useBackButtonForNavigation.flow,
         pickerConfigFlow,
         trashManager.isEnabled,
-    ) { wsState, selectedItems, viewMode, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled ->
+    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled ->
         val items = wsState.currentLocation?.items
             ?.let { items -> applyPickerFilter(items, pickerConfig) }
             ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
@@ -296,6 +295,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             actionProvider.getActions(
                 location = it,
                 selectionState = selectionState,
+                viewStyle = viewStyle,
             )
                 .filter { action ->
                     // In picker mode, only allow browse/create/select actions
@@ -330,7 +330,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             items = items,
             error = wsState.error,
             selectionState = selectionState,
-            viewMode = viewMode,
+            viewStyle = viewStyle,
             canGoBack = wsState.canGoBack,
             canGoForward = wsState.canGoForward,
             availableActions = availableActions,
@@ -341,6 +341,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             useRegexPatterns = useRegexPatterns,
             useBackButtonForNavigation = useBackButtonForNavigation,
             pickerConfig = pickerConfig,
+            sortSettings = sortSetting,
             trashEnabled = recycleBinEnabled,
         )
     }
@@ -733,25 +734,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
 
-                val intent = shareIntentUseCase.createShareIntent(shareItems)
-                if (intent != null) {
-                    try {
-                        val chooserIntent = Intent.createChooser(
-                            intent,
-                            if (selectedFiles.size == 1) {
-                                "Share ${selectedFiles.first().lookup.name}"
-                            } else {
-                                "Share ${selectedFiles.size} files"
-                            }
-                        )
-                        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        context.startActivity(chooserIntent)
-                    } catch (e: Exception) {
-                        log(tag, ERROR) { "Failed to share files: ${e.asLog()}" }
-                        errorEvents.emit(e)
-                    }
+                val chooserTitle = if (selectedFiles.size == 1) {
+                    context.getString(
+                        eu.darken.butler.common.R.string.general_share_single_title,
+                        selectedFiles.first().lookup.name
+                    )
                 } else {
-                    log(tag, ERROR) { "Failed to create share intent for ${selectedFiles.size} files" }
+                    context.resources.getQuantityString(
+                        eu.darken.butler.common.R.plurals.general_share_multiple_title,
+                        selectedFiles.size,
+                        selectedFiles.size
+                    )
+                }
+
+                val success = shareIntentUseCase.shareWithChooser(shareItems, chooserTitle)
+                if (!success) {
                     errorEvents.emit(Exception("Failed to share ${selectedFiles.size} files"))
                 }
             }
@@ -809,10 +806,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     useRegexPatterns = explorerSettings.useRegexPatterns.valueBlocking,
                 )
             }
-            is ExplorerAction.Common.ToggleView -> {
-                viewModeFlow.value = when (viewModeFlow.value) {
-                    ViewMode.LIST -> ViewMode.GRID
-                    ViewMode.GRID -> ViewMode.LIST
+            is ExplorerAction.Common.UpdateViewStyle -> {
+                viewStyleFlow.value = action.viewStyle
+                launch {
+                    explorerSettings.defaultViewStyle.value(action.viewStyle)
                 }
             }
             is ExplorerAction.Common.Refresh -> {
@@ -925,8 +922,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // Create workspace requests
         val requests = openInNewTabsUseCase.createRequests(
             analysis = analysis,
-            createExplorerArguments = { path -> ExplorerWorkspace.Arguments(startPath = path) },
-            createEditorArguments = { path -> EditorWorkspace.Arguments(filePath = path) },
+            createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
+            createEditorArguments = { path -> EditorArguments.Default(filePath = path) },
         )
 
         // Execute batch creation directly - WorkspaceRepo handles confirmation and banner
@@ -956,7 +953,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         try {
             val action = WorkspaceAction.Create(
                 type = Workspace.Type.EDITOR,
-                arguments = EditorWorkspace.Arguments(filePath = item.lookup.lookedUp)
+                arguments = EditorArguments.Default(filePath = item.lookup.lookedUp)
             )
 
             workspaceRemote.execute(action)
@@ -994,18 +991,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             override val displayName = item.lookup.name
         }
 
-        val intent = shareIntentUseCase.createShareIntent(listOf(shareItem))
-        if (intent != null) {
-            try {
-                val chooserIntent = Intent.createChooser(intent, "Share ${item.lookup.name}")
-                chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(chooserIntent)
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to share file: ${e.asLog()}" }
-                errorEvents.emit(e)
-            }
-        } else {
-            log(tag, WARN) { "Failed to create share intent for: ${item.lookup.name}" }
+        val chooserTitle = context.getString(
+            eu.darken.butler.common.R.string.general_share_single_title,
+            item.lookup.name
+        )
+
+        val success = shareIntentUseCase.shareWithChooser(listOf(shareItem), chooserTitle)
+        if (!success) {
             errorEvents.emit(Exception("Failed to share file: ${item.lookup.name}"))
         }
     }
@@ -1631,7 +1623,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Common.Refresh,
             is ExplorerAction.Common.Sort,
             is ExplorerAction.Common.Filter,
-            is ExplorerAction.Common.ToggleView,
+            is ExplorerAction.Common.UpdateViewStyle,
             is ExplorerAction.Directory.Create,
             is ExplorerAction.Directory.SelectAll,
             is ExplorerAction.Directory.DeselectAll,

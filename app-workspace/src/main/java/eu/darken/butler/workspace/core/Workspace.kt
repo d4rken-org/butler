@@ -8,10 +8,17 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.TypeParceler
 import kotlin.uuid.Uuid
 
-interface Workspace {
+interface Workspace<ArgT : Workspace.Arguments> {
     val id: Id
     val type: Type
     val info: Flow<Info>
+
+    /**
+     * The arguments used to create this workspace.
+     * For session restoration, workspaces may return current state as Arguments
+     * instead of original creation arguments.
+     */
+    suspend fun createArguments(): ArgT
 
     suspend fun release() {
 
@@ -42,6 +49,37 @@ interface Workspace {
 
     interface Arguments : Parcelable {
         val type: Type
+    }
+
+    /**
+     * Optional interface for workspaces that support advanced session state restoration.
+     *
+     * Session restoration happens in two phases:
+     * 1. Basic: Workspace created from Arguments (always, automatic via @Serializable)
+     * 2. Advanced: CustomState restored (optional, if workspace implements SessionAware)
+     *
+     * Arguments should contain "content location" (path, file, package),
+     * while CustomState contains "UI/interaction state" (scroll, filters, view mode).
+     */
+    interface SessionAware {
+        /**
+         * Extract current custom state for session persistence.
+         * Return null if workspace has no meaningful custom state to preserve.
+         */
+        suspend fun extractCustomState(): CustomState?
+
+        /**
+         * Restore custom state after workspace creation.
+         * Called after workspace is created from Arguments during session restoration.
+         */
+        suspend fun restoreCustomState(state: CustomState)
+
+        /**
+         * Marker interface for workspace-specific custom state.
+         * Must be both Serializable (for persistence) and Parcelable (for Android).
+         * Implementing classes should be annotated with @Serializable.
+         */
+        interface CustomState : Parcelable
     }
 
     /**

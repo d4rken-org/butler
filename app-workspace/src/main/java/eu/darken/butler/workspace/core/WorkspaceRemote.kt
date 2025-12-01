@@ -1,6 +1,6 @@
 package eu.darken.butler.workspace.core
 
-import eu.darken.butler.workspace.ui.WorkspacePanelMode
+import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import kotlinx.coroutines.flow.Flow
 
 interface WorkspaceRemote {
@@ -17,7 +17,8 @@ interface WorkspaceRemote {
 
     data class State(
         val infos: List<Workspace.Info> = emptyList(),
-        val panelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
+        val portraitPanelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
+        val landscapePanelMode: WorkspacePanelMode = WorkspacePanelMode.AUTO,
     ) {
         val workspaceCount: Int
             get() = infos.size

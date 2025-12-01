@@ -35,7 +35,7 @@ class GeneralSettings @Inject constructor(
 
     val themeMode = dataStore.createValue("core.ui.theme.mode", ThemeMode.SYSTEM, json)
     val themeStyle = dataStore.createValue("core.ui.theme.style", ThemeStyle.DEFAULT, json)
-    val themeColor = dataStore.createValue("core.ui.theme.color", ThemeColor.TEAL, json)
+    val themeColor = dataStore.createValue("core.ui.theme.color", ThemeColor.GREEN, json)
 
     val isOnboardingCompleted = dataStore.createValue("core.onboarding.completed", false)
 

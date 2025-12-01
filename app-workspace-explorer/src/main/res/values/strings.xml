@@ -3,8 +3,8 @@
     <!-- Explorer -->
     <string name="explorer_title">Explorer</string>
     <string name="explorer_subtitle">Browse files and directories</string>
-    <string name="explorer_settings_title">Explorer Settings</string>
-    <string name="explorer_settings_file_display">File Display</string>
+    <string name="explorer_settings_title">Explorer settings</string>
+    <string name="explorer_settings_file_display">File display</string>
     <string name="explorer_settings_filter_regex_title">Advanced wildcard matching</string>
     <string name="explorer_settings_filter_regex_desc">Use regex patterns in filters in include/exclude filters.</string>
     <string name="explorer_settings_navigation">Navigation</string>
@@ -38,31 +38,31 @@
     <string name="explorer_file_storage_saf_read_only_label">Read-only access</string>
     <string name="explorer_file_storage_saf_write_only_label">Write-only access</string>
     <string name="explorer_file_storage_saf_no_access_label">No access</string>
-    <string name="explorer_file_storage_saf_uri_label">SAF Tree URI</string>
+    <string name="explorer_file_storage_saf_uri_label">SAF tree URI</string>
     <string name="explorer_file_storage_size_format">%1$s • %2$s total • %3$s free</string>
     <string name="explorer_file_broken_link_label">Broken link</string>
     <string name="explorer_file_items_count">%1$d items</string>
     <string name="explorer_file_empty">Empty</string>
 
     <!-- Picker Mode -->
-    <string name="explorer_picker_select_directory_title">Select Folder</string>
+    <string name="explorer_picker_select_directory_title">Select folder</string>
     <plurals name="explorer_picker_select_directories">
-        <item quantity="zero">Select Folders</item>
-        <item quantity="one">Select Folder (%d)</item>
-        <item quantity="other">Select Folders (%d)</item>
+        <item quantity="zero">Select folders</item>
+        <item quantity="one">Select folder (%d)</item>
+        <item quantity="other">Select folders (%d)</item>
     </plurals>
-    <string name="explorer_picker_select_file_title">Select File</string>
+    <string name="explorer_picker_select_file_title">Select file</string>
     <plurals name="explorer_picker_select_files">
-        <item quantity="zero">Select Files</item>
-        <item quantity="one">Select File (%d)</item>
-        <item quantity="other">Select Files (%d)</item>
+        <item quantity="zero">Select files</item>
+        <item quantity="one">Select file (%d)</item>
+        <item quantity="other">Select files (%d)</item>
     </plurals>
     <plurals name="explorer_picker_select_items">
-        <item quantity="zero">Select Items</item>
-        <item quantity="one">Select Item (%d)</item>
-        <item quantity="other">Select Items (%d)</item>
+        <item quantity="zero">Select items</item>
+        <item quantity="one">Select item (%d)</item>
+        <item quantity="other">Select items (%d)</item>
     </plurals>
-    <string name="explorer_picker_select_this_folder_action">Select This Folder</string>
+    <string name="explorer_picker_select_this_folder_action">Select this folder</string>
     <plurals name="explorer_picker_select_count_action">
         <item quantity="one">Select %d</item>
         <item quantity="other">Select %d</item>
@@ -78,9 +78,8 @@
     <string name="explorer_action_copy">Copy</string>
     <string name="explorer_action_cut">Cut</string>
     <string name="explorer_action_delete">Delete</string>
-    <string name="explorer_action_share">Share</string>
-    <string name="explorer_action_select_all">Select All</string>
-    <string name="explorer_action_deselect_all">Deselect All</string>
+    <string name="explorer_action_select_all">Select all</string>
+    <string name="explorer_action_deselect_all">Deselect all</string>
     <string name="explorer_action_add_location">Add location</string>
     <string name="explorer_action_info">Info</string>
 
@@ -117,16 +116,16 @@
     <string name="explorer_info_selected_label">Selected</string>
     <string name="explorer_info_files_label">Files</string>
     <string name="explorer_info_directories_label">Directories</string>
-    <string name="explorer_info_total_size_label">Total Size</string>
+    <string name="explorer_info_total_size_label">Total size</string>
 
     <!-- Device/Home View Info -->
     <string name="explorer_info_locations_label">Locations</string>
     <string name="explorer_info_shortcuts_label">Shortcuts</string>
-    <string name="explorer_info_total_capacity_label">Total Capacity</string>
-    <string name="explorer_info_used_space_label">Used Space</string>
-    <string name="explorer_info_free_space_label">Free Space</string>
+    <string name="explorer_info_total_capacity_label">Total capacity</string>
+    <string name="explorer_info_used_space_label">Used space</string>
+    <string name="explorer_info_free_space_label">Free space</string>
     <string name="explorer_info_usage_label">Usage</string>
-    <string name="explorer_info_device_storage_total_label">Device Storage</string>
+    <string name="explorer_info_device_storage_total_label">Device storage</string>
     <string name="explorer_info_device_storage_used_label">Used</string>
     <string name="explorer_info_device_storage_free_label">Free</string>
 
@@ -244,29 +243,6 @@
     <string name="explorer_loading">Loading…</string>
     <string name="explorer_file_peek_loading_text">Loading…</string>
 
-    <!-- Issue Messages -->
-    <string name="explorer_issue_collision_existing_file_label">Existing file</string>
-    <string name="explorer_issue_collision_existing_folder_label">Existing folder</string>
-    <string name="explorer_issue_collision_new_file">New file</string>
-    <string name="explorer_issue_collision_new_folder">New folder</string>
-    <string name="explorer_issue_collision_overwrite">Replace</string>
-    <string name="explorer_issue_collision_merge">Merge</string>
-
-    <string name="explorer_issue_common_source_file">Source file</string>
-    <string name="explorer_issue_common_destination_file">Destination</string>
-    <string name="explorer_issue_common_skip">Skip</string>
-    <string name="explorer_issue_common_rename">Rename</string>
-    <string name="explorer_issue_common_rename_new">Rename new</string>
-    <string name="explorer_issue_common_rename_existing">Rename existing</string>
-    <string name="explorer_issue_common_cancel">Cancel</string>
-    <string name="explorer_issue_common_delete_permanently">Delete permanently</string>
-    <string name="explorer_issue_apply_all">Apply to all remaining issues</string>
-    <string name="explorer_issue_trash_size_limit_file_label">File</string>
-    <string name="explorer_rename_new_name">New name</string>
-    <string name="explorer_rename_dialog_title_new">Rename incoming file</string>
-    <string name="explorer_rename_dialog_title_existing">Rename existing file</string>
-    <string name="explorer_type_folder">Folder</string>
-
     <!-- Empty Folder Captions -->
     <string name="explorer_empty_folder_caption_1">Nothing to see here… move along 🕵️</string>
     <string name="explorer_empty_folder_caption_2">This folder is on a diet</string>
@@ -303,22 +279,22 @@
     <string name="explorer_filter_exclude_label">Exclude pattern</string>
     <string name="explorer_filter_exclude_placeholder_simple">e.g., tmp, cache, old</string>
     <string name="explorer_filter_exclude_placeholder_regex">e.g., ^\\., .*\\.tmp$, .*\\.bak$</string>
-    <string name="explorer_filter_regex_hint">💡 Enable regex patterns in Settings</string>
+    <string name="explorer_filter_regex_hint">💡 Enable regex patterns in settings</string>
 
     <!-- Permission Messages -->
-    <string name="explorer_permission_required_title">Permission Needed</string>
+    <string name="explorer_permission_required_title">Permission needed</string>
     <string name="explorer_permission_generic_description">Butler needs additional permission to browse this location.</string>
-    <string name="explorer_permission_setup_action">Open Setup</string>
-    <string name="explorer_grant_access_action">Grant Access</string>
+    <string name="explorer_permission_setup_action">Open setup</string>
+    <string name="explorer_grant_access_action">Grant access</string>
 
     <!-- File Options -->
     <string name="explorer_file_options_actions">Actions</string>
     <string name="explorer_file_info_type_label">Type</string>
     <string name="explorer_file_info_size_label">Size</string>
     <string name="explorer_file_info_modified_label">Modified</string>
-    <string name="explorer_file_action_open_in_editor">Open in Editor</string>
+    <string name="explorer_file_action_open_in_editor">Open in editor</string>
     <string name="explorer_file_action_open_in_editor_subtitle">Edit in Butler\'s text editor</string>
-    <string name="explorer_file_action_open_with">Open With</string>
+    <string name="explorer_file_action_open_with">Open with</string>
     <string name="explorer_file_action_open_with_subtitle">Choose an external app to open</string>
     <string name="explorer_file_action_share">Share</string>
     <string name="explorer_file_action_share_subtitle">Share via installed apps</string>
@@ -388,31 +364,31 @@
 
 
     <!-- Navigation Error Messages -->
-    <string name="explorer_navigation_error_title">Navigation Failed</string>
+    <string name="explorer_navigation_error_title">Navigation failed</string>
 
     <!-- SAF Location Auto-Labels -->
-    <string name="explorer_saf_location_android_data_label">Android/data (Special Access)</string>
-    <string name="explorer_saf_location_android_obb_label">Android/obb (Special Access)</string>
+    <string name="explorer_saf_location_android_data_label">Android/data (special access)</string>
+    <string name="explorer_saf_location_android_obb_label">Android/obb (special access)</string>
 
     <!-- Permission Request Card Explanations -->
     <string name="explorer_permission_saf_workaround_description">Android restricts access to this folder. Use the folder picker to grant access.</string>
     <string name="explorer_permission_multiple_options_description">You can grant access using Android\'s folder picker or set up Root/Shizuku for faster access to all restricted folders.</string>
-    <string name="explorer_permission_setup_both_description">This folder requires elevated access. Install and configure either Root or Shizuku in Setup.</string>
-    <string name="explorer_permission_setup_shizuku_description">This folder requires elevated access via Shizuku. Install Shizuku Manager and configure in Setup.</string>
-    <string name="explorer_permission_setup_root_description">This folder requires Root access. Configure Root in Setup if your device is rooted.</string>
+    <string name="explorer_permission_setup_both_description">This folder requires elevated access. Install and configure either Root or Shizuku in setup.</string>
+    <string name="explorer_permission_setup_shizuku_description">This folder requires elevated access via Shizuku. Install Shizuku Manager and configure in setup.</string>
+    <string name="explorer_permission_setup_root_description">This folder requires Root access. Configure Root in setup if your device is rooted.</string>
 
     <string name="explorer_permission_option_picker_title">Storage Access Framework</string>
     <string name="explorer_permission_option_picker_description">Use Android\'s folder picker to grant access to this folder.</string>
     <string name="explorer_permission_option_picker_action">Open SAF picker</string>
 
-    <string name="explorer_permission_option_setup_title">Full Access</string>
+    <string name="explorer_permission_option_setup_title">Full access</string>
     <string name="explorer_permission_option_setup_description">Configure Root or Shizuku for faster access to all restricted folders.</string>
     <string name="explorer_permission_option_setup_action">Configure</string>
 
     <!-- Permission Request Card - Storage Access Option -->
-    <string name="explorer_permission_option_storage_title">Storage Access</string>
+    <string name="explorer_permission_option_storage_title">Storage access</string>
     <string name="explorer_permission_option_storage_description">Grant Butler permission to access files on your device storage.</string>
-    <string name="explorer_permission_option_storage_action">Grant Permission</string>
+    <string name="explorer_permission_option_storage_action">Grant permission</string>
 
     <!-- Open in new tabs action -->
     <string name="explorer_action_open_in_new_tabs">Open in new tabs</string>

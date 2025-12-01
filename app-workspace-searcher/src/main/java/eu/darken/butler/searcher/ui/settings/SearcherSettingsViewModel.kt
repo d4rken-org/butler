@@ -37,12 +37,14 @@ constructor(
         searcherSettings.maxSearchResults.flow,
         searcherSettings.maxHistoryItems.flow,
         searcherSettings.saveHistory.flow,
+        searcherSettings.contentSearchBinaries.flow,
         historyCountFlow,
-    ) { maxSearchResults, maxHistoryItems, saveHistory, historyCount ->
+    ) { maxSearchResults, maxHistoryItems, saveHistory, contentSearchBinaries, historyCount ->
         State(
             maxSearchResults = maxSearchResults,
             maxHistoryItems = maxHistoryItems,
             saveHistory = saveHistory,
+            contentSearchBinaries = contentSearchBinaries,
             currentHistoryCount = historyCount,
         )
     }.asStateFlow()
@@ -67,11 +69,16 @@ constructor(
         searchHistory.clearHistory()
     }
 
+    fun updateContentSearchBinaries(enabled: Boolean) = launch {
+        log(tag) { "updateContentSearchBinaries($enabled)" }
+        searcherSettings.contentSearchBinaries.value(enabled)
+    }
 
     data class State(
         val maxSearchResults: Int = 1000,
         val maxHistoryItems: Int = 10,
         val saveHistory: Boolean = true,
+        val contentSearchBinaries: Boolean = false,
         val currentHistoryCount: Int = 0,
     )
 }

@@ -39,8 +39,7 @@ fun AddDeviceStorageSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp)
+                .padding(24.dp)
         ) {
             Text(
                 text = stringResource(R.string.explorer_add_device_storage_title),

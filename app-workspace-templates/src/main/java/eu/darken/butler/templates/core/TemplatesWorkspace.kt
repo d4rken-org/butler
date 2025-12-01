@@ -11,7 +11,9 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.templates.R
+import eu.darken.butler.templates.core.arguments.TemplatesArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
@@ -24,15 +26,18 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
 
 
 class TemplatesWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
-    @Assisted private val arguments: Arguments?,
+    @Assisted private val creationArguments: TemplatesArguments,
     dispatcherProvider: DispatcherProvider,
     private val operationsManager: OperationsManager,
-) : Workspace {
+) : Workspace<TemplatesArguments> {
 
     private val tag = logTag("Templates", "Workspace", id.shortTag)
     private val scope = CoroutineScope(
@@ -45,6 +50,10 @@ class TemplatesWorkspace @AssistedInject constructor(
     )
 
     override val type: Workspace.Type = Workspace.Type.TEMPLATES
+
+    override suspend fun createArguments(): TemplatesArguments {
+        return creationArguments
+    }
 
     override val info: MutableStateFlow<Workspace.Info> = MutableStateFlow(
         Workspace.Info(
@@ -97,16 +106,17 @@ class TemplatesWorkspace @AssistedInject constructor(
         scope.cancel()
     }
 
-    @Parcelize
-    data class Arguments(
-        val placeholder: String,
-    ) : Workspace.Arguments {
-        override val type: Workspace.Type
-            get() = Workspace.Type.TEMPLATES
-    }
-
     @AssistedFactory
-    interface Factory {
-        fun create(id: Workspace.Id, arguments: Arguments?): TemplatesWorkspace
+    interface Factory : WorkspaceFactory<TemplatesArguments> {
+
+        override fun create(id: Workspace.Id, arguments: TemplatesArguments): TemplatesWorkspace
+
+        override fun serialize(json: Json, arguments: TemplatesArguments): JsonElement {
+            return json.encodeToJsonElement<TemplatesArguments>(arguments)
+        }
+
+        override fun deserialize(json: Json, element: JsonElement): TemplatesArguments {
+            return json.decodeFromJsonElement<TemplatesArguments>(element)
+        }
     }
 }

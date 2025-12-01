@@ -23,8 +23,10 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.DualHorizontalLayout
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.DualVerticalLayout
+import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.QuadGridLayout
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.SinglePaneLayout
 import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.TripleMainLeftLayout
+import eu.darken.butler.workspace.ui.workspaces.adaptive.layouts.TripleMainRightLayout
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 import kotlinx.parcelize.Parcelize
 
@@ -125,6 +127,34 @@ fun AdaptiveWorkspaceContainer(
 
             WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT -> {
                 TripleMainLeftLayout(
+                    selected = selected,
+                    focusedTabId = focusedTabId,
+                    dividerPositions = dividerPositions,
+                    containerSize = containerSize,
+                    showPaneNumbers = showPaneNumbers,
+                    showPaneOverlay = showPaneOverlay,
+                    onTabFocus = onTabFocus,
+                    onDividerPositionsChange = onDividerPositionsChange,
+                    paneContent = paneContent,
+                )
+            }
+
+            WorkspaceDesign.Layout.TRIPLE_MAIN_RIGHT -> {
+                TripleMainRightLayout(
+                    selected = selected,
+                    focusedTabId = focusedTabId,
+                    dividerPositions = dividerPositions,
+                    containerSize = containerSize,
+                    showPaneNumbers = showPaneNumbers,
+                    showPaneOverlay = showPaneOverlay,
+                    onTabFocus = onTabFocus,
+                    onDividerPositionsChange = onDividerPositionsChange,
+                    paneContent = paneContent,
+                )
+            }
+
+            WorkspaceDesign.Layout.QUAD_GRID -> {
+                QuadGridLayout(
                     selected = selected,
                     focusedTabId = focusedTabId,
                     dividerPositions = dividerPositions,

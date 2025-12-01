@@ -1,15 +1,17 @@
 package eu.darken.butler.workspace.ui.manager
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -33,9 +35,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -44,11 +48,13 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 
 
 @Composable
+@SuppressLint("ModifierParameter")
 fun WorkspaceButton(
     modifier: Modifier = Modifier,
     state: WorkspaceButtonViewModel.State?,
     containerColor: Color? = null,
     contentColor: Color? = null,
+    buttonSize: Dp = 40.dp,
     currentWorkspaceId: Workspace.Id? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
@@ -58,9 +64,8 @@ fun WorkspaceButton(
     Box(modifier = modifier) {
         @Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
         BoxWithConstraints(
-            modifier = modifier
-                .size(40.dp)
-                .fillMaxSize()
+            modifier = Modifier
+                .size(buttonSize)
                 .clip(RoundedCornerShape(8.dp))
                 .background(containerColor ?: MaterialTheme.colorScheme.tertiaryContainer)
                 .combinedClickable(
@@ -75,9 +80,9 @@ fun WorkspaceButton(
         ) {
             val iconSize = minOf(maxWidth, maxHeight) * 0.8f
 
-            ButlerIcon(
+            ButlerMascot(
                 modifier = Modifier.size(iconSize),
-                contentDescription = null,
+                variant = ButlerMascotMode.Animated.RandomCycling
             )
         }
 
@@ -225,6 +230,29 @@ fun WorkspaceButton(
 
 @Preview2
 @Composable
+private fun WorkspaceButtonModifiedPreview() {
+    PreviewWrapper {
+        Box(
+            modifier = Modifier
+                .width(128.dp)
+                .height(128.dp)
+        ) {
+            WorkspaceButton(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 16.dp, end = 16.dp),
+                state = WorkspaceButtonViewModel.State(
+                    workspaceCount = 5,
+                    operationsCount = 7,
+                    attentionCount = 1,
+                ),
+            )
+        }
+    }
+}
+
+@Preview2
+@Composable
 private fun WorkspaceButtonPreview() {
     PreviewWrapper {
         Column(
@@ -235,9 +263,9 @@ private fun WorkspaceButtonPreview() {
             WorkspaceButton(
                 modifier = Modifier.size(32.dp),
                 state = WorkspaceButtonViewModel.State(
-                    workspaceCount = 0,
-                    operationsCount = 0,
-                    attentionCount = 0,
+                    workspaceCount = 5,
+                    operationsCount = 7,
+                    attentionCount = 1,
                 ),
             )
 
@@ -252,6 +280,7 @@ private fun WorkspaceButtonPreview() {
 
             // Multiple workspaces with operations (with focused workspace)
             WorkspaceButton(
+                modifier = Modifier.size(72.dp),
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 3,
                     operationsCount = 2,

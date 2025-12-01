@@ -68,23 +68,48 @@ class ShareIntentUseCase @Inject constructor(
         }
     }
 
-    private fun createSingleShareIntent(uri: Uri, item: Item): Intent {
-        return Intent(Intent.ACTION_SEND).apply {
-            type = item.mimeType ?: "*/*"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(Intent.EXTRA_SUBJECT, item.displayName)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    /**
+     * Creates share intent, wraps in chooser, and launches.
+     * Convenience method that handles the complete share flow.
+     *
+     * @param items Items to share
+     * @param chooserTitle Title for the share chooser dialog
+     * @return true if share launched successfully, false otherwise
+     */
+    fun shareWithChooser(
+        items: List<Item>,
+        chooserTitle: String
+    ): Boolean {
+        val intent = createShareIntent(items) ?: return false
+
+        val chooser = Intent.createChooser(intent, chooserTitle).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
+        context.startActivity(chooser)
+        log(tag, INFO) { "Share chooser launched successfully for ${items.size} items" }
+        return true
+
     }
 
-    private fun createMultipleShareIntent(uris: List<Uri>, items: List<Item>): Intent {
-        return Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-            type = "*/*" // Use generic type for multiple files
-            putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+    private fun createSingleShareIntent(
+        uri: Uri,
+        item: Item
+    ): Intent = Intent(Intent.ACTION_SEND).apply {
+        type = item.mimeType ?: "*/*"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_SUBJECT, item.displayName)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
+    private fun createMultipleShareIntent(
+        uris: List<Uri>,
+        items: List<Item>
+    ): Intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+        type = "*/*" // Use generic type for multiple files
+        putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 
     private fun getFileUri(path: APath<*>): Uri? {

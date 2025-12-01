@@ -32,6 +32,7 @@ import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.release.ReleaseManager
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
+import eu.darken.butler.provider.documents.core.DocumentsProviderManager
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
@@ -60,6 +61,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var safLocationManager: SAFLocationManager
     @Inject lateinit var imageLoaderProvider: Provider<ImageLoader>
     @Inject lateinit var workspacePreviewManager: WorkspacePreviewManager
+    @Inject lateinit var documentsProviderManager: DocumentsProviderManager
     @Inject lateinit var trashCleanupScheduler: TrashCleanupScheduler
 
     private val logCatLogger = LogCatLogger()

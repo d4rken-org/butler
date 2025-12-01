@@ -47,7 +47,9 @@ sealed interface SearchItem : Parcelable {
         val lineNumber: Int? = null,
         val matchedLine: String? = null,
         val startIndex: Int? = null,
-        val endIndex: Int? = null
+        val endIndex: Int? = null,
+        val contextBefore: List<String>? = null,
+        val contextAfter: List<String>? = null,
     ) : Parcelable
 
     companion object {

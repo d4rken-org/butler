@@ -3,9 +3,17 @@ package eu.darken.butler.provider.documents.query
 import android.content.Context
 import android.provider.DocumentsContract
 import androidx.test.core.app.ApplicationProvider
+import eu.darken.butler.common.datastore.DataStoreValue
+import eu.darken.butler.common.datastore.value
+import eu.darken.butler.provider.documents.core.DocumentsProviderSettings
 import eu.darken.butler.provider.documents.core.ProviderLocation
+import eu.darken.butler.provider.documents.core.query.RootQueryHandler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -18,12 +26,20 @@ import org.robolectric.annotation.Config
 class RootQueryHandlerTest {
 
     private lateinit var context: Context
+    private lateinit var settings: DocumentsProviderSettings
     private lateinit var handler: RootQueryHandler
 
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
-        handler = RootQueryHandler(context)
+
+        val isEnabledValue: DataStoreValue<Boolean> = mockk()
+        every { isEnabledValue.flow } returns flowOf(true)
+
+        settings = mockk {
+            every { isEnabled } returns isEnabledValue
+        }
+        handler = RootQueryHandler(context, settings)
     }
 
     @Test
@@ -113,5 +129,30 @@ class RootQueryHandlerTest {
         val documentIdIndex = cursor.getColumnIndex(DocumentsContract.Root.COLUMN_DOCUMENT_ID)
 
         cursor.getString(rootIdIndex) shouldBe cursor.getString(documentIdIndex)
+    }
+
+    @Test
+    fun `queryRoots returns empty cursor when provider is disabled`() = runTest {
+        // Create handler with disabled settings
+        val disabledIsEnabledValue: DataStoreValue<Boolean> = mockk()
+        every { disabledIsEnabledValue.flow } returns flowOf(false)
+
+        val disabledSettings = mockk<DocumentsProviderSettings> {
+            every { isEnabled } returns disabledIsEnabledValue
+        }
+        val disabledHandler = RootQueryHandler(context, disabledSettings)
+
+        val cursor = disabledHandler.queryRoots(null)
+
+        cursor.count shouldBe 0
+        cursor.columnNames shouldBe arrayOf(
+            DocumentsContract.Root.COLUMN_ROOT_ID,
+            DocumentsContract.Root.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Root.COLUMN_ICON,
+            DocumentsContract.Root.COLUMN_TITLE,
+            DocumentsContract.Root.COLUMN_SUMMARY,
+            DocumentsContract.Root.COLUMN_FLAGS,
+            DocumentsContract.Root.COLUMN_AVAILABLE_BYTES,
+        )
     }
 }

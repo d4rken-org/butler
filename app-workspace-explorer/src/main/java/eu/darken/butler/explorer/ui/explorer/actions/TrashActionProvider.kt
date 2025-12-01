@@ -5,6 +5,7 @@ import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Restore
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
 import javax.inject.Inject
@@ -19,15 +20,17 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
     override fun getActions(
         location: ExplorerLocation,
         selectionState: ExplorerSelectionState,
+        viewStyle: ExplorerViewStyle,
     ): List<ExplorerAction> = when (location) {
-        is ExplorerLocation.Trash.Root -> getRootActions(location, selectionState)
-        is ExplorerLocation.Trash.Nested -> getNestedActions(selectionState)
+        is ExplorerLocation.Trash.Root -> getRootActions(location, selectionState, viewStyle)
+        is ExplorerLocation.Trash.Nested -> getNestedActions(selectionState, viewStyle)
         else -> emptyList()
     }
 
     private fun getRootActions(
         location: ExplorerLocation.Trash.Root,
         selectionState: ExplorerSelectionState,
+        viewStyle: ExplorerViewStyle,
     ): List<ExplorerAction> {
         val actions = mutableListOf<ExplorerAction>()
 
@@ -55,7 +58,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
             actions.add(ExplorerAction.Common.Refresh())
             actions.add(ExplorerAction.Common.Sort())
             actions.add(ExplorerAction.Common.Filter())
-            actions.add(ExplorerAction.Common.ToggleView())
+            actions.add(ExplorerAction.Common.UpdateViewStyle(viewStyle))
 
             actions.add(
                 ExplorerAction.Trash.EmptyBin(
@@ -71,6 +74,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
 
     private fun getNestedActions(
         selectionState: ExplorerSelectionState,
+        viewStyle: ExplorerViewStyle,
     ): List<ExplorerAction> {
         val actions = mutableListOf<ExplorerAction>()
 
@@ -98,7 +102,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
             actions.add(ExplorerAction.Common.Refresh())
             actions.add(ExplorerAction.Common.Sort())
             actions.add(ExplorerAction.Common.Filter())
-            actions.add(ExplorerAction.Common.ToggleView())
+            actions.add(ExplorerAction.Common.UpdateViewStyle(viewStyle))
         }
 
         return actions

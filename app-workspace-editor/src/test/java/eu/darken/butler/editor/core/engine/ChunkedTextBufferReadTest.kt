@@ -813,4 +813,40 @@ class ChunkedTextBufferReadTest : ChunkedTextBufferTestBase() {
         text.contains("Caf") shouldBe true
         (text.length >= 4) shouldBe true  // At least "Cafe" (base characters)
     }
+
+    @Test
+    fun `last chunk with adjusted START boundary is readable`() = runTest {
+        // Regression test: When the first chunk ends with a high surrogate and gets truncated,
+        // the last chunk's START boundary is adjusted to connect with the first chunk's new END.
+        // Previously, we weren't caching the last chunk after boundary adjustment, causing the
+        // last lines of the file to be missing even though the line count was correct.
+        //
+        // This test verifies that reading the very end of the file returns correct content
+        // after the last chunk's boundary has been adjusted.
+
+        val emoji = "🎉"  // U+1F389 = high surrogate (U+D83C) + low surrogate (U+DF89)
+
+        // Create content where:
+        // - Chunk 0: [0, 100) - 99 X's + high surrogate (truncated to 99 chars)
+        // - Chunk 1: [100, 199) becomes [99, 199) after adjustment
+        //   Contains: low surrogate + emoji + "Last line\n"
+        val chunk0Content = "X".repeat(99) + emoji.substring(0, 1)  // Ends mid-emoji
+        val lastLine = "Last line\n"
+        val chunk1Content = emoji.substring(1, 2) + emoji + lastLine  // Starts with low surrogate
+        val fullContent = chunk0Content.substring(0, 99) + emoji + lastLine  // Expected result
+
+        val buffer = createBuffer(fullContent, chunkSize = 100L)
+
+        // When: Read the very end of the file (last 10 characters)
+        val fileSize = fullContent.length.toLong()
+        val lastChars = buffer.getText(fileSize - 10, fileSize).getOrThrow()
+
+        // Then: Should read the last line correctly
+        lastChars.contains("Last line\n") shouldBe true
+        lastChars.length shouldBe 10
+
+        // And: Reading the emoji at the boundary should work
+        val emojiAtBoundary = buffer.getText(99L, 101L).getOrThrow()
+        emojiAtBoundary shouldBe emoji
+    }
 }

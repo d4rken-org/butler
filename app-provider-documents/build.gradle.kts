@@ -6,6 +6,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("projectConfig")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("kotlin-kapt")
 }
 
@@ -21,6 +22,11 @@ android {
     setupCompileOptions()
 
     setupKotlinOptions()
+
+    buildFeatures {
+        buildConfig = true
+        compose = true
+    }
 
     testOptions {
         unitTests {
@@ -42,6 +48,7 @@ dependencies {
     implementation(project(":app-common-io"))
 
     addAndroidCore()
+    addAndroidUI()
     addDI()
     addCoroutines()
     addSerialization()

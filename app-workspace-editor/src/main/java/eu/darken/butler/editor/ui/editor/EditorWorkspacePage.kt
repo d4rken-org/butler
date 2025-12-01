@@ -14,7 +14,6 @@ import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
 import androidx.compose.material.icons.twotone.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,20 +32,24 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
+import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
+import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
+import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
+import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
+import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -82,6 +86,14 @@ fun EditorWorkspacePageHost(
             design = design,
             state = state,
             onPageAction = vm::onPageAction,
+            onActionExecute = vm::executeAction,
+            onDismissGoToLineDialog = vm::dismissGoToLineDialog,
+            onDismissSearchDialog = vm::dismissSearchDialog,
+            onSearchQueryChange = vm::updateSearchQuery,
+            onCaseSensitiveToggle = vm::toggleCaseSensitivity,
+            onNextSearchResult = vm::nextSearchResult,
+            onPreviousSearchResult = vm::previousSearchResult,
+            onCloseSearch = vm::closeSearch,
         )
     }
 }
@@ -95,10 +107,20 @@ fun EditorWorkspacePage(
     design: WorkspaceDesign,
     state: EditorWorkspaceViewModel.State,
     onPageAction: (EditorPageAction) -> Unit,
+    onActionExecute: (EditorAction) -> Unit = {},
+    onDismissGoToLineDialog: () -> Unit = {},
+    onDismissSearchDialog: () -> Unit = {},
+    onSearchQueryChange: (String) -> Unit = {},
+    onCaseSensitiveToggle: () -> Unit = {},
+    onNextSearchResult: () -> Unit = {},
+    onPreviousSearchResult: () -> Unit = {},
+    onCloseSearch: () -> Unit = {},
 ) {
     rememberCoroutineScope()
-    var showGoToLineDialog by remember { mutableStateOf(false) }
-    var showSearchDialog by remember { mutableStateOf(false) }
+
+    val hasActions by remember {
+        derivedStateOf { state.availableActions.isNotEmpty() }
+    }
 
     // Setup scroll behavior for collapsing header
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
@@ -151,51 +173,41 @@ fun EditorWorkspacePage(
                         .weight(1f)
                         .fillMaxWidth()
                 ) {
-                    if (state.hasWorkspace) {
-                        LazyTextEditor(
-                            content = state.currentContent,
-                            totalLines = state.totalLines,
-                            cursorPosition = state.cursorPosition,
-                            selection = state.selectionRange,
-                            visibleRange = state.visibleRange,
-                            showLineNumbers = state.showLineNumbers,
-                            wordWrap = state.wordWrap,
-                            fontSize = 14,
-                            tabSize = 4,
-                            onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
-                            onCursorPositionChange = { position ->
+                    LazyTextEditor(
+                        content = state.currentContent,
+                        totalLines = state.totalLines,
+                        cursorPosition = state.cursorPosition,
+                        selection = state.selectionRange,
+                        visibleRange = state.visibleRange,
+                        showLineNumbers = state.showLineNumbers,
+                        wordWrap = state.wordWrap,
+                        fontSize = 14,
+                        tabSize = 4,
+                        onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
+                        onCursorPositionChange = { position ->
+                            onPageAction(
+                                EditorPageAction.Navigation.SetCursor(
+                                    position
+                                )
+                            )
+                        },
+                        onSelectionChange = { selection ->
+                            if (selection != null) {
                                 onPageAction(
-                                    EditorPageAction.Navigation.SetCursor(
-                                        position
+                                    EditorPageAction.Navigation.SetSelection(
+                                        selection.first,
+                                        selection.second
                                     )
                                 )
-                            },
-                            onSelectionChange = { selection ->
-                                if (selection != null) {
-                                    onPageAction(
-                                        EditorPageAction.Navigation.SetSelection(
-                                            selection.first,
-                                            selection.second
-                                        )
-                                    )
-                                } else {
-                                    onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
-                                }
-                            },
-                            onVisibleRangeChange = { range ->
-                                onPageAction(EditorPageAction.Navigation.UpdateVisibleRange(range.first, range.last))
-                            },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        // Show loading or error state when workspace is not available
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
+                            } else {
+                                onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
+                            }
+                        },
+                        onVisibleRangeChange = { range ->
+                            onPageAction(EditorPageAction.Navigation.UpdateVisibleRange(range.first, range.last))
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
 
                 // Search results
@@ -212,68 +224,92 @@ fun EditorWorkspacePage(
             }
         }
 
-        // Floating toolbar card at top
-        EditorToolbarCard(
-            workspaceId = workspaceId,
-            design = design,
-            fileName = if (state.hasFile) state.fileName else stringResource(R.string.editor_file_untitled),
-            isModified = state.isModified,
-            hasFile = state.hasFile || state.currentContent.isNotEmpty(),
-            isLoading = state.isLoading,
-            canUndo = state.isModified,
-            canRedo = false,
-            workspaceButtonState = workspaceButtonState,
-            workspaceActionHandler = workspaceActionHandler,
-            onAction = { action ->
-                when (action) {
-                    is EditorPageAction.Navigation.Search -> showSearchDialog = true
-                    is EditorPageAction.Navigation.GoToLine -> showGoToLineDialog = true
-                    else -> onPageAction(action)
-                }
-            },
-            collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
+        // Floating toolbar card and info bar at top
+        Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .onGloballyPositioned { layoutCoordinates ->
                     actualToolbarHeightPx = layoutCoordinates.size.height
                 }
-        )
+        ) {
+            EditorToolbarCard(
+                workspaceId = workspaceId,
+                design = design,
+                title = state.title,
+                subTitle = state.subTitle,
+                isModified = state.isModified,
+                isLoading = state.isLoading,
+                canUndo = state.isModified,
+                canRedo = false,
+                workspaceButtonState = workspaceButtonState,
+                workspaceActionHandler = workspaceActionHandler,
+                onAction = onPageAction,
+                collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
+            )
 
-        EditorInfoCard(
-            cursorPosition = state.cursorPosition,
-            totalLines = state.totalLines,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .graphicsLayer {
-                    // Immediate snap behavior: fully visible or fully hidden
-                    alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
-                    translationY =
-                        if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) memoryCardHeight.toPx() else 0f
-                }
-        )
+            // Info bar below toolbar
+            EditorInfoBar(
+                modifier = Modifier.padding(top = 8.dp),
+                fileSize = state.fileSize,
+                totalLines = state.totalLines,
+                cursorLine = state.cursorPosition.line,
+                cursorColumn = state.cursorPosition.column,
+                selectedLineCount = state.selectedLineCount,
+                selectedCharacterCount = state.selectedCharacterCount,
+                onClearSelection = {
+                    onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
+                },
+            )
+        }
+
+        // Floating Search Bar (above action bar)
+        if (state.isSearchBarVisible) {
+            EditorSearchBar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .padding(
+                        bottom = if (hasActions && bottomBarScrollBehavior.state.collapsedFraction <= 0.1f) {
+                            64.dp  // Action bar visible - offset above it
+                        } else {
+                            0.dp   // Action bar hidden or no actions - sit at bottom
+                        }
+                    ),
+                scrollState = bottomBarScrollBehavior.state,
+                searchQuery = state.searchQueryInput,
+                searchResults = state.searchResults,
+                currentIndex = state.currentSearchResultIndex,
+                caseSensitive = state.searchCaseSensitive,
+                onSearchQueryChange = onSearchQueryChange,
+                onCaseSensitiveToggle = onCaseSensitiveToggle,
+                onPrevious = onPreviousSearchResult,
+                onNext = onNextSearchResult,
+                onClose = onCloseSearch,
+            )
+        }
+
+        // Floating Bottom ActionBar
+        if (hasActions) {
+            EditorActionBar(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                actions = state.availableActions,
+                scrollState = bottomBarScrollBehavior.state,
+                onActionClick = onActionExecute,
+            )
+        }
     }
 
     // Dialogs
-    if (showGoToLineDialog) {
+    if (state.showGoToLineDialog) {
         GoToLineDialog(
             totalLines = state.totalLines,
             onGoToLine = { line ->
                 onPageAction(EditorPageAction.Navigation.GoToLine(line))
-                showGoToLineDialog = false
+                onDismissGoToLineDialog()
             },
-            onDismiss = { showGoToLineDialog = false }
-        )
-    }
-
-    if (showSearchDialog) {
-        SearchDialog(
-            onSearch = { query ->
-                onPageAction(EditorPageAction.Navigation.Search(query))
-                showSearchDialog = false
-            },
-            onDismiss = { showSearchDialog = false }
+            onDismiss = onDismissGoToLineDialog,
         )
     }
 }
@@ -466,6 +502,8 @@ private fun EditorPagePreview() {
             design = WorkspaceDesign(),
             state = EditorWorkspaceViewModel.State(
                 id = Workspace.Id(),
+                title = caString("test.txt"),
+                subTitle = caString("/sdcard/test.txt"),
                 totalLines = 1000,
                 isModified = true,
                 currentContent = "Sample text content\nLine 2\nLine 3",

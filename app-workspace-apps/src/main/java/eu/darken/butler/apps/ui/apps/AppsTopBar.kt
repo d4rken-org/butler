@@ -38,6 +38,7 @@ fun AppsTopBar(
             if (showWorkspaceButton) {
                 WorkspaceButton(
                     modifier = Modifier.padding(end = 8.dp),
+                    buttonSize = 40.dp,
                     state = workspaceButtonState,
                     currentWorkspaceId = workspaceId,
                     workspaceActionHandler = workspaceActionHandler,

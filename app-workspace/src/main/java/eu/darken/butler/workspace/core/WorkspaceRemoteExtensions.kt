@@ -1,7 +1,7 @@
 package eu.darken.butler.workspace.core
 
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.explorer.core.picker.ExplorerPickerArguments
+import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
@@ -73,7 +73,7 @@ suspend fun WorkspaceRemote.launchPicker(
     return execute(
         WorkspaceAction.Create(
             type = Workspace.Type.EXPLORER,
-            arguments = ExplorerPickerArguments(
+            arguments = ExplorerArguments.Picker(
                 startPath = startPath,
                 selection = selection,
                 callerWorkspaceId = callerWorkspaceId
@@ -92,7 +92,7 @@ suspend fun WorkspaceRemote.launchPicker(
  */
 suspend fun WorkspaceRemote.createAndFocus(
     type: Workspace.Type,
-    arguments: Workspace.Arguments? = null,
+    arguments: Workspace.Arguments,
 ): WorkspaceAction.Create.Result {
     val result = execute(
         WorkspaceAction.Create(

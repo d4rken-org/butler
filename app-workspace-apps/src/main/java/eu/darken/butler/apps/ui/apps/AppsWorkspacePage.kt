@@ -205,6 +205,7 @@ private fun AppsWorkspacePage(
             AppsToolbarCard(
                 workspaceId = workspaceId,
                 searchQuery = state.searchQuery,
+                onSearchQueryChange = { vm?.onSearchQueryChanged(it) },
                 design = design,
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,

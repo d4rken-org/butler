@@ -53,7 +53,7 @@ class WorkspacePageManager @Inject constructor(
                 log(TAG) { "Workspace event received: $event" }
                 when (event) {
                     is WorkspaceEvent.Created -> {
-                        handleWorkspaceCreated(event.workspaceId, event.replacedId)
+                        handleWorkspaceCreated(event.workspaceId, event.replacedId, event.autoFocus)
                     }
                     is WorkspaceEvent.Closed -> {
                         handleWorkspaceClosed(event.workspaceId)
@@ -303,8 +303,8 @@ class WorkspacePageManager @Inject constructor(
         }
     }
 
-    private fun handleWorkspaceCreated(workspaceId: Workspace.Id, replacedId: Workspace.Id?) {
-        log(TAG) { "handleWorkspaceCreated: workspaceId=$workspaceId, replacedId=$replacedId" }
+    private fun handleWorkspaceCreated(workspaceId: Workspace.Id, replacedId: Workspace.Id?, autoFocus: Boolean) {
+        log(TAG) { "handleWorkspaceCreated: workspaceId=$workspaceId, replacedId=$replacedId, autoFocus=$autoFocus" }
 
         _state.update { currentState ->
             // Update MRU timestamp for newly created workspace
@@ -318,9 +318,9 @@ class WorkspacePageManager @Inject constructor(
                     log(TAG) { "Replacing workspace $replacedId at pane $replacedPaneIndex with $workspaceId" }
                     val newSelections = currentState.selectedWorkspaces + (replacedPaneIndex to workspaceId)
 
-                    // Transfer focus if the replaced workspace was focused
-                    val newFocus = if (currentState.focusedWorkspaceId == replacedId) {
-                        log(TAG) { "Transferring focus from $replacedId to $workspaceId" }
+                    // Transfer focus if the replaced workspace was focused, or if autoFocus is requested
+                    val newFocus = if (currentState.focusedWorkspaceId == replacedId || autoFocus) {
+                        log(TAG) { "Transferring focus from $replacedId to $workspaceId (autoFocus=$autoFocus)" }
                         workspaceId
                     } else {
                         currentState.focusedWorkspaceId

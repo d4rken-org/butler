@@ -1,10 +1,13 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.templates.core.arguments.TemplatesArguments
+
 sealed interface WorkspaceAction {
     data class Create(
         val type: Workspace.Type = Workspace.Type.TEMPLATES,
-        val arguments: Workspace.Arguments? = null,
+        val arguments: Workspace.Arguments = TemplatesArguments.Default(),
         val replace: Workspace.Id? = null,
+        val autoFocus: Boolean = false,
     ) : WorkspaceAction {
         data class Result(
             val newId: Workspace.Id,

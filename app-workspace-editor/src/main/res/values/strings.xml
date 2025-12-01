@@ -2,7 +2,7 @@
 <resources>
     <string name="editor_title">Editor</string>
     <string name="editor_subtitle">Edit text files</string>
-    <string name="editor_settings_title">Editor Settings</string>
+    <string name="editor_settings_title">Editor settings</string>
     <string name="editor_settings_show_line_numbers_title">Show line numbers</string>
     <string name="editor_settings_show_line_numbers_subtitle">Display line numbers in editor.</string>
     <string name="editor_settings_word_wrap_title">Line wrap</string>
@@ -15,20 +15,39 @@
     <string name="editor_action_undo">Undo</string>
     <string name="editor_action_redo">Redo</string>
     <string name="editor_action_search">Search</string>
-    <string name="editor_action_go_to_line">Go to Line</string>
+    <string name="editor_action_go_to_line">Go to line</string>
     <string name="editor_action_dismiss">Dismiss</string>
     <string name="editor_action_previous">Previous</string>
     <string name="editor_action_next">Next</string>
-    
+    <string name="editor_action_copy">Copy</string>
+    <string name="editor_action_cut">Cut</string>
+    <string name="editor_action_paste">Paste</string>
+    <string name="editor_action_select_all">Select all</string>
+    <string name="editor_action_delete">Delete</string>
+
+    <!-- Editor info bar -->
+    <plurals name="editor_infobar_lines">
+        <item quantity="one">%1$d line</item>
+        <item quantity="other">%1$d lines</item>
+    </plurals>
+    <plurals name="editor_infobar_characters">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d characters</item>
+    </plurals>
+
+    <string name="editor_infobar_selected_x_y">Selected %1$s, %2$s</string>
+
     <!-- Editor UI elements -->
     <string name="editor_modified_indicator">•</string>
-    <string name="editor_status_line_format">Line %1$d:%2$d</string>
-    <string name="editor_status_total_lines">Total: %1$d lines</string>
     <string name="editor_error_unknown">Unknown error</string>
     <string name="editor_search_results_format">%1$d of %2$d results</string>
-    
+    <string name="editor_search_placeholder">Search…</string>
+    <string name="editor_search_previous">Previous result</string>
+    <string name="editor_search_next">Next result</string>
+    <string name="editor_search_case_sensitive_label">Case sensitive</string>
+
     <!-- Editor dialogs -->
-    <string name="editor_dialog_go_to_line_title">Go to Line</string>
+    <string name="editor_dialog_go_to_line_title">Go to line</string>
     <string name="editor_dialog_go_to_line_label">Line number (1-%1$d)</string>
     <string name="editor_dialog_search_title">Search</string>
     <string name="editor_dialog_search_label">Search text</string>

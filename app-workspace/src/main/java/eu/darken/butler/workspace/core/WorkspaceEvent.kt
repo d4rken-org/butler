@@ -6,6 +6,7 @@ sealed interface WorkspaceEvent {
     data class Created(
         val workspaceId: Workspace.Id,
         val replacedId: Workspace.Id? = null,
+        val autoFocus: Boolean = false,
     ) : WorkspaceEvent
 
     data class Closed(

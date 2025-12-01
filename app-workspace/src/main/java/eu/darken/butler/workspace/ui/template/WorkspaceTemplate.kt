@@ -9,5 +9,5 @@ interface WorkspaceTemplate {
     val icon: ImageVector
     val title: CaString
     val subtitle: CaString
-    val arguments: Workspace.Arguments?
+    val arguments: Workspace.Arguments
 }

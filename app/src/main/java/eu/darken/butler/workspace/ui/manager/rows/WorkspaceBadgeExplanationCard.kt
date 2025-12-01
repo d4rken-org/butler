@@ -81,6 +81,7 @@ fun WorkspaceBadgeExplanationCard(
             // Demo button using the actual WorkspaceButton component
             WorkspaceButton(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
+                buttonSize = 56.dp,
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 3,
                     operationsCount = 2,

@@ -1,8 +1,5 @@
 package eu.darken.butler.workspace.core
 
-import eu.darken.butler.apps.core.AppsWorkspace
-import eu.darken.butler.apps.core.details.AppDetailsWorkspace
-import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -11,10 +8,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
-import eu.darken.butler.editor.core.EditorWorkspace
-import eu.darken.butler.explorer.core.ExplorerWorkspace
-import eu.darken.butler.searcher.core.SearcherWorkspace
-import eu.darken.butler.templates.core.TemplatesWorkspace
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +17,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -35,51 +28,17 @@ import javax.inject.Singleton
 @Singleton
 class WorkspaceRepo @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
-    private val templatesWorkspaceFactory: TemplatesWorkspace.Factory,
-    private val explorerWorkspaceFactory: ExplorerWorkspace.Factory,
-    private val searcherWorkspaceFactory: SearcherWorkspace.Factory,
-    private val editorWorkspaceFactory: EditorWorkspace.Factory,
-    private val appsWorkspaceFactory: AppsWorkspace.Factory,
-    private val appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
-    workspaceSettings: WorkspaceSettings,
+    private val factoryMap: Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>>,
+    private val workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
-    private val _workspaces = MutableStateFlow<List<Workspace>>(emptyList())
+    private val _workspaces = MutableStateFlow<List<Workspace<*>>>(emptyList())
     private val _events = MutableSharedFlow<WorkspaceEvent>()
 
-    // Generic confirmation system
-    data class PendingConfirmation(
-        val id: String,
-        val sourceWorkspaceId: Workspace.Id?,
-        val data: ConfirmationData,
-    )
-
-    sealed interface ConfirmationData {
-        /**
-         * Confirmation for creating multiple workspaces at once
-         */
-        data class BatchWorkspaceCreation(
-            val totalCount: Int,
-            val skippedCount: Int = 0,
-        ) : ConfirmationData
-
-        /**
-         * Confirmation for closing a workspace
-         */
-        data class WorkspaceCloseConfirmation(
-            val workspaceId: Workspace.Id,
-            val workspaceTitle: CaString,
-        ) : ConfirmationData
-
-        // Future confirmation types can be added here:
-        // data class BulkDelete(val itemCount: Int, val itemType: String) : ConfirmationData
-        // data class DangerousOperation(val message: String) : ConfirmationData
-    }
-
-    private val _pendingConfirmations = MutableStateFlow<Map<String, PendingConfirmation>>(emptyMap())
-    val pendingConfirmations: Flow<Map<String, PendingConfirmation>> = _pendingConfirmations
+    private val _pendingConfirmations = MutableStateFlow<Map<String, PendingWorkspaceConfirmation>>(emptyMap())
+    val pendingConfirmations: Flow<Map<String, PendingWorkspaceConfirmation>> = _pendingConfirmations
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "PendingConfirmations" }
         .replayingShare(appScope)
 
@@ -93,12 +52,17 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
-    override val state: Flow<WorkspaceRemote.State> = infos
-        .map { workspaceInfos ->
-            WorkspaceRemote.State(
-                infos = workspaceInfos,
-            )
-        }
+    override val state: Flow<WorkspaceRemote.State> = combine(
+        infos,
+        workspaceSettings.layoutModePortrait.flow,
+        workspaceSettings.layoutModeLandscape.flow,
+    ) { workspaceInfos, layoutModePortrait, layoutModeLandscape ->
+        WorkspaceRemote.State(
+            infos = workspaceInfos,
+            portraitPanelMode = layoutModePortrait,
+            landscapePanelMode = layoutModeLandscape,
+        )
+    }
         .setupCommonEventHandlers(TAG, enabled = Bugs.isTrace) { "WorkspaceState" }
         .replayingShare(appScope)
 
@@ -113,38 +77,19 @@ class WorkspaceRepo @Inject constructor(
 
     private fun create(
         type: Workspace.Type,
-        arguments: Workspace.Arguments? = null,
+        arguments: Workspace.Arguments,
         idToReplace: Workspace.Id? = null,
     ): Workspace.Id {
         log(TAG) { "create($type, $arguments, $idToReplace)" }
         val wip = _workspaces.value.toMutableList()
 
-        val newWorkspace = when (type) {
-            Workspace.Type.TEMPLATES -> templatesWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as TemplatesWorkspace.Arguments?
-            )
-            Workspace.Type.EXPLORER -> explorerWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments
-            )
-            Workspace.Type.SEARCHER -> searcherWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as SearcherWorkspace.Arguments?
-            )
-            Workspace.Type.EDITOR -> editorWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as EditorWorkspace.Arguments?
-            )
-            Workspace.Type.APPS -> appsWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments as AppsWorkspace.Arguments?
-            )
-            Workspace.Type.APP_DETAILS -> appDetailsWorkspaceFactory.create(
-                id = Workspace.Id(),
-                arguments = arguments
-            )
-        }
+        @Suppress("UNCHECKED_CAST")
+        val factory = factoryMap[type] as? WorkspaceFactory<Workspace.Arguments>
+            ?: throw IllegalArgumentException("No factory found for workspace type: $type")
+        val newWorkspace = factory.create(
+            id = Workspace.Id(),
+            arguments = arguments
+        ) as Workspace<out Workspace.Arguments>
         if (idToReplace != null) {
             val index = wip.indexOfFirst { it.id == idToReplace }
             if (index == -1) throw IllegalStateException("Tab not found")
@@ -167,8 +112,10 @@ class WorkspaceRepo @Inject constructor(
         return newWorkspace.id
     }
 
-    override fun retrieve(id: Workspace.Id): Flow<Workspace?> {
-        return _workspaces.map { wss -> wss.singleOrNull { it.id == id } }
+    override fun retrieve(id: Workspace.Id): Flow<Workspace<out Workspace.Arguments>?> {
+        return _workspaces.flatMapLatest { wss ->
+            flowOf(wss.singleOrNull { it.id == id })
+        }
     }
 
     fun resolveConfirmation(confirmationId: String, confirmed: Boolean) {
@@ -193,9 +140,11 @@ class WorkspaceRepo @Inject constructor(
                 _events.emit(
                     WorkspaceEvent.Created(
                         workspaceId = newId,
-                        replacedId = action.replace
+                        replacedId = action.replace,
+                        autoFocus = action.autoFocus,
                     )
                 )
+
                 WorkspaceAction.Create.Result(newId)
             }
 
@@ -206,16 +155,19 @@ class WorkspaceRepo @Inject constructor(
                 val needsConfirmation = action.requests.size >= CONFIRMATION_THRESHOLD
 
                 if (needsConfirmation) {
-                    log(TAG, INFO) { "Batch size (${action.requests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation" }
+                    log(
+                        TAG,
+                        INFO
+                    ) { "Batch size (${action.requests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation" }
                     val confirmationId = kotlin.uuid.Uuid.random().toString()
 
                     val confirmed = suspendCancellableCoroutine { continuation ->
                         confirmationContinuations[confirmationId] = continuation
                         _pendingConfirmations.update {
-                            it + (confirmationId to PendingConfirmation(
+                            it + (confirmationId to PendingWorkspaceConfirmation(
                                 id = confirmationId,
                                 sourceWorkspaceId = action.sourceWorkspaceId,
-                                data = ConfirmationData.BatchWorkspaceCreation(
+                                data = PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation(
                                     totalCount = action.requests.size,
                                     skippedCount = 0, // Could be passed in action if needed
                                 ),
@@ -295,10 +247,10 @@ class WorkspaceRepo @Inject constructor(
                     val confirmed = suspendCancellableCoroutine { continuation ->
                         confirmationContinuations[confirmationId] = continuation
                         _pendingConfirmations.update {
-                            it + (confirmationId to PendingConfirmation(
+                            it + (confirmationId to PendingWorkspaceConfirmation(
                                 id = confirmationId,
                                 sourceWorkspaceId = action.id,
-                                data = ConfirmationData.WorkspaceCloseConfirmation(
+                                data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
                                     workspaceId = action.id,
                                     workspaceTitle = workspaceInfo.title,
                                 ),
@@ -336,6 +288,7 @@ class WorkspaceRepo @Inject constructor(
 
                 _workspaces.value = _workspaces.value.filter { it.id != action.id }
                 _events.emit(WorkspaceEvent.Closed(workspaceId = action.id))
+
                 WorkspaceAction.Close.Result
             }
             is WorkspaceAction.Reorder -> {
@@ -355,6 +308,7 @@ class WorkspaceRepo @Inject constructor(
 
                 _workspaces.value = reordered
                 _events.emit(WorkspaceEvent.Reordered(workspaceIds = action.workspaceIds))
+
                 WorkspaceAction.Reorder.Result(true)
             }
             WorkspaceAction.CloseAll -> {
@@ -365,6 +319,7 @@ class WorkspaceRepo @Inject constructor(
                 }
                 _workspaces.value = emptyList()
                 _events.emit(WorkspaceEvent.AllClosed)
+
                 WorkspaceAction.CloseAll.Result
             }
         }

@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.CheckBox
 import androidx.compose.material.icons.twotone.Close
@@ -34,20 +34,25 @@ fun WorkspaceInfoBar(
     modifier: Modifier = Modifier,
     selectedCount: Int = 0,
     onClearSelection: (() -> Unit)? = null,
+    selectionText: @Composable (Int) -> String = {
+        pluralStringResource(R.plurals.common_infobar_selected_count, selectedCount, selectedCount)
+    },
     leadingContent: @Composable RowScope.() -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
+    val scrollState = rememberScrollState()
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+            .propagateScrollAtBoundary(scrollState)
+            .horizontalScroll(scrollState),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (selectedCount > 0) {
             InfoChip(
                 icon = Icons.TwoTone.CheckBox,
-                label = pluralStringResource(R.plurals.common_infobar_selected_count, selectedCount, selectedCount),
+                label = selectionText(selectedCount),
                 isAccented = true,
                 onClick = onClearSelection,
                 trailingIcon = if (onClearSelection != null) Icons.TwoTone.Close else null,

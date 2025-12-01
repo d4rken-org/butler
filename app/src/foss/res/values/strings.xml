@@ -18,9 +18,11 @@
     <string name="upgrade_screen_sponsor_action_hint">The alternative are ads, analytics and Google Play 🙁.</string>
     <string name="upgrade_screen_thanks_toast">Thank you for supporting open-source development ❤️</string>
 
-    <string name="upgrade_benefits_title">Upgrade Benefits</string>
-    <string name="upgrade_benefit_unlimited">• Unlimited tabs and workspaces</string>
-    <string name="upgrade_benefit_early_access">• Access to new features first</string>
+    <string name="upgrade_benefits_title">Upgrade benefits</string>
+    <string name="upgrade_benefit_multitasking">• Unlimited tabs and operations</string>
+    <string name="upgrade_benefit_customization">• Customize design, feel and look</string>
+    <string name="upgrade_benefit_extra_options">• Extra options and features for each tool</string>
+    <string name="upgrade_benefit_early_access">• Early access to new features</string>
     <string name="upgrade_benefit_motivation">• A motivated developer 🧙</string>
     <string name="upgrade_benefit_and_more">and more…</string>
 </resources>

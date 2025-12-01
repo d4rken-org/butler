@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">Butler</string>
-    <string name="app_name_subtitle">File Explorer Extraordinaire</string>
+    <string name="app_name_subtitle">File explorer extraordinaire</string>
 
+    <string name="butler_icon_description">Butler app icon</string>
     <string name="butler_mascot_description">Butler mascot</string>
 
     <string name="slogan_message_0">At your service.</string>
@@ -12,9 +13,14 @@
     <string name="slogan_message_5">Organized, always.</string>
     <string name="slogan_message_6">Files, found fast!</string>
     <string name="slogan_message_7">Access made easy.</string>
-    <string name="slogan_message_8">Never Gonna Lose Your Files.</string>
+    <string name="slogan_message_8">Never gonna lose your files.</string>
 
     <string name="general_share_action">Share</string>
+    <string name="general_share_single_title">Share %s</string>
+    <plurals name="general_share_multiple_title">
+        <item quantity="one">Share %d file</item>
+        <item quantity="other">Share %d files</item>
+    </plurals>
     <string name="general_done_action">Done</string>
     <string name="general_copy_action">Copy</string>
     <string name="general_cut_action">Cut</string>
@@ -134,15 +140,15 @@
     <string name="common_mimetype_image">Image</string>
     <string name="common_mimetype_video">Video</string>
     <string name="common_mimetype_audio">Audio</string>
-    <string name="common_mimetype_text_plain">Plain Text</string>
-    <string name="common_mimetype_text">Text Document</string>
-    <string name="common_mimetype_pdf">PDF Document</string>
+    <string name="common_mimetype_text_plain">Plain text</string>
+    <string name="common_mimetype_text">Text document</string>
+    <string name="common_mimetype_pdf">PDF document</string>
     <string name="common_mimetype_document">Document</string>
     <string name="common_mimetype_archive">Archive</string>
-    <string name="common_mimetype_apk">Android Package</string>
-    <string name="common_mimetype_json">JSON File</string>
-    <string name="common_mimetype_xml">XML File</string>
-    <string name="common_mimetype_unknown">Unknown Type</string>
+    <string name="common_mimetype_apk">Android package</string>
+    <string name="common_mimetype_json">JSON file</string>
+    <string name="common_mimetype_xml">XML file</string>
+    <string name="common_mimetype_unknown">Unknown type</string>
 
     <string name="general_rom_type_auto_label">Automatic (default)</string>
 
@@ -159,19 +165,17 @@
     <string name="general_error_cant_access_msg">Can\'t access %s.</string>
     <string name="general_error_root_unavailable">Root access is unavailable.</string>
     <string name="general_error_no_compatible_app_found_msg">No compatible app found to handle this request.</string>
-    <string name="general_error_ipc_deadobject_title">Service Connection Lost</string>
+    <string name="general_error_ipc_deadobject_title">Service connection lost</string>
     <string name="general_error_ipc_deadobject_description">The connection to a critical service (e.g. Magisk, Shizuku, or other system-level services) was unexpectedly lost. Please reboot your device. If the issue persists, check for updates or reach out to me so I can fix it.</string>
 
     <string name="ui_theme_mode_dark_label">Dark</string>
     <string name="ui_theme_mode_light_label">Light</string>
     <string name="ui_theme_mode_system_label">System</string>
     <string name="ui_theme_style_default_label">Default</string>
-    <string name="ui_theme_style_medium_contrast_label">Medium Contrast</string>
-    <string name="ui_theme_style_high_contrast_label">High Contrast</string>
+    <string name="ui_theme_style_medium_contrast_label">Medium contrast</string>
+    <string name="ui_theme_style_high_contrast_label">High contrast</string>
     <string name="ui_theme_style_materialyou_label">Material You</string>
-    <string name="ui_theme_color_teal_label">Teal</string>
-    <string name="ui_theme_color_purple_label">Purple &amp; Amber</string>
-    <string name="ui_theme_color_green_label">Green &amp; Gold</string>
+    <string name="ui_theme_color_green_label">Green</string>
     <string name="ui_theme_color_blue_label">Blue &amp; Orange</string>
     <string name="ui_theme_color_amoled_label">AMOLED</string>
 
@@ -180,14 +184,14 @@
     <string name="setup_shizuku_card_title">Shizuku</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Notification access</string>
-    <string name="setup_saf_card_title">Storage Access Framework</string>
+    <string name="setup_saf_card_title">Storage access framework</string>
     <string name="setup_manage_storage_card_title">Manage external storage</string>
     <string name="setup_inventory_card_title">App inventory</string>
 
     <!-- Common permission strings -->
-    <string name="setup_required_card_title">Setup Required</string>
+    <string name="setup_required_card_title">Setup required</string>
     <string name="setup_required_card_body">Additional setup is required to perform this operation.</string>
-    <string name="setup_required_card_setup_action">Open Setup</string>
+    <string name="setup_required_card_setup_action">Open setup</string>
 
     <!-- Open in new tabs feature -->
     <string name="common_open_tabs_confirmation_title">Open multiple tabs?</string>

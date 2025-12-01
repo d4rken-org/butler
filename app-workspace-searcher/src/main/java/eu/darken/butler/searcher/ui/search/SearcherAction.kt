@@ -7,7 +7,6 @@ import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.GridView
-import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Link
 import androidx.compose.material.icons.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.SelectAll
@@ -17,6 +16,7 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.actions.WorkspaceAction
@@ -57,7 +57,7 @@ sealed interface SearcherAction : WorkspaceAction {
         val results: List<SearchItem>,
     ) : SearcherAction {
         override val icon = Icons.TwoTone.Share
-        override val label = R.string.searcher_action_share.toCaString()
+        override val label = eu.darken.butler.common.R.string.general_share_action.toCaString()
         override val isVisible: Boolean get() = results.size <= 10 // Reasonable limit for sharing
     }
 
@@ -81,13 +81,6 @@ sealed interface SearcherAction : WorkspaceAction {
     ) : SearcherAction {
         override val icon = Icons.TwoTone.Link
         override val label = R.string.searcher_action_copy_path.toCaString()
-    }
-
-    data class Properties(
-        val result: SearchItem,
-    ) : SearcherAction {
-        override val icon = Icons.TwoTone.Info
-        override val label = R.string.searcher_action_properties.toCaString()
     }
 
     // Selection management actions
@@ -119,7 +112,8 @@ sealed interface SearcherAction : WorkspaceAction {
             override val label = R.string.searcher_action_sort.toCaString()
         }
 
-        data class ToggleView(
+        data class UpdateViewStyle(
+            val viewStyle: SearcherViewStyle,
             override val isEnabled: Boolean = true,
             override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
         ) : Common {

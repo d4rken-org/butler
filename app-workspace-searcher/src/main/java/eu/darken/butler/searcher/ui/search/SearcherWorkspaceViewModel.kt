@@ -1,7 +1,6 @@
 package eu.darken.butler.searcher.ui.search
 
 import android.content.Context
-import android.content.Intent
 import android.webkit.MimeTypeMap
 import androidx.compose.ui.text.input.TextFieldValue
 import dagger.assisted.Assisted
@@ -29,13 +28,15 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.explorer.core.arguments.ExternalExplorerArguments
+import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.operations.SearcherCommand
@@ -96,7 +97,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val itemSorter = itemSorterFactory.create(id)
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
-        workspaceProvider.retrieve(id).map { workspace: Workspace? -> workspace as? SearcherWorkspace }
+        workspaceProvider.retrieve(id)
+            .map { workspace: Workspace<out Workspace.Arguments>? -> workspace as? SearcherWorkspace }
 
     private suspend fun getWorkspace(): SearcherWorkspace = workspaceSource.filterNotNull().first()
 
@@ -105,15 +107,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
-    private val currentSortSettings = MutableStateFlow<eu.darken.butler.searcher.core.SearchSortSettings>(searcherSettings.sortSettings.valueBlocking)
-    private val viewModeFlow = MutableStateFlow<ViewMode>(ViewMode.LIST)
+    private val currentSortSettings = MutableStateFlow(searcherSettings.sortSettings.valueBlocking)
+    private val viewStyleFlow = MutableStateFlow(searcherSettings.defaultViewStyle.valueBlocking)
     private var lastAutoExecutedQuery: String? = null
     private var currentSearchId: String? = null
 
-    enum class ViewMode {
-        LIST,
-        GRID
-    }
+    // Issue/conflict handling
+    private val issueStateFlow = MutableStateFlow<eu.darken.butler.common.issue.Issue?>(null)
+    val issueState = issueStateFlow
+    private var currentIssueOperationId: Operation.Id? = null
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
@@ -131,7 +133,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             currentFilter.value = currentFilter.value.copy(
                 caseSensitive = caseSensitive,
                 wholeWord = wholeWord,
-                useRegex = useRegex
+                useRegex = useRegex,
             )
         }.launchIn(vmScope)
 
@@ -154,6 +156,25 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                             }
                         }
                     }
+                }
+            }
+            .launchIn(vmScope)
+
+        // Observe pending issues/conflicts from operations
+        workspaceSource
+            .filterNotNull()
+            .flatMapLatest { it.operations }
+            .map { operationsState ->
+                operationsState.pendingConflicts.entries.firstOrNull()
+            }
+            .onEach { pending ->
+                if (pending != null) {
+                    log(TAG, INFO) { "Detected pending issue for operation ${pending.key}: ${pending.value}" }
+                    issueStateFlow.value = pending.value
+                    currentIssueOperationId = pending.key
+                } else {
+                    issueStateFlow.value = null
+                    currentIssueOperationId = null
                 }
             }
             .launchIn(vmScope)
@@ -245,13 +266,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceSearchState,
         searcherSettings.maxHistoryItems.flow.flatMapLatest { searchHistory.getSearches(it) },
         currentFilter,
+        searcherSettings.searchContent.flow,
         selectionState,
         quickActionsResult,
         dialogStateFlow,
         currentSortSettings,
-        viewModeFlow,
+        viewStyleFlow,
         trashSettings.enabled.flow,
-    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: eu.darken.butler.searcher.core.SearchSortSettings, viewMode: ViewMode, trashEnabled: Boolean ->
+    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, searchContent: Boolean, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean ->
         val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -285,7 +307,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         } else if (sortedResults.isNotEmpty()) {
             buildList {
                 add(SearcherAction.Common.Sort())
-                add(SearcherAction.Common.ToggleView())
+                val toggledViewStyle = when (viewStyle) {
+                    is SearcherViewStyle.List -> SearcherViewStyle.Grid()
+                    is SearcherViewStyle.Grid -> SearcherViewStyle.List()
+                }
+                add(SearcherAction.Common.UpdateViewStyle(toggledViewStyle))
             }
         } else {
             emptyList()
@@ -301,12 +327,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             caseSensitive = filter.caseSensitive,
             wholeWord = filter.wholeWord,
             useRegex = filter.useRegex,
+            searchContent = searchContent,
             setupRequirements = workspaceState.setupRequirements,
             selectionState = updatedSelectionState,
             quickActionsResult = quickActions,
             dialogState = dialogState,
             availableActions = actions,
-            viewMode = viewMode,
+            viewStyle = viewStyle,
             sortSettings = sortSettings,
             trashEnabled = trashEnabled,
         )
@@ -368,7 +395,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 targets = targets,
                 filter = currentFilter.value,
                 options = SearchQuery.Options(
-                    maxResults = searcherSettings.maxSearchResults.value()
+                    searchContent = searcherSettings.searchContent.value(),
+                    maxResults = searcherSettings.maxSearchResults.value(),
                 ),
                 saveToHistory = saveToHistory,
             )
@@ -548,7 +576,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         if (parentPath != null) {
                             workspaceRemote.createAndFocus(
                                 type = Workspace.Type.EXPLORER,
-                                arguments = ExternalExplorerArguments(
+                                arguments = ExplorerArguments.Default(
                                     startPath = parentPath
                                 )
                             )
@@ -560,9 +588,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 log(TAG, INFO) { "Copying path to system clipboard: ${action.result.path.path}" }
                 systemClipboardHelper.copyToClipboard(action.result.path.path)
             }
-            is SearcherAction.Properties -> {
-                showFileProperties(action.result)
-            }
             is SearcherAction.SelectAll -> selectAll()
             is SearcherAction.DeselectAll -> deselectAll()
             is SearcherAction.Common.Sort -> {
@@ -570,10 +595,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     currentSortSettings = currentSortSettings.value
                 )
             }
-            is SearcherAction.Common.ToggleView -> {
-                viewModeFlow.value = when (viewModeFlow.value) {
-                    ViewMode.LIST -> ViewMode.GRID
-                    ViewMode.GRID -> ViewMode.LIST
+            is SearcherAction.Common.UpdateViewStyle -> {
+                viewStyleFlow.value = action.viewStyle
+                vmScope.launch {
+                    searcherSettings.defaultViewStyle.value(action.viewStyle)
                 }
             }
             is SearcherAction.OpenInNewTabs -> {
@@ -616,7 +641,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         // Create workspace requests
         val requests = openInNewTabsUseCase.createRequests(
             analysis = analysis,
-            createExplorerArguments = { path -> ExternalExplorerArguments(startPath = path) },
+            createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
             createEditorArguments = { path -> EditorArguments(filePath = path) },
         )
 
@@ -641,38 +666,29 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     private fun shareFiles(results: List<SearchItem>) {
-        log(TAG, INFO) { "Sharing ${results.size} file(s)" }
+        log(TAG) { "shareFiles(): ${results.size} items" }
 
-        try {
-            val shareItems = results.map { result ->
-                object : ShareIntentUseCase.Item {
-                    override val path = result.path
-                    override val mimeType = getMimeType(result.name)
-                    override val displayName = result.name
-                }
+        val shareItems = results.map { result ->
+            object : ShareIntentUseCase.Item {
+                override val path = result.path
+                override val mimeType = getMimeType(result.name)
+                override val displayName = result.name
             }
+        }
 
-            val intent = shareIntentUseCase.createShareIntent(shareItems)
+        val chooserTitle = if (results.size == 1) {
+            appContext.getString(eu.darken.butler.common.R.string.general_share_single_title, results.first().name)
+        } else {
+            appContext.resources.getQuantityString(
+                eu.darken.butler.common.R.plurals.general_share_multiple_title,
+                results.size,
+                results.size
+            )
+        }
 
-            if (intent != null) {
-                val chooser = Intent.createChooser(
-                    intent,
-                    if (results.size == 1) {
-                        "Share ${results.first().name}"
-                    } else {
-                        "Share ${results.size} files"
-                    }
-                )
-                chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                appContext.startActivity(chooser)
-                log(TAG, INFO) { "Share intent launched successfully" }
-            } else {
-                log(TAG, WARN) { "Failed to create share intent" }
-                throw Exception("Failed to create share intent for selected files")
-            }
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "Error creating share intent: ${e.asLog()}" }
-            throw e
+        val success = shareIntentUseCase.shareWithChooser(shareItems, chooserTitle)
+        if (!success) {
+            throw Exception("Failed to create share intent for selected files")
         }
     }
 
@@ -695,13 +711,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val caseSensitive: Boolean = false,
         val wholeWord: Boolean = false,
         val useRegex: Boolean = false,
+        val searchContent: Boolean = false,
         val setupRequirements: PathRequirements = PathRequirements(),
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
         val quickActionsResult: SearchItem? = null,
         val dialogState: SearcherDialogState = SearcherDialogState.None,
         val availableActions: List<SearcherAction> = emptyList(),
-        val viewMode: ViewMode = ViewMode.LIST,
-        val sortSettings: eu.darken.butler.searcher.core.SearchSortSettings = eu.darken.butler.searcher.core.SearchSortSettings(),
+        val viewStyle: SearcherViewStyle = SearcherViewStyle.default(),
+        val sortSettings: SearchSortSettings = SearchSortSettings(),
         val trashEnabled: Boolean = false,
     ) {
         val isSearching: Boolean
@@ -773,11 +790,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         currentSortSettings.value = result.sortSettings
     }
 
-    private fun showFileProperties(result: SearchItem) {
-        log(TAG) { "showFileProperties(${result.name})" }
-        dialogStateFlow.value = SearcherDialogState.FileInfo(result)
-    }
-
     fun navigateToClipboardSource(clip: ClipboardClip) = launch {
         log(TAG) { "navigateToClipboardSource($clip)" }
         dismissDialog()
@@ -791,7 +803,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         // Open Explorer at the source path and switch to it
                         workspaceRemote.createAndFocus(
                             type = Workspace.Type.EXPLORER,
-                            arguments = ExternalExplorerArguments(startPath = parentPath)
+                            arguments = ExplorerArguments.Default(startPath = parentPath)
                         )
                     }
                 }
@@ -818,7 +830,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 log(TAG) { "Opening Explorer at common parent: $commonParent" }
                 workspaceRemote.createAndFocus(
                     type = Workspace.Type.EXPLORER,
-                    arguments = ExternalExplorerArguments(startPath = commonParent)
+                    arguments = ExplorerArguments.Default(startPath = commonParent)
                 )
             }
         }
@@ -879,19 +891,19 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun showConflictSheet(operationId: Operation.Id) = launch {
-        log(TAG) { "showConflictSheet($operationId): Requesting to show conflict sheet" }
+        log(TAG) { "showConflictSheet($operationId): Conflict sheet is automatically shown via issueState observation" }
+        // Note: Issue sheets are automatically displayed when issueState is set by the init block observer
+        // No manual action needed here - the UI observes issueState and shows IssuesBottomSheet when non-null
+    }
 
-        // Get current conflicts map
-        val workspace = getWorkspace()
-        val operationsState = workspace.operations.first()
-        val conflicts = operationsState.pendingConflicts
-        val issue = conflicts[operationId]
-
-        if (issue != null) {
-            // TODO: Show conflict sheet for searcher
-            log(TAG, WARN) { "Conflict sheet not yet implemented for searcher: $issue" }
+    fun resolveIssue(resolution: eu.darken.butler.common.files.actions.PathActionIssue.Resolution) = launch {
+        val operationId = currentIssueOperationId
+        if (operationId != null) {
+            log(TAG, INFO) { "Resolving issue for operation $operationId with resolution: $resolution" }
+            val workspace = getWorkspace()
+            workspace.resolveConflict(operationId, resolution)
         } else {
-            log(TAG, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
+            log(TAG, WARN) { "Cannot resolve issue: no current issue operation ID" }
         }
     }
 
@@ -906,6 +918,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Search.UpdateQuery -> {
                 log(TAG, INFO) { "Updating search query: ${action.query.text}" }
                 searchQuery.value = action.query
+                // Auto-clear results when query becomes empty
+                if (action.query.text.isBlank()) {
+                    clearResults()
+                }
             }
             is SearcherPageAction.Search.Perform -> performSearch()
             is SearcherPageAction.Search.Explicit -> {
@@ -932,6 +948,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 vmScope.launch {
                     val current = searcherSettings.useRegex.flow.first()
                     searcherSettings.useRegex.update { !current }
+                }
+            }
+            is SearcherPageAction.Options.ToggleSearchContent -> {
+                vmScope.launch {
+                    val current = searcherSettings.searchContent.flow.first()
+                    searcherSettings.searchContent.update { !current }
                 }
             }
 

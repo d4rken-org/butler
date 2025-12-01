@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -17,6 +18,7 @@ import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.formatRelativeTime
+import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
@@ -76,19 +78,13 @@ fun FileInfo(
 
         // Line 4: Match context (if available)
         result.matchContext?.let { context ->
-            val matchText = buildString {
-                context.lineNumber?.let { lineNum ->
-                    append("Line $lineNum")
-                }
-                context.matchedLine?.let { line ->
-                    if (isNotEmpty()) append(": ")
-                    append(line.trim())
-                }
-            }
-
-            if (matchText.isNotEmpty()) {
+            if (context.lineNumber != null && context.matchedLine != null) {
                 Text(
-                    text = matchText,
+                    text = stringResource(
+                        R.string.searcher_match_line_label,
+                        context.lineNumber,
+                        context.matchedLine.trim()
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                     maxLines = 1,
@@ -132,6 +128,23 @@ private fun FileInfoPreview() {
                 result = SearcherMockDataProvider.createMockDirectory(
                     name = "Pictures",
                     hoursAgo = 24
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // Content match example
+            FileInfo(
+                result = SearcherMockDataProvider.createMockSearchResult(
+                    name = "config.json",
+                    sizeKB = 12,
+                    hoursAgo = 3,
+                    matchedQuery = "timeout",
+                    matchContext = SearchItem.MatchContext(
+                        lineNumber = 42,
+                        matchedLine = "  \"timeout\": 5000,",
+                        startIndex = 2,
+                        endIndex = 9
+                    )
                 ),
                 modifier = Modifier.fillMaxWidth()
             )

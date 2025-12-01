@@ -12,6 +12,8 @@ data class WorkspaceDesign(
         Layout.DUAL_VERTICAL -> 2
         Layout.DUAL_HORIZONTAL -> 2
         Layout.TRIPLE_MAIN_LEFT -> 3
+        Layout.TRIPLE_MAIN_RIGHT -> 3
+        Layout.QUAD_GRID -> 4
     }
 
     enum class Layout {
@@ -19,6 +21,8 @@ data class WorkspaceDesign(
         DUAL_VERTICAL,
         DUAL_HORIZONTAL,
         TRIPLE_MAIN_LEFT,
+        TRIPLE_MAIN_RIGHT,
+        QUAD_GRID,
         ;
     }
 }

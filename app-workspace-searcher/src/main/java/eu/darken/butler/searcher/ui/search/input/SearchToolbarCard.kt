@@ -55,6 +55,7 @@ fun SearchToolbarCard(
     onToggleCaseSensitive: () -> Unit,
     onToggleWholeWord: () -> Unit,
     onToggleRegex: () -> Unit,
+    onToggleSearchContent: () -> Unit,
     onOpenPathPicker: (() -> Unit)? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
@@ -115,7 +116,7 @@ fun SearchToolbarCard(
 
                     if (design.isSingle) {
                         WorkspaceButton(
-                            modifier = Modifier.size(32.dp),
+                            buttonSize = 32.dp,
                             state = workspaceButtonState,
                             workspaceActionHandler = workspaceActionHandler,
                         )
@@ -160,9 +161,11 @@ fun SearchToolbarCard(
                             caseSensitive = state.caseSensitive,
                             wholeWord = state.wholeWord,
                             useRegex = state.useRegex,
+                            searchContent = state.searchContent,
                             onToggleCaseSensitive = onToggleCaseSensitive,
                             onToggleWholeWord = onToggleWholeWord,
                             onToggleRegex = onToggleRegex,
+                            onToggleSearchContent = onToggleSearchContent,
                             modifier = Modifier.fillMaxWidth()
                         )
 
@@ -200,7 +203,8 @@ private fun SearchToolbarCardPreview() {
                 searchQuery = TextFieldValue("example search"),
                 caseSensitive = false,
                 wholeWord = false,
-                useRegex = false
+                useRegex = false,
+                searchContent = false,
             ),
             design = WorkspaceDesign(),
             onUpdateQuery = {},
@@ -211,6 +215,7 @@ private fun SearchToolbarCardPreview() {
             onToggleCaseSensitive = {},
             onToggleWholeWord = {},
             onToggleRegex = {},
+            onToggleSearchContent = {},
             modifier = Modifier.padding(16.dp)
         )
     }
@@ -231,7 +236,8 @@ private fun SearchToolbarCardCollapsedPreview() {
                 searchQuery = TextFieldValue("example search"),
                 caseSensitive = false,
                 wholeWord = false,
-                useRegex = false
+                useRegex = false,
+                searchContent = false,
             ),
             design = WorkspaceDesign(),
             onUpdateQuery = {},
@@ -242,6 +248,7 @@ private fun SearchToolbarCardCollapsedPreview() {
             onToggleCaseSensitive = {},
             onToggleWholeWord = {},
             onToggleRegex = {},
+            onToggleSearchContent = {},
             modifier = Modifier.padding(16.dp),
             collapsedFraction = 1f,
         )

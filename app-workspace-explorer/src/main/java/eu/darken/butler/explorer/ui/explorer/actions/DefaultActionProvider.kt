@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
+import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
 import javax.inject.Inject
@@ -14,6 +15,7 @@ class DefaultActionProvider @Inject constructor(
     override fun getActions(
         location: ExplorerLocation,
         selectionState: ExplorerSelectionState,
+        viewStyle: ExplorerViewStyle,
     ): List<ExplorerAction> {
         val provider = when (location) {
             is ExplorerLocation.Home -> homeProvider
@@ -22,6 +24,6 @@ class DefaultActionProvider @Inject constructor(
             is ExplorerLocation.Trash -> trashActionProvider
         }
 
-        return provider.getActions(location, selectionState)
+        return provider.getActions(location, selectionState, viewStyle)
     }
 }
