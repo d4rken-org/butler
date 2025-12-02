@@ -17,6 +17,20 @@ android {
 
     setupLibraryDefaults(projectConfig)
 
+    defaultConfig {
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments(
+                    mapOf("room.schemaLocation" to "$projectDir/schemas")
+                )
+            }
+        }
+    }
+
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
+
     setupModuleBuildTypes()
 
     setupCompileOptions()
