@@ -46,6 +46,7 @@ import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.common.R as CommonR
+import androidx.core.net.toUri
 
 private fun ContentUriHelper.SourceInfo.isMedia(): Boolean {
     return mimeType?.let { it.startsWith("image/") || it.startsWith("video/") } == true
@@ -65,11 +66,11 @@ internal fun SourceFilesList(
         Column {
             // Header with file count
             Row(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier.size(24.dp),
                     imageVector = Icons.TwoTone.FileCopy,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
@@ -82,7 +83,7 @@ internal fun SourceFilesList(
                             sourceInfos.size,
                             sourceInfos.size,
                         ),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                     )
                     val totalSize = sourceInfos.mapNotNull { it.size }.sum()
                     if (totalSize > 0) {
@@ -283,14 +284,14 @@ private fun SourceFilesListPreview() {
         SourceFilesList(
             sourceInfos = listOf(
                 ContentUriHelper.SourceInfo(
-                    uri = Uri.parse("content://example/image1.jpg"),
+                    uri = "content://example/image1.jpg".toUri(),
                     displayName = "vacation_photo_001.jpg",
                     mimeType = "image/jpeg",
                     size = 3_500_000,
                     isAccessible = true,
                 ),
                 ContentUriHelper.SourceInfo(
-                    uri = Uri.parse("content://example/image2.jpg"),
+                    uri = "content://example/image2.jpg".toUri(),
                     displayName = "vacation_photo_002.jpg",
                     mimeType = "image/jpeg",
                     size = 2_800_000,
