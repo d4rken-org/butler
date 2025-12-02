@@ -24,6 +24,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -46,7 +47,6 @@ import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.FileIntentHelper
-import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.PatternMatcher
@@ -171,25 +171,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         dialogEvents
             .onEach { event ->
                 handleDialogEvent(event)
-            }
-            .launchInViewModel()
-
-        // Observe pending conflicts from workspace and update UI state
-        workspaceSource
-            .filterNotNull()
-            .flatMapLatest { it.operations }
-            .map { it.pendingConflicts }
-            .distinctUntilChanged()
-            .onEach { conflicts ->
-                val firstConflictEntry = conflicts.entries.firstOrNull()
-                if (firstConflictEntry != null) {
-                    val (operationId, awaitingInputState) = firstConflictEntry
-                    currentConflictOperationId = operationId
-                    issueStateFlow.value = awaitingInputState
-                } else {
-                    currentConflictOperationId = null
-                    issueStateFlow.value = null
-                }
             }
             .launchInViewModel()
     }
@@ -534,7 +515,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 } else if (item.trashLookup?.fileType == FileType.DIRECTORY && item.isAvailable) {
                     // Navigate into trashed folder
                     val ref = TrashItemReference.from(item)
-                    getWorkspace().navigate(ExplorerNavigation.Target.Trash.Nested(ref, ""))
+                    getWorkspace().navigate(Trash.Nested(ref, ""))
                     clearSelection()
                 } else {
                     dialogStateFlow.value = TrashItemOptions(item)
@@ -545,7 +526,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     toggleItemSelection(item)
                 } else if (item.isDirectory) {
                     // Navigate deeper into nested trash
-                    getWorkspace().navigate(ExplorerNavigation.Target.Trash.Nested(item.parentRef, item.relativePath))
+                    getWorkspace().navigate(Trash.Nested(item.parentRef, item.relativePath))
                     clearSelection()
                 } else {
                     // Show options for nested files
