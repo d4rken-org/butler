@@ -24,9 +24,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.local.LocalPathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.workspace.R
+import kotlin.time.Instant
 
 @Composable
 fun TrashSizeLimitIssueSheet(
@@ -38,7 +44,7 @@ fun TrashSizeLimitIssueSheet(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(top = 8.dp, bottom = 16.dp),
+            .padding(top = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
@@ -143,5 +149,26 @@ fun TrashSizeLimitIssueSheet(
                 }
             }
         }
+    }
+}
+
+@Preview2
+@Composable
+private fun TrashSizeLimitIssueSheetPreview() {
+    PreviewWrapper {
+        TrashSizeLimitIssueSheet(
+            issue = PathActionIssue.TrashSizeLimitExceeded(
+                source = LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Download/large_video.mp4"),
+                    fileType = FileType.FILE,
+                    size = 3L * 1024 * 1024 * 1024,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                    target = null,
+                ),
+                itemSize = 3L * 1024 * 1024 * 1024,
+                trashMaxSize = 2L * 1024 * 1024 * 1024,
+            ),
+            onResolution = {},
+        )
     }
 }
