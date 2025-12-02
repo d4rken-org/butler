@@ -29,7 +29,8 @@ import eu.darken.butler.saver.R
 internal fun DestinationCard(
     modifier: Modifier = Modifier,
     destination: APath<*>?,
-    filename: String,
+    filename: String?,
+    isBatchMode: Boolean,
     onClick: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -53,22 +54,41 @@ internal fun DestinationCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (destination != null && filename.isNotBlank()) {
-                    // Show full path with filename
-                    Text(
-                        text = "${destination.userReadablePath.get(context)}/$filename",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                } else {
-                    // Prompt to select destination
-                    Text(
-                        text = stringResource(R.string.saver_select_destination_hint),
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                when {
+                    destination == null -> {
+                        // Prompt to select destination
+                        Text(
+                            text = stringResource(R.string.saver_select_destination_hint),
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    isBatchMode -> {
+                        // Batch mode: show only directory
+                        Text(
+                            text = destination.userReadablePath.get(context),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                    !filename.isNullOrBlank() -> {
+                        // Single file mode with filename: show full path
+                        Text(
+                            text = "${destination.userReadablePath.get(context)}/$filename",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                    else -> {
+                        // Single file mode without filename: show directory only
+                        Text(
+                            text = destination.userReadablePath.get(context),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
                 }
             }
         }
@@ -82,6 +102,7 @@ private fun DestinationCardEmptyPreview() {
         DestinationCard(
             destination = null,
             filename = "",
+            isBatchMode = false,
             onClick = {},
         )
     }
@@ -89,11 +110,25 @@ private fun DestinationCardEmptyPreview() {
 
 @Preview2
 @Composable
-private fun DestinationCardWithDestinationPreview() {
+private fun DestinationCardSingleFilePreview() {
     PreviewWrapper {
         DestinationCard(
             destination = LocalPath.build("/storage/emulated/0/Download"),
             filename = "vacation_photo.jpg",
+            isBatchMode = false,
+            onClick = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun DestinationCardBatchModePreview() {
+    PreviewWrapper {
+        DestinationCard(
+            destination = LocalPath.build("/storage/emulated/0/Download"),
+            filename = null,
+            isBatchMode = true,
             onClick = {},
         )
     }

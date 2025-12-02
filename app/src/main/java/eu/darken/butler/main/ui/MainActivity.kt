@@ -169,7 +169,7 @@ class MainActivity : Activity2() {
                     handleNewExplorerIntent()
                     savedIntent = null
                 }
-                Intent.ACTION_SEND -> {
+                Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> {
                     handleShareIntent(intent)
                     savedIntent = null
                 }
@@ -194,17 +194,21 @@ class MainActivity : Activity2() {
 
     @Suppress("DEPRECATION")
     private fun handleShareIntent(intent: Intent) {
-        val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-        if (uri == null) {
-            log(TAG) { "ACTION_SEND received but no EXTRA_STREAM URI found" }
+        val uris: List<Uri> = when (intent.action) {
+            Intent.ACTION_SEND -> listOfNotNull(intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))
+            Intent.ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM) ?: emptyList()
+            else -> emptyList()
+        }
+
+        if (uris.isEmpty()) {
+            log(TAG) { "Share intent received but no URIs found" }
             return
         }
 
-        log(TAG) { "Handling share intent with URI: $uri" }
+        log(TAG) { "Handling share intent with ${uris.size} URI(s): $uris" }
 
         vm.createSaverWorkspace(
-            sourceUri = uri,
-            mimeType = intent.type,
+            sourceUris = uris,
             callerPackage = intent.`package` ?: referrer?.host,
         )
     }

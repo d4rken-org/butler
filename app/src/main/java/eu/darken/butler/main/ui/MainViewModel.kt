@@ -92,17 +92,15 @@ class MainViewModel @Inject constructor(
     }
 
     fun createSaverWorkspace(
-        sourceUri: Uri,
-        mimeType: String?,
+        sourceUris: List<Uri>,
         callerPackage: String?,
     ) = launch {
-        log(tag) { "createSaverWorkspace(uri=$sourceUri)" }
+        log(tag) { "createSaverWorkspace(uris=${sourceUris.size})" }
         try {
             workspaceRemote.createAndFocus(
                 type = Workspace.Type.SAVER,
                 arguments = SaverArguments.Default(
-                    sourceUri = sourceUri.toString(),
-                    mimeType = mimeType,
+                    sourceUris = sourceUris.map { it.toString() },
                     callerPackage = callerPackage?.toPkgId(),
                 )
             )

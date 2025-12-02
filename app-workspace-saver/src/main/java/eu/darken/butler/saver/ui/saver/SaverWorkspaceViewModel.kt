@@ -16,8 +16,8 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.saver.core.ContentUriHelper
-import eu.darken.butler.saver.core.SaveOperation
 import eu.darken.butler.saver.core.SaverWorkspace
+import eu.darken.butler.saver.core.operations.SaveFilesReport
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 
 @HiltViewModel(assistedFactory = SaverWorkspaceViewModel.Factory::class)
 class SaverWorkspaceViewModel @AssistedInject constructor(
@@ -50,29 +49,45 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     private suspend fun getWorkspace(): SaverWorkspace = workspaceSource.filterNotNull().first()
 
     data class State(
-        val sourceInfo: ContentUriHelper.SourceInfo? = null,
+        val sourceInfos: List<ContentUriHelper.SourceInfo> = emptyList(),
         val destination: APath<*>? = null,
         val filename: String = "",
-        val saveState: SaveOperation.State = SaveOperation.State.Idle,
+        val saveState: SaverWorkspace.SaveState = SaverWorkspace.SaveState.Idle,
         val callerLabel: String? = null,
     ) {
+        val isBatchMode: Boolean
+            get() = sourceInfos.size > 1
+
+        val fileCount: Int
+            get() = sourceInfos.size
+
+        val totalSize: Long?
+            get() = sourceInfos.mapNotNull { it.size }.takeIf { it.size == sourceInfos.size }?.sum()
+
+        val hasInaccessibleFiles: Boolean
+            get() = sourceInfos.any { !it.isAccessible }
+
         val canSave: Boolean
             get() = destination != null
-                && filename.isNotBlank()
-                && sourceInfo?.isAccessible == true
-                && saveState !is SaveOperation.State.Saving
+                && !hasInaccessibleFiles
+                && sourceInfos.isNotEmpty()
+                && (isBatchMode || filename.isNotBlank())
+                && saveState is SaverWorkspace.SaveState.Idle
 
         val isSaving: Boolean
-            get() = saveState is SaveOperation.State.Saving
+            get() = saveState is SaverWorkspace.SaveState.Saving
 
         val isCompleted: Boolean
-            get() = saveState is SaveOperation.State.Success
+            get() = saveState is SaverWorkspace.SaveState.Success
 
         val hasError: Boolean
-            get() = saveState is SaveOperation.State.Error
+            get() = saveState is SaverWorkspace.SaveState.Error
 
-        val savedPath: APath<*>?
-            get() = (saveState as? SaveOperation.State.Success)?.savedPath
+        val report: SaveFilesReport?
+            get() = (saveState as? SaverWorkspace.SaveState.Success)?.report
+
+        val error: Throwable?
+            get() = (saveState as? SaverWorkspace.SaveState.Error)?.error
     }
 
     val state: Flow<State> = workspaceSource
@@ -80,7 +95,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         .flatMapLatest { it.state }
         .map { wsState ->
             State(
-                sourceInfo = wsState.sourceInfo,
+                sourceInfos = wsState.sourceInfos,
                 destination = wsState.destination,
                 filename = wsState.filename,
                 saveState = wsState.saveState,
@@ -89,7 +104,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         }
 
     init {
-        // Listen for picker results (SaveAs mode returns both path and filename)
+        // Listen for picker results
         workspaceRemote.events
             .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
                 log(tag, INFO) { "Received picker result: paths=${result.selectedPaths}, filename=${result.filename}" }
@@ -97,7 +112,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
                     val workspace = getWorkspace()
                     workspace.setDestination(path)
 
-                    // Update filename if returned by SaveAs picker
+                    // Update filename if returned by SaveAs picker (single file mode only)
                     result.filename?.let { filename ->
                         workspace.updateFilename(filename)
                     }
@@ -109,15 +124,23 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     fun onPickDestination() = launch {
         log(tag) { "onPickDestination()" }
         val workspace = getWorkspace()
-        val currentFilename = workspace.state.first().filename
-        val currentDestination = workspace.state.first().destination
+        val wsState = workspace.state.first()
+        val currentDestination = wsState.destination
+
+        val selection = if (wsState.sourceInfos.size > 1) {
+            // Batch mode: just pick directory
+            PickerConfig.Selection.DirectorySingle
+        } else {
+            // Single file mode: use SaveAs
+            PickerConfig.Selection.SaveAs(
+                suggestedFilename = wsState.filename.ifBlank { "file" }
+            )
+        }
 
         workspaceRemote.launchPicker(
             callerWorkspaceId = id,
             startPath = currentDestination,
-            selection = PickerConfig.Selection.SaveAs(
-                suggestedFilename = currentFilename.ifBlank { "file" }
-            ),
+            selection = selection,
         )
     }
 
@@ -125,10 +148,6 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         log(tag, INFO) { "onSave()" }
         try {
             getWorkspace().save()
-                .onEach { state ->
-                    log(tag) { "Save state: $state" }
-                }
-                .launchIn(vmScope)
         } catch (e: Exception) {
             log(tag, ERROR) { "Save failed: ${e.asLog()}" }
         }
@@ -136,19 +155,30 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
 
     fun onOpenSavedFile() = launch {
         val workspace = getWorkspace()
-        val savedPath = (workspace.state.first().saveState as? SaveOperation.State.Success)?.savedPath
-        if (savedPath != null) {
-            log(tag, INFO) { "Opening saved file location: ${savedPath.parent}" }
+        val report = (workspace.state.first().saveState as? SaverWorkspace.SaveState.Success)?.report
+        val firstSavedPath = report?.successes?.firstOrNull()?.savedPath
+        if (firstSavedPath != null) {
+            log(tag, INFO) { "Opening saved file location: ${firstSavedPath.parent}" }
             workspaceRemote.createAndFocus(
                 type = Workspace.Type.EXPLORER,
-                arguments = ExplorerArguments.Default(startPath = savedPath.parent),
+                arguments = ExplorerArguments.Default(startPath = firstSavedPath.parent),
             )
         }
+    }
+
+    fun onRetry() = launch {
+        log(tag) { "onRetry()" }
+        getWorkspace().resetSaveState()
     }
 
     fun onRefreshAccessibility() = launch {
         log(tag) { "onRefreshAccessibility()" }
         getWorkspace().refreshSourceAccessibility()
+    }
+
+    fun onUpdateFilename(filename: String) = launch {
+        log(tag) { "onUpdateFilename($filename)" }
+        getWorkspace().updateFilename(filename)
     }
 
     fun onClose() = launch {

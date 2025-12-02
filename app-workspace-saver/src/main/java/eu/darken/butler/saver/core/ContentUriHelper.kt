@@ -96,16 +96,14 @@ class ContentUriHelper @Inject constructor(
      * Check if the content URI is still accessible.
      * URIs from share intents have temporary permissions that can expire.
      */
-    fun checkAccessibility(uri: Uri): Boolean {
-        return try {
-            context.contentResolver.openInputStream(uri)?.use { true } ?: false
-        } catch (e: SecurityException) {
-            log(TAG, WARN) { "URI no longer accessible (permission expired): ${e.asLog()}" }
-            false
-        } catch (e: Exception) {
-            log(TAG, ERROR) { "URI accessibility check failed: ${e.asLog()}" }
-            false
-        }
+    fun checkAccessibility(uri: Uri): Boolean = try {
+        context.contentResolver.openInputStream(uri)?.use { true } ?: false
+    } catch (e: SecurityException) {
+        log(TAG, WARN) { "URI no longer accessible (permission expired): $e" }
+        false
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "URI accessibility check failed: ${e.asLog()}" }
+        false
     }
 
     companion object {

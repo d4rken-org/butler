@@ -18,4 +18,24 @@
     <string name="saver_error_permission_denied">Permission denied</string>
     <string name="saver_error_write_failed">Failed to save file</string>
     <string name="saver_error_file_exists">File already exists</string>
+
+    <!-- Operation strings -->
+    <string name="saver_operation_title">Save files</string>
+    <plurals name="saver_operation_description">
+        <item quantity="one">Saving %1$d file to %2$s</item>
+        <item quantity="other">Saving %1$d files to %2$s</item>
+    </plurals>
+    <plurals name="saver_workspace_title_count">
+        <item quantity="one">Save %1$d file</item>
+        <item quantity="other">Save %1$d files</item>
+    </plurals>
+    <plurals name="saver_success_count">
+        <item quantity="one">%1$d file saved</item>
+        <item quantity="other">%1$d files saved</item>
+    </plurals>
+    <plurals name="saver_error_count">
+        <item quantity="one">%1$d file failed</item>
+        <item quantity="other">%1$d files failed</item>
+    </plurals>
+    <string name="saver_partial_success">%1$d of %2$d files saved</string>
 </resources>

@@ -5,6 +5,8 @@ import androidx.core.net.toUri
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
@@ -14,18 +16,27 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.flow.DynamicStateFlow
+import eu.darken.butler.common.getQuantityString2
+import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.saver.R
 import eu.darken.butler.saver.core.arguments.SaverArguments
+import eu.darken.butler.saver.core.operations.SaveFilesOperation
+import eu.darken.butler.saver.core.operations.SaveFilesReport
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationsManager
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -38,7 +49,8 @@ class SaverWorkspace @AssistedInject constructor(
     @Assisted private val arguments: SaverArguments,
     dispatcherProvider: DispatcherProvider,
     private val contentUriHelper: ContentUriHelper,
-    private val saveOperation: SaveOperation,
+    private val operationsManager: OperationsManager,
+    private val saveFilesOperationFactory: SaveFilesOperation.Factory,
     private val pkgOps: PkgOps,
     private val json: Json,
 ) : Workspace<SaverArguments> {
@@ -51,67 +63,113 @@ class SaverWorkspace @AssistedInject constructor(
 
     private val creationArguments: SaverArguments.Default = arguments as SaverArguments.Default
 
-    val sourceUri: Uri = creationArguments.sourceUri.toUri()
+    val sourceUris: List<Uri> = creationArguments.sourceUris.map { it.toUri() }
+
+    val isBatchMode: Boolean get() = sourceUris.size > 1
 
     // State flows for UI
-    private val _sourceInfo = MutableStateFlow<ContentUriHelper.SourceInfo?>(null)
-    val sourceInfo: Flow<ContentUriHelper.SourceInfo?> = _sourceInfo
+    private val _sourceInfos = MutableStateFlow<List<ContentUriHelper.SourceInfo>>(emptyList())
+    val sourceInfos: Flow<List<ContentUriHelper.SourceInfo>> = _sourceInfos
 
-    private val _destination = MutableStateFlow<APath<*>?>(null)
+    private val _destination = MutableStateFlow<APath<*>?>(creationArguments.destinationPath)
     val destination: Flow<APath<*>?> = _destination
 
-    private val _filename = MutableStateFlow(creationArguments.customFilename ?: "")
+    // Only used for single file mode
+    private val _filename = MutableStateFlow("")
     val filename: Flow<String> = _filename
 
-    private val _saveState = MutableStateFlow<SaveOperation.State>(SaveOperation.State.Idle)
-    val saveState: Flow<SaveOperation.State> = _saveState
+    private val _saveState = MutableStateFlow<SaveState>(SaveState.Idle)
+    val saveState: Flow<SaveState> = _saveState
 
-    private val _callerLabel = MutableStateFlow<String?>(creationArguments.callerPackage?.name)
+    private val _callerLabel = MutableStateFlow<String?>(UNKNOWN_CALLER_LABEL)
 
     private val _state = DynamicStateFlow<State>(parentScope = scope) { State() }
     val state: Flow<State> = _state.flow
 
+    sealed interface SaveState {
+        data object Idle : SaveState
+        data class Saving(
+            val currentFile: Int,
+            val totalFiles: Int,
+            val currentFilename: String,
+        ) : SaveState
+
+        data class Success(val report: SaveFilesReport) : SaveState
+        data class Error(val error: Throwable) : SaveState
+    }
+
     data class State(
-        val sourceInfo: ContentUriHelper.SourceInfo? = null,
+        val sourceInfos: List<ContentUriHelper.SourceInfo> = emptyList(),
         val destination: APath<*>? = null,
         val filename: String = "",
-        val saveState: SaveOperation.State = SaveOperation.State.Idle,
+        val saveState: SaveState = SaveState.Idle,
         val callerLabel: String? = null,
-    )
+    ) {
+        val isBatchMode: Boolean get() = sourceInfos.size > 1
+        val fileCount: Int get() = sourceInfos.size
+        val totalSize: Long? get() = sourceInfos.mapNotNull { it.size }.takeIf { it.size == sourceInfos.size }?.sum()
+        val hasInaccessibleFiles: Boolean get() = sourceInfos.any { !it.isAccessible }
+    }
 
     override val info: Flow<Workspace.Info> = combine(
+        _sourceInfos,
         _filename,
         _saveState,
-    ) { filename, saveState ->
+    ) { sourceInfos, filename, saveState ->
+        val operationCount = when (saveState) {
+            is SaveState.Saving -> 1
+            else -> 0
+        }
+        val attentionCount = when {
+            saveState is SaveState.Error -> 1
+            sourceInfos.any { !it.isAccessible } -> 1
+            else -> 0
+        }
+
         Workspace.Info(
             id = id,
             type = type,
             title = when {
                 Bugs.isDebug -> "Saver ${id.shortTag}".toCaString()
+                sourceInfos.size > 1 -> caString { cx ->
+                    cx.getQuantityString2(
+                        R.plurals.saver_workspace_title_count,
+                        sourceInfos.size,
+                        sourceInfos.size,
+                    )
+                }
                 else -> R.string.saver_workspace_title.toCaString()
             },
-            subtitle = filename.toCaString(),
-            operationCount = if (saveState is SaveOperation.State.Saving) 1 else 0,
-            attentionCount = if (saveState is SaveOperation.State.Error) 1 else 0,
+            subtitle = when {
+                sourceInfos.size > 1 -> sourceInfos.firstOrNull()?.displayName?.let { "$it, ..." }?.toCaString()
+                    ?: "".toCaString()
+                else -> filename.toCaString()
+            },
+            operationCount = operationCount,
+            attentionCount = attentionCount,
             callerWorkspaceId = null,
         )
     }
 
     init {
-        log(tag, INFO) { "SaverWorkspace initialized: $id with source: $sourceUri" }
+        log(tag, INFO) { "SaverWorkspace initialized: $id with ${sourceUris.size} source(s)" }
 
-        // Extract source info on initialization
+        // Extract source info for all URIs on initialization
         scope.launch {
-            try {
-                val info = contentUriHelper.extractInfo(sourceUri)
-                _sourceInfo.value = info
-                // Set filename from extracted info if not already set by customFilename
-                if (_filename.value.isEmpty()) {
-                    _filename.value = info.displayName
+            val infos = sourceUris.mapNotNull { uri ->
+                try {
+                    contentUriHelper.extractInfo(uri)
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to extract source info for $uri: ${e.asLog()}" }
+                    null
                 }
-                log(tag) { "Source info extracted: $info" }
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to extract source info: ${e.asLog()}" }
+            }
+            _sourceInfos.value = infos
+            log(tag) { "Extracted info for ${infos.size}/${sourceUris.size} sources" }
+
+            // Set filename from first file if single file mode
+            if (infos.size == 1) {
+                _filename.value = infos.first().displayName
             }
         }
 
@@ -119,31 +177,33 @@ class SaverWorkspace @AssistedInject constructor(
         creationArguments.callerPackage?.let { pkgId ->
             scope.launch {
                 try {
+                    if (isUnknownCaller(pkgId)) {
+                        log(tag) { "Skipping label resolution for unknown caller: $pkgId" }
+                        return@launch
+                    }
                     val label = pkgOps.getLabel(pkgId)
-                    _callerLabel.value = label ?: pkgId.name
-                    log(tag) { "Resolved caller label: $pkgId -> ${_callerLabel.value}" }
+                    if (label != null) {
+                        _callerLabel.value = label
+                        log(tag) { "Resolved caller label: $pkgId -> $label" }
+                    } else {
+                        log(tag) { "No label found for $pkgId, keeping default" }
+                    }
                 } catch (e: Exception) {
                     log(tag, WARN) { "Failed to resolve caller label for $pkgId: ${e.asLog()}" }
                 }
             }
         }
 
-        // Restore destination if previously selected
-        creationArguments.destinationPath?.let { destinationPath ->
-            _destination.value = destinationPath
-            log(tag, INFO) { "Restored destination: $destinationPath" }
-        }
-
         // Combine all state flows into single state
         combine(
-            _sourceInfo,
+            _sourceInfos,
             _destination,
             _filename,
             _saveState,
             _callerLabel,
-        ) { sourceInfo, destination, filename, saveState, callerLabel ->
+        ) { sourceInfos, destination, filename, saveState, callerLabel ->
             State(
-                sourceInfo = sourceInfo,
+                sourceInfos = sourceInfos,
                 destination = destination,
                 filename = filename,
                 saveState = saveState,
@@ -155,11 +215,9 @@ class SaverWorkspace @AssistedInject constructor(
     }
 
     override suspend fun createArguments(): SaverArguments = SaverArguments.Default(
-        sourceUri = creationArguments.sourceUri,
-        mimeType = creationArguments.mimeType,
+        sourceUris = creationArguments.sourceUris,
         callerPackage = creationArguments.callerPackage,
         destinationPath = _destination.value,
-        customFilename = _filename.value.takeIf { it.isNotEmpty() },
     )
 
     override suspend fun release() {
@@ -181,31 +239,104 @@ class SaverWorkspace @AssistedInject constructor(
 
     fun refreshSourceAccessibility() {
         scope.launch {
-            val currentInfo = _sourceInfo.value ?: return@launch
-            val isAccessible = contentUriHelper.checkAccessibility(sourceUri)
-            if (currentInfo.isAccessible != isAccessible) {
-                _sourceInfo.value = currentInfo.copy(isAccessible = isAccessible)
+            val currentInfos = _sourceInfos.value
+            if (currentInfos.isEmpty()) return@launch
+
+            val updatedInfos = currentInfos.map { info ->
+                val isAccessible = contentUriHelper.checkAccessibility(info.uri)
+                if (info.isAccessible != isAccessible) {
+                    info.copy(isAccessible = isAccessible)
+                } else {
+                    info
+                }
+            }
+
+            if (updatedInfos != currentInfos) {
+                _sourceInfos.value = updatedInfos
+                log(tag) { "Refreshed accessibility: ${updatedInfos.count { it.isAccessible }}/${updatedInfos.size} accessible" }
             }
         }
     }
 
-    fun save(): Flow<SaveOperation.State> {
+    suspend fun save() {
         val destination = _destination.value
-        val filename = _filename.value
-
         require(destination != null) { "Destination must be set before saving" }
-        require(filename.isNotBlank()) { "Filename must not be blank" }
 
-        log(tag, INFO) { "Starting save: $filename -> $destination" }
+        val infos = _sourceInfos.value
+        require(infos.isNotEmpty()) { "No source files to save" }
 
-        return saveOperation.execute(
-            sourceUri = sourceUri,
-            targetDirectory = destination,
-            filename = filename,
-            totalBytes = _sourceInfo.value?.size,
-        ).onEach { state ->
-            _saveState.value = state
+        // For single file mode, use custom filename if set
+        val sources = if (infos.size == 1 && _filename.value.isNotBlank()) {
+            listOf(
+                SaveFilesOperation.Command.SourceFile(
+                    uri = infos.first().uri,
+                    filename = _filename.value,
+                    size = infos.first().size,
+                )
+            )
+        } else {
+            infos.map { info ->
+                SaveFilesOperation.Command.SourceFile(
+                    uri = info.uri,
+                    filename = info.displayName,
+                    size = info.size,
+                )
+            }
         }
+
+        log(tag, INFO) { "Starting save of ${sources.size} file(s) to $destination" }
+
+        _saveState.value = SaveState.Saving(
+            currentFile = 0,
+            totalFiles = sources.size,
+            currentFilename = sources.firstOrNull()?.filename ?: "",
+        )
+
+        val operation = saveFilesOperationFactory.create(
+            workspaceId = id,
+            command = SaveFilesOperation.Command(
+                sources = sources,
+                targetDirectory = destination,
+            ),
+        )
+
+        val operationId = operationsManager.submit(operation)
+
+        // Observe operation state
+        operationsManager.operations
+            .map { ops -> ops.find { it.id == operationId } }
+            .filterNotNull()
+            .flatMapLatest { it.state }
+            .onEach { state ->
+                when (state) {
+                    is SaveFilesOperation.State.Active -> {
+                        val progress = state.primaryProgress
+                        _saveState.value = SaveState.Saving(
+                            currentFile = progress.count.current.toInt(),
+                            totalFiles = progress.count.max.toInt(),
+                            currentFilename = "",
+                        )
+                    }
+                    is SaveFilesOperation.State.Completed -> {
+                        if (state.error != null) {
+                            _saveState.value = SaveState.Error(state.error)
+                        } else {
+                            _saveState.value = SaveState.Success(state.report)
+                        }
+                    }
+                    else -> {}
+                }
+            }
+            .launchIn(scope)
+    }
+
+    fun resetSaveState() {
+        _saveState.value = SaveState.Idle
+    }
+
+    private fun isUnknownCaller(pkgId: Pkg.Id): Boolean {
+        val name = pkgId.name.lowercase()
+        return name == "shell" || name == "com.android.shell" || name.isEmpty()
     }
 
     @AssistedFactory
@@ -219,5 +350,9 @@ class SaverWorkspace @AssistedInject constructor(
         override fun deserialize(json: Json, element: JsonElement): SaverArguments {
             return json.decodeFromJsonElement<SaverArguments>(element)
         }
+    }
+
+    companion object {
+        private const val UNKNOWN_CALLER_LABEL = "?"
     }
 }
