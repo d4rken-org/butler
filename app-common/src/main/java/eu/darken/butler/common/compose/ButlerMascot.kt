@@ -18,7 +18,9 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
 import eu.darken.butler.common.R
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlin.random.Random
 
 @Composable
@@ -79,6 +81,39 @@ fun ButlerMascot(
                     )
                 }
 
+                ButlerMascotMode.Animated.Sleeping -> {
+                    val sleepSleepingComposition by rememberLottieComposition(
+                        LottieCompositionSpec.RawRes(R.raw.mascot_lottie_sleep_sleeping)
+                    )
+                    val sleepSnoringComposition by rememberLottieComposition(
+                        LottieCompositionSpec.RawRes(R.raw.mascot_lottie_sleep_snoring)
+                    )
+                    val sleepWakingComposition by rememberLottieComposition(
+                        LottieCompositionSpec.RawRes(R.raw.mascot_lottie_sleep_waking)
+                    )
+
+                    val animatable = rememberLottieAnimatable()
+
+                    LaunchedEffect(sleepSleepingComposition, sleepSnoringComposition, sleepWakingComposition) {
+                        if (sleepSleepingComposition == null || sleepSnoringComposition == null || sleepWakingComposition == null) {
+                            return@LaunchedEffect
+                        }
+
+                        while (currentCoroutineContext().isActive) {
+                            animatable.animate(composition = sleepSleepingComposition, iterations = 1)
+                            animatable.animate(composition = sleepSnoringComposition, iterations = (1..5).random())
+                            animatable.animate(composition = sleepWakingComposition, iterations = 1)
+                            delay((500..2000L).random())
+                        }
+                    }
+
+                    LottieAnimation(
+                        composition = animatable.composition,
+                        progress = { animatable.progress },
+                        modifier = semanticsModifier,
+                    )
+                }
+
                 else -> {
                     val composition by rememberLottieComposition(
                         LottieCompositionSpec.RawRes(
@@ -87,7 +122,6 @@ fun ButlerMascot(
                                 ButlerMascotMode.Animated.Greeting -> R.raw.mascot_lottie_greeting
                                 ButlerMascotMode.Animated.Drink -> R.raw.mascot_lottie_drink
                                 ButlerMascotMode.Animated.MoustacheStroke -> R.raw.mascot_lottie_moustache_stroke
-                                ButlerMascotMode.Animated.Sleep -> R.raw.mascot_lottie_sleep
                                 ButlerMascotMode.Animated.Random -> listOf(
                                     R.raw.mascot_lottie_wink,
                                     R.raw.mascot_lottie_drink,
@@ -95,6 +129,7 @@ fun ButlerMascot(
                                     R.raw.mascot_lottie_sleep,
                                     R.raw.mascot_lottie_greeting,
                                 ).random()
+                                ButlerMascotMode.Animated.Sleeping -> error("Handled above")
                                 ButlerMascotMode.Animated.RandomCycling -> error("Handled above")
                             }
                         )
@@ -125,7 +160,7 @@ sealed interface ButlerMascotMode {
         data object Greeting : Animated
         data object Drink : Animated
         data object MoustacheStroke : Animated
-        data object Sleep : Animated
+        data object Sleeping : Animated
     }
 }
 
@@ -153,6 +188,6 @@ private fun ButlerMascotAnimatedPreview() {
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Greeting)
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Drink)
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.MoustacheStroke)
-        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Sleep)
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Sleeping)
     }
 }
