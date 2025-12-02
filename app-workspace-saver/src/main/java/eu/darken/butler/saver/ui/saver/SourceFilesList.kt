@@ -5,14 +5,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -29,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,12 +47,17 @@ import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.common.R as CommonR
 
+private fun ContentUriHelper.SourceInfo.isMedia(): Boolean {
+    return mimeType?.let { it.startsWith("image/") || it.startsWith("video/") } == true
+}
+
 @Composable
 internal fun SourceFilesList(
     modifier: Modifier = Modifier,
     sourceInfos: List<ContentUriHelper.SourceInfo>,
 ) {
     val context = LocalContext.current
+    val allMedia = sourceInfos.all { it.isMedia() }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -101,12 +112,27 @@ internal fun SourceFilesList(
 
             HorizontalDivider()
 
-            // Scrollable list of all files
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-            ) {
-                items(sourceInfos) { info ->
-                    SourceFileRow(info = info)
+            if (allMedia) {
+                // Grid view for media files
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 100.dp),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(sourceInfos) { info ->
+                        SourceFileGridItem(info = info)
+                    }
+                }
+            } else {
+                // List view for mixed/non-media files
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                ) {
+                    items(sourceInfos) { info ->
+                        SourceFileRow(info = info)
+                    }
                 }
             }
         }
@@ -175,6 +201,76 @@ private fun SourceFileRow(
                 imageVector = Icons.TwoTone.Error,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SourceFileGridItem(
+    modifier: Modifier = Modifier,
+    info: ContentUriHelper.SourceInfo,
+) {
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        // Thumbnail
+        AsyncImage(
+            model = info.uri,
+            contentDescription = info.displayName,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+        )
+
+        // Top bar: error indicator + size
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+                .background(Color.Black.copy(alpha = 0.6f))
+                .padding(horizontal = 6.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Error indicator (left)
+            if (!info.isAccessible) {
+                Icon(
+                    modifier = Modifier.size(16.dp),
+                    imageVector = Icons.TwoTone.Error,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            } else {
+                Spacer(modifier = Modifier.size(16.dp))
+            }
+            // File size (right)
+            info.size?.let { size ->
+                Text(
+                    text = formatFileSize(bytes = size),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White,
+                    maxLines = 1,
+                )
+            }
+        }
+
+        // Bottom bar: filename
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .background(Color.Black.copy(alpha = 0.6f))
+                .padding(horizontal = 6.dp, vertical = 4.dp),
+        ) {
+            Text(
+                text = info.displayName,
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
