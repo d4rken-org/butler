@@ -138,11 +138,11 @@ fun OperationsBar(
                         val runningOps = operations.filter {
                             it.state is OperationDisplay.State.Running
                         }
-                        // If there are running ops, show them; otherwise show the last operation
+                        // If there are running ops, show them; otherwise show the most recently started
                         if (runningOps.isNotEmpty()) {
                             if (runningOps.size > 1) runningOps.reversed() else runningOps
                         } else {
-                            operations.take(1)
+                            operations.maxByOrNull { it.startedAt }?.let { listOf(it) } ?: emptyList()
                         }
                     }
                     // When expanded, show all operations
