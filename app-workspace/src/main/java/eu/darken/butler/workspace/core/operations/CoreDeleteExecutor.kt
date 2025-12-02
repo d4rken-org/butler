@@ -48,6 +48,8 @@ class CoreDeleteExecutor @Inject constructor(
         // Initialize collections for tracking items during trash/delete operations
         val itemsForDirectDelete = mutableListOf<APath<*>>()
         val skippedItems = mutableSetOf<APathLookup<*>>()
+        var trashedItems = emptySet<APathLookup<*>>()
+        var trashedBytes = 0L
 
         if (trashEnabled && supportsTrash) {
             log(config.tag, INFO) { "Attempting to move ${targets.size} items to trash" }
@@ -102,10 +104,19 @@ class CoreDeleteExecutor @Inject constructor(
             }
 
             // Move suitable items to trash
-            var trashedItems = emptySet<APathLookup<*>>()
-            var trashedBytes = 0L
-
             if (itemsForTrash.isNotEmpty()) {
+                // Emit progress before moving to trash
+                emit(
+                    State.Active(
+                        primaryProgress = Progress.Data(
+                            primary = eu.darken.butler.workspace.R.string.workspace_operation_progress_moving_to_trash.toCaString(),
+                            count = Progress.Count.Counter(0, itemsForTrash.size.toLong()),
+                        ),
+                        secondaryProgress = null,
+                        performanceHistory = null,
+                    )
+                )
+
                 try {
                     val trashReport = trashManager.moveToTrash(paths = itemsForTrash)
 
@@ -139,7 +150,8 @@ class CoreDeleteExecutor @Inject constructor(
                 emit(
                     State.Completed(
                         result = Result(
-                            deleted = trashedItems as Set<APathLookup<APath<*>>>,
+                            deleted = emptySet(),
+                            trashed = trashedItems as Set<APathLookup<APath<*>>>,
                             skipped = skippedItems,
                             bytesFreed = trashedBytes,
                             performanceHistory = null,
@@ -177,6 +189,7 @@ class CoreDeleteExecutor @Inject constructor(
                 State.Completed(
                     result = Result(
                         deleted = emptySet(),
+                        trashed = emptySet(),
                         skipped = emptySet(),
                         bytesFreed = 0L,
                         performanceHistory = null,
@@ -216,12 +229,14 @@ class CoreDeleteExecutor @Inject constructor(
                 @Suppress("UNCHECKED_CAST")
                 val completedState = finalState as DeleteAction.State.Completed<APath<*>, APathLookup<APath<*>>>
 
+                @Suppress("UNCHECKED_CAST")
                 emit(
                     State.Completed(
                         result = Result(
                             deleted = completedState.deleted,
-                            skipped = completedState.skipped,
-                            bytesFreed = completedState.deleted.mapNotNull { it.size }.sum(),
+                            trashed = trashedItems as Set<APathLookup<APath<*>>>,
+                            skipped = completedState.skipped + skippedItems,
+                            bytesFreed = completedState.deleted.mapNotNull { it.size }.sum() + trashedBytes,
                             performanceHistory = lastPerformanceHistory,
                         )
                     )
@@ -327,6 +342,7 @@ class CoreDeleteExecutor @Inject constructor(
 
     data class Result(
         val deleted: Set<APathLookup<*>>,
+        val trashed: Set<APathLookup<*>>,
         val skipped: Set<APathLookup<*>>,
         val bytesFreed: Long,
         val performanceHistory: PerformanceHistory?,

@@ -108,6 +108,7 @@ internal fun OperationAffectedFilesSection(
                                         Operation.Report.PathChange.Change.ADDED -> stringResource(R.string.operations_details_path_added_marker)
                                         Operation.Report.PathChange.Change.REMOVED -> stringResource(R.string.operations_details_path_removed_marker)
                                         Operation.Report.PathChange.Change.MODIFIED -> stringResource(R.string.operations_details_path_modified_marker)
+                                        Operation.Report.PathChange.Change.TRASHED -> stringResource(R.string.operations_details_path_trashed_marker)
                                     },
                                     style = MaterialTheme.typography.labelSmall,
                                     fontFamily = FontFamily.Monospace,
@@ -115,6 +116,7 @@ internal fun OperationAffectedFilesSection(
                                         Operation.Report.PathChange.Change.ADDED -> MaterialTheme.colorScheme.primary
                                         Operation.Report.PathChange.Change.REMOVED -> MaterialTheme.colorScheme.error
                                         Operation.Report.PathChange.Change.MODIFIED -> MaterialTheme.colorScheme.secondary
+                                        Operation.Report.PathChange.Change.TRASHED -> MaterialTheme.colorScheme.tertiary
                                     },
                                     modifier = Modifier.width(16.dp)
                                 )

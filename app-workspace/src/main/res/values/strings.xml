@@ -88,6 +88,7 @@
     <string name="operations_details_path_added_marker">A</string>
     <string name="operations_details_path_removed_marker">D</string>
     <string name="operations_details_path_modified_marker">M</string>
+    <string name="operations_details_path_trashed_marker">T</string>
     <string name="workspace_operations_performance_graph_label">Performance graph</string>
 
     <!-- Delete Confirmation Dialog -->
@@ -144,6 +145,17 @@
     <plurals name="workspace_operation_report_bytes_freed">
         <item quantity="one">%1$s freed.</item>
         <item quantity="other">%1$s freed.</item>
+    </plurals>
+
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Moving to trash…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d file trashed.</item>
+        <item quantity="other">%1$d files trashed.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d directory trashed.</item>
+        <item quantity="other">%1$d directories trashed.</item>
     </plurals>
 
     <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s freed.</string>
