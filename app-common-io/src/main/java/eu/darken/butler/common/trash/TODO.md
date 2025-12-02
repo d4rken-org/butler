@@ -10,5 +10,3 @@
 
 - Trash operations should provide trash specific progress messages
 - Trash operations have a "T" trash item summary entry for each trashed item.
-
-- The file action details bottom sheet always displays permanent deletion and not "move to trash" if enabled

@@ -77,6 +77,7 @@ fun ExplorerDialogHost(
         is ExplorerDialogState.FileOptions -> {
             FileOptionsBottomSheet(
                 item = dialogState.item,
+                trashEnabled = trashEnabled,
                 onDismiss = { vm?.dismissDialog() },
                 onOpenInEditor = { vm?.openFileInEditor(dialogState.item) },
                 onOpenWith = { vm?.openFileWith(dialogState.item) },

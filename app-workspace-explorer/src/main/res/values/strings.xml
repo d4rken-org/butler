@@ -306,6 +306,8 @@
     <string name="explorer_file_action_rename_subtitle">Change the file name</string>
     <string name="explorer_file_action_delete">Delete</string>
     <string name="explorer_file_action_delete_subtitle">Permanently remove this file</string>
+    <string name="explorer_file_action_move_to_trash">Move to Trash</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Move file to trash</string>
     <string name="explorer_file_action_properties">Properties</string>
     <string name="explorer_file_action_properties_subtitle">View detailed file information</string>
 
