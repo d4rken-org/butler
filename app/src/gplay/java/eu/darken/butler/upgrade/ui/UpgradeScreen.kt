@@ -48,7 +48,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
-import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -133,10 +134,11 @@ fun UpgradeScreen(
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            ButlerIcon(
+                            ButlerMascot(
                                 modifier = Modifier
                                     .graphicsLayer(alpha = toolbarAlpha)
                                     .size(32.dp),
+                                variant = ButlerMascotMode.Static.Happy,
                             )
                             Spacer(modifier = Modifier.size(8.dp))
                             ColoredTitleText(
@@ -168,21 +170,24 @@ fun UpgradeScreen(
                 .padding(top = 8.dp, bottom = 32.dp)
                 .animateContentSize(animationSpec = tween(300))
         ) {
-            ButlerIcon(
+            Row(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .graphicsLayer(alpha = contentAlpha)
-                    .size(72.dp),
-            )
-
-            ColoredTitleText(
-                fullTitle = stringResource(R.string.app_name_upgraded),
-                postfix = stringResource(R.string.app_name_upgrade_postfix),
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth()
                     .graphicsLayer(alpha = contentAlpha),
-                style = MaterialTheme.typography.headlineMedium
-            )
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ButlerMascot(
+                    modifier = Modifier.size(88.dp),
+                    variant = ButlerMascotMode.Animated.Greeting,
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                ColoredTitleText(
+                    fullTitle = stringResource(R.string.app_name_upgraded),
+                    postfix = stringResource(R.string.app_name_upgrade_postfix),
+                    style = MaterialTheme.typography.headlineMedium,
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -215,7 +220,17 @@ fun UpgradeScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = stringResource(R.string.upgrade_benefit_unlimited),
+                    text = stringResource(R.string.upgrade_benefit_multitasking),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.upgrade_benefit_customization),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.upgrade_benefit_extra_options),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )

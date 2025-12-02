@@ -12,7 +12,7 @@ import eu.darken.butler.workspace.ui.dialogs.MultipleItemsInfoBottomSheet
 @Composable
 fun ExplorerDialogHost(
     dialogState: ExplorerDialogState,
-    recycleBinEnabled: Boolean,
+    trashEnabled: Boolean,
     vm: ExplorerWorkspaceViewModel?,
 ) {
     when (dialogState) {
@@ -31,7 +31,7 @@ fun ExplorerDialogHost(
         is ExplorerDialogState.DeleteConfirmation -> {
             DeleteConfirmationDialog(
                 items = dialogState.items,
-                recycleBinEnabled = recycleBinEnabled,
+                trashEnabled = trashEnabled,
                 onDismiss = { vm?.dismissDialog() },
                 onConfirm = { vm?.onDeleteConfirmed(dialogState.items) }
             )
@@ -89,19 +89,19 @@ fun ExplorerDialogHost(
             )
         }
 
-        is ExplorerDialogState.RecycleBinItemOptions -> {
-            RecycleBinItemOptionsBottomSheet(
+        is ExplorerDialogState.TrashItemOptions -> {
+            TrashItemOptionsBottomSheet(
                 item = dialogState.item,
-                onRestore = { vm?.restoreRecycleBinItem(dialogState.item) },
-                onDeletePermanently = { vm?.deleteRecycleBinItemPermanently(dialogState.item) },
+                onRestore = { vm?.restoreTrashItem(dialogState.item) },
+                onDeletePermanently = { vm?.deleteTrashItemPermanently(dialogState.item) },
                 onDismiss = { vm?.dismissDialog() },
             )
         }
 
-        is ExplorerDialogState.EmptyRecycleBinConfirmation -> {
-            EmptyRecycleBinConfirmationDialog(
+        is ExplorerDialogState.EmptyTrashConfirmation -> {
+            EmptyTrashConfirmationDialog(
                 onDismiss = { vm?.dismissDialog() },
-                onConfirm = { vm?.onEmptyRecycleBinConfirmed() }
+                onConfirm = { vm?.onEmptyTrashConfirmed() }
             )
         }
 

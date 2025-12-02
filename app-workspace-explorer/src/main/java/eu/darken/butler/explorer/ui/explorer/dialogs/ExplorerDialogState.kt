@@ -34,9 +34,9 @@ sealed interface ExplorerDialogState {
 
     data class FileOptions(val item: ExplorerItem.File) : ExplorerDialogState
 
-    data class RecycleBinItemOptions(val item: ExplorerItem.RecycleBinItem) : ExplorerDialogState
+    data class TrashItemOptions(val item: ExplorerItem.TrashItem) : ExplorerDialogState
 
-    data object EmptyRecycleBinConfirmation : ExplorerDialogState
+    data object EmptyTrashConfirmation : ExplorerDialogState
 
     data class ClipboardInfo(val clip: ClipboardClip) : ExplorerDialogState
 

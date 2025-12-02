@@ -175,13 +175,13 @@ sealed interface ExplorerAction : WorkspaceAction {
 
     sealed interface Home : ExplorerAction
 
-    sealed interface RecycleBin : ExplorerAction {
+    sealed interface Trash : ExplorerAction {
         data class RestoreSelected(
             override val icon: ImageVector,
             val labelRes: Int,
             override val isEnabled: Boolean = true,
             override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
-        ) : RecycleBin {
+        ) : Trash {
             override val label = labelRes.toCaString()
         }
 
@@ -190,7 +190,7 @@ sealed interface ExplorerAction : WorkspaceAction {
             val labelRes: Int,
             override val isEnabled: Boolean = true,
             override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
-        ) : RecycleBin {
+        ) : Trash {
             override val label = labelRes.toCaString()
             override val isDestructive = true
         }
@@ -200,7 +200,7 @@ sealed interface ExplorerAction : WorkspaceAction {
             val labelRes: Int,
             override val isEnabled: Boolean = true,
             override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
-        ) : RecycleBin {
+        ) : Trash {
             override val label = labelRes.toCaString()
             override val isDestructive = true
         }

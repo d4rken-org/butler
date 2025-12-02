@@ -38,7 +38,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -79,9 +80,9 @@ fun WorkspaceButton(
         ) {
             val iconSize = minOf(maxWidth, maxHeight) * 0.8f
 
-            ButlerIcon(
+            ButlerMascot(
                 modifier = Modifier.size(iconSize),
-                contentDescription = null,
+                variant = ButlerMascotMode.Animated.RandomCycling
             )
         }
 

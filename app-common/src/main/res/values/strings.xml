@@ -2,6 +2,7 @@
     <string name="app_name">Butler</string>
     <string name="app_name_subtitle">File explorer extraordinaire</string>
 
+    <string name="butler_icon_description">Butler app icon</string>
     <string name="butler_mascot_description">Butler mascot</string>
 
     <string name="slogan_message_0">At your service.</string>
@@ -39,6 +40,9 @@
     <string name="general_back_action">Back</string>
     <string name="general_navigate_up_action">Navigate up</string>
     <string name="general_error_label">Error</string>
+    <string name="general_error_invalid_input_label">Invalid input</string>
+    <string name="general_duration_input_label">Duration</string>
+    <string name="general_size_input_label">Size</string>
     <string name="general_upgrade_action">Upgrade</string>
     <string name="general_refresh_action">Refresh</string>
     <string name="general_clear_action">Clear</string>

@@ -31,7 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
-import eu.darken.butler.common.compose.ButlerIcon
+import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -66,8 +67,9 @@ internal fun EmptyClassicWorkspaceContent(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                ButlerIcon(
-                    modifier = Modifier.size(56.dp)
+                ButlerMascot(
+                    modifier = Modifier.size(64.dp),
+                    variant = ButlerMascotMode.Animated.RandomCycling,
                 )
             }
 
