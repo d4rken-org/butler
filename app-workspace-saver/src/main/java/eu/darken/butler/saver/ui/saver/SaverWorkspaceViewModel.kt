@@ -28,6 +28,7 @@ import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -57,6 +58,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         val filename: String = "",
         val saveState: SaverWorkspace.SaveState = SaverWorkspace.SaveState.Idle,
         val callerLabel: String? = null,
+        val createdAt: Instant? = null,
         val operationDisplay: OperationDisplay? = null,
     ) {
         val isBatchMode: Boolean
@@ -107,6 +109,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
                     filename = wsState.filename,
                     saveState = wsState.saveState,
                     callerLabel = wsState.callerLabel,
+                    createdAt = wsState.createdAt,
                     operationDisplay = managedOp?.toDisplayModel(),
                 )
             }

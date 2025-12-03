@@ -127,7 +127,8 @@ private fun SingleFileModeContent(
             .padding(16.dp),
     ) {
         SaverHeader(
-            subtitle = state.callerLabel,
+            callerLabel = state.callerLabel,
+            createdAt = state.createdAt,
             workspaceButtonState = workspaceButtonState,
             workspaceId = workspaceId,
             workspaceActionHandler = workspaceActionHandler,
@@ -191,7 +192,8 @@ private fun BatchModeContent(
             .padding(16.dp),
     ) {
         SaverHeader(
-            subtitle = state.callerLabel,
+            callerLabel = state.callerLabel,
+            createdAt = state.createdAt,
             workspaceButtonState = workspaceButtonState,
             workspaceId = workspaceId,
             workspaceActionHandler = workspaceActionHandler,

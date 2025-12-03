@@ -45,6 +45,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 class SaverWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
@@ -62,6 +64,9 @@ class SaverWorkspace @AssistedInject constructor(
     private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
 
     override val type: Workspace.Type = Workspace.Type.SAVER
+
+    /** Timestamp when this workspace (share intent) was created */
+    val createdAt: Instant = Clock.System.now()
 
     private val creationArguments: SaverArguments.Default = arguments as SaverArguments.Default
 
@@ -116,6 +121,7 @@ class SaverWorkspace @AssistedInject constructor(
         val filename: String = "",
         val saveState: SaveState = SaveState.Idle,
         val callerLabel: String? = null,
+        val createdAt: Instant? = null,
     ) {
         val isBatchMode: Boolean get() = sourceInfos.size > 1
         val fileCount: Int get() = sourceInfos.size
@@ -220,6 +226,7 @@ class SaverWorkspace @AssistedInject constructor(
                 filename = filename,
                 saveState = saveState,
                 callerLabel = callerLabel,
+                createdAt = createdAt,
             )
         }
             .onEach { _state.updateBlocking { it } }

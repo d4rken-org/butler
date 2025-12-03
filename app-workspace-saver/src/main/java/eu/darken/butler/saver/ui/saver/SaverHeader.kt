@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -16,15 +17,26 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import java.text.DateFormat
+import java.util.Date
+import kotlin.time.Instant
 
 @Composable
 internal fun SaverHeader(
     modifier: Modifier = Modifier,
-    subtitle: String?,
+    callerLabel: String?,
+    createdAt: Instant?,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceId: Workspace.Id,
     workspaceActionHandler: WorkspaceActionHandler?,
 ) {
+    val formattedTime = remember(createdAt) {
+        createdAt?.let {
+            val formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+            formatter.format(Date(it.toEpochMilliseconds()))
+        }
+    }
+
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -35,10 +47,17 @@ internal fun SaverHeader(
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            subtitle?.let {
+            if (callerLabel != null && callerLabel != "?") {
                 Text(
-                    text = stringResource(R.string.saver_shared_from, it),
+                    text = stringResource(R.string.saver_shared_from, callerLabel),
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            formattedTime?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -56,7 +75,8 @@ internal fun SaverHeader(
 private fun SaverHeaderPreview() {
     PreviewWrapper {
         SaverHeader(
-            subtitle = "org.telegram.messenger",
+            callerLabel = "Telegram",
+            createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
             workspaceButtonState = null,
             workspaceId = Workspace.Id(),
             workspaceActionHandler = null,
@@ -66,10 +86,25 @@ private fun SaverHeaderPreview() {
 
 @Preview2
 @Composable
-private fun SaverHeaderNoSubtitlePreview() {
+private fun SaverHeaderNoCallerPreview() {
     PreviewWrapper {
         SaverHeader(
-            subtitle = null,
+            callerLabel = null,
+            createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+            workspaceButtonState = null,
+            workspaceId = Workspace.Id(),
+            workspaceActionHandler = null,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun SaverHeaderUnknownCallerPreview() {
+    PreviewWrapper {
+        SaverHeader(
+            callerLabel = "?",
+            createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
             workspaceButtonState = null,
             workspaceId = Workspace.Id(),
             workspaceActionHandler = null,
