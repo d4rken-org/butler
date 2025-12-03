@@ -88,6 +88,7 @@
     <string name="explorer_info_name_label">Name</string>
     <string name="explorer_info_path_label">Path</string>
     <string name="explorer_info_type_label">Type</string>
+    <string name="explorer_info_type_file">File</string>
     <string name="explorer_info_type_directory">Directory</string>
     <string name="explorer_info_size_label">Size</string>
     <string name="explorer_info_modified_label">Modified</string>
@@ -100,6 +101,9 @@
     <string name="explorer_info_symlink_broken">Broken link</string>
     <string name="explorer_info_unknown">Unknown</string>
     <string name="explorer_info_copy_action">Copy to clipboard</string>
+
+    <!-- Trash Item Info -->
+    <string name="explorer_trash_info_deleted_label">Deleted</string>
 
     <!-- SAF Info -->
     <string name="explorer_info_saf_uri_label">URI</string>
@@ -130,6 +134,7 @@
     <string name="explorer_navigation_device">Device</string>
     <string name="explorer_navigation_trash">Trash</string>
     <string name="explorer_navigation_trash_desc">Recover deleted files</string>
+    <string name="explorer_navigation_trash_nested_desc">Inside trashed folder</string>
 
     <!-- Trash -->
     <string name="explorer_trash_empty_state">No deleted items</string>
@@ -146,8 +151,17 @@
     <string name="explorer_trash_empty_message">All items in the Trash will be permanently deleted. This cannot be undone.</string>
     <string name="explorer_trash_empty_confirm_action">Empty Trash</string>
     <string name="explorer_trash_restore_desc">Restore to original location</string>
-    <string name="explorer_trash_storage_unavailable">Storage unavailable</string>
+    <string name="explorer_trash_item_unavailable">Item unavailable</string>
     <string name="explorer_trash_delete_warning">This cannot be undone</string>
+    <string name="explorer_trash_disabled_warning">Trash disabled</string>
+
+    <!-- Nested Trash -->
+    <string name="explorer_trash_nested_loading">Loading trashed folder contents…</string>
+    <string name="explorer_trash_nested_restore_action">Restore to original location</string>
+    <string name="explorer_trash_nested_delete_action">Delete permanently</string>
+    <string name="explorer_trash_nested_restore_conflict">File already exists at original location</string>
+    <string name="explorer_trash_nested_parent_missing">Parent item no longer exists in trash</string>
+    <string name="explorer_trash_nested_path_missing">Path no longer exists</string>
 
     <string name="explorer_navigation_root">Root directory</string>
     <string name="explorer_navigation_rom">System ROM</string>
@@ -292,6 +306,8 @@
     <string name="explorer_file_action_rename_subtitle">Change the file name</string>
     <string name="explorer_file_action_delete">Delete</string>
     <string name="explorer_file_action_delete_subtitle">Permanently remove this file</string>
+    <string name="explorer_file_action_move_to_trash">Move to Trash</string>
+    <string name="explorer_file_action_move_to_trash_subtitle">Move file to trash</string>
     <string name="explorer_file_action_properties">Properties</string>
     <string name="explorer_file_action_properties_subtitle">View detailed file information</string>
 

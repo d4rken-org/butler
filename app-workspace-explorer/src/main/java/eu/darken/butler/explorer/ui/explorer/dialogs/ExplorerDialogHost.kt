@@ -77,6 +77,7 @@ fun ExplorerDialogHost(
         is ExplorerDialogState.FileOptions -> {
             FileOptionsBottomSheet(
                 item = dialogState.item,
+                trashEnabled = trashEnabled,
                 onDismiss = { vm?.dismissDialog() },
                 onOpenInEditor = { vm?.openFileInEditor(dialogState.item) },
                 onOpenWith = { vm?.openFileWith(dialogState.item) },
@@ -90,10 +91,21 @@ fun ExplorerDialogHost(
         }
 
         is ExplorerDialogState.TrashItemOptions -> {
-            TrashItemOptionsBottomSheet(
+            TrashItemDetailsBottomSheet(
                 item = dialogState.item,
                 onRestore = { vm?.restoreTrashItem(dialogState.item) },
                 onDeletePermanently = { vm?.deleteTrashItemPermanently(dialogState.item) },
+                onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+                onDismiss = { vm?.dismissDialog() },
+            )
+        }
+
+        is ExplorerDialogState.TrashNestedItemOptions -> {
+            TrashNestedItemDetailsBottomSheet(
+                item = dialogState.item,
+                onRestore = { vm?.restoreNestedTrashItem(dialogState.item) },
+                onDeletePermanently = { vm?.deleteNestedTrashItemPermanently(dialogState.item) },
+                onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
                 onDismiss = { vm?.dismissDialog() },
             )
         }

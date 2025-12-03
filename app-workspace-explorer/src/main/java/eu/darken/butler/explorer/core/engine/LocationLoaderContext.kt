@@ -51,7 +51,10 @@ internal suspend fun <T : ExplorerLocation> LocationLoaderContext<T>.updateProgr
         is ExplorerLocation.Home -> copy(
             progress = progress?.copy(secondary = msg.toCaString())
         ) as T
-        is ExplorerLocation.Trash -> copy(
+        is ExplorerLocation.Trash.Root -> copy(
+            progress = progress?.copy(secondary = msg.toCaString())
+        ) as T
+        is ExplorerLocation.Trash.Nested -> copy(
             progress = progress?.copy(secondary = msg.toCaString())
         ) as T
     }

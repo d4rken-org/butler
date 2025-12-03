@@ -24,6 +24,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.isDirectory
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -53,6 +54,7 @@ import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
@@ -171,25 +173,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 handleDialogEvent(event)
             }
             .launchInViewModel()
-
-        // Observe pending conflicts from workspace and update UI state
-        workspaceSource
-            .filterNotNull()
-            .flatMapLatest { it.operations }
-            .map { it.pendingConflicts }
-            .distinctUntilChanged()
-            .onEach { conflicts ->
-                val firstConflictEntry = conflicts.entries.firstOrNull()
-                if (firstConflictEntry != null) {
-                    val (operationId, awaitingInputState) = firstConflictEntry
-                    currentConflictOperationId = operationId
-                    issueStateFlow.value = awaitingInputState
-                } else {
-                    currentConflictOperationId = null
-                    issueStateFlow.value = null
-                }
-            }
-            .launchInViewModel()
     }
 
     data class State(
@@ -259,10 +242,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             selectedItems = selectedItems,
             selectableItems = items
                 ?.filter { item ->
-                    // Base filter: must be a Path, Storage, or TrashItem
+                    // Base filter: must be a Path, Storage, TrashItem, or TrashNestedItem
                     val isBaseSelectable = item is ExplorerItem.Path ||
                         item is ExplorerItem.Storage ||
-                        item is ExplorerItem.TrashItem
+                        item is ExplorerItem.Trash.Root ||
+                        item is ExplorerItem.Trash.Nested
                     if (!isBaseSelectable) return@filter false
 
                     // In picker mode, filter by what can actually be selected
@@ -353,6 +337,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         return items.filter { item ->
             val itemName = when (item) {
                 is ExplorerItem.Path -> item.path.name
+                is ExplorerItem.Trash.Root -> item.originalLookup.name
+                is ExplorerItem.Trash.Nested -> item.lookup.name
                 else -> return@filter true // Keep non-path items (like peek items)
             }
 
@@ -374,8 +360,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
             // Apply file type filter
             when (filterState.fileTypeFilter) {
-                FileTypeFilter.FILES_ONLY -> if (item is ExplorerItem.Directory) return@filter false
-                FileTypeFilter.FOLDERS_ONLY -> if (item is ExplorerItem.File) return@filter false
+                FileTypeFilter.FILES_ONLY -> {
+                    if (item is ExplorerItem.Directory) return@filter false
+                    if (item is ExplorerItem.Trash.Root && item.originalLookup.fileType == FileType.DIRECTORY) return@filter false
+                    if (item is ExplorerItem.Trash.Nested && item.isDirectory) return@filter false
+                }
+                FileTypeFilter.FOLDERS_ONLY -> {
+                    if (item is ExplorerItem.File) return@filter false
+                    if (item is ExplorerItem.Trash.Root && item.originalLookup.fileType == FileType.FILE) return@filter false
+                    if (item is ExplorerItem.Trash.Nested && item.isFile) return@filter false
+                }
                 FileTypeFilter.ALL -> {} // No filtering needed
             }
 
@@ -515,11 +509,28 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 getWorkspace().navigate(item.target)
                 clearSelection()
             }
-            is ExplorerItem.TrashItem -> {
+            is ExplorerItem.Trash.Root -> {
                 if (selectedItemsFlow.value.isNotEmpty()) {
                     toggleItemSelection(item)
+                } else if (item.trashLookup?.fileType == FileType.DIRECTORY && item.isAvailable) {
+                    // Navigate into trashed folder
+                    val ref = TrashItemReference.from(item)
+                    getWorkspace().navigate(Trash.Nested(ref, ""))
+                    clearSelection()
                 } else {
                     dialogStateFlow.value = TrashItemOptions(item)
+                }
+            }
+            is ExplorerItem.Trash.Nested -> {
+                if (selectedItemsFlow.value.isNotEmpty()) {
+                    toggleItemSelection(item)
+                } else if (item.isDirectory) {
+                    // Navigate deeper into nested trash
+                    getWorkspace().navigate(Trash.Nested(item.parentRef, item.relativePath))
+                    clearSelection()
+                } else {
+                    // Show options for nested files
+                    dialogStateFlow.value = TrashNestedItemOptions(item)
                 }
             }
         }
@@ -550,7 +561,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     // TODO we should introduce something like an "isSelectable" interface
     fun toggleItemSelection(item: ExplorerItem) {
-        if (item !is ExplorerItem.Path && item !is ExplorerItem.Storage && item !is ExplorerItem.TrashItem) {
+        if (item !is ExplorerItem.Path && item !is ExplorerItem.Storage && item !is ExplorerItem.Trash.Root && item !is ExplorerItem.Trash.Nested) {
             log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
             return
         }
@@ -824,10 +835,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     currentName = selectedItem.location.userLabel,
                 )
             }
+            is ExplorerAction.Trash.SelectAll -> {
+                selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+            }
             is ExplorerAction.Trash.RestoreSelected -> {
                 log(tag) { "restoreSelectedTrashItems(): ${selectedItemsFlow.value.size} items" }
                 val selectedTrashItems = selectedItemsFlow.value
-                    .filterIsInstance<ExplorerItem.TrashItem>()
+                    .filterIsInstance<ExplorerItem.Trash.Root>()
 
                 if (selectedTrashItems.isNotEmpty()) {
                     selectedTrashItems.forEach { item ->
@@ -839,7 +853,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Trash.DeletePermanentlySelected -> {
                 log(tag) { "deleteSelectedTrashItems(): ${selectedItemsFlow.value.size} items" }
                 val selectedTrashItems = selectedItemsFlow.value
-                    .filterIsInstance<ExplorerItem.TrashItem>()
+                    .filterIsInstance<ExplorerItem.Trash.Root>()
 
                 if (selectedTrashItems.isNotEmpty()) {
                     selectedTrashItems.forEach { item ->
@@ -851,6 +865,33 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Trash.EmptyBin -> {
                 log(tag) { "Showing empty trash confirmation" }
                 dialogStateFlow.value = EmptyTrashConfirmation
+            }
+            is ExplorerAction.TrashNested.SelectAll -> {
+                selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+            }
+            is ExplorerAction.TrashNested.RestoreSelected -> {
+                log(tag) { "restoreSelectedNestedItems(): ${selectedItemsFlow.value.size} items" }
+                val selectedItems = selectedItemsFlow.value
+                    .filterIsInstance<ExplorerItem.Trash.Nested>()
+
+                if (selectedItems.isNotEmpty()) {
+                    selectedItems.forEach { item ->
+                        restoreNestedTrashItem(item)
+                    }
+                    clearSelection()
+                }
+            }
+            is ExplorerAction.TrashNested.DeletePermanentlySelected -> {
+                log(tag) { "deleteSelectedNestedItems(): ${selectedItemsFlow.value.size} items" }
+                val selectedItems = selectedItemsFlow.value
+                    .filterIsInstance<ExplorerItem.Trash.Nested>()
+
+                if (selectedItems.isNotEmpty()) {
+                    selectedItems.forEach { item ->
+                        deleteNestedTrashItemPermanently(item)
+                    }
+                    clearSelection()
+                }
             }
         }
     }
@@ -1105,7 +1146,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().navigate(ExplorerNavigation.Refresh)
     }
 
-    fun restoreTrashItem(item: ExplorerItem.TrashItem) = launch {
+    fun restoreTrashItem(item: ExplorerItem.Trash.Root) = launch {
         log(tag) { "restoreTrashItem(${item.itemId})" }
         dismissDialog()
 
@@ -1135,7 +1176,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun deleteTrashItemPermanently(item: ExplorerItem.TrashItem) = launch {
+    fun deleteTrashItemPermanently(item: ExplorerItem.Trash.Root) = launch {
         log(tag) { "deleteTrashItemPermanently(${item.itemId})" }
         dismissDialog()
 
@@ -1158,6 +1199,63 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
         } catch (e: Exception) {
             log(tag, ERROR) { "Error deleting trash item permanently: ${e.asLog()}" }
+            errorEvents.emit(e)
+        }
+    }
+
+    fun restoreNestedTrashItem(item: ExplorerItem.Trash.Nested) = launch {
+        log(tag) { "restoreNestedTrashItem(${item.relativePath})" }
+        dismissDialog()
+
+        try {
+            val parentRepoItem = trashRepo.getById(item.parentRef.itemId)
+            if (parentRepoItem == null) {
+                log(tag, ERROR) { "Parent trash item not found: ${item.parentRef.itemId}" }
+                errorEvents.emit(Exception("Parent item no longer exists in trash"))
+                return@launch
+            }
+
+            val result = trashManager.restoreNested(parentRepoItem, item.relativePath)
+
+            if (result.restored.isNotEmpty()) {
+                log(tag, INFO) { "Successfully restored nested item" }
+                getWorkspace().navigate(ExplorerNavigation.Refresh)
+            } else if (result.conflicts.isNotEmpty()) {
+                log(tag, WARN) { "Conflict when restoring nested item" }
+                errorEvents.emit(Exception("File already exists at original location"))
+            } else {
+                log(tag, ERROR) { "Failed to restore nested item" }
+                errorEvents.emit(Exception("Failed to restore ${item.displayName.get(context)}"))
+            }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Error restoring nested trash item: ${e.asLog()}" }
+            errorEvents.emit(e)
+        }
+    }
+
+    fun deleteNestedTrashItemPermanently(item: ExplorerItem.Trash.Nested) = launch {
+        log(tag) { "deleteNestedTrashItemPermanently(${item.relativePath})" }
+        dismissDialog()
+
+        try {
+            val parentRepoItem = trashRepo.getById(item.parentRef.itemId)
+            if (parentRepoItem == null) {
+                log(tag, ERROR) { "Parent trash item not found: ${item.parentRef.itemId}" }
+                errorEvents.emit(Exception("Parent item no longer exists in trash"))
+                return@launch
+            }
+
+            val deletedCount = trashManager.deleteNestedPermanently(parentRepoItem, item.relativePath)
+
+            if (deletedCount > 0) {
+                log(tag, INFO) { "Successfully deleted nested item permanently" }
+                getWorkspace().navigate(ExplorerNavigation.Refresh)
+            } else {
+                log(tag, ERROR) { "Failed to delete nested item permanently" }
+                errorEvents.emit(Exception("Failed to delete ${item.displayName.get(context)}"))
+            }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Error deleting nested trash item: ${e.asLog()}" }
             errorEvents.emit(e)
         }
     }
@@ -1509,7 +1607,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Common.UpdateViewStyle,
             is ExplorerAction.Directory.Create,
             is ExplorerAction.Directory.SelectAll,
-            is ExplorerAction.Directory.DeselectAll -> true
+            is ExplorerAction.Directory.DeselectAll,
+            is ExplorerAction.Trash.SelectAll,
+            is ExplorerAction.TrashNested.SelectAll -> true
 
             // Blocked: modification, clipboard, device, and recycle bin actions
             is ExplorerAction.Directory.Copy,
@@ -1524,7 +1624,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Device.RenameLocation,
             is ExplorerAction.Trash.RestoreSelected,
             is ExplorerAction.Trash.DeletePermanentlySelected,
-            is ExplorerAction.Trash.EmptyBin -> false
+            is ExplorerAction.Trash.EmptyBin,
+            is ExplorerAction.TrashNested.RestoreSelected,
+            is ExplorerAction.TrashNested.DeletePermanentlySelected -> false
         }
     }
 

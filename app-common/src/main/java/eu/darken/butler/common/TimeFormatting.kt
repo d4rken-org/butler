@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
 enum class DurationFormat {
@@ -235,5 +236,18 @@ fun formatDate(timestamp: Instant): String {
     }
     return remember(timestamp) {
         dateFormat.format(java.util.Date(timestamp.toEpochMilliseconds()))
+    }
+}
+
+@Composable
+fun formatSmartTime(
+    instant: Instant,
+    threshold: Duration = 7.days,
+): String {
+    val age = Clock.System.now() - instant
+    return if (age < threshold) {
+        formatRelativeTime(instant)
+    } else {
+        formatDate(instant)
     }
 }

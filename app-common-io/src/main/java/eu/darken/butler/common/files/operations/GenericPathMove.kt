@@ -19,6 +19,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
+import java.nio.file.AtomicMoveNotSupportedException
 
 /**
  * Generic move operation that works with any path type.
@@ -207,7 +208,7 @@ internal class GenericPathMove<
             } else {
                 return AtomicMoveResult.NotSupported("Move returned false")
             }
-        } catch (e: java.nio.file.AtomicMoveNotSupportedException) {
+        } catch (e: AtomicMoveNotSupportedException) {
             return AtomicMoveResult.NotSupported("AtomicMoveNotSupportedException: ${e.message}")
         } catch (e: UnsupportedOperationException) {
             return AtomicMoveResult.NotSupported("UnsupportedOperationException: ${e.message}")
@@ -328,31 +329,48 @@ internal class GenericPathMove<
                             "Destination exists, skipping atomic move: $destPath (will handle via normal conflict resolution)"
                         }
                     } else {
-                        // Destination doesn't exist - try atomic move
-                        when (val atomicMoveResult = tryAtomicMove(lookup, destPath)) {
-                            is AtomicMoveResult.Success -> {
-                                // Atomic move succeeded - moved in one operation
-                                moved.add(lookup to atomicMoveResult.destLookup)
-                                progressTracker.completeItem()
+                        // Check if parent directory exists before attempting atomic move
+                        // This prevents NoSuchFileException when processing nested directories
+                        // during recursive fallback (parent CreateDirectory is queued but not yet executed)
+                        val destParent = destPath.parent
+                        val parentExists = if (destParent != null) {
+                            val parentLookup = destOps.lookup(destParent, LookupOptions.BASE.copy(fallbackToUnknown = true))
+                            parentLookup.fileType == FileType.DIRECTORY
+                        } else true
 
-                                // Report progress
-                                if (progressTracker.shouldReportProgress()) {
-                                    reportProgress(lookup, destPath, emit)
-                                }
-
-                                log(TAG, DEBUG) {
-                                    "Atomic move complete: ${item.source} -> $destPath (skipped child scan)"
-                                }
-
-                                return 0  // No children to process
+                        if (!parentExists) {
+                            // Parent doesn't exist - skip atomic move, use recursive pattern
+                            log(TAG, DEBUG) {
+                                "Parent directory doesn't exist at destination, using recursive pattern"
                             }
+                            // Fall through to recursive pattern below
+                        } else {
+                            // Destination doesn't exist, parent exists - try atomic move
+                            when (val atomicMoveResult = tryAtomicMove(lookup, destPath)) {
+                                is AtomicMoveResult.Success -> {
+                                    // Atomic move succeeded - moved in one operation
+                                    moved.add(lookup to atomicMoveResult.destLookup)
+                                    progressTracker.completeItem()
 
-                            is AtomicMoveResult.NotSupported -> {
-                                // Atomic move not supported - fall back to recursive strategy
-                                log(TAG, DEBUG) {
-                                    "Atomic move not supported: ${atomicMoveResult.reason}, using recursive pattern"
+                                    // Report progress
+                                    if (progressTracker.shouldReportProgress()) {
+                                        reportProgress(lookup, destPath, emit)
+                                    }
+
+                                    log(TAG, DEBUG) {
+                                        "Atomic move complete: ${item.source} -> $destPath (skipped child scan)"
+                                    }
+
+                                    return 0  // No children to process
                                 }
-                                // Fall through to recursive pattern below
+
+                                is AtomicMoveResult.NotSupported -> {
+                                    // Atomic move not supported - fall back to recursive strategy
+                                    log(TAG, DEBUG) {
+                                        "Atomic move not supported: ${atomicMoveResult.reason}, using recursive pattern"
+                                    }
+                                    // Fall through to recursive pattern below
+                                }
                             }
                         }
                     }
