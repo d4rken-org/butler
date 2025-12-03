@@ -210,7 +210,8 @@
     <string name="workspace_issue_common_rename_existing">Rename existing</string>
     <string name="workspace_issue_common_cancel">Cancel</string>
     <string name="workspace_issue_common_delete_permanently">Delete permanently</string>
-    <string name="workspace_issue_trash_size_limit_file_label">File</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Failed items</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… and %1$d more items</string>
     <string name="workspace_issue_apply_all">Apply to all remaining issues</string>
     <string name="workspace_issue_rename_new_name">New name</string>
     <string name="workspace_issue_rename_dialog_title_new">Rename incoming file</string>

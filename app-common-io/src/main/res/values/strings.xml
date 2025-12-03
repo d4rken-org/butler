@@ -25,6 +25,9 @@
 
     <string name="path_action_unknown_error_title">Operation failed</string>
 
-    <string name="path_action_trash_size_limit_title">Item too large for Recycle Bin</string>
-    <string name="path_action_trash_size_limit_description">\"%1$s\" (%2$s) exceeds the recycle bin size limit (%3$s).</string>
+    <string name="path_action_trash_size_limit_title">Items too large for Trash</string>
+    <string name="path_action_trash_size_limit_description">%1$d items totaling %2$s exceed the trash size limit (%3$s).</string>
+
+    <string name="path_action_trash_move_failed_title">Failed to move to Trash</string>
+    <string name="path_action_trash_move_failed_description">%1$d items could not be moved to trash.</string>
 </resources>

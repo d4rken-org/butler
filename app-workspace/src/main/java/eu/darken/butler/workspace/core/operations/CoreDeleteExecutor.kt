@@ -11,6 +11,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.delete
@@ -54,63 +55,43 @@ class CoreDeleteExecutor @Inject constructor(
         if (trashEnabled && supportsTrash) {
             log(config.tag, INFO) { "Attempting to move ${targets.size} items to trash" }
 
-            // Check for items that exceed trash size limit
+            // Calculate total size of all items (using du for accurate recursive size)
             val maxTrashSize = trashSettings.maxTrashSize.value()
-            val itemsForTrash = mutableListOf<APath<*>>()
-            var applyDeletePermanentlyToAll = false
-            var applySkipToAll = false
-
+            var totalSize = 0L
             for (target in targets) {
-                val lookup = gatewaySwitch.lookup(target, eu.darken.butler.common.files.LookupOptions.MAX)
-                val itemSize = lookup.size ?: 0L
-
-                if (itemSize > maxTrashSize) {
-                    log(config.tag, INFO) { "Item $target ($itemSize bytes) exceeds trash limit ($maxTrashSize bytes)" }
-
-                    // Check if we should apply a previous "apply to all" decision
-                    if (applyDeletePermanentlyToAll) {
-                        itemsForDirectDelete.add(target)
-                        continue
-                    }
-                    if (applySkipToAll) {
-                        skippedItems.add(lookup)
-                        continue
-                    }
-
-                    // Emit issue and wait for user resolution
-                    val issue = PathActionIssue.TrashSizeLimitExceeded(
-                        source = lookup,
-                        itemSize = itemSize,
-                        trashMaxSize = maxTrashSize,
-                    )
-                    emit(State.Waiting(issue = issue))
-                    val resolution = config.onIssue(issue)
-
-                    when (resolution) {
-                        is PathActionIssue.TrashSizeLimitExceeded.Resolution.DeletePermanently -> {
-                            itemsForDirectDelete.add(target)
-                        }
-                        is PathActionIssue.TrashSizeLimitExceeded.Resolution.Skip -> {
-                            skippedItems.add(lookup)
-                            if (resolution.applyToAll) applySkipToAll = true
-                        }
-                        is PathActionIssue.TrashSizeLimitExceeded.Resolution.Cancel -> {
-                            throw CancellationException("User cancelled operation")
-                        }
-                    }
-                } else {
-                    itemsForTrash.add(target)
-                }
+                totalSize += gatewaySwitch.du(target)
             }
 
-            // Move suitable items to trash
-            if (itemsForTrash.isNotEmpty()) {
+            // Check if total exceeds trash limit (all-or-nothing approach)
+            if (totalSize > maxTrashSize) {
+                log(config.tag, INFO) {
+                    "Total size ($totalSize bytes) exceeds trash limit ($maxTrashSize bytes)"
+                }
+
+                val issue = PathActionIssue.TrashSizeLimitExceeded(
+                    totalSize = totalSize,
+                    itemCount = targets.size,
+                    trashMaxSize = maxTrashSize,
+                )
+                emit(State.Waiting(issue = issue))
+                val resolution = config.onIssue(issue)
+
+                when (resolution) {
+                    is PathActionIssue.TrashSizeLimitExceeded.Resolution.DeletePermanently -> {
+                        itemsForDirectDelete.addAll(targets)
+                    }
+                    is PathActionIssue.TrashSizeLimitExceeded.Resolution.Cancel -> {
+                        throw CancellationException("User cancelled operation")
+                    }
+                }
+            } else {
+                // Total fits within trash limit, move all items to trash
                 // Emit progress before moving to trash
                 emit(
                     State.Active(
                         primaryProgress = Progress.Data(
                             primary = eu.darken.butler.workspace.R.string.workspace_operation_progress_moving_to_trash.toCaString(),
-                            count = Progress.Count.Counter(0, itemsForTrash.size.toLong()),
+                            count = Progress.Count.Counter(0, targets.size.toLong()),
                         ),
                         secondaryProgress = null,
                         performanceHistory = null,
@@ -118,14 +99,31 @@ class CoreDeleteExecutor @Inject constructor(
                 )
 
                 try {
-                    val trashReport = trashManager.moveToTrash(paths = itemsForTrash)
+                    val trashReport = trashManager.moveToTrash(paths = targets.toList())
 
                     if (trashReport.failedToMove.isNotEmpty()) {
                         log(config.tag, WARN) {
-                            "${trashReport.failedToMove.size} items failed to move to trash, will perform direct delete"
+                            "${trashReport.failedToMove.size} items failed to move to trash"
                         }
-                        // Add failed items to direct delete list
-                        itemsForDirectDelete.addAll(trashReport.failedToMove.map { it.lookedUp })
+
+                        // Ask user what to do with failed items
+                        val issue = PathActionIssue.TrashMoveFailed(
+                            failedItems = trashReport.failedToMove.toList(),
+                        )
+                        emit(State.Waiting(issue = issue))
+                        val resolution = config.onIssue(issue)
+
+                        when (resolution) {
+                            is PathActionIssue.TrashMoveFailed.Resolution.DeletePermanently -> {
+                                itemsForDirectDelete.addAll(trashReport.failedToMove.map { it.lookedUp })
+                            }
+                            is PathActionIssue.TrashMoveFailed.Resolution.Skip -> {
+                                skippedItems.addAll(trashReport.failedToMove)
+                            }
+                            is PathActionIssue.TrashMoveFailed.Resolution.Cancel -> {
+                                throw CancellationException("User cancelled operation")
+                            }
+                        }
                     }
 
                     if (trashReport.movedToTrash.isNotEmpty()) {
@@ -139,8 +137,30 @@ class CoreDeleteExecutor @Inject constructor(
                         config.onPathsRemoved(trashedItems as Set<APathLookup<APath<*>>>)
                     }
                 } catch (e: Exception) {
-                    log(config.tag, WARN) { "Trash move failed: ${e.asLog()}, falling back to direct delete" }
-                    itemsForDirectDelete.addAll(itemsForTrash)
+                    log(config.tag, WARN) { "Trash move failed: ${e.asLog()}" }
+
+                    // Ask user what to do when entire trash operation fails
+                    val failedLookups = targets.map { path ->
+                        gatewaySwitch.lookup(path, eu.darken.butler.common.files.LookupOptions(fallbackToUnknown = true))
+                    }
+                    val issue = PathActionIssue.TrashMoveFailed(
+                        failedItems = failedLookups,
+                        exception = e,
+                    )
+                    emit(State.Waiting(issue = issue))
+                    val resolution = config.onIssue(issue)
+
+                    when (resolution) {
+                        is PathActionIssue.TrashMoveFailed.Resolution.DeletePermanently -> {
+                            itemsForDirectDelete.addAll(targets)
+                        }
+                        is PathActionIssue.TrashMoveFailed.Resolution.Skip -> {
+                            skippedItems.addAll(failedLookups)
+                        }
+                        is PathActionIssue.TrashMoveFailed.Resolution.Cancel -> {
+                            throw CancellationException("User cancelled operation")
+                        }
+                    }
                 }
             }
 
@@ -184,14 +204,15 @@ class CoreDeleteExecutor @Inject constructor(
         }
 
         if (targetsForDirectDelete.isEmpty()) {
-            // Nothing to delete directly
+            // Nothing to delete directly - return with skipped items if any
+            @Suppress("UNCHECKED_CAST")
             emit(
                 State.Completed(
                     result = Result(
                         deleted = emptySet(),
-                        trashed = emptySet(),
-                        skipped = emptySet(),
-                        bytesFreed = 0L,
+                        trashed = trashedItems as Set<APathLookup<APath<*>>>,
+                        skipped = skippedItems,
+                        bytesFreed = trashedBytes,
                         performanceHistory = null,
                     )
                 )

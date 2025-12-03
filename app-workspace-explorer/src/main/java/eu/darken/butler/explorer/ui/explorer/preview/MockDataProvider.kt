@@ -293,13 +293,13 @@ object MockDataProvider {
     }
 
     fun createMockTrashSizeLimitIssue(
-        source: APathLookup<*> = createMockVideoFile("large_backup.zip", sizeMB = 700),
-        itemSize: Long = 700L * 1024 * 1024, // 700MB
+        totalSize: Long = 700L * 1024 * 1024, // 700MB
+        itemCount: Int = 5,
         trashMaxSize: Long = 500L * 1024 * 1024, // 500MB
     ): PathActionIssue.TrashSizeLimitExceeded {
         return PathActionIssue.TrashSizeLimitExceeded(
-            source = source,
-            itemSize = itemSize,
+            totalSize = totalSize,
+            itemCount = itemCount,
             trashMaxSize = trashMaxSize,
         )
     }

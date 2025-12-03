@@ -42,6 +42,10 @@ fun IssuesBottomSheet(
                 issue = issue,
                 onResolution = onResolution,
             )
+            is PathActionIssue.TrashMoveFailed -> TrashMoveFailedIssueSheet(
+                issue = issue,
+                onResolution = onResolution,
+            )
             else -> throw IllegalArgumentException("Unknown issue type: $issue")
         }
     }
@@ -53,15 +57,31 @@ private fun IssuesBottomSheetPreview() {
     PreviewWrapper {
         IssuesBottomSheet(
             issue = PathActionIssue.TrashSizeLimitExceeded(
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Download/large_video.mp4"),
-                    fileType = FileType.FILE,
-                    size = 3L * 1024 * 1024 * 1024,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
-                    target = null,
-                ),
-                itemSize = 3L * 1024 * 1024 * 1024,
+                totalSize = 3L * 1024 * 1024 * 1024,
+                itemCount = 5,
                 trashMaxSize = 2L * 1024 * 1024 * 1024,
+            ),
+            onResolution = {},
+            onDismiss = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun IssuesBottomSheetTrashMoveFailedPreview() {
+    PreviewWrapper {
+        IssuesBottomSheet(
+            issue = PathActionIssue.TrashMoveFailed(
+                failedItems = listOf(
+                    LocalPathLookup(
+                        lookedUp = LocalPath.build("/storage/emulated/0/Download/file.txt"),
+                        fileType = FileType.FILE,
+                        size = 1024L,
+                        modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                        target = null,
+                    ),
+                ),
             ),
             onResolution = {},
             onDismiss = {},

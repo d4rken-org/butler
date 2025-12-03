@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Cancel
 import androidx.compose.material.icons.twotone.DeleteForever
-import androidx.compose.material.icons.twotone.SkipNext
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -20,19 +19,14 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.workspace.R
-import kotlin.time.Instant
 
 @Composable
 fun TrashSizeLimitIssueSheet(
@@ -62,14 +56,7 @@ fun TrashSizeLimitIssueSheet(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        Text(
-            text = stringResource(R.string.workspace_issue_trash_size_limit_file_label),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        PathIssueFileComparisonCard(lookup = issue.source)
-
-        // Row 1: Delete Permanently (full width, danger color)
+        // Delete Permanently (full width, danger color)
         OutlinedButton(
             onClick = {
                 onResolution(PathActionIssue.TrashSizeLimitExceeded.Resolution.DeletePermanently)
@@ -90,7 +77,7 @@ fun TrashSizeLimitIssueSheet(
                     tint = MaterialTheme.colorScheme.error,
                 )
                 Text(
-                    text = stringResource(R.string.workspace_issue_common_delete_permanently),
+                    text = androidx.compose.ui.res.stringResource(R.string.workspace_issue_common_delete_permanently),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.error,
@@ -98,55 +85,27 @@ fun TrashSizeLimitIssueSheet(
             }
         }
 
-        // Row 2: Skip and Cancel
-        Row(
+        // Cancel button
+        TextButton(
+            onClick = {
+                onResolution(PathActionIssue.TrashSizeLimitExceeded.Resolution.Cancel())
+            },
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            OutlinedButton(
-                onClick = {
-                    onResolution(PathActionIssue.TrashSizeLimitExceeded.Resolution.Skip())
-                },
-                modifier = Modifier.weight(1f),
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.SkipNext,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.workspace_issue_common_skip),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-
-            TextButton(
-                onClick = {
-                    onResolution(PathActionIssue.TrashSizeLimitExceeded.Resolution.Cancel())
-                },
-                modifier = Modifier.weight(1f),
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Cancel,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.workspace_issue_common_cancel),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                Icon(
+                    imageVector = Icons.TwoTone.Cancel,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    text = androidx.compose.ui.res.stringResource(R.string.workspace_issue_common_cancel),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }
@@ -158,14 +117,8 @@ private fun TrashSizeLimitIssueSheetPreview() {
     PreviewWrapper {
         TrashSizeLimitIssueSheet(
             issue = PathActionIssue.TrashSizeLimitExceeded(
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Download/large_video.mp4"),
-                    fileType = FileType.FILE,
-                    size = 3L * 1024 * 1024 * 1024,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
-                    target = null,
-                ),
-                itemSize = 3L * 1024 * 1024 * 1024,
+                totalSize = 3L * 1024 * 1024 * 1024,
+                itemCount = 5,
                 trashMaxSize = 2L * 1024 * 1024 * 1024,
             ),
             onResolution = {},

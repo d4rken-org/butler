@@ -105,6 +105,14 @@ class PathOperationIssueResolver(
                     throw CancellationException("User cancelled operation", resolution.error)
                 }
             }
+
+            is PathActionIssue.TrashMoveFailed -> {
+                // TrashMoveFailed is handled at CoreDeleteExecutor level, not here
+                // But if it does come through, handle Cancel appropriately
+                if (resolution is PathActionIssue.TrashMoveFailed.Resolution.Cancel) {
+                    throw CancellationException("User cancelled operation", resolution.error)
+                }
+            }
         }
 
         return resolution
