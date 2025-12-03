@@ -37,5 +37,9 @@
         <item quantity="one">%1$d file failed</item>
         <item quantity="other">%1$d files failed</item>
     </plurals>
+    <plurals name="saver_skipped_count">
+        <item quantity="one">%1$d file skipped</item>
+        <item quantity="other">%1$d files skipped</item>
+    </plurals>
     <string name="saver_partial_success">%1$d of %2$d files saved</string>
 </resources>

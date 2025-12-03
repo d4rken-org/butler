@@ -94,7 +94,15 @@ class SaverWorkspace @AssistedInject constructor(
             if (opId == null) {
                 flowOf(null)
             } else {
-                operationsManager.operations.map { ops -> ops.find { it.id == opId } }
+                operationsManager.operations
+                    .map { ops -> ops.find { it.id == opId } }
+                    .flatMapLatest { managedOp ->
+                        if (managedOp == null) {
+                            flowOf(null)
+                        } else {
+                            managedOp.state.map { managedOp }
+                        }
+                    }
             }
         }
 
