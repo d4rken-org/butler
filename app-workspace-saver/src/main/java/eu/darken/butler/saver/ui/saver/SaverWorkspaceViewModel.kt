@@ -26,7 +26,10 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -54,6 +57,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         val filename: String = "",
         val saveState: SaverWorkspace.SaveState = SaverWorkspace.SaveState.Idle,
         val callerLabel: String? = null,
+        val operationDisplay: OperationDisplay? = null,
     ) {
         val isBatchMode: Boolean
             get() = sourceInfos.size > 1
@@ -92,15 +96,20 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
 
     val state: Flow<State> = workspaceSource
         .filterNotNull()
-        .flatMapLatest { it.state }
-        .map { wsState ->
-            State(
-                sourceInfos = wsState.sourceInfos,
-                destination = wsState.destination,
-                filename = wsState.filename,
-                saveState = wsState.saveState,
-                callerLabel = wsState.callerLabel,
-            )
+        .flatMapLatest { workspace ->
+            combine(
+                workspace.state,
+                workspace.currentOperation,
+            ) { wsState, managedOp ->
+                State(
+                    sourceInfos = wsState.sourceInfos,
+                    destination = wsState.destination,
+                    filename = wsState.filename,
+                    saveState = wsState.saveState,
+                    callerLabel = wsState.callerLabel,
+                    operationDisplay = managedOp?.toDisplayModel(),
+                )
+            }
         }
 
     init {

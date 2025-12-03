@@ -25,6 +25,7 @@ import eu.darken.butler.saver.core.operations.SaveFilesOperation
 import eu.darken.butler.saver.core.operations.SaveFilesReport
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import kotlinx.coroutines.CoroutineName
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -80,6 +82,16 @@ class SaverWorkspace @AssistedInject constructor(
 
     private val _saveState = MutableStateFlow<SaveState>(SaveState.Idle)
     val saveState: Flow<SaveState> = _saveState
+
+    private val _currentOperationId = MutableStateFlow<Operation.Id?>(null)
+    val currentOperation: Flow<ManagedOperation?> = _currentOperationId
+        .flatMapLatest { opId ->
+            if (opId == null) {
+                flowOf(null)
+            } else {
+                operationsManager.operations.map { ops -> ops.find { it.id == opId } }
+            }
+        }
 
     private val _callerLabel = MutableStateFlow<String?>(UNKNOWN_CALLER_LABEL)
 
@@ -301,6 +313,7 @@ class SaverWorkspace @AssistedInject constructor(
         )
 
         val operationId = operationsManager.submit(operation)
+        _currentOperationId.value = operationId
 
         // Observe operation state
         operationsManager.operations
@@ -332,6 +345,7 @@ class SaverWorkspace @AssistedInject constructor(
 
     fun resetSaveState() {
         _saveState.value = SaveState.Idle
+        _currentOperationId.value = null
     }
 
     private fun isUnknownCaller(pkgId: Pkg.Id): Boolean {

@@ -10,9 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -20,10 +24,13 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.saver.R
 import eu.darken.butler.saver.core.ContentUriHelper
+import eu.darken.butler.saver.core.SaverWorkspace
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
+import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -63,6 +70,9 @@ private fun SaverWorkspacePage(
     )
     val workspaceButtonState by workspaceButtonStateSource.collectAsState(null)
 
+    // Operation dialog state
+    var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -74,6 +84,9 @@ private fun SaverWorkspacePage(
                 workspaceId = workspaceId,
                 workspaceActionHandler = workspaceActionHandler,
                 vm = vm,
+                onOperationClick = { operationId ->
+                    operationDialogState = OperationDialogState.OperationDetails(operationId)
+                },
             )
         } else {
             // Single file mode: scrollable Column
@@ -83,8 +96,19 @@ private fun SaverWorkspacePage(
                 workspaceId = workspaceId,
                 workspaceActionHandler = workspaceActionHandler,
                 vm = vm,
+                onOperationClick = { operationId ->
+                    operationDialogState = OperationDialogState.OperationDetails(operationId)
+                },
             )
         }
+
+        OperationDialogHost(
+            dialogState = operationDialogState,
+            operations = listOfNotNull(state.operationDisplay),
+            onDismissDialog = { operationDialogState = OperationDialogState.None },
+            onCancelOperation = { operationDialogState = OperationDialogState.None },
+            onCopyError = { /* TODO: implement if needed */ },
+        )
     }
 }
 
@@ -95,6 +119,7 @@ private fun SingleFileModeContent(
     workspaceId: Workspace.Id,
     workspaceActionHandler: WorkspaceActionHandler?,
     vm: SaverWorkspaceViewModel?,
+    onOperationClick: (eu.darken.butler.workspace.core.operations.Operation.Id) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -122,28 +147,31 @@ private fun SingleFileModeContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (state.hasInaccessibleFiles) {
-            WarningCard(
-                message = stringResource(R.string.saver_source_expired_warning),
-                onRetry = { vm?.onRefreshAccessibility() },
-                onClose = { vm?.onClose() },
-            )
-        } else {
-            DestinationCard(
-                destination = state.destination,
-                filename = state.filename,
-                isBatchMode = false,
-                onClick = { vm?.onPickDestination() },
-            )
+        // Show destination picker only in Idle state (replaced by OperationEntryRow during save)
+        if (state.saveState is SaverWorkspace.SaveState.Idle) {
+            if (state.hasInaccessibleFiles) {
+                WarningCard(
+                    message = stringResource(R.string.saver_source_expired_warning),
+                    onRetry = { vm?.onRefreshAccessibility() },
+                    onClose = { vm?.onClose() },
+                )
+            } else {
+                DestinationCard(
+                    destination = state.destination,
+                    filename = state.filename,
+                    isBatchMode = false,
+                    onClick = { vm?.onPickDestination() },
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         SaverActionArea(
             state = state,
+            operationDisplay = state.operationDisplay,
             onSave = { vm?.onSave() },
-            onRetry = { vm?.onRetry() },
             onOpenSaved = { vm?.onOpenSavedFile() },
+            onOperationClick = onOperationClick,
         )
     }
 }
@@ -155,6 +183,7 @@ private fun BatchModeContent(
     workspaceId: Workspace.Id,
     workspaceActionHandler: WorkspaceActionHandler?,
     vm: SaverWorkspaceViewModel?,
+    onOperationClick: (eu.darken.butler.workspace.core.operations.Operation.Id) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -178,28 +207,31 @@ private fun BatchModeContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (state.hasInaccessibleFiles) {
-            WarningCard(
-                message = stringResource(R.string.saver_source_expired_warning),
-                onRetry = { vm?.onRefreshAccessibility() },
-                onClose = { vm?.onClose() },
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        } else {
-            DestinationCard(
-                destination = state.destination,
-                filename = null,
-                isBatchMode = true,
-                onClick = { vm?.onPickDestination() },
-            )
+        // Show destination picker only in Idle state (replaced by OperationEntryRow during save)
+        if (state.saveState is SaverWorkspace.SaveState.Idle) {
+            if (state.hasInaccessibleFiles) {
+                WarningCard(
+                    message = stringResource(R.string.saver_source_expired_warning),
+                    onRetry = { vm?.onRefreshAccessibility() },
+                    onClose = { vm?.onClose() },
+                )
+            } else {
+                DestinationCard(
+                    destination = state.destination,
+                    filename = null,
+                    isBatchMode = true,
+                    onClick = { vm?.onPickDestination() },
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
         }
 
         SaverActionArea(
             state = state,
+            operationDisplay = state.operationDisplay,
             onSave = { vm?.onSave() },
-            onRetry = { vm?.onRetry() },
             onOpenSaved = { vm?.onOpenSavedFile() },
+            onOperationClick = onOperationClick,
         )
     }
 }
@@ -215,7 +247,7 @@ private fun SaverWorkspacePageSingleFilePreview() {
                 SaverWorkspaceViewModel.State(
                     sourceInfos = listOf(
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/image.jpg"),
+                            uri = "content://example/image.jpg".toUri(),
                             displayName = "vacation_photo.jpg",
                             mimeType = "image/jpeg",
                             size = 3_500_000,
