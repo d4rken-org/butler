@@ -65,18 +65,8 @@ internal fun ClassicWorkspaceContainer(
     var previousPage by remember { mutableStateOf<Int?>(null) }
     var isAnimatingProgrammatically by remember { mutableStateOf(false) }
 
-    // Track workspace switches for position indicator
-    var workspaceSwitchTrigger by remember { mutableStateOf<Workspace.Id?>(null) }
-
     // Track last synced focus to detect new focus changes that should skip animation
     var lastSyncedFocusId by remember { mutableStateOf<Workspace.Id?>(null) }
-
-    LaunchedEffect(state.focused) {
-        val currentId = state.focused
-        if (currentId != null) {
-            workspaceSwitchTrigger = currentId
-        }
-    }
 
     // Sync pager with selected tab
     LaunchedEffect(state.focused, state.all, state.isRestoring) {
@@ -209,14 +199,13 @@ internal fun ClassicWorkspaceContainer(
 
         // Position indicator overlay
         val currentWorkspace = state.current
-        val switchedToWorkspace = workspaceSwitchTrigger
-        if (switchedToWorkspace != null && currentWorkspace != null) {
+        if (currentWorkspace != null && state.tabWorkspaces.size > 1) {
             val context = LocalContext.current
-            val position = state.tabWorkspaces.indexOfFirst { it.id == state.focused } + 1
+            val position = state.tabWorkspaces.indexOfFirst { it.id == currentWorkspace.id } + 1
             val total = state.tabWorkspaces.size
             val workspaceName = currentWorkspace.title.get(context)
 
-            if (position > 0 && total > 1) {
+            if (position > 0) {
                 WorkspaceSwitchIndicator(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -224,7 +213,7 @@ internal fun ClassicWorkspaceContainer(
                     position = position,
                     totalWorkspaces = total,
                     workspaceName = workspaceName,
-                    workspaceId = switchedToWorkspace,
+                    workspaceId = currentWorkspace.id,
                 )
             }
         }

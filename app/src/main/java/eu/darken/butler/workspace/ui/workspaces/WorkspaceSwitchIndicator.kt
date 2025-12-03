@@ -35,12 +35,11 @@ fun WorkspaceSwitchIndicator(
     workspaceId: Workspace.Id,
 ) {
     // Reset visibility state when workspace ID changes
-    var isVisible by remember(key1 = workspaceId) { mutableStateOf(true) }
+    var isVisible by remember(workspaceId) { mutableStateOf(true) }
 
-    // Only trigger on workspace ID change, not on name change
+    // Auto-hide after delay
     LaunchedEffect(workspaceId) {
-        isVisible = true
-        delay(700)
+        delay(500)
         isVisible = false
     }
 
