@@ -43,6 +43,7 @@
     <string name="workspace_templates_label">Templates</string>
     <string name="workspace_apps_label">Apps</string>
     <string name="workspace_appdetails_label">App details</string>
+    <string name="workspace_saver_label">Save as</string>
 
     <!-- Workspace UI Actions -->
     <string name="workspace_expand_more_action">More</string>

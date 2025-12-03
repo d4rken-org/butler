@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a7893e8511c5487365ce3525dcfc1017",
+	"identityHash": "2ad11220d9ca13aae6114018d1ec6de7",
     "entities": [
       {
         "tableName": "workspace_sessions",
@@ -54,7 +54,7 @@
       },
       {
         "tableName": "workspace_instances",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workspaceId` TEXT NOT NULL, `sessionId` TEXT NOT NULL, `type` TEXT NOT NULL, `orderIndex` INTEGER NOT NULL, `lastModified` INTEGER NOT NULL, `arguments` TEXT NOT NULL, PRIMARY KEY(`workspaceId`), FOREIGN KEY(`sessionId`) REFERENCES `workspace_sessions`(`sessionId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+		"createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`workspaceId` TEXT NOT NULL, `sessionId` TEXT NOT NULL, `type` TEXT NOT NULL, `orderIndex` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `lastModified` INTEGER NOT NULL, `arguments` TEXT NOT NULL, PRIMARY KEY(`workspaceId`), FOREIGN KEY(`sessionId`) REFERENCES `workspace_sessions`(`sessionId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "workspaceId",
@@ -79,6 +79,12 @@
             "columnName": "orderIndex",
             "affinity": "INTEGER",
             "notNull": true
+		  },
+		  {
+			"fieldPath": "createdAt",
+			"columnName": "createdAt",
+			"affinity": "INTEGER",
+			"notNull": true
           },
           {
             "fieldPath": "lastModified",
@@ -136,7 +142,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a7893e8511c5487365ce3525dcfc1017')"
+	  "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2ad11220d9ca13aae6114018d1ec6de7')"
     ]
   }
 }

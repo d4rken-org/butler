@@ -9,6 +9,7 @@ import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.saver.core.SaverWorkspace
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
 import javax.inject.Singleton
@@ -35,6 +36,7 @@ abstract class WorkspaceModule {
             editorWorkspaceFactory: EditorWorkspace.Factory,
             appsWorkspaceFactory: AppsWorkspace.Factory,
             appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
+            saverWorkspaceFactory: SaverWorkspace.Factory,
         ): Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>> {
             return Workspace.Type.entries.associateWith { type ->
                 when (type) {
@@ -44,6 +46,7 @@ abstract class WorkspaceModule {
                     Workspace.Type.EDITOR -> editorWorkspaceFactory
                     Workspace.Type.APPS -> appsWorkspaceFactory
                     Workspace.Type.APP_DETAILS -> appDetailsWorkspaceFactory
+                    Workspace.Type.SAVER -> saverWorkspaceFactory
                 }
             }
         }

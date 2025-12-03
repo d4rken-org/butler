@@ -136,11 +136,31 @@ data class PickerConfig(
         data object MixedMulti : Selection()
 
         /**
+         * Save As mode: Select directory and provide filename.
+         *
+         * Interaction:
+         * - Tap folder → Navigate into it
+         * - Tap storage volume → Navigate into it
+         * - Filename input field shown in picker bar
+         * - Save button → Confirms current directory + entered filename
+         *
+         * Selectability:
+         * - Real directories (like DirectorySingle)
+         * - Save button enabled when at directory and filename is valid
+         *
+         * Use case: Save shared file to chosen location with custom name.
+         */
+        @Parcelize
+        data class SaveAs(
+            val suggestedFilename: String,
+        ) : Selection()
+
+        /**
          * Returns true if this mode allows selecting multiple items.
          */
         val isMultiSelect: Boolean
             get() = when (this) {
-                is DirectorySingle, is FileSingle -> false
+                is DirectorySingle, is FileSingle, is SaveAs -> false
                 is DirectoryMulti, is FileMulti, is MixedMulti -> true
             }
 
@@ -149,7 +169,7 @@ data class PickerConfig(
          */
         val selectsDirectories: Boolean
             get() = when (this) {
-                is DirectorySingle, is DirectoryMulti, is MixedMulti -> true
+                is DirectorySingle, is DirectoryMulti, is MixedMulti, is SaveAs -> true
                 is FileSingle, is FileMulti -> false
             }
 
@@ -158,7 +178,7 @@ data class PickerConfig(
          */
         val selectsFiles: Boolean
             get() = when (this) {
-                is DirectorySingle, is DirectoryMulti -> false
+                is DirectorySingle, is DirectoryMulti, is SaveAs -> false
                 is FileSingle, is FileMulti, is MixedMulti -> true
             }
 

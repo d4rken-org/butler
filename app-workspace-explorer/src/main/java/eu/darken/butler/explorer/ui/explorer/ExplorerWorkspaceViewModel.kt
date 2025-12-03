@@ -166,6 +166,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     // Picker configuration (null for non-picker workspaces)
     private val pickerConfigFlow: Flow<PickerConfig?> = workspaceSource.map { it?.pickerConfig }
 
+    // SaveAs filename (only used in SaveAs picker mode)
+    private val saveAsFilenameFlow: Flow<String> = workspaceSource.flatMapLatest { ws ->
+        ws?.saveAsFilename ?: flowOf("")
+    }
+
     init {
         // Handle dialog events
         dialogEvents
@@ -195,6 +200,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val pickerConfig: PickerConfig? = null,
         val sortSettings: SortSettings = SortSettings(),
         val trashEnabled: Boolean = false,
+        val saveAsFilename: String = "",
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -232,7 +238,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         explorerSettings.useBackButtonForNavigation.flow,
         pickerConfigFlow,
         trashManager.isEnabled,
-    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled ->
+        saveAsFilenameFlow,
+    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename ->
         val items = wsState.currentLocation?.items
             ?.let { items -> applyPickerFilter(items, pickerConfig) }
             ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
@@ -252,7 +259,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     // In picker mode, filter by what can actually be selected
                     when (pickerConfig?.selection) {
                         is PickerConfig.Selection.DirectorySingle,
-                        is PickerConfig.Selection.DirectoryMulti -> {
+                        is PickerConfig.Selection.DirectoryMulti,
+                        is PickerConfig.Selection.SaveAs -> {
                             // Directories and storage volumes are selectable
                             item is ExplorerItem.Directory || item is ExplorerItem.Storage
                         }
@@ -324,6 +332,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             pickerConfig = pickerConfig,
             sortSettings = sortSetting,
             trashEnabled = recycleBinEnabled,
+            saveAsFilename = saveAsFilename,
         )
     }
         .distinctUntilChanged()
@@ -395,7 +404,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         return items.filter { item ->
             when (pickerConfig.selection) {
                 is PickerConfig.Selection.DirectorySingle,
-                is PickerConfig.Selection.DirectoryMulti -> {
+                is PickerConfig.Selection.DirectoryMulti,
+                is PickerConfig.Selection.SaveAs -> {
                     // Directory picker modes: hide files, show only directories
                     item !is ExplorerItem.File
                 }
@@ -1649,7 +1659,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
 
         val selectedPaths: List<APath<*>> = when (config.selection) {
-            is PickerConfig.Selection.DirectorySingle -> {
+            is PickerConfig.Selection.DirectorySingle,
+            is PickerConfig.Selection.SaveAs -> {
                 // Single directory: return selected storage or current directory
                 if (stateSnap.selectionState.selectedItems.isNotEmpty()) {
                     // Storage item selected at Device level
@@ -1705,7 +1716,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             return@launch
         }
 
-        log(tag, INFO) { "Picker selection confirmed: ${selectedPaths.size} path(s)" }
+        // For SaveAs mode, also validate filename
+        val filename: String? = if (config.selection is PickerConfig.Selection.SaveAs) {
+            val fn = stateSnap.saveAsFilename.trim()
+            if (fn.isBlank()) {
+                log(tag, WARN) { "SaveAs mode requires a filename" }
+                return@launch
+            }
+            fn
+        } else {
+            null
+        }
+
+        log(tag, INFO) { "Picker selection confirmed: ${selectedPaths.size} path(s), filename=$filename" }
 
         // Emit PickerResult event and close workspace
         workspaceRemote.returnResult(
@@ -1713,6 +1736,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 workspaceId = id,
                 callerWorkspaceId = config.callerWorkspaceId,
                 selectedPaths = selectedPaths,
+                filename = filename,
             )
         )
     }
@@ -1733,6 +1757,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             workspaceId = id,
             callerWorkspaceId = config.callerWorkspaceId,
         )
+    }
+
+    fun updateSaveAsFilename(filename: String) = launch {
+        log(tag) { "updateSaveAsFilename($filename)" }
+        getWorkspace().updateSaveAsFilename(filename)
     }
 
     fun goBack() {

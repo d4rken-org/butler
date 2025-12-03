@@ -54,11 +54,13 @@ sealed interface WorkspaceEvent {
      * @param workspaceId Workspace that generated the result (the picker)
      * @param callerWorkspaceId Workspace that expects the result (null if not specified)
      * @param selectedPaths Selected file/folder paths
+     * @param filename Filename provided by user in SaveAs mode (null for other modes)
      */
     data class PickerResult(
         override val workspaceId: Workspace.Id,
         override val callerWorkspaceId: Workspace.Id?,
         val selectedPaths: List<APath<*>>,
+        val filename: String? = null,
     ) : ResultEvent
 
     /**

@@ -416,6 +416,8 @@ fun ExplorerWorkspacePage(
                         breadcrumbs = mainState.breadcrumbs.takeIf { it.isNotEmpty() },
                         currentLocation = mainState.currentLocation,
                         scrollBehavior = scrollBehavior,
+                        saveAsFilename = mainState.saveAsFilename,
+                        onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
                         onBreadcrumbClick = { navigation -> vm?.navigate(navigation) },
                         onCancel = { vm?.cancelPicker() },
                         onConfirm = { vm?.confirmPickerSelection() },

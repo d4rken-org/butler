@@ -74,6 +74,7 @@ class WorkspaceSessionDatabaseSchemaTest : BaseTest() {
             "sessionId",
             "type",
             "orderIndex",
+            "createdAt",
             "lastModified",
             "arguments",
         )

@@ -169,14 +169,19 @@ class WorkspaceSessionManager @Inject constructor(
 
                 // Check if changed
                 if (lastSavedWorkspaces[info.id] != argsHash) {
+                    // Preserve original createdAt for existing workspaces
+                    val existingEntity = storage.dao.getWorkspaceById(info.id)
+                    val createdAt = existingEntity?.createdAt ?: now
+
                     storage.dao.upsertWorkspace(
                         WorkspaceInstanceEntity(
                             workspaceId = info.id,
                             sessionId = defaultSession.sessionId,
                             type = info.type,
-                            arguments = serializedArgs.toString(),
                             orderIndex = index,
+                            createdAt = createdAt,
                             lastModified = now,
+                            arguments = serializedArgs.toString(),
                         )
                     )
                     lastSavedWorkspaces[info.id] = argsHash
