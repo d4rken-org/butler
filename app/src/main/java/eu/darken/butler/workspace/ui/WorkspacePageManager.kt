@@ -303,6 +303,29 @@ class WorkspacePageManager @Inject constructor(
         }
     }
 
+    /**
+     * Atomically sets both focus and selections during session restoration.
+     * Unlike calling setFocusedWorkspace() + setSelectedWorkspaces() separately,
+     * this avoids the auto-focus side effect in setSelectedWorkspaces().
+     */
+    fun applyRestoredUIState(
+        focusedId: Workspace.Id?,
+        selectedWorkspaces: Map<Int, Workspace.Id>,
+    ) {
+        _state.update { currentState ->
+            val updatedAccessTimes = if (focusedId != null) {
+                currentState.workspaceAccessTimes + (focusedId to Clock.System.now())
+            } else {
+                currentState.workspaceAccessTimes
+            }
+            currentState.copy(
+                focusedWorkspaceId = focusedId,
+                selectedWorkspaces = selectedWorkspaces,
+                workspaceAccessTimes = updatedAccessTimes,
+            )
+        }
+    }
+
     private fun handleWorkspaceCreated(workspaceId: Workspace.Id, replacedId: Workspace.Id?, autoFocus: Boolean) {
         log(TAG) { "handleWorkspaceCreated: workspaceId=$workspaceId, replacedId=$replacedId, autoFocus=$autoFocus" }
 

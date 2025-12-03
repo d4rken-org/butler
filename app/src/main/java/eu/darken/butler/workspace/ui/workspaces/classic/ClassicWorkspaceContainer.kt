@@ -68,6 +68,9 @@ internal fun ClassicWorkspaceContainer(
     // Track workspace switches for position indicator
     var workspaceSwitchTrigger by remember { mutableStateOf<Workspace.Id?>(null) }
 
+    // Track last synced focus to detect new focus changes that should skip animation
+    var lastSyncedFocusId by remember { mutableStateOf<Workspace.Id?>(null) }
+
     LaunchedEffect(state.focused) {
         val currentId = state.focused
         if (currentId != null) {
@@ -76,24 +79,36 @@ internal fun ClassicWorkspaceContainer(
     }
 
     // Sync pager with selected tab
-    LaunchedEffect(state.focused, state.all) {
+    LaunchedEffect(state.focused, state.all, state.isRestoring) {
         val selectedId = state.focused ?: return@LaunchedEffect
         val selectedIndex = state.all.indexOfFirst { it.id == selectedId }
-        log(
-            TAG,
-            VERBOSE
-        ) { "Syncing pager with selected tab: selectedId=$selectedId, selectedIndex=$selectedIndex, currentPage=${pagerState.currentPage}" }
+        log(TAG, VERBOSE) {
+            "Syncing pager with selected tab: selectedId=$selectedId, selectedIndex=$selectedIndex, currentPage=${pagerState.currentPage}"
+        }
 
         if (selectedIndex < 0) {
             log(TAG, VERBOSE) { "Selected tab not found in tabs list yet - waiting for state consistency" }
             return@LaunchedEffect
         }
 
-        if (selectedIndex >= state.all.size || selectedIndex == pagerState.currentPage) return@LaunchedEffect
+        if (selectedIndex >= state.all.size || selectedIndex == pagerState.currentPage) {
+            lastSyncedFocusId = selectedId
+            return@LaunchedEffect
+        }
 
-        log(TAG, VERBOSE) { "Animating pager to page $selectedIndex" }
+        // First sync for a new focus should be instant (no animation), subsequent syncs animate
+        val isFirstSyncForFocus = lastSyncedFocusId != selectedId
+        val shouldSkipAnimation = state.isRestoring || isFirstSyncForFocus
+
         isAnimatingProgrammatically = true
-        pagerState.animateScrollToPage(selectedIndex)
+        if (shouldSkipAnimation) {
+            log(TAG, VERBOSE) { "Jumping pager to page $selectedIndex (restoration=${ state.isRestoring}, firstSync=$isFirstSyncForFocus)" }
+            pagerState.scrollToPage(selectedIndex)
+        } else {
+            log(TAG, VERBOSE) { "Animating pager to page $selectedIndex" }
+            pagerState.animateScrollToPage(selectedIndex)
+        }
+        lastSyncedFocusId = selectedId
         isAnimatingProgrammatically = false
     }
 

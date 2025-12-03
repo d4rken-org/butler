@@ -206,12 +206,11 @@ class WorkspaceSessionManager @Inject constructor(
 
         log(TAG, INFO) { "Loaded session with ${workspaceEntities.size} workspaces" }
 
-        // Restore workspaces
         val restoredWorkspaceIds = mutableListOf<Workspace.Id>()
 
         workspaceEntities.forEach { entity ->
             try {
-                log(TAG) { "Restoring workspace: ${entity.type}" }
+                log(TAG) { "Restoring workspace: ${entity.type} with id=${entity.workspaceId}" }
 
                 val type = entity.type
 
@@ -224,22 +223,23 @@ class WorkspaceSessionManager @Inject constructor(
                     type.defaultArguments
                 }
 
-                val result = workspaceRepo.execute(
+                workspaceRepo.execute(
                     WorkspaceAction.Create(
                         type = type,
                         arguments = arguments,
-                        autoFocus = false, // Don't auto-focus during restoration
+                        autoFocus = false,
+                        id = entity.workspaceId,
                     )
-                ) as WorkspaceAction.Create.Result
+                )
 
-                restoredWorkspaceIds.add(result.newId)
-                log(TAG) { "Restored workspace ${entity.type}: ${result.newId}" }
+                restoredWorkspaceIds.add(entity.workspaceId)
+                log(TAG) { "Restored workspace ${entity.type}: ${entity.workspaceId}" }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Failed to restore workspace ${entity.type}: ${e.asLog()}" }
             }
         }
 
-        // Apply UI state with validation
+        // Apply saved UI state directly (IDs are preserved)
         applyUIState(
             focusedId = sessionEntity.uiState.focusedWorkspaceId,
             selectedIds = sessionEntity.uiState.paneSelections,
@@ -257,7 +257,7 @@ class WorkspaceSessionManager @Inject constructor(
     ) {
         val validIds = actualWorkspaceIds.toSet()
 
-        // Validate and apply focused workspace ID
+        // Validate focused workspace ID
         val validFocusedId = when {
             focusedId != null && focusedId in validIds -> {
                 log(TAG) { "Restoring focused workspace: $focusedId" }
@@ -299,11 +299,14 @@ class WorkspaceSessionManager @Inject constructor(
             }
         }
 
-        // Apply to PageManager
-        workspacePageManager.setFocusedWorkspace(validFocusedId)
-        if (selectedWorkspaces.isNotEmpty()) {
-            workspacePageManager.setSelectedWorkspaces(selectedWorkspaces)
+        // Ensure focused workspace is in pane 0 selection (consistency guarantee)
+        if (validFocusedId != null && selectedWorkspaces[0] != validFocusedId) {
+            log(TAG, WARN) { "Focus/selection mismatch: focus=$validFocusedId, pane0=${selectedWorkspaces[0]}, fixing" }
+            selectedWorkspaces[0] = validFocusedId
         }
+
+        // Apply to PageManager atomically (avoids double focus change)
+        workspacePageManager.applyRestoredUIState(validFocusedId, selectedWorkspaces)
 
         log(TAG, INFO) { "Applied UI state: focused=$validFocusedId, selected=${selectedWorkspaces.size} panes" }
     }

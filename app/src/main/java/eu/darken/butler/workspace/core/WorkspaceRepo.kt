@@ -79,15 +79,16 @@ class WorkspaceRepo @Inject constructor(
         type: Workspace.Type,
         arguments: Workspace.Arguments,
         idToReplace: Workspace.Id? = null,
+        existingId: Workspace.Id? = null,
     ): Workspace.Id {
-        log(TAG) { "create($type, $arguments, $idToReplace)" }
+        log(TAG) { "create($type, $arguments, $idToReplace, existingId=$existingId)" }
         val wip = _workspaces.value.toMutableList()
 
         @Suppress("UNCHECKED_CAST")
         val factory = factoryMap[type] as? WorkspaceFactory<Workspace.Arguments>
             ?: throw IllegalArgumentException("No factory found for workspace type: $type")
         val newWorkspace = factory.create(
-            id = Workspace.Id(),
+            id = existingId ?: Workspace.Id(),
             arguments = arguments
         ) as Workspace<out Workspace.Arguments>
         if (idToReplace != null) {
@@ -134,7 +135,8 @@ class WorkspaceRepo @Inject constructor(
                 val newId = create(
                     type = action.type,
                     arguments = action.arguments,
-                    idToReplace = action.replace
+                    idToReplace = action.replace,
+                    existingId = action.id,
                 )
                 log(TAG) { "New workspace created with ID $newId, emitting event" }
                 _events.emit(

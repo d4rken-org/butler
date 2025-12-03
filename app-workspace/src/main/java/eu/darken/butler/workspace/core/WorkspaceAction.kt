@@ -8,6 +8,7 @@ sealed interface WorkspaceAction {
         val arguments: Workspace.Arguments = TemplatesArguments.Default(),
         val replace: Workspace.Id? = null,
         val autoFocus: Boolean = false,
+        val id: Workspace.Id? = null,
     ) : WorkspaceAction {
         data class Result(
             val newId: Workspace.Id,

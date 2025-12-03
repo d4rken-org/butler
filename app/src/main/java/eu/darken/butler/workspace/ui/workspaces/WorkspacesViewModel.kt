@@ -156,7 +156,8 @@ class WorkspacesViewModel @Inject constructor(
         workspaceSettings.onDemandWorkspaceCreation.flow,
         workspacePageManager.state,
         visibleMotd,
-    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, uiState, motd ->
+        sessionManager.state,
+    ) { repoState, upgradeInfo, swipeGesturesEnabled, onDemandWorkspaceCreation, uiState, motd, restorationState ->
         State(
             state = repoState,
             focusedWorkspace = uiState.focusedWorkspaceId,
@@ -166,6 +167,7 @@ class WorkspacesViewModel @Inject constructor(
             onDemandWorkspaceCreation = swipeGesturesEnabled && onDemandWorkspaceCreation,
             motd = motd,
             currentPaneCount = uiState.currentPaneCount,
+            isRestoring = restorationState == WorkspaceSessionManager.State.Restoring,
         )
     }.asStateFlow()
 
@@ -259,6 +261,7 @@ class WorkspacesViewModel @Inject constructor(
         val onDemandWorkspaceCreation: Boolean = true,
         val motd: MotdState? = null,
         val currentPaneCount: Int = 1,
+        val isRestoring: Boolean = false,
     ) {
         val portraitPanelMode: WorkspacePanelMode
             get() = state.portraitPanelMode
