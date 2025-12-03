@@ -13,7 +13,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieCompositionSpec.*
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
@@ -21,7 +21,6 @@ import eu.darken.butler.common.R
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlin.random.Random
 
 @Composable
 fun ButlerMascot(
@@ -49,12 +48,13 @@ fun ButlerMascot(
             } ?: modifier
 
             when (variant) {
-                ButlerMascotMode.Animated.RandomCycling -> {
-                    val winkComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_wink))
-                    val drinkComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_drink))
-                    val moustacheComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_moustache_stroke))
-                    val sleepComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_sleep))
-                    val greetingComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.mascot_lottie_greeting))
+                is ButlerMascotMode.Animated.RandomCycling -> {
+                    val winkComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_wink))
+                    val drinkComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_drink))
+                    val moustacheComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_moustache_stroke))
+                    val sleepComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep))
+                    val greetingComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_greeting))
+                    val hatoffComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_hatoff))
 
                     val compositions = listOfNotNull(
                         winkComposition,
@@ -62,15 +62,17 @@ fun ButlerMascot(
                         moustacheComposition,
                         sleepComposition,
                         greetingComposition,
+                        hatoffComposition
                     )
                     val animatable = rememberLottieAnimatable()
 
                     LaunchedEffect(compositions) {
-                        if (compositions.isEmpty()) return@LaunchedEffect
                         animatable.snapTo(composition = compositions.first(), progress = 0f)
-                        while (true) {
-                            delay(Random.nextLong(2000, 5000))
-                            animatable.animate(composition = compositions.random(), iterations = 1)
+                        while (currentCoroutineContext().isActive) {
+                            repeat((3..9).random()) {
+                                animatable.animate(composition = compositions.random(), iterations = 1)
+                                delay((3000..9000L).random())
+                            }
                         }
                     }
 
@@ -81,56 +83,44 @@ fun ButlerMascot(
                     )
                 }
 
-                ButlerMascotMode.Animated.Sleeping -> {
-                    val sleepSleepingComposition by rememberLottieComposition(
-                        LottieCompositionSpec.RawRes(R.raw.mascot_lottie_sleep_sleeping)
-                    )
-                    val sleepSnoringComposition by rememberLottieComposition(
-                        LottieCompositionSpec.RawRes(R.raw.mascot_lottie_sleep_snoring)
-                    )
-                    val sleepWakingComposition by rememberLottieComposition(
-                        LottieCompositionSpec.RawRes(R.raw.mascot_lottie_sleep_waking)
-                    )
-
-                    val animatable = rememberLottieAnimatable()
-
-                    LaunchedEffect(sleepSleepingComposition, sleepSnoringComposition, sleepWakingComposition) {
-                        if (sleepSleepingComposition == null || sleepSnoringComposition == null || sleepWakingComposition == null) {
-                            return@LaunchedEffect
-                        }
-
-                        while (currentCoroutineContext().isActive) {
-                            animatable.animate(composition = sleepSleepingComposition, iterations = 1)
-                            animatable.animate(composition = sleepSnoringComposition, iterations = (1..5).random())
-                            animatable.animate(composition = sleepWakingComposition, iterations = 1)
-                            delay((500..2000L).random())
-                        }
+                is ButlerMascotMode.Animated.Sleep -> when (variant) {
+                    ButlerMascotMode.Animated.Sleep.EyesClose -> {
+                        val composition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_sleeping))
+                        LottieAnimation(
+                            composition = composition,
+                            modifier = semanticsModifier,
+                            iterations = 1,
+                        )
                     }
-
-                    LottieAnimation(
-                        composition = animatable.composition,
-                        progress = { animatable.progress },
-                        modifier = semanticsModifier,
-                    )
+                    ButlerMascotMode.Animated.Sleep.Snoring -> {
+                        val composition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_snoring))
+                        LottieAnimation(
+                            composition = composition,
+                            modifier = semanticsModifier,
+                            iterations = 1,
+                        )
+                    }
+                    ButlerMascotMode.Animated.Sleep.WakeUp -> {
+                        val composition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_waking))
+                        LottieAnimation(
+                            composition = composition,
+                            modifier = semanticsModifier,
+                            iterations = 1,
+                        )
+                    }
                 }
 
                 else -> {
                     val composition by rememberLottieComposition(
-                        LottieCompositionSpec.RawRes(
+                        RawRes(
                             when (variant) {
-                                ButlerMascotMode.Animated.Wink -> R.raw.mascot_lottie_wink
-                                ButlerMascotMode.Animated.Greeting -> R.raw.mascot_lottie_greeting
-                                ButlerMascotMode.Animated.Drink -> R.raw.mascot_lottie_drink
-                                ButlerMascotMode.Animated.MoustacheStroke -> R.raw.mascot_lottie_moustache_stroke
-                                ButlerMascotMode.Animated.Random -> listOf(
-                                    R.raw.mascot_lottie_wink,
-                                    R.raw.mascot_lottie_drink,
-                                    R.raw.mascot_lottie_moustache_stroke,
-                                    R.raw.mascot_lottie_sleep,
-                                    R.raw.mascot_lottie_greeting,
-                                ).random()
-                                ButlerMascotMode.Animated.Sleeping -> error("Handled above")
-                                ButlerMascotMode.Animated.RandomCycling -> error("Handled above")
+                                is ButlerMascotMode.Animated.Wink -> R.raw.mascot_lottie_wink
+                                is ButlerMascotMode.Animated.Greeting -> R.raw.mascot_lottie_greeting
+                                is ButlerMascotMode.Animated.Drink -> R.raw.mascot_lottie_drink
+                                is ButlerMascotMode.Animated.HatOff -> R.raw.mascot_lottie_hatoff
+                                is ButlerMascotMode.Animated.MoustacheStroke -> R.raw.mascot_lottie_moustache_stroke
+                                is ButlerMascotMode.Animated.Sleep -> error("Handled above")
+                                is ButlerMascotMode.Animated.RandomCycling -> error("Handled above")
                             }
                         )
                     )
@@ -154,13 +144,17 @@ sealed interface ButlerMascotMode {
     }
 
     sealed interface Animated : ButlerMascotMode {
-        data object Random : Animated
         data object RandomCycling : Animated
         data object Wink : Animated
         data object Greeting : Animated
+        data object HatOff : Animated
         data object Drink : Animated
         data object MoustacheStroke : Animated
-        data object Sleeping : Animated
+        sealed interface Sleep : Animated {
+            data object EyesClose : Sleep
+            data object Snoring : Sleep
+            data object WakeUp : Sleep
+        }
     }
 }
 
@@ -182,12 +176,13 @@ private fun ButlerMascotStaticPreview() {
 @Composable
 private fun ButlerMascotAnimatedPreview() {
     PreviewWrapper {
-        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Random)
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.RandomCycling)
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Wink)
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Greeting)
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Drink)
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.MoustacheStroke)
-        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Sleeping)
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Sleep.EyesClose)
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Sleep.Snoring)
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Sleep.WakeUp)
     }
 }
