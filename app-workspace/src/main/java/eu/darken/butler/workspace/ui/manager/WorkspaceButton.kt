@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
+import eu.darken.butler.common.compose.LongClickableDropdownMenuItem
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -71,9 +72,7 @@ fun WorkspaceButton(
                 .combinedClickable(
                     onClick = { expanded = true },
                     onLongClick = {
-                        if ((state?.workspaceCount ?: 0) > 0) {
-                            showCloseAllDialog = true
-                        }
+                        workspaceActionHandler?.navToWorkspaceManager()
                     }
                 ),
             contentAlignment = Alignment.Center
@@ -118,18 +117,22 @@ fun WorkspaceButton(
                 }
             )
             if (currentWorkspaceId != null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_button_menu_close_current_action)) },
+                LongClickableDropdownMenuItem(
+                    text = stringResource(R.string.workspace_button_menu_close_current_action),
                     onClick = {
                         expanded = false
                         workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Close(currentWorkspaceId))
                     },
+                    onLongClick = {
+                        expanded = false
+                        showCloseAllDialog = true
+                    },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.TwoTone.Close,
-                            contentDescription = null
+                            contentDescription = null,
                         )
-                    }
+                    },
                 )
             }
         }
