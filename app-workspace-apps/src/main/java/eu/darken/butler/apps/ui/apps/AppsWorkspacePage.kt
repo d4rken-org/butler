@@ -35,13 +35,10 @@ import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogHost
 import eu.darken.butler.apps.ui.apps.items.AppListItem
-import eu.darken.butler.common.ca.CaDrawable
-import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.pkgs.Pkg
-import eu.darken.butler.common.pkgs.features.Installed
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -257,15 +254,15 @@ private fun AppsWorkspacePage(
 @Composable
 private fun AppsWorkspacePagePreview() {
     val mockApps = listOf(
-        createMockAppItem("com.android.chrome", "Chrome", isSystem = false, isEnabled = true),
-        createMockAppItem("com.android.settings", "Settings", isSystem = true, isEnabled = true),
-        createMockAppItem("com.example.notes", "Notes", isSystem = false, isEnabled = true),
-        createMockAppItem("com.android.systemui", "System UI", isSystem = true, isEnabled = true),
-        createMockAppItem("com.spotify.music", "Spotify", isSystem = false, isEnabled = false),
+        AppsMockDataProvider.Presets.chromeItem,
+        AppsMockDataProvider.Presets.settingsItem,
+        AppsMockDataProvider.Presets.notesItem,
+        AppsMockDataProvider.Presets.systemUiItem,
+        AppsMockDataProvider.Presets.disabledAppItem,
     )
 
     val mockState = AppsWorkspaceViewModel.State(
-        appsState = createMockAppsState(apps = mockApps),
+        appsState = AppsMockDataProvider.createMockAppsState(apps = mockApps),
         availableActions = listOf(
             AppsAction.Refresh,
             AppsAction.Sort,
@@ -305,7 +302,7 @@ private fun AppsWorkspacePageLoadingPreview() {
 @Composable
 private fun AppsWorkspacePageEmptyPreview() {
     val mockState = AppsWorkspaceViewModel.State(
-        appsState = createMockAppsState(apps = emptyList()),
+        appsState = AppsMockDataProvider.createMockAppsState(apps = emptyList()),
         availableActions = listOf(
             AppsAction.Refresh,
             AppsAction.Sort,
@@ -328,14 +325,14 @@ private fun AppsWorkspacePageEmptyPreview() {
 @Composable
 private fun AppsWorkspacePageWithSelectionPreview() {
     val mockApps = listOf(
-        createMockAppItem("com.android.chrome", "Chrome", isSystem = false, isEnabled = true),
-        createMockAppItem("com.android.settings", "Settings", isSystem = true, isEnabled = true),
-        createMockAppItem("com.example.notes", "Notes", isSystem = false, isEnabled = true),
-        createMockAppItem("com.spotify.music", "Spotify", isSystem = false, isEnabled = false),
+        AppsMockDataProvider.Presets.chromeItem,
+        AppsMockDataProvider.Presets.settingsItem,
+        AppsMockDataProvider.Presets.notesItem,
+        AppsMockDataProvider.Presets.disabledAppItem,
     )
 
     val mockState = AppsWorkspaceViewModel.State(
-        appsState = createMockAppsState(
+        appsState = AppsMockDataProvider.createMockAppsState(
             apps = mockApps,
             selectedIds = setOf("com.android.chrome", "com.example.notes"),
         ),
@@ -357,50 +354,4 @@ private fun AppsWorkspacePageWithSelectionPreview() {
             workspaceButtonStateSource = flowOf(null),
         )
     }
-}
-
-// Mock data helpers
-private fun createMockAppItem(
-    packageName: String,
-    label: String,
-    isSystem: Boolean,
-    isEnabled: Boolean,
-): AppItem {
-    val mockPkg = object : Installed {
-        override val id = Pkg.Id(packageName)
-        override val packageInfo = android.content.pm.PackageInfo()
-        override val label = label.toCaString()
-        override val icon: CaDrawable? = null
-        override val userHandle = eu.darken.butler.common.user.UserHandle2(0)
-    }
-
-    return AppItem(
-        pkg = mockPkg,
-        label = label.toCaString(),
-        icon = null,
-        packageName = packageName,
-        versionName = "1.0.0",
-        versionCode = 1,
-        appSize = 1024L * 1024L * 50L,
-        isSystemApp = isSystem,
-        isEnabled = isEnabled,
-        isUpdatedSystemApp = false,
-        installedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
-        updatedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-        installerInfo = null,
-    )
-}
-
-private fun createMockAppsState(
-    apps: List<AppItem> = emptyList(),
-    selectedIds: Set<String> = emptySet(),
-): AppsState {
-    return AppsState(
-        apps = apps,
-        filteredApps = apps,
-        selectedAppIds = selectedIds,
-        isLoading = false,
-        filterConfig = AppsState.FilterConfig(),
-        sortSettings = eu.darken.butler.apps.core.engine.SortSettings(),
-    )
 }

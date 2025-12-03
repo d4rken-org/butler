@@ -14,7 +14,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.pkgs.PkgRepo
-import eu.darken.butler.common.pkgs.features.InstallDetails
 import eu.darken.butler.common.pkgs.pkgs
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
@@ -52,18 +51,9 @@ class AppDetailsWorkspace @AssistedInject constructor(
     // Fetch app info from package manager
     private val appInfoFlow: Flow<AppInfo?> = pkgRepo.pkgs().map { pkgs ->
         val pkg = pkgs.firstOrNull { it.id.name == args.packageName } ?: return@map null
-        val installDetails = pkg as? InstallDetails
 
         AppInfo(
-            packageName = pkg.id.name,
-            label = pkg.label ?: pkg.id.name.toCaString(),
-            icon = pkg.icon,
-            versionName = pkg.packageInfo.versionName,
-            versionCode = pkg.packageInfo.longVersionCode,
-            appSize = null, // Size would need separate calculation
-            isSystemApp = installDetails?.isSystemApp == true,
-            isEnabled = installDetails?.isEnabled ?: true,
-            pkgId = pkg.id,
+            install = pkg,
         )
     }
 
@@ -81,8 +71,8 @@ class AppDetailsWorkspace @AssistedInject constructor(
     ) { app, selectedTab ->
         val paths = app?.let { buildAppPaths(it) } ?: emptyList()
         State(
-            app = app,
             selectedTab = selectedTab,
+            app = app,
             availablePaths = paths,
             isLoading = app == null,
             callerWorkspaceId = args.callerWorkspaceId,
