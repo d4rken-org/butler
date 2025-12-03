@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -46,7 +47,6 @@ import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.common.R as CommonR
-import androidx.core.net.toUri
 
 private fun ContentUriHelper.SourceInfo.isMedia(): Boolean {
     return mimeType?.let { it.startsWith("image/") || it.startsWith("video/") } == true
@@ -129,7 +129,9 @@ internal fun SourceFilesList(
             } else {
                 // List view for mixed/non-media files
                 LazyColumn(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 8.dp),
                 ) {
                     items(sourceInfos) { info ->
                         SourceFileRow(info = info)
@@ -148,7 +150,7 @@ private fun SourceFileRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
