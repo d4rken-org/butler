@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -20,6 +21,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import eu.darken.butler.common.R
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 
 @Composable
@@ -56,21 +58,25 @@ fun ButlerMascot(
                     val greetingComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_greeting))
                     val hatoffComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_hatoff))
 
-                    val compositions = listOfNotNull(
-                        winkComposition,
-                        drinkComposition,
-                        moustacheComposition,
-                        sleepComposition,
-                        greetingComposition,
-                        hatoffComposition
-                    )
                     val animatable = rememberLottieAnimatable()
 
-                    LaunchedEffect(compositions) {
-                        animatable.snapTo(composition = compositions.first(), progress = 0f)
+                    LaunchedEffect(Unit) {
+                        // Wait until all compositions are loaded (state reads must be inside snapshotFlow)
+                        val allCompositions = snapshotFlow {
+                            listOfNotNull(
+                                winkComposition,
+                                drinkComposition,
+                                moustacheComposition,
+                                sleepComposition,
+                                greetingComposition,
+                                hatoffComposition
+                            )
+                        }.first { it.size == 6 }
+
+                        animatable.snapTo(composition = allCompositions.first(), progress = 0f)
                         while (currentCoroutineContext().isActive) {
                             repeat((3..9).random()) {
-                                animatable.animate(composition = compositions.random(), iterations = 1)
+                                animatable.animate(composition = allCompositions.random(), iterations = 1)
                                 delay((3000..9000L).random())
                             }
                         }
