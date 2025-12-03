@@ -75,7 +75,8 @@ fun WorkspacePreview(
                                     Workspace.Type.EDITOR -> EditorMockPreview()
                                     Workspace.Type.TEMPLATES -> TemplatesMockPreview()
                                     Workspace.Type.APPS -> AppsMockPreview()
-                                Workspace.Type.APP_DETAILS -> AppsMockPreview() // Reuse apps preview for now
+                                    Workspace.Type.APP_DETAILS -> AppsMockPreview()
+                                    Workspace.Type.SAVER -> EditorMockPreview()
                                 }
                             }
                         }
@@ -87,7 +88,8 @@ fun WorkspacePreview(
                         Workspace.Type.EDITOR -> EditorMockPreview()
                         Workspace.Type.TEMPLATES -> TemplatesMockPreview()
                         Workspace.Type.APPS -> AppsMockPreview()
-                    Workspace.Type.APP_DETAILS -> AppsMockPreview() // Reuse apps preview for now
+                        Workspace.Type.APP_DETAILS -> AppsMockPreview()
+                        Workspace.Type.SAVER -> EditorMockPreview()
                     }
                 }
             }

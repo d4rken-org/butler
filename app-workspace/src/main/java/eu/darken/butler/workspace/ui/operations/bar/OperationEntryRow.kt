@@ -17,8 +17,8 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.HourglassEmpty
 import androidx.compose.material.icons.twotone.Info
-import androidx.compose.material.icons.twotone.Pause
 import androidx.compose.material.icons.twotone.Schedule
+import androidx.compose.material.icons.twotone.TouchApp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -54,7 +54,8 @@ fun OperationEntryRow(
     val showSecondaryText = isBarExpanded || when (operation.state) {
         is OperationDisplay.State.Completed,
         is OperationDisplay.State.Failed,
-        is OperationDisplay.State.Cancelled -> true
+        is OperationDisplay.State.Cancelled,
+        is OperationDisplay.State.Waiting -> true
         else -> false
     }
 
@@ -111,7 +112,7 @@ fun OperationEntryRow(
                                 alpha = 0.7f
                             )
                             is OperationDisplay.State.Running -> Icons.TwoTone.Info to MaterialTheme.colorScheme.onSecondaryContainer
-                            is OperationDisplay.State.Waiting -> Icons.TwoTone.Pause to MaterialTheme.colorScheme.tertiary
+                            is OperationDisplay.State.Waiting -> Icons.TwoTone.TouchApp to MaterialTheme.colorScheme.tertiary
                             else -> Icons.TwoTone.Info to MaterialTheme.colorScheme.onSecondaryContainer
                         }
 
@@ -311,9 +312,8 @@ fun OperationEntryRow(
                     )
                 }
 
-                // Progress bar for running or waiting operations
+                // Progress bar for running operations
                 val progressData = (operation.state as? OperationDisplay.State.Running)?.primaryProgress
-                val isWaiting = operation.state is OperationDisplay.State.Waiting
 
 
                 progressData?.let { progressData ->
@@ -352,12 +352,6 @@ fun OperationEntryRow(
                     }
                 }
 
-                // Show indeterminate progress for waiting operations
-                if (isWaiting) {
-                    LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
             }
         }
 
@@ -587,6 +581,28 @@ private fun OperationEntryRowRunningPreview() {
                         secondary = "Transferring data...".toCaString(),
                         count = Progress.Count.Size(1024 * 1024 * 250, 1024 * 1024 * 500) // 250MB/500MB
                     )
+                ),
+                startedAt = Clock.System.now(),
+            ),
+            onRowClick = {},
+            onActionClick = {},
+            isBarExpanded = false,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun OperationEntryRowWaitingPreview() {
+    PreviewWrapper {
+        OperationEntryRow(
+            operation = OperationDisplay(
+                id = Operation.Id(),
+                title = "Delete operation".toCaString(),
+                description = "Waiting for user input".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Waiting(
+                    reason = "Waiting for user confirmation".toCaString(),
                 ),
                 startedAt = Clock.System.now(),
             ),

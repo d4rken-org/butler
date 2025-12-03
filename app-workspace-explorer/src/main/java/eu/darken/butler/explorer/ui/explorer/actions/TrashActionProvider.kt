@@ -10,19 +10,35 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
 import javax.inject.Inject
 
+/**
+ * Unified action provider for both root trash view and nested trash browsing.
+ * Handles read-only actions: restore and delete permanently.
+ * Root trash also has EmptyBin action.
+ */
 class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
 
     override fun getActions(
         location: ExplorerLocation,
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
-    ): List<ExplorerAction> {
-        if (location !is ExplorerLocation.Trash) return emptyList()
+    ): List<ExplorerAction> = when (location) {
+        is ExplorerLocation.Trash.Root -> getRootActions(location, selectionState, viewStyle)
+        is ExplorerLocation.Trash.Nested -> getNestedActions(selectionState, viewStyle)
+        else -> emptyList()
+    }
 
+    private fun getRootActions(
+        location: ExplorerLocation.Trash.Root,
+        selectionState: ExplorerSelectionState,
+        viewStyle: ExplorerViewStyle,
+    ): List<ExplorerAction> {
         val actions = mutableListOf<ExplorerAction>()
 
-        // Show restore action if items are selected
-        if (selectionState.selectedItems.isNotEmpty()) {
+        if (selectionState.isSelectionMode) {
+            if (!selectionState.isAllSelected) {
+                actions.add(ExplorerAction.Trash.SelectAll)
+            }
+
             actions.add(
                 ExplorerAction.Trash.RestoreSelected(
                     icon = Icons.TwoTone.Restore,
@@ -30,10 +46,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                     isEnabled = true,
                 )
             )
-        }
 
-        // Show delete permanently action if items are selected
-        if (selectionState.selectedItems.isNotEmpty()) {
             actions.add(
                 ExplorerAction.Trash.DeletePermanentlySelected(
                     icon = Icons.TwoTone.DeleteForever,
@@ -41,10 +54,12 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                     isEnabled = true,
                 )
             )
-        }
+        } else {
+            actions.add(ExplorerAction.Common.Refresh())
+            actions.add(ExplorerAction.Common.Sort())
+            actions.add(ExplorerAction.Common.Filter())
+            actions.add(ExplorerAction.Common.UpdateViewStyle(viewStyle))
 
-        // Show empty trash action only when nothing is selected
-        if (selectionState.selectedItems.isEmpty()) {
             actions.add(
                 ExplorerAction.Trash.EmptyBin(
                     icon = Icons.TwoTone.DeleteSweep,
@@ -52,6 +67,42 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                     isEnabled = location.info?.itemCount?.let { it > 0 } ?: false,
                 )
             )
+        }
+
+        return actions
+    }
+
+    private fun getNestedActions(
+        selectionState: ExplorerSelectionState,
+        viewStyle: ExplorerViewStyle,
+    ): List<ExplorerAction> {
+        val actions = mutableListOf<ExplorerAction>()
+
+        if (selectionState.isSelectionMode) {
+            if (!selectionState.isAllSelected) {
+                actions.add(ExplorerAction.TrashNested.SelectAll)
+            }
+
+            actions.add(
+                ExplorerAction.TrashNested.RestoreSelected(
+                    icon = Icons.TwoTone.Restore,
+                    labelRes = R.string.explorer_trash_restore_selected_action,
+                    isEnabled = true,
+                )
+            )
+
+            actions.add(
+                ExplorerAction.TrashNested.DeletePermanentlySelected(
+                    icon = Icons.TwoTone.DeleteForever,
+                    labelRes = R.string.explorer_trash_delete_selected_action,
+                    isEnabled = true,
+                )
+            )
+        } else {
+            actions.add(ExplorerAction.Common.Refresh())
+            actions.add(ExplorerAction.Common.Sort())
+            actions.add(ExplorerAction.Common.Filter())
+            actions.add(ExplorerAction.Common.UpdateViewStyle(viewStyle))
         }
 
         return actions

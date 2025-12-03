@@ -6,6 +6,7 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.Home
+import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,6 +26,7 @@ fun ExplorerInfoBar(
     info: ExplorerLocation.LocationInfo?,
     selectedCount: Int = 0,
     onClearSelection: () -> Unit = {},
+    isTrashDisabled: Boolean = false,
 ) {
     WorkspaceInfoBar(
         modifier = modifier,
@@ -85,21 +87,37 @@ fun ExplorerInfoBar(
                     )
                 }
 
-                is ExplorerLocation.Trash.Info -> {
-                    if (info.itemCount > 0) {
+                is ExplorerLocation.Trash.Root.Info -> {
+                    if (isTrashDisabled && selectedCount == 0) {
                         InfoChip(
-                            icon = Icons.TwoTone.Delete,
-                            label = pluralStringResource(
-                                R.plurals.explorer_infobar_files_count,
-                                info.itemCount,
-                                info.itemCount
-                            ),
+                            icon = Icons.TwoTone.PauseCircle,
+                            label = stringResource(R.string.explorer_trash_disabled_warning),
                         )
-                    } else {
-                        InfoChip(
-                            icon = Icons.TwoTone.Delete,
-                            label = stringResource(R.string.explorer_trash_empty_state),
-                        )
+                    }
+                }
+
+                is ExplorerLocation.Trash.Nested.Info -> {
+                    if (selectedCount == 0) {
+                        if (info.directoryCount != null && info.directoryCount > 0) {
+                            InfoChip(
+                                icon = Icons.TwoTone.Folder,
+                                label = pluralStringResource(
+                                    R.plurals.explorer_infobar_folders_count,
+                                    info.directoryCount,
+                                    info.directoryCount
+                                ),
+                            )
+                        }
+                        if (info.fileCount != null && info.fileCount > 0) {
+                            InfoChip(
+                                icon = Icons.TwoTone.Description,
+                                label = pluralStringResource(
+                                    R.plurals.explorer_infobar_files_count,
+                                    info.fileCount,
+                                    info.fileCount
+                                ),
+                            )
+                        }
                     }
                 }
 
@@ -153,9 +171,36 @@ fun ExplorerInfoBar(
                     }
                 }
 
-                is ExplorerLocation.Trash.Info -> {
+                is ExplorerLocation.Trash.Root.Info -> {
+                    if(selectedCount > 0) return@WorkspaceInfoBar
                     Spacer(modifier = Modifier.weight(1f))
                     if (info.totalSize > 0) {
+                        InfoChip(
+                            icon = Icons.TwoTone.Storage,
+                            label = formatFileSize(info.totalSize),
+                        )
+                    }
+                    if (info.itemCount > 0) {
+                        InfoChip(
+                            icon = Icons.TwoTone.Delete,
+                            label = pluralStringResource(
+                                R.plurals.explorer_infobar_files_count,
+                                info.itemCount,
+                                info.itemCount
+                            ),
+                        )
+                    } else {
+                        InfoChip(
+                            icon = Icons.TwoTone.Delete,
+                            label = stringResource(R.string.explorer_trash_empty_state),
+                        )
+                    }
+                }
+
+                is ExplorerLocation.Trash.Nested.Info -> {
+                    if (selectedCount > 0) return@WorkspaceInfoBar
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (info.totalSize != null && info.totalSize > 0) {
                         InfoChip(
                             icon = Icons.TwoTone.Storage,
                             label = formatFileSize(info.totalSize),

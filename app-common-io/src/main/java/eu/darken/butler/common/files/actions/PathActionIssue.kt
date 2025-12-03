@@ -104,4 +104,45 @@ sealed interface PathActionIssue : Issue {
             data class Cancel(val error: Exception? = null) : Resolution
         }
     }
+
+    data class TrashSizeLimitExceeded(
+        override val id: Issue.Id = Issue.Id(),
+        val totalSize: Long,
+        val itemCount: Int,
+        val trashMaxSize: Long,
+    ) : PathActionIssue {
+        override val title: CaString = caString {
+            getString(eu.darken.butler.common.io.R.string.path_action_trash_size_limit_title)
+        }
+        override val description: CaString = caString {
+            getString(
+                eu.darken.butler.common.io.R.string.path_action_trash_size_limit_description,
+                itemCount,
+                android.text.format.Formatter.formatFileSize(it, totalSize),
+                android.text.format.Formatter.formatFileSize(it, trashMaxSize),
+            )
+        }
+        sealed interface Resolution : PathActionIssue.Resolution {
+            data object DeletePermanently : Resolution
+            data class Cancel(val error: Exception? = null) : Resolution
+        }
+    }
+
+    data class TrashMoveFailed(
+        override val id: Issue.Id = Issue.Id(),
+        val failedItems: List<APathLookup<out APath<*>>>,
+        val exception: Throwable? = null,
+    ) : PathActionIssue {
+        override val title: CaString = caString {
+            getString(eu.darken.butler.common.io.R.string.path_action_trash_move_failed_title)
+        }
+        override val description: CaString = caString {
+            getString(eu.darken.butler.common.io.R.string.path_action_trash_move_failed_description, failedItems.size)
+        }
+        sealed interface Resolution : PathActionIssue.Resolution {
+            data object DeletePermanently : Resolution
+            data object Skip : Resolution
+            data class Cancel(val error: Exception? = null) : Resolution
+        }
+    }
 }

@@ -104,6 +104,7 @@ class DeleteOperation @AssistedInject constructor(
 
                     is CoreDeleteExecutor.State.Completed -> {
                         val result = coreState.result
+                        reportBuilder.setTrashed(result.trashed)
                         reportBuilder.setDeletions(result.deleted)
                         reportBuilder.setSkipped(result.skipped)
                         reportBuilder.setBytesFreed(result.bytesFreed)

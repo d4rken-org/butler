@@ -31,6 +31,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
         EDITOR,
         APPS,
         APP_DETAILS,
+        SAVER,
         ;
     }
 

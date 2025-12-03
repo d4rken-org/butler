@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import eu.darken.butler.apps.core.engine.AppItem
+import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
@@ -115,7 +116,40 @@ fun AppListItem(
 @Composable
 private fun AppListItemPreview() {
     PreviewWrapper {
-        // Preview would need a proper AppItem mock
-        // For now, just showing the structure
+        AppListItem(
+            item = AppsMockDataProvider.Presets.chromeItem,
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = false,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppListItemSelectedPreview() {
+    PreviewWrapper {
+        AppListItem(
+            item = AppsMockDataProvider.Presets.settingsItem,
+            isSelected = true,
+            onClick = {},
+            onLongClick = {},
+            showSelection = true,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppListItemDisabledPreview() {
+    PreviewWrapper {
+        AppListItem(
+            item = AppsMockDataProvider.Presets.disabledAppItem,
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = false,
+        )
     }
 }

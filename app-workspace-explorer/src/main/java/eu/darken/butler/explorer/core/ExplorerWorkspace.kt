@@ -42,6 +42,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -101,6 +104,17 @@ class ExplorerWorkspace @AssistedInject constructor(
                 ?: error("callerWorkspaceId required for picker mode"),
             selection = it.selection,
         )
+    }
+
+    // SaveAs filename state (only used when pickerConfig.selection is SaveAs)
+    private val _saveAsFilename = MutableStateFlow(
+        (pickerConfig?.selection as? PickerConfig.Selection.SaveAs)?.suggestedFilename ?: ""
+    )
+    val saveAsFilename: StateFlow<String> = _saveAsFilename.asStateFlow()
+
+    fun updateSaveAsFilename(filename: String) {
+        log(tag) { "updateSaveAsFilename($filename)" }
+        _saveAsFilename.value = filename
     }
 
 

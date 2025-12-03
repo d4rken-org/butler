@@ -13,6 +13,8 @@ import eu.darken.butler.workspace.core.operations.Operation.Report.*
 data class DeleteOperationReport(
     override val affectedPaths: Collection<PathChange>,
     val skipped: Collection<APathLookup<*>>,
+    val trashedFiles: Int,
+    val trashedDirectories: Int,
     val deletedFiles: Int,
     val deletedDirectories: Int,
     val bytesFreed: Long,
@@ -21,6 +23,18 @@ data class DeleteOperationReport(
 
     override val summary: CaString = caString {
         buildString {
+            if (trashedFiles > 0) {
+                append(
+                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_files_trashed, trashedFiles)
+                )
+                append(" ")
+            }
+            if (trashedDirectories > 0) {
+                append(
+                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_directories_trashed, trashedDirectories)
+                )
+                append(" ")
+            }
             if (deletedFiles > 0) {
                 append(
                     it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_files_deleted, deletedFiles)
@@ -52,15 +66,25 @@ data class DeleteOperationReport(
     }
 
     override fun toString(): String {
-        return "DeleteOperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, deletedFiles=$deletedFiles, deletedDirectories=$deletedDirectories, bytesFreed=$bytesFreed, performanceHistory=${performanceHistory?.samples?.size} samples)"
+        return "DeleteOperationReport(affectedPaths=${affectedPaths.size}, skipped=${skipped.size}, trashedFiles=$trashedFiles, trashedDirectories=$trashedDirectories, deletedFiles=$deletedFiles, deletedDirectories=$deletedDirectories, bytesFreed=$bytesFreed, performanceHistory=${performanceHistory?.samples?.size} samples)"
     }
 
     class Builder {
         private val affectedPaths = mutableListOf<PathChange>()
         private val skipped = mutableListOf<APathLookup<*>>()
+        private var trashedFiles: Int = 0
+        private var trashedDirectories: Int = 0
         private var deletedFiles: Int = 0
         private var deletedDirectories: Int = 0
         private var performanceHistory: PerformanceHistory? = null
+
+        fun setTrashed(items: Set<APathLookup<*>>) {
+            val affected = items.map {
+                if (it.isDirectory) trashedDirectories++ else trashedFiles++
+                PathChange(it.lookedUp, PathChange.Change.TRASHED)
+            }
+            affectedPaths.addAll(affected)
+        }
 
         fun setDeletions(items: Set<APathLookup<*>>) {
             val affected = items.map {
@@ -87,6 +111,8 @@ data class DeleteOperationReport(
         fun build(): DeleteOperationReport = DeleteOperationReport(
             affectedPaths = affectedPaths.distinct(),
             skipped = skipped,
+            trashedFiles = trashedFiles,
+            trashedDirectories = trashedDirectories,
             deletedFiles = deletedFiles,
             deletedDirectories = deletedDirectories,
             bytesFreed = bytesFreed,

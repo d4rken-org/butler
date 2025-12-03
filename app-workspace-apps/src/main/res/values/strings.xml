@@ -41,6 +41,7 @@
     <string name="apps_action_select_all">Select all</string>
     <string name="apps_action_deselect_all">Deselect all</string>
     <string name="apps_action_open_in_tab">Open in tab</string>
+    <string name="apps_action_force_stop">Force stop</string>
 
     <!-- Action Descriptions -->
     <string name="apps_action_launch_desc">Start the application</string>
@@ -50,6 +51,15 @@
     <string name="apps_action_uninstall_desc">Remove this application</string>
     <string name="apps_action_export_apk_desc">Save APK file to storage</string>
     <string name="apps_action_share_desc">Share APK file with other apps</string>
+    <string name="apps_action_force_stop_desc">Stop the application immediately</string>
+    <string name="apps_action_clear_cache_desc">Delete temporary cached files</string>
+    <string name="apps_action_clear_data_desc">Delete all app data and settings</string>
+
+    <!-- Action Groups -->
+    <string name="apps_actions_group_primary">Quick Actions</string>
+    <string name="apps_actions_group_management">Management</string>
+    <string name="apps_actions_group_export">Export</string>
+    <string name="apps_actions_group_destructive">Danger Zone</string>
 
     <!-- App Info Labels -->
     <string name="apps_package_name_label">Package</string>
@@ -60,6 +70,8 @@
     <string name="apps_details_storage_locations_label">Storage locations</string>
     <string name="apps_path_internal_data_label">Internal data</string>
     <string name="apps_path_external_data_label">External storage</string>
+    <string name="apps_storage_breakdown_label">Storage Breakdown</string>
+    <string name="apps_storage_app_label">Application</string>
 
     <!-- App Details Tabs -->
     <string name="appdetails_tab_overview_label">Overview</string>
@@ -116,5 +128,16 @@
     <string name="apps_status_label">Status</string>
     <string name="apps_status_enabled">Enabled</string>
     <string name="apps_status_disabled">Disabled</string>
+    <string name="apps_installed_label">Installed</string>
+    <string name="apps_updated_label">Last updated</string>
+    <string name="apps_target_sdk_label">Target SDK</string>
+    <string name="apps_min_sdk_label">Minimum SDK</string>
+    <string name="apps_uid_label">UID</string>
+    <string name="apps_installer_label">Installed by</string>
+    <string name="apps_permissions_label">Permissions</string>
+    <string name="apps_permissions_count">%1$d permissions</string>
+    <string name="apps_data_size_label">Data</string>
+    <string name="apps_cache_size_label">Cache</string>
+    <string name="apps_total_size_label">Total</string>
 
 </resources>

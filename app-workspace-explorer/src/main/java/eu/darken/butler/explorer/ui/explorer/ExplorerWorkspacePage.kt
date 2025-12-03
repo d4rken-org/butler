@@ -77,11 +77,13 @@ import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.StorageGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.TrashItemGrid
+import eu.darken.butler.explorer.ui.explorer.items.grid.TrashNestedItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.row.LookupItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.PeekRow
 import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
+import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
 import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.picker.ExplorerPickerTopBar
@@ -414,6 +416,8 @@ fun ExplorerWorkspacePage(
                         breadcrumbs = mainState.breadcrumbs.takeIf { it.isNotEmpty() },
                         currentLocation = mainState.currentLocation,
                         scrollBehavior = scrollBehavior,
+                        saveAsFilename = mainState.saveAsFilename,
+                        onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
                         onBreadcrumbClick = { navigation -> vm?.navigate(navigation) },
                         onCancel = { vm?.cancelPicker() },
                         onConfirm = { vm?.confirmPickerSelection() },
@@ -450,7 +454,9 @@ fun ExplorerWorkspacePage(
                             info = mainState.info,
                             selectedCount = mainState.selectionState.selectedItems.size,
                             onClearSelection = { vm?.clearSelection() },
-                            modifier = Modifier.padding(horizontal = 16.dp)
+                            isTrashDisabled = !mainState.trashEnabled,
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
                         )
 
                         mainState.error?.let { error ->
@@ -572,7 +578,18 @@ fun ExplorerWorkspacePage(
                                                                 item in mainStateSnap.selectionState.selectableItems
                                                         )
 
-                                                    is ExplorerItem.TrashItem -> TrashItemRow(
+                                                    is ExplorerItem.Trash.Root -> TrashItemRow(
+                                                        item = item,
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
+                                                            item
+                                                        ),
+                                                        onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                        onClick = { vm?.onItemClick(item) },
+                                                        onLongClick = { vm?.onItemLongClick(item) },
+                                                        showSelection = mainStateSnap.shouldShowSelection(item)
+                                                    )
+
+                                                    is ExplorerItem.Trash.Nested -> TrashNestedItemRow(
                                                         item = item,
                                                         isSelected = mainStateSnap.selectionState.selectedItems.contains(
                                                             item
@@ -654,7 +671,18 @@ fun ExplorerWorkspacePage(
                                                             item = item
                                                         )
 
-                                                    is ExplorerItem.TrashItem -> TrashItemGrid(
+                                                    is ExplorerItem.Trash.Root -> TrashItemGrid(
+                                                        item = item,
+                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
+                                                            item
+                                                        ),
+                                                        onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                        onClick = { vm?.onItemClick(item) },
+                                                        onLongClick = { vm?.onItemLongClick(item) },
+                                                        showSelection = mainStateSnap.shouldShowSelection(item)
+                                                    )
+
+                                                    is ExplorerItem.Trash.Nested -> TrashNestedItemGrid(
                                                         item = item,
                                                         isSelected = mainStateSnap.selectionState.selectedItems.contains(
                                                             item

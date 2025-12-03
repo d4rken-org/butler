@@ -30,6 +30,7 @@ data class WorkspaceInstanceEntity(
     val sessionId: String,
     val type: Workspace.Type,
     val orderIndex: Int,
+    val createdAt: Instant,
     val lastModified: Instant,
     val arguments: String,
 )

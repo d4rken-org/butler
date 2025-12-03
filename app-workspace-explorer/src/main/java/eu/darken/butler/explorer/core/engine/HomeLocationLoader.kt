@@ -6,29 +6,34 @@ import android.os.StatFs
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.PhoneAndroid
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.trash.TrashRepo
+import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class HomeLocationLoader @Inject constructor(
+class HomeLocationLoader @AssistedInject constructor(
+    @Assisted private val workspaceId: Workspace.Id,
     private val trashRepo: TrashRepo,
+    private val trashSettings: TrashSettings,
 ) {
 
-    private val tag = logTag("Explorer", "HomeLocationLoader")
+    private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "HomeLoader")
 
     private suspend fun checkLocationRequirements(): PathRequirements {
         log(tag) { "checkLocationRequirements(): Checking requirements for Home" }
@@ -54,36 +59,46 @@ class HomeLocationLoader @Inject constructor(
         val trashItems = trashRepo.getAllItems().first()
         val trashSize = trashItems.sumOf { it.size }
         val trashCount = trashItems.size
+        val trashEnabled = trashSettings.enabled.value()
 
-        val shortcuts = listOf(
-            ExplorerItem.Shortcut(
-                shortcutId = "device",
-                displayIcon = Icons.TwoTone.PhoneAndroid,
-                displayName = R.string.explorer_navigation_device.toCaString(),
-                target = ExplorerNavigation.Target.Device,
-                subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.SDK_INT})" },
-            ),
-            ExplorerItem.Shortcut(
-                shortcutId = "trash",
-                displayIcon = Icons.TwoTone.Delete,
-                displayName = R.string.explorer_navigation_trash.toCaString(),
-                target = ExplorerNavigation.Target.Trash,
-                subtitle = caString { cx ->
-                    when {
-                        trashCount == 0 -> cx.getString(R.string.explorer_trash_empty_state)
-                        else -> {
+        val shortcuts = buildList {
+            add(
+                ExplorerItem.Shortcut(
+                    shortcutId = "device",
+                    displayIcon = Icons.TwoTone.PhoneAndroid,
+                    displayName = R.string.explorer_navigation_device.toCaString(),
+                    target = ExplorerNavigation.Target.Device,
+                    subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.SDK_INT})" },
+                )
+            )
+            
+            if (trashEnabled || trashCount > 0) {
+                val trashBadge = if (!trashEnabled) ExplorerItem.Shortcut.Badge.PAUSED else null
+                add(
+                    ExplorerItem.Shortcut(
+                        shortcutId = "trash",
+                        displayIcon = Icons.TwoTone.Delete,
+                        displayName = R.string.explorer_navigation_trash.toCaString(),
+                        target = ExplorerNavigation.Target.Trash.Root,
+                        badge = trashBadge,
+                        subtitle = caString { cx ->
                             val countText = cx.resources.getQuantityString(
                                 R.plurals.explorer_trash_item_count,
                                 trashCount,
                                 trashCount,
                             )
                             val sizeText = formatFileSize(cx, trashSize)
-                            "$countText • $sizeText"
-                        }
-                    }
-                },
-            ),
-        )
+                            if (trashEnabled) {
+                                "$countText • $sizeText "
+                            } else {
+                                val disabledText = cx.getString(R.string.explorer_trash_disabled_warning)
+                                "$disabledText • $countText • $sizeText "
+                            }
+                        },
+                    )
+                )
+            }
+        }
 
         // Calculate device storage info
         val stat = try {
@@ -108,5 +123,10 @@ class HomeLocationLoader @Inject constructor(
                 progress = null,
             )
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(workspaceId: Workspace.Id): HomeLocationLoader
     }
 }

@@ -176,6 +176,11 @@ sealed interface ExplorerAction : WorkspaceAction {
     sealed interface Home : ExplorerAction
 
     sealed interface Trash : ExplorerAction {
+        object SelectAll : Trash {
+            override val icon = Icons.TwoTone.SelectAll
+            override val label = R.string.explorer_action_select_all.toCaString()
+        }
+
         data class RestoreSelected(
             override val icon: ImageVector,
             val labelRes: Int,
@@ -201,6 +206,36 @@ sealed interface ExplorerAction : WorkspaceAction {
             override val isEnabled: Boolean = true,
             override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
         ) : Trash {
+            override val label = labelRes.toCaString()
+            override val isDestructive = true
+        }
+    }
+
+    /**
+     * Actions for browsing inside a trashed folder (read-only).
+     * No create/paste/rename operations allowed.
+     */
+    sealed interface TrashNested : ExplorerAction {
+        object SelectAll : TrashNested {
+            override val icon = Icons.TwoTone.SelectAll
+            override val label = R.string.explorer_action_select_all.toCaString()
+        }
+
+        data class RestoreSelected(
+            override val icon: ImageVector,
+            val labelRes: Int,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+        ) : TrashNested {
+            override val label = labelRes.toCaString()
+        }
+
+        data class DeletePermanentlySelected(
+            override val icon: ImageVector,
+            val labelRes: Int,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+        ) : TrashNested {
             override val label = labelRes.toCaString()
             override val isDestructive = true
         }

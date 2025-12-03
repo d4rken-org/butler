@@ -63,6 +63,7 @@ import java.util.Date
 @Composable
 fun FileOptionsBottomSheet(
     item: ExplorerItem.File,
+    trashEnabled: Boolean,
     onDismiss: () -> Unit,
     onOpenInEditor: () -> Unit,
     onOpenWith: () -> Unit,
@@ -81,6 +82,7 @@ fun FileOptionsBottomSheet(
     ) {
         FileOptionsContent(
             item = item,
+            trashEnabled = trashEnabled,
             onOpenInEditor = onOpenInEditor,
             onOpenWith = onOpenWith,
             onShare = onShare,
@@ -96,6 +98,7 @@ fun FileOptionsBottomSheet(
 @Composable
 private fun FileOptionsContent(
     item: ExplorerItem.File,
+    trashEnabled: Boolean,
     onOpenInEditor: () -> Unit,
     onOpenWith: () -> Unit,
     onShare: () -> Unit,
@@ -112,8 +115,8 @@ private fun FileOptionsContent(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(top = 16.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Preview and file info section
         Row(
@@ -168,7 +171,7 @@ private fun FileOptionsContent(
             // File information
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 // File name
                 Text(
@@ -280,10 +283,16 @@ private fun FileOptionsContent(
 
         FileActionRow(
             icon = Icons.TwoTone.Delete,
-            title = stringResource(R.string.explorer_file_action_delete),
-            subtitle = stringResource(R.string.explorer_file_action_delete_subtitle),
+            title = stringResource(
+                if (trashEnabled) R.string.explorer_file_action_move_to_trash
+                else R.string.explorer_file_action_delete
+            ),
+            subtitle = stringResource(
+                if (trashEnabled) R.string.explorer_file_action_move_to_trash_subtitle
+                else R.string.explorer_file_action_delete_subtitle
+            ),
             onClick = onDelete,
-            isDestructive = true
+            isDestructive = !trashEnabled,
         )
 
         FileActionRow(
@@ -336,7 +345,7 @@ private fun FileActionRow(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 8.dp, horizontal = 8.dp),
+            .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -379,6 +388,7 @@ private fun FileOptionsBottomSheetPreview() {
 
         FileOptionsBottomSheet(
             item = mockItem,
+            trashEnabled = true,
             onDismiss = {},
             onOpenInEditor = {},
             onOpenWith = {},

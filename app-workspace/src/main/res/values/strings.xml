@@ -43,6 +43,7 @@
     <string name="workspace_templates_label">Templates</string>
     <string name="workspace_apps_label">Apps</string>
     <string name="workspace_appdetails_label">App details</string>
+    <string name="workspace_saver_label">Save as</string>
 
     <!-- Workspace UI Actions -->
     <string name="workspace_expand_more_action">More</string>
@@ -88,6 +89,7 @@
     <string name="operations_details_path_added_marker">A</string>
     <string name="operations_details_path_removed_marker">D</string>
     <string name="operations_details_path_modified_marker">M</string>
+    <string name="operations_details_path_trashed_marker">T</string>
     <string name="workspace_operations_performance_graph_label">Performance graph</string>
 
     <!-- Delete Confirmation Dialog -->
@@ -146,6 +148,17 @@
         <item quantity="other">%1$s freed.</item>
     </plurals>
 
+    <!-- Trash Operation Reports -->
+    <string name="workspace_operation_progress_moving_to_trash">Moving to trash…</string>
+    <plurals name="workspace_operation_report_files_trashed">
+        <item quantity="one">%1$d file trashed.</item>
+        <item quantity="other">%1$d files trashed.</item>
+    </plurals>
+    <plurals name="workspace_operation_report_directories_trashed">
+        <item quantity="one">%1$d directory trashed.</item>
+        <item quantity="other">%1$d directories trashed.</item>
+    </plurals>
+
     <string name="workspace_operation_progress_bytes_speed_freed">%1$s/s freed.</string>
     <string name="workspace_operation_progress_bytes_freed">%1$s freed.</string>
     <string name="workspace_operation_progress_time_remaining">%1$s remaining.</string>
@@ -197,6 +210,9 @@
     <string name="workspace_issue_common_rename_new">Rename new</string>
     <string name="workspace_issue_common_rename_existing">Rename existing</string>
     <string name="workspace_issue_common_cancel">Cancel</string>
+    <string name="workspace_issue_common_delete_permanently">Delete permanently</string>
+    <string name="workspace_issue_trash_move_failed_items_label">Failed items</string>
+    <string name="workspace_issue_trash_move_failed_more_items">… and %1$d more items</string>
     <string name="workspace_issue_apply_all">Apply to all remaining issues</string>
     <string name="workspace_issue_rename_new_name">New name</string>
     <string name="workspace_issue_rename_dialog_title_new">Rename incoming file</string>

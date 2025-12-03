@@ -28,11 +28,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
+import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.TintedAsyncImage
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -74,7 +76,6 @@ fun AppDetailsToolbarCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(cardPadding),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Back button (modal mode)
@@ -95,11 +96,11 @@ fun AppDetailsToolbarCard(
             }
 
             // App icon
-            if (app?.icon != null) {
-                AsyncImage(
-                    model = app.icon.get(context),
-                    contentDescription = null,
-                    modifier = Modifier.size(iconSize),
+            if (app != null) {
+                TintedAsyncImage(
+                    model = app.install,
+                    contentDescription = app.label.asComposable(),
+                    modifier = Modifier.size(40.dp)
                 )
             } else {
                 Icon(
@@ -109,6 +110,8 @@ fun AppDetailsToolbarCard(
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
+
+            Spacer(modifier = Modifier.width(8.dp))
 
             // App name
             Column(
@@ -152,7 +155,7 @@ fun AppDetailsToolbarCard(
 private fun AppDetailsToolbarCardExpandedPreview() {
     PreviewWrapper {
         AppDetailsToolbarCard(
-            app = null,
+            app = AppsMockDataProvider.Presets.chrome,
             design = WorkspaceDesign(),
             isModal = false,
             collapsedFraction = 0f,
@@ -169,7 +172,7 @@ private fun AppDetailsToolbarCardExpandedPreview() {
 private fun AppDetailsToolbarCardCollapsedPreview() {
     PreviewWrapper {
         AppDetailsToolbarCard(
-            app = null,
+            app = AppsMockDataProvider.Presets.largeApp,
             design = WorkspaceDesign(),
             isModal = false,
             collapsedFraction = 1f,
@@ -186,7 +189,7 @@ private fun AppDetailsToolbarCardCollapsedPreview() {
 private fun AppDetailsToolbarCardModalPreview() {
     PreviewWrapper {
         AppDetailsToolbarCard(
-            app = null,
+            app = AppsMockDataProvider.Presets.disabledApp,
             design = WorkspaceDesign(),
             isModal = true,
             collapsedFraction = 0f,

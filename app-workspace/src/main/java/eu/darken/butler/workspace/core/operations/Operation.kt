@@ -41,6 +41,7 @@ interface Operation {
 
             data class Explorer(override val workspaceId: Workspace.Id) : Origin
             data class Searcher(override val workspaceId: Workspace.Id) : Origin
+            data class Saver(override val workspaceId: Workspace.Id) : Origin
         }
     }
 
@@ -81,7 +82,7 @@ interface Operation {
             val change: Change,
         ) {
             enum class Change {
-                ADDED, REMOVED, MODIFIED
+                ADDED, REMOVED, MODIFIED, TRASHED
             }
         }
     }

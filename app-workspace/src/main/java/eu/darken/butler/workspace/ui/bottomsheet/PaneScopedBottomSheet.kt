@@ -12,13 +12,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -26,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 
 /**
  * A bottom sheet that is scoped to a specific workspace pane instead of being a global window-level overlay.
@@ -43,9 +46,9 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun PaneScopedBottomSheet(
+    modifier: Modifier = Modifier,
     visible: Boolean,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     // In preview mode, just show the content as a card
@@ -103,6 +106,33 @@ fun PaneScopedBottomSheet(
                 ) {
                     content()
                 }
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun PaneScopedBottomSheetPreview() {
+    PreviewWrapper {
+        PaneScopedBottomSheet(
+            visible = true,
+            onDismiss = {},
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Bottom Sheet Title",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                Text(
+                    text = "This is sample content for the pane-scoped bottom sheet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
             }
         }
     }

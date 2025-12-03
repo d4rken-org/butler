@@ -65,6 +65,20 @@
                 <action android:name="eu.darken.butler.EXPLORER_NEW" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+
+            <!-- Intent filter for ACTION_SEND (Save as...) -->
+            <intent-filter android:label="@string/saver_share_label">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+
+            <!-- Intent filter for ACTION_SEND_MULTIPLE (Save multiple files as...) -->
+            <intent-filter android:label="@string/saver_share_label">
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
         </activity>
 
         <provider

@@ -23,6 +23,7 @@ import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -291,6 +292,18 @@ object MockDataProvider {
         )
     }
 
+    fun createMockTrashSizeLimitIssue(
+        totalSize: Long = 700L * 1024 * 1024, // 700MB
+        itemCount: Int = 5,
+        trashMaxSize: Long = 500L * 1024 * 1024, // 500MB
+    ): PathActionIssue.TrashSizeLimitExceeded {
+        return PathActionIssue.TrashSizeLimitExceeded(
+            totalSize = totalSize,
+            itemCount = itemCount,
+            trashMaxSize = trashMaxSize,
+        )
+    }
+
     // MARK: - Operation State Factories
 
     fun createMockRunningOperation(
@@ -506,6 +519,131 @@ object MockDataProvider {
             displayName = name.toCaString(),
             displayIcon = icon,
             target = ExplorerNavigation.Target.Device
+        )
+    }
+
+    // MARK: - Trash Item Factories
+
+    fun createMockTrashItem(
+        name: String = "deleted_file.txt",
+        originalPath: String = "/storage/emulated/0/Documents",
+        sizeKB: Long = 128,
+        deletedHoursAgo: Long = 2,
+        isAvailable: Boolean = true,
+    ): ExplorerItem.Trash.Root {
+        val originalLookup = createMockLocalPathLookup(
+            path = "$originalPath/$name",
+            fileType = FileType.FILE,
+            sizeKB = sizeKB,
+            hoursAgo = deletedHoursAgo + 24, // Original file modified before deletion
+        )
+        val trashLookup = if (isAvailable) {
+            createMockLocalPathLookup(
+                path = "/data/user/0/eu.darken.butler/trash/${Uuid.random()}/$name",
+                fileType = FileType.FILE,
+                sizeKB = sizeKB,
+                hoursAgo = deletedHoursAgo,
+            )
+        } else null
+
+        return ExplorerItem.Trash.Root(
+            itemId = Uuid.random(),
+            deletedAt = MockTimes.hoursAgo(deletedHoursAgo),
+            originalLookup = originalLookup,
+            trashLookup = trashLookup,
+        )
+    }
+
+    fun createMockTrashItemOld(
+        name: String = "old_backup.zip",
+        originalPath: String = "/storage/emulated/0/Downloads",
+        sizeKB: Long = 5120,
+        deletedDaysAgo: Long = 14,
+    ): ExplorerItem.Trash.Root {
+        val originalLookup = createMockLocalPathLookup(
+            path = "$originalPath/$name",
+            fileType = FileType.FILE,
+            sizeKB = sizeKB,
+            hoursAgo = deletedDaysAgo * 24 + 48,
+        )
+        val trashLookup = createMockLocalPathLookup(
+            path = "/data/user/0/eu.darken.butler/trash/${Uuid.random()}/$name",
+            fileType = FileType.FILE,
+            sizeKB = sizeKB,
+            hoursAgo = deletedDaysAgo * 24,
+        )
+
+        return ExplorerItem.Trash.Root(
+            itemId = Uuid.random(),
+            deletedAt = MockTimes.daysAgo(deletedDaysAgo),
+            originalLookup = originalLookup,
+            trashLookup = trashLookup,
+        )
+    }
+
+    // MARK: - Trash Nested Item Factories
+
+    private fun createMockParentRef(
+        originalPath: String = "/storage/emulated/0/Documents/MyFolder",
+        trashPath: String = "/data/user/0/eu.darken.butler/trash",
+    ): TrashItemReference {
+        val itemId = Uuid.random()
+        return TrashItemReference(
+            itemId = itemId,
+            displayName = originalPath.substringAfterLast("/").toCaString(),
+            originalPath = LocalPath.build(originalPath),
+            trashPath = LocalPath.build("$trashPath/$itemId"),
+            deletedAt = MockTimes.hoursAgo(2),
+        )
+    }
+
+    fun createMockTrashNestedItem(
+        name: String = "nested_file.txt",
+        relativePath: String? = null,
+        sizeKB: Long = 64,
+    ): ExplorerItem.Trash.Nested {
+        val actualRelativePath = relativePath ?: name
+        val parentRef = createMockParentRef()
+
+        val lookup = createMockLocalPathLookup(
+            path = "${parentRef.trashPath.path}/$actualRelativePath",
+            fileType = FileType.FILE,
+            sizeKB = sizeKB,
+            hoursAgo = 2,
+        )
+
+        return ExplorerItem.Trash.Nested(
+            inner = ExplorerItem.RegularFile(
+                lookup = lookup,
+                mimeType = MimeInfo("application/octet-stream"),
+            ),
+            parentRef = parentRef,
+            relativePath = actualRelativePath,
+        )
+    }
+
+    fun createMockTrashNestedDirectory(
+        name: String = "nested_folder",
+        relativePath: String? = null,
+        childCount: Int = 5,
+    ): ExplorerItem.Trash.Nested {
+        val actualRelativePath = relativePath ?: name
+        val parentRef = createMockParentRef()
+
+        val lookup = createMockLocalPathLookup(
+            path = "${parentRef.trashPath.path}/$actualRelativePath",
+            fileType = FileType.DIRECTORY,
+            sizeKB = 0,
+            hoursAgo = 2,
+        )
+
+        return ExplorerItem.Trash.Nested(
+            inner = ExplorerItem.RegularDirectory(
+                lookup = lookup,
+                childCount = childCount,
+            ),
+            parentRef = parentRef,
+            relativePath = actualRelativePath,
         )
     }
 }

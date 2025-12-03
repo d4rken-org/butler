@@ -3,6 +3,7 @@ package eu.darken.butler.apps.core.details
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import androidx.core.net.toUri
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -14,7 +15,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
-import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.isEnabled
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.workspace.core.Workspace
@@ -55,12 +56,23 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
 
     fun onLaunchApp(app: AppInfo) = launch {
         log(tag) { "Launching app: ${app.packageName}" }
-        launchApp(app.pkgId)
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(app.packageName)
+        if (launchIntent != null) {
+            context.startActivity(launchIntent.apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            })
+        } else {
+            log(tag, WARN) { "No launch intent found for: ${app.packageName}" }
+        }
     }
 
     fun onShowAppInfo(app: AppInfo) {
         log(tag) { "Opening app info: ${app.packageName}" }
-        openAppInfo(app.pkgId)
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = "package:${app.packageName}".toUri()
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
     }
 
     fun onBrowsePath(path: eu.darken.butler.common.files.APath<*>) = launch {
@@ -90,7 +102,7 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun onEnableDisable(app: AppInfo) = launch {
-        log(tag) { "Toggle enable/disable: ${app.packageName}, current=${app.isEnabled}" }
+        log(tag) { "Toggle enable/disable: ${app.packageName}, current=${app.install.isEnabled}" }
         // TODO: Implement enable/disable operation
         log(tag, WARN) { "Enable/disable not implemented yet" }
     }
@@ -98,25 +110,6 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     fun close() = launch {
         log(tag) { "Closing app details workspace" }
         workspaceRemote.execute(eu.darken.butler.workspace.core.WorkspaceAction.Close(id))
-    }
-
-    private fun launchApp(pkgId: Pkg.Id) {
-        val launchIntent = context.packageManager.getLaunchIntentForPackage(pkgId.name)
-        if (launchIntent != null) {
-            context.startActivity(launchIntent.apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            })
-        } else {
-            log(tag, WARN) { "No launch intent found for: ${pkgId.name}" }
-        }
-    }
-
-    private fun openAppInfo(pkgId: Pkg.Id) {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = android.net.Uri.parse("package:${pkgId.name}")
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(intent)
     }
 
     @AssistedFactory
