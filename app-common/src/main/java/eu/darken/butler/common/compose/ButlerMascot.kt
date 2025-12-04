@@ -15,7 +15,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec.*
-import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
 import eu.darken.butler.common.R
@@ -23,11 +22,12 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
+import kotlin.time.Duration
 
 @Composable
 fun ButlerMascot(
     modifier: Modifier = Modifier,
-    contentDescription: String? = stringResource(R.string.butler_mascot_description),
+    contentDescription: String? = null,
     variant: ButlerMascotMode = ButlerMascotMode.Static.Normal,
 ) {
     when (variant) {
@@ -40,14 +40,13 @@ fun ButlerMascot(
                     ButlerMascotMode.Static.Ko -> R.drawable.mascot_ko
                 }
             ),
-            contentDescription = contentDescription,
+            contentDescription = contentDescription ?: stringResource(R.string.butler_mascot_description),
             modifier = modifier
         )
 
         is ButlerMascotMode.Animated -> {
-            val semanticsModifier = contentDescription?.let {
-                modifier.semantics { this.contentDescription = it }
-            } ?: modifier
+            val animatedDescription = contentDescription ?: stringResource(variant.description)
+            val semanticsModifier = modifier.semantics { this.contentDescription = animatedDescription }
 
             when (variant) {
                 is ButlerMascotMode.Animated.RandomCycling -> {
@@ -130,10 +129,27 @@ fun ButlerMascot(
                             }
                         )
                     )
+
+                    val animatable = rememberLottieAnimatable()
+
+                    LaunchedEffect(composition, variant.loop, variant.loopDelay) {
+                        composition ?: return@LaunchedEffect
+                        if (variant.loop) {
+                            while (currentCoroutineContext().isActive) {
+                                animatable.animate(composition = composition, iterations = 1)
+                                if (variant.loopDelay > Duration.ZERO) {
+                                    delay(variant.loopDelay.inWholeMilliseconds)
+                                }
+                            }
+                        } else {
+                            animatable.animate(composition = composition, iterations = 1)
+                        }
+                    }
+
                     LottieAnimation(
-                        composition = composition,
+                        composition = animatable.composition,
+                        progress = { animatable.progress },
                         modifier = semanticsModifier,
-                        iterations = LottieConstants.IterateForever,
                     )
                 }
             }
@@ -150,16 +166,67 @@ sealed interface ButlerMascotMode {
     }
 
     sealed interface Animated : ButlerMascotMode {
-        data object RandomCycling : Animated
-        data object Wink : Animated
-        data object Greeting : Animated
-        data object HatOff : Animated
-        data object Drink : Animated
-        data object MoustacheStroke : Animated
+        val loop: Boolean
+        val loopDelay: Duration
+        val description: Int
+
+        data class RandomCycling(
+            override val loop: Boolean = true,
+            override val loopDelay: Duration = Duration.ZERO,
+        ) : Animated {
+            override val description: Int = R.string.butler_mascot_animation_random_description
+        }
+
+        data class Wink(
+            override val loop: Boolean = true,
+            override val loopDelay: Duration = Duration.ZERO,
+        ) : Animated {
+            override val description: Int = R.string.butler_mascot_animation_wink_description
+        }
+
+        data class Greeting(
+            override val loop: Boolean = true,
+            override val loopDelay: Duration = Duration.ZERO,
+        ) : Animated {
+            override val description: Int = R.string.butler_mascot_animation_greeting_description
+        }
+
+        data class HatOff(
+            override val loop: Boolean = true,
+            override val loopDelay: Duration = Duration.ZERO,
+        ) : Animated {
+            override val description: Int = R.string.butler_mascot_animation_hatoff_description
+        }
+
+        data class Drink(
+            override val loop: Boolean = true,
+            override val loopDelay: Duration = Duration.ZERO,
+        ) : Animated {
+            override val description: Int = R.string.butler_mascot_animation_drink_description
+        }
+
+        data class MoustacheStroke(
+            override val loop: Boolean = true,
+            override val loopDelay: Duration = Duration.ZERO,
+        ) : Animated {
+            override val description: Int = R.string.butler_mascot_animation_moustache_description
+        }
+
         sealed interface Sleep : Animated {
-            data object EyesClose : Sleep
-            data object Snoring : Sleep
-            data object WakeUp : Sleep
+            override val loop: Boolean get() = false
+            override val loopDelay: Duration get() = Duration.ZERO
+
+            data object EyesClose : Sleep {
+                override val description: Int = R.string.butler_mascot_animation_sleep_closing_description
+            }
+
+            data object Snoring : Sleep {
+                override val description: Int = R.string.butler_mascot_animation_sleep_snoring_description
+            }
+
+            data object WakeUp : Sleep {
+                override val description: Int = R.string.butler_mascot_animation_sleep_waking_description
+            }
         }
     }
 }
@@ -182,11 +249,11 @@ private fun ButlerMascotStaticPreview() {
 @Composable
 private fun ButlerMascotAnimatedPreview() {
     PreviewWrapper {
-        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.RandomCycling)
-        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Wink)
-        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Greeting)
-        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Drink)
-        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.MoustacheStroke)
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.RandomCycling())
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Wink())
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Greeting())
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Drink())
+        ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.MoustacheStroke())
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Sleep.EyesClose)
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Sleep.Snoring)
         ButlerMascot(Modifier.size(96.dp), variant = ButlerMascotMode.Animated.Sleep.WakeUp)

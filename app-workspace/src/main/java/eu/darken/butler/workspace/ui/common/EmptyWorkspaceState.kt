@@ -134,7 +134,7 @@ fun EnhancedEmptyWorkspaceState(
                 ) {
                     ButlerMascot(
                         modifier = Modifier.size(80.dp),
-                        variant = ButlerMascotMode.Animated.RandomCycling,
+                        variant = ButlerMascotMode.Animated.RandomCycling(),
                     )
                 }
 

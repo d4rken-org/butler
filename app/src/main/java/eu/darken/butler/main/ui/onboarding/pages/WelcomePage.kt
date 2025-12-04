@@ -72,7 +72,7 @@ internal fun WelcomePage(
                     icon = {
                         ButlerMascot(
                             modifier = Modifier.size(172.dp),
-                            variant = ButlerMascotMode.Animated.Greeting,
+                            variant = ButlerMascotMode.Animated.Greeting(),
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                     }

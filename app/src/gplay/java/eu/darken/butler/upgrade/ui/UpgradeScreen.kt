@@ -179,7 +179,7 @@ fun UpgradeScreen(
             ) {
                 ButlerMascot(
                     modifier = Modifier.size(88.dp),
-                    variant = ButlerMascotMode.Animated.Greeting,
+                    variant = ButlerMascotMode.Animated.Drink(),
                 )
                 Spacer(modifier = Modifier.size(8.dp))
                 ColoredTitleText(

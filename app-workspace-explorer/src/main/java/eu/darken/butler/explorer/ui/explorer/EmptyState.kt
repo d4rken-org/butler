@@ -90,7 +90,7 @@ fun EmptyState(
                         .size(120.dp)
                         .scale(scale)
                         .alpha(alpha),
-                    variant = ButlerMascotMode.Animated.RandomCycling,
+                    variant = ButlerMascotMode.Animated.RandomCycling(),
                 )
                 Text(
                     text = slogan,

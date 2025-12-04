@@ -69,7 +69,7 @@ internal fun EmptyClassicWorkspaceContent(
             ) {
                 ButlerMascot(
                     modifier = Modifier.size(64.dp),
-                    variant = ButlerMascotMode.Animated.RandomCycling,
+                    variant = ButlerMascotMode.Animated.RandomCycling(),
                 )
             }
 

@@ -4,6 +4,15 @@
 
     <string name="butler_icon_description">Butler app icon</string>
     <string name="butler_mascot_description">Butler mascot</string>
+    <string name="butler_mascot_animation_random_description">Butler mascot performing various animations</string>
+    <string name="butler_mascot_animation_wink_description">Butler mascot winking</string>
+    <string name="butler_mascot_animation_greeting_description">Butler mascot waving hello</string>
+    <string name="butler_mascot_animation_hatoff_description">Butler mascot tipping hat respectfully</string>
+    <string name="butler_mascot_animation_drink_description">Butler mascot drinking</string>
+    <string name="butler_mascot_animation_moustache_description">Butler mascot stroking moustache</string>
+    <string name="butler_mascot_animation_sleep_closing_description">Butler mascot closing eyes to sleep</string>
+    <string name="butler_mascot_animation_sleep_snoring_description">Butler mascot snoring</string>
+    <string name="butler_mascot_animation_sleep_waking_description">Butler mascot waking up</string>
 
     <string name="slogan_message_0">At your service.</string>
     <string name="slogan_message_1">Everything in its place.</string>

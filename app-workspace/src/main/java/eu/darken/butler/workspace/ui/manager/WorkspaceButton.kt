@@ -82,7 +82,7 @@ fun WorkspaceButton(
 
             ButlerMascot(
                 modifier = Modifier.size(iconSize),
-                variant = ButlerMascotMode.Animated.RandomCycling
+                variant = ButlerMascotMode.Animated.RandomCycling()
             )
         }
 

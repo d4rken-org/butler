@@ -15,10 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.PrivacyTip
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
@@ -32,13 +29,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 internal fun PrivacyPage(
@@ -54,7 +52,7 @@ internal fun PrivacyPage(
     LaunchedEffect(Unit) {
         isVisible = true
     }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -83,84 +81,82 @@ internal fun PrivacyPage(
                     subtitleAlpha = 0.8f,
                     spacingAfterTitle = 24.dp,
                     icon = {
-                        Icon(
-                            imageVector = Icons.TwoTone.PrivacyTip,
-                            contentDescription = null,
+                        ButlerMascot(
                             modifier = Modifier.size(96.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            variant = ButlerMascotMode.Animated.HatOff(loopDelay = 4.seconds, loop = false),
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                     }
                 )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedButton(
-                onClick = onReadPrivacyPolicy,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(stringResource(R.string.onboarding_privacy_read_action))
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                OutlinedButton(
+                    onClick = onReadPrivacyPolicy,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = stringResource(R.string.updater_check_enabled_setting_title),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Switch(
-                        checked = isUpdateCheckEnabled,
-                        onCheckedChange = onUpdateCheckChange
-                    )
+                    Text(stringResource(R.string.onboarding_privacy_read_action))
                 }
-                Text(
-                    text = stringResource(R.string.updater_check_enabled_setting_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(start = 0.dp, top = 2.dp, end = 0.dp, bottom = 0.dp)
-                )
-            }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
                 ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.updater_check_enabled_setting_title),
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Switch(
+                            checked = isUpdateCheckEnabled,
+                            onCheckedChange = onUpdateCheckChange
+                        )
+                    }
                     Text(
-                        text = stringResource(R.string.motd_check_enabled_setting_title),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Switch(
-                        checked = isMotdCheckEnabled,
-                        onCheckedChange = onMotdCheckChange
+                        text = stringResource(R.string.updater_check_enabled_setting_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(start = 0.dp, top = 2.dp, end = 0.dp, bottom = 0.dp)
                     )
                 }
-                Text(
-                    text = stringResource(R.string.motd_check_enabled_setting_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(start = 0.dp, top = 2.dp, end = 0.dp, bottom = 0.dp)
-                )
-            }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.motd_check_enabled_setting_title),
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Switch(
+                            checked = isMotdCheckEnabled,
+                            onCheckedChange = onMotdCheckChange
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.motd_check_enabled_setting_description),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(start = 0.dp, top = 2.dp, end = 0.dp, bottom = 0.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
 
