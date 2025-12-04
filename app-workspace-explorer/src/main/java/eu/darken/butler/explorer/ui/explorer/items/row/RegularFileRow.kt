@@ -24,6 +24,7 @@ internal fun RegularFileRow(
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
+    isEnabled: Boolean = true,
 ) {
     val primaryText = item.displayName.get(LocalContext.current)
     val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
@@ -35,6 +36,7 @@ internal fun RegularFileRow(
         onClick = onClick,
         onLongClick = onLongClick,
         showSelection = showSelection,
+        isEnabled = isEnabled,
         modifier = modifier,
         leadingContent = {
             TintedAsyncImage(

@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -34,6 +35,7 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 fun ShortcutRow(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Shortcut,
+    isEnabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -41,8 +43,9 @@ fun ShortcutRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .alpha(if (isEnabled) 1f else 0.38f)
             .clip(RoundedCornerShape(8.dp))
-            .clickable { onClick() }
+            .then(if (isEnabled) Modifier.clickable { onClick() } else Modifier)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)

@@ -201,6 +201,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val sortSettings: SortSettings = SortSettings(),
         val trashEnabled: Boolean = false,
         val saveAsFilename: String = "",
+        val disabledItems: Set<ExplorerItem> = emptySet(),
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -241,9 +242,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         saveAsFilenameFlow,
     ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename ->
         val items = wsState.currentLocation?.items
-            ?.let { items -> applyPickerFilter(items, pickerConfig) }
             ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
             ?.let { itemSorter.sortItems(it, sortSetting) }
+
+        val disabledItems = items?.let { computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
@@ -334,6 +336,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             sortSettings = sortSetting,
             trashEnabled = recycleBinEnabled,
             saveAsFilename = saveAsFilename,
+            disabledItems = disabledItems,
         )
     }
         .distinctUntilChanged()
@@ -388,37 +391,37 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     /**
-     * Filters items based on picker selection mode.
+     * Computes which items should be disabled (greyed out) based on picker mode.
+     * Disabled items are visible but not interactive.
      *
-     * - Directory picker modes (DirectorySingle/DirectoryMulti): Hide files, show only directories
-     * - File picker modes (FileSingle/FileMulti): Show everything (need directories for navigation)
-     * - Mixed picker mode (MixedMulti): Show everything (both files and dirs selectable)
-     * - Normal browsing: Show everything
+     * - Directory picker modes: Files and trash shortcut are disabled
+     * - File picker modes: Nothing disabled (dirs needed for navigation)
+     * - Mixed/Normal modes: Nothing disabled
      */
-    private fun applyPickerFilter(
+    private fun computeDisabledItems(
         items: List<ExplorerItem>,
         pickerConfig: PickerConfig?
-    ): List<ExplorerItem> {
-        // No picker mode: show everything
-        if (pickerConfig == null) return items
+    ): Set<ExplorerItem> {
+        if (pickerConfig == null) return emptySet()
 
         return items.filter { item ->
             when (pickerConfig.selection) {
                 is PickerConfig.Selection.DirectorySingle,
                 is PickerConfig.Selection.DirectoryMulti,
                 is PickerConfig.Selection.SaveAs -> {
-                    // Directory picker modes: hide files, show only directories
-                    item !is ExplorerItem.File
+                    // Files are disabled (can't select them as destination)
+                    item is ExplorerItem.File ||
+                        // Trash shortcut is disabled (invalid save destination)
+                        (item is ExplorerItem.Shortcut && item.shortcutId == "trash")
                 }
                 is PickerConfig.Selection.FileSingle,
                 is PickerConfig.Selection.FileMulti,
                 is PickerConfig.Selection.MixedMulti -> {
-                    // File and mixed picker modes: show everything
-                    // (FileSingle/FileMulti need dirs for navigation, MixedMulti selects both)
-                    true
+                    // Nothing disabled - dirs needed for navigation, files are selectable
+                    false
                 }
             }
-        }
+        }.toSet()
     }
 
     val clipboard = clipboardRepo.state

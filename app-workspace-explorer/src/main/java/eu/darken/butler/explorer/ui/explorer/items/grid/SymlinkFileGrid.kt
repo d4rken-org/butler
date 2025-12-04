@@ -25,6 +25,7 @@ internal fun SymlinkFileGrid(
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
+    isEnabled: Boolean = true,
 ) {
     FileGridBase(
         modifier = modifier,
@@ -34,6 +35,7 @@ internal fun SymlinkFileGrid(
         onClick = onClick,
         onLongClick = onLongClick,
         showSelection = showSelection,
+        isEnabled = isEnabled,
         icon = {
             Icon(
                 imageVector = Icons.Default.Link,

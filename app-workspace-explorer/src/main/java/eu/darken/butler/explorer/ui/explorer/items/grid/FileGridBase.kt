@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -37,6 +38,7 @@ internal fun FileGridBase(
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
+    isEnabled: Boolean = true,
     icon: @Composable () -> Unit,
     primaryText: String,
     secondaryText: String? = null,
@@ -49,6 +51,7 @@ internal fun FileGridBase(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f)
+            .alpha(if (isEnabled) 1f else 0.38f)
             .border(
                 width = if (isSelected) 2.dp else 0.5.dp,
                 color = if (isSelected) {
@@ -58,9 +61,13 @@ internal fun FileGridBase(
                 },
                 shape = RoundedCornerShape(4.dp)
             )
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
+            .then(
+                if (isEnabled) {
+                    Modifier.combinedClickable(
+                        onClick = onClick,
+                        onLongClick = onLongClick
+                    )
+                } else Modifier
             ),
         shape = RoundedCornerShape(4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),

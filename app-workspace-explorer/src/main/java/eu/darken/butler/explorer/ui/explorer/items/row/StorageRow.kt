@@ -34,6 +34,7 @@ fun StorageRow(
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     showSelection: Boolean = false,
+    isEnabled: Boolean = true,
 ) {
     val context = LocalContext.current
 
@@ -45,6 +46,7 @@ fun StorageRow(
         onClick = onClick,
         onLongClick = onLongClick,
         showSelection = showSelection,
+        isEnabled = isEnabled,
         leadingContent = {
             Box(
                 modifier = Modifier
