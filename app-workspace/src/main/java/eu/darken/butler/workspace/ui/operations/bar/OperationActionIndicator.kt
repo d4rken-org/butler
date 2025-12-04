@@ -30,13 +30,15 @@ fun OperationActionIndicator(
     modifier: Modifier = Modifier,
     state: OperationDisplay.State,
     onAction: (() -> Unit)? = null,
+    onFallbackClick: (() -> Unit)? = null,
 ) {
     val isActionable = state is OperationDisplay.State.Running && onAction != null
+    val effectiveOnClick = onAction ?: onFallbackClick
 
     IconButton(
         modifier = modifier,
-        enabled = isActionable,
-        onClick = onAction ?: {},
+        enabled = effectiveOnClick != null,
+        onClick = effectiveOnClick ?: {},
     ) {
         val (imageVector, contentDescriptionRes, tint) = when (state) {
             is OperationDisplay.State.Queued -> Triple(
