@@ -13,7 +13,8 @@ object Slogans {
         R.string.slogan_message_4,
         R.string.slogan_message_5,
         R.string.slogan_message_6,
-        R.string.slogan_message_7
+        R.string.slogan_message_7,
+        R.string.slogan_message_8,
     )
 
     val random: CaString

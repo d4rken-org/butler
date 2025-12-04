@@ -29,18 +29,20 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.Slogans
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import kotlinx.coroutines.delay
 
 @Composable
 fun EmptyState(
     modifier: Modifier = Modifier,
-    slogan: String,
-    initiallyVisible: Boolean = false
+    initiallyVisible: Boolean = false,
 ) {
+    val slogan = remember { Slogans.random }
     var visible by remember { mutableStateOf(initiallyVisible) }
 
     // Fade in animation
@@ -93,11 +95,11 @@ fun EmptyState(
                     variant = ButlerMascotMode.Animated.RandomCycling(),
                 )
                 Text(
-                    text = slogan,
+                    text = slogan.asComposable(),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 16.dp)
+                    modifier = Modifier.padding(top = 16.dp),
                 )
             }
         }
@@ -108,9 +110,6 @@ fun EmptyState(
 @Composable
 private fun EmptyStatePreview() {
     PreviewWrapper {
-        EmptyState(
-            slogan = "Ready to explore!",
-            initiallyVisible = true
-        )
+        EmptyState(initiallyVisible = true)
     }
 }
