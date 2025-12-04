@@ -36,6 +36,13 @@ import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlin.time.Clock
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Save
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.saver.core.operations.SaveFilesReport
+import eu.darken.butler.workspace.core.operations.Operation
 
 @Composable
 fun SaverWorkspacePageHost(
@@ -142,7 +149,10 @@ private fun SaverWorkspacePage(
         if (issueState != null && showIssueSheet) {
             IssuesBottomSheet(
                 issue = issueState!!,
-                onResolution = { resolution -> vm?.resolveConflict(resolution) },
+                onResolution = { resolution ->
+                    vm?.resolveConflict(resolution)
+                    showIssueSheet = false  // Dismiss immediately after resolution
+                },
                 onDismiss = { showIssueSheet = false },
             )
         }
@@ -319,21 +329,21 @@ private fun SaverWorkspacePageBatchModePreview() {
                 SaverWorkspaceViewModel.State(
                     sourceInfos = listOf(
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/image1.jpg"),
+                            uri = "content://example/image1.jpg".toUri(),
                             displayName = "photo_001.jpg",
                             mimeType = "image/jpeg",
                             size = 3_500_000,
                             isAccessible = true,
                         ),
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/image2.jpg"),
+                            uri = "content://example/image2.jpg".toUri(),
                             displayName = "photo_002.jpg",
                             mimeType = "image/jpeg",
                             size = 2_800_000,
                             isAccessible = true,
                         ),
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/image3.jpg"),
+                            uri = "content://example/image3.jpg".toUri(),
                             displayName = "photo_003.jpg",
                             mimeType = "image/jpeg",
                             size = 4_200_000,
@@ -360,7 +370,7 @@ private fun SaverWorkspacePageWithDestinationPreview() {
                 SaverWorkspaceViewModel.State(
                     sourceInfos = listOf(
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/document.pdf"),
+                            uri = "content://example/document.pdf".toUri(),
                             displayName = "report.pdf",
                             mimeType = "application/pdf",
                             size = 1_200_000,
@@ -388,7 +398,7 @@ private fun SaverWorkspacePageInaccessiblePreview() {
                 SaverWorkspaceViewModel.State(
                     sourceInfos = listOf(
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/expired.jpg"),
+                            uri = "content://example/expired.jpg".toUri(),
                             displayName = "expired_file.jpg",
                             mimeType = "image/jpeg",
                             size = 1_000_000,

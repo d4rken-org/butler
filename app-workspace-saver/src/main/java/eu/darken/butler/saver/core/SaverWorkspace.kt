@@ -376,6 +376,11 @@ class SaverWorkspace @AssistedInject constructor(
                             _saveState.value = SaveState.Success(state.report)
                         }
                     }
+                    is Operation.State.Completed -> {
+                        // Generic completion (e.g., cancelled via anonymous object from ManagedOperation)
+                        log(tag, INFO) { "Operation completed generically (cancelled?), resetting state" }
+                        resetSaveState()
+                    }
                     else -> {}
                 }
             }

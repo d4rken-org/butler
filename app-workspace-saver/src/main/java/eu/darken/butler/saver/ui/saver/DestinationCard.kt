@@ -39,7 +39,7 @@ internal fun DestinationCard(
         onClick = onClick,
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
@@ -51,7 +51,7 @@ internal fun DestinationCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(R.string.saver_destination_label),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 when {
@@ -77,7 +77,7 @@ internal fun DestinationCard(
                         // Single file mode with filename: show full path
                         Text(
                             text = "${destination.userReadablePath.get(context)}/$filename",
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
