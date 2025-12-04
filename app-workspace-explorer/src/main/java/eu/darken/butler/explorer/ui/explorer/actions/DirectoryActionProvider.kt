@@ -12,6 +12,7 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
         location: ExplorerLocation,
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
+        trashEnabled: Boolean,
     ): List<ExplorerAction> {
         val actions = mutableListOf<ExplorerAction>()
 
@@ -40,6 +41,7 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
             actions.add(
                 ExplorerAction.Directory.Delete(
                     isEnabled = isWritable,
+                    trashEnabled = trashEnabled,
                 )
             )
 

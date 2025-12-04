@@ -6,6 +6,7 @@ import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.FilterList
@@ -113,11 +114,13 @@ sealed interface ExplorerAction : WorkspaceAction {
 
         data class Delete(
             override val isEnabled: Boolean = true,
+            val trashEnabled: Boolean = false,
             override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
         ) : Directory {
-            override val icon = Icons.TwoTone.Delete
+            override val icon = if (trashEnabled) Icons.TwoTone.Delete else Icons.TwoTone.DeleteForever
             override val label = R.string.explorer_action_delete.toCaString()
-            override val isDestructive = true
+            override val isDestructive = !trashEnabled
+            override val supportsLongPress = trashEnabled
         }
 
         data class Share(

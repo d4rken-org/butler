@@ -1,7 +1,9 @@
 package eu.darken.butler.workspace.ui.actions
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -38,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -60,12 +63,15 @@ import eu.darken.butler.common.R as CommonR
  *
  * @param actions List of actions to display
  * @param onActionClick Callback when an action is clicked
+ * @param onActionLongClick Callback when an action is long-pressed (for actions with supportsLongPress=true)
  * @param modifier Modifier to apply to the action bar
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WorkspaceActionBar(
     actions: List<WorkspaceAction>,
     onActionClick: (WorkspaceAction) -> Unit,
+    onActionLongClick: (WorkspaceAction) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier = modifier) {
@@ -135,10 +141,24 @@ fun WorkspaceActionBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 displayedActions.forEach { action ->
-                    Box {
-                        IconButton(
-                            onClick = { onActionClick(action) },
-                            enabled = action.isEnabled,
+                    Box(
+                        modifier = Modifier.size(48.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .combinedClickable(
+                                    enabled = action.isEnabled,
+                                    onClick = { onActionClick(action) },
+                                    onLongClick = if (action.supportsLongPress) {
+                                        { onActionLongClick(action) }
+                                    } else {
+                                        null
+                                    },
+                                ),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 imageVector = action.icon,
@@ -147,7 +167,7 @@ fun WorkspaceActionBar(
                                     !action.isEnabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                     action.isDestructive -> MaterialTheme.colorScheme.error
                                     else -> LocalContentColor.current
-                                }
+                                },
                             )
                         }
 

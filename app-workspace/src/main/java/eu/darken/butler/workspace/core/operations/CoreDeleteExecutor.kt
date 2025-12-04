@@ -42,8 +42,8 @@ class CoreDeleteExecutor @Inject constructor(
 
         var lastPerformanceHistory: PerformanceHistory? = null
 
-        // Check if trash is enabled and paths are supported
-        val trashEnabled = trashSettings.enabled.value()
+        // Check if trash is enabled and paths are supported (forcePermDelete bypasses trash)
+        val trashEnabled = trashSettings.enabled.value() && !config.forcePermDelete
         val supportsTrash = targets.all { it is LocalPath }
 
         // Initialize collections for tracking items during trash/delete operations
@@ -411,6 +411,7 @@ class CoreDeleteExecutor @Inject constructor(
 
     data class Config(
         val tag: String,
+        val forcePermDelete: Boolean = false,
         val onIssue: suspend (PathActionIssue) -> PathActionIssue.Resolution,
         val onPathsRemoved: suspend (Set<APathLookup<*>>) -> Unit = {},
     )

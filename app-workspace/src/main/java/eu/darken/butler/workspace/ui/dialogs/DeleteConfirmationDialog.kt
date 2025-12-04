@@ -26,9 +26,12 @@ import eu.darken.butler.common.R as CommonR
 fun DeleteConfirmationDialog(
     items: Set<APath<*>>,
     trashEnabled: Boolean = false,
+    forcePermDelete: Boolean = false,
     onDismiss: () -> Unit,
-    onConfirm: (items: Set<APath<*>>) -> Unit,
+    onConfirm: (items: Set<APath<*>>, forcePermDelete: Boolean) -> Unit,
 ) {
+    // If forcePermDelete is set, show permanent delete UI regardless of trash setting
+    val effectiveTrashEnabled = trashEnabled && !forcePermDelete
     val itemCount = items.size
     val itemsToShow = items.toList().take(5)
     val hasMore = items.size > 5
@@ -37,7 +40,7 @@ fun DeleteConfirmationDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = if (trashEnabled) {
+                text = if (effectiveTrashEnabled) {
                     if (itemCount == 1) {
                         stringResource(R.string.workspace_dialog_trash_title_single)
                     } else {
@@ -58,7 +61,7 @@ fun DeleteConfirmationDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = if (trashEnabled) {
+                    text = if (effectiveTrashEnabled) {
                         if (itemCount == 1) {
                             stringResource(R.string.workspace_dialog_trash_message_single)
                         } else {
@@ -101,32 +104,32 @@ fun DeleteConfirmationDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = if (trashEnabled) {
+                    text = if (effectiveTrashEnabled) {
                         stringResource(R.string.workspace_dialog_trash_hint)
                     } else {
                         stringResource(R.string.workspace_dialog_delete_warning)
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (trashEnabled) {
+                    color = if (effectiveTrashEnabled) {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     } else {
                         MaterialTheme.colorScheme.error
                     },
-                    fontWeight = if (trashEnabled) FontWeight.Normal else FontWeight.Medium
+                    fontWeight = if (effectiveTrashEnabled) FontWeight.Normal else FontWeight.Medium
                 )
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirm(items) }
+                onClick = { onConfirm(items, forcePermDelete) }
             ) {
                 Text(
-                    text = if (trashEnabled) {
+                    text = if (effectiveTrashEnabled) {
                         stringResource(R.string.workspace_dialog_move_to_trash_action)
                     } else {
                         stringResource(R.string.workspace_dialog_delete_permanently_action)
                     },
-                    color = if (trashEnabled) {
+                    color = if (effectiveTrashEnabled) {
                         MaterialTheme.colorScheme.primary
                     } else {
                         MaterialTheme.colorScheme.error
@@ -154,7 +157,7 @@ private fun DeleteConfirmationDialogPreview() {
             ),
             trashEnabled = false,
             onDismiss = {},
-            onConfirm = {}
+            onConfirm = { _, _ -> },
         )
     }
 }
@@ -171,7 +174,25 @@ private fun DeleteConfirmationDialogTrashPreview() {
             ),
             trashEnabled = true,
             onDismiss = {},
-            onConfirm = {}
+            onConfirm = { _, _ -> },
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun DeleteConfirmationDialogForcePermDeletePreview() {
+    PreviewWrapper {
+        DeleteConfirmationDialog(
+            items = setOf(
+                LocalPath.build("/test/file1.txt"),
+                LocalPath.build("/test/file2.txt"),
+                LocalPath.build("/test/folder1"),
+            ),
+            trashEnabled = true,
+            forcePermDelete = true,
+            onDismiss = {},
+            onConfirm = { _, _ -> },
         )
     }
 }
@@ -186,7 +207,7 @@ private fun DeleteConfirmationDialogManyItemsPreview() {
             }.toSet(),
             trashEnabled = false,
             onDismiss = {},
-            onConfirm = {}
+            onConfirm = { _, _ -> },
         )
     }
 }

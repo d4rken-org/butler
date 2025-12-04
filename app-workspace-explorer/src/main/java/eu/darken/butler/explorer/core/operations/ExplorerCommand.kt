@@ -21,6 +21,7 @@ sealed interface ExplorerCommand {
         data class Options(
             val skipOnError: Boolean = false,
             val confirmPermanentDelete: Boolean = true,
+            val forcePermDelete: Boolean = false,
         )
     }
 

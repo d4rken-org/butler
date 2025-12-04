@@ -285,6 +285,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 location = it,
                 selectionState = selectionState,
                 viewStyle = viewStyle,
+                trashEnabled = recycleBinEnabled,
             )
                 .filter { action ->
                     // In picker mode, only allow browse/create/select actions
@@ -906,6 +907,38 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    fun executeActionLongClick(action: ExplorerAction) = launch {
+        log(tag) { "executeActionLongClick($action)" }
+        when (action) {
+            is ExplorerAction.Directory.Delete -> {
+                log(tag) { "longPress deleteSelectedItems(): ${selectedItemsFlow.value.size} items (forcePermDelete)" }
+                val selectedItems = selectedItemsFlow.value
+                if (selectedItems.isNotEmpty()) {
+                    val currentLocation = state.first().currentLocation
+                    if (currentLocation is ExplorerLocation.Directory) {
+                        val pathsToDelete = selectedItems
+                            .filterIsInstance<ExplorerItem.Lookup>()
+                            .map { it.lookup.lookedUp }
+                            .toSet()
+
+                        if (pathsToDelete.isNotEmpty()) {
+                            dialogEvents.emit(
+                                ExplorerDialogEvent.ShowDeleteConfirmation(
+                                    items = pathsToDelete,
+                                    forcePermDelete = true,
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+            else -> {
+                // Other actions don't support long-press, delegate to regular click
+                executeAction(action)
+            }
+        }
+    }
+
     // File action handlers
     private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
         log(tag, INFO) { "executeOpenInNewTabs(): Opening ${analysis.totalOpenableCount} workspaces" }
@@ -1054,7 +1087,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 dialogStateFlow.value = CreateItem
             }
             is ExplorerDialogEvent.ShowDeleteConfirmation -> {
-                dialogStateFlow.value = DeleteConfirmation(event.items)
+                dialogStateFlow.value = DeleteConfirmation(event.items, event.forcePermDelete)
             }
             is ExplorerDialogEvent.ShowRename -> {
                 dialogStateFlow.value = Rename(event.item)
@@ -1101,13 +1134,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun onDeleteConfirmed(items: Set<APath<*>>) = launch {
-        log(tag) { "onDeleteConfirmed($items)" }
+    fun onDeleteConfirmed(items: Set<APath<*>>, forcePermDelete: Boolean = false) = launch {
+        log(tag) { "onDeleteConfirmed($items, forcePermDelete=$forcePermDelete)" }
         dialogStateFlow.value = None
 
         if (items.isNotEmpty()) {
             getWorkspace().execute(
-                ExplorerCommand.Delete(targets = items)
+                ExplorerCommand.Delete(
+                    targets = items,
+                    options = ExplorerCommand.Delete.Options(forcePermDelete = forcePermDelete),
+                )
             )
             clearSelection()
         }

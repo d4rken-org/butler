@@ -793,6 +793,7 @@ fun ExplorerWorkspacePage(
                     },
                 actions = mainState.availableActions,
                 onActionClick = { action -> vm?.executeAction(action as ExplorerAction) },
+                onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerAction) },
             )
         }
 

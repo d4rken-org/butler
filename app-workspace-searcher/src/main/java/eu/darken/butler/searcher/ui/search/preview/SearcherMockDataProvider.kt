@@ -10,6 +10,7 @@ import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.engine.SearchEngine
+import eu.darken.butler.searcher.ui.search.SearcherAction
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
 import kotlin.time.Clock
@@ -357,13 +358,14 @@ object SearcherMockDataProvider {
                 selectedResultIds = selectedResults.map { it.path.path }.toSet()
             ),
             availableActions = listOf(
-                eu.darken.butler.searcher.ui.search.SearcherAction.Copy(selectedResults),
-                eu.darken.butler.searcher.ui.search.SearcherAction.Cut(selectedResults),
-                eu.darken.butler.searcher.ui.search.SearcherAction.Delete(selectedResults),
-                eu.darken.butler.searcher.ui.search.SearcherAction.Share(selectedResults),
-                eu.darken.butler.searcher.ui.search.SearcherAction.SelectAll,
-                eu.darken.butler.searcher.ui.search.SearcherAction.DeselectAll,
-            )
+                SearcherAction.Copy(selectedResults),
+                SearcherAction.Cut(selectedResults),
+                SearcherAction.Delete(selectedResults, trashEnabled = true),
+                SearcherAction.Share(selectedResults),
+                SearcherAction.SelectAll,
+                SearcherAction.DeselectAll,
+            ),
+            trashEnabled = true,
         )
     }
 

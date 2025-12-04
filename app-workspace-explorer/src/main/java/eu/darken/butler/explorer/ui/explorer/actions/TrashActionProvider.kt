@@ -21,6 +21,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
         location: ExplorerLocation,
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
+        trashEnabled: Boolean,
     ): List<ExplorerAction> = when (location) {
         is ExplorerLocation.Trash.Root -> getRootActions(location, selectionState, viewStyle)
         is ExplorerLocation.Trash.Nested -> getNestedActions(selectionState, viewStyle)

@@ -10,6 +10,7 @@ interface ExplorerActionProvider {
         location: ExplorerLocation,
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
+        trashEnabled: Boolean = false,
     ): List<ExplorerAction>
 
 }

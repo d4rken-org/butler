@@ -19,7 +19,12 @@ sealed interface SearcherCommand {
 
     data class Delete(
         val targets: Set<APath<*>>,
-    ) : SearcherCommand
+        val options: Options = Options(),
+    ) : SearcherCommand {
+        data class Options(
+            val forcePermDelete: Boolean = false,
+        )
+    }
 
     /**
      * Target management command

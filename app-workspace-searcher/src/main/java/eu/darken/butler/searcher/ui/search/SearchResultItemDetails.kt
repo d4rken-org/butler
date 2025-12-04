@@ -38,10 +38,11 @@ import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 @Composable
 fun SearchResultItemDetails(
     result: SearchItem,
+    trashEnabled: Boolean,
     onAction: (SearcherAction) -> Unit,
     onLongPress: (SearchItem) -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     PaneScopedBottomSheet(
         visible = true,
@@ -233,9 +234,8 @@ fun SearchResultItemDetails(
 
                 // Destructive actions
                 QuickActionItem(
-                    action = SearcherAction.Delete(listOf(result)),
+                    action = SearcherAction.Delete(listOf(result), trashEnabled),
                     onClick = onAction,
-                    isDestructive = true
                 )
             }
         }
@@ -358,9 +358,10 @@ private fun SearchResultItemDetailsPreview() {
                 lookup = mockLookup,
                 matchedQuery = "example",
             ),
+            trashEnabled = true,
             onAction = {},
             onLongPress = {},
-            onDismiss = {}
+            onDismiss = {},
         )
     }
 }
@@ -399,9 +400,10 @@ private fun SearchResultItemDetailsWithContextPreview() {
                 matchedQuery = "example",
                 matchContext = mockMatchContext
             ),
+            trashEnabled = false,
             onAction = {},
             onLongPress = {},
-            onDismiss = {}
+            onDismiss = {},
         )
     }
 }

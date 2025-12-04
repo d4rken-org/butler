@@ -16,6 +16,7 @@ class DefaultActionProvider @Inject constructor(
         location: ExplorerLocation,
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
+        trashEnabled: Boolean,
     ): List<ExplorerAction> {
         val provider = when (location) {
             is ExplorerLocation.Home -> homeProvider
@@ -24,6 +25,6 @@ class DefaultActionProvider @Inject constructor(
             is ExplorerLocation.Trash -> trashActionProvider
         }
 
-        return provider.getActions(location, selectionState, viewStyle)
+        return provider.getActions(location, selectionState, viewStyle, trashEnabled)
     }
 }
