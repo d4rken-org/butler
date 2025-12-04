@@ -302,7 +302,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 }
 
                 // Delete
-                add(SearcherAction.Delete(updatedSelectionState.selectedResults))
+                add(SearcherAction.Delete(updatedSelectionState.selectedResults, trashSettings.enabled.value()))
             }
         } else if (sortedResults.isNotEmpty()) {
             buildList {
@@ -635,6 +635,27 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         hideQuickActions()
     }
 
+    fun onActionLongClick(action: SearcherAction) {
+        log(TAG) { "onActionLongClick(${action.javaClass.simpleName})" }
+        when (action) {
+            is SearcherAction.Delete -> {
+                vmScope.launch {
+                    val paths = action.results.map { it.path }.toSet()
+                    dialogEvents.emit(
+                        SearcherDialogEvent.ShowDeleteConfirmation(
+                            paths = paths,
+                            forcePermDelete = true,
+                        )
+                    )
+                }
+            }
+            else -> {
+                // Other actions don't support long-press, delegate to regular action
+                onAction(action)
+            }
+        }
+    }
+
     private suspend fun executeOpenInNewTabs(analysis: OpenInNewTabsUseCase.AnalysisResult) {
         log(TAG, INFO) { "executeOpenInNewTabs(): Opening ${analysis.totalOpenableCount} workspaces" }
 
@@ -757,7 +778,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG) { "handleDialogEvent($event)" }
         when (event) {
             is SearcherDialogEvent.ShowDeleteConfirmation -> {
-                dialogStateFlow.value = SearcherDialogState.DeleteConfirmation(event.paths)
+                dialogStateFlow.value = SearcherDialogState.DeleteConfirmation(event.paths, event.forcePermDelete)
             }
             is SearcherDialogEvent.Dismiss -> {
                 dialogStateFlow.value = SearcherDialogState.None
@@ -769,14 +790,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow.value = SearcherDialogState.None
     }
 
-    fun onDeleteConfirmed(items: Set<APath<*>>) = launch {
-        log(TAG, INFO) { "onDeleteConfirmed(${items.size} items)" }
+    fun onDeleteConfirmed(items: Set<APath<*>>, forcePermDelete: Boolean = false) = launch {
+        log(TAG, INFO) { "onDeleteConfirmed(${items.size} items, forcePermDelete=$forcePermDelete)" }
         dialogStateFlow.value = SearcherDialogState.None
 
         if (items.isNotEmpty()) {
             getWorkspace().execute(
                 SearcherCommand.Delete(
                     targets = items,
+                    options = SearcherCommand.Delete.Options(forcePermDelete = forcePermDelete),
                 )
             )
             deselectAll()

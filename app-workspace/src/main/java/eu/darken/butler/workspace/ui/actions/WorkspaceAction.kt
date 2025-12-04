@@ -14,6 +14,7 @@ interface WorkspaceAction {
     val isDestructive: Boolean get() = false
     val group: Group get() = Group.PRIMARY
     val badge: Boolean get() = false
+    val supportsLongPress: Boolean get() = false
 
     enum class Group {
         /**

@@ -687,7 +687,10 @@ fun SearcherWorkspacePage(
                             is SearcherAction.DeselectAll -> onPageAction(SearcherPageAction.Results.ExitSelectionMode)
                             else -> onPageAction(SearcherPageAction.WorkspaceAction(searcherAction))
                         }
-                    }
+                    },
+                    onActionLongClick = { action ->
+                        vm?.onActionLongClick(action as SearcherAction)
+                    },
                 )
             }
 
@@ -709,6 +712,7 @@ fun SearcherWorkspacePage(
         currentState.quickActionsResult?.let { result ->
             SearchResultItemDetails(
                 result = result,
+                trashEnabled = currentState.trashEnabled,
                 onAction = { action ->
                     onPageAction(SearcherPageAction.WorkspaceAction(action))
                     onPageAction(SearcherPageAction.Results.HideQuickActions)
@@ -717,7 +721,7 @@ fun SearcherWorkspacePage(
                     wrappedOnEnterSelectionMode(it)
                     onPageAction(SearcherPageAction.Results.HideQuickActions)
                 },
-                onDismiss = { onPageAction(SearcherPageAction.Results.HideQuickActions) }
+                onDismiss = { onPageAction(SearcherPageAction.Results.HideQuickActions) },
             )
         }
 
@@ -769,7 +773,7 @@ fun SearcherWorkspacePage(
             dialogState = currentState.dialogState,
             trashEnabled = currentState.trashEnabled,
             onDismiss = { vm?.dismissDialog() },
-            onDeleteConfirmed = { vm?.onDeleteConfirmed(it) },
+            onDeleteConfirmed = { items, forcePermDelete -> vm?.onDeleteConfirmed(items, forcePermDelete) },
             onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
             onNavigateToClipboardSource = { clip -> vm?.navigateToClipboardSource(clip) },
             onRemoveClipboardEntry = { clip -> vm?.removeClipboardEntry(clip) },

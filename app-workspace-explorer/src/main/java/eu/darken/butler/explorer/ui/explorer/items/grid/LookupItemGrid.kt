@@ -21,6 +21,7 @@ fun LookupItemGrid(
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     showSelection: Boolean = false,
+    isEnabled: Boolean = true,
 ) {
     when (item) {
         is ExplorerItem.RegularDirectory -> DirectoryGrid(
@@ -31,6 +32,7 @@ fun LookupItemGrid(
             onClick = onClick,
             onLongClick = onLongClick,
             showSelection = showSelection,
+            isEnabled = isEnabled,
         )
 
         is ExplorerItem.SymbolicLink -> SymlinkFileGrid(
@@ -41,6 +43,7 @@ fun LookupItemGrid(
             onClick = onClick,
             onLongClick = onLongClick,
             showSelection = showSelection,
+            isEnabled = isEnabled,
         )
 
         is ExplorerItem.RegularFile -> RegularFileGrid(
@@ -51,6 +54,7 @@ fun LookupItemGrid(
             onClick = onClick,
             onLongClick = onLongClick,
             showSelection = showSelection,
+            isEnabled = isEnabled,
         )
     }
 }

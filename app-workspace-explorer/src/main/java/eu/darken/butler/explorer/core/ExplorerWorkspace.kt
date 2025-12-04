@@ -149,7 +149,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         val attentionCount: Int = states.count {
             val value = it.second
             if (value is Operation.State.Waiting) return@count true
-            if (value is Operation.State.Completed && value.error != null) return@count true
+            if (value is Operation.State.Completed && value.error != null && value.error !is CancellationException) return@count true
             return@count false
         }
         Workspace.Info(

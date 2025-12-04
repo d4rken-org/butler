@@ -13,7 +13,7 @@ fun SearcherDialogHost(
     dialogState: SearcherDialogState,
     trashEnabled: Boolean,
     onDismiss: () -> Unit,
-    onDeleteConfirmed: (items: Set<APath<*>>) -> Unit,
+    onDeleteConfirmed: (items: Set<APath<*>>, forcePermDelete: Boolean) -> Unit,
     onCopyToClipboard: (String) -> Unit,
     onNavigateToClipboardSource: (ClipboardClip) -> Unit,
     onRemoveClipboardEntry: (ClipboardClip) -> Unit,
@@ -27,8 +27,9 @@ fun SearcherDialogHost(
             DeleteConfirmationDialog(
                 items = dialogState.paths,
                 trashEnabled = trashEnabled,
+                forcePermDelete = dialogState.forcePermDelete,
                 onDismiss = onDismiss,
-                onConfirm = onDeleteConfirmed
+                onConfirm = onDeleteConfirmed,
             )
         }
         is SearcherDialogState.ClipboardInfo -> {

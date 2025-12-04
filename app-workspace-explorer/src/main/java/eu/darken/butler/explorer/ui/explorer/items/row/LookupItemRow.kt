@@ -20,6 +20,7 @@ fun LookupItemRow(
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     showSelection: Boolean = false,
+    isEnabled: Boolean = true,
 ) {
     when (item) {
         is ExplorerItem.RegularDirectory -> DirectoryRow(
@@ -29,7 +30,8 @@ fun LookupItemRow(
             onClick = onClick,
             onLongClick = onLongClick,
             showSelection = showSelection,
-            modifier = modifier
+            isEnabled = isEnabled,
+            modifier = modifier,
         )
 
         is ExplorerItem.SymbolicLink -> SymlinkFileRow(
@@ -39,7 +41,8 @@ fun LookupItemRow(
             onClick = onClick,
             onLongClick = onLongClick,
             showSelection = showSelection,
-            modifier = modifier
+            isEnabled = isEnabled,
+            modifier = modifier,
         )
 
         is ExplorerItem.RegularFile -> RegularFileRow(
@@ -49,7 +52,8 @@ fun LookupItemRow(
             onClick = onClick,
             onLongClick = onLongClick,
             showSelection = showSelection,
-            modifier = modifier
+            isEnabled = isEnabled,
+            modifier = modifier,
         )
     }
 }

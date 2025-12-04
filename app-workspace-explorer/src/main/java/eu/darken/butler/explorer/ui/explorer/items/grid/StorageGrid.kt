@@ -77,6 +77,7 @@ fun StorageGrid(
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     showSelection: Boolean = false,
+    isEnabled: Boolean = true,
 ) {
     FileGridBase(
         modifier = modifier,
@@ -86,6 +87,7 @@ fun StorageGrid(
         onClick = onClick,
         onLongClick = onLongClick,
         showSelection = showSelection,
+        isEnabled = isEnabled,
         icon = {
             Icon(
                 imageVector = item.displayIcon,

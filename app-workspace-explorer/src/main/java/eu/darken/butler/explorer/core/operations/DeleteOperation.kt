@@ -69,6 +69,7 @@ class DeleteOperation @AssistedInject constructor(
             targets = command.targets,
             config = CoreDeleteExecutor.Config(
                 tag = tag,
+                forcePermDelete = command.options.forcePermDelete,
                 onIssue = { issue ->
                     emit(
                         State.Waiting(

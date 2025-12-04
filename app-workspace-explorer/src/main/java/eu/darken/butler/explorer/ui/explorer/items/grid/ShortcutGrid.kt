@@ -19,6 +19,7 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 fun ShortcutGrid(
     modifier: Modifier = Modifier,
     item: ExplorerItem.Shortcut,
+    isEnabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     val hasBadge = item.badge != null
@@ -34,6 +35,7 @@ fun ShortcutGrid(
         onClick = onClick,
         onLongClick = {},
         showSelection = false,
+        isEnabled = isEnabled,
         icon = {
             BadgedIcon(
                 icon = item.displayIcon,

@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -73,6 +74,7 @@ internal fun FileRowBase(
     onClick: () -> Unit,
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
+    isEnabled: Boolean = true,
     leadingContent: @Composable () -> Unit,
     primaryText: String,
     secondaryText: String? = null,
@@ -83,6 +85,7 @@ internal fun FileRowBase(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .alpha(if (isEnabled) 1f else 0.38f)
             .then(
                 if (isSelected) {
                     Modifier.background(
@@ -91,9 +94,13 @@ internal fun FileRowBase(
                     )
                 } else Modifier
             )
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
+            .then(
+                if (isEnabled) {
+                    Modifier.combinedClickable(
+                        onClick = onClick,
+                        onLongClick = onLongClick
+                    )
+                } else Modifier
             )
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically

@@ -548,7 +548,8 @@ fun ExplorerWorkspacePage(
                                                             onToggleSelection = { vm?.toggleItemSelection(item) },
                                                             onClick = { vm?.onItemClick(item) },
                                                             onLongClick = { vm?.onItemLongClick(item) },
-                                                            showSelection = mainStateSnap.shouldShowSelection(item)
+                                                            showSelection = mainStateSnap.shouldShowSelection(item),
+                                                            isEnabled = item !in mainStateSnap.disabledItems,
                                                         )
 
                                                         is ExplorerItem.Peek -> PeekRow(
@@ -557,6 +558,7 @@ fun ExplorerWorkspacePage(
 
                                                         is ExplorerItem.Shortcut -> ShortcutRow(
                                                             item = item,
+                                                            isEnabled = item !in mainStateSnap.disabledItems,
                                                             onClick = { vm?.navigate(item) },
                                                         )
 
@@ -575,7 +577,8 @@ fun ExplorerWorkspacePage(
                                                             },
                                                             onLongClick = { vm?.toggleItemSelection(item) },
                                                             showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                                item in mainStateSnap.selectionState.selectableItems
+                                                                item in mainStateSnap.selectionState.selectableItems,
+                                                            isEnabled = item !in mainStateSnap.disabledItems,
                                                         )
 
                                                     is ExplorerItem.Trash.Root -> TrashItemRow(
@@ -642,10 +645,12 @@ fun ExplorerWorkspacePage(
                                                             onToggleSelection = { vm?.toggleItemSelection(item) },
                                                             onClick = { vm?.onItemClick(item) },
                                                             onLongClick = { vm?.onItemLongClick(item) },
-                                                            showSelection = mainStateSnap.shouldShowSelection(item)
+                                                            showSelection = mainStateSnap.shouldShowSelection(item),
+                                                            isEnabled = item !in mainStateSnap.disabledItems,
                                                         )
                                                         is ExplorerItem.Shortcut -> ShortcutGrid(
                                                             item = item,
+                                                            isEnabled = item !in mainStateSnap.disabledItems,
                                                             onClick = { vm?.navigate(item) },
                                                         )
 
@@ -664,7 +669,8 @@ fun ExplorerWorkspacePage(
                                                             },
                                                             onLongClick = { vm?.toggleItemSelection(item) },
                                                             showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                                item in mainStateSnap.selectionState.selectableItems
+                                                                item in mainStateSnap.selectionState.selectableItems,
+                                                            isEnabled = item !in mainStateSnap.disabledItems,
                                                         )
 
                                                         is ExplorerItem.Peek -> PeekGrid(
@@ -793,6 +799,7 @@ fun ExplorerWorkspacePage(
                     },
                 actions = mainState.availableActions,
                 onActionClick = { action -> vm?.executeAction(action as ExplorerAction) },
+                onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerAction) },
             )
         }
 

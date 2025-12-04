@@ -42,8 +42,8 @@ class CoreDeleteExecutor @Inject constructor(
 
         var lastPerformanceHistory: PerformanceHistory? = null
 
-        // Check if trash is enabled and paths are supported
-        val trashEnabled = trashSettings.enabled.value()
+        // Check if trash is enabled and paths are supported (forcePermDelete bypasses trash)
+        val trashEnabled = trashSettings.enabled.value() && !config.forcePermDelete
         val supportsTrash = targets.all { it is LocalPath }
 
         // Initialize collections for tracking items during trash/delete operations
@@ -86,62 +86,64 @@ class CoreDeleteExecutor @Inject constructor(
                 }
             } else {
                 // Total fits within trash limit, move all items to trash
-                // Emit progress before moving to trash
-                emit(
-                    State.Active(
-                        primaryProgress = Progress.Data(
-                            primary = eu.darken.butler.workspace.R.string.workspace_operation_progress_moving_to_trash.toCaString(),
-                            count = Progress.Count.Counter(0, targets.size.toLong()),
-                        ),
-                        secondaryProgress = null,
-                        performanceHistory = null,
-                    )
-                )
-
                 try {
-                    val trashReport = trashManager.moveToTrash(paths = targets.toList())
+                    trashManager.moveToTrash(paths = targets.toList())
+                        .onEach { trashState ->
+                            when (trashState) {
+                                is TrashManager.TrashMoveState.Active -> {
+                                    val activeState = buildTrashActiveState(trashState)
+                                    lastPerformanceHistory = activeState.performanceHistory
+                                    emit(activeState)
+                                }
 
-                    if (trashReport.failedToMove.isNotEmpty()) {
-                        log(config.tag, WARN) {
-                            "${trashReport.failedToMove.size} items failed to move to trash"
-                        }
+                                is TrashManager.TrashMoveState.Completed -> {
+                                    val trashReport = trashState.report
 
-                        // Ask user what to do with failed items
-                        val issue = PathActionIssue.TrashMoveFailed(
-                            failedItems = trashReport.failedToMove.toList(),
-                        )
-                        emit(State.Waiting(issue = issue))
-                        val resolution = config.onIssue(issue)
+                                    if (trashReport.failedToMove.isNotEmpty()) {
+                                        log(config.tag, WARN) {
+                                            "${trashReport.failedToMove.size} items failed to move to trash"
+                                        }
 
-                        when (resolution) {
-                            is PathActionIssue.TrashMoveFailed.Resolution.DeletePermanently -> {
-                                itemsForDirectDelete.addAll(trashReport.failedToMove.map { it.lookedUp })
+                                        // Ask user what to do with failed items
+                                        val issue = PathActionIssue.TrashMoveFailed(
+                                            failedItems = trashReport.failedToMove.toList(),
+                                        )
+                                        emit(State.Waiting(issue = issue))
+                                        val resolution = config.onIssue(issue)
+
+                                        when (resolution) {
+                                            is PathActionIssue.TrashMoveFailed.Resolution.DeletePermanently -> {
+                                                itemsForDirectDelete.addAll(trashReport.failedToMove.map { it.lookedUp })
+                                            }
+                                            is PathActionIssue.TrashMoveFailed.Resolution.Skip -> {
+                                                skippedItems.addAll(trashReport.failedToMove)
+                                            }
+                                            is PathActionIssue.TrashMoveFailed.Resolution.Cancel -> {
+                                                throw CancellationException("User cancelled operation")
+                                            }
+                                        }
+                                    }
+
+                                    if (trashReport.movedToTrash.isNotEmpty()) {
+                                        log(config.tag, INFO) {
+                                            "Successfully moved ${trashReport.movedToTrash.size} items to trash"
+                                        }
+                                        trashedItems = trashReport.movedToTrash
+                                        trashedBytes = trashReport.bytesMoved
+
+                                        @Suppress("UNCHECKED_CAST")
+                                        config.onPathsRemoved(trashedItems as Set<APathLookup<APath<*>>>)
+                                    }
+                                }
                             }
-                            is PathActionIssue.TrashMoveFailed.Resolution.Skip -> {
-                                skippedItems.addAll(trashReport.failedToMove)
-                            }
-                            is PathActionIssue.TrashMoveFailed.Resolution.Cancel -> {
-                                throw CancellationException("User cancelled operation")
-                            }
                         }
-                    }
-
-                    if (trashReport.movedToTrash.isNotEmpty()) {
-                        log(config.tag, INFO) {
-                            "Successfully moved ${trashReport.movedToTrash.size} items to trash"
-                        }
-                        trashedItems = trashReport.movedToTrash
-                        trashedBytes = trashReport.bytesMoved
-
-                        @Suppress("UNCHECKED_CAST")
-                        config.onPathsRemoved(trashedItems as Set<APathLookup<APath<*>>>)
-                    }
+                        .last()
                 } catch (e: Exception) {
                     log(config.tag, WARN) { "Trash move failed: ${e.asLog()}" }
 
                     // Ask user what to do when entire trash operation fails
                     val failedLookups = targets.map { path ->
-                        gatewaySwitch.lookup(path, eu.darken.butler.common.files.LookupOptions(fallbackToUnknown = true))
+                        gatewaySwitch.lookup(path, LookupOptions(fallbackToUnknown = true))
                     }
                     val issue = PathActionIssue.TrashMoveFailed(
                         failedItems = failedLookups,
@@ -339,8 +341,77 @@ class CoreDeleteExecutor @Inject constructor(
         )
     }
 
+    private fun buildTrashActiveState(
+        trashState: TrashManager.TrashMoveState.Active
+    ): State.Active {
+        // Extract performance history from low-level move operation
+        val perfHistory = trashState.primaryProgress.extra as? PerformanceHistory
+
+        // Calculate overall metrics using PerformanceHistory
+        val avgItemsSpeed = perfHistory?.getRecentItemsPerSecond()?.toLong() ?: 0L
+        val avgBytesSpeed = perfHistory?.getRecentBytesPerSecond() ?: 0L
+
+        val overallEta = if (avgItemsSpeed > 0 && trashState.itemsTotal > 0) {
+            val remaining = trashState.itemsTotal - trashState.itemsProcessed
+            (remaining / avgItemsSpeed) // seconds
+        } else null
+
+        // Format overall metrics for primary progress
+        val overallMetrics = if (avgItemsSpeed > 0 || avgBytesSpeed > 0) {
+            caString { ctx ->
+                val parts = mutableListOf<String>()
+                if (avgItemsSpeed > 0) {
+                    parts.add(formatItemSpeed(ctx, avgItemsSpeed.toDouble()))
+                }
+                if (avgBytesSpeed > 0) {
+                    val bytesFormatted = Formatter.formatShortFileSize(ctx, avgBytesSpeed)
+                    parts.add("$bytesFormatted/s")
+                }
+                val speedPart = parts.joinToString(" • ")
+                val etaPart = if (overallEta != null && overallEta > 0) {
+                    val duration = ctx.getQuantityString2(
+                        eu.darken.butler.common.R.plurals.common_duration_seconds_full,
+                        overallEta.toInt(),
+                        overallEta
+                    )
+                    " • " + ctx.getString(
+                        eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
+                        duration
+                    )
+                } else ""
+                speedPart + etaPart
+            }
+        } else null
+
+        // Build enhanced primary progress
+        val enhancedPrimary = trashState.primaryProgress.copy(
+            primary = eu.darken.butler.workspace.R.string.workspace_operation_progress_moving_to_trash.toCaString(),
+            secondary = overallMetrics ?: trashState.primaryProgress.secondary,
+        )
+
+        // Build secondary progress showing current file
+        val secondaryProgress = Progress.Data(
+            primary = trashState.currentItem.lookedUp.name.toCaString(),
+            count = if (trashState.totalBytesEstimate > 0) {
+                Progress.Count.Size(
+                    current = trashState.bytesMovedSoFar,
+                    max = trashState.totalBytesEstimate,
+                )
+            } else {
+                Progress.Count.None()
+            },
+        )
+
+        return State.Active(
+            primaryProgress = enhancedPrimary,
+            secondaryProgress = secondaryProgress,
+            performanceHistory = perfHistory,
+        )
+    }
+
     data class Config(
         val tag: String,
+        val forcePermDelete: Boolean = false,
         val onIssue: suspend (PathActionIssue) -> PathActionIssue.Resolution,
         val onPathsRemoved: suspend (Set<APathLookup<*>>) -> Unit = {},
     )

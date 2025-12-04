@@ -117,10 +117,14 @@ class CoreDeleteExecutorTest : BaseTest() {
         coEvery { gatewaySwitch.du(any<APath<*>>(), any()) } returns 1024L
 
         // Mock successful trash move
-        coEvery { trashManager.moveToTrash(any()) } returns TrashManager.TrashMoveReport(
-            movedToTrash = setOf(testLookup),
-            failedToMove = emptySet(),
-            bytesMoved = 1024L,
+        every { trashManager.moveToTrash(any()) } returns flowOf(
+            TrashManager.TrashMoveState.Completed(
+                report = TrashManager.TrashMoveReport(
+                    movedToTrash = setOf(testLookup),
+                    failedToMove = emptySet(),
+                    bytesMoved = 1024L,
+                )
+            )
         )
 
         val onPathsRemovedCallback = mockk<suspend (Set<APathLookup<*>>) -> Unit>(relaxed = true)
@@ -166,10 +170,14 @@ class CoreDeleteExecutorTest : BaseTest() {
         coEvery { gatewaySwitch.du(any<APath<*>>(), any()) } returns 1024L
 
         // Mock partial failure in trash move
-        coEvery { trashManager.moveToTrash(any()) } returns TrashManager.TrashMoveReport(
-            movedToTrash = emptySet(),
-            failedToMove = setOf(testLookup),
-            bytesMoved = 0L,
+        every { trashManager.moveToTrash(any()) } returns flowOf(
+            TrashManager.TrashMoveState.Completed(
+                report = TrashManager.TrashMoveReport(
+                    movedToTrash = emptySet(),
+                    failedToMove = setOf(testLookup),
+                    bytesMoved = 0L,
+                )
+            )
         )
 
         // Mock direct delete fallback
@@ -224,10 +232,14 @@ class CoreDeleteExecutorTest : BaseTest() {
         coEvery { gatewaySwitch.du(any<APath<*>>(), any()) } returns 1024L
 
         // Mock partial failure in trash move
-        coEvery { trashManager.moveToTrash(any()) } returns TrashManager.TrashMoveReport(
-            movedToTrash = emptySet(),
-            failedToMove = setOf(testLookup),
-            bytesMoved = 0L,
+        every { trashManager.moveToTrash(any()) } returns flowOf(
+            TrashManager.TrashMoveState.Completed(
+                report = TrashManager.TrashMoveReport(
+                    movedToTrash = emptySet(),
+                    failedToMove = setOf(testLookup),
+                    bytesMoved = 0L,
+                )
+            )
         )
 
         var issueReceived: PathActionIssue? = null
@@ -281,7 +293,9 @@ class CoreDeleteExecutorTest : BaseTest() {
         coEvery { gatewaySwitch.lookup(any<APath<*>>(), any()) } returns testLookup as APathLookup<APath<*>>
 
         // Mock exception in trash move
-        coEvery { trashManager.moveToTrash(any()) } throws Exception("Trash error")
+        every { trashManager.moveToTrash(any()) } returns kotlinx.coroutines.flow.flow<TrashManager.TrashMoveState> {
+            throw Exception("Trash error")
+        }
 
         // Mock direct delete fallback
         coEvery { gatewaySwitch.delete(any<Set<APath<*>>>(), any()) } returns flowOf(

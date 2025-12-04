@@ -12,6 +12,7 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
         location: ExplorerLocation,
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
+        trashEnabled: Boolean,
     ): List<ExplorerAction> {
         val actions = mutableListOf<ExplorerAction>()
 

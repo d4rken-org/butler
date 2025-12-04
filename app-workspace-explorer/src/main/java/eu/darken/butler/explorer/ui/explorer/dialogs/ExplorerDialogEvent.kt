@@ -8,8 +8,9 @@ sealed interface ExplorerDialogEvent {
 
     data class ShowDeleteConfirmation(
         val items: Set<APath<*>>,
+        val forcePermDelete: Boolean = false,
     ) : ExplorerDialogEvent {
-        override fun toString(): String = "ShowDeleteConfirmation(${items.size})"
+        override fun toString(): String = "ShowDeleteConfirmation(${items.size}, forcePermDelete=$forcePermDelete)"
     }
 
     data class ShowRename(

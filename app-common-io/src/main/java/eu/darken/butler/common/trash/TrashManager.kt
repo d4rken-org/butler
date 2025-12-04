@@ -17,10 +17,15 @@ import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.files.extensions.move
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.storage.StorageEnvironment
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.progress.Progress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -56,11 +61,27 @@ class TrashManager @Inject constructor(
         val oldestItem: Instant?,
     )
 
+    sealed interface TrashMoveState {
+        data class Active(
+            val currentItem: APathLookup<*>,
+            val primaryProgress: Progress.Data,
+            val secondaryProgress: Progress.Data? = null,
+            val itemsProcessed: Int,
+            val itemsTotal: Int,
+            val bytesMovedSoFar: Long,
+            val totalBytesEstimate: Long,
+        ) : TrashMoveState
+
+        data class Completed(
+            val report: TrashMoveReport,
+        ) : TrashMoveState
+    }
+
     val isEnabled: Flow<Boolean> = settings.enabled.flow
 
-    suspend fun moveToTrash(
+    fun moveToTrash(
         paths: List<APath<*>>,
-    ): TrashMoveReport = withContext(dispatcherProvider.IO) {
+    ): Flow<TrashMoveState> = flow {
         log(TAG, INFO) { "Moving ${paths.size} items to trash" }
 
         // Filter supported path types (LocalPath only for now)
@@ -93,9 +114,10 @@ class TrashManager @Inject constructor(
 
         val movedItems = mutableSetOf<APathLookup<*>>()
         val failedItems = mutableSetOf<APathLookup<*>>()
-        var totalBytes = 0L
+        var totalBytesMoved = 0L
+        val totalItems = supported.size
 
-        for (path in supported) {
+        for ((index, path) in supported.withIndex()) {
             try {
                 val localPath = path
 
@@ -113,26 +135,58 @@ class TrashManager @Inject constructor(
                 // Ensure trash directory exists
                 ensureTrashDirectory(trashPath.parent!!)
 
-                // Move the file/directory
-                val moveState = localPath.move(
+                // Move the file/directory with progress tracking
+                var moveCompleted: MoveAction.State.Completed<*, *, *, *>? = null
+
+                localPath.move(
                     gateway = gatewaySwitch,
                     destination = trashPath,
-                ).last()
+                )
+                    .onEach { moveState ->
+                        when (moveState) {
+                            is MoveAction.State.Active<*, *, *, *> -> {
+                                emit(
+                                    TrashMoveState.Active(
+                                        currentItem = lookup,
+                                        primaryProgress = Progress.Data(
+                                            primary = eu.darken.butler.common.io.R.string.general_move_progress_title.toCaString(),
+                                            secondary = lookup.lookedUp.name.toCaString(),
+                                            count = Progress.Count.Counter(
+                                                current = index.toLong(),
+                                                max = totalItems.toLong(),
+                                            ),
+                                            extra = moveState.primaryProgress.extra,
+                                        ),
+                                        secondaryProgress = moveState.secondaryProgress,
+                                        itemsProcessed = index,
+                                        itemsTotal = totalItems,
+                                        bytesMovedSoFar = totalBytesMoved + moveState.movedBytes,
+                                        totalBytesEstimate = estimatedIncomingSize,
+                                    )
+                                )
+                            }
 
-                if (moveState is MoveAction.State.Completed<*, *, *, *>) {
+                            is MoveAction.State.Completed<*, *, *, *> -> {
+                                moveCompleted = moveState
+                            }
+                        }
+                    }
+                    .last()
+
+                if (moveCompleted != null) {
                     // Record in repository with full lookup data
                     val item = TrashRepo.TrashItem(
                         id = Uuid.random(),
                         originalLookup = lookup,
                         trashPath = trashPath,
-                        trashLookup = moveState.movedFiles.first().second,
+                        trashLookup = moveCompleted!!.movedFiles.first().second,
                         size = lookup.size!!,
                     )
 
                     repository.insert(item)
 
                     movedItems.add(lookup)
-                    totalBytes += lookup.size ?: 0L
+                    totalBytesMoved += lookup.size ?: 0L
 
                     log(TAG, DEBUG) { "Successfully moved to trash: $localPath -> $trashPath" }
                 } else {
@@ -156,13 +210,17 @@ class TrashManager @Inject constructor(
             getTrashRoot(supported.first())
         } else null
 
-        return@withContext TrashMoveReport(
-            movedToTrash = movedItems,
-            failedToMove = failedItems,
-            bytesMoved = totalBytes,
-            trashPath = trashRoot,
+        emit(
+            TrashMoveState.Completed(
+                report = TrashMoveReport(
+                    movedToTrash = movedItems,
+                    failedToMove = failedItems,
+                    bytesMoved = totalBytesMoved,
+                    trashPath = trashRoot,
+                )
+            )
         )
-    }
+    }.flowOn(dispatcherProvider.IO)
 
     suspend fun restore(
         items: List<TrashRepo.TrashItem>,
