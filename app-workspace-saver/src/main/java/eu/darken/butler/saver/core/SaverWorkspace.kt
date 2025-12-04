@@ -15,7 +15,9 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.DynamicStateFlow
+import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
@@ -25,9 +27,12 @@ import eu.darken.butler.saver.core.operations.SaveFilesOperation
 import eu.darken.butler.saver.core.operations.SaveFilesReport
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.withStateUpdates
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -54,6 +59,7 @@ class SaverWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val contentUriHelper: ContentUriHelper,
     private val operationsManager: OperationsManager,
+    private val issueHandler: IssueHandler,
     private val saveFilesOperationFactory: SaveFilesOperation.Factory,
     private val pkgOps: PkgOps,
     private val json: Json,
@@ -104,6 +110,24 @@ class SaverWorkspace @AssistedInject constructor(
                         }
                     }
             }
+        }
+
+    data class OperationsState(
+        val operations: Collection<ManagedOperation> = emptySet(),
+        val states: Map<Operation.Id, Operation.State> = emptyMap(),
+        val pendingConflicts: Map<Operation.Id, Issue>,
+    )
+
+    val operations: Flow<OperationsState> = operationsManager.operationsForWorkspace(id)
+        .withStateUpdates()
+        .map { operations ->
+            OperationsState(
+                operations = operations,
+                states = operations.associate { it.id to it.state.value },
+                pendingConflicts = operations.map { it to it.state.value }
+                    .filter { it.second is Operation.State.Waiting }
+                    .associate { it.first.id to (it.second as Operation.State.Waiting).issue }
+            )
         }
 
     private val _callerLabel = MutableStateFlow<String?>(UNKNOWN_CALLER_LABEL)
@@ -352,6 +376,11 @@ class SaverWorkspace @AssistedInject constructor(
                             _saveState.value = SaveState.Success(state.report)
                         }
                     }
+                    is Operation.State.Completed -> {
+                        // Generic completion (e.g., cancelled via anonymous object from ManagedOperation)
+                        log(tag, INFO) { "Operation completed generically (cancelled?), resetting state" }
+                        resetSaveState()
+                    }
                     else -> {}
                 }
             }
@@ -361,6 +390,13 @@ class SaverWorkspace @AssistedInject constructor(
     fun resetSaveState() {
         _saveState.value = SaveState.Idle
         _currentOperationId.value = null
+    }
+
+    fun resolveConflict(operationId: Operation.Id, resolution: PathActionIssue.Resolution) {
+        log(tag, INFO) { "Resolving conflict for operation $operationId: $resolution" }
+        scope.launch {
+            issueHandler.resolveIssue(operationId, resolution)
+        }
     }
 
     private fun isUnknownCaller(pkgId: Pkg.Id): Boolean {

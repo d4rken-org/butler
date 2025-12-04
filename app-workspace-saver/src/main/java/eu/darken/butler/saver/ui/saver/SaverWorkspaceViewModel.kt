@@ -7,10 +7,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
@@ -26,16 +29,23 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 @HiltViewModel(assistedFactory = SaverWorkspaceViewModel.Factory::class)
 class SaverWorkspaceViewModel @AssistedInject constructor(
@@ -51,6 +61,13 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
             .map { workspace: Workspace<out Workspace.Arguments>? -> workspace as? SaverWorkspace }
 
     private suspend fun getWorkspace(): SaverWorkspace = workspaceSource.filterNotNull().first()
+
+    // Issue handling state
+    private val issueStateFlow = MutableStateFlow<Issue?>(null)
+    val issueState = issueStateFlow.asStateFlow()
+    private var currentConflictOperationId: Operation.Id? = null
+    private val showIssueSheetFlow = MutableSharedFlow<Unit>()
+    val showIssueSheetEvent = showIssueSheetFlow.asSharedFlow()
 
     data class State(
         val sourceInfos: List<ContentUriHelper.SourceInfo> = emptyList(),
@@ -131,6 +148,25 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
                 }
             }
             .launchIn(vmScope)
+
+        // Observe pending conflicts from workspace and update UI state
+        workspaceSource
+            .filterNotNull()
+            .flatMapLatest { it.operations }
+            .map { it.pendingConflicts }
+            .distinctUntilChanged()
+            .onEach { conflicts ->
+                val firstConflictEntry = conflicts.entries.firstOrNull()
+                if (firstConflictEntry != null) {
+                    val (operationId, issue) = firstConflictEntry
+                    currentConflictOperationId = operationId
+                    issueStateFlow.value = issue
+                } else {
+                    currentConflictOperationId = null
+                    issueStateFlow.value = null
+                }
+            }
+            .launchIn(vmScope)
     }
 
     fun onPickDestination() = launch {
@@ -196,6 +232,34 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     fun onClose() = launch {
         log(tag) { "onClose()" }
         workspaceRemote.execute(WorkspaceAction.Close(id))
+    }
+
+    fun resolveConflict(resolution: PathActionIssue.Resolution) = launch {
+        log(tag) { "resolveConflict(): $resolution" }
+
+        val operationId = currentConflictOperationId
+        if (operationId != null) {
+            getWorkspace().resolveConflict(operationId, resolution)
+        } else {
+            log(tag, WARN) { "Cannot resolve conflict: no current operation ID" }
+        }
+
+        // Clear conflict UI state
+        issueStateFlow.value = null
+        currentConflictOperationId = null
+    }
+
+    fun showConflictSheet(operationId: Operation.Id) = launch {
+        log(tag) { "showConflictSheet($operationId)" }
+        val workspace = getWorkspace()
+        val conflict = workspace.operations.first().pendingConflicts[operationId]
+        if (conflict != null) {
+            currentConflictOperationId = operationId
+            issueStateFlow.value = conflict
+            showIssueSheetFlow.emit(Unit)
+        } else {
+            log(tag, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
+        }
     }
 
     @AssistedFactory

@@ -358,7 +358,8 @@ fun OperationEntryRow(
         OperationActionIndicator(
             modifier = Modifier,
             state = operation.state,
-            onAction = if (operation.state is OperationDisplay.State.Running) onActionClick else null
+            onAction = if (operation.state is OperationDisplay.State.Running) onActionClick else null,
+            onFallbackClick = onRowClick,
         )
     }
 }

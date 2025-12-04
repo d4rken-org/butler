@@ -35,6 +35,7 @@ internal fun SaverActionArea(
     operationDisplay: OperationDisplay?,
     onSave: () -> Unit,
     onOpenSaved: () -> Unit,
+    onRetry: () -> Unit,
     onOperationClick: (Operation.Id) -> Unit = {},
 ) {
     Column(
@@ -53,8 +54,7 @@ internal fun SaverActionArea(
             }
 
             is SaverWorkspace.SaveState.Saving,
-            is SaverWorkspace.SaveState.Success,
-            is SaverWorkspace.SaveState.Error -> {
+            is SaverWorkspace.SaveState.Success -> {
                 // Show operation progress/result using OperationEntryRow
                 operationDisplay?.let { display ->
                     Surface(shape = MaterialTheme.shapes.medium) {
@@ -66,7 +66,7 @@ internal fun SaverActionArea(
                     }
                 }
 
-                // Single "Open saved file" button - enabled only on success with files
+                // "Open saved file" button - enabled only on success with files
                 val isEnabled = saveState is SaverWorkspace.SaveState.Success &&
                     saveState.report.successes.isNotEmpty()
                 Button(
@@ -75,6 +75,27 @@ internal fun SaverActionArea(
                     onClick = onOpenSaved,
                 ) {
                     Text(stringResource(R.string.saver_open_saved_action))
+                }
+            }
+
+            is SaverWorkspace.SaveState.Error -> {
+                // Show operation error using OperationEntryRow
+                operationDisplay?.let { display ->
+                    Surface(shape = MaterialTheme.shapes.medium) {
+                        OperationEntryRow(
+                            operation = display,
+                            onRowClick = { onOperationClick(display.id) },
+                            isBarExpanded = true,
+                        )
+                    }
+                }
+
+                // Retry button
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onRetry,
+                ) {
+                    Text(stringResource(R.string.saver_save_action))
                 }
             }
         }
@@ -102,6 +123,7 @@ private fun SaverActionAreaIdlePreview() {
             operationDisplay = null,
             onSave = {},
             onOpenSaved = {},
+            onRetry = {},
         )
     }
 }
@@ -115,6 +137,7 @@ private fun SaverActionAreaIdleDisabledPreview() {
             operationDisplay = null,
             onSave = {},
             onOpenSaved = {},
+            onRetry = {},
         )
     }
 }
@@ -147,6 +170,7 @@ private fun SaverActionAreaSavingPreview() {
             ),
             onSave = {},
             onOpenSaved = {},
+            onRetry = {},
         )
     }
 }
@@ -182,6 +206,7 @@ private fun SaverActionAreaSuccessPreview() {
             ),
             onSave = {},
             onOpenSaved = {},
+            onRetry = {},
         )
     }
 }
@@ -217,6 +242,7 @@ private fun SaverActionAreaBatchSuccessPreview() {
             ),
             onSave = {},
             onOpenSaved = {},
+            onRetry = {},
         )
     }
 }
@@ -256,6 +282,7 @@ private fun SaverActionAreaPartialSuccessPreview() {
             ),
             onSave = {},
             onOpenSaved = {},
+            onRetry = {},
         )
     }
 }
@@ -293,6 +320,7 @@ private fun SaverActionAreaErrorPreview() {
             ),
             onSave = {},
             onOpenSaved = {},
+            onRetry = {},
         )
     }
 }

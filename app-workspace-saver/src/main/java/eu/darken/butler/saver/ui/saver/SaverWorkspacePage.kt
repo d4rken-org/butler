@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,10 +30,19 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlin.time.Clock
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Save
+import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.saver.core.operations.SaveFilesReport
+import eu.darken.butler.workspace.core.operations.Operation
 
 @Composable
 fun SaverWorkspacePageHost(
@@ -73,6 +83,21 @@ private fun SaverWorkspacePage(
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
+    // Issue state observation
+    val issueState by (vm?.issueState?.collectAsState(initial = null) ?: remember { mutableStateOf(null) })
+    var showIssueSheet by remember { mutableStateOf(false) }
+
+    LaunchedEffect(vm) {
+        vm?.showIssueSheetEvent?.collect { showIssueSheet = true }
+    }
+
+    // Auto-dismiss issue sheet when issue is resolved/cancelled
+    LaunchedEffect(issueState) {
+        if (issueState == null) {
+            showIssueSheet = false
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -85,7 +110,12 @@ private fun SaverWorkspacePage(
                 workspaceActionHandler = workspaceActionHandler,
                 vm = vm,
                 onOperationClick = { operationId ->
-                    operationDialogState = OperationDialogState.OperationDetails(operationId)
+                    val op = state.operationDisplay
+                    if (op?.id == operationId && op.state is OperationDisplay.State.Waiting) {
+                        vm?.showConflictSheet(operationId)
+                    } else {
+                        operationDialogState = OperationDialogState.OperationDetails(operationId)
+                    }
                 },
             )
         } else {
@@ -97,7 +127,12 @@ private fun SaverWorkspacePage(
                 workspaceActionHandler = workspaceActionHandler,
                 vm = vm,
                 onOperationClick = { operationId ->
-                    operationDialogState = OperationDialogState.OperationDetails(operationId)
+                    val op = state.operationDisplay
+                    if (op?.id == operationId && op.state is OperationDisplay.State.Waiting) {
+                        vm?.showConflictSheet(operationId)
+                    } else {
+                        operationDialogState = OperationDialogState.OperationDetails(operationId)
+                    }
                 },
             )
         }
@@ -109,6 +144,18 @@ private fun SaverWorkspacePage(
             onCancelOperation = { operationDialogState = OperationDialogState.None },
             onCopyError = { /* TODO: implement if needed */ },
         )
+
+        // Show issue bottom sheet when needed
+        if (issueState != null && showIssueSheet) {
+            IssuesBottomSheet(
+                issue = issueState!!,
+                onResolution = { resolution ->
+                    vm?.resolveConflict(resolution)
+                    showIssueSheet = false  // Dismiss immediately after resolution
+                },
+                onDismiss = { showIssueSheet = false },
+            )
+        }
     }
 }
 
@@ -148,8 +195,10 @@ private fun SingleFileModeContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Show destination picker only in Idle state (replaced by OperationEntryRow during save)
-        if (state.saveState is SaverWorkspace.SaveState.Idle) {
+        // Show destination picker in Idle or Error state (for retry)
+        val showDestinationPicker = state.saveState is SaverWorkspace.SaveState.Idle ||
+            state.saveState is SaverWorkspace.SaveState.Error
+        if (showDestinationPicker) {
             if (state.hasInaccessibleFiles) {
                 WarningCard(
                     message = stringResource(R.string.saver_source_expired_warning),
@@ -172,6 +221,7 @@ private fun SingleFileModeContent(
             operationDisplay = state.operationDisplay,
             onSave = { vm?.onSave() },
             onOpenSaved = { vm?.onOpenSavedFile() },
+            onRetry = { vm?.onRetry() },
             onOperationClick = onOperationClick,
         )
     }
@@ -209,8 +259,10 @@ private fun BatchModeContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Show destination picker only in Idle state (replaced by OperationEntryRow during save)
-        if (state.saveState is SaverWorkspace.SaveState.Idle) {
+        // Show destination picker in Idle or Error state (for retry)
+        val showDestinationPicker = state.saveState is SaverWorkspace.SaveState.Idle ||
+            state.saveState is SaverWorkspace.SaveState.Error
+        if (showDestinationPicker) {
             if (state.hasInaccessibleFiles) {
                 WarningCard(
                     message = stringResource(R.string.saver_source_expired_warning),
@@ -233,6 +285,7 @@ private fun BatchModeContent(
             operationDisplay = state.operationDisplay,
             onSave = { vm?.onSave() },
             onOpenSaved = { vm?.onOpenSavedFile() },
+            onRetry = { vm?.onRetry() },
             onOperationClick = onOperationClick,
         )
     }
@@ -276,21 +329,21 @@ private fun SaverWorkspacePageBatchModePreview() {
                 SaverWorkspaceViewModel.State(
                     sourceInfos = listOf(
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/image1.jpg"),
+                            uri = "content://example/image1.jpg".toUri(),
                             displayName = "photo_001.jpg",
                             mimeType = "image/jpeg",
                             size = 3_500_000,
                             isAccessible = true,
                         ),
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/image2.jpg"),
+                            uri = "content://example/image2.jpg".toUri(),
                             displayName = "photo_002.jpg",
                             mimeType = "image/jpeg",
                             size = 2_800_000,
                             isAccessible = true,
                         ),
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/image3.jpg"),
+                            uri = "content://example/image3.jpg".toUri(),
                             displayName = "photo_003.jpg",
                             mimeType = "image/jpeg",
                             size = 4_200_000,
@@ -317,7 +370,7 @@ private fun SaverWorkspacePageWithDestinationPreview() {
                 SaverWorkspaceViewModel.State(
                     sourceInfos = listOf(
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/document.pdf"),
+                            uri = "content://example/document.pdf".toUri(),
                             displayName = "report.pdf",
                             mimeType = "application/pdf",
                             size = 1_200_000,
@@ -345,7 +398,7 @@ private fun SaverWorkspacePageInaccessiblePreview() {
                 SaverWorkspaceViewModel.State(
                     sourceInfos = listOf(
                         ContentUriHelper.SourceInfo(
-                            uri = Uri.parse("content://example/expired.jpg"),
+                            uri = "content://example/expired.jpg".toUri(),
                             displayName = "expired_file.jpg",
                             mimeType = "image/jpeg",
                             size = 1_000_000,
