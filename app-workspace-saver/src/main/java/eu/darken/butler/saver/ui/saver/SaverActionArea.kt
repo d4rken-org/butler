@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +36,7 @@ internal fun SaverActionArea(
     operationDisplay: OperationDisplay?,
     onSave: () -> Unit,
     onOpenSaved: () -> Unit,
+    onSaveAgain: () -> Unit,
     onRetry: () -> Unit,
     onOperationClick: (Operation.Id) -> Unit = {},
 ) {
@@ -75,6 +77,16 @@ internal fun SaverActionArea(
                     onClick = onOpenSaved,
                 ) {
                     Text(stringResource(R.string.saver_open_saved_action))
+                }
+
+                // "Save again" button - only shown on success
+                if (saveState is SaverWorkspace.SaveState.Success) {
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onSaveAgain,
+                    ) {
+                        Text(stringResource(R.string.saver_save_again_action))
+                    }
                 }
             }
 
@@ -123,6 +135,7 @@ private fun SaverActionAreaIdlePreview() {
             operationDisplay = null,
             onSave = {},
             onOpenSaved = {},
+            onSaveAgain = {},
             onRetry = {},
         )
     }
@@ -137,6 +150,7 @@ private fun SaverActionAreaIdleDisabledPreview() {
             operationDisplay = null,
             onSave = {},
             onOpenSaved = {},
+            onSaveAgain = {},
             onRetry = {},
         )
     }
@@ -170,6 +184,7 @@ private fun SaverActionAreaSavingPreview() {
             ),
             onSave = {},
             onOpenSaved = {},
+            onSaveAgain = {},
             onRetry = {},
         )
     }
@@ -206,6 +221,7 @@ private fun SaverActionAreaSuccessPreview() {
             ),
             onSave = {},
             onOpenSaved = {},
+            onSaveAgain = {},
             onRetry = {},
         )
     }
@@ -242,6 +258,7 @@ private fun SaverActionAreaBatchSuccessPreview() {
             ),
             onSave = {},
             onOpenSaved = {},
+            onSaveAgain = {},
             onRetry = {},
         )
     }
@@ -282,6 +299,7 @@ private fun SaverActionAreaPartialSuccessPreview() {
             ),
             onSave = {},
             onOpenSaved = {},
+            onSaveAgain = {},
             onRetry = {},
         )
     }
@@ -320,6 +338,7 @@ private fun SaverActionAreaErrorPreview() {
             ),
             onSave = {},
             onOpenSaved = {},
+            onSaveAgain = {},
             onRetry = {},
         )
     }

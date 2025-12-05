@@ -219,6 +219,11 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().resetSaveState()
     }
 
+    fun onSaveAgain() = launch {
+        log(tag) { "onSaveAgain()" }
+        getWorkspace().resetSaveState()
+    }
+
     fun onRefreshAccessibility() = launch {
         log(tag) { "onRefreshAccessibility()" }
         getWorkspace().refreshSourceAccessibility()

@@ -221,6 +221,7 @@ private fun SingleFileModeContent(
             operationDisplay = state.operationDisplay,
             onSave = { vm?.onSave() },
             onOpenSaved = { vm?.onOpenSavedFile() },
+            onSaveAgain = { vm?.onSaveAgain() },
             onRetry = { vm?.onRetry() },
             onOperationClick = onOperationClick,
         )
@@ -285,6 +286,7 @@ private fun BatchModeContent(
             operationDisplay = state.operationDisplay,
             onSave = { vm?.onSave() },
             onOpenSaved = { vm?.onOpenSavedFile() },
+            onSaveAgain = { vm?.onSaveAgain() },
             onRetry = { vm?.onRetry() },
             onOperationClick = onOperationClick,
         )
