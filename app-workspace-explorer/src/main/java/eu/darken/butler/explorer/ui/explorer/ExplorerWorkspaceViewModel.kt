@@ -251,12 +251,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             selectedItems = selectedItems,
             selectableItems = items
                 ?.filter { item ->
-                    // Base filter: must be a Path, Storage, TrashItem, or TrashNestedItem
-                    val isBaseSelectable = item is ExplorerItem.Path ||
-                        item is ExplorerItem.Storage ||
-                        item is ExplorerItem.Trash.Root ||
-                        item is ExplorerItem.Trash.Nested
-                    if (!isBaseSelectable) return@filter false
+                    if (!item.isSelectable()) return@filter false
 
                     // In picker mode, filter by what can actually be selected
                     when (pickerConfig?.selection) {
@@ -573,9 +568,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         return position
     }
 
-    // TODO we should introduce something like an "isSelectable" interface
     fun toggleItemSelection(item: ExplorerItem) {
-        if (item !is ExplorerItem.Path && item !is ExplorerItem.Storage && item !is ExplorerItem.Trash.Root && item !is ExplorerItem.Trash.Nested) {
+        if (!item.isSelectable()) {
             log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
             return
         }

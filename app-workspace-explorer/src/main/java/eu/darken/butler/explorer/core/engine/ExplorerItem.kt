@@ -18,6 +18,12 @@ sealed interface ExplorerItem {
     val displayName: CaString
     val id: String
 
+    /**
+     * @param context Optional context for future use (e.g., picker mode, permissions)
+     * @return true if this item can be selected in the current context
+     */
+    fun isSelectable(context: Any? = null): Boolean = true
+
     data class Shortcut(
         val shortcutId: String,
         override val displayName: CaString,
@@ -26,6 +32,7 @@ sealed interface ExplorerItem {
         val subtitle: CaString? = null,
         val badge: Badge? = null,
     ) : ExplorerItem {
+        override fun isSelectable(context: Any?): Boolean = false
         override val id: String get() = "shortcut-$shortcutId"
 
         enum class Badge {
@@ -178,6 +185,7 @@ sealed interface ExplorerItem {
             val trashLookup: APathLookup<*>?,
         ) : Trash {
             val isAvailable get() = trashLookup != null
+            override fun isSelectable(context: Any?): Boolean = isAvailable
             override val id: String get() = "trash-$itemId"
             override val displayName: CaString
                 get() = originalLookup.userReadableName
