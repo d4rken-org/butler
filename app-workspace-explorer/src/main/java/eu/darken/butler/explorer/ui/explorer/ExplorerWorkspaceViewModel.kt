@@ -9,9 +9,9 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -129,6 +129,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val trashManager: TrashManager,
     private val trashRepo: TrashRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
+    private val errorReportTool: ErrorReportTool,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
@@ -1599,7 +1600,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun copyNavigationError() = launch {
         log(tag) { "copyNavigationError()" }
         workspaceState.first().error?.let { throwable ->
-            systemClipboardHelper.copyToClipboard(formatNavigationError(throwable))
+            val report = errorReportTool.buildReport(
+                throwable = throwable,
+                errorContext = "Navigation error in workspace ${id.shortTag}",
+            )
+            errorReportTool.copyToClipboard(report)
         }
     }
 
@@ -1613,22 +1618,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // Simply triggering any navigation request will clear the error state
         // We use Cancel as it's the least intrusive option
         getWorkspace().navigate(ExplorerNavigation.Back)
-    }
-
-    private fun formatNavigationError(error: Throwable): String {
-        return """
-            # Navigation Error
-            * `${Build.FINGERPRINT}`
-            * `${BuildConfigWrap.VERSION_DESCRIPTION}`
-            * WorkspaceID: `${id.longTag}`
-
-            ## Error
-            ${error.message ?: error.javaClass.simpleName}
-
-            ```java
-            ${error.stackTraceToString()}
-            ```
-        """.trimIndent()
     }
 
     fun validateFilename(name: String): FilenameValidator.ValidationResult {

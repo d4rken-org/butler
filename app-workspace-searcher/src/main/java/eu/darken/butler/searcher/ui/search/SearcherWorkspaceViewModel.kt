@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -91,6 +92,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val shareIntentUseCase: ShareIntentUseCase,
     private val trashSettings: TrashSettings,
+    private val errorReportTool: ErrorReportTool,
     itemSorterFactory: eu.darken.butler.searcher.core.sorting.SearchItemSorter.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
 
@@ -1059,11 +1061,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             // Error
             is SearcherPageAction.Error.Copy -> {
                 log(TAG) { "copySearchError(${action.error.javaClass.simpleName})" }
-                val errorText = eu.darken.butler.workspace.ui.error.ErrorFormatter.formatErrorForClipboard(
+                val report = errorReportTool.buildReport(
                     throwable = action.error,
-                    context = "Search operation in workspace ${id.shortTag}"
+                    errorContext = "Search operation in workspace ${id.shortTag}",
                 )
-                systemClipboardHelper.copyToClipboard(errorText)
+                errorReportTool.copyToClipboard(report)
             }
 
             // Workspace actions (delegate to existing handler)

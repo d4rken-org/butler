@@ -317,6 +317,16 @@ class WorkspaceSessionManager @Inject constructor(
     }
 
     /**
+     * Clears the session data, typically called when restoration fails
+     * and the user wants to start fresh.
+     */
+    suspend fun clearSession() {
+        log(TAG, INFO) { "Clearing session due to restoration error" }
+        storage.dao.clearAllSessionData(DEFAULT_SESSION_ID)
+        _state.value = State.Restored(emptyList())
+    }
+
+    /**
      * Find a replacement workspace for a missing pane assignment
      * Uses MRU (Most Recently Used) logic from PageManager
      */

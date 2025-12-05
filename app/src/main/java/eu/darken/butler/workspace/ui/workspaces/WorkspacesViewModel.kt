@@ -25,6 +25,10 @@ import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
+import eu.darken.butler.workspace.core.session.SessionRestorationException
+import eu.darken.butler.common.error.ErrorReportTool
+import eu.darken.butler.common.flow.SingleEventFlow
+import android.content.Intent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.onEach
@@ -45,6 +49,7 @@ class WorkspacesViewModel @Inject constructor(
     private val sessionManager: WorkspaceSessionManager,
     private val motdRepo: MotdRepo,
     private val webpageTool: WebpageTool,
+    private val errorReportTool: ErrorReportTool,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM"), navCtrl) {
 
     private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())
@@ -57,10 +62,25 @@ class WorkspacesViewModel @Inject constructor(
     private val _bannerStates = MutableStateFlow<Map<Workspace.Id, BannerState>>(emptyMap())
     val bannerStates = _bannerStates.asStateFlow()
 
+    private val _showClearSessionConfirmation = MutableStateFlow(false)
+    val showClearSessionConfirmation = _showClearSessionConfirmation.asStateFlow()
+
+    private var currentSessionError: Throwable? = null
+    val shareIntentEvent = SingleEventFlow<Intent>()
+
     init {
         sessionManager.state
-            .onEach {
-                log(tag, INFO) { "Restoration state updated: $it" }
+            .onEach { restorationState ->
+                log(tag, INFO) { "Restoration state updated: $restorationState" }
+                if (restorationState is WorkspaceSessionManager.State.Error) {
+                    currentSessionError = restorationState.exception
+                    val exception = SessionRestorationException(
+                        cause = restorationState.exception,
+                        onRequestClearSession = { _showClearSessionConfirmation.value = true },
+                        onRequestShareError = { shareSessionError() },
+                    )
+                    errorEvents.emitBlocking(exception)
+                }
             }
             .launchInViewModel()
 
@@ -250,6 +270,29 @@ class WorkspacesViewModel @Inject constructor(
     fun dismissBanner(workspaceId: Workspace.Id) = launch {
         log(tag) { "dismissBanner($workspaceId)" }
         _bannerStates.update { it - workspaceId }
+    }
+
+    fun dismissClearSessionConfirmation() {
+        log(tag) { "dismissClearSessionConfirmation()" }
+        _showClearSessionConfirmation.value = false
+    }
+
+    fun confirmClearSession() = launch {
+        log(tag) { "confirmClearSession()" }
+        _showClearSessionConfirmation.value = false
+        sessionManager.clearSession()
+    }
+
+    private fun shareSessionError() {
+        log(tag) { "shareSessionError()" }
+        val error = currentSessionError ?: return
+        val report = errorReportTool.buildReport(
+            throwable = error,
+            message = "Session restoration failed",
+            errorContext = "WorkspacesViewModel",
+        )
+        val intent = errorReportTool.createShareChooserIntent(report)
+        shareIntentEvent.tryEmit(intent)
     }
 
     data class State(
