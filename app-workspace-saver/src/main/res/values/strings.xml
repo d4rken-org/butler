@@ -14,7 +14,10 @@
     <string name="saver_retry_action">Retry</string>
     <string name="saver_save_again_action">Save again</string>
     <string name="saver_close_tab_action">Close tab</string>
-    <string name="saver_source_expired_warning">Source file is no longer accessible. Please share again.</string>
+    <plurals name="saver_source_expired_warning">
+        <item quantity="one">Source file is no longer accessible. Please share again.</item>
+        <item quantity="other">%1$d source files are no longer accessible. Please share again.</item>
+    </plurals>
     <string name="saver_error_source_expired">Source file is no longer accessible</string>
     <string name="saver_error_permission_denied">Permission denied</string>
     <string name="saver_error_write_failed">Failed to save file</string>

@@ -90,6 +90,9 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         val hasInaccessibleFiles: Boolean
             get() = sourceInfos.any { !it.isAccessible }
 
+        val inaccessibleFileCount: Int
+            get() = sourceInfos.count { !it.isAccessible }
+
         val canSave: Boolean
             get() = destination != null
                 && !hasInaccessibleFiles
