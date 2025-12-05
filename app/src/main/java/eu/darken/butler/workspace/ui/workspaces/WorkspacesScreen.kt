@@ -4,6 +4,10 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,6 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
@@ -36,6 +42,8 @@ import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
 import kotlin.uuid.Uuid
+import eu.darken.butler.workspace.R as WorkspaceR
+import eu.darken.butler.common.R as CommonR
 
 private val TAG = logTag("Workspace", "Screen")
 
@@ -46,9 +54,17 @@ fun WorkspacesScreenHost(
 ) {
     ErrorEventHandler(vm)
 
+    val context = LocalContext.current
     val workspaceButtonState by workspaceButtonVm.state.collectAsState(initial = null)
     val managerDialogStates by vm.managerDialogStates.collectAsState(initial = emptyMap())
     val bannerStates by vm.bannerStates.collectAsState(initial = emptyMap())
+    val showClearSessionConfirmation by vm.showClearSessionConfirmation.collectAsState(initial = false)
+
+    LaunchedEffect(Unit) {
+        vm.shareIntentEvent.collect { intent ->
+            context.startActivity(intent)
+        }
+    }
 
     val state by waitForState(vm.state)
 
@@ -66,6 +82,13 @@ fun WorkspacesScreenHost(
             onDismissBanner = { vm.dismissBanner(it) },
             onDismissManagerDialog = { vm.dismissManagerDialog(it) },
             onConfirmManagerDialog = { vm.confirmManagerDialog(it) },
+        )
+    }
+
+    if (showClearSessionConfirmation) {
+        ClearSessionConfirmationDialog(
+            onDismiss = { vm.dismissClearSessionConfirmation() },
+            onConfirm = { vm.confirmClearSession() },
         )
     }
 }
@@ -189,6 +212,53 @@ fun WorkspaceScreen(
                     WorkspaceAction.Close(fullScreenModal.id)
                 )
             },
+        )
+    }
+}
+
+@Composable
+private fun ClearSessionConfirmationDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(WorkspaceR.string.workspace_session_restoration_error_confirm_title),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(WorkspaceR.string.workspace_session_restoration_error_confirm_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    text = stringResource(WorkspaceR.string.workspace_session_restoration_error_clear_action),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(CommonR.string.general_cancel_action))
+            }
+        },
+    )
+}
+
+@Preview2
+@Composable
+private fun ClearSessionConfirmationDialogPreview() {
+    PreviewWrapper {
+        ClearSessionConfirmationDialog(
+            onDismiss = {},
+            onConfirm = {},
         )
     }
 }

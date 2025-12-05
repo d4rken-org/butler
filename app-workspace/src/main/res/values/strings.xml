@@ -267,4 +267,12 @@
         <item quantity="one">%1$d workspace • %2$s</item>
         <item quantity="other">%1$d workspaces • %2$s</item>
     </plurals>
+
+    <!-- Session Restoration Error -->
+    <string name="workspace_session_restoration_error_title">Session Restoration Failed</string>
+    <string name="workspace_session_restoration_error_description">Your previous workspace session could not be restored. This may be due to a bug that will be fixed in a future update.\n\nYou can clear the saved session to continue using Butler, or wait for an update.</string>
+    <string name="workspace_session_restoration_error_clear_action">Clear Session</string>
+    <string name="workspace_session_restoration_error_report_action">Report Issue</string>
+    <string name="workspace_session_restoration_error_confirm_title">Clear Session?</string>
+    <string name="workspace_session_restoration_error_confirm_description">This will permanently delete your saved workspace session. This action cannot be undone.</string>
 </resources>
