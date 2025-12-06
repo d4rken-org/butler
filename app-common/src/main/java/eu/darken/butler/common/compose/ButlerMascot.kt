@@ -14,7 +14,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec.*
+import com.airbnb.lottie.compose.LottieCompositionSpec.RawRes
 import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
 import eu.darken.butler.common.R
@@ -75,7 +75,11 @@ fun ButlerMascot(
                         animatable.snapTo(composition = allCompositions.first(), progress = 0f)
                         while (currentCoroutineContext().isActive) {
                             repeat((3..9).random()) {
-                                animatable.animate(composition = allCompositions.random(), iterations = 1)
+                                animatable.animate(
+                                    composition = allCompositions.random(),
+                                    iterations = 1,
+                                    speed = variant.speed,
+                                )
                                 delay((3000..9000L).random())
                             }
                         }
@@ -95,6 +99,7 @@ fun ButlerMascot(
                             composition = composition,
                             modifier = semanticsModifier,
                             iterations = 1,
+                            speed = variant.speed,
                         )
                     }
                     ButlerMascotMode.Animated.Sleep.Snoring -> {
@@ -103,6 +108,7 @@ fun ButlerMascot(
                             composition = composition,
                             modifier = semanticsModifier,
                             iterations = 1,
+                            speed = variant.speed,
                         )
                     }
                     ButlerMascotMode.Animated.Sleep.WakeUp -> {
@@ -111,6 +117,7 @@ fun ButlerMascot(
                             composition = composition,
                             modifier = semanticsModifier,
                             iterations = 1,
+                            speed = variant.speed,
                         )
                     }
                 }
@@ -132,17 +139,25 @@ fun ButlerMascot(
 
                     val animatable = rememberLottieAnimatable()
 
-                    LaunchedEffect(composition, variant.loop, variant.loopDelay) {
+                    LaunchedEffect(composition, variant.loop, variant.loopDelay, variant.speed) {
                         composition ?: return@LaunchedEffect
                         if (variant.loop) {
                             while (currentCoroutineContext().isActive) {
-                                animatable.animate(composition = composition, iterations = 1)
+                                animatable.animate(
+                                    composition = composition,
+                                    iterations = 1,
+                                    speed = variant.speed,
+                                )
                                 if (variant.loopDelay > Duration.ZERO) {
                                     delay(variant.loopDelay.inWholeMilliseconds)
                                 }
                             }
                         } else {
-                            animatable.animate(composition = composition, iterations = 1)
+                            animatable.animate(
+                                composition = composition,
+                                iterations = 1,
+                                speed = variant.speed,
+                            )
                         }
                     }
 
@@ -168,53 +183,79 @@ sealed interface ButlerMascotMode {
     sealed interface Animated : ButlerMascotMode {
         val loop: Boolean
         val loopDelay: Duration
+        val speed: Float
         val description: Int
 
         data class RandomCycling(
             override val loop: Boolean = true,
             override val loopDelay: Duration = Duration.ZERO,
+            override val speed: Float = 1f,
         ) : Animated {
+            init {
+                require(speed > 0f) { "speed must be positive" }
+            }
             override val description: Int = R.string.butler_mascot_animation_random_description
         }
 
         data class Wink(
             override val loop: Boolean = true,
             override val loopDelay: Duration = Duration.ZERO,
+            override val speed: Float = 1f,
         ) : Animated {
+            init {
+                require(speed > 0f) { "speed must be positive" }
+            }
             override val description: Int = R.string.butler_mascot_animation_wink_description
         }
 
         data class Greeting(
             override val loop: Boolean = true,
             override val loopDelay: Duration = Duration.ZERO,
+            override val speed: Float = 1f,
         ) : Animated {
+            init {
+                require(speed > 0f) { "speed must be positive" }
+            }
             override val description: Int = R.string.butler_mascot_animation_greeting_description
         }
 
         data class HatOff(
             override val loop: Boolean = true,
             override val loopDelay: Duration = Duration.ZERO,
+            override val speed: Float = 1f,
         ) : Animated {
+            init {
+                require(speed > 0f) { "speed must be positive" }
+            }
             override val description: Int = R.string.butler_mascot_animation_hatoff_description
         }
 
         data class Drink(
             override val loop: Boolean = true,
             override val loopDelay: Duration = Duration.ZERO,
+            override val speed: Float = 1f,
         ) : Animated {
+            init {
+                require(speed > 0f) { "speed must be positive" }
+            }
             override val description: Int = R.string.butler_mascot_animation_drink_description
         }
 
         data class MoustacheStroke(
             override val loop: Boolean = true,
             override val loopDelay: Duration = Duration.ZERO,
+            override val speed: Float = 1f,
         ) : Animated {
+            init {
+                require(speed > 0f) { "speed must be positive" }
+            }
             override val description: Int = R.string.butler_mascot_animation_moustache_description
         }
 
         sealed interface Sleep : Animated {
             override val loop: Boolean get() = false
             override val loopDelay: Duration get() = Duration.ZERO
+            override val speed: Float get() = 1f
 
             data object EyesClose : Sleep {
                 override val description: Int = R.string.butler_mascot_animation_sleep_closing_description

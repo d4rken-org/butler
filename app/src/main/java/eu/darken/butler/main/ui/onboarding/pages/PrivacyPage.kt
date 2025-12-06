@@ -85,7 +85,7 @@ internal fun PrivacyPage(
                             modifier = Modifier.size(96.dp),
                             variant = ButlerMascotMode.Animated.HatOff(loopDelay = 4.seconds, loop = false),
                         )
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 )
 
