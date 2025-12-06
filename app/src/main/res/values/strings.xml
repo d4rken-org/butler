@@ -11,15 +11,6 @@
     <string name="onboarding_beta_feature_influence_description">Your feedback shapes Butler\'s development.</string>
     <string name="onboarding_beta_feature_feedback_title">Community driven</string>
     <string name="onboarding_beta_feature_feedback_description">Join a community of power users improving Butler.</string>
-    <string name="onboarding_sustainability_title">Free &amp; sustainable</string>
-    <string name="onboarding_sustainability_message">Core features are free. Some advanced features require Butler Pro - it keeps me coding and the app evolving.</string>
-    <string name="onboarding_sustainability_free_title">Core features</string>
-    <string name="onboarding_sustainability_free_description">File browsing, search, and editing.</string>
-    <string name="onboarding_sustainability_pro_title">Pro features</string>
-    <string name="onboarding_sustainability_pro_description">Improved multi-tasking and tools for power users.</string>
-    <string name="onboarding_sustainability_support_title">Ethical funding</string>
-    <string name="onboarding_sustainability_support_description">No ads, no data selling - just direct support from users.</string>
-    <string name="onboarding_sustainability_action">Continue</string>
     <string name="onboarding_privacy_title">Privacy &amp; data</string>
     <string name="onboarding_privacy_message">Butler has no advertisements and does not sell user data. Your privacy is important to me.</string>
     <string name="onboarding_privacy_read_action">Read privacy policy</string>
@@ -38,16 +29,6 @@
     <string name="onboarding_workspaces_templates_title">Templates</string>
     <string name="onboarding_workspaces_templates_description">Save your setup.</string>
     <string name="onboarding_workspaces_apps_description">Manage your apps.</string>
-
-    <string name="onboarding_adaptive_title">Fits any screen</string>
-    <string name="onboarding_adaptive_message">Butler adapts to your device for the best experience.</string>
-    <string name="onboarding_adaptive_action">Continue</string>
-    <string name="onboarding_adaptive_phone_title">Phone</string>
-    <string name="onboarding_adaptive_phone_description">Full-screen tabs on your phone.</string>
-    <string name="onboarding_adaptive_landscape_title">Landscape</string>
-    <string name="onboarding_adaptive_landscape_description">See more content when you rotate.</string>
-    <string name="onboarding_adaptive_tablet_title">Tablet</string>
-    <string name="onboarding_adaptive_tablet_description">Multiple panels side by side.</string>
 
     <!-- Explorer Shortcuts -->
     <string name="shortcut_explorer_new_short">New explorer</string>
@@ -166,7 +147,7 @@
 
     <string name="updater_check_enabled_setting_title">Check for updates</string>
     <string name="updater_check_enabled_setting_description">Allow Butler to check online if a new version is available.</string>
-    <string name="motd_check_enabled_setting_title">Check for messages of the day</string>
+    <string name="motd_check_enabled_setting_title">Check announcements</string>
     <string name="motd_check_enabled_setting_description">Allow Butler to fetch important messages from the developer.</string>
 
     <string name="confirm_exit_setting_title">Confirm exit</string>
