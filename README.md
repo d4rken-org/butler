@@ -58,15 +58,15 @@ sponsor ❤️.
 
 ### Phones
 
-<img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/7.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/8.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/9.png" width="100">
+<img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/7.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/8.png" width="100">
 
 ### 7" Tablets
 
-<img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tabletScreenshots/1.png" width="100">
+<img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tabletScreenshots/1.png" width="200">
 
 ### 10"+ Tablets
 
-<img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/1.png" width="100">
+<img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/1.png" width="200">
 
 ## License
 
