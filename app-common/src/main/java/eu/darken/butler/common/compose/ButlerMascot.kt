@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.airbnb.lottie.LottieComposition
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec.RawRes
 import com.airbnb.lottie.compose.rememberLottieAnimatable
@@ -23,6 +24,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun ButlerMascot(
@@ -53,7 +55,9 @@ fun ButlerMascot(
                     val winkComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_wink))
                     val drinkComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_drink))
                     val moustacheComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_moustache_stroke))
-                    val sleepComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep))
+                    val sleepSleepingComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_sleeping))
+                    val sleepSnoringComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_snoring))
+                    val sleepWakingComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_waking))
                     val greetingComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_greeting))
                     val hatoffComposition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_hatoff))
 
@@ -66,30 +70,55 @@ fun ButlerMascot(
                                 winkComposition,
                                 drinkComposition,
                                 moustacheComposition,
-                                sleepComposition,
+                                sleepSleepingComposition,
+                                sleepSnoringComposition,
+                                sleepWakingComposition,
                                 greetingComposition,
-                                hatoffComposition
+                                hatoffComposition,
                             )
-                        }.first { it.size == 6 }
+                        }.first { it.size == 8 }
+
+                        // Animation sequences - sleep is a 3-part sequence, others are single
+                        val sleepSequence = listOf(
+                            sleepSleepingComposition!!,
+                            sleepSnoringComposition!!,
+                            sleepWakingComposition!!,
+                        )
+                        val animationSequences: List<List<LottieComposition>> = listOf(
+                            listOf(winkComposition!!),
+                            listOf(drinkComposition!!),
+                            listOf(moustacheComposition!!),
+                            sleepSequence,
+                            listOf(greetingComposition!!),
+                            listOf(hatoffComposition!!),
+                        )
 
                         animatable.snapTo(composition = allCompositions.first(), progress = 0f)
                         while (currentCoroutineContext().isActive) {
-                            repeat((3..9).random()) {
+                            val sequence = animationSequences.random()
+                            for (composition in sequence) {
                                 animatable.animate(
-                                    composition = allCompositions.random(),
+                                    composition = composition,
                                     iterations = 1,
                                     speed = variant.speed,
                                 )
-                                delay((3000..9000L).random())
                             }
                         }
                     }
 
-                    LottieAnimation(
-                        composition = animatable.composition,
-                        progress = { animatable.progress },
-                        modifier = semanticsModifier,
-                    )
+                    if (animatable.composition != null) {
+                        LottieAnimation(
+                            composition = animatable.composition,
+                            progress = { animatable.progress },
+                            modifier = semanticsModifier,
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.mascot_normal),
+                            contentDescription = animatedDescription,
+                            modifier = modifier,
+                        )
+                    }
                 }
 
                 is ButlerMascotMode.Animated.Sleep -> when (variant) {
@@ -102,6 +131,7 @@ fun ButlerMascot(
                             speed = variant.speed,
                         )
                     }
+
                     ButlerMascotMode.Animated.Sleep.Snoring -> {
                         val composition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_snoring))
                         LottieAnimation(
@@ -111,6 +141,7 @@ fun ButlerMascot(
                             speed = variant.speed,
                         )
                     }
+
                     ButlerMascotMode.Animated.Sleep.WakeUp -> {
                         val composition by rememberLottieComposition(RawRes(R.raw.mascot_lottie_sleep_waking))
                         LottieAnimation(
@@ -188,67 +219,49 @@ sealed interface ButlerMascotMode {
 
         data class RandomCycling(
             override val loop: Boolean = true,
-            override val loopDelay: Duration = Duration.ZERO,
+            override val loopDelay: Duration = 1.seconds,
             override val speed: Float = 1f,
         ) : Animated {
-            init {
-                require(speed > 0f) { "speed must be positive" }
-            }
             override val description: Int = R.string.butler_mascot_animation_random_description
         }
 
         data class Wink(
             override val loop: Boolean = true,
-            override val loopDelay: Duration = Duration.ZERO,
+            override val loopDelay: Duration = 3.seconds,
             override val speed: Float = 1f,
         ) : Animated {
-            init {
-                require(speed > 0f) { "speed must be positive" }
-            }
             override val description: Int = R.string.butler_mascot_animation_wink_description
         }
 
         data class Greeting(
             override val loop: Boolean = true,
-            override val loopDelay: Duration = Duration.ZERO,
+            override val loopDelay: Duration = 3.seconds,
             override val speed: Float = 1f,
         ) : Animated {
-            init {
-                require(speed > 0f) { "speed must be positive" }
-            }
             override val description: Int = R.string.butler_mascot_animation_greeting_description
         }
 
         data class HatOff(
             override val loop: Boolean = true,
-            override val loopDelay: Duration = Duration.ZERO,
+            override val loopDelay: Duration = 3.seconds,
             override val speed: Float = 1f,
         ) : Animated {
-            init {
-                require(speed > 0f) { "speed must be positive" }
-            }
             override val description: Int = R.string.butler_mascot_animation_hatoff_description
         }
 
         data class Drink(
             override val loop: Boolean = true,
-            override val loopDelay: Duration = Duration.ZERO,
+            override val loopDelay: Duration = 3.seconds,
             override val speed: Float = 1f,
         ) : Animated {
-            init {
-                require(speed > 0f) { "speed must be positive" }
-            }
             override val description: Int = R.string.butler_mascot_animation_drink_description
         }
 
         data class MoustacheStroke(
             override val loop: Boolean = true,
-            override val loopDelay: Duration = Duration.ZERO,
+            override val loopDelay: Duration = 3.seconds,
             override val speed: Float = 1f,
         ) : Animated {
-            init {
-                require(speed > 0f) { "speed must be positive" }
-            }
             override val description: Int = R.string.butler_mascot_animation_moustache_description
         }
 

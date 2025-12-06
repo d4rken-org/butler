@@ -27,7 +27,6 @@ internal fun EmptyAdaptiveWorkspaceContent(
         subtitle = "Pane $paneNumber is ready for content",
         tips = tips,
         actions = emptyList(), // No action buttons - keep it simple
-        showAnimatedIcon = true,
         contentAlignment = Alignment.Center
     )
 }
