@@ -6,9 +6,11 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -52,6 +54,7 @@ import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.Preview2Tablet
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -161,267 +164,419 @@ fun UpgradeScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(scrollState)
-                .padding(horizontal = 32.dp)
-                .padding(top = 8.dp, bottom = 32.dp)
-                .animateContentSize(animationSpec = tween(300))
         ) {
-            Row(
+            val isWideScreen = maxWidth >= 600.dp
+
+            if (isWideScreen) {
+                WideScreenLayout(
+                    state = state,
+                    scrollState = scrollState,
+                    contentAlpha = contentAlpha,
+                    onGoIap = onGoIap,
+                    onGoSubscription = onGoSubscription,
+                    onGoSubscriptionTrial = onGoSubscriptionTrial,
+                    onRestorePurchase = onRestorePurchase,
+                )
+            } else {
+                NarrowScreenLayout(
+                    state = state,
+                    scrollState = scrollState,
+                    contentAlpha = contentAlpha,
+                    onGoIap = onGoIap,
+                    onGoSubscription = onGoSubscription,
+                    onGoSubscriptionTrial = onGoSubscriptionTrial,
+                    onRestorePurchase = onRestorePurchase,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun NarrowScreenLayout(
+    state: UpgradeViewModel.State,
+    scrollState: androidx.compose.foundation.ScrollState,
+    contentAlpha: Float,
+    onGoIap: () -> Unit,
+    onGoSubscription: () -> Unit,
+    onGoSubscriptionTrial: () -> Unit,
+    onRestorePurchase: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(horizontal = 32.dp)
+            .padding(top = 8.dp, bottom = 32.dp)
+            .animateContentSize(animationSpec = tween(300))
+    ) {
+        MascotHeader(contentAlpha = contentAlpha)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        PreambleCard()
+
+        BenefitsList(modifier = Modifier.padding(top = 8.dp, bottom = 8.dp))
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        )
+
+        HowToSection()
+
+        SubscriptionButtons(
+            state = state,
+            onGoIap = onGoIap,
+            onGoSubscription = onGoSubscription,
+            onGoSubscriptionTrial = onGoSubscriptionTrial,
+        )
+
+        RestorePurchaseSection(onRestorePurchase = onRestorePurchase)
+    }
+}
+
+@Composable
+private fun WideScreenLayout(
+    state: UpgradeViewModel.State,
+    scrollState: androidx.compose.foundation.ScrollState,
+    contentAlpha: Float,
+    onGoIap: () -> Unit,
+    onGoSubscription: () -> Unit,
+    onGoSubscriptionTrial: () -> Unit,
+    onRestorePurchase: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(32.dp)
+            .animateContentSize(animationSpec = tween(300)),
+        horizontalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
+        // Left column: Mascot, title, benefits
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ButlerMascot(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+                    .size(120.dp)
                     .graphicsLayer(alpha = contentAlpha),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                ButlerMascot(
-                    modifier = Modifier.size(88.dp),
-                    variant = ButlerMascotMode.Animated.Drink(),
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                ColoredTitleText(
-                    fullTitle = stringResource(R.string.app_name_upgraded),
-                    postfix = stringResource(R.string.app_name_upgrade_postfix),
-                    style = MaterialTheme.typography.headlineMedium,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-                )
-            ) {
-                Text(
-                    text = stringResource(R.string.upgrade_screen_preamble),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp),
-                    textAlign = TextAlign.Start,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.upgrade_benefits_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = stringResource(R.string.upgrade_benefit_multitasking),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Text(
-                    text = stringResource(R.string.upgrade_benefit_customization),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Text(
-                    text = stringResource(R.string.upgrade_benefit_extra_options),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Text(
-                    text = stringResource(R.string.upgrade_benefit_early_access),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Text(
-                    text = stringResource(R.string.upgrade_benefit_motivation),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Text(
-                    text = stringResource(R.string.upgrade_benefit_and_more),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                )
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                variant = ButlerMascotMode.Animated.Drink(),
             )
 
-            Text(
-                text = stringResource(R.string.upgrade_screen_how_title),
-                style = MaterialTheme.typography.titleMedium,
+            ColoredTitleText(
+                fullTitle = stringResource(R.string.app_name_upgraded),
+                postfix = stringResource(R.string.app_name_upgrade_postfix),
+                style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 24.dp)
+                    .graphicsLayer(alpha = contentAlpha)
             )
 
-            Text(
-                text = stringResource(R.string.upgrade_screen_how_body),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
+            BenefitsList(modifier = Modifier.fillMaxWidth())
+        }
+
+        // Right column: Preamble, how-to, buttons
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            PreambleCard()
+
+            HowToSection()
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            SubscriptionButtons(
+                state = state,
+                onGoIap = onGoIap,
+                onGoSubscription = onGoSubscription,
+                onGoSubscriptionTrial = onGoSubscriptionTrial,
             )
 
-            // Subscription Button
-            AnimatedVisibility(
-                visible = state.subState.available || state.trialState.available || state.isLoadingPrices,
-                enter = fadeIn(animationSpec = tween(600, delayMillis = 400))
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 24.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                    )
+            RestorePurchaseSection(onRestorePurchase = onRestorePurchase)
+        }
+    }
+}
 
-                    if (state.isLoadingPrices) {
-                        OutlinedButton(
-                            onClick = {},
-                            enabled = false,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp
-                            )
-                        }
-                    } else if (state.trialState.available) {
-                        Button(
-                            onClick = onGoSubscriptionTrial,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.upgrade_screen_subscription_trial_action),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                    } else {
-                        OutlinedButton(
-                            onClick = onGoSubscription,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                        ) {
-                            Text(text = stringResource(R.string.upgrade_screen_subscription_action))
-                        }
-                    }
+@Composable
+private fun MascotHeader(
+    contentAlpha: Float,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer(alpha = contentAlpha),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ButlerMascot(
+            modifier = Modifier.size(88.dp),
+            variant = ButlerMascotMode.Animated.Drink(),
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        ColoredTitleText(
+            fullTitle = stringResource(R.string.app_name_upgraded),
+            postfix = stringResource(R.string.app_name_upgrade_postfix),
+            style = MaterialTheme.typography.headlineMedium,
+        )
+    }
+}
 
-                    Text(
-                        text = if (state.isLoadingPrices) {
-                            "…"
-                        } else {
-                            stringResource(
-                                R.string.upgrade_screen_subscription_action_hint,
-                                state.subState.formattedPrice ?: ""
-                            )
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+@Composable
+private fun PreambleCard(
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+        )
+    ) {
+        Text(
+            text = stringResource(R.string.upgrade_screen_preamble),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(16.dp),
+            textAlign = TextAlign.Start,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
+}
 
-            Spacer(modifier = Modifier.height(12.dp))
+@Composable
+private fun BenefitsList(
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.upgrade_benefits_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = stringResource(R.string.upgrade_benefit_multitasking),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        Text(
+            text = stringResource(R.string.upgrade_benefit_customization),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        Text(
+            text = stringResource(R.string.upgrade_benefit_extra_options),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        Text(
+            text = stringResource(R.string.upgrade_benefit_early_access),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        Text(
+            text = stringResource(R.string.upgrade_benefit_motivation),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+        Text(
+            text = stringResource(R.string.upgrade_benefit_and_more),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+    }
+}
 
-            // One-time Purchase Button
-            AnimatedVisibility(
-                visible = state.iapState.available || state.isLoadingPrices,
-                enter = fadeIn(animationSpec = tween(600, delayMillis = 500))
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                ) {
+@Composable
+private fun HowToSection(
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.upgrade_screen_how_title),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Text(
+            text = stringResource(R.string.upgrade_screen_how_body),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
+@Composable
+private fun SubscriptionButtons(
+    state: UpgradeViewModel.State,
+    onGoIap: () -> Unit,
+    onGoSubscription: () -> Unit,
+    onGoSubscriptionTrial: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Subscription Button
+        AnimatedVisibility(
+            visible = state.subState.available || state.trialState.available || state.isLoadingPrices,
+            enter = fadeIn(animationSpec = tween(600, delayMillis = 400))
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+
+                if (state.isLoadingPrices) {
                     OutlinedButton(
-                        onClick = onGoIap,
-                        enabled = !state.isLoadingPrices,
+                        onClick = {},
+                        enabled = false,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)
                     ) {
-                        if (state.isLoadingPrices) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(text = stringResource(R.string.upgrade_screen_iap_action))
-                        }
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
                     }
-
-                    Text(
-                        text = if (state.isLoadingPrices) {
-                            "…"
-                        } else {
-                            stringResource(
-                                R.string.upgrade_screen_iap_action_hint,
-                                state.iapState.formattedPrice ?: ""
-                            )
-                        },
-                        style = MaterialTheme.typography.labelSmall,
+                } else if (state.trialState.available) {
+                    Button(
+                        onClick = onGoSubscriptionTrial,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                            .height(48.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.upgrade_screen_subscription_trial_action),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = onGoSubscription,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                    ) {
+                        Text(text = stringResource(R.string.upgrade_screen_subscription_action))
+                    }
                 }
-            }
 
-            // Show message when no upgrade options are available
-            if (!state.isLoadingPrices && !state.iapState.available && !state.subState.available && !state.trialState.available) {
-                Card(
+                Text(
+                    text = if (state.isLoadingPrices) {
+                        "…"
+                    } else {
+                        stringResource(
+                            R.string.upgrade_screen_subscription_action_hint,
+                            state.subState.formattedPrice ?: ""
+                        )
+                    },
+                    style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.upgrades_gplay_unavailable_error_description),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(16.dp),
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-            )
-
-            // Restore Purchase Button
-            TextButton(
-                onClick = onRestorePurchase,
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    text = stringResource(R.string.upgrade_screen_restore_purchase_action),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // One-time Purchase Button
+        AnimatedVisibility(
+            visible = state.iapState.available || state.isLoadingPrices,
+            enter = fadeIn(animationSpec = tween(600, delayMillis = 500))
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = onGoIap,
+                    enabled = !state.isLoadingPrices,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    if (state.isLoadingPrices) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(text = stringResource(R.string.upgrade_screen_iap_action))
+                    }
+                }
+
+                Text(
+                    text = if (state.isLoadingPrices) {
+                        "…"
+                    } else {
+                        stringResource(
+                            R.string.upgrade_screen_iap_action_hint,
+                            state.iapState.formattedPrice ?: ""
+                        )
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Show message when no upgrade options are available
+        if (!state.isLoadingPrices && !state.iapState.available && !state.subState.available && !state.trialState.available) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.upgrades_gplay_unavailable_error_description),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp),
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RestorePurchaseSection(
+    onRestorePurchase: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        )
+
+        TextButton(
+            onClick = onRestorePurchase,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = stringResource(R.string.upgrade_screen_restore_purchase_action),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
@@ -484,6 +639,34 @@ private fun UpgradeScreenLoadingPreview() {
     }
 }
 
+@Preview2Tablet
+@Composable
+private fun UpgradeScreenTabletPreview() {
+    PreviewWrapper {
+        UpgradeScreen(
+            state = UpgradeViewModel.State(
+                isLoadingPrices = false,
+                iapState = UpgradeViewModel.State.Iap(
+                    available = true,
+                    formattedPrice = "$4.99",
+                ),
+                subState = UpgradeViewModel.State.Sub(
+                    available = true,
+                    formattedPrice = "$2.99",
+                ),
+                trialState = UpgradeViewModel.State.Trial(
+                    available = true,
+                    formattedPrice = "$2.99"
+                ),
+            ),
+            onNavigateBack = {},
+            onGoIap = {},
+            onGoSubscription = {},
+            onGoSubscriptionTrial = {},
+            onRestorePurchase = {},
+        )
+    }
+}
 
 @Composable
 fun RestoreFailedDialog(
