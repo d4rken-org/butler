@@ -6,6 +6,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,6 +15,7 @@ sealed class SearchTarget : Parcelable {
     abstract val enabled: Boolean
 
     @Serializable
+    @SerialName("path")
     @Parcelize
     data class Path(
         val path: APath<*>,

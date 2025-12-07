@@ -56,6 +56,7 @@ class SearcherArgumentsSerializationTest : BaseTest() {
                 "type": "arguments",
                 "startTargets": [
                     {
+                        "type": "path",
                         "path": {
                             "type": "LOCAL",
                             "file": "/sdcard/Download"
