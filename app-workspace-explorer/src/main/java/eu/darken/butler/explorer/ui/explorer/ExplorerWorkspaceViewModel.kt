@@ -57,6 +57,8 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.explorer.core.picker.isDisabled
+import eu.darken.butler.explorer.core.picker.isSelectable
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
@@ -251,27 +253,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             selectedItems = selectedItems,
             selectableItems = items
                 ?.filter { item ->
-                    if (!item.isSelectable()) return@filter false
-
-                    // In picker mode, filter by what can actually be selected
-                    when (pickerConfig?.selection) {
-                        is PickerConfig.Selection.DirectorySingle,
-                        is PickerConfig.Selection.DirectoryMulti,
-                        is PickerConfig.Selection.SaveAs -> {
-                            // Directories and storage volumes are selectable
-                            item is ExplorerItem.Directory || item is ExplorerItem.Storage
-                        }
-                        is PickerConfig.Selection.FileSingle,
-                        is PickerConfig.Selection.FileMulti -> {
-                            // Only files are selectable (dirs visible for navigation but not selectable)
-                            item is ExplorerItem.File
-                        }
-                        is PickerConfig.Selection.MixedMulti -> {
-                            // Both files and directories are selectable
-                            true
-                        }
-                        null -> true // Normal mode: everything selectable
-                    }
+                    item.isSelectable() &&
+                        (pickerConfig?.selection?.isSelectable(item) ?: true)
                 }
                 ?.toSet()
                 ?: emptySet(),
@@ -387,36 +370,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     /**
      * Computes which items should be disabled (greyed out) based on picker mode.
-     * Disabled items are visible but not interactive.
-     *
-     * - Directory picker modes: Files and trash shortcut are disabled
-     * - File picker modes: Nothing disabled (dirs needed for navigation)
-     * - Mixed/Normal modes: Nothing disabled
+     * Uses [PickerConfig.Selection.disabledConstraint] to determine disabled items.
      */
     private fun computeDisabledItems(
         items: List<ExplorerItem>,
-        pickerConfig: PickerConfig?
+        pickerConfig: PickerConfig?,
     ): Set<ExplorerItem> {
-        if (pickerConfig == null) return emptySet()
-
-        return items.filter { item ->
-            when (pickerConfig.selection) {
-                is PickerConfig.Selection.DirectorySingle,
-                is PickerConfig.Selection.DirectoryMulti,
-                is PickerConfig.Selection.SaveAs -> {
-                    // Files are disabled (can't select them as destination)
-                    item is ExplorerItem.File ||
-                        // Trash shortcut is disabled (invalid save destination)
-                        (item is ExplorerItem.Shortcut && item.shortcutId == "trash")
-                }
-                is PickerConfig.Selection.FileSingle,
-                is PickerConfig.Selection.FileMulti,
-                is PickerConfig.Selection.MixedMulti -> {
-                    // Nothing disabled - dirs needed for navigation, files are selectable
-                    false
-                }
-            }
-        }.toSet()
+        val selection = pickerConfig?.selection ?: return emptySet()
+        return items.filter { selection.isDisabled(it) }.toSet()
     }
 
     val clipboard = clipboardRepo.state
