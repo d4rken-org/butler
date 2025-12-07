@@ -4,7 +4,10 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.room.withTransaction
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -93,11 +96,6 @@ class WorkspaceSessionManager @Inject constructor(
 
             if (!workspaceSettings.sessionRestoreEnabled.value()) {
                 log(TAG) { "Session saving is disabled, skipping auto-save" }
-                return@combine
-            }
-
-            if (workspaces.isEmpty()) {
-                log(TAG) { "No workspaces to save" }
                 return@combine
             }
 
@@ -192,10 +190,9 @@ class WorkspaceSessionManager @Inject constructor(
             log(TAG) { "Updated $changedCount of ${workspacesToSave.size} workspaces" }
         }
 
-        log(
-            TAG,
-            INFO
-        ) { "Saved session with ${workspacesToSave.size} workspaces, focused=${uiState.focusedWorkspaceId}" }
+        log(TAG, INFO) {
+            "Saved session with ${workspacesToSave.size} workspaces, focused=${uiState.focusedWorkspaceId}"
+        }
     }
 
     private suspend fun restoreSession(): List<Workspace.Id> {
@@ -268,10 +265,12 @@ class WorkspaceSessionManager @Inject constructor(
                 log(TAG) { "Restoring focused workspace: $focusedId" }
                 focusedId
             }
+
             actualWorkspaceIds.isNotEmpty() -> {
                 log(TAG, WARN) { "Focused workspace $focusedId not found, falling back to first workspace" }
                 actualWorkspaceIds.first()
             }
+
             else -> {
                 log(TAG, WARN) { "No workspaces available for focus" }
                 null
@@ -290,6 +289,7 @@ class WorkspaceSessionManager @Inject constructor(
                     selectedWorkspaces[pane] = id
                     usedIds.add(id)
                 }
+
                 else -> {
                     // Try to find replacement using MRU
                     val replacement = findReplacementWorkspace(actualWorkspaceIds, usedIds)
