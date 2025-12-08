@@ -3,6 +3,12 @@ description: 'Setup the base project'
 runs:
   using: "composite"
   steps:
+    - name: Configure Gradle for CI
+      shell: bash
+      run: |
+        echo "GRADLE_OPTS=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError" >> $GITHUB_ENV
+        echo "JAVA_TOOL_OPTIONS=-Xmx4g" >> $GITHUB_ENV
+
     - name: Set up JDK 17
       uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 #v4.7.0
       with:
