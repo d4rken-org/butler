@@ -56,7 +56,7 @@ class TextPreviewGeneratorTest : BaseTest() {
                 every { flow } returns flowOf(ThemeStyle.DEFAULT)
             }
             every { themeColor } returns mockk {
-                every { flow } returns flowOf(ThemeColor.TEAL)
+                every { flow } returns flowOf(ThemeColor.GREEN)
             }
         }
 
