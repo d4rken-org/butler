@@ -347,6 +347,56 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
+    suspend fun deleteAtCursor(count: Int): Result<String> = stateMutex.withLock {
+        return when (val currentState = _state.value) {
+            is EditorState.Loaded -> {
+                if (count <= 0) {
+                    return Result.success("")
+                }
+
+                val cursorPos = _cursorPosition.value
+
+                // Calculate start position, clamped to 0
+                val startOffset = (cursorPos.offset - count).coerceAtLeast(0L)
+                val actualCount = (cursorPos.offset - startOffset).toInt()
+
+                if (actualCount <= 0) {
+                    // Nothing to delete (cursor at start of document)
+                    return Result.success("")
+                }
+
+                try {
+                    // Find the line/column for start position
+                    val startPosition = currentState.resources.textBuffer.findPosition(startOffset)
+                    val endPosition = cursorPos
+
+                    log(tag) { "Deleting $actualCount characters at cursor: $startPosition to $endPosition" }
+
+                    val result = currentState.resources.textBuffer.deleteText(startPosition, endPosition)
+                    if (result.isSuccess) {
+                        _cursorPosition.value = startPosition
+                        _state.value = currentState.copy(isModified = true)
+                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        invalidateSearchResults()
+                        refreshVisibleContent()
+                    } else {
+                        _error.value = result.exceptionOrNull()
+                    }
+                    result
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to delete at cursor - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
+            }
+            else -> {
+                val error = IllegalStateException("Cannot delete at cursor - no file open")
+                log(tag, WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
+        }
+    }
+
     suspend fun copySelection(): Result<String> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {

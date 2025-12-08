@@ -184,6 +184,7 @@ fun EditorWorkspacePage(
                         fontSize = 14,
                         tabSize = 4,
                         onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
+                        onTextDelete = { count -> onPageAction(EditorPageAction.Edit.DeleteAtCursor(count)) },
                         onCursorPositionChange = { position ->
                             onPageAction(
                                 EditorPageAction.Navigation.SetCursor(

@@ -59,6 +59,7 @@ fun LazyTextEditor(
     fontSize: Int = 14,
     tabSize: Int = 4,
     onTextChange: (String) -> Unit,
+    onTextDelete: (Int) -> Unit,
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     onVisibleRangeChange: (IntRange) -> Unit,
@@ -129,6 +130,7 @@ fun LazyTextEditor(
         fontSize = fontSize,
         tabSize = tabSize,
         onTextChange = onTextChange,
+        onTextDelete = onTextDelete,
         onCursorPositionChange = onCursorPositionChange,
         onSelectionChange = onSelectionChange,
         modifier = modifier
@@ -151,6 +153,7 @@ private fun DualColumnEditorContent(
     fontSize: Int,
     tabSize: Int,
     onTextChange: (String) -> Unit,
+    onTextDelete: (Int) -> Unit,
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     modifier: Modifier = Modifier
@@ -246,8 +249,13 @@ private fun DualColumnEditorContent(
 
                 if (newText != oldText) {
                     if (newText.length > oldText.length && newText.startsWith(oldText)) {
+                        // Insertion: text was added at the end
                         val addedText = newText.substring(oldText.length)
                         onTextChange(addedText)
+                    } else if (newText.length < oldText.length) {
+                        // Deletion: characters were removed (backspace/delete)
+                        val deletedCount = oldText.length - newText.length
+                        onTextDelete(deletedCount)
                     }
                 }
             },
@@ -548,6 +556,7 @@ private fun LazyTextEditorPreview() {
             fontSize = 14,
             tabSize = 4,
             onTextChange = {},
+            onTextDelete = {},
             onCursorPositionChange = {},
             onSelectionChange = {},
             onVisibleRangeChange = {},
