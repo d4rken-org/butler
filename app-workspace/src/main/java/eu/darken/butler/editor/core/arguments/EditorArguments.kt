@@ -20,5 +20,7 @@ sealed interface EditorArguments : Workspace.Arguments {
     data class Default(
         val filePath: APath<*>? = null,
         val goToLine: Int? = null,
+        val initialContent: String? = null,
+        val suggestedTitle: String? = null,
     ) : EditorArguments
 }

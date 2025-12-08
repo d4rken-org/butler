@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.editor.R
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -88,10 +89,11 @@ class EditorWorkspace @AssistedInject constructor(
         loggingTag = tag,
         parentScope = workspaceScope,
         startValueProvider = {
-            val initialPath =
-                (creationArguments as? EditorArguments.Default)?.filePath ?: LocalPath.build("/sdcard/test-3MB.log")
+            val args = creationArguments as? EditorArguments.Default
+            val initialPath = args?.filePath
+            val initialContent = args?.initialContent
             log(tag, INFO) { "Creating initial engine with: ${initialPath?.name ?: "scratch buffer"}" }
-            editorEngineFactory.create(id, initialPath).apply {
+            editorEngineFactory.create(id, initialPath, initialContent).apply {
                 initialize().getOrThrow()
             }
         },
@@ -203,9 +205,13 @@ class EditorWorkspace @AssistedInject constructor(
     }
 
     private fun generateTitle(): CaString {
+        val args = creationArguments as? EditorArguments.Default
+        val filePath = args?.filePath
+        val suggestedTitle = args?.suggestedTitle
         return when {
-            (creationArguments as? EditorArguments.Default)?.filePath != null -> (creationArguments as EditorArguments.Default).filePath!!.name.toCaString()
-            else -> "Editor ${id.shortTag}".toCaString()
+            filePath != null -> filePath.name.toCaString()
+            suggestedTitle != null -> suggestedTitle.toCaString()
+            else -> R.string.editor_file_untitled.toCaString()
         }
     }
 
