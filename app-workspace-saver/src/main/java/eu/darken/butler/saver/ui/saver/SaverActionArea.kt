@@ -37,6 +37,7 @@ internal fun SaverActionArea(
     onSave: () -> Unit,
     onOpenSaved: () -> Unit,
     onSaveAgain: () -> Unit,
+    onClose: () -> Unit,
     onRetry: () -> Unit,
     onOperationClick: (Operation.Id) -> Unit = {},
 ) {
@@ -68,7 +69,7 @@ internal fun SaverActionArea(
                     }
                 }
 
-                // "Open saved file" button - enabled only on success with files
+                // "Open directory" button - enabled only on success with files
                 val isEnabled = saveState is SaverWorkspace.SaveState.Success &&
                     saveState.report.successes.isNotEmpty()
                 Button(
@@ -79,13 +80,19 @@ internal fun SaverActionArea(
                     Text(stringResource(R.string.saver_open_saved_action))
                 }
 
-                // "Save again" button - only shown on success
+                // "Save to new location" and "Close tab" buttons - only shown on success
                 if (saveState is SaverWorkspace.SaveState.Success) {
                     OutlinedButton(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = onSaveAgain,
                     ) {
                         Text(stringResource(R.string.saver_save_again_action))
+                    }
+                    OutlinedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onClose,
+                    ) {
+                        Text(stringResource(R.string.saver_close_tab_action))
                     }
                 }
             }
@@ -136,6 +143,7 @@ private fun SaverActionAreaIdlePreview() {
             onSave = {},
             onOpenSaved = {},
             onSaveAgain = {},
+            onClose = {},
             onRetry = {},
         )
     }
@@ -151,6 +159,7 @@ private fun SaverActionAreaIdleDisabledPreview() {
             onSave = {},
             onOpenSaved = {},
             onSaveAgain = {},
+            onClose = {},
             onRetry = {},
         )
     }
@@ -185,6 +194,7 @@ private fun SaverActionAreaSavingPreview() {
             onSave = {},
             onOpenSaved = {},
             onSaveAgain = {},
+            onClose = {},
             onRetry = {},
         )
     }
@@ -222,6 +232,7 @@ private fun SaverActionAreaSuccessPreview() {
             onSave = {},
             onOpenSaved = {},
             onSaveAgain = {},
+            onClose = {},
             onRetry = {},
         )
     }
@@ -259,6 +270,7 @@ private fun SaverActionAreaBatchSuccessPreview() {
             onSave = {},
             onOpenSaved = {},
             onSaveAgain = {},
+            onClose = {},
             onRetry = {},
         )
     }
@@ -300,6 +312,7 @@ private fun SaverActionAreaPartialSuccessPreview() {
             onSave = {},
             onOpenSaved = {},
             onSaveAgain = {},
+            onClose = {},
             onRetry = {},
         )
     }
@@ -339,6 +352,7 @@ private fun SaverActionAreaErrorPreview() {
             onSave = {},
             onOpenSaved = {},
             onSaveAgain = {},
+            onClose = {},
             onRetry = {},
         )
     }

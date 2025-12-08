@@ -10,9 +10,9 @@
     <string name="saver_save_action">Save</string>
     <string name="saver_saving_progress">Saving…</string>
     <string name="saver_success_message">File saved successfully</string>
-    <string name="saver_open_saved_action">Open saved file</string>
+    <string name="saver_open_saved_action">Open directory</string>
     <string name="saver_retry_action">Retry</string>
-    <string name="saver_save_again_action">Save again</string>
+    <string name="saver_save_again_action">Save to new location</string>
     <string name="saver_close_tab_action">Close tab</string>
     <plurals name="saver_source_expired_warning">
         <item quantity="one">Source file is no longer accessible. Please share again.</item>
