@@ -6,8 +6,11 @@ runs:
     - name: Configure Gradle for CI
       shell: bash
       run: |
-        echo "GRADLE_OPTS=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError" >> $GITHUB_ENV
-        echo "JAVA_TOOL_OPTIONS=-Xmx4g" >> $GITHUB_ENV
+        mkdir -p ~/.gradle
+        echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:+HeapDumpOnOutOfMemoryError" >> ~/.gradle/gradle.properties
+        echo "org.gradle.workers.max=4" >> ~/.gradle/gradle.properties
+        echo "kotlin.daemon.jvmargs=-Xmx2g" >> ~/.gradle/gradle.properties
+        echo "kapt.workers.max=4" >> ~/.gradle/gradle.properties
 
     - name: Set up JDK 17
       uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 #v4.7.0
