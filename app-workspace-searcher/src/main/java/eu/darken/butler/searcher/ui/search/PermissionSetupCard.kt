@@ -22,19 +22,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.searcher.R
+import eu.darken.butler.setup.core.SetupModule
 
 @Composable
 fun PermissionSetupCard(
-    searchPath: APath<*>,
     setupRequirements: PathRequirements,
     onOpenSetup: () -> Unit,
     modifier: Modifier = Modifier,
@@ -70,20 +66,9 @@ fun PermissionSetupCard(
             }
 
             Text(
-                text = stringResource(eu.darken.butler.common.R.string.setup_required_card_body),
+                text = stringResource(R.string.searcher_setup_required_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-            )
-
-            Text(
-                text = searchPath.path,
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
@@ -118,7 +103,6 @@ fun PermissionSetupCard(
 private fun PermissionSetupCardPreview() {
     PreviewWrapper {
         PermissionSetupCard(
-            searchPath = LocalPath.build("/storage/emulated/0/Documents"),
             setupRequirements = PathRequirements(
                 combos = setOf(
                     setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
