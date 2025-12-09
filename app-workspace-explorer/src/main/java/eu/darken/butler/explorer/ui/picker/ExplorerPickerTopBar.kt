@@ -48,6 +48,7 @@ fun ExplorerPickerTopBar(
     currentLocation: ExplorerLocation?,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     saveAsFilename: String = "",
+    canConfirmSelection: Boolean = true,
     onSaveAsFilenameChange: (String) -> Unit = {},
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onCancel: () -> Unit,
@@ -76,32 +77,7 @@ fun ExplorerPickerTopBar(
                 // Select button (right) - prominent primary action
                 FilledTonalButton(
                     onClick = onConfirm,
-                    enabled = when (selection) {
-                        is PickerConfig.Selection.DirectorySingle -> {
-                            // Enable for real directories OR when storage item selected at Device level
-                            currentLocation is ExplorerLocation.Directory
-                                || (currentLocation is ExplorerLocation.Device && selectionCount > 0)
-                        }
-
-                        is PickerConfig.Selection.SaveAs -> {
-                            // Enable when at directory and filename is valid
-                            val hasValidFilename = saveAsFilename.isNotBlank()
-                            val atDirectory = currentLocation is ExplorerLocation.Directory
-                                || (currentLocation is ExplorerLocation.Device && selectionCount > 0)
-                            hasValidFilename && atDirectory
-                        }
-
-                        is PickerConfig.Selection.DirectoryMulti,
-                        is PickerConfig.Selection.MixedMulti -> {
-                            // Enable if items selected OR at real directory (for "Select Current" fallback)
-                            // At Device level, only enable when storage items are selected
-                            selectionCount > 0 || currentLocation is ExplorerLocation.Directory
-                        }
-
-                        is PickerConfig.Selection.FileMulti -> selectionCount > 0
-
-                        is PickerConfig.Selection.FileSingle -> false // Instant selection, no confirm needed
-                    }
+                    enabled = canConfirmSelection
                 ) {
                     Text(
                         text = when (selection) {

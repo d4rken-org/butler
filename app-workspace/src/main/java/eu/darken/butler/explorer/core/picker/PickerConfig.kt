@@ -208,15 +208,16 @@ data class PickerConfig(
             val suggestedFilename: String,
         ) : Selection() {
             @IgnoredOnParcel
-            override val selectableConstraint: PickerConstraint = anyOf(
-                PickerConstraint.IsDirectory,
-                PickerConstraint.IsStorage,
+            override val selectableConstraint: PickerConstraint = allOf(
+                anyOf(PickerConstraint.IsDirectory, PickerConstraint.IsStorage),
+                PickerConstraint.IsWritable,
             )
 
             @IgnoredOnParcel
             override val disabledConstraint: PickerConstraint = anyOf(
                 PickerConstraint.IsFile,
                 allOf(PickerConstraint.IsShortcut, PickerConstraint.HasShortcutId("trash")),
+                not(PickerConstraint.IsWritable),
             )
         }
 

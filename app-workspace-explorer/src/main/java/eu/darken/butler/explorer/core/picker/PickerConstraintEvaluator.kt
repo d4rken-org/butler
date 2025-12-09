@@ -39,6 +39,14 @@ fun PickerConstraint.matches(item: ExplorerItem): Boolean = when (this) {
         (item as? ExplorerItem.Shortcut)?.shortcutId == id
     }
 
+    is PickerConstraint.IsWritable -> {
+        when (item) {
+            is ExplorerItem.Lookup -> item.canWrite != false
+            is ExplorerItem.Storage -> item.canWrite != false
+            else -> true
+        }
+    }
+
     // Logical operators
     is PickerConstraint.And -> constraints.all { it.matches(item) }
     is PickerConstraint.Or -> constraints.any { it.matches(item) }
