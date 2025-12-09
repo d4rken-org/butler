@@ -204,6 +204,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val trashEnabled: Boolean = false,
         val saveAsFilename: String = "",
         val disabledItems: Set<ExplorerItem> = emptySet(),
+        val canConfirmSelection: Boolean = true,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -248,6 +249,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             ?.let { itemSorter.sortItems(it, sortSetting) }
 
         val disabledItems = items?.let { computeDisabledItems(it, pickerConfig) } ?: emptySet()
+
+        // Compute whether picker confirm is allowed
+        val canConfirmSelection = computeCanConfirmSelection(
+            pickerConfig = pickerConfig,
+            currentLocation = wsState.currentLocation,
+            selectedItems = selectedItems,
+            saveAsFilename = saveAsFilename,
+        )
 
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
@@ -315,6 +324,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             trashEnabled = recycleBinEnabled,
             saveAsFilename = saveAsFilename,
             disabledItems = disabledItems,
+            canConfirmSelection = canConfirmSelection,
         )
     }
         .distinctUntilChanged()
@@ -378,6 +388,57 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     ): Set<ExplorerItem> {
         val selection = pickerConfig?.selection ?: return emptySet()
         return items.filter { selection.isDisabled(it) }.toSet()
+    }
+
+    /**
+     * Computes whether the picker confirm button should be enabled.
+     * Checks all conditions: location type, filename validity, selection count, and writability.
+     */
+    private fun computeCanConfirmSelection(
+        pickerConfig: PickerConfig?,
+        currentLocation: ExplorerLocation?,
+        selectedItems: Set<ExplorerItem>,
+        saveAsFilename: String,
+    ): Boolean {
+        if (pickerConfig == null) return true
+
+        return when (pickerConfig.selection) {
+            is PickerConfig.Selection.DirectorySingle -> {
+                val atDirectory = currentLocation is ExplorerLocation.Directory
+                    || (currentLocation is ExplorerLocation.Device && selectedItems.isNotEmpty())
+                atDirectory && isWritable(currentLocation, selectedItems)
+            }
+            is PickerConfig.Selection.SaveAs -> {
+                val hasValidFilename = saveAsFilename.isNotBlank()
+                val atDirectory = currentLocation is ExplorerLocation.Directory
+                    || (currentLocation is ExplorerLocation.Device && selectedItems.isNotEmpty())
+                hasValidFilename && atDirectory && isWritable(currentLocation, selectedItems)
+            }
+            is PickerConfig.Selection.DirectoryMulti,
+            is PickerConfig.Selection.MixedMulti -> {
+                val canSelect = selectedItems.isNotEmpty() || currentLocation is ExplorerLocation.Directory
+                canSelect && isWritable(currentLocation, selectedItems)
+            }
+            is PickerConfig.Selection.FileMulti -> selectedItems.isNotEmpty()
+            is PickerConfig.Selection.FileSingle -> false // Instant selection, no confirm needed
+        }
+    }
+
+    private fun isWritable(
+        currentLocation: ExplorerLocation?,
+        selectedItems: Set<ExplorerItem>,
+    ): Boolean {
+        if (selectedItems.isNotEmpty()) {
+            return selectedItems.all { item ->
+                when (item) {
+                    is ExplorerItem.Lookup -> item.canWrite != false
+                    is ExplorerItem.Storage -> item.canWrite != false
+                    else -> true
+                }
+            }
+        }
+        val directoryInfo = (currentLocation as? ExplorerLocation.Directory)?.info
+        return directoryInfo?.isWritable != false
     }
 
     val clipboard = clipboardRepo.state

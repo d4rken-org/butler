@@ -45,6 +45,8 @@ sealed interface ExplorerItem {
         val target: ExplorerNavigation.Target.Directory
         val totalBytes: Long?
         val availableBytes: Long?
+        /** Whether this storage location is writable. Null means unknown (treated as writable). */
+        val canWrite: Boolean?
 
         data class Local(
             val localId: String,
@@ -53,6 +55,7 @@ sealed interface ExplorerItem {
             override val target: ExplorerNavigation.Target.Directory,
             override val totalBytes: Long? = null,
             override val availableBytes: Long? = null,
+            override val canWrite: Boolean? = null,
         ) : Storage {
             override val id: String get() = "local-$localId"
         }
@@ -66,6 +69,7 @@ sealed interface ExplorerItem {
             override val availableBytes: Long? = null,
         ) : Storage {
             override val id: String get() = "saf-${location.id}"
+            override val canWrite: Boolean? get() = location.hasWritePermission
         }
     }
 
@@ -82,6 +86,8 @@ sealed interface ExplorerItem {
         val permissions: Permissions?
         val createdAt: Instant?
         val metadata: FileMetadata?
+        /** Whether this item is writable. Null means unknown (treated as writable). */
+        val canWrite: Boolean?
 
         override val path: APath<*> get() = lookup.lookedUp
         override val id: String get() = lookup.path
@@ -91,7 +97,8 @@ sealed interface ExplorerItem {
             ownership: Ownership?,
             permissions: Permissions?,
             createdAt: Instant?,
-            metadata: FileMetadata? = null
+            metadata: FileMetadata? = null,
+            canWrite: Boolean? = null,
         ): Path
     }
 
@@ -114,17 +121,20 @@ sealed interface ExplorerItem {
         override val createdAt: Instant? = null,
         override val childCount: Int? = null,
         override val metadata: FileMetadata? = null,
+        override val canWrite: Boolean? = null,
     ) : Directory {
         override fun withExtendedData(
             ownership: Ownership?,
             permissions: Permissions?,
             createdAt: Instant?,
-            metadata: FileMetadata?
+            metadata: FileMetadata?,
+            canWrite: Boolean?,
         ) = copy(
             ownership = ownership ?: this.ownership,
             permissions = permissions ?: this.permissions,
             createdAt = createdAt ?: this.createdAt,
             metadata = metadata ?: this.metadata,
+            canWrite = canWrite ?: this.canWrite,
         )
     }
 
@@ -135,17 +145,20 @@ sealed interface ExplorerItem {
         override val permissions: Permissions? = null,
         override val createdAt: Instant? = null,
         override val metadata: FileMetadata? = null,
+        override val canWrite: Boolean? = null,
     ) : File {
         override fun withExtendedData(
             ownership: Ownership?,
             permissions: Permissions?,
             createdAt: Instant?,
-            metadata: FileMetadata?
+            metadata: FileMetadata?,
+            canWrite: Boolean?,
         ) = copy(
             ownership = ownership ?: this.ownership,
             permissions = permissions ?: this.permissions,
             createdAt = createdAt ?: this.createdAt,
             metadata = metadata ?: this.metadata,
+            canWrite = canWrite ?: this.canWrite,
         )
     }
 
@@ -158,17 +171,20 @@ sealed interface ExplorerItem {
         val targetPath: String? = null,
         val isBroken: Boolean = false,
         override val metadata: FileMetadata? = null,
+        override val canWrite: Boolean? = null,
     ) : File {
         override fun withExtendedData(
             ownership: Ownership?,
             permissions: Permissions?,
             createdAt: Instant?,
-            metadata: FileMetadata?
+            metadata: FileMetadata?,
+            canWrite: Boolean?,
         ) = copy(
             ownership = ownership ?: this.ownership,
             permissions = permissions ?: this.permissions,
             createdAt = createdAt ?: this.createdAt,
             metadata = metadata ?: this.metadata,
+            canWrite = canWrite ?: this.canWrite,
         )
     }
 

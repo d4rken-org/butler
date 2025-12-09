@@ -18,13 +18,14 @@ class PickerConstraintEvaluatorTest : BaseTest() {
     // Test Fixtures
     // ═══════════════════════════════════════════════════════════════
 
-    private fun mockDirectory(childCount: Int? = null): ExplorerItem.Directory {
+    private fun mockDirectory(childCount: Int? = null, canWrite: Boolean? = null): ExplorerItem.Directory {
         val lookup = mockk<APathLookup<*>> {
             every { size } returns 4096L
         }
         return mockk<ExplorerItem.RegularDirectory> {
             every { this@mockk.lookup } returns lookup
             every { this@mockk.childCount } returns childCount
+            every { this@mockk.canWrite } returns canWrite
         }
     }
 
@@ -38,10 +39,11 @@ class PickerConstraintEvaluatorTest : BaseTest() {
         }
     }
 
-    private fun mockStorage(): ExplorerItem.Storage {
+    private fun mockStorage(canWrite: Boolean? = null): ExplorerItem.Storage {
         return mockk<ExplorerItem.Storage.Local> {
             every { displayName } returns "Internal Storage".toCaString()
             every { target } returns mockk<ExplorerNavigation.Target.Directory>()
+            every { this@mockk.canWrite } returns canWrite
         }
     }
 
@@ -206,6 +208,35 @@ class PickerConstraintEvaluatorTest : BaseTest() {
             val directory = mockDirectory()
 
             PickerConstraint.HasShortcutId("home").matches(directory) shouldBe false
+        }
+
+        @Test
+        fun `IsWritable matches lookup items where canWrite is true`() {
+            val writableDir = mockDirectory(canWrite = true)
+            val readOnlyDir = mockDirectory(canWrite = false)
+            val unknownDir = mockDirectory(canWrite = null)
+
+            PickerConstraint.IsWritable.matches(writableDir) shouldBe true
+            PickerConstraint.IsWritable.matches(readOnlyDir) shouldBe false
+            PickerConstraint.IsWritable.matches(unknownDir) shouldBe true // null = writable
+        }
+
+        @Test
+        fun `IsWritable matches storage items where canWrite is not false`() {
+            val writableStorage = mockStorage(canWrite = true)
+            val readOnlyStorage = mockStorage(canWrite = false)
+            val unknownStorage = mockStorage(canWrite = null)
+
+            PickerConstraint.IsWritable.matches(writableStorage) shouldBe true
+            PickerConstraint.IsWritable.matches(readOnlyStorage) shouldBe false
+            PickerConstraint.IsWritable.matches(unknownStorage) shouldBe true
+        }
+
+        @Test
+        fun `IsWritable returns true for non-Lookup non-Storage items`() {
+            val shortcut = mockShortcut("home")
+
+            PickerConstraint.IsWritable.matches(shortcut) shouldBe true
         }
     }
 
@@ -433,18 +464,23 @@ class PickerConstraintEvaluatorTest : BaseTest() {
         }
 
         @Test
-        fun `SaveAs behaves like DirectorySingle`() {
+        fun `SaveAs requires writable directories and storage`() {
             val selection = PickerConfig.Selection.SaveAs("document.txt")
 
-            // Selectable
-            selection.isSelectable(mockDirectory()) shouldBe true
-            selection.isSelectable(mockStorage()) shouldBe true
+            // Selectable - must be directory/storage AND writable
+            selection.isSelectable(mockDirectory(canWrite = true)) shouldBe true
+            selection.isSelectable(mockDirectory(canWrite = null)) shouldBe true // unknown = writable
+            selection.isSelectable(mockDirectory(canWrite = false)) shouldBe false
+            selection.isSelectable(mockStorage(canWrite = true)) shouldBe true
+            selection.isSelectable(mockStorage(canWrite = false)) shouldBe false
             selection.isSelectable(mockFile()) shouldBe false
 
-            // Disabled
+            // Disabled - files, trash shortcut, and non-writable items
             selection.isDisabled(mockFile()) shouldBe true
             selection.isDisabled(mockShortcut("trash")) shouldBe true
-            selection.isDisabled(mockDirectory()) shouldBe false
+            selection.isDisabled(mockDirectory(canWrite = true)) shouldBe false
+            selection.isDisabled(mockDirectory(canWrite = false)) shouldBe true // read-only disabled
+            selection.isDisabled(mockStorage(canWrite = false)) shouldBe true // read-only disabled
         }
     }
 

@@ -60,6 +60,10 @@ sealed interface PickerConstraint : Parcelable {
     @Parcelize
     data class HasShortcutId(val id: String) : PickerConstraint
 
+    /** Matches items where canWrite != false (writable or unknown). */
+    @Parcelize
+    data object IsWritable : PickerConstraint
+
     // ═══════════════════════════════════════════════════════════════
     // Logical Operators
     // ═══════════════════════════════════════════════════════════════

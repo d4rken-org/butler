@@ -13,6 +13,15 @@ data class Permissions(
 ) : Parcelable {
     @IgnoredOnParcel @Transient val octal: String = mode.toOctal()
 
+    /** Returns true if owner has write permission (mode bit 0200) */
+    val ownerCanWrite: Boolean get() = (mode and 0b010_000_000) != 0
+
+    /** Returns true if group has write permission (mode bit 0020) */
+    val groupCanWrite: Boolean get() = (mode and 0b000_010_000) != 0
+
+    /** Returns true if others have write permission (mode bit 0002) */
+    val othersCanWrite: Boolean get() = (mode and 0b000_000_010) != 0
+
     /**
      * Returns a human-readable Linux-style permission string (e.g., "rwxr-xr-x").
      * Handles special bits (setuid, setgid, sticky).
