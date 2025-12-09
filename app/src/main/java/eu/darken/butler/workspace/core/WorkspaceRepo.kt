@@ -8,6 +8,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
+import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +26,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.uuid.Uuid
 
 @Singleton
 class WorkspaceRepo @Inject constructor(
@@ -31,6 +34,7 @@ class WorkspaceRepo @Inject constructor(
     private val factoryMap: Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>>,
     private val workspaceSettings: WorkspaceSettings,
     private val operationsManager: OperationsManager,
+    private val upgradeRepo: UpgradeRepo,
 ) : WorkspaceProvider, WorkspaceRemote {
 
     private val lock = Mutex()
@@ -132,6 +136,14 @@ class WorkspaceRepo @Inject constructor(
         when (action) {
             is WorkspaceAction.Create -> {
                 log(TAG, INFO) { "Creating new workspace with $action" }
+
+                // Check workspace limit for non-pro users
+                if (!canCreateWorkspace(action)) {
+                    log(TAG, INFO) { "Workspace limit reached, showing upgrade dialog" }
+                    showWorkspaceLimitDialog()
+                    return@withLock WorkspaceAction.Create.Result.LimitReached
+                }
+
                 val newId = create(
                     type = action.type,
                     arguments = action.arguments,
@@ -147,7 +159,7 @@ class WorkspaceRepo @Inject constructor(
                     )
                 )
 
-                WorkspaceAction.Create.Result(newId)
+                WorkspaceAction.Create.Result.Success(newId)
             }
 
             is WorkspaceAction.CreateBatch -> {
@@ -327,9 +339,54 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
+    private suspend fun canCreateWorkspace(action: WorkspaceAction.Create): Boolean {
+        // Skip check if explicitly requested (e.g., session restoration)
+        if (action.skipLimitCheck) return true
+
+        // Sub-workspaces (modals/pickers) don't count toward limit
+        if (action.arguments.isForSubWorkspace) return true
+
+        // Replace operations don't increase count
+        if (action.replace != null) return true
+
+        // Pro users have no limit
+        if (upgradeRepo.isPro()) return true
+
+        // Check count of tab workspaces (exclude sub-workspaces)
+        val currentTabCount = _workspaces.value.count { ws ->
+            val info = ws.info.first()
+            !info.isSubWorkspace
+        }
+
+        return currentTabCount < FREE_TIER_WORKSPACE_LIMIT
+    }
+
+    private suspend fun showWorkspaceLimitDialog() {
+        val confirmationId = Uuid.random().toString()
+        val currentCount = _workspaces.value.count { ws ->
+            val info = ws.info.first()
+            !info.isSubWorkspace
+        }
+
+        suspendCancellableCoroutine { continuation ->
+            confirmationContinuations[confirmationId] = continuation
+            _pendingConfirmations.update {
+                it + (confirmationId to PendingWorkspaceConfirmation(
+                    id = confirmationId,
+                    sourceWorkspaceId = null,
+                    data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceLimitReached(
+                        currentCount = currentCount,
+                        limit = FREE_TIER_WORKSPACE_LIMIT,
+                    ),
+                ))
+            }
+        }
+    }
+
     companion object {
         private val TAG = logTag("Workspace", "Repo")
         private const val CONFIRMATION_THRESHOLD = 5
+        const val FREE_TIER_WORKSPACE_LIMIT = 5
     }
 
 }

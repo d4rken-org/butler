@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.dialogs.OpenInNewTabsConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceCloseConfirmationDialog
-import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.feedback.WorkspaceBanner
 
@@ -41,9 +41,9 @@ import eu.darken.butler.workspace.ui.feedback.WorkspaceBanner
 @Composable
 fun WorkspaceOverlayContainer(
     workspaceId: Workspace.Id,
-    managerDialogStates: Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>,
+    managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
-    onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit,
+    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
     modifier: Modifier = Modifier,
@@ -58,7 +58,7 @@ fun WorkspaceOverlayContainer(
 
         dialogState?.let { dialog ->
             when (dialog) {
-                is WorkspaceManagerDialogState.OpenInNewTabsConfirmation -> {
+                is ManagerDialog.WorkspaceTargeted.BatchCreationConfirmation -> {
                     OpenInNewTabsConfirmationDialog(
                         totalCount = dialog.totalCount,
                         onDismiss = { onDismissManagerDialog(dialog.targetWorkspaceId) },
@@ -66,16 +66,13 @@ fun WorkspaceOverlayContainer(
                     )
                 }
 
-                is WorkspaceManagerDialogState.WorkspaceCloseConfirmation -> {
+                is ManagerDialog.WorkspaceTargeted.CloseConfirmation -> {
                     WorkspaceCloseConfirmationDialog(
                         workspaceTitle = dialog.workspaceTitle,
                         onDismiss = { onDismissManagerDialog(dialog.targetWorkspaceId) },
                         onConfirm = { onConfirmManagerDialog(dialog) },
                     )
                 }
-
-                // Future dialog types handled here:
-                // is WorkspaceManagerDialogState.DuplicateDialog -> { ... }
             }
         }
 

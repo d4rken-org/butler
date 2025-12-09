@@ -24,7 +24,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
-import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
@@ -39,11 +39,12 @@ private val TAG = logTag("Workspace", "Container", "Classic")
 internal fun ClassicWorkspaceContainer(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: WorkspacesViewModel.State,
+    managerDialogs: List<ManagerDialog> = emptyList(),
     onWorkspaceScreenAction: (WorkspaceScreenAction) -> Unit,
     workspaceActionHandler: WorkspaceActionHandler?,
-    managerDialogStates: Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>,
+    managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
-    onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit,
+    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
 ) {
@@ -149,6 +150,22 @@ internal fun ClassicWorkspaceContainer(
     // Reset creation flag when workspace count increases
     LaunchedEffect(state.all.size) {
         if (state.all.isNotEmpty()) {
+            isCreatingWorkspace = false
+        }
+    }
+
+    // Reset creation flag when leaving placeholder page (handles failed creation)
+    LaunchedEffect(currentPage, state.all.size) {
+        if (currentPage < state.all.size) {
+            isCreatingWorkspace = false
+        }
+    }
+
+    // Reset creation flag when a blocking dialog is shown (e.g., workspace limit reached)
+    val hasBlockingDialog = managerDialogs.any { it.isBlocking }
+    LaunchedEffect(hasBlockingDialog) {
+        if (hasBlockingDialog) {
+            log(TAG, INFO) { "Blocking dialog shown, resetting creation flag" }
             isCreatingWorkspace = false
         }
     }

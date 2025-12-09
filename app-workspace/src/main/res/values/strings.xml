@@ -275,4 +275,8 @@
     <string name="workspace_session_restoration_error_report_action">Report Issue</string>
     <string name="workspace_session_restoration_error_confirm_title">Clear Session?</string>
     <string name="workspace_session_restoration_error_confirm_description">This will permanently delete your saved workspace session. This action cannot be undone.</string>
+
+    <!-- Workspace Limit -->
+    <string name="workspace_limit_reached_title">Workspace Limit Reached</string>
+    <string name="workspace_limit_reached_message">Free users can have up to %1$d workspaces open at a time. Upgrade to Butler Pro for unlimited workspaces!</string>
 </resources>

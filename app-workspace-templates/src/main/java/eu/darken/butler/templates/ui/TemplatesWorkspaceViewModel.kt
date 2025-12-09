@@ -7,6 +7,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.apps.ui.AppsWorkspaceTemplate
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
@@ -52,7 +54,14 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
     }.asStateFlow()
 
     fun createWorkspace(action: WorkspaceAction.Create) = launch {
-        workspaceRemote.execute(action)
+        when (val result = workspaceRemote.execute(action)) {
+            is WorkspaceAction.Create.Result.Success -> {
+                log(tag) { "Workspace created: ${result.newId}" }
+            }
+            is WorkspaceAction.Create.Result.LimitReached -> {
+                log(tag, WARN) { "Workspace creation blocked - limit reached" }
+            }
+        }
     }
 
     data class State(

@@ -9,10 +9,12 @@ sealed interface WorkspaceAction {
         val replace: Workspace.Id? = null,
         val autoFocus: Boolean = false,
         val id: Workspace.Id? = null,
+        val skipLimitCheck: Boolean = false,
     ) : WorkspaceAction {
-        data class Result(
-            val newId: Workspace.Id,
-        ) : WorkspaceAction.Result
+        sealed interface Result : WorkspaceAction.Result {
+            data class Success(val newId: Workspace.Id) : Result
+            data object LimitReached : Result
+        }
     }
 
     data class CreateBatch(
