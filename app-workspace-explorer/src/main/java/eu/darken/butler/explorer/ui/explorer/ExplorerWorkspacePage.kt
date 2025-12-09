@@ -50,11 +50,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.common.Slogans
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
@@ -417,6 +415,7 @@ fun ExplorerWorkspacePage(
                         currentLocation = mainState.currentLocation,
                         scrollBehavior = scrollBehavior,
                         saveAsFilename = mainState.saveAsFilename,
+                        canConfirmSelection = mainState.canConfirmSelection,
                         onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
                         onBreadcrumbClick = { navigation -> vm?.navigate(navigation) },
                         onCancel = { vm?.cancelPicker() },
@@ -486,11 +485,7 @@ fun ExplorerWorkspacePage(
                                 )
                             }
                             mainStateSnap.items == null -> {
-                                val randomSlogan = remember { Slogans.random }
-                                EmptyState(
-                                    modifier = Modifier.fillMaxSize(),
-                                    slogan = randomSlogan.asComposable()
-                                )
+                                EmptyState(modifier = Modifier.fillMaxSize())
                             }
                             mainStateSnap.items.isEmpty() -> {
                                 BoxWithConstraints(

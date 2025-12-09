@@ -49,7 +49,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument returns readable ParcelFileDescriptor for LocalPath`() = runTest {
+    fun `openDocument returns readable ParcelFileDescriptor for LocalPath`() = runBlocking {
         // Given: Create test file
         val testFile = tempFolder.newFile("test.txt")
         val testContent = "Hello DocumentsProvider"
@@ -64,8 +64,9 @@ class DocumentReaderTest {
         // When
         val pfd = reader.openDocument(documentId, "r", null)
 
-        // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(1000)
+        // Allow background coroutine (Dispatchers.IO) to transfer data through pipe
+        // Use Thread.sleep (real time) because DocumentReader uses Dispatchers.IO (not TestDispatcher)
+        Thread.sleep(1000)
 
         // Then: Can read file contents
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -157,7 +158,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument handles SAFPath via pipe pattern`() = runTest {
+    fun `openDocument handles SAFPath via pipe pattern`() = runBlocking {
         // Given: SAF path that will be opened via GatewaySwitch (pipe pattern)
         val androidUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Ftest.txt")
         val safUri = mockk<SafUri> {
@@ -176,8 +177,9 @@ class DocumentReaderTest {
         // When
         val pfd = reader.openDocument(documentId, "r", null)
 
-        // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(1000)
+        // Allow background coroutine (Dispatchers.IO) to transfer data through pipe
+        // Use Thread.sleep (real time) because DocumentReader uses Dispatchers.IO (not TestDispatcher)
+        Thread.sleep(1000)
 
         // Then: Can read file contents through pipe
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -189,7 +191,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument uses pipe for SAFPath with large file`() = runTest {
+    fun `openDocument uses pipe for SAFPath with large file`() = runBlocking {
         // Given: Larger SAF file (10KB) - tests pipe streaming with more data
         val androidUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Flarge.bin")
         val safUri = mockk<SafUri> {
@@ -208,8 +210,9 @@ class DocumentReaderTest {
         // When
         val pfd = reader.openDocument(documentId, "r", null)
 
-        // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(1000)
+        // Allow background coroutine (Dispatchers.IO) to transfer data through pipe
+        // Use Thread.sleep (real time) because DocumentReader uses Dispatchers.IO (not TestDispatcher)
+        Thread.sleep(1000)
 
         // Then: Can read all data through pipe
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
@@ -226,7 +229,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument can read actual file content`() = runTest {
+    fun `openDocument can read actual file content`() = runBlocking {
         // Given: File with specific content
         val testFile = tempFolder.newFile("data.txt")
         val testData = "Line 1\nLine 2\nLine 3"
@@ -241,8 +244,9 @@ class DocumentReaderTest {
         // When
         val pfd = reader.openDocument(documentId, "r", null)
 
-        // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(1000)
+        // Allow background coroutine (Dispatchers.IO) to transfer data through pipe
+        // Use Thread.sleep (real time) because DocumentReader uses Dispatchers.IO (not TestDispatcher)
+        Thread.sleep(1000)
 
         // Then: Read line by line
         FileInputStream(pfd.fileDescriptor).bufferedReader().use { reader ->
@@ -255,7 +259,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument handles empty file`() = runTest {
+    fun `openDocument handles empty file`() = runBlocking {
         // Given: Empty file
         val testFile = tempFolder.newFile("empty.txt")
         val path = LocalPath.build(testFile.absolutePath)
@@ -267,8 +271,9 @@ class DocumentReaderTest {
         // When
         val pfd = reader.openDocument(documentId, "r", null)
 
-        // Allow background coroutine to transfer data through pipe
-        kotlinx.coroutines.delay(1000)
+        // Allow background coroutine (Dispatchers.IO) to transfer data through pipe
+        // Use Thread.sleep (real time) because DocumentReader uses Dispatchers.IO (not TestDispatcher)
+        Thread.sleep(1000)
 
         // Then: Can open and read (returns empty)
         FileInputStream(pfd.fileDescriptor).use { inputStream ->

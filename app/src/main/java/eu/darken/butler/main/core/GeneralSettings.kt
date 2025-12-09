@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.datastore.PreferenceScreenData
 import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
@@ -33,9 +34,24 @@ class GeneralSettings @Inject constructor(
     override val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    val themeMode = dataStore.createValue("core.ui.theme.mode", ThemeMode.SYSTEM, json)
-    val themeStyle = dataStore.createValue("core.ui.theme.style", ThemeStyle.DEFAULT, json)
-    val themeColor = dataStore.createValue("core.ui.theme.color", ThemeColor.GREEN, json)
+    val themeMode = dataStore.createValue(
+        key = "core.ui.theme.mode",
+        defaultValue = ThemeMode.SYSTEM,
+        json = json,
+        onErrorFallbackToDefault = BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.RELEASE,
+    )
+    val themeStyle = dataStore.createValue(
+        key = "core.ui.theme.style",
+        defaultValue = ThemeStyle.DEFAULT,
+        json = json,
+        onErrorFallbackToDefault = BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.RELEASE,
+    )
+    val themeColor = dataStore.createValue(
+        key = "core.ui.theme.color",
+        defaultValue = ThemeColor.GREEN,
+        json = json,
+        onErrorFallbackToDefault = BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.RELEASE,
+    )
 
     val isOnboardingCompleted = dataStore.createValue("core.onboarding.completed", false)
 

@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -201,7 +202,11 @@ private fun SingleFileModeContent(
         if (showDestinationPicker) {
             if (state.hasInaccessibleFiles) {
                 WarningCard(
-                    message = stringResource(R.string.saver_source_expired_warning),
+                    message = pluralStringResource(
+                        R.plurals.saver_source_expired_warning,
+                        state.inaccessibleFileCount,
+                        state.inaccessibleFileCount,
+                    ),
                     onRetry = { vm?.onRefreshAccessibility() },
                     onClose = { vm?.onClose() },
                 )
@@ -221,6 +226,8 @@ private fun SingleFileModeContent(
             operationDisplay = state.operationDisplay,
             onSave = { vm?.onSave() },
             onOpenSaved = { vm?.onOpenSavedFile() },
+            onSaveAgain = { vm?.onSaveAgain() },
+            onClose = { vm?.onClose() },
             onRetry = { vm?.onRetry() },
             onOperationClick = onOperationClick,
         )
@@ -265,7 +272,11 @@ private fun BatchModeContent(
         if (showDestinationPicker) {
             if (state.hasInaccessibleFiles) {
                 WarningCard(
-                    message = stringResource(R.string.saver_source_expired_warning),
+                    message = pluralStringResource(
+                        R.plurals.saver_source_expired_warning,
+                        state.inaccessibleFileCount,
+                        state.inaccessibleFileCount,
+                    ),
                     onRetry = { vm?.onRefreshAccessibility() },
                     onClose = { vm?.onClose() },
                 )
@@ -285,6 +296,8 @@ private fun BatchModeContent(
             operationDisplay = state.operationDisplay,
             onSave = { vm?.onSave() },
             onOpenSaved = { vm?.onOpenSavedFile() },
+            onSaveAgain = { vm?.onSaveAgain() },
+            onClose = { vm?.onClose() },
             onRetry = { vm?.onRetry() },
             onOperationClick = onOperationClick,
         )

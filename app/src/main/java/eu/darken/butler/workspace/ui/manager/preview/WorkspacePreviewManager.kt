@@ -17,10 +17,13 @@ import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.preview.WorkspacePreviewModel
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -50,6 +53,7 @@ class WorkspacePreviewManager @Inject constructor(
     private val workspaceRepo: WorkspaceRepo,
     private val imageLoader: ImageLoader,
     private val workspacePreviewKeyer: WorkspacePreviewKeyer,
+    private val sessionManager: WorkspaceSessionManager,
 ) {
 
     init {
@@ -59,13 +63,16 @@ class WorkspacePreviewManager @Inject constructor(
     fun start() {
         log(TAG, INFO) { "WorkspacePreviewRefreshManager started" }
 
-        // Check for orphaned previews on initialization
-        workspaceRepo.state
-            .map { it.infos.isEmpty() }
+        // Wait for session restoration before checking for orphaned previews.
+        // Without this, we'd see an empty workspace list before restoration completes
+        // and incorrectly clear all cached previews.
+        sessionManager.state
+            .filter { it != WorkspaceSessionManager.State.Restoring }
             .take(1)
+            .flatMapLatest { workspaceRepo.state.map { it.infos.isEmpty() }.take(1) }
             .onEach { isEmpty ->
                 if (isEmpty) {
-                    log(TAG, INFO) { "No workspaces on initialization - clearing orphaned preview caches" }
+                    log(TAG, INFO) { "No workspaces after restoration - clearing orphaned preview caches" }
                     clearAllPreviewCaches()
                 }
             }

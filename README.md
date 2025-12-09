@@ -1,4 +1,4 @@
-<img src="https://github.com/d4rken/butler/raw/main/.assets/banner.png" width="400">
+<img src="https://github.com/d4rken/butler/raw/main/.assets/banner.png" width="400" alt="Banner">
 
 # Butler
 
@@ -10,9 +10,22 @@
 [![Google Play Downloads](https://img.shields.io/endpoint?color=green&logo=google-play&logoColor=green&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Deu.darken.butler%26l%3DGoogle%2520Play%26m%3D%24totalinstalls)](https://github.com/d4rken/butler/edit/main/README.md#download)
 [![⭐](https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Deu.darken.butler%26gl%3DUS%26hl%3Den%26l%3D%25E2%25AD%2590%26m%3D%24rating)](https://github.com/d4rken/butler/edit/main/README.md#download)
 
-> _**Butler is actively being worked on and not feature complete. Feature requests are welcome!**_
+[Butler](https://github.com/d4rken/butler) is the file explorer Android deserves.
 
-[Butler](https://github.com/d4rken/butler) is THE file explorer for Android.
+Features include:
+
+- A browser-like tab system to use any of Butler's features in parallel.
+- File exploration with copy/move speed display and performance graphs.
+- Deletion with trash bin support.
+- Searching for and through files (with regex support).
+- Text editor that handles huge files.
+- App manager - browse, disable, export APKs, clear cache, uninstall.
+- Tablet support with multi-pane layouts.
+- Root & Shizuku support.
+- Material You theming - dynamic colors, dark mode, AMOLED.
+- No ads, no tracking - open source (GPL v3).
+
+> _**Butler is actively being worked on and not feature complete. Feature requests are welcome!**_
 
 ## Download
 
@@ -43,7 +56,17 @@ sponsor ❤️.
 
 ## Screenshots
 
-<img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/7.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/8.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/9.png" width="100">
+### Phones
+
+<img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/7.png" width="100"><img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/phoneScreenshots/8.png" width="100">
+
+### 7" Tablets
+
+<img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tabletScreenshots/1.png" width="200">
+
+### 10"+ Tablets
+
+<img src="https://github.com/d4rken/butler/raw/main/fastlane/metadata/android/en-US/images/tenInchScreenshots/1.png" width="200">
 
 ## License
 

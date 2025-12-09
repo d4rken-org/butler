@@ -307,31 +307,6 @@ fun SearcherWorkspacePage(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = contentPaddingValues
                     ) {
-                        // Show setup card if needed
-                        if (currentState.needsSetup && currentState.searchTargets.isNotEmpty()) {
-                            item {
-                                val searchPath = when (val firstTarget = currentState.searchTargets.first()) {
-                                    is SearchTarget.Path -> firstTarget.path
-                                }
-                                PermissionSetupCard(
-                                    searchPath = searchPath,
-                                    setupRequirements = currentState.setupRequirements,
-                                    onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
-                                    modifier = Modifier.padding(top = 8.dp)
-                                )
-                            }
-                        }
-
-                        // Show empty state when no search targets configured
-                        if (currentState.searchTargets.isEmpty()) {
-                            item {
-                                SearchTargetsEmptyStateCard(
-                                    onAddDefaultPaths = { onPageAction(SearcherPageAction.Targets.AddDefaultPaths) },
-                                    modifier = Modifier.padding(top = 8.dp)
-                                )
-                            }
-                        }
-
                         // Show search history (LazyListScope extension)
                         searchHistorySection(
                             searchHistory = currentState.searchHistory,
@@ -364,11 +339,7 @@ fun SearcherWorkspacePage(
                                 // Show setup card if needed
                                 if (currentState.needsSetup && currentState.searchTargets.isNotEmpty()) {
                                     item {
-                                        val searchPath = when (val firstTarget = currentState.searchTargets.first()) {
-                                            is SearchTarget.Path -> firstTarget.path
-                                        }
                                         PermissionSetupCard(
-                                            searchPath = searchPath,
                                             setupRequirements = currentState.setupRequirements,
                                             onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
                                             modifier = Modifier.padding(top = 8.dp)
@@ -471,11 +442,7 @@ fun SearcherWorkspacePage(
                                 // Show setup card if needed
                                 if (currentState.needsSetup && currentState.searchTargets.isNotEmpty()) {
                                     item {
-                                        val searchPath = when (val firstTarget = currentState.searchTargets.first()) {
-                                            is SearchTarget.Path -> firstTarget.path
-                                        }
                                         PermissionSetupCard(
-                                            searchPath = searchPath,
                                             setupRequirements = currentState.setupRequirements,
                                             onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
                                             modifier = Modifier.padding(top = 8.dp)

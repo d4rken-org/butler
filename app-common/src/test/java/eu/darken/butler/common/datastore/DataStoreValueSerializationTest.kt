@@ -4,12 +4,15 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.edit
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -287,5 +290,51 @@ class DataStoreValueSerializationTest : BaseTest() {
         monitorMode.flow.first() shouldBe Anum.A
         monitorMode.update { Anum.B }
         monitorMode.flow.first() shouldBe Anum.B
+    }
+
+    @Test
+    fun `malformed JSON throws exception by default`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
+        val key = stringPreferencesKey("testKey")
+        val defaultValue = TestJson(string = "default")
+        val json = Json
+
+        // Write malformed JSON directly to the store
+        testStore.edit { prefs ->
+            prefs[key] = "{ invalid json }"
+        }
+
+        val dataStoreValue = testStore.createValue<TestJson?>(
+            key = "testKey",
+            defaultValue = defaultValue,
+            json = json,
+            onErrorFallbackToDefault = false,
+        )
+
+        shouldThrow<SerializationException> {
+            dataStoreValue.flow.first()
+        }
+    }
+
+    @Test
+    fun `malformed JSON returns default when onErrorFallbackToDefault is true`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
+        val key = stringPreferencesKey("testKey")
+        val defaultValue = TestJson(string = "default")
+        val json = Json
+
+        // Write malformed JSON directly to the store
+        testStore.edit { prefs ->
+            prefs[key] = "{ invalid json }"
+        }
+
+        val dataStoreValue = testStore.createValue<TestJson?>(
+            key = "testKey",
+            defaultValue = defaultValue,
+            json = json,
+            onErrorFallbackToDefault = true,
+        )
+
+        dataStoreValue.flow.first() shouldBe defaultValue
     }
 }

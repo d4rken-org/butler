@@ -194,6 +194,16 @@ class MainActivity : Activity2() {
 
     @Suppress("DEPRECATION")
     private fun handleShareIntent(intent: Intent) {
+        // Check for text content first (e.g., shared text from other apps)
+        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+        if (text != null) {
+            val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+            log(TAG) { "Handling text share: ${text.length} chars, subject=$subject" }
+            vm.createEditorWorkspaceWithText(text, subject)
+            return
+        }
+
+        // Fall through to file handling
         val uris: List<Uri> = when (intent.action) {
             Intent.ACTION_SEND -> listOfNotNull(intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))
             Intent.ACTION_SEND_MULTIPLE -> intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM) ?: emptyList()
@@ -201,7 +211,7 @@ class MainActivity : Activity2() {
         }
 
         if (uris.isEmpty()) {
-            log(TAG) { "Share intent received but no URIs found" }
+            log(TAG) { "Share intent received but no content found" }
             return
         }
 

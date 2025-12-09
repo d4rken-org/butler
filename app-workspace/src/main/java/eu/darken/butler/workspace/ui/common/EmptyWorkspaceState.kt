@@ -40,8 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -58,7 +56,6 @@ fun EnhancedEmptyWorkspaceState(
     subtitle: String? = null,
     tips: List<String> = emptyList(),
     actions: List<EmptyStateAction> = emptyList(),
-    showAnimatedIcon: Boolean = true,
     isPreview: Boolean = false,
     contentAlignment: Alignment = Alignment.Center,
 ) {
@@ -77,25 +74,6 @@ fun EnhancedEmptyWorkspaceState(
 
     // Breathing animation for icon
     val infiniteTransition = rememberInfiniteTransition(label = "breathing")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "scale"
-    )
-
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.8f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha"
-    )
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -120,16 +98,7 @@ fun EnhancedEmptyWorkspaceState(
                         .background(
                             color = MaterialTheme.colorScheme.secondaryContainer,
                             shape = RoundedCornerShape(24.dp)
-                        )
-                        .let { mod ->
-                            if (showAnimatedIcon) {
-                                mod
-                                    .scale(scale)
-                                    .alpha(alpha)
-                            } else {
-                                mod
-                            }
-                        },
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     ButlerMascot(

@@ -756,13 +756,17 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val listItems: List<SearchListItem>
             get() = buildList {
                 // Add error item at the top if there's an error
+                // Skip permission errors when setup card is already visible
                 workspaceState.error?.let { error ->
-                    add(
-                        SearchListItem.Error(
-                            throwable = error,
-                            timestamp = kotlin.time.Clock.System.now()
+                    val isPermissionError = error.message?.contains("permissions", ignoreCase = true) == true
+                    if (!needsSetup || !isPermissionError) {
+                        add(
+                            SearchListItem.Error(
+                                throwable = error,
+                                timestamp = kotlin.time.Clock.System.now()
+                            )
                         )
-                    )
+                    }
                 }
 
                 // Add all search results

@@ -322,7 +322,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
                        && undoStack.size > 1) {  // Keep at least one operation
                     val evicted = undoStack.removeFirst()
                     currentUndoMemoryBytes -= evicted.estimateMemoryBytes()
-                    log(tag, DEBUG) {
+                    log(tag, VERBOSE) {
                         "Evicted old undo operation (stack: ${undoStack.size}/${maxUndoStackSize}, " +
                         "memory: ${currentUndoMemoryBytes}/${maxUndoMemoryBytes} bytes)"
                     }
@@ -987,8 +987,8 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     private suspend fun updateAfterEdit() {
         _isModified.value = true
-        // Rebuild chunk metadata - in a real implementation, this would be more efficient
-        buildChunkMetadata()
+        // Metadata is maintained incrementally via updateBoundaries()
+        // Full rebuild only needed on save/load, not on every keystroke
     }
 
     private suspend fun evictChunksOutsideRange(startLine: Int, endLine: Int) {

@@ -3,6 +3,8 @@ package eu.darken.butler.explorer.core.engine
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import eu.darken.butler.common.adb.AdbManager
+import eu.darken.butler.common.adb.canUseAdbNow
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -17,11 +19,14 @@ import eu.darken.butler.common.files.extensions.getFileSystemInfo
 import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.MetadataRepo
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.common.root.RootManager
+import eu.darken.butler.common.root.canUseRootNow
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.explorer.R
-import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.permissions.core.PathPermissionCheck
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -34,6 +39,10 @@ class DirectoryLocationLoader @AssistedInject constructor(
     private val pathPermissionCheck: PathPermissionCheck,
     private val storageEnvironment: StorageEnvironment,
     private val metadataRepo: MetadataRepo,
+    private val rootManager: RootManager,
+    private val adbManager: AdbManager,
+    private val safLocationManager: SAFLocationManager,
+    private val writabilityEvaluator: WritabilityEvaluator,
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "DirectoryLoader")
@@ -182,7 +191,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
             fileCount = fileCount,
             directoryCount = directoryCount,
             totalSize = if (totalSize > 0) totalSize else null,
-            isWritable = true,
+            // isWritable computed in loadContentExtended()
         )
 
         updateState {
@@ -215,6 +224,40 @@ class DirectoryLocationLoader @AssistedInject constructor(
 
         currentCoroutineContext().ensureActive()
 
+        // Create writability context once for all items
+        val safLocation = (targetPath as? SAFPath)?.let { safLocationManager.findPermissionFor(it)?.location }
+        val writabilityContext = WritabilityContext(
+            hasRoot = rootManager.canUseRootNow(),
+            hasAdb = adbManager.canUseAdbNow(),
+            appUid = android.os.Process.myUid(),
+            safLocation = safLocation,
+        )
+
+        // Evaluate writability for the directory itself
+        val directoryLookup = try {
+            gatewaySwitch.lookup(
+                targetPath,
+                LookupOptions(
+                    fetchOwnership = !isPublicStorage,
+                    fetchPermissions = !isPublicStorage,
+                ),
+            )
+        } catch (e: Exception) {
+            log(tag, WARN) { "Failed to lookup directory for writability: ${e.message}" }
+            null
+        }
+
+        val directoryWritable = writabilityEvaluator.evaluate(
+            path = targetPath,
+            permissions = directoryLookup?.permissions,
+            ownership = directoryLookup?.ownership,
+            context = writabilityContext,
+        )
+
+        updateState {
+            copy(info = info?.copy(isWritable = directoryWritable != false))
+        }
+
         // Count children for directories
         val childCounts = mutableMapOf<String, Int>()
         extendedLookups.values.forEach { lookup ->
@@ -239,10 +282,19 @@ class DirectoryLocationLoader @AssistedInject constructor(
 
             val extendedLookup = extendedLookups[item.path.path] ?: return@map item
 
+            // Evaluate writability for this item
+            val canWrite = writabilityEvaluator.evaluate(
+                path = item.path,
+                permissions = extendedLookup.permissions,
+                ownership = extendedLookup.ownership,
+                context = writabilityContext,
+            )
+
             val updatedItem = item.withExtendedData(
                 ownership = extendedLookup.ownership,
                 permissions = extendedLookup.permissions,
                 createdAt = extendedLookup.createdAt,
+                canWrite = canWrite,
             )
 
             // Add child count for directories

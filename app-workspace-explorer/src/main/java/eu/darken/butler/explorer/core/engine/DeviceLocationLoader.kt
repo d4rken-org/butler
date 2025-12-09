@@ -100,6 +100,7 @@ class DeviceLocationLoader @AssistedInject constructor(
                 displayIcon = Icons.TwoTone.Code,
                 displayName = R.string.explorer_navigation_root.toCaString(),
                 target = ExplorerNavigation.Target.Directory(LocalPath.build("/")),
+                canWrite = true, // Has elevated access
             ).run { deviceItems.add(this) }
         }
 
@@ -108,6 +109,7 @@ class DeviceLocationLoader @AssistedInject constructor(
             displayIcon = Icons.TwoTone.DeveloperMode,
             displayName = R.string.explorer_navigation_rom.toCaString(),
             target = ExplorerNavigation.Target.Directory(LocalPath.build("/system")),
+            canWrite = false,
         ).run { deviceItems.add(this) }
 
         storageManager2.storageVolumes
@@ -131,6 +133,7 @@ class DeviceLocationLoader @AssistedInject constructor(
                             else -> R.string.explorer_navigation_external_storage.toCaString()
                         },
                     target = ExplorerNavigation.Target.Directory(path),
+                    canWrite = true, // User storage is writable
                 )
             }
             .forEach { deviceItems.add(it) }
@@ -155,6 +158,7 @@ class DeviceLocationLoader @AssistedInject constructor(
                         displayIcon = Icons.TwoTone.PrivacyTip,
                         displayName = "Butler-Private #$index".toCaString(),
                         target = ExplorerNavigation.Target.Directory(path),
+                        canWrite = true, // App's own directories
                     ).run { add(this) }
                 }
                 storageEnvironment.ourPublicDirs.forEachIndexed { index, path ->
@@ -163,6 +167,7 @@ class DeviceLocationLoader @AssistedInject constructor(
                         displayIcon = Icons.TwoTone.Public,
                         displayName = "Butler-Public #$index".toCaString(),
                         target = ExplorerNavigation.Target.Directory(path),
+                        canWrite = true, // App's own directories
                     ).run { add(this) }
                 }
             }

@@ -396,6 +396,8 @@ class LocalPathDeleteTest : BaseTest() {
                         )
                         is PathActionIssue.InsufficientSpace -> throw NotImplementedError()
                         is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
+                        is PathActionIssue.TrashMoveFailed -> throw NotImplementedError()
+                        is PathActionIssue.TrashSizeLimitExceeded -> throw NotImplementedError()
                     }
                 } else {
                     // Subsequent issues should not occur due to "Apply to All"
@@ -450,6 +452,8 @@ class LocalPathDeleteTest : BaseTest() {
                     is PathActionIssue.InsufficientPermission -> throw NotImplementedError()
                     is PathActionIssue.InsufficientSpace -> throw NotImplementedError()
                     is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
+                    is PathActionIssue.TrashMoveFailed -> throw NotImplementedError()
+                    is PathActionIssue.TrashSizeLimitExceeded -> throw NotImplementedError()
                 }
             }
         ).last()
@@ -967,6 +971,8 @@ class LocalPathDeleteTest : BaseTest() {
                     is PathActionIssue.UnknownError -> PathActionIssue.UnknownError.Resolution.Skip()
                     is PathActionIssue.InsufficientSpace -> throw NotImplementedError()
                     is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
+                    is PathActionIssue.TrashMoveFailed -> throw NotImplementedError()
+                    is PathActionIssue.TrashSizeLimitExceeded -> throw NotImplementedError()
                 }
             }
         ).last() as DeleteAction.State.Completed

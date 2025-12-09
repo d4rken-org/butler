@@ -12,6 +12,7 @@ import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
 import android.net.Uri
 import eu.darken.butler.common.pkgs.toPkgId
+import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.saver.core.arguments.SaverArguments
@@ -106,6 +107,25 @@ class MainViewModel @Inject constructor(
             )
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to create Saver workspace: ${e.asLog()}" }
+        }
+    }
+
+    fun createEditorWorkspaceWithText(
+        text: String,
+        subject: String?,
+    ) = launch {
+        log(tag) { "createEditorWorkspaceWithText(textLength=${text.length}, subject=$subject)" }
+        try {
+            workspaceRemote.createAndFocus(
+                type = Workspace.Type.EDITOR,
+                arguments = EditorArguments.Default(
+                    filePath = null,
+                    initialContent = text,
+                    suggestedTitle = subject,
+                )
+            )
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to create Editor workspace with text: ${e.asLog()}" }
         }
     }
 }

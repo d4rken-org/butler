@@ -258,7 +258,7 @@ class ChunkManager @AssistedInject constructor(
                 // Use >= to include chunks that end exactly at startOffset (insertion at end of chunk)
                 boundary.endOffset >= startOffset && boundary.startOffset < endOffset
             }
-            log(tag, DEBUG) {
+            log(tag, VERBOSE) {
                 "getChunksInRange($startOffset, $endOffset): checking ${boundaries.size} boundaries\n" +
                     boundaries.map { (id, b) -> "  ${id.value}: [${b.startOffset}, ${b.endOffset})" }
                         .joinToString("\n") +
@@ -267,7 +267,7 @@ class ChunkManager @AssistedInject constructor(
             matching.keys.toSet()
         }
 
-        log(tag) { "Found ${relevantChunkIds.size} chunks in range $startOffset-$endOffset" }
+        log(tag, VERBOSE) { "Found ${relevantChunkIds.size} chunks in range $startOffset-$endOffset" }
 
         // Load all chunks first (may evict stale chunks due to boundary adjustments)
         for (chunkId in relevantChunkIds) {
@@ -337,7 +337,7 @@ class ChunkManager @AssistedInject constructor(
         val pinnedChunk = chunk.pin()
         _chunks.value += (chunkId to pinnedChunk)
 
-        log(tag) { "Pinned chunk: $chunkId (refCount=${pinnedChunk.refCount})" }
+        log(tag, VERBOSE) { "Pinned chunk: $chunkId (refCount=${pinnedChunk.refCount})" }
 
         return Result.success(pinnedChunk)
     }
@@ -357,7 +357,7 @@ class ChunkManager @AssistedInject constructor(
         val unpinnedChunk = chunk.unpin()
         _chunks.value += (chunkId to unpinnedChunk)
 
-        log(tag) { "Unpinned chunk: $chunkId (refCount=${unpinnedChunk.refCount})" }
+        log(tag, VERBOSE) { "Unpinned chunk: $chunkId (refCount=${unpinnedChunk.refCount})" }
 
         return Result.success(Unit)
     }
@@ -568,7 +568,7 @@ class ChunkManager @AssistedInject constructor(
         // Atomic swap prevents race condition where readers see empty map during clear+putAll
         boundaries = updatedBoundaries
 
-        log(tag) { "Updated $adjustedCount chunk boundaries after edit at offset $editOffset (delta=$deltaLength bytes, $deltaLines lines)" }
+        log(tag, VERBOSE) { "Updated $adjustedCount chunk boundaries after edit at offset $editOffset (delta=$deltaLength bytes, $deltaLines lines)" }
     }
 
     private fun evictOldChunksIfNeeded() {

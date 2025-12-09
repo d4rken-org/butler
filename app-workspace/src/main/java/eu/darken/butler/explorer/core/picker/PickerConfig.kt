@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.core.picker
 
 import android.os.Parcelable
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -33,8 +34,18 @@ data class PickerConfig(
 ) {
     /**
      * Defines what the user can select and how they interact with items in the picker.
+     *
+     * Each selection mode defines:
+     * - [selectableConstraint]: What items are valid selection targets
+     * - [disabledConstraint]: What items should be visually disabled (greyed out)
      */
     sealed class Selection : Parcelable {
+
+        /** Constraint defining what items are valid selection targets */
+        abstract val selectableConstraint: PickerConstraint
+
+        /** Constraint defining what items should be visually disabled */
+        abstract val disabledConstraint: PickerConstraint
 
         /**
          * Select a single directory by navigating to it and using the Select button.
@@ -53,7 +64,19 @@ data class PickerConfig(
          * Use case: Choose target directory for search, file operations, etc.
          */
         @Parcelize
-        data object DirectorySingle : Selection()
+        data object DirectorySingle : Selection() {
+            @IgnoredOnParcel
+            override val selectableConstraint: PickerConstraint = anyOf(
+                PickerConstraint.IsDirectory,
+                PickerConstraint.IsStorage,
+            )
+
+            @IgnoredOnParcel
+            override val disabledConstraint: PickerConstraint = anyOf(
+                PickerConstraint.IsFile,
+                allOf(PickerConstraint.IsShortcut, PickerConstraint.HasShortcutId("trash")),
+            )
+        }
 
         /**
          * Select multiple directories via long-press selection mode.
@@ -73,7 +96,19 @@ data class PickerConfig(
          * Use case: Batch operations on multiple folders, select multiple storage volumes for search.
          */
         @Parcelize
-        data object DirectoryMulti : Selection()
+        data object DirectoryMulti : Selection() {
+            @IgnoredOnParcel
+            override val selectableConstraint: PickerConstraint = anyOf(
+                PickerConstraint.IsDirectory,
+                PickerConstraint.IsStorage,
+            )
+
+            @IgnoredOnParcel
+            override val disabledConstraint: PickerConstraint = anyOf(
+                PickerConstraint.IsFile,
+                allOf(PickerConstraint.IsShortcut, PickerConstraint.HasShortcutId("trash")),
+            )
+        }
 
         /**
          * Select a single file by tapping it - instant selection with no confirmation needed.
@@ -89,7 +124,13 @@ data class PickerConfig(
          * Use case: Open file, attach file to message, etc.
          */
         @Parcelize
-        data object FileSingle : Selection()
+        data object FileSingle : Selection() {
+            @IgnoredOnParcel
+            override val selectableConstraint: PickerConstraint = PickerConstraint.IsFile
+
+            @IgnoredOnParcel
+            override val disabledConstraint: PickerConstraint = PickerConstraint.None
+        }
 
         /**
          * Select multiple files via tap-to-toggle selection.
@@ -107,7 +148,13 @@ data class PickerConfig(
          * Use case: Attach multiple files, batch file operations.
          */
         @Parcelize
-        data object FileMulti : Selection()
+        data object FileMulti : Selection() {
+            @IgnoredOnParcel
+            override val selectableConstraint: PickerConstraint = PickerConstraint.IsFile
+
+            @IgnoredOnParcel
+            override val disabledConstraint: PickerConstraint = PickerConstraint.None
+        }
 
         /**
          * Select multiple files AND directories via mixed interaction patterns.
@@ -133,7 +180,13 @@ data class PickerConfig(
          * Use case: Select mixed content for operations, backups, sharing, etc.
          */
         @Parcelize
-        data object MixedMulti : Selection()
+        data object MixedMulti : Selection() {
+            @IgnoredOnParcel
+            override val selectableConstraint: PickerConstraint = PickerConstraint.Any
+
+            @IgnoredOnParcel
+            override val disabledConstraint: PickerConstraint = PickerConstraint.None
+        }
 
         /**
          * Save As mode: Select directory and provide filename.
@@ -153,7 +206,20 @@ data class PickerConfig(
         @Parcelize
         data class SaveAs(
             val suggestedFilename: String,
-        ) : Selection()
+        ) : Selection() {
+            @IgnoredOnParcel
+            override val selectableConstraint: PickerConstraint = allOf(
+                anyOf(PickerConstraint.IsDirectory, PickerConstraint.IsStorage),
+                PickerConstraint.IsWritable,
+            )
+
+            @IgnoredOnParcel
+            override val disabledConstraint: PickerConstraint = anyOf(
+                PickerConstraint.IsFile,
+                allOf(PickerConstraint.IsShortcut, PickerConstraint.HasShortcutId("trash")),
+                not(PickerConstraint.IsWritable),
+            )
+        }
 
         /**
          * Returns true if this mode allows selecting multiple items.
