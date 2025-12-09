@@ -57,8 +57,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.picker.PickerConfig
-import eu.darken.butler.explorer.core.picker.isDisabled
-import eu.darken.butler.explorer.core.picker.isSelectable
+import eu.darken.butler.explorer.ui.picker.ExplorerPickerHelper
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
@@ -131,6 +130,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val trashManager: TrashManager,
     private val trashRepo: TrashRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
+    private val pickerHelper: ExplorerPickerHelper,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
@@ -248,11 +248,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
             ?.let { itemSorter.sortItems(it, sortSetting) }
 
-        val disabledItems = items?.let { computeDisabledItems(it, pickerConfig) } ?: emptySet()
+        val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
         // Compute whether picker confirm is allowed
-        val canConfirmSelection = computeCanConfirmSelection(
-            pickerConfig = pickerConfig,
+        val canConfirmSelection = pickerHelper.canConfirmSelection(
+            config = pickerConfig,
             currentLocation = wsState.currentLocation,
             selectedItems = selectedItems,
             saveAsFilename = saveAsFilename,
@@ -260,47 +260,35 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         val selectionState = ExplorerSelectionState(
             selectedItems = selectedItems,
-            selectableItems = items
-                ?.filter { item ->
-                    item.isSelectable() &&
-                        (pickerConfig?.selection?.isSelectable(item) ?: true)
-                }
-                ?.toSet()
-                ?: emptySet(),
+            selectableItems = items?.let { pickerHelper.filterSelectableItems(it, pickerConfig) } ?: emptySet(),
         )
 
-        val availableActions = wsState.currentLocation?.let {
+        val rawActions = wsState.currentLocation?.let {
             actionProvider.getActions(
                 location = it,
                 selectionState = selectionState,
                 viewStyle = viewStyle,
                 trashEnabled = recycleBinEnabled,
             )
-                .filter { action ->
-                    // In picker mode, only allow browse/create/select actions
-                    if (pickerConfig != null) {
-                        isActionAllowedInPicker(action)
-                    } else {
-                        true // Normal mode: all actions allowed
-                    }
-                }
-                .map { action ->
-                    // Add badge to Filter action if filters are active
-                    if (action is ExplorerAction.Common.Filter) {
-                        val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
-                            || filterState.includePattern.isNotBlank()
-                            || filterState.excludePattern.isNotBlank()
+        } ?: emptyList()
 
-                        if (hasActiveFilters) {
-                            action.copy(badge = true)
-                        } else {
-                            action
-                        }
+        val availableActions = pickerHelper.filterActionsForPicker(rawActions, pickerConfig)
+            .map { action ->
+                // Add badge to Filter action if filters are active
+                if (action is ExplorerAction.Common.Filter) {
+                    val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
+                        || filterState.includePattern.isNotBlank()
+                        || filterState.excludePattern.isNotBlank()
+
+                    if (hasActiveFilters) {
+                        action.copy(badge = true)
                     } else {
                         action
                     }
+                } else {
+                    action
                 }
-        } ?: emptyList()
+            }
 
         State(
             currentLocation = wsState.currentLocation,
@@ -376,69 +364,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
             true
         }
-    }
-
-    /**
-     * Computes which items should be disabled (greyed out) based on picker mode.
-     * Uses [PickerConfig.Selection.disabledConstraint] to determine disabled items.
-     */
-    private fun computeDisabledItems(
-        items: List<ExplorerItem>,
-        pickerConfig: PickerConfig?,
-    ): Set<ExplorerItem> {
-        val selection = pickerConfig?.selection ?: return emptySet()
-        return items.filter { selection.isDisabled(it) }.toSet()
-    }
-
-    /**
-     * Computes whether the picker confirm button should be enabled.
-     * Checks all conditions: location type, filename validity, selection count, and writability.
-     */
-    private fun computeCanConfirmSelection(
-        pickerConfig: PickerConfig?,
-        currentLocation: ExplorerLocation?,
-        selectedItems: Set<ExplorerItem>,
-        saveAsFilename: String,
-    ): Boolean {
-        if (pickerConfig == null) return true
-
-        return when (pickerConfig.selection) {
-            is PickerConfig.Selection.DirectorySingle -> {
-                val atDirectory = currentLocation is ExplorerLocation.Directory
-                    || (currentLocation is ExplorerLocation.Device && selectedItems.isNotEmpty())
-                atDirectory && isWritable(currentLocation, selectedItems)
-            }
-            is PickerConfig.Selection.SaveAs -> {
-                val hasValidFilename = saveAsFilename.isNotBlank()
-                val atDirectory = currentLocation is ExplorerLocation.Directory
-                    || (currentLocation is ExplorerLocation.Device && selectedItems.isNotEmpty())
-                hasValidFilename && atDirectory && isWritable(currentLocation, selectedItems)
-            }
-            is PickerConfig.Selection.DirectoryMulti,
-            is PickerConfig.Selection.MixedMulti -> {
-                val canSelect = selectedItems.isNotEmpty() || currentLocation is ExplorerLocation.Directory
-                canSelect && isWritable(currentLocation, selectedItems)
-            }
-            is PickerConfig.Selection.FileMulti -> selectedItems.isNotEmpty()
-            is PickerConfig.Selection.FileSingle -> false // Instant selection, no confirm needed
-        }
-    }
-
-    private fun isWritable(
-        currentLocation: ExplorerLocation?,
-        selectedItems: Set<ExplorerItem>,
-    ): Boolean {
-        if (selectedItems.isNotEmpty()) {
-            return selectedItems.all { item ->
-                when (item) {
-                    is ExplorerItem.Lookup -> item.canWrite != false
-                    is ExplorerItem.Storage -> item.canWrite != false
-                    else -> true
-                }
-            }
-        }
-        val directoryInfo = (currentLocation as? ExplorerLocation.Directory)?.info
-        return directoryInfo?.isWritable != false
     }
 
     val clipboard = clipboardRepo.state
@@ -1663,38 +1588,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    private fun isActionAllowedInPicker(action: ExplorerAction): Boolean {
-        return when (action) {
-            // Allowed: browsing, creation, and selection actions
-            is ExplorerAction.Common.Refresh,
-            is ExplorerAction.Common.Sort,
-            is ExplorerAction.Common.Filter,
-            is ExplorerAction.Common.UpdateViewStyle,
-            is ExplorerAction.Directory.Create,
-            is ExplorerAction.Directory.SelectAll,
-            is ExplorerAction.Directory.DeselectAll,
-            is ExplorerAction.Trash.SelectAll,
-            is ExplorerAction.TrashNested.SelectAll -> true
-
-            // Blocked: modification, clipboard, device, and recycle bin actions
-            is ExplorerAction.Directory.Copy,
-            is ExplorerAction.Directory.Cut,
-            is ExplorerAction.Directory.Delete,
-            is ExplorerAction.Directory.Share,
-            is ExplorerAction.Directory.Rename,
-            is ExplorerAction.Directory.OpenInNewTabs,
-            is ExplorerAction.Common.Info,
-            is ExplorerAction.Device.AddLocation,
-            is ExplorerAction.Device.RemoveLocation,
-            is ExplorerAction.Device.RenameLocation,
-            is ExplorerAction.Trash.RestoreSelected,
-            is ExplorerAction.Trash.DeletePermanentlySelected,
-            is ExplorerAction.Trash.EmptyBin,
-            is ExplorerAction.TrashNested.RestoreSelected,
-            is ExplorerAction.TrashNested.DeletePermanentlySelected -> false
-        }
-    }
-
     // Picker mode methods
     fun confirmPickerSelection() = launch {
         log(tag) { "confirmPickerSelection()" }
@@ -1705,66 +1598,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
 
         val stateSnap = state.first()
-
-        // Helper function to extract path from either Directory or Storage items
-        fun extractPath(item: ExplorerItem): APath<*>? = when (item) {
-            is ExplorerItem.Directory -> item.lookup.lookedUp
-            is ExplorerItem.Storage -> item.target.path
-            else -> null
-        }
-
-        val selectedPaths: List<APath<*>> = when (config.selection) {
-            is PickerConfig.Selection.DirectorySingle,
-            is PickerConfig.Selection.SaveAs -> {
-                // Single directory: return selected storage or current directory
-                if (stateSnap.selectionState.selectedItems.isNotEmpty()) {
-                    // Storage item selected at Device level
-                    stateSnap.selectionState.selectedItems
-                        .mapNotNull { extractPath(it) }
-                } else {
-                    // No items selected → return current directory
-                    val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
-                    if (currentLocation != null) listOf(currentLocation.path) else emptyList()
-                }
-            }
-            is PickerConfig.Selection.DirectoryMulti -> {
-                // Multiple directories: return selected directories/storages, or current directory if none selected
-                if (stateSnap.selectionState.selectedItems.isEmpty()) {
-                    // No items selected → return current directory
-                    val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
-                    if (currentLocation != null) listOf(currentLocation.path) else emptyList()
-                } else {
-                    // Items selected → return selected directories and storage volumes
-                    stateSnap.selectionState.selectedItems
-                        .filter { it is ExplorerItem.Directory || it is ExplorerItem.Storage }
-                        .mapNotNull { extractPath(it) }
-                }
-            }
-            is PickerConfig.Selection.FileSingle -> {
-                // Should not reach here - FileSingle uses instant selection
-                log(tag, WARN) { "confirmPickerSelection() called in FileSingle mode (should use instant selection)" }
-                emptyList()
-            }
-            is PickerConfig.Selection.FileMulti -> {
-                // Multiple files: return selected files
-                stateSnap.selectionState.selectedItems
-                    .filterIsInstance<ExplorerItem.Lookup>()
-                    .filter { it is ExplorerItem.File }
-                    .map { it.lookup.lookedUp }
-            }
-            is PickerConfig.Selection.MixedMulti -> {
-                // Mixed selection: return files, directories, and storages, or current directory if none selected
-                if (stateSnap.selectionState.selectedItems.isEmpty()) {
-                    // No items selected → return current directory
-                    val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory
-                    if (currentLocation != null) listOf(currentLocation.path) else emptyList()
-                } else {
-                    // Items selected → return selected items (files, directories, and storage volumes)
-                    stateSnap.selectionState.selectedItems
-                        .mapNotNull { extractPath(it) }
-                }
-            }
-        }
+        val selectedPaths = pickerHelper.extractSelectedPaths(
+            config = config,
+            currentLocation = stateSnap.currentLocation,
+            selectedItems = stateSnap.selectionState.selectedItems,
+        )
 
         if (selectedPaths.isEmpty()) {
             log(tag, WARN) { "No paths selected" }
