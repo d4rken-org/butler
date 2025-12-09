@@ -278,13 +278,13 @@ class EditorEngine @AssistedInject constructor(
                     column = cursorPos.column
                 )
 
-                log(tag) { "Inserting text at position $correctedPosition: ${text.take(50)}..." }
+                log(tag, VERBOSE) { "Inserting text at position $correctedPosition: ${text.take(50)}..." }
 
                 val result = currentState.resources.textBuffer.insertText(correctedPosition, text)
 
                 result.fold(
                     onSuccess = { newPosition ->
-                        log(tag) { "Text inserted successfully, new position: $newPosition" }
+                        log(tag, VERBOSE) { "Text inserted successfully, new position: $newPosition" }
 
                         // Update cursor position from result
                         _cursorPosition.value = newPosition
@@ -298,8 +298,27 @@ class EditorEngine @AssistedInject constructor(
                         // Invalidate search results (positions are now stale)
                         invalidateSearchResults()
 
-                        // Refresh visible content from updated chunks
-                        refreshVisibleContent()
+                        // Update visible content - use in-place update for small edits
+                        if (text.length <= 10 && !text.contains('\n')) {
+                            val cursorLine = correctedPosition.line
+                            val visibleStart = _visibleRange.value.first
+                            if (cursorLine in _visibleRange.value) {
+                                val lines = _currentContent.value.split('\n').toMutableList()
+                                val lineIndex = cursorLine - visibleStart
+                                if (lineIndex in lines.indices) {
+                                    val line = lines[lineIndex]
+                                    val col = correctedPosition.column.coerceAtMost(line.length)
+                                    lines[lineIndex] = line.substring(0, col) + text + line.substring(col)
+                                    _currentContent.value = lines.joinToString("\n")
+                                } else {
+                                    refreshVisibleContent()
+                                }
+                            } else {
+                                refreshVisibleContent()
+                            }
+                        } else {
+                            refreshVisibleContent()
+                        }
                     },
                     onFailure = { e ->
                         log(tag, ERROR) { "Failed to insert text - ${e.asLog()}" }
@@ -342,6 +361,79 @@ class EditorEngine @AssistedInject constructor(
             }
             else -> {
                 val error = IllegalStateException("Cannot delete selection - no file open")
+                log(tag, WARN) { error.message ?: "Unknown error" }
+                Result.failure(error)
+            }
+        }
+    }
+
+    suspend fun deleteAtCursor(count: Int): Result<String> = stateMutex.withLock {
+        return when (val currentState = _state.value) {
+            is EditorState.Loaded -> {
+                if (count <= 0) {
+                    return Result.success("")
+                }
+
+                val cursorPos = _cursorPosition.value
+
+                // Calculate start position, clamped to 0
+                val startOffset = (cursorPos.offset - count).coerceAtLeast(0L)
+                val actualCount = (cursorPos.offset - startOffset).toInt()
+
+                if (actualCount <= 0) {
+                    // Nothing to delete (cursor at start of document)
+                    return Result.success("")
+                }
+
+                try {
+                    // Find the line/column for start position
+                    val startPosition = currentState.resources.textBuffer.findPosition(startOffset)
+                    val endPosition = cursorPos
+
+                    log(tag, VERBOSE) { "Deleting $actualCount characters at cursor: $startPosition to $endPosition" }
+
+                    val result = currentState.resources.textBuffer.deleteText(startPosition, endPosition)
+                    if (result.isSuccess) {
+                        val deletedText = result.getOrNull() ?: ""
+                        _cursorPosition.value = startPosition
+                        _state.value = currentState.copy(isModified = true)
+                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        invalidateSearchResults()
+
+                        // Update visible content - use in-place update for small single-line deletes
+                        if (actualCount <= 10 && !deletedText.contains('\n') && startPosition.line == endPosition.line) {
+                            val cursorLine = startPosition.line
+                            val visibleStart = _visibleRange.value.first
+                            if (cursorLine in _visibleRange.value) {
+                                val lines = _currentContent.value.split('\n').toMutableList()
+                                val lineIndex = cursorLine - visibleStart
+                                if (lineIndex in lines.indices) {
+                                    val line = lines[lineIndex]
+                                    val startCol = startPosition.column.coerceAtMost(line.length)
+                                    val endCol = endPosition.column.coerceAtMost(line.length)
+                                    lines[lineIndex] = line.substring(0, startCol) + line.substring(endCol)
+                                    _currentContent.value = lines.joinToString("\n")
+                                } else {
+                                    refreshVisibleContent()
+                                }
+                            } else {
+                                refreshVisibleContent()
+                            }
+                        } else {
+                            refreshVisibleContent()
+                        }
+                    } else {
+                        _error.value = result.exceptionOrNull()
+                    }
+                    result
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to delete at cursor - ${e.asLog()}" }
+                    _error.value = e
+                    Result.failure(e)
+                }
+            }
+            else -> {
+                val error = IllegalStateException("Cannot delete at cursor - no file open")
                 log(tag, WARN) { error.message ?: "Unknown error" }
                 Result.failure(error)
             }

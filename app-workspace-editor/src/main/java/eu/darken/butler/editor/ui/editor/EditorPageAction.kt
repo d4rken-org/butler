@@ -52,6 +52,11 @@ sealed interface EditorPageAction {
         data object DeleteSelection : Edit
 
         /**
+         * Delete characters at cursor position (backspace)
+         */
+        data class DeleteAtCursor(val count: Int) : Edit
+
+        /**
          * Copy selected text to clipboard
          */
         data object Copy : Edit

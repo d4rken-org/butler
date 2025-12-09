@@ -276,6 +276,7 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun undo() = engineHolder.value().undo()
     suspend fun redo() = engineHolder.value().redo()
     suspend fun deleteSelection() = engineHolder.value().deleteSelection()
+    suspend fun deleteAtCursor(count: Int) = engineHolder.value().deleteAtCursor(count)
     suspend fun copySelection() = engineHolder.value().copySelection()
     suspend fun selectAll() = engineHolder.value().selectAll()
 

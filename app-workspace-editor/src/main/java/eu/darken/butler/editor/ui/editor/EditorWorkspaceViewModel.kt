@@ -176,6 +176,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().deleteSelection()
     }
 
+    fun deleteAtCursor(count: Int) = launch {
+        getWorkspace().deleteAtCursor(count)
+    }
+
     fun copyToClipboard() = launch {
         val result = getWorkspace()?.copySelection()
         result?.fold(
@@ -359,6 +363,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
+            is EditorPageAction.Edit.DeleteAtCursor -> deleteAtCursor(action.count)
             is EditorPageAction.Edit.DeleteSelection -> deleteSelection()
             is EditorPageAction.Edit.Copy -> copyToClipboard()
             is EditorPageAction.Edit.Cut -> cutToClipboard()
