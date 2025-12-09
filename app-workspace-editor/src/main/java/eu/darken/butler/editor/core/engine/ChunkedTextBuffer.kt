@@ -322,7 +322,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
                        && undoStack.size > 1) {  // Keep at least one operation
                     val evicted = undoStack.removeFirst()
                     currentUndoMemoryBytes -= evicted.estimateMemoryBytes()
-                    log(tag, DEBUG) {
+                    log(tag, VERBOSE) {
                         "Evicted old undo operation (stack: ${undoStack.size}/${maxUndoStackSize}, " +
                         "memory: ${currentUndoMemoryBytes}/${maxUndoMemoryBytes} bytes)"
                     }

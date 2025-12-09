@@ -277,13 +277,13 @@ class EditorEngine @AssistedInject constructor(
                     column = cursorPos.column
                 )
 
-                log(tag) { "Inserting text at position $correctedPosition: ${text.take(50)}..." }
+                log(tag, VERBOSE) { "Inserting text at position $correctedPosition: ${text.take(50)}..." }
 
                 val result = currentState.resources.textBuffer.insertText(correctedPosition, text)
 
                 result.fold(
                     onSuccess = { newPosition ->
-                        log(tag) { "Text inserted successfully, new position: $newPosition" }
+                        log(tag, VERBOSE) { "Text inserted successfully, new position: $newPosition" }
 
                         // Update cursor position from result
                         _cursorPosition.value = newPosition
@@ -389,7 +389,7 @@ class EditorEngine @AssistedInject constructor(
                     val startPosition = currentState.resources.textBuffer.findPosition(startOffset)
                     val endPosition = cursorPos
 
-                    log(tag) { "Deleting $actualCount characters at cursor: $startPosition to $endPosition" }
+                    log(tag, VERBOSE) { "Deleting $actualCount characters at cursor: $startPosition to $endPosition" }
 
                     val result = currentState.resources.textBuffer.deleteText(startPosition, endPosition)
                     if (result.isSuccess) {
