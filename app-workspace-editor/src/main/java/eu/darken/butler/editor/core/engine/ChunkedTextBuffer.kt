@@ -987,8 +987,8 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     private suspend fun updateAfterEdit() {
         _isModified.value = true
-        // Rebuild chunk metadata - in a real implementation, this would be more efficient
-        buildChunkMetadata()
+        // Metadata is maintained incrementally via updateBoundaries()
+        // Full rebuild only needed on save/load, not on every keystroke
     }
 
     private suspend fun evictChunksOutsideRange(startLine: Int, endLine: Int) {

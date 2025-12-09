@@ -164,6 +164,7 @@ private fun DualColumnEditorContent(
 
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     var isFocused by remember { mutableStateOf(false) }
+    var isUserEditing by remember { mutableStateOf(false) }
     var lastTapTime by remember { mutableStateOf(0L) }
     var lastTapPosition by remember { mutableStateOf<Offset?>(null) }
     var tapCount by remember { mutableStateOf(0) }
@@ -183,8 +184,12 @@ private fun DualColumnEditorContent(
         measured.size.width.toFloat()
     }
 
-    // Sync textFieldValue with visible content
+    // Sync textFieldValue with visible content (skip during user edits)
     LaunchedEffect(visibleLineContent) {
+        if (isUserEditing) {
+            isUserEditing = false
+            return@LaunchedEffect // Skip sync - TextField already has correct content from user input
+        }
         val currentContent = visibleLineContent.entries
             .sortedBy { it.key }
             .joinToString("\n") { it.value }
@@ -248,6 +253,8 @@ private fun DualColumnEditorContent(
                 textFieldValue = newValue
 
                 if (newText != oldText) {
+                    // Mark as user edit to skip TextField sync when content updates
+                    isUserEditing = true
                     if (newText.length > oldText.length && newText.startsWith(oldText)) {
                         // Insertion: text was added at the end
                         val addedText = newText.substring(oldText.length)

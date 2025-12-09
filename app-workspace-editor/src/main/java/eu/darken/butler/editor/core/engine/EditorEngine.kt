@@ -297,8 +297,27 @@ class EditorEngine @AssistedInject constructor(
                         // Invalidate search results (positions are now stale)
                         invalidateSearchResults()
 
-                        // Refresh visible content from updated chunks
-                        refreshVisibleContent()
+                        // Update visible content - use in-place update for small edits
+                        if (text.length <= 10 && !text.contains('\n')) {
+                            val cursorLine = correctedPosition.line
+                            val visibleStart = _visibleRange.value.first
+                            if (cursorLine in _visibleRange.value) {
+                                val lines = _currentContent.value.split('\n').toMutableList()
+                                val lineIndex = cursorLine - visibleStart
+                                if (lineIndex in lines.indices) {
+                                    val line = lines[lineIndex]
+                                    val col = correctedPosition.column.coerceAtMost(line.length)
+                                    lines[lineIndex] = line.substring(0, col) + text + line.substring(col)
+                                    _currentContent.value = lines.joinToString("\n")
+                                } else {
+                                    refreshVisibleContent()
+                                }
+                            } else {
+                                refreshVisibleContent()
+                            }
+                        } else {
+                            refreshVisibleContent()
+                        }
                     },
                     onFailure = { e ->
                         log(tag, ERROR) { "Failed to insert text - ${e.asLog()}" }
@@ -374,11 +393,34 @@ class EditorEngine @AssistedInject constructor(
 
                     val result = currentState.resources.textBuffer.deleteText(startPosition, endPosition)
                     if (result.isSuccess) {
+                        val deletedText = result.getOrNull() ?: ""
                         _cursorPosition.value = startPosition
                         _state.value = currentState.copy(isModified = true)
                         _totalLines.value = currentState.resources.textBuffer.totalLines.value
                         invalidateSearchResults()
-                        refreshVisibleContent()
+
+                        // Update visible content - use in-place update for small single-line deletes
+                        if (actualCount <= 10 && !deletedText.contains('\n') && startPosition.line == endPosition.line) {
+                            val cursorLine = startPosition.line
+                            val visibleStart = _visibleRange.value.first
+                            if (cursorLine in _visibleRange.value) {
+                                val lines = _currentContent.value.split('\n').toMutableList()
+                                val lineIndex = cursorLine - visibleStart
+                                if (lineIndex in lines.indices) {
+                                    val line = lines[lineIndex]
+                                    val startCol = startPosition.column.coerceAtMost(line.length)
+                                    val endCol = endPosition.column.coerceAtMost(line.length)
+                                    lines[lineIndex] = line.substring(0, startCol) + line.substring(endCol)
+                                    _currentContent.value = lines.joinToString("\n")
+                                } else {
+                                    refreshVisibleContent()
+                                }
+                            } else {
+                                refreshVisibleContent()
+                            }
+                        } else {
+                            refreshVisibleContent()
+                        }
                     } else {
                         _error.value = result.exceptionOrNull()
                     }
