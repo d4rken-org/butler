@@ -113,4 +113,7 @@
     <string name="searcher_sort_mode_created_label">Created date</string>
     <string name="searcher_sort_mode_path_label">Path</string>
     <string name="searcher_sort_descending_label">Descending order</string>
+
+    <!-- Permission setup -->
+    <string name="searcher_setup_required_body">Additional setup is required to search some locations.</string>
 </resources>
