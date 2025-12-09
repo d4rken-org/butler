@@ -38,9 +38,13 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration
@@ -59,6 +63,13 @@ class ComposableBitmapRenderer @Inject constructor(private val appContext: Conte
         appContext.getSystemService(DisplayManager::class.java)
     }
 
+    /**
+     * Limits concurrent bitmap renders to prevent resource contention.
+     * VirtualDisplay and Presentation creation are expensive operations that
+     * cause significant lag when executed in parallel (e.g., tab manager with 6-8 workspaces).
+     */
+    private val renderSemaphore = Semaphore(1)
+
     suspend fun renderToBitmap(
         canvasSize: DpSize,
         captureDelay: Duration = 500.milliseconds,
@@ -74,19 +85,23 @@ class ComposableBitmapRenderer @Inject constructor(private val appContext: Conte
         )
         log(TAG) { "Using device density: ${deviceDensity.density}" }
 
-        return useVirtualDisplay { display ->
-            captureComposable(
-                captureContext = context,
-                size = canvasSize,
-                density = deviceDensity,
-                display = display,
-                viewModelStoreOwner = viewModelStoreOwner,
-            ) {
-                LaunchedEffect(Unit) {
-                    delay(captureDelay)
-                    capture()
+        return renderSemaphore.withPermit {
+            currentCoroutineContext().ensureActive()
+            log(TAG) { "renderToBitmap: Acquired render permit for $canvasSize" }
+            useVirtualDisplay { display ->
+                captureComposable(
+                    captureContext = context,
+                    size = canvasSize,
+                    density = deviceDensity,
+                    display = display,
+                    viewModelStoreOwner = viewModelStoreOwner,
+                ) {
+                    LaunchedEffect(Unit) {
+                        delay(captureDelay)
+                        capture()
+                    }
+                    composableContent()
                 }
-                composableContent()
             }
         }
     }
