@@ -72,7 +72,7 @@ class ComposableBitmapRenderer @Inject constructor(private val appContext: Conte
 
     suspend fun renderToBitmap(
         canvasSize: DpSize,
-        captureDelay: Duration = 500.milliseconds,
+        captureDelay: Duration = 300.milliseconds,
         captureContext: Context? = appContext,
         viewModelStoreOwner: ViewModelStoreOwner? = TemporaryViewModelStoreOwner(),
         composableContent: @Composable () -> Unit,
