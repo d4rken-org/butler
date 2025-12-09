@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class EditorEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val filePath: APath<*>?,
+    @Assisted private val initialContent: String?,
     private val gatewaySwitch: GatewaySwitch,
     private val editorSettings: EditorSettings,
     private val fileDataSourceFactory: FileDataSource.Factory,
@@ -94,15 +95,15 @@ class EditorEngine @AssistedInject constructor(
 
         // Create data source
         val dataSource = if (filePath != null) {
-            fileDataSourceFactory.create(workspaceId, filePath, gatewaySwitch)
+            fileDataSourceFactory.create(
+                workspaceId = workspaceId,
+                filePath = filePath,
+                gatewaySwitch = gatewaySwitch
+            )
         } else {
             inMemoryDataSourceFactory.create(
-                workspaceId,
-                if (BuildConfigWrap.BUILD_TYPE == BuildConfigWrap.BuildType.DEV) {
-                    generateDebugContent()
-                } else {
-                    ""
-                }
+                workspaceId = workspaceId,
+                initialContent = initialContent ?: ""
             )
         }
 
@@ -655,7 +656,7 @@ class EditorEngine @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(workspaceId: Workspace.Id, filePath: APath<*>?): EditorEngine
+        fun create(workspaceId: Workspace.Id, filePath: APath<*>?, initialContent: String? = null): EditorEngine
     }
 
     companion object {

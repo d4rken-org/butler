@@ -326,4 +326,7 @@
     <!-- Saver Share Target -->
     <string name="saver_share_label">Save as…</string>
 
+    <!-- Editor Share Target -->
+    <string name="editor_share_label">Edit text</string>
+
 </resources>

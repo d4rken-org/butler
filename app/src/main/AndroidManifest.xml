@@ -66,6 +66,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
+            <!-- Intent filter for ACTION_SEND with text (Edit text) -->
+            <intent-filter android:label="@string/editor_share_label">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+
             <!-- Intent filter for ACTION_SEND (Save as...) -->
             <intent-filter android:label="@string/saver_share_label">
                 <action android:name="android.intent.action.SEND" />
