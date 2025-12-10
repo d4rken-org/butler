@@ -31,6 +31,14 @@ data class PickerConfig(
      * - [Selection.DirectoryMulti]: Long-press folders to toggle selection
      */
     val selection: Selection,
+
+    /**
+     * Whether the picker requires selected paths to be writable.
+     * When false (default), read-only directories like /system can be selected.
+     * When true, only writable paths can be confirmed.
+     * Note: [Selection.SaveAs] always requires writability regardless of this flag.
+     */
+    val requireWritable: Boolean = false,
 ) {
     /**
      * Defines what the user can select and how they interact with items in the picker.

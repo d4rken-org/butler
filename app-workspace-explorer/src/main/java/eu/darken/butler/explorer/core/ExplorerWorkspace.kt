@@ -6,7 +6,8 @@ import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -77,11 +78,11 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private val scope = CoroutineScope(
         dispatcherProvider.IO +
-            CoroutineName(tag) +
-            CoroutineExceptionHandler { _, throwable ->
-                log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
-                _state.updateAsync { copy(error = throwable) }
-            }
+                CoroutineName(tag) +
+                CoroutineExceptionHandler { _, throwable ->
+                    log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
+                    _state.updateAsync { copy(error = throwable) }
+                }
     )
 
     private val _state: DynamicStateFlow<State> = DynamicStateFlow<State>(parentScope = scope) { State() }
@@ -100,9 +101,9 @@ class ExplorerWorkspace @AssistedInject constructor(
     // Picker configuration if this is a picker workspace
     val pickerConfig: PickerConfig? = (creationArguments as? ExplorerArguments.Picker)?.let {
         PickerConfig(
-            callerWorkspaceId = it.callerWorkspaceId
-                ?: error("callerWorkspaceId required for picker mode"),
+            callerWorkspaceId = it.callerWorkspaceId ?: error("callerWorkspaceId required for picker mode"),
             selection = it.selection,
+            requireWritable = it.requireWritable,
         )
     }
 
@@ -209,6 +210,7 @@ class ExplorerWorkspace @AssistedInject constructor(
                             _state.updateBlocking { copy(currentLocation = null) }
                             throw e
                         }
+
                         else -> {
                             log(tag, ERROR) { "Navigation failed: $e" }
                             _state.updateBlocking {
@@ -267,6 +269,7 @@ class ExplorerWorkspace @AssistedInject constructor(
                     }
                 }
             }
+
             is ExplorerNavigation.Forward -> {
                 val currentHistory = _state.value().navigationHistory
                 val currentIndex = _state.value().historyIndex
@@ -279,10 +282,12 @@ class ExplorerWorkspace @AssistedInject constructor(
                     }
                 }
             }
+
             is ExplorerNavigation.Refresh -> {
                 log(tag, INFO) { "Refreshing current location" }
                 browsingEngine.refresh()
             }
+
             is ExplorerNavigation.Cancel -> {
                 log(tag, INFO) { "Navigation cancel request processed" }
                 _state.updateBlocking {
@@ -347,14 +352,17 @@ class ExplorerWorkspace @AssistedInject constructor(
                     workspaceId = id,
                     command = command,
                 )
+
                 is ExplorerCommand.Create -> createOperationFactory.create(
                     workspaceId = id,
                     command = command,
                 )
+
                 is ExplorerCommand.Copy -> copyOperationFactory.create(
                     workspaceId = id,
                     command = command,
                 )
+
                 is ExplorerCommand.Move -> moveOperationFactory.create(
                     workspaceId = id,
                     command = command,
