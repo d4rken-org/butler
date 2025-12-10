@@ -26,8 +26,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
@@ -71,6 +79,33 @@ class SearchEngine @AssistedInject constructor(
                 _targetState.value = getDefaultSearchPaths()
             }
         }
+
+        // Reactively monitor permission requirements for enabled targets
+        _targetState
+            .flatMapLatest { targets ->
+                val enabledPaths = targets
+                    .filterIsInstance<SearchTarget.Path>()
+                    .filter { it.enabled }
+                    .map { it.path }
+
+                if (enabledPaths.isEmpty()) {
+                    flowOf(PathRequirements())
+                } else {
+                    // Combine permission monitors for all enabled paths
+                    combine(enabledPaths.map { pathPermissionCheck.monitor(it) }) { requirementsList ->
+                        PathRequirements(
+                            combos = requirementsList.flatMap { it.combos }.distinct().toSet(),
+                            complete = requirementsList.flatMap { it.complete }.distinct().toSet(),
+                        )
+                    }
+                }
+            }
+            .distinctUntilChanged()
+            .onEach { requirements ->
+                log(tag, INFO) { "Permission requirements updated: $requirements" }
+                _setupRequirements.value = requirements
+            }
+            .launchIn(scope)
     }
 
 
