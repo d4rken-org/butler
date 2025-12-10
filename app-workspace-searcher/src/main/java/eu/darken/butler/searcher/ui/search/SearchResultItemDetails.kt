@@ -52,13 +52,14 @@ fun SearchResultItemDetails(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(vertical = 16.dp)
         ) {
             // Header with file info
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Preview/Icon
@@ -101,7 +102,7 @@ fun SearchResultItemDetails(
             }
 
             // Match context - shown if this file was found via content search
-            result.matchContext?.let { match ->
+            result.matchContext?.takeIf { it.lineNumber != null }?.let { match ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
