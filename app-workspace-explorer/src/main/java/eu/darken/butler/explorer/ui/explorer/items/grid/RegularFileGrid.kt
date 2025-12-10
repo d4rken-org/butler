@@ -29,6 +29,7 @@ internal fun RegularFileGrid(
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
     isEnabled: Boolean = true,
+    isHighlighted: Boolean = false,
 ) {
     FileGridBase(
         modifier = modifier,
@@ -39,6 +40,7 @@ internal fun RegularFileGrid(
         onLongClick = onLongClick,
         showSelection = showSelection,
         isEnabled = isEnabled,
+        isHighlighted = isHighlighted,
         icon = {
             Icon(
                 imageVector = Icons.TwoTone.Description,
@@ -81,5 +83,18 @@ private fun RegularFileGridSelectedPreview() {
         onToggleSelection = {},
         onClick = {},
         showSelection = true
+    )
+}
+
+@Preview2
+@Composable
+private fun RegularFileGridHighlightedPreview() {
+    RegularFileGrid(
+        item = MockDataProvider.createMockRegularFile("new_file.txt"),
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false,
+        isHighlighted = true,
     )
 }

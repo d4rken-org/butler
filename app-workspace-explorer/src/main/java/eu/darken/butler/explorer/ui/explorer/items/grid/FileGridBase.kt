@@ -1,5 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.items.grid
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -21,6 +23,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -39,6 +42,7 @@ internal fun FileGridBase(
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
     isEnabled: Boolean = true,
+    isHighlighted: Boolean = false,
     icon: @Composable () -> Unit,
     primaryText: String,
     secondaryText: String? = null,
@@ -47,18 +51,37 @@ internal fun FileGridBase(
     previewContent: @Composable (() -> Unit)? = null,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
+    // Animate highlight border color
+    val highlightBorderColor by animateColorAsState(
+        targetValue = if (isHighlighted) {
+            MaterialTheme.colorScheme.tertiary
+        } else {
+            Color.Transparent
+        },
+        animationSpec = tween(durationMillis = 300),
+        label = "highlightBorderColor",
+    )
+
+    // Determine border: selection takes precedence over highlight
+    val borderWidth = when {
+        isSelected -> 2.dp
+        isHighlighted -> 2.dp
+        else -> 0.5.dp
+    }
+    val borderColor = when {
+        isSelected -> MaterialTheme.colorScheme.primary
+        isHighlighted -> highlightBorderColor
+        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .alpha(if (isEnabled) 1f else 0.38f)
             .border(
-                width = if (isSelected) 2.dp else 0.5.dp,
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                },
+                width = borderWidth,
+                color = borderColor,
                 shape = RoundedCornerShape(4.dp)
             )
             .then(

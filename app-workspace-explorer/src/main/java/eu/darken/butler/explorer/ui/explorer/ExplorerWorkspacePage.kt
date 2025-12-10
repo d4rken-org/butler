@@ -52,6 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
@@ -101,9 +103,14 @@ import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun ExplorerWorkspacePageHost(
@@ -213,33 +220,42 @@ fun ExplorerWorkspacePage(
         }
     }
 
-    // Restore or reset scroll position when items load
-    LaunchedEffect(mainState.locationId, mainState.items) {
+    // Track previous location to detect actual navigation vs item updates
+    var previousLocationId by remember { mutableStateOf<String?>(null) }
+
+    // Restore or reset scroll position ONLY when navigating to a different location
+    LaunchedEffect(mainState.locationId) {
         val locationId = mainState.locationId ?: return@LaunchedEffect
-        val items = mainState.items
 
-        // Wait for items to be loaded before attempting scroll
-        if (items != null && items.isNotEmpty()) {
-            val savedPosition = vm?.getScrollPosition(locationId)
+        // Skip if this is the same location (items just updated, not a navigation)
+        if (locationId == previousLocationId) return@LaunchedEffect
+        previousLocationId = locationId
 
-            if (savedPosition != null) {
-                // Restore saved position (coming back to previously visited location)
-                when (mainState.viewStyle) {
-                    is ExplorerViewStyle.Grid -> gridState.scrollToItem(savedPosition.first, savedPosition.second)
-                    is ExplorerViewStyle.List -> listState.scrollToItem(savedPosition.first, savedPosition.second)
-                }
-            } else {
-                // New location - scroll to top
-                when (mainState.viewStyle) {
-                    is ExplorerViewStyle.Grid -> gridState.scrollToItem(0)
-                    is ExplorerViewStyle.List -> listState.scrollToItem(0)
-                }
+        // Wait for items to load
+        mainStateSource
+            .mapNotNull { it.items?.takeIf { items -> items.isNotEmpty() } }
+            .first()
+
+        val savedPosition = vm?.getScrollPosition(locationId)
+        log(logTag("Explorer", "Page", "ScrollRestore")) { "Restoring scroll for $locationId: $savedPosition" }
+
+        if (savedPosition != null) {
+            // Restore saved position (coming back to previously visited location)
+            when (mainState.viewStyle) {
+                is ExplorerViewStyle.Grid -> gridState.scrollToItem(savedPosition.first, savedPosition.second)
+                is ExplorerViewStyle.List -> listState.scrollToItem(savedPosition.first, savedPosition.second)
             }
-
-            // Always reset toolbar visibility on navigation for proper orientation
-            scrollBehavior.state.heightOffset = 0f
-            bottomBarScrollBehavior.state.heightOffset = 0f
+        } else {
+            // New location - scroll to top
+            when (mainState.viewStyle) {
+                is ExplorerViewStyle.Grid -> gridState.scrollToItem(0)
+                is ExplorerViewStyle.List -> listState.scrollToItem(0)
+            }
         }
+
+        // Always reset toolbar visibility on navigation for proper orientation
+        scrollBehavior.state.heightOffset = 0f
+        bottomBarScrollBehavior.state.heightOffset = 0f
     }
 
     // Synchronize scroll position when view mode changes
@@ -264,6 +280,75 @@ fun ExplorerWorkspacePage(
         when (mainState.viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(0)
+        }
+    }
+
+    // Handle reveal requests (scroll to and highlight item)
+    LaunchedEffect(vm) {
+        val tag = logTag("Explorer", "Page", "Reveal")
+        log(tag) { "LaunchedEffect started, collecting revealRequests" }
+        vm?.revealRequests?.collect { request ->
+            log(tag) { "Received reveal request for path: ${request.path.path}" }
+            // Observe the source Flow directly (not Compose State via snapshotFlow)
+            val targetIndex = mainStateSource
+                .mapNotNull { state ->
+                    val items = state.items
+                    log(tag) { "State emission: ${items?.size ?: 0} items" }
+                    val index = items?.indexOfFirst { item ->
+                        when (item) {
+                            is ExplorerItem.Path -> {
+                                val match = item.path.path == request.path.path
+                                if (match) log(tag) { "Found match at item: ${item.path.path}" }
+                                match
+                            }
+                            else -> false
+                        }
+                    }
+                    log(tag) { "Index search result: $index" }
+                    index?.takeIf { it >= 0 }
+                }
+                .timeout(2.seconds)
+                .catch { e ->
+                    log(tag) { "Timeout or error waiting for item: $e" }
+                }
+                .firstOrNull()
+
+            if (targetIndex == null) {
+                log(tag) { "Target index is null, skipping scroll" }
+                return@collect
+            }
+
+            log(tag) { "Scrolling to index: $targetIndex (centered)" }
+            // Read current viewStyle for scroll target
+            val currentViewStyle = mainStateSource.first().viewStyle
+            log(tag) { "ViewStyle: $currentViewStyle" }
+
+            // Calculate offset to center the item in viewport
+            when (currentViewStyle) {
+                is ExplorerViewStyle.Grid -> {
+                    val layoutInfo = gridState.layoutInfo
+                    val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
+                    val avgItemHeight = layoutInfo.visibleItemsInfo
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { items -> items.sumOf { it.size.height } / items.size }
+                        ?: 0
+                    val centerOffset = if (avgItemHeight > 0) -(viewportHeight - avgItemHeight) / 2 else 0
+                    log(tag) { "Grid: viewportHeight=$viewportHeight, avgItemHeight=$avgItemHeight, centerOffset=$centerOffset" }
+                    gridState.animateScrollToItem(targetIndex, centerOffset)
+                }
+                is ExplorerViewStyle.List -> {
+                    val layoutInfo = listState.layoutInfo
+                    val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
+                    val avgItemHeight = layoutInfo.visibleItemsInfo
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { items -> items.sumOf { it.size } / items.size }
+                        ?: 0
+                    val centerOffset = if (avgItemHeight > 0) -(viewportHeight - avgItemHeight) / 2 else 0
+                    log(tag) { "List: viewportHeight=$viewportHeight, avgItemHeight=$avgItemHeight, centerOffset=$centerOffset" }
+                    listState.animateScrollToItem(targetIndex, centerOffset)
+                }
+            }
+            log(tag) { "Scroll completed" }
         }
     }
 
@@ -545,6 +630,7 @@ fun ExplorerWorkspacePage(
                                                             onLongClick = { vm?.onItemLongClick(item) },
                                                             showSelection = mainStateSnap.shouldShowSelection(item),
                                                             isEnabled = item !in mainStateSnap.disabledItems,
+                                                            isHighlighted = mainStateSnap.highlightedItemPath == item.path.path,
                                                         )
 
                                                         is ExplorerItem.Peek -> PeekRow(
@@ -642,6 +728,7 @@ fun ExplorerWorkspacePage(
                                                             onLongClick = { vm?.onItemLongClick(item) },
                                                             showSelection = mainStateSnap.shouldShowSelection(item),
                                                             isEnabled = item !in mainStateSnap.disabledItems,
+                                                            isHighlighted = mainStateSnap.highlightedItemPath == item.path.path,
                                                         )
                                                         is ExplorerItem.Shortcut -> ShortcutGrid(
                                                             item = item,

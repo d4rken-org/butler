@@ -150,6 +150,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     val safPickerEvents = SingleEventFlow<Intent>()
 
+    // Reveal and highlight functionality
+    data class RevealRequest(
+        val path: APath<*>,
+        val highlight: Boolean = true,
+        val highlightDurationMs: Long = 2000L,
+    )
+
+    val revealRequests = SingleEventFlow<RevealRequest>()
+    private val highlightedItemFlow = MutableStateFlow<String?>(null)
+
     private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
     val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
 
@@ -206,6 +216,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val saveAsFilename: String = "",
         val disabledItems: Set<ExplorerItem> = emptySet(),
         val canConfirmSelection: Boolean = true,
+        val highlightedItemPath: String? = null,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -244,7 +255,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         pickerConfigFlow,
         trashManager.isEnabled,
         saveAsFilenameFlow,
-    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename ->
+        highlightedItemFlow,
+    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemPath ->
         val items = wsState.currentLocation?.items
             ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
             ?.let { itemSorter.sortItems(it, sortSetting) }
@@ -314,6 +326,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             saveAsFilename = saveAsFilename,
             disabledItems = disabledItems,
             canConfirmSelection = canConfirmSelection,
+            highlightedItemPath = highlightedItemPath,
         )
     }
         .distinctUntilChanged()
@@ -1063,7 +1076,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         val currentLocation = state.first().currentLocation
         if (currentLocation is ExplorerLocation.Directory) {
-            val operation = when (result.type) {
+            val command = when (result.type) {
                 CreateItemType.FOLDER -> ExplorerCommand.Create(
                     parentPath = currentLocation.path,
                     name = result.name,
@@ -1075,7 +1088,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     type = ExplorerCommand.Create.Type.FILE,
                 )
             }
-            getWorkspace().execute(operation)
+
+            val completed = getWorkspace().execute(command)
+
+            // Reveal the newly created item on success
+            if (completed.error == null) {
+                val createdPath = completed.report?.affectedPaths
+                    ?.firstOrNull { it.change == Operation.Report.PathChange.Change.ADDED }
+                    ?.path
+                createdPath?.let { revealItem(it) }
+            }
         }
     }
 
@@ -1654,6 +1676,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun closeWorkspace() = launch {
         log(tag) { "closeWorkspace()" }
         workspaceRemote.execute(WorkspaceAction.Close(id, requireConfirmation = true))
+    }
+
+    /**
+     * Scrolls to and optionally highlights an item at the given path.
+     * Used after operations like creating a new folder to reveal the result.
+     */
+    fun revealItem(path: APath<*>, highlight: Boolean = true) = launch {
+        log(tag) { "revealItem(${path.path}, highlight=$highlight)" }
+        revealRequests.emit(RevealRequest(path, highlight))
+        if (highlight) {
+            highlightedItemFlow.value = path.path
+            delay(2000.milliseconds)
+            highlightedItemFlow.value = null
+        }
     }
 
     @AssistedFactory

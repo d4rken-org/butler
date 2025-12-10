@@ -21,6 +21,7 @@ fun LookupItemRow(
     onLongClick: () -> Unit = {},
     showSelection: Boolean = false,
     isEnabled: Boolean = true,
+    isHighlighted: Boolean = false,
 ) {
     when (item) {
         is ExplorerItem.RegularDirectory -> DirectoryRow(
@@ -31,6 +32,7 @@ fun LookupItemRow(
             onLongClick = onLongClick,
             showSelection = showSelection,
             isEnabled = isEnabled,
+            isHighlighted = isHighlighted,
             modifier = modifier,
         )
 
@@ -42,6 +44,7 @@ fun LookupItemRow(
             onLongClick = onLongClick,
             showSelection = showSelection,
             isEnabled = isEnabled,
+            isHighlighted = isHighlighted,
             modifier = modifier,
         )
 
@@ -53,6 +56,7 @@ fun LookupItemRow(
             onLongClick = onLongClick,
             showSelection = showSelection,
             isEnabled = isEnabled,
+            isHighlighted = isHighlighted,
             modifier = modifier,
         )
     }
