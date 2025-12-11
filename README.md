@@ -1,6 +1,6 @@
 <img src="https://github.com/d4rken/butler/raw/main/.assets/banner.png" width="400" alt="Banner">
 
-# Butler
+# Butler - File Explorer
 
 [![API](https://img.shields.io/badge/API-26%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=26)
 [![Crowdin](https://badges.crowdin.net/butler/localized.svg)](https://crowdin.com/project/butler)
