@@ -135,6 +135,7 @@
     <string name="general_create_action">Create</string>
     <string name="general_rename_action">Rename</string>
     <string name="general_retry_action">Retry</string>
+    <string name="general_open_setup_action">Open Setup</string>
 
     <string name="general_result_user_cancel_msg">User has cancelled the operation.</string>
 
@@ -176,6 +177,7 @@
     <string name="general_error_type_mismatch_msg">Type mismatch: Wanted %1$s, but got %2$s.</string>
     <string name="general_error_cant_access_msg">Can\'t access %s.</string>
     <string name="general_error_root_unavailable">Root access is unavailable.</string>
+    <string name="general_error_elevated_access_required">This operation requires elevated access. Configure Root or Shizuku in Setup.</string>
     <string name="general_error_no_compatible_app_found_msg">No compatible app found to handle this request.</string>
     <string name="general_error_ipc_deadobject_title">Service connection lost</string>
     <string name="general_error_ipc_deadobject_description">The connection to a critical service (e.g. Magisk, Shizuku, or other system-level services) was unexpectedly lost. Please reboot your device. If the issue persists, check for updates or reach out to me so I can fix it.</string>

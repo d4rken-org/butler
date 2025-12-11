@@ -62,7 +62,7 @@ fun AppsWorkspacePageHost(
     ),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    ErrorEventHandler(vm)
+    ErrorEventHandler(vm, vm.navController)
 
     AppsWorkspacePage(
         workspaceId = id,

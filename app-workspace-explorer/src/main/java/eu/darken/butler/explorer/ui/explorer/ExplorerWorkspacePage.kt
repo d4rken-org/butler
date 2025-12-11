@@ -122,7 +122,7 @@ fun ExplorerWorkspacePageHost(
     ),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    ErrorEventHandler(vm)
+    ErrorEventHandler(vm, vm.navController)
 
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 

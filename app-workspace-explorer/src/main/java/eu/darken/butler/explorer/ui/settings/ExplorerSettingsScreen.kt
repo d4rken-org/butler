@@ -222,7 +222,7 @@ fun ExplorerSettingsScreen(
 
 @Composable
 fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) {
-    ErrorEventHandler(vm)
+    ErrorEventHandler(vm, vm.navController)
 
     val state by waitForState(vm.state)
 

@@ -11,7 +11,7 @@ import android.graphics.drawable.Drawable
 import android.os.Process
 import android.os.storage.StorageManager
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.ModeUnavailableException
+import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.canUseAdbNow
@@ -119,9 +119,9 @@ class PkgOps @Inject constructor(
                 return rootOps { opsAction(it) }
             }
 
-            throw ModeUnavailableException("Mode $mode is unavailable")
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
         } catch (e: Exception) {
-            if (e is ModeUnavailableException) {
+            if (e is ElevatedAccessUnavailableException) {
                 log(TAG, DEBUG) { "forceStop(...): $mode unavailable for $pkgId" }
             } else {
                 log(TAG, WARN) { "forceStop($pkgId, mode=$mode) failed: $e" }
@@ -287,9 +287,9 @@ class PkgOps @Inject constructor(
                 return
             }
 
-            throw ModeUnavailableException("Mode $mode is unavailable")
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
         } catch (e: Exception) {
-            if (e is ModeUnavailableException) {
+            if (e is ElevatedAccessUnavailableException) {
                 log(TAG, DEBUG) { "changePackageState(...): $mode unavailable for $id" }
             } else {
                 log(TAG, WARN) { "changePackageState($id, enabled=$enabled, mode=$mode) failed: $e" }
@@ -311,9 +311,9 @@ class PkgOps @Inject constructor(
                 return
             }
 
-            throw ModeUnavailableException("Mode $mode is unavailable")
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
         } catch (e: Exception) {
-            if (e is ModeUnavailableException) {
+            if (e is ElevatedAccessUnavailableException) {
                 log(TAG, DEBUG) { "clearCache(...): $mode unavailable for $id" }
             } else {
                 log(TAG, WARN) { "clearCache($id,$mode) failed: ${e.asLog()}" }
@@ -343,9 +343,9 @@ class PkgOps @Inject constructor(
                 return
             }
 
-            throw ModeUnavailableException("Mode $mode is unavailable")
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
         } catch (e: Exception) {
-            if (e is ModeUnavailableException) {
+            if (e is ElevatedAccessUnavailableException) {
                 log(TAG, DEBUG) { "trimCaches(...): $mode unavailable" }
             } else {
                 log(TAG, WARN) { "trimCaches($desiredBytes, $storageId,$mode) failed: ${e.asLog()}" }
@@ -382,9 +382,9 @@ class PkgOps @Inject constructor(
                     .toSet()
             }
 
-            throw ModeUnavailableException("Mode $mode is unavailable")
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
         } catch (e: Exception) {
-            if (e is ModeUnavailableException) {
+            if (e is ElevatedAccessUnavailableException) {
                 log(TAG, DEBUG) { "getRunningPackages(...): $mode unavailable" }
             } else {
                 log(TAG, WARN) { "getRunningPackages($mode) failed: ${e.asLog()}" }
@@ -409,9 +409,9 @@ class PkgOps @Inject constructor(
 
             }
 
-            throw ModeUnavailableException("Mode $mode is unavailable")
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
         } catch (e: Exception) {
-            if (e is ModeUnavailableException) {
+            if (e is ElevatedAccessUnavailableException) {
                 log(TAG, DEBUG) { "grantPermission(...): $mode unavailable for $id" }
             } else {
                 log(TAG, WARN) { "grantPermission($id, $permission, $mode) failed: ${e.asLog()}" }
@@ -436,9 +436,9 @@ class PkgOps @Inject constructor(
 
             }
 
-            throw ModeUnavailableException("Mode $mode is unavailable")
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
         } catch (e: Exception) {
-            if (e is ModeUnavailableException) {
+            if (e is ElevatedAccessUnavailableException) {
                 log(TAG, DEBUG) { "grantPermission(...): $mode unavailable for $id" }
             } else {
                 log(TAG, WARN) { "grantPermission($id, $permission, $mode) failed: ${e.asLog()}" }
@@ -468,9 +468,9 @@ class PkgOps @Inject constructor(
 
             }
 
-            throw ModeUnavailableException("Mode $mode is unavailable")
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
         } catch (e: Exception) {
-            if (e is ModeUnavailableException) {
+            if (e is ElevatedAccessUnavailableException) {
                 log(TAG, DEBUG) { "setAppOps(...): $mode unavailable for $id" }
             } else {
                 log(TAG, WARN) { "setAppOps($id, $key, $value, $mode) failed: ${e.asLog()}" }

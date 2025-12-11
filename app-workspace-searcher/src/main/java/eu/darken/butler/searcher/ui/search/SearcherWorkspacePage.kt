@@ -771,7 +771,7 @@ fun SearcherWorkspacePageHost(
     ),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    ErrorEventHandler(vm)
+    ErrorEventHandler(vm, vm.navController)
 
     SearcherWorkspacePage(
         workspaceId = id,

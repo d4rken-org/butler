@@ -42,7 +42,7 @@ import kotlin.time.Clock
 
 @Composable
 fun UpgradeStatusScreenHost(vm: UpgradeStatusViewModel = hiltViewModel()) {
-    ErrorEventHandler(vm)
+    ErrorEventHandler(vm, vm.navController)
 
     val state by waitForState(vm.state)
 

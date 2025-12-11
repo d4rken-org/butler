@@ -90,7 +90,7 @@ class MainActivity : Activity2() {
                         window.decorView.setBackgroundColor(backgroundColor.toArgb())
                     }
 
-                    ErrorEventHandler(vm)
+                    ErrorEventHandler(vm, navCtrl)
 
                     vmState?.let { mainState ->
                         log(TAG) { "Main state: $mainState" }

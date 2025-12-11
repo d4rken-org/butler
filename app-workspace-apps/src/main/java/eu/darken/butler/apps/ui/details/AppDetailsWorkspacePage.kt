@@ -73,7 +73,7 @@ fun AppDetailsWorkspacePageHost(
     ),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    ErrorEventHandler(vm)
+    ErrorEventHandler(vm, vm.navController)
 
     val workspaceButtonState by waitForState(workspaceButtonVm.state)
     val state by waitForState(vm.state)

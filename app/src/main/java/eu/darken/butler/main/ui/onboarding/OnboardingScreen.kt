@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreenHost(vm: OnboardingViewModel = hiltViewModel()) {
-    ErrorEventHandler(vm)
+    ErrorEventHandler(vm, vm.navController)
 
     val state by waitForState(vm.state)
 

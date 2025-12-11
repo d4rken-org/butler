@@ -29,7 +29,7 @@ import eu.darken.butler.provider.documents.R
 fun DocumentsProviderSettingsScreenHost(
     vm: DocumentsProviderSettingsViewModel = hiltViewModel(),
 ) {
-    ErrorEventHandler(vm)
+    ErrorEventHandler(vm, vm.navController)
     val state by waitForState(vm.state)
     state?.let {
         DocumentsProviderSettingsScreen(

@@ -66,7 +66,7 @@ fun TemplatesWorkspacePageHost(
     ),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    ErrorEventHandler(vm)
+    ErrorEventHandler(vm, vm.navController)
 
     val state by waitForState(vm.state)
     log(vm.tag) { "Compose state: $state" }

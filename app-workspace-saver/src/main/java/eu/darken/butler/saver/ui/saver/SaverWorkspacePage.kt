@@ -55,7 +55,7 @@ fun SaverWorkspacePageHost(
     ),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    ErrorEventHandler(vm)
+    ErrorEventHandler(vm, vm.navController)
 
     SaverWorkspacePage(
         workspaceId = id,

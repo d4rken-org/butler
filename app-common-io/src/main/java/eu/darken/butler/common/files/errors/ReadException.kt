@@ -5,6 +5,7 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.error.HasLocalizedError
 import eu.darken.butler.common.error.LocalizedError
+import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.error.localized
 import eu.darken.butler.common.files.APath
 
@@ -14,7 +15,7 @@ open class ReadException @JvmOverloads constructor(
     cause: Throwable? = null,
 ) : PathException(message = message, cause = cause, path = path), HasLocalizedError {
 
-    override fun getLocalizedError() = LocalizedError(
+    override fun getLocalizedError(context: LocalizedErrorContext) = LocalizedError(
         throwable = this,
         label = "ReadException".toCaString(),
         description = caString { cx ->

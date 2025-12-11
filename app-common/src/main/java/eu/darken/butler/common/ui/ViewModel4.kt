@@ -12,6 +12,8 @@ abstract class ViewModel4(
     private val navCtrl: NavigationController,
 ) : ViewModel3(dispatcherProvider, tag) {
 
+    val navController: NavigationController get() = navCtrl
+
     fun navTo(
         destination: NavigationDestination,
         popUpTo: NavigationDestination? = null,
