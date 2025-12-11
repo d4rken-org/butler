@@ -29,6 +29,7 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.permissions.core.PathRequirements
@@ -587,7 +588,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 launch {
                     workspaceRemote.createAndFocus(
                         type = Workspace.Type.EDITOR,
-                        arguments = EditorArguments(
+                        arguments = EditorArguments.Default(
                             filePath = action.result.path
                         )
                     )
@@ -687,7 +688,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val requests = openInNewTabsUseCase.createRequests(
             analysis = analysis,
             createExplorerArguments = { path -> ExplorerArguments.Default(startPath = path) },
-            createEditorArguments = { path -> EditorArguments(filePath = path) },
+            createEditorArguments = { path -> EditorArguments.Default(filePath = path) },
         )
 
         // Execute batch creation directly - WorkspaceRepo handles confirmation and banner
