@@ -53,6 +53,7 @@ import eu.darken.butler.explorer.core.PatternMatcher
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.ExplorerItem.Path.Companion.toPathItemId
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
@@ -158,7 +159,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     )
 
     val revealRequests = SingleEventFlow<RevealRequest>()
-    private val highlightedItemFlow = MutableStateFlow<String?>(null)
+    private val highlightedItemIds = MutableStateFlow<Set<String>>(emptySet())
 
     private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
     val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
@@ -191,6 +192,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 handleDialogEvent(event)
             }
             .launchInViewModel()
+
+        // Clear highlights when navigating to a different location
+        workspaceState
+            .map { it.currentLocation?.locationId }
+            .distinctUntilChanged()
+            .onEach { clearHighlights() }
+            .launchInViewModel()
     }
 
     data class State(
@@ -216,7 +224,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val saveAsFilename: String = "",
         val disabledItems: Set<ExplorerItem> = emptySet(),
         val canConfirmSelection: Boolean = true,
-        val highlightedItemPath: String? = null,
+        val highlightedItemIds: Set<String> = emptySet(),
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -255,8 +263,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         pickerConfigFlow,
         trashManager.isEnabled,
         saveAsFilenameFlow,
-        highlightedItemFlow,
-    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemPath ->
+        highlightedItemIds,
+    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds ->
         val items = wsState.currentLocation?.items
             ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
             ?.let { itemSorter.sortItems(it, sortSetting) }
@@ -326,7 +334,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             saveAsFilename = saveAsFilename,
             disabledItems = disabledItems,
             canConfirmSelection = canConfirmSelection,
-            highlightedItemPath = highlightedItemPath,
+            highlightedItemIds = highlightedItemIds,
         )
     }
         .distinctUntilChanged()
@@ -1096,7 +1104,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 val createdPath = completed.report?.affectedPaths
                     ?.firstOrNull { it.change == Operation.Report.PathChange.Change.ADDED }
                     ?.path
-                createdPath?.let { revealItem(it) }
+                createdPath?.let { revealItems(listOf(it)) }
             }
         }
     }
@@ -1310,7 +1318,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ClipboardClip.Paths -> {
                 val currentLocation = state.first().currentLocation
                 if (currentLocation is ExplorerLocation.Directory) {
-                    val operation = when (clip.mode) {
+                    val command = when (clip.mode) {
                         ClipboardClip.Paths.Mode.COPY -> ExplorerCommand.Copy(
                             sources = clip.paths.toSet(),
                             destination = currentLocation.path,
@@ -1320,7 +1328,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             destination = currentLocation.path,
                         )
                     }
-                    getWorkspace().execute(operation)
+                    val completed = getWorkspace().execute(command)
+
+                    // Reveal all added items on success (scroll to first, highlight all)
+                    if (completed.error == null) {
+                        val addedPaths = completed.report?.affectedPaths
+                            ?.filter { it.change == Operation.Report.PathChange.Change.ADDED }
+                            ?.map { it.path }
+                            ?: emptyList()
+                        revealItems(addedPaths)
+                    }
 
                     if (clip.mode == ClipboardClip.Paths.Mode.CUT) {
                         clipboardRepo.remove(clip.id)
@@ -1673,22 +1690,19 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         navigate(ExplorerNavigation.Back)
     }
 
-    fun closeWorkspace() = launch {
-        log(tag) { "closeWorkspace()" }
-        workspaceRemote.execute(WorkspaceAction.Close(id, requireConfirmation = true))
+    fun revealItems(paths: List<APath<*>>, highlight: Boolean = true) = launch {
+        if (paths.isEmpty()) return@launch
+        log(tag) { "revealItems(${paths.map { it.path }}, highlight=$highlight)" }
+        revealRequests.emit(RevealRequest(paths.first(), highlight))
+        if (highlight) {
+            highlightedItemIds.value = paths.map { it.toPathItemId() }.toSet()
+        }
     }
 
-    /**
-     * Scrolls to and optionally highlights an item at the given path.
-     * Used after operations like creating a new folder to reveal the result.
-     */
-    fun revealItem(path: APath<*>, highlight: Boolean = true) = launch {
-        log(tag) { "revealItem(${path.path}, highlight=$highlight)" }
-        revealRequests.emit(RevealRequest(path, highlight))
-        if (highlight) {
-            highlightedItemFlow.value = path.path
-            delay(2000.milliseconds)
-            highlightedItemFlow.value = null
+    private fun clearHighlights() {
+        if (highlightedItemIds.value.isNotEmpty()) {
+            log(tag) { "clearHighlights()" }
+            highlightedItemIds.value = emptySet()
         }
     }
 

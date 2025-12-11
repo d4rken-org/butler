@@ -76,8 +76,17 @@ sealed interface ExplorerItem {
     sealed interface Path : ExplorerItem {
         val path: APath<*>
 
-        override val id: String get() = path.path
+        override val id: String get() = path.toPathItemId()
         override val displayName: CaString get() = path.userReadableName
+
+        companion object {
+            /**
+             * Derives the ExplorerItem ID for a path.
+             * Used by [Path.id] and when matching operation results to items (e.g., for highlighting).
+             * Single source of truth - change here updates both usages.
+             */
+            fun APath<*>.toPathItemId(): String = this.path
+        }
     }
 
     sealed interface Lookup : Path {

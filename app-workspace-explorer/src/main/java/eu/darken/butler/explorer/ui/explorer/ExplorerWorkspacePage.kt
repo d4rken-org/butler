@@ -630,7 +630,7 @@ fun ExplorerWorkspacePage(
                                                             onLongClick = { vm?.onItemLongClick(item) },
                                                             showSelection = mainStateSnap.shouldShowSelection(item),
                                                             isEnabled = item !in mainStateSnap.disabledItems,
-                                                            isHighlighted = mainStateSnap.highlightedItemPath == item.path.path,
+                                                            isHighlighted = item.id in mainStateSnap.highlightedItemIds,
                                                         )
 
                                                         is ExplorerItem.Peek -> PeekRow(
@@ -728,7 +728,7 @@ fun ExplorerWorkspacePage(
                                                             onLongClick = { vm?.onItemLongClick(item) },
                                                             showSelection = mainStateSnap.shouldShowSelection(item),
                                                             isEnabled = item !in mainStateSnap.disabledItems,
-                                                            isHighlighted = mainStateSnap.highlightedItemPath == item.path.path,
+                                                            isHighlighted = item.id in mainStateSnap.highlightedItemIds,
                                                         )
                                                         is ExplorerItem.Shortcut -> ShortcutGrid(
                                                             item = item,
