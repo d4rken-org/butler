@@ -64,40 +64,42 @@ jobs:
       - name: Print test failures summary
         if: failure()
         run: |
-          echo ""
-          echo "================================================================================"
-          echo "❌ FAILED TESTS SUMMARY"
-          echo "================================================================================"
+          python3 << 'EOF'
+          import xml.etree.ElementTree as ET
+          import html
+          import glob
 
-          found_failures=false
+          print()
+          print("=" * 80)
+          print("❌ FAILED TESTS SUMMARY")
+          print("=" * 80)
 
-          for xml in $(find . -path "*/build/test-results/*/*.xml" -type f 2>/dev/null); do
-            # Extract module name from path
-            module=$(echo "$xml" | sed 's|^\./||' | cut -d'/' -f1)
+          found = False
+          for xml_file in glob.glob("**/build/test-results/**/*.xml", recursive=True):
+              try:
+                  tree = ET.parse(xml_file)
+                  for testcase in tree.findall(".//testcase"):
+                      failure = testcase.find("failure")
+                      if failure is not None:
+                          found = True
+                          module = xml_file.split("/")[0]
+                          classname = testcase.get("classname", "").split(".")[-1]
+                          testname = testcase.get("name", "unknown")
+                          message = failure.get("message", "")[:200]
+                          message = html.unescape(message)
+                          print()
+                          print(f"📍 {module}")
+                          print(f"   {classname} > {testname}")
+                          print(f"   {message}")
+              except ET.ParseError:
+                  pass
 
-            # Parse failures from XML using grep and sed
-            while IFS= read -r line; do
-              if echo "$line" | grep -q 'testcase.*name='; then
-                testname=$(echo "$line" | sed 's/.*name="\([^"]*\)".*/\1/')
-                classname=$(echo "$line" | sed 's/.*classname="\([^"]*\)".*/\1/' | sed 's/.*\.//')
-              fi
-              if echo "$line" | grep -q '<failure'; then
-                found_failures=true
-                message=$(echo "$line" | sed 's/.*message="\([^"]*\)".*/\1/' | head -c 200)
-                echo ""
-                echo "📍 $module"
-                echo "   $classname > $testname"
-                echo "   $message"
-              fi
-            done < "$xml"
-          done
+          if not found:
+              print("No failure details found in XML reports.")
 
-          if [ "$found_failures" = false ]; then
-            echo "Could not parse failure details from XML reports."
-          fi
-
-          echo ""
-          echo "================================================================================"
+          print()
+          print("=" * 80)
+          EOF
 
       - name: Upload test results
         uses: actions/upload-artifact@v4.6.2
