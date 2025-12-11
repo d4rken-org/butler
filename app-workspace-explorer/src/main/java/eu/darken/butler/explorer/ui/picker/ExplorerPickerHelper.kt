@@ -33,9 +33,11 @@ class ExplorerPickerHelper @Inject constructor() {
             is PickerConfig.Selection.DirectorySingle -> {
                 val atDirectory = currentLocation is ExplorerLocation.Directory
                     || (currentLocation is ExplorerLocation.Device && selectedItems.isNotEmpty())
-                atDirectory && isWritable(currentLocation, selectedItems)
+                val writableOk = !config.requireWritable || isWritable(currentLocation, selectedItems)
+                atDirectory && writableOk
             }
             is PickerConfig.Selection.SaveAs -> {
+                // SaveAs always requires writability (inherent to the operation)
                 val hasValidFilename = saveAsFilename.isNotBlank()
                 val atDirectory = currentLocation is ExplorerLocation.Directory
                     || (currentLocation is ExplorerLocation.Device && selectedItems.isNotEmpty())
@@ -44,7 +46,8 @@ class ExplorerPickerHelper @Inject constructor() {
             is PickerConfig.Selection.DirectoryMulti,
             is PickerConfig.Selection.MixedMulti -> {
                 val canSelect = selectedItems.isNotEmpty() || currentLocation is ExplorerLocation.Directory
-                canSelect && isWritable(currentLocation, selectedItems)
+                val writableOk = !config.requireWritable || isWritable(currentLocation, selectedItems)
+                canSelect && writableOk
             }
             is PickerConfig.Selection.FileMulti -> selectedItems.isNotEmpty()
             is PickerConfig.Selection.FileSingle -> false // Instant selection, no confirm needed

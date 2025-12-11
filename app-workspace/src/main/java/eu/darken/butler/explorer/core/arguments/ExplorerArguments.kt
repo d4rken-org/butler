@@ -40,9 +40,8 @@ sealed interface ExplorerArguments : Workspace.Arguments {
     @Parcelize
     data class Picker(
         override val startPath: APath<*>? = null,
-        @Contextual
-        val selection: PickerConfig.Selection = PickerConfig.Selection.DirectorySingle,
-        @Contextual
-        override val callerWorkspaceId: Workspace.Id,
+        @Contextual val selection: PickerConfig.Selection = PickerConfig.Selection.DirectorySingle,
+        val requireWritable: Boolean = false,
+        @Contextual override val callerWorkspaceId: Workspace.Id,
     ) : ExplorerArguments, Workspace.ArgumentsForResult
 }

@@ -73,6 +73,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -205,6 +206,27 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .onEach { targets ->
                 log(tag, INFO) { "Auto-triggering search due to target change: ${targets.size} targets" }
                 performSearch(saveToHistory = true)
+            }
+            .launchIn(vmScope)
+
+        // Auto-retry search when permissions are granted after setup
+        workspaceSearchState
+            .map { it.setupRequirements.needsSetup to it.searchStatus }
+            .distinctUntilChanged()
+            .scan(Pair(false to SearcherWorkspace.State.SearchStatus.IDLE, false to SearcherWorkspace.State.SearchStatus.IDLE)) { prev, curr ->
+                Pair(prev.second, curr)
+            }
+            .filter { (prev, curr) ->
+                // Detect transition from needsSetup=true to needsSetup=false
+                val wasNeedingSetup = prev.first
+                val noLongerNeedsSetup = !curr.first
+                val hadPermissionError = prev.second == SearcherWorkspace.State.SearchStatus.ERROR
+                wasNeedingSetup && noLongerNeedsSetup && hadPermissionError
+            }
+            .filter { searchQuery.value.text.isNotBlank() }
+            .onEach {
+                log(tag, INFO) { "Permissions granted after setup, auto-retrying search" }
+                performSearch(saveToHistory = false)
             }
             .launchIn(vmScope)
 

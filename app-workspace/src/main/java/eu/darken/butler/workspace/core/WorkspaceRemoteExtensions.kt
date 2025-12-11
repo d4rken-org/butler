@@ -62,12 +62,14 @@ inline fun <reified T : WorkspaceEvent.ResultEvent> Flow<WorkspaceEvent>.handleR
  * @param callerWorkspaceId The workspace ID requesting the picker
  * @param startPath Optional starting path for the picker (null = home)
  * @param selection The picker mode (FileSingle, FileMulti, DirectorySingle, DirectoryMulti, MixedMulti)
+ * @param requireWritable When true, only writable paths can be confirmed
  * @return The Create action result with the new workspace ID
  */
 suspend fun WorkspaceRemote.launchPicker(
     callerWorkspaceId: Workspace.Id,
     startPath: APath<*>? = null,
     selection: PickerConfig.Selection,
+    requireWritable: Boolean = false,
 ): WorkspaceAction.Create.Result {
     // Implementation detail: Uses Explorer workspace for picker functionality
     return execute(
@@ -76,7 +78,8 @@ suspend fun WorkspaceRemote.launchPicker(
             arguments = ExplorerArguments.Picker(
                 startPath = startPath,
                 selection = selection,
-                callerWorkspaceId = callerWorkspaceId
+                requireWritable = requireWritable,
+                callerWorkspaceId = callerWorkspaceId,
             )
         )
     ) as WorkspaceAction.Create.Result
