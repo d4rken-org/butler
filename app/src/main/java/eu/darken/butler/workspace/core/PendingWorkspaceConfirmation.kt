@@ -25,8 +25,13 @@ data class PendingWorkspaceConfirmation(
             val workspaceTitle: CaString,
         ) : ConfirmationData
 
-        // Future confirmation types can be added here:
-        // data class BulkDelete(val itemCount: Int, val itemType: String) : ConfirmationData
-        // data class DangerousOperation(val message: String) : ConfirmationData
+        /**
+         * Notification when workspace limit is reached for non-pro users.
+         * User can choose to upgrade or dismiss.
+         */
+        data class WorkspaceLimitReached(
+            val currentCount: Int,
+            val limit: Int,
+        ) : ConfirmationData
     }
 }

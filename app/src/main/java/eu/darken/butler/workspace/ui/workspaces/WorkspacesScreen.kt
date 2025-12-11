@@ -33,7 +33,8 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
-import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
+import eu.darken.butler.workspace.ui.dialogs.WorkspaceLimitDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -56,9 +57,19 @@ fun WorkspacesScreenHost(
 
     val context = LocalContext.current
     val workspaceButtonState by workspaceButtonVm.state.collectAsState(initial = null)
-    val managerDialogStates by vm.managerDialogStates.collectAsState(initial = emptyMap())
     val bannerStates by vm.bannerStates.collectAsState(initial = emptyMap())
     val showClearSessionConfirmation by vm.showClearSessionConfirmation.collectAsState(initial = false)
+    val managerDialogs by vm.managerDialogs.collectAsState()
+
+    // Derive dialog states from unified registry
+    val managerDialogStates = remember(managerDialogs) {
+        managerDialogs
+            .filterIsInstance<ManagerDialog.WorkspaceTargeted>()
+            .associateBy { it.targetWorkspaceId }
+    }
+    val workspaceLimitDialog = remember(managerDialogs) {
+        managerDialogs.filterIsInstance<ManagerDialog.Global.WorkspaceLimitReached>().firstOrNull()
+    }
 
     LaunchedEffect(Unit) {
         vm.shareIntentEvent.collect { intent ->
@@ -75,6 +86,7 @@ fun WorkspacesScreenHost(
             state = state,
             bannerStates = bannerStates,
             managerDialogStates = managerDialogStates,
+            managerDialogs = managerDialogs,
             onScreenAction = { vm.executeScreenAction(it) },
             onHideMotd = { vm.hideMotd(it) },
             onDismissMotd = { vm.dismissMotd(it) },
@@ -91,6 +103,14 @@ fun WorkspacesScreenHost(
             onConfirm = { vm.confirmClearSession() },
         )
     }
+
+    workspaceLimitDialog?.let { dialogState ->
+        WorkspaceLimitDialog(
+            limit = dialogState.limit,
+            onDismiss = { vm.dismissWorkspaceLimitDialog() },
+            onUpgrade = { vm.onUpgradeFromLimitDialog() },
+        )
+    }
 }
 
 
@@ -100,14 +120,15 @@ fun WorkspaceScreen(
     workspaceActionHandler: WorkspaceActionHandler? = null,
     state: WorkspacesViewModel.State,
     bannerStates: Map<Workspace.Id, BannerState> = emptyMap(),
-    managerDialogStates: Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>,
+    managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
+    managerDialogs: List<ManagerDialog> = emptyList(),
     onScreenAction: (WorkspaceScreenAction) -> Unit,
     onHideMotd: (Uuid) -> Unit = {},
     onDismissMotd: (Uuid) -> Unit = {},
     onMotdLinkClick: (String) -> Unit = {},
     onDismissBanner: (Workspace.Id) -> Unit = {},
     onDismissManagerDialog: (Workspace.Id) -> Unit = {},
-    onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit = {},
+    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit = {},
 ) {
     val windowSizeInfo = rememberWindowSizeInfo()
     val configuration = LocalConfiguration.current
@@ -177,6 +198,7 @@ fun WorkspaceScreen(
         } else {
             ClassicWorkspaceContainer(
                 state = state,
+                managerDialogs = managerDialogs,
                 onWorkspaceScreenAction = onScreenAction,
                 workspaceActionHandler = workspaceActionHandler,
                 managerDialogStates = managerDialogStates,

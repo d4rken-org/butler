@@ -231,6 +231,7 @@ class WorkspaceSessionManager @Inject constructor(
                         arguments = arguments,
                         autoFocus = false,
                         id = entity.workspaceId,
+                        skipLimitCheck = true,
                     )
                 )
 

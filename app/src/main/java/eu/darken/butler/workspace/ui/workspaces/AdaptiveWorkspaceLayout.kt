@@ -16,7 +16,7 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
-import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DragDropState
@@ -38,9 +38,9 @@ fun AdaptiveWorkspaceLayout(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceActionHandler: WorkspaceActionHandler? = null,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
-    managerDialogStates: Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>,
+    managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
-    onConfirmManagerDialog: (WorkspaceManagerDialogState.Targeted) -> Unit,
+    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
     paneLocalModals: Map<Workspace.Id, Workspace.Info> = emptyMap(),

@@ -22,15 +22,18 @@ import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
 import eu.darken.butler.workspace.ui.WorkspacePageManager
-import eu.darken.butler.workspace.ui.dialogs.WorkspaceManagerDialogState
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import eu.darken.butler.workspace.core.session.SessionRestorationException
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.flow.SingleEventFlow
+import eu.darken.butler.common.navigation.Nav
+import eu.darken.butler.common.navigation.upgrade
 import android.content.Intent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -54,16 +57,15 @@ class WorkspacesViewModel @Inject constructor(
 
     private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())
 
-    private val _managerDialogStates = MutableStateFlow<Map<Workspace.Id, WorkspaceManagerDialogState.Targeted>>(
-        emptyMap()
-    )
-    val managerDialogStates = _managerDialogStates.asStateFlow()
-
     private val _bannerStates = MutableStateFlow<Map<Workspace.Id, BannerState>>(emptyMap())
     val bannerStates = _bannerStates.asStateFlow()
 
     private val _showClearSessionConfirmation = MutableStateFlow(false)
     val showClearSessionConfirmation = _showClearSessionConfirmation.asStateFlow()
+
+    // Unified dialog registry - single source of truth
+    private val _managerDialogs = MutableStateFlow<List<ManagerDialog>>(emptyList())
+    val managerDialogs: StateFlow<List<ManagerDialog>> = _managerDialogs
 
     private var currentSessionError: Throwable? = null
     val shareIntentEvent = SingleEventFlow<Intent>()
@@ -90,42 +92,49 @@ class WorkspacesViewModel @Inject constructor(
             .onEach { state -> savedStateHandle["workspaceUIState"] = state }
             .launchInViewModel()
 
-        // Observe pending confirmations and show dialogs
+        // Observe pending confirmations and populate unified dialog registry
         workspaceRepo.pendingConfirmations
             .onEach { confirmations ->
                 log(tag) { "Pending confirmations updated: ${confirmations.size}" }
 
-                // Map confirmations to dialog states
-                val newDialogStates = confirmations.mapNotNull { (confirmationId, confirmation) ->
-                    val targetWorkspaceId = confirmation.sourceWorkspaceId
-                        ?: workspacePageManager.state.value.focusedWorkspaceId
-                        ?: run {
-                            log(tag, WARN) { "No target workspace for confirmation $confirmationId" }
-                            return@mapNotNull null
+                val dialogs = confirmations.mapNotNull { (confirmationId, confirmation) ->
+                    when (val data = confirmation.data) {
+                        is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceLimitReached -> {
+                            ManagerDialog.Global.WorkspaceLimitReached(
+                                id = confirmationId,
+                                currentCount = data.currentCount,
+                                limit = data.limit,
+                            )
                         }
-
-                    val dialogState = when (val data = confirmation.data) {
                         is PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation -> {
-                            WorkspaceManagerDialogState.OpenInNewTabsConfirmation(
-                                confirmationId = confirmationId,
-                                targetWorkspaceId = targetWorkspaceId,
+                            val targetId = confirmation.sourceWorkspaceId
+                                ?: workspacePageManager.state.value.focusedWorkspaceId
+                                ?: run {
+                                    log(tag, WARN) { "No target workspace for confirmation $confirmationId" }
+                                    return@mapNotNull null
+                                }
+                            ManagerDialog.WorkspaceTargeted.BatchCreationConfirmation(
+                                id = confirmationId,
+                                targetWorkspaceId = targetId,
                                 totalCount = data.totalCount,
                             )
                         }
                         is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation -> {
-                            WorkspaceManagerDialogState.WorkspaceCloseConfirmation(
-                                confirmationId = confirmationId,
-                                targetWorkspaceId = targetWorkspaceId,
+                            val targetId = confirmation.sourceWorkspaceId
+                                ?: workspacePageManager.state.value.focusedWorkspaceId
+                                ?: run {
+                                    log(tag, WARN) { "No target workspace for confirmation $confirmationId" }
+                                    return@mapNotNull null
+                                }
+                            ManagerDialog.WorkspaceTargeted.CloseConfirmation(
+                                id = confirmationId,
+                                targetWorkspaceId = targetId,
                                 workspaceTitle = data.workspaceTitle,
                             )
                         }
-                        // Future: map other confirmation types to appropriate dialogs
                     }
-
-                    targetWorkspaceId to dialogState
-                }.toMap()
-
-                _managerDialogStates.update { newDialogStates }
+                }
+                _managerDialogs.value = dialogs
             }
             .launchInViewModel()
 
@@ -214,11 +223,16 @@ class WorkspacesViewModel @Inject constructor(
             }
             is WorkspaceScreenAction.CreateOnDemand -> {
                 log(tag) { "Creating workspace on-demand" }
-                val result =
-                    workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES)) as WorkspaceAction.Create.Result
-                log(tag) { "On-demand workspace created: ${result.newId}, focusing it" }
-                workspacePageManager.setFocusedWorkspace(result.newId)
-                workspacePageManager.setSelectedWorkspaces(mapOf(0 to result.newId))
+                when (val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES))) {
+                    is WorkspaceAction.Create.Result.Success -> {
+                        log(tag) { "On-demand workspace created: ${result.newId}, focusing it" }
+                        workspacePageManager.setFocusedWorkspace(result.newId)
+                        workspacePageManager.setSelectedWorkspaces(mapOf(0 to result.newId))
+                    }
+                    is WorkspaceAction.Create.Result.LimitReached -> {
+                        log(tag, WARN) { "On-demand workspace creation blocked - limit reached" }
+                    }
+                }
             }
         }
     }
@@ -240,36 +254,39 @@ class WorkspacesViewModel @Inject constructor(
 
     fun dismissManagerDialog(workspaceId: Workspace.Id) = launch {
         log(tag) { "dismissManagerDialog($workspaceId)" }
-        val dialogState = _managerDialogStates.value[workspaceId]
+        val dialogState = _managerDialogs.value
+            .filterIsInstance<ManagerDialog.WorkspaceTargeted>()
+            .firstOrNull { it.targetWorkspaceId == workspaceId } ?: return@launch
 
-        // For confirmation dialogs, resolve as cancelled
-        if (dialogState is WorkspaceManagerDialogState.OpenInNewTabsConfirmation) {
-            log(tag) { "Confirmation dialog dismissed, resolving as cancelled" }
-            workspaceRepo.resolveConfirmation(dialogState.confirmationId, confirmed = false)
-        }
-
-        log(tag) { "dismissManagerDialog() - dialog removed for workspace $workspaceId" }
+        log(tag) { "Confirmation dialog dismissed, resolving as cancelled" }
+        workspaceRepo.resolveConfirmation(dialogState.id, confirmed = false)
     }
 
-    fun confirmManagerDialog(dialogState: WorkspaceManagerDialogState.Targeted) = launch {
+    fun confirmManagerDialog(dialogState: ManagerDialog.WorkspaceTargeted) = launch {
         log(tag) { "confirmManagerDialog($dialogState)" }
-
-        when (dialogState) {
-            is WorkspaceManagerDialogState.OpenInNewTabsConfirmation -> {
-                log(tag) { "Confirmation dialog confirmed, resolving" }
-                workspaceRepo.resolveConfirmation(dialogState.confirmationId, confirmed = true)
-            }
-            is WorkspaceManagerDialogState.WorkspaceCloseConfirmation -> {
-                log(tag) { "Workspace close confirmation confirmed, resolving" }
-                workspaceRepo.resolveConfirmation(dialogState.confirmationId, confirmed = true)
-            }
-            // Handle other dialog types here in the future
-        }
+        workspaceRepo.resolveConfirmation(dialogState.id, confirmed = true)
     }
 
     fun dismissBanner(workspaceId: Workspace.Id) = launch {
         log(tag) { "dismissBanner($workspaceId)" }
         _bannerStates.update { it - workspaceId }
+    }
+
+    fun dismissWorkspaceLimitDialog() {
+        log(tag) { "dismissWorkspaceLimitDialog()" }
+        val dialogState = _managerDialogs.value
+            .filterIsInstance<ManagerDialog.Global.WorkspaceLimitReached>()
+            .firstOrNull() ?: return
+        workspaceRepo.resolveConfirmation(dialogState.id, confirmed = false)
+    }
+
+    fun onUpgradeFromLimitDialog() {
+        log(tag) { "onUpgradeFromLimitDialog()" }
+        val dialogState = _managerDialogs.value
+            .filterIsInstance<ManagerDialog.Global.WorkspaceLimitReached>()
+            .firstOrNull() ?: return
+        workspaceRepo.resolveConfirmation(dialogState.id, confirmed = false)
+        navTo(Nav.Main.upgrade())
     }
 
     fun dismissClearSessionConfirmation() {

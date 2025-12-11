@@ -212,3 +212,9 @@ interface Workspace<ArgT : Workspace.Arguments> {
     }
 }
 
+/**
+ * Returns true if these arguments are for creating a sub-workspace (modal/picker).
+ * Mirrors [Workspace.Info.isSubWorkspace] for consistency.
+ */
+val Workspace.Arguments.isForSubWorkspace: Boolean
+    get() = (this as? Workspace.ArgumentsWithCaller)?.callerWorkspaceId != null
