@@ -61,6 +61,44 @@ jobs:
       - name: Test modules
         run: ./gradlew ${{ matrix.flavor }}${{ matrix.variant }}UnitTest
 
+      - name: Print test failures summary
+        if: failure()
+        run: |
+          echo ""
+          echo "================================================================================"
+          echo "❌ FAILED TESTS SUMMARY"
+          echo "================================================================================"
+
+          found_failures=false
+
+          for xml in $(find . -path "*/build/test-results/*/*.xml" -type f 2>/dev/null); do
+            # Extract module name from path
+            module=$(echo "$xml" | sed 's|^\./||' | cut -d'/' -f1)
+
+            # Parse failures from XML using grep and sed
+            while IFS= read -r line; do
+              if echo "$line" | grep -q 'testcase.*name='; then
+                testname=$(echo "$line" | sed 's/.*name="\([^"]*\)".*/\1/')
+                classname=$(echo "$line" | sed 's/.*classname="\([^"]*\)".*/\1/' | sed 's/.*\.//')
+              fi
+              if echo "$line" | grep -q '<failure'; then
+                found_failures=true
+                message=$(echo "$line" | sed 's/.*message="\([^"]*\)".*/\1/' | head -c 200)
+                echo ""
+                echo "📍 $module"
+                echo "   $classname > $testname"
+                echo "   $message"
+              fi
+            done < "$xml"
+          done
+
+          if [ "$found_failures" = false ]; then
+            echo "Could not parse failure details from XML reports."
+          fi
+
+          echo ""
+          echo "================================================================================"
+
       - name: Upload test results
         uses: actions/upload-artifact@v4.6.2
         if: always()
