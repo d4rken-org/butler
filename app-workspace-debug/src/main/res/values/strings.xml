@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="debug_workspace_tab_title">Debug</string>
+    <string name="debug_title">Debug Tools</string>
+    <string name="debug_subtitle">Development utilities</string>
+
+    <!-- Tabs -->
+    <string name="debug_tab_system">System</string>
+    <string name="debug_tab_workspaces">Workspaces</string>
+    <string name="debug_tab_logs">Logs</string>
+    <string name="debug_tab_testdata">Test Data</string>
+
+    <!-- System Info Section -->
+    <string name="debug_system_device_header">Device</string>
+    <string name="debug_system_device_model">Model</string>
+    <string name="debug_system_device_manufacturer">Manufacturer</string>
+    <string name="debug_system_device_api">API Level</string>
+    <string name="debug_system_build_header">Build</string>
+    <string name="debug_system_build_version">Version</string>
+    <string name="debug_system_build_code">Version Code</string>
+    <string name="debug_system_build_flavor">Flavor</string>
+    <string name="debug_system_build_type">Build Type</string>
+    <string name="debug_system_build_git">Git SHA</string>
+    <string name="debug_system_memory_header">Memory</string>
+    <string name="debug_system_memory_available">Available</string>
+    <string name="debug_system_memory_total">Total</string>
+    <string name="debug_system_storage_header">Storage</string>
+
+    <!-- Workspaces Section -->
+    <string name="debug_workspaces_count">%d workspaces</string>
+    <string name="debug_workspaces_empty">No workspaces</string>
+
+    <!-- Logs Section -->
+    <string name="debug_logs_clear">Clear</string>
+    <string name="debug_logs_pause">Pause</string>
+    <string name="debug_logs_resume">Resume</string>
+    <string name="debug_logs_empty">No logs</string>
+
+    <!-- Test Data Section -->
+    <string name="debug_testdata_volume_label">Storage Volume</string>
+    <string name="debug_testdata_no_storage">No storage available</string>
+    <string name="debug_testdata_options_header">Generation Options</string>
+    <string name="debug_testdata_large_files">Large files</string>
+    <string name="debug_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="debug_testdata_nested_structure">Nested structure</string>
+    <string name="debug_testdata_nested_structure_desc">~1500 folders, ~3500 files</string>
+    <string name="debug_testdata_text_files">Text files for Editor</string>
+    <string name="debug_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="debug_testdata_generate">Generate</string>
+    <string name="debug_testdata_generating">Generating…</string>
+    <string name="debug_testdata_progress">%1$s of %2$s</string>
+    <string name="debug_testdata_complete">Test data generated at:</string>
+</resources>

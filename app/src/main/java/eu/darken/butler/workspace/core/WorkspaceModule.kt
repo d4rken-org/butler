@@ -7,6 +7,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
+import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.debug.core.DebugWorkspace
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.saver.core.SaverWorkspace
@@ -37,16 +39,18 @@ abstract class WorkspaceModule {
             appsWorkspaceFactory: AppsWorkspace.Factory,
             appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
             saverWorkspaceFactory: SaverWorkspace.Factory,
+            debugWorkspaceFactory: DebugWorkspace.Factory,
         ): Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>> {
-            return Workspace.Type.entries.associateWith { type ->
-                when (type) {
-                    Workspace.Type.TEMPLATES -> templatesWorkspaceFactory
-                    Workspace.Type.EXPLORER -> explorerWorkspaceFactory
-                    Workspace.Type.SEARCHER -> searcherWorkspaceFactory
-                    Workspace.Type.EDITOR -> editorWorkspaceFactory
-                    Workspace.Type.APPS -> appsWorkspaceFactory
-                    Workspace.Type.APP_DETAILS -> appDetailsWorkspaceFactory
-                    Workspace.Type.SAVER -> saverWorkspaceFactory
+            return buildMap {
+                put(Workspace.Type.TEMPLATES, templatesWorkspaceFactory)
+                put(Workspace.Type.EXPLORER, explorerWorkspaceFactory)
+                put(Workspace.Type.SEARCHER, searcherWorkspaceFactory)
+                put(Workspace.Type.EDITOR, editorWorkspaceFactory)
+                put(Workspace.Type.APPS, appsWorkspaceFactory)
+                put(Workspace.Type.APP_DETAILS, appDetailsWorkspaceFactory)
+                put(Workspace.Type.SAVER, saverWorkspaceFactory)
+                if (BuildConfigWrap.DEBUG) {
+                    put(Workspace.Type.DEBUG, debugWorkspaceFactory)
                 }
             }
         }
