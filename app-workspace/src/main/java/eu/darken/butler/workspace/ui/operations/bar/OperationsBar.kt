@@ -124,7 +124,13 @@ fun OperationsBar(
                     runningCount = operations.count { it.state is OperationDisplay.State.Running },
                     isExpanded = isExpanded,
                     onExpandClick = { isExpanded = !isExpanded },
-                    onClearCompleted = { clearCompletedAnimationTrigger = System.currentTimeMillis() },
+                    onClearCompleted = {
+                        if (isExpanded) {
+                            clearCompletedAnimationTrigger = System.currentTimeMillis()
+                        } else {
+                            onClearCompleted()
+                        }
+                    },
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 32.dp),

@@ -113,7 +113,13 @@ fun ClipboardBar(
                     isExpanded = isExpanded,
                     entryCount = clipboardEntries.size,
                     onExpandClick = { isExpanded = !isExpanded },
-                    onClearAllClick = { clearAllAnimationTrigger = System.currentTimeMillis() },
+                    onClearAllClick = {
+                        if (isExpanded) {
+                            clearAllAnimationTrigger = System.currentTimeMillis()
+                        } else {
+                            onClearAll()
+                        }
+                    },
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 32.dp),
