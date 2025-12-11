@@ -75,6 +75,7 @@ class FlowCmdShellTest : BaseTest() {
             }
         }
 
+        delay(100)
         session.close()
     }
 
@@ -89,6 +90,7 @@ class FlowCmdShellTest : BaseTest() {
             }
         }
 
+        delay(100)
         session.cancel()
     }
 
@@ -151,7 +153,7 @@ class FlowCmdShellTest : BaseTest() {
     }
 
     @Test fun `open session extension`() = runTest2(autoCancel = true) {
-        val (session, job) = FlowCmdShell().openSession(this)
+        val (session, _) = FlowCmdShell().openSession(this)
 
         FlowCmd("echo done").execute(session).apply {
             exitCode shouldBe FlowProcess.ExitCode.OK
@@ -160,7 +162,7 @@ class FlowCmdShellTest : BaseTest() {
     }
 
     @Test fun `cancellation behavior`() = runTest2(autoCancel = true) {
-        val (session, job) = FlowCmdShell().openSession(this)
+        val (session, _) = FlowCmdShell().openSession(this)
 
         shouldThrow<TimeoutCancellationException> {
             withTimeout(500) {
