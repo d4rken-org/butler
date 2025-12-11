@@ -80,6 +80,20 @@ fun LazyTextEditor(
     val contentListState = rememberLazyListState()
     val horizontalScrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+
+    // Measure character width for horizontal scroll calculations
+    val textMeasurer = rememberTextMeasurer()
+    val charWidth = remember(fontSize) {
+        val measured = textMeasurer.measure(
+            text = "M",
+            style = TextStyle(
+                fontSize = fontSize.sp,
+                fontFamily = FontFamily.Monospace
+            )
+        )
+        measured.size.width.toFloat()
+    }
     
     // Update visible range when scroll position changes
     LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size) {
@@ -95,21 +109,60 @@ fun LazyTextEditor(
         }
     }
 
-    // Scroll to cursor position when it changes - only if the layout is ready
-    // We check layoutInfo.totalItemsCount to ensure the layout has been measured
-    LaunchedEffect(cursorPosition.line) {
-        if (totalLines > 0 && cursorPosition.line >= 0 && contentListState.layoutInfo.totalItemsCount > 0) {
-            val targetLine = cursorPosition.line.coerceIn(0, totalLines - 1)
-            if (targetLine < contentListState.firstVisibleItemIndex ||
-                targetLine >= contentListState.firstVisibleItemIndex + contentListState.layoutInfo.visibleItemsInfo.size) {
-                try {
-                    scope.launch {
-                        contentListState.animateScrollToItem(targetLine)
-                        lineNumbersListState.animateScrollToItem(targetLine)
+    // Scroll to cursor position when it changes (line, column, or offset)
+    // Triggers on any cursor change to ensure cursor is always visible during typing
+    LaunchedEffect(cursorPosition) {
+        if (totalLines <= 0 || contentListState.layoutInfo.totalItemsCount <= 0) return@LaunchedEffect
+
+        val targetLine = cursorPosition.line.coerceIn(0, totalLines - 1)
+
+        // VERTICAL: Check if cursor line is outside visible viewport
+        val firstVisibleLine = contentListState.firstVisibleItemIndex
+        val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size
+        val lastVisibleLine = firstVisibleLine + visibleCount - 1
+
+        val needsVerticalScroll = targetLine < firstVisibleLine || targetLine > lastVisibleLine
+
+        if (needsVerticalScroll) {
+            try {
+                // Use instant scroll for responsiveness during typing
+                contentListState.scrollToItem(targetLine)
+                lineNumbersListState.scrollToItem(targetLine)
+            } catch (e: Exception) {
+                // Ignore scroll errors - layout might not be ready yet
+            }
+        }
+
+        // HORIZONTAL: Only when word wrap is disabled
+        if (!wordWrap) {
+            val viewportWidth = contentListState.layoutInfo.viewportSize.width.toFloat()
+            if (viewportWidth <= 0) return@LaunchedEffect
+
+            val contentPadding = with(density) { 8.dp.toPx() } // Match TextLineItem padding
+            val margin = charWidth * 3 // 3 character margin from edge
+
+            // Cursor X position
+            val cursorX = contentPadding + (cursorPosition.column * charWidth)
+
+            val currentScrollX = horizontalScrollState.value.toFloat()
+            val visibleLeft = currentScrollX
+            val visibleRight = currentScrollX + viewportWidth
+
+            try {
+                when {
+                    cursorX < visibleLeft + margin -> {
+                        // Cursor left of viewport - scroll left
+                        val targetScroll = (cursorX - margin).coerceAtLeast(0f)
+                        horizontalScrollState.scrollTo(targetScroll.toInt())
                     }
-                } catch (e: Exception) {
-                    // Ignore scroll errors - layout might not be ready yet
+                    cursorX > visibleRight - margin -> {
+                        // Cursor right of viewport - scroll right
+                        val targetScroll = (cursorX - viewportWidth + margin).coerceAtLeast(0f)
+                        horizontalScrollState.scrollTo(targetScroll.toInt())
+                    }
                 }
+            } catch (e: Exception) {
+                // Ignore scroll errors
             }
         }
     }

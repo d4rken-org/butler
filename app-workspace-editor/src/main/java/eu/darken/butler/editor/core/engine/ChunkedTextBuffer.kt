@@ -302,12 +302,16 @@ class ChunkedTextBuffer @AssistedInject constructor(
             _totalLength.value += text.length
 
             // Update chunk boundaries FIRST to reflect the insertion
-            // This must happen BEFORE buildChunkMetadata() so metadata uses updated boundaries
+            // This must happen BEFORE chunkMetadata update so metadata uses updated boundaries
             val deltaLines = text.count { it == '\n' }
             chunkManager.updateBoundaries(position.offset, text.length.toLong(), deltaLines)
 
             // Update line index and state (AFTER boundary update to use correct boundaries)
-            updateAfterEdit()
+            updateAfterEdit(
+                editOffset = position.offset,
+                deltaLength = text.length.toLong(),
+                deltaLines = deltaLines,
+            )
 
             // Add to undo stack (unless we're undoing/redoing)
             if (!isUndoRedoInProgress) {
@@ -479,8 +483,11 @@ class ChunkedTextBuffer @AssistedInject constructor(
                         }
                     }
 
-                        // Update chunkIds list to remove evicted chunks
+                    // Update chunkIds list to remove evicted chunks
                     chunkIds = chunkIds.filterNot { it in chunksToEvict }
+
+                    // Also remove evicted chunks from chunkMetadata
+                    chunkMetadata.removeAll { it.chunkId in chunksToEvict }
 
                     log(tag, DEBUG) { "Evicted ${chunksToEvict.size} chunks after multi-chunk delete" }
                 }
@@ -490,7 +497,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 _totalLength.value -= deletedLength
 
                 // Update chunk boundaries FIRST to reflect the deletion
-                // This must happen BEFORE buildChunkMetadata() so metadata uses updated boundaries
+                // This must happen BEFORE chunkMetadata update so metadata uses updated boundaries
                 val deltaLines = -deletedText.count { it == '\n' }
                 chunkManager.updateBoundaries(startPosition.offset, -deletedLength, deltaLines)
 
@@ -502,7 +509,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
                         val correctedBoundary = ChunkBoundary(
                             startOffset = mergedBoundary.startOffset,
                             endOffset = mergedBoundary.startOffset + mergedChunkSize,
-                            lineCount = mergedBoundary.lineCount
+                            lineCount = mergedBoundary.lineCount,
                         )
                         chunkManager.updateBoundary(mergedChunkId, correctedBoundary)
                         log(tag, DEBUG) {
@@ -512,7 +519,11 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 }
 
                 // Update line index and state (AFTER boundary update to use correct boundaries)
-                updateAfterEdit()
+                updateAfterEdit(
+                    editOffset = startPosition.offset,
+                    deltaLength = -deletedLength,
+                    deltaLines = deltaLines,
+                )
 
                 // Add to undo stack (unless we're undoing/redoing)
                 if (!isUndoRedoInProgress) {
@@ -985,10 +996,36 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return chunkMetadata.lastOrNull()
     }
 
-    private suspend fun updateAfterEdit() {
+    private fun updateAfterEdit(editOffset: Long, deltaLength: Long, deltaLines: Int) {
         _isModified.value = true
-        // Metadata is maintained incrementally via updateBoundaries()
-        // Full rebuild only needed on save/load, not on every keystroke
+
+        // Update total line count
+        if (deltaLines != 0) {
+            _totalLines.value = (_totalLines.value + deltaLines).coerceAtLeast(1)
+        }
+
+        // Update chunkMetadata incrementally (mirrors updateBoundaries logic)
+        for (i in chunkMetadata.indices) {
+            val meta = chunkMetadata[i]
+            when {
+                // Chunk entirely after edit point - shift offsets and firstLineNumber
+                meta.startOffset > editOffset -> {
+                    chunkMetadata[i] = meta.copy(
+                        startOffset = meta.startOffset + deltaLength,
+                        endOffset = meta.endOffset + deltaLength,
+                        firstLineNumber = meta.firstLineNumber + deltaLines,
+                    )
+                }
+                // Chunk contains or ends at edit point - adjust endOffset and lineCount
+                meta.endOffset >= editOffset -> {
+                    chunkMetadata[i] = meta.copy(
+                        endOffset = meta.endOffset + deltaLength,
+                        lineCount = meta.lineCount + deltaLines,
+                    )
+                }
+                // Chunk entirely before edit point - no change
+            }
+        }
     }
 
     private suspend fun evictChunksOutsideRange(startLine: Int, endLine: Int) {
