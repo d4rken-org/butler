@@ -10,7 +10,9 @@
 [![Google Play Downloads](https://img.shields.io/endpoint?color=green&logo=google-play&logoColor=green&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Deu.darken.butler%26l%3DGoogle%2520Play%26m%3D%24totalinstalls)](https://github.com/d4rken/butler/edit/main/README.md#download)
 [![⭐](https://img.shields.io/endpoint?url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Deu.darken.butler%26gl%3DUS%26hl%3Den%26l%3D%25E2%25AD%2590%26m%3D%24rating)](https://github.com/d4rken/butler/edit/main/README.md#download)
 
-[Butler](https://github.com/d4rken/butler) is the file explorer Android deserves.
+[Butler](https://github.com/d4rken/butler) is the file explorer for Android I always wanted, so I built it.
+
+Fast, private, open-source. A little whimsical. Built for power-users.
 
 Features include:
 
