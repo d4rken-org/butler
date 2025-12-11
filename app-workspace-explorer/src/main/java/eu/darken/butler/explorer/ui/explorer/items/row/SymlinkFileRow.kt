@@ -27,6 +27,7 @@ internal fun SymlinkFileRow(
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
     isEnabled: Boolean = true,
+    isHighlighted: Boolean = false,
 ) {
     val primaryText = item.displayName.get(LocalContext.current)
     val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
@@ -39,6 +40,7 @@ internal fun SymlinkFileRow(
         onLongClick = onLongClick,
         showSelection = showSelection,
         isEnabled = isEnabled,
+        isHighlighted = isHighlighted,
         modifier = modifier,
         leadingContent = {
             Icon(
@@ -113,5 +115,18 @@ private fun SymlinkFileRowWhitespaceSelectedPreview() {
         onToggleSelection = {},
         onClick = {},
         showSelection = true
+    )
+}
+
+@Preview2
+@Composable
+private fun SymlinkFileRowHighlightedPreview() {
+    SymlinkFileRow(
+        item = MockDataProvider.createMockSymbolicLink("new_link", "/home/user/target"),
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false,
+        isHighlighted = true,
     )
 }

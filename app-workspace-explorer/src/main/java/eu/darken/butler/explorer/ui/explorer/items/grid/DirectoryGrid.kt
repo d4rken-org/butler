@@ -26,6 +26,7 @@ internal fun DirectoryGrid(
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
     isEnabled: Boolean = true,
+    isHighlighted: Boolean = false,
 ) {
     FileGridBase(
         modifier = modifier,
@@ -36,6 +37,7 @@ internal fun DirectoryGrid(
         onLongClick = onLongClick,
         showSelection = showSelection,
         isEnabled = isEnabled,
+        isHighlighted = isHighlighted,
         icon = {
             Icon(
                 imageVector = Icons.TwoTone.Folder,
@@ -75,5 +77,18 @@ private fun DirectoryGridSelectedPreview() {
         onToggleSelection = {},
         onClick = {},
         showSelection = true
+    )
+}
+
+@Preview2
+@Composable
+private fun DirectoryGridHighlightedPreview() {
+    DirectoryGrid(
+        item = MockDataProvider.createMockDirectory("NewFolder", 0),
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false,
+        isHighlighted = true,
     )
 }

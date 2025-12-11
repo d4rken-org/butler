@@ -24,6 +24,7 @@ internal fun DirectoryRow(
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
     isEnabled: Boolean = true,
+    isHighlighted: Boolean = false,
 ) {
     val primaryText = item.displayName.get(LocalContext.current)
     val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
@@ -36,6 +37,7 @@ internal fun DirectoryRow(
         onLongClick = onLongClick,
         showSelection = showSelection,
         isEnabled = isEnabled,
+        isHighlighted = isHighlighted,
         modifier = modifier,
         leadingContent = {
             TintedAsyncImage(
@@ -116,5 +118,18 @@ private fun DirectoryRowWhitespaceSelectedPreview() {
         onToggleSelection = {},
         onClick = {},
         showSelection = true
+    )
+}
+
+@Preview2
+@Composable
+private fun DirectoryRowHighlightedPreview() {
+    DirectoryRow(
+        item = MockDataProvider.createMockDirectory("NewFolder", 0),
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false,
+        isHighlighted = true,
     )
 }

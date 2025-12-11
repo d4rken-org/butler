@@ -25,6 +25,7 @@ internal fun RegularFileRow(
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
     isEnabled: Boolean = true,
+    isHighlighted: Boolean = false,
 ) {
     val primaryText = item.displayName.get(LocalContext.current)
     val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
@@ -37,6 +38,7 @@ internal fun RegularFileRow(
         onLongClick = onLongClick,
         showSelection = showSelection,
         isEnabled = isEnabled,
+        isHighlighted = isHighlighted,
         modifier = modifier,
         leadingContent = {
             TintedAsyncImage(
@@ -110,5 +112,18 @@ private fun RegularFileRowTrailingWhitespaceSelectedPreview() {
         onToggleSelection = {},
         onClick = {},
         showSelection = true
+    )
+}
+
+@Preview2
+@Composable
+private fun RegularFileRowHighlightedPreview() {
+    RegularFileRow(
+        item = MockDataProvider.createMockRegularFile("new_file.txt"),
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false,
+        isHighlighted = true,
     )
 }

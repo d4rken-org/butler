@@ -23,6 +23,7 @@ import eu.darken.butler.explorer.core.operations.CopyOperation
 import eu.darken.butler.explorer.core.operations.CreateOperation
 import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
+import eu.darken.butler.explorer.core.operations.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.MoveOperation
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
@@ -31,7 +32,9 @@ import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.awaitCompletion
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
+import eu.darken.butler.workspace.core.operations.submitAndGet
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
@@ -339,30 +342,33 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
     }
 
-    fun execute(command: ExplorerCommand) {
+    suspend fun execute(command: ExplorerCommand): ExplorerOperation.State.Completed {
         log(tag) { "execute(): $command" }
-        scope.launch {
-            val executable = when (command) {
-                is ExplorerCommand.Delete -> deleteOperationFactory.create(
-                    workspaceId = id,
-                    command = command,
-                )
-                is ExplorerCommand.Create -> createOperationFactory.create(
-                    workspaceId = id,
-                    command = command,
-                )
-                is ExplorerCommand.Copy -> copyOperationFactory.create(
-                    workspaceId = id,
-                    command = command,
-                )
-                is ExplorerCommand.Move -> moveOperationFactory.create(
-                    workspaceId = id,
-                    command = command,
-                )
-            }
-            operationsManager.submit(executable)
-            log(tag) { "execute(): Submitted $executable" }
-        }
+        val executable = createOperation(command)
+        val managed = operationsManager.submitAndGet(executable)
+        log(tag) { "execute(): Submitted ${managed.id}, awaiting completion" }
+        val completed = managed.awaitCompletion() as ExplorerOperation.State.Completed
+        log(tag) { "execute(): ${managed.id} completed" }
+        return completed
+    }
+
+    private fun createOperation(command: ExplorerCommand): ExplorerOperation = when (command) {
+        is ExplorerCommand.Delete -> deleteOperationFactory.create(
+            workspaceId = id,
+            command = command,
+        )
+        is ExplorerCommand.Create -> createOperationFactory.create(
+            workspaceId = id,
+            command = command,
+        )
+        is ExplorerCommand.Copy -> copyOperationFactory.create(
+            workspaceId = id,
+            command = command,
+        )
+        is ExplorerCommand.Move -> moveOperationFactory.create(
+            workspaceId = id,
+            command = command,
+        )
     }
 
     fun resolveConflict(operationId: Operation.Id, resolution: PathActionIssue.Resolution) {

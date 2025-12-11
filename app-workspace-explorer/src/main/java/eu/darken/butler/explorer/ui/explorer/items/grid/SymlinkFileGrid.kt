@@ -26,6 +26,7 @@ internal fun SymlinkFileGrid(
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
     isEnabled: Boolean = true,
+    isHighlighted: Boolean = false,
 ) {
     FileGridBase(
         modifier = modifier,
@@ -36,6 +37,7 @@ internal fun SymlinkFileGrid(
         onLongClick = onLongClick,
         showSelection = showSelection,
         isEnabled = isEnabled,
+        isHighlighted = isHighlighted,
         icon = {
             Icon(
                 imageVector = Icons.Default.Link,
@@ -75,5 +77,18 @@ private fun SymlinkFileGridBrokenPreview() {
         onToggleSelection = {},
         onClick = {},
         showSelection = true
+    )
+}
+
+@Preview2
+@Composable
+private fun SymlinkFileGridHighlightedPreview() {
+    SymlinkFileGrid(
+        item = MockDataProvider.createMockSymbolicLink("new_link", "/home/user/target"),
+        isSelected = false,
+        onToggleSelection = {},
+        onClick = {},
+        showSelection = false,
+        isHighlighted = true,
     )
 }

@@ -1,5 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +18,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -75,6 +78,7 @@ internal fun FileRowBase(
     onLongClick: () -> Unit = {},
     showSelection: Boolean,
     isEnabled: Boolean = true,
+    isHighlighted: Boolean = false,
     leadingContent: @Composable () -> Unit,
     primaryText: String,
     secondaryText: String? = null,
@@ -82,18 +86,29 @@ internal fun FileRowBase(
     trailingContent: (@Composable () -> Unit)? = null,
     hasProblematicChars: Boolean = false,
 ) {
+    // Animate highlight background color
+    val highlightColor by animateColorAsState(
+        targetValue = if (isHighlighted) {
+            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+        } else {
+            Color.Transparent
+        },
+        animationSpec = tween(durationMillis = 300),
+        label = "highlightColor",
+    )
+
+    // Determine background: selection takes precedence over highlight
+    val backgroundColor = when {
+        isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        isHighlighted -> highlightColor
+        else -> Color.Transparent
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .alpha(if (isEnabled) 1f else 0.38f)
-            .then(
-                if (isSelected) {
-                    Modifier.background(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                        RoundedCornerShape(8.dp)
-                    )
-                } else Modifier
-            )
+            .background(backgroundColor, RoundedCornerShape(8.dp))
             .then(
                 if (isEnabled) {
                     Modifier.combinedClickable(
