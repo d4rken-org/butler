@@ -18,7 +18,15 @@ buildscript {
 }
 
 allprojects {
-
+    tasks.withType<Test> {
+        testLogging {
+            events("failed")
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+        }
+    }
 }
 
 tasks.register("clean").configure {
