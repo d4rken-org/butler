@@ -78,6 +78,7 @@ fun OperationsBar(
                     is OperationDisplay.State.Completed,
                     is OperationDisplay.State.Failed,
                     is OperationDisplay.State.Cancelled -> true
+
                     else -> false
                 }
             }
@@ -113,13 +114,13 @@ fun OperationsBar(
                 modifier = Modifier.animateContentSize(
                     animationSpec = tween(durationMillis = 300)
                 )
-            )  {
+            ) {
                 OperationsBarHeader(
                     operationCount = operations.size,
                     completedCount = operations.count {
                         it.state is OperationDisplay.State.Completed ||
-                        it.state is OperationDisplay.State.Failed ||
-                        it.state is OperationDisplay.State.Cancelled
+                                it.state is OperationDisplay.State.Failed ||
+                                it.state is OperationDisplay.State.Cancelled
                     },
                     runningCount = operations.count { it.state is OperationDisplay.State.Running },
                     isExpanded = isExpanded,
@@ -140,15 +141,22 @@ fun OperationsBar(
                 // Operations list
                 val visibleOps = when {
                     !isExpanded -> {
-                        // When collapsed, show only running operations
-                        val runningOps = operations.filter {
-                            it.state is OperationDisplay.State.Running
-                        }
-                        // If there are running ops, show them; otherwise show the most recently started
-                        if (runningOps.isNotEmpty()) {
-                            if (runningOps.size > 1) runningOps.reversed() else runningOps
-                        } else {
-                            operations.maxByOrNull { it.startedAt }?.let { listOf(it) } ?: emptyList()
+                        // When collapsed, prioritize operations needing attention
+                        val waitingOps = operations.filter { it.state is OperationDisplay.State.Waiting }
+                        val runningOps = operations.filter { it.state is OperationDisplay.State.Running }
+                        when {
+                            // Priority 1: Waiting operations (require user input, blocking)
+                            waitingOps.isNotEmpty() -> {
+                                if (waitingOps.size > 1) waitingOps.reversed() else waitingOps
+                            }
+                            // Priority 2: Running operations
+                            runningOps.isNotEmpty() -> {
+                                if (runningOps.size > 1) runningOps.reversed() else runningOps
+                            }
+                            // Fallback: Most recently started operation
+                            else -> {
+                                operations.maxByOrNull { it.startedAt }?.let { listOf(it) } ?: emptyList()
+                            }
                         }
                     }
                     // When expanded, show all operations
@@ -171,6 +179,7 @@ fun OperationsBar(
                             is OperationDisplay.State.Completed,
                             is OperationDisplay.State.Failed,
                             is OperationDisplay.State.Cancelled -> true
+
                             else -> false
                         }
 
@@ -183,6 +192,7 @@ fun OperationsBar(
                                     is OperationDisplay.State.Completed,
                                     is OperationDisplay.State.Failed,
                                     is OperationDisplay.State.Cancelled -> true
+
                                     else -> false
                                 }
                             }
