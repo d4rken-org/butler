@@ -95,6 +95,9 @@ class PathScanner @AssistedInject constructor(
                     typedGateway.walk(path, LookupOptions.MAX, walkOptions)
                         .cancellable()
                         .mapNotNull { lookup ->
+                            // Check cancellation before expensive content matching
+                            if (!currentCoroutineContext().isActive) throw CancellationException()
+
                             val matchResult = matchesSearch(lookup, query, includeBinaries)
                             if (matchResult != null) {
                                 resultsFound++
@@ -125,9 +128,11 @@ class PathScanner @AssistedInject constructor(
             return false
         }
 
-        // Size filter
-        if (filter.minSize != null && lookup.size?.let { it < filter.minSize } == true) return false
-        if (filter.maxSize != null && lookup.size?.let { it > filter.maxSize } == true) return false
+        // Size filter - coerce to non-negative for safety
+        val minSize = filter.minSize?.coerceAtLeast(0L)
+        val maxSize = filter.maxSize?.coerceAtLeast(0L)
+        if (minSize != null && lookup.size?.let { it < minSize } == true) return false
+        if (maxSize != null && lookup.size?.let { it > maxSize } == true) return false
 
         // Modified date filter
         if (filter.modifiedAfter != null && lookup.modifiedAt?.let { it < filter.modifiedAfter } == true) {

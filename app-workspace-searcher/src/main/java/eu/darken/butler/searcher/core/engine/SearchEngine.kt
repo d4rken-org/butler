@@ -312,8 +312,9 @@ class SearchEngine @AssistedInject constructor(
                         // Check max results across all scanners
                         val found = foundCounter.incrementAndGet()
                         if (maxResults != null && found > maxResults) {
-                            log(tag, INFO) { "Max results reached ($found)" }
+                            log(tag, INFO) { "Max results reached ($found), skipping item" }
                             cancel("Max results reached")
+                            return@collect // Don't send this result
                         }
                         send(result) // Send to channelFlow
                     }

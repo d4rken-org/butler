@@ -66,6 +66,7 @@ class ContentMatcher @AssistedInject constructor(
 
     /**
      * Reads file content up to buffer size limit.
+     * Uses UTF-8 with fallback to ISO-8859-1 (single-byte encoding that never fails).
      */
     private suspend fun readFileContent(lookup: APathLookup<*>): String {
         return gatewaySwitch.file(lookup.lookedUp, readWrite = false).use { handle ->
@@ -73,12 +74,28 @@ class ContentMatcher @AssistedInject constructor(
                 val bytes = ByteArray(131_072) // 128 KB
                 val bytesRead = source.read(bytes)
                 if (bytesRead > 0) {
-                    // Try UTF-8 first (most common)
-                    String(bytes, 0, bytesRead, Charsets.UTF_8)
+                    val contentBytes = if (bytesRead == bytes.size) bytes else bytes.copyOf(bytesRead)
+                    // Try UTF-8 first, fall back to ISO-8859-1 (never fails)
+                    tryDecodeUtf8(contentBytes) ?: String(contentBytes, Charsets.ISO_8859_1)
                 } else {
                     ""
                 }
             }
+        }
+    }
+
+    /**
+     * Attempts UTF-8 decoding with strict validation.
+     * Returns null if the bytes are not valid UTF-8.
+     */
+    private fun tryDecodeUtf8(bytes: ByteArray): String? {
+        return try {
+            val decoder = Charsets.UTF_8.newDecoder()
+                .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+            decoder.decode(java.nio.ByteBuffer.wrap(bytes)).toString()
+        } catch (e: java.nio.charset.CharacterCodingException) {
+            null
         }
     }
 
@@ -90,6 +107,13 @@ class ContentMatcher @AssistedInject constructor(
         query: SearchQuery,
     ): SearchItem.MatchContext? {
         val searchText = query.query
+
+        // Guard against empty/blank queries - prevents invalid regex patterns
+        if (searchText.isBlank()) {
+            log(tag, WARN) { "Skipping content search - empty query" }
+            return null
+        }
+
         val caseSensitive = query.filter.caseSensitive
         val useRegex = query.filter.useRegex
         val wholeWord = query.filter.wholeWord
@@ -99,7 +123,8 @@ class ContentMatcher @AssistedInject constructor(
         val maxContextLineLength = 500 // Limit context line length to avoid memory issues
 
         lines.forEachIndexed { index, line ->
-            val matchIndex = when {
+            // Returns (startIndex, endIndex) pair to correctly handle variable-length regex matches
+            val matchRange: Pair<Int, Int>? = when {
                 useRegex -> {
                     val pattern = if (caseSensitive) {
                         searchText.toRegex()
@@ -107,26 +132,29 @@ class ContentMatcher @AssistedInject constructor(
                         searchText.toRegex(RegexOption.IGNORE_CASE)
                     }
                     val match = pattern.find(line)
-                    match?.range?.first
+                    match?.let { it.range.first to it.range.last + 1 }
                 }
 
                 wholeWord -> {
+                    // Escape special regex chars to match literal text with word boundaries
+                    val escapedText = Regex.escape(searchText)
                     val pattern = if (caseSensitive) {
-                        "\\b$searchText\\b".toRegex()
+                        "\\b$escapedText\\b".toRegex()
                     } else {
-                        "\\b$searchText\\b".toRegex(RegexOption.IGNORE_CASE)
+                        "\\b$escapedText\\b".toRegex(RegexOption.IGNORE_CASE)
                     }
                     val match = pattern.find(line)
-                    match?.range?.first
+                    match?.let { it.range.first to it.range.last + 1 }
                 }
 
                 else -> {
-                    line.indexOf(searchText, ignoreCase = !caseSensitive)
+                    val idx = line.indexOf(searchText, ignoreCase = !caseSensitive)
+                    if (idx >= 0) idx to idx + searchText.length else null
                 }
             }
 
             // Return first match found (early exit optimization)
-            if (matchIndex != null && matchIndex != -1) {
+            if (matchRange != null) {
                 // Capture context lines (2 before, 2 after)
                 val contextBefore = if (index >= 2) {
                     lines.subList(index - 2, index).map { it.take(maxContextLineLength) }
@@ -147,8 +175,8 @@ class ContentMatcher @AssistedInject constructor(
                 return SearchItem.MatchContext(
                     lineNumber = index + 1, // 1-based line numbers for UI
                     matchedLine = line, // Keep full line, UI will handle display truncation
-                    startIndex = matchIndex,
-                    endIndex = matchIndex + searchText.length,
+                    startIndex = matchRange.first,
+                    endIndex = minOf(matchRange.second, line.length), // Bounds check for safety
                     contextBefore = contextBefore,
                     contextAfter = contextAfter,
                 )

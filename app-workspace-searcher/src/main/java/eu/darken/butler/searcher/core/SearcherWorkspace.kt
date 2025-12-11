@@ -62,7 +62,12 @@ class SearcherWorkspace @AssistedInject constructor(
             CoroutineName(tag) +
             CoroutineExceptionHandler { _, throwable ->
                 log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
-                // TODO: Add error state to workspace if needed
+                _searchState.update { state ->
+                    state.copy(
+                        searchStatus = State.SearchStatus.ERROR,
+                        error = throwable as? Exception ?: Exception("Workspace error", throwable),
+                    )
+                }
             }
     )
 
