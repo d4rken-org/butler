@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.debug.ui.DebugWorkspaceTemplate
 import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
 import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
@@ -31,12 +32,15 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
 ) : ViewModel4(dispatchers, logTag( "Templates","Workspace", id.shortTag)) {
 
     private val templates = MutableStateFlow(
-        listOf(
-            ExplorerWorkspaceTemplate(),
-            SearcherWorkspaceTemplate(),
-            EditorWorkspaceTemplate(),
-            AppsWorkspaceTemplate(),
-        )
+        buildList {
+            add(ExplorerWorkspaceTemplate())
+            add(SearcherWorkspaceTemplate())
+            add(EditorWorkspaceTemplate())
+            add(AppsWorkspaceTemplate())
+            if (BuildConfigWrap.DEBUG) {
+                add(DebugWorkspaceTemplate())
+            }
+        }
     )
 
     val state = combine(

@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.ui.workspaces
 import androidx.compose.runtime.Composable
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePageHost
 import eu.darken.butler.apps.ui.details.AppDetailsWorkspacePageHost
+import eu.darken.butler.debug.ui.DebugWorkspacePageHost
 import eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
 import eu.darken.butler.saver.ui.saver.SaverWorkspacePageHost
@@ -49,6 +50,11 @@ fun WorkspaceMapper(
         )
 
         Workspace.Type.SAVER -> SaverWorkspacePageHost(
+            id = info.id,
+            design = design,
+        )
+
+        Workspace.Type.DEBUG -> DebugWorkspacePageHost(
             id = info.id,
             design = design,
         )

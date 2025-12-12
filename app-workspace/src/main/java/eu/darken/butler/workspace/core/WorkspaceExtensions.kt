@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.AccountTree
 import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Apps
+import androidx.compose.material.icons.twotone.BugReport
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Search
@@ -12,6 +13,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.apps.core.arguments.AppsArguments
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.debug.core.arguments.DebugArguments
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.searcher.core.arguments.SearcherArguments
@@ -27,6 +29,7 @@ val Workspace.Type.icon: ImageVector
         Workspace.Type.APPS -> Icons.TwoTone.Apps
         Workspace.Type.APP_DETAILS -> Icons.TwoTone.Android
         Workspace.Type.SAVER -> Icons.TwoTone.SaveAlt
+        Workspace.Type.DEBUG -> Icons.TwoTone.BugReport
     }
 
 val Workspace.Type.label: CaString
@@ -38,6 +41,7 @@ val Workspace.Type.label: CaString
         Workspace.Type.APPS -> R.string.workspace_apps_label.toCaString()
         Workspace.Type.APP_DETAILS -> R.string.workspace_appdetails_label.toCaString()
         Workspace.Type.SAVER -> R.string.workspace_saver_label.toCaString()
+        Workspace.Type.DEBUG -> R.string.workspace_debug_label.toCaString()
     }
 
 val Workspace.Type.defaultArguments: Workspace.Arguments
@@ -49,4 +53,5 @@ val Workspace.Type.defaultArguments: Workspace.Arguments
         Workspace.Type.APPS -> AppsArguments.Default()
         Workspace.Type.APP_DETAILS -> throw IllegalArgumentException("$this requires explicit arguments")
         Workspace.Type.SAVER -> throw IllegalArgumentException("$this requires explicit arguments")
+        Workspace.Type.DEBUG -> DebugArguments.Default()
     }
