@@ -15,8 +15,9 @@ import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.theming.MyAppTheme
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.GeneralSettings
@@ -46,7 +47,11 @@ class RecorderActivity : Activity2() {
                         modifier = Modifier.fillMaxSize()
                     ) {
                         ErrorEventHandler(vm)
-                        NavigationEventHandler(vm)
+
+                        androidx.compose.runtime.LaunchedEffect(Unit) {
+                            vm.closeEvent.onEach { finish() }.launchIn(this)
+                        }
+
                         RecorderScreenHost(
                             viewModel = vm,
                         )

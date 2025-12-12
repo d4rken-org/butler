@@ -41,6 +41,7 @@ class RecorderViewModel @Inject constructor(
     val state: Flow<State> = stater.flow
 
     val shareEvent = SingleEventFlow<Intent>()
+    val closeEvent = SingleEventFlow<Unit>()
 
     init {
         launch {
@@ -105,7 +106,7 @@ class RecorderViewModel @Inject constructor(
     fun discard() = launch {
         stater.updateBlocking { copy(isWorking = true) }
         sessionPath?.deleteAll()
-        navUp()
+        closeEvent.emit(Unit)
     }
 
     data class State(
