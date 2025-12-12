@@ -38,7 +38,7 @@ class DebugWorkspaceViewModel @AssistedInject constructor(
     @ApplicationContext private val context: Context,
     private val debugLogRepo: DebugLogRepo,
     private val testDataGenerator: TestDataGenerator,
-) : ViewModel4(dispatchers, logTag("Debug", "Workspace", id.shortTag, "Page"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Debug", "Workspace", id.shortTag, "Page")) {
 
     private val selectedTab = MutableStateFlow(DebugTab.SYSTEM)
     private val pausedLogSnapshot = MutableStateFlow<List<String>?>(null)
