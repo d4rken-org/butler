@@ -362,12 +362,24 @@ class WorkspacePageManager @Inject constructor(
             } else {
                 // New workspace, not a replacement
                 if (!currentState.selectedWorkspaces.containsValue(workspaceId)) {
-                    log(TAG) { "New workspace $workspaceId, assigning to empty pane" }
+                    log(TAG) { "New workspace $workspaceId, assigning to empty pane (autoFocus=$autoFocus)" }
                     val newState = assignToEmptyPaneInternal(currentState, workspaceId)
                         .copy(workspaceAccessTimes = updatedAccessTimes)
 
-                    // Auto-focus if no workspace is focused
-                    if (newState.focusedWorkspaceId == null) {
+                    // Auto-focus if requested or if no workspace is focused
+                    if (autoFocus) {
+                        log(TAG) { "Auto-focusing new workspace $workspaceId" }
+                        // In single-pane mode, switch to the new workspace
+                        val newSelections = if (currentState.currentPaneCount == 1) {
+                            mapOf(0 to workspaceId)
+                        } else {
+                            newState.selectedWorkspaces
+                        }
+                        newState.copy(
+                            focusedWorkspaceId = workspaceId,
+                            selectedWorkspaces = newSelections,
+                        )
+                    } else if (newState.focusedWorkspaceId == null) {
                         log(TAG) { "No focused workspace, setting focus to $workspaceId" }
                         newState.copy(focusedWorkspaceId = workspaceId)
                     } else {

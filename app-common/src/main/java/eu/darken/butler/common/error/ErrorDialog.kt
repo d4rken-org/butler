@@ -21,12 +21,22 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.navigation.NavigationController
 
 @Composable
-fun ErrorDialog(throwable: Throwable, onDismiss: () -> Unit) {
+fun ErrorDialog(
+    throwable: Throwable,
+    onDismiss: () -> Unit,
+    navController: NavigationController? = null,
+) {
     val context = LocalContext.current
     val activity = context as? Activity
-    val localizedError = throwable.localized(context)
+
+    val errorContext = LocalizedErrorContext(
+        activity = activity,
+        navController = navController,
+    )
+    val localizedError = throwable.localized(context, errorContext)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -50,7 +60,7 @@ fun ErrorDialog(throwable: Throwable, onDismiss: () -> Unit) {
         confirmButton = {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 localizedError.infoAction?.let { action ->
-                    TextButton(onClick = { activity?.let { action.invoke(it) } }) {
+                    TextButton(onClick = { action() }) {
                         Text(
                             localizedError.infoActionLabel?.get(context)
                                 ?: stringResource(R.string.general_show_details_action)
@@ -66,7 +76,7 @@ fun ErrorDialog(throwable: Throwable, onDismiss: () -> Unit) {
                     Spacer(modifier = Modifier.width(8.dp))
                     TextButton(
                         onClick = {
-                            activity?.let { action.invoke(it) }
+                            action()
                             onDismiss()
                         }
                     ) {

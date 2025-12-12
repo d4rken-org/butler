@@ -8,7 +8,6 @@ import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupItem
@@ -23,10 +22,9 @@ import kotlinx.coroutines.flow.map
 class SetupViewModel @AssistedInject constructor(
     @Assisted private val options: SetupScreenOptions,
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val setupManager: SetupManager,
     private val webpageTool: WebpageTool,
-) : ViewModel4(dispatcherProvider, logTag("Setup", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Setup", "ViewModel")) {
 
     private val _permissionRequestEvents = MutableSharedFlow<android.content.Intent>(
         replay = 0,

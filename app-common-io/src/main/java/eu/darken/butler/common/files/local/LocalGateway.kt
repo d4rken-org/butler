@@ -1,5 +1,6 @@
 package eu.darken.butler.common.files.local
 
+import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.canUseAdbNow
@@ -136,7 +137,7 @@ class LocalGateway @Inject constructor(
                         log(TAG, VERBOSE) { "$operation(AUTO:ADB) -> $path" }
                         adbOps { adbOp(it) }
                     }
-                    else -> throw IllegalStateException("No matching mode available for $operation")
+                    else -> throw ElevatedAccessUnavailableException("No matching mode available for $operation")
                 }
                 if (accessChecker.shouldTryNormalAccess(path, forWriting)) {
                     try {
@@ -145,7 +146,7 @@ class LocalGateway @Inject constructor(
                         log(TAG, VERBOSE) { "$operation(AUTO) failed: ${e.message}" }
                         try {
                             escalation()
-                        } catch (_: IllegalStateException) {
+                        } catch (_: ElevatedAccessUnavailableException) {
                             throw e
                         }
                     }
@@ -720,7 +721,7 @@ class LocalGateway @Inject constructor(
                             client.delete(targets = targets, options = options).collect { emit(it) }
                         }
                     }
-                    else -> throw IllegalStateException("No matching mode available.")
+                    else -> throw ElevatedAccessUnavailableException("No matching mode available.")
                 }
             }
         }
@@ -853,7 +854,7 @@ class LocalGateway @Inject constructor(
                             client.copy(sources, destination, onIssue, options).collect { emit(it) }
                         }
                     }
-                    else -> throw IllegalStateException("No matching mode available.")
+                    else -> throw ElevatedAccessUnavailableException("No matching mode available.")
                 }
             }
         }
@@ -985,7 +986,7 @@ class LocalGateway @Inject constructor(
                             client.move(sources, destination, onIssue, options).collect { emit(it) }
                         }
                     }
-                    else -> throw IllegalStateException("No matching mode available.")
+                    else -> throw ElevatedAccessUnavailableException("No matching mode available.")
                 }
             }
         }
@@ -1151,7 +1152,7 @@ class LocalGateway @Inject constructor(
                             }
                         }
                     }
-                    else -> throw IllegalStateException("No matching mode available.")
+                    else -> throw ElevatedAccessUnavailableException("No matching mode available.")
                 }
             }
         }

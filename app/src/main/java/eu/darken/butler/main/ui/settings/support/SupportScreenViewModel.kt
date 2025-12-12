@@ -6,7 +6,6 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.debug.recorder.core.RecorderModule
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -16,10 +15,9 @@ import javax.inject.Inject
 @HiltViewModel
 class SupportScreenViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val webpageTool: WebpageTool,
     private val recorderModule: RecorderModule,
-) : ViewModel4(dispatcherProvider, logTag("Settings", "Support", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Settings", "Support", "ViewModel")) {
 
     val state = recorderModule.state.map { recState ->
         State(

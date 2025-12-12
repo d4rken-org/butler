@@ -57,6 +57,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
@@ -123,6 +124,7 @@ fun ExplorerWorkspacePageHost(
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
+    NavigationEventHandler(vm, workspaceButtonVm)
 
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
@@ -630,7 +632,7 @@ fun ExplorerWorkspacePage(
                                                             onLongClick = { vm?.onItemLongClick(item) },
                                                             showSelection = mainStateSnap.shouldShowSelection(item),
                                                             isEnabled = item !in mainStateSnap.disabledItems,
-                                                            isHighlighted = mainStateSnap.highlightedItemPath == item.path.path,
+                                                            isHighlighted = item.id in mainStateSnap.highlightedItemIds,
                                                         )
 
                                                         is ExplorerItem.Peek -> PeekRow(
@@ -728,7 +730,7 @@ fun ExplorerWorkspacePage(
                                                             onLongClick = { vm?.onItemLongClick(item) },
                                                             showSelection = mainStateSnap.shouldShowSelection(item),
                                                             isEnabled = item !in mainStateSnap.disabledItems,
-                                                            isHighlighted = mainStateSnap.highlightedItemPath == item.path.path,
+                                                            isHighlighted = item.id in mainStateSnap.highlightedItemIds,
                                                         )
                                                         is ExplorerItem.Shortcut -> ShortcutGrid(
                                                             item = item,

@@ -8,7 +8,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -20,9 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class StorageSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val imageLoader: ImageLoader,
-) : ViewModel4(dispatcherProvider, logTag("Settings", "Storage", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Settings", "Storage", "ViewModel")) {
 
     private val refreshTrigger = MutableStateFlow(0)
 

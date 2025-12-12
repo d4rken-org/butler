@@ -14,7 +14,6 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.pkgs.isEnabled
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
@@ -34,10 +33,9 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     @Assisted arguments: Workspace.Arguments?,
     @ApplicationContext private val context: Context,
     dispatchers: DispatcherProvider,
-    navController: NavigationController,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
-) : ViewModel4(dispatchers, logTag("AppDetails", "Workspace", id.shortTag, "Page"), navController) {
+) : ViewModel4(dispatchers, logTag("AppDetails", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<AppDetailsWorkspace?> =
         workspaceProvider.retrieve(id)

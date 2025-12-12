@@ -4,7 +4,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.upgrade.UpgradeRepo
@@ -19,9 +18,8 @@ import kotlin.time.toJavaInstant
 @HiltViewModel
 class UpgradeStatusViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
-    navCtrl: NavigationController,
     private val upgradeRepo: UpgradeRepo,
-) : ViewModel4(dispatchers, logTag("Upgrade", "Status"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Upgrade", "Status")) {
 
     val state = upgradeRepo.upgradeInfo
         .map { info ->

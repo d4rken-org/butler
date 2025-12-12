@@ -11,30 +11,36 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.HasLocalizedError
 import eu.darken.butler.common.error.LocalizedError
+import eu.darken.butler.common.error.LocalizedErrorContext
 
 class GplayServiceUnavailableException(cause: Throwable) :
     BillingException("Google Play services are unavailable.", cause), HasLocalizedError {
 
-    override fun getLocalizedError(): LocalizedError = LocalizedError(
-        throwable = this,
-        label = R.string.upgrades_gplay_unavailable_error_title.toCaString(),
-        description = R.string.upgrades_gplay_unavailable_error_description.toCaString(),
-        fixActionLabel = "Google Play".toCaString(),
-        fixAction = { activity ->
-            try {
-                val intent = Intent().apply {
-                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                    data = Uri.fromParts("package", GPLAY_PKG, null)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
+    override fun getLocalizedError(context: LocalizedErrorContext): LocalizedError {
+        val activity = context.activity
+        return LocalizedError(
+            throwable = this,
+            label = R.string.upgrades_gplay_unavailable_error_title.toCaString(),
+            description = R.string.upgrades_gplay_unavailable_error_description.toCaString(),
+            fixActionLabel = activity?.let { "Google Play".toCaString() },
+            fixAction = activity?.let {
+                {
+                    try {
+                        val intent = Intent().apply {
+                            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                            data = Uri.fromParts("package", GPLAY_PKG, null)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
 
-                activity.startActivity(intent)
-            } catch (e: ActivityNotFoundException) {
-                log(ERROR) { "Can't launch settings intent for Google Play: $e" }
-                Toast.makeText(activity, "Google Play is not installed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    )
+                        activity.startActivity(intent)
+                    } catch (e: ActivityNotFoundException) {
+                        log(ERROR) { "Can't launch settings intent for Google Play: $e" }
+                        Toast.makeText(activity, "Google Play is not installed", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            },
+        )
+    }
 
     companion object {
         private const val GPLAY_PKG = "com.android.vending"

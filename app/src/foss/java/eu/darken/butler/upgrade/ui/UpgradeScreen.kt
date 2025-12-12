@@ -40,10 +40,12 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.Preview2Tablet
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 
 @Composable
 fun UpgradeScreenHost(vm: UpgradeViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
+    NavigationEventHandler(vm)
     UpgradeScreen(
         onNavigateBack = { vm.navUp() },
         onSponsorClick = { vm.openSponsor() }

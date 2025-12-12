@@ -32,6 +32,7 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.EnumSelectorDialog
 import eu.darken.butler.common.settings.ThemeColorSelectorDialog
 import eu.darken.butler.common.settings.SettingsCategoryHeader
@@ -300,6 +301,7 @@ private fun GeneralSettingsScreenPreview() {
 @Composable
 fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
+    NavigationEventHandler(vm)
 
     val state by waitForState(vm.state)
 

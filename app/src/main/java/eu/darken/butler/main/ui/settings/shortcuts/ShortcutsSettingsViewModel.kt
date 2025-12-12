@@ -10,7 +10,6 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.shortcuts.LastAccessedPaths
 import eu.darken.butler.main.core.shortcuts.ShortcutRepo
@@ -23,10 +22,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ShortcutsSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val shortcutSettings: ShortcutSettings,
     private val shortcutRepo: ShortcutRepo,
-) : ViewModel4(dispatcherProvider, logTag("Shortcuts", "Settings", "VM"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Shortcuts", "Settings", "VM")) {
 
     private val eventFlow = MutableStateFlow<Event?>(null)
 

@@ -24,6 +24,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.saver.R
 import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.saver.core.SaverWorkspace
@@ -56,6 +57,7 @@ fun SaverWorkspacePageHost(
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
+    NavigationEventHandler(vm, workspaceButtonVm)
 
     SaverWorkspacePage(
         workspaceId = id,

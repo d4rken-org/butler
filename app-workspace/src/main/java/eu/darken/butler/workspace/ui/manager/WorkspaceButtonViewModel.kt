@@ -5,7 +5,6 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
@@ -17,9 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class WorkspaceButtonViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
-    navCtrl: NavigationController,
     private val workspaceRemote: WorkspaceRemote,
-) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM"), navCtrl), WorkspaceActionHandler {
+) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM")), WorkspaceActionHandler {
 
     init {
         log(TAG) { "init(): $this" }

@@ -6,7 +6,6 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerSettings
@@ -17,10 +16,9 @@ import kotlin.time.Duration.Companion.days
 @HiltViewModel
 class ExplorerSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    navigationController: NavigationController,
     private val explorerSettings: ExplorerSettings,
     private val trashSettings: TrashSettings,
-) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings", "Screen", "VM"), navigationController) {
+) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings", "Screen", "VM")) {
 
     val state = combine(
         explorerSettings.sortSettings.flow,

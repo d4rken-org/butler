@@ -10,7 +10,6 @@ import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.locale.LocaleManager
 import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
@@ -29,12 +28,11 @@ class GeneralSettingsViewModel
 @Inject
 constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val generalSettings: GeneralSettings,
     private val localeManager: LocaleManager,
     private val motdSettings: MotdSettings,
     private val upgradeRepo: UpgradeRepo,
-) : ViewModel4(dispatcherProvider, logTag("Settings", "General", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Settings", "General", "ViewModel")) {
 
     val state = combine(
         generalSettings.themeState,

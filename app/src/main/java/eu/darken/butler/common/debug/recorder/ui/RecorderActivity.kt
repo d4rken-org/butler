@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -16,6 +17,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.theming.MyAppTheme
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.GeneralSettings
@@ -45,6 +48,11 @@ class RecorderActivity : Activity2() {
                         modifier = Modifier.fillMaxSize()
                     ) {
                         ErrorEventHandler(vm)
+
+                        LaunchedEffect(Unit) {
+                            vm.closeEvent.onEach { finish() }.launchIn(this)
+                        }
+
                         RecorderScreenHost(
                             viewModel = vm,
                         )

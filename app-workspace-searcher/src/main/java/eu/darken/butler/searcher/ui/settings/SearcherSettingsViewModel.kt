@@ -5,7 +5,6 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearcherSettings
@@ -19,10 +18,9 @@ class SearcherSettingsViewModel
 @Inject
 constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val searcherSettings: SearcherSettings,
     private val searchHistory: SearchHistory,
-) : ViewModel4(dispatcherProvider, logTag("Searcher", "Settings"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Searcher", "Settings")) {
 
     // Create a flow for history count that refreshes periodically
     private val historyCountFlow = flow {

@@ -25,7 +25,6 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
@@ -82,7 +81,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     @ApplicationContext private val appContext: Context,
     dispatchers: DispatcherProvider,
-    navCtrl: NavigationController,
     private val searchHistory: SearchHistory,
     private val searcherSettings: SearcherSettings,
     private val clipboardRepo: ClipboardRepo,
@@ -95,7 +93,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val trashSettings: TrashSettings,
     private val errorReportTool: ErrorReportTool,
     itemSorterFactory: eu.darken.butler.searcher.core.sorting.SearchItemSorter.Factory,
-) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
 
     private val itemSorter = itemSorterFactory.create(id)
 
