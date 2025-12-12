@@ -11,23 +11,19 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -52,15 +48,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -72,7 +68,6 @@ import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
-import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
@@ -92,6 +87,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
+import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -224,22 +220,22 @@ fun ExplorerWorkspacePage(
 
     // Track previous location to detect actual navigation vs item updates
     var previousLocationId by remember { mutableStateOf<String?>(null) }
+    val hasItems = mainState.items != null
 
     // Restore or reset scroll position ONLY when navigating to a different location
-    LaunchedEffect(mainState.locationId) {
+    LaunchedEffect(mainState.locationId, hasItems) {
+        val scrollTag = logTag("Explorer", "Page", "ScrollRestore")
         val locationId = mainState.locationId ?: return@LaunchedEffect
 
-        // Skip if this is the same location (items just updated, not a navigation)
+        // Wait for items to be loaded before restoring scroll
+        if (!hasItems) return@LaunchedEffect
+
+        // Skip if this is the same location (items just updated, not navigation)
         if (locationId == previousLocationId) return@LaunchedEffect
         previousLocationId = locationId
 
-        // Wait for items to load
-        mainStateSource
-            .mapNotNull { it.items?.takeIf { items -> items.isNotEmpty() } }
-            .first()
-
+        log(scrollTag) { "Restoring scroll for $locationId" }
         val savedPosition = vm?.getScrollPosition(locationId)
-        log(logTag("Explorer", "Page", "ScrollRestore")) { "Restoring scroll for $locationId: $savedPosition" }
 
         if (savedPosition != null) {
             // Restore saved position (coming back to previously visited location)
@@ -291,8 +287,8 @@ fun ExplorerWorkspacePage(
         log(tag) { "LaunchedEffect started, collecting revealRequests" }
         vm?.revealRequests?.collect { request ->
             log(tag) { "Received reveal request for path: ${request.path.path}" }
-            // Observe the source Flow directly (not Compose State via snapshotFlow)
-            val targetIndex = mainStateSource
+            // Single observation to get both index and viewStyle (avoid redundant .first() call)
+            val result = mainStateSource
                 .mapNotNull { state ->
                     val items = state.items
                     log(tag) { "State emission: ${items?.size ?: 0} items" }
@@ -307,7 +303,7 @@ fun ExplorerWorkspacePage(
                         }
                     }
                     log(tag) { "Index search result: $index" }
-                    index?.takeIf { it >= 0 }
+                    index?.takeIf { it >= 0 }?.let { it to state.viewStyle }
                 }
                 .timeout(2.seconds)
                 .catch { e ->
@@ -315,15 +311,13 @@ fun ExplorerWorkspacePage(
                 }
                 .firstOrNull()
 
-            if (targetIndex == null) {
+            if (result == null) {
                 log(tag) { "Target index is null, skipping scroll" }
                 return@collect
             }
 
-            log(tag) { "Scrolling to index: $targetIndex (centered)" }
-            // Read current viewStyle for scroll target
-            val currentViewStyle = mainStateSource.first().viewStyle
-            log(tag) { "ViewStyle: $currentViewStyle" }
+            val (targetIndex, currentViewStyle) = result
+            log(tag) { "Scrolling to index: $targetIndex (centered), viewStyle: $currentViewStyle" }
 
             // Calculate offset to center the item in viewport
             when (currentViewStyle) {
@@ -571,25 +565,9 @@ fun ExplorerWorkspacePage(
                                     modifier = Modifier.fillMaxSize(),
                                 )
                             }
-                            mainStateSnap.items == null -> {
-                                EmptyState(modifier = Modifier.fillMaxSize())
-                            }
-                            mainStateSnap.items.isEmpty() -> {
-                                BoxWithConstraints(
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .heightIn(min = maxHeight)
-                                            .fillMaxWidth()
-                                            .verticalScroll(rememberScrollState()),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        EmptyDirectoryState()
-                                    }
-                                }
-                            }
                             else -> {
+                                // Always render the lazy list/grid for structural stability
+                                // This avoids expensive structural changes when items become available
                                 Box(
                                     modifier = Modifier.fillMaxSize()
                                 ) {
@@ -617,10 +595,29 @@ fun ExplorerWorkspacePage(
                                                     }
                                                 )
                                             ) {
-                                                items(
-                                                    items = mainStateSnap.items,
-                                                    key = { it.id }
-                                                ) { item ->
+                                                // Handle loading state
+                                                if (mainStateSnap.items == null) {
+                                                    item(key = "loading") {
+                                                        EmptyState(modifier = Modifier.fillParentMaxSize())
+                                                    }
+                                                }
+                                                // Handle empty directory state
+                                                else if (mainStateSnap.items.isEmpty()) {
+                                                    item(key = "empty") {
+                                                        Box(
+                                                            modifier = Modifier.fillParentMaxSize(),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            EmptyDirectoryState()
+                                                        }
+                                                    }
+                                                }
+                                                // Handle normal items
+                                                else {
+                                                    items(
+                                                        items = mainStateSnap.items,
+                                                        key = { it.id }
+                                                    ) { item ->
                                                     when (item) {
                                                         is ExplorerItem.Lookup -> LookupItemRow(
                                                             item = item,
@@ -687,6 +684,7 @@ fun ExplorerWorkspacePage(
                                                     )
                                                     }
                                                 }
+                                                }
                                             }
                                         }
 
@@ -715,10 +713,29 @@ fun ExplorerWorkspacePage(
                                                     }
                                                 )
                                             ) {
-                                                items(
-                                                    items = mainStateSnap.items,
-                                                    key = { it.id }
-                                                ) { item ->
+                                                // Handle loading state
+                                                if (mainStateSnap.items == null) {
+                                                    item(span = { GridItemSpan(maxLineSpan) }, key = "loading") {
+                                                        EmptyState(modifier = Modifier.fillMaxSize())
+                                                    }
+                                                }
+                                                // Handle empty directory state
+                                                else if (mainStateSnap.items.isEmpty()) {
+                                                    item(span = { GridItemSpan(maxLineSpan) }, key = "empty") {
+                                                        Box(
+                                                            modifier = Modifier.fillMaxSize(),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            EmptyDirectoryState()
+                                                        }
+                                                    }
+                                                }
+                                                // Handle normal items
+                                                else {
+                                                    items(
+                                                        items = mainStateSnap.items,
+                                                        key = { it.id }
+                                                    ) { item ->
                                                     when (item) {
                                                         is ExplorerItem.Lookup -> LookupItemGrid(
                                                             item = item,
@@ -783,6 +800,7 @@ fun ExplorerWorkspacePage(
                                                         showSelection = mainStateSnap.shouldShowSelection(item)
                                                     )
                                                     }
+                                                }
                                                 }
                                             }
                                         }

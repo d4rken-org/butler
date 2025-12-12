@@ -4,7 +4,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -96,8 +97,17 @@ class BrowsingEngine @AssistedInject constructor(
                     }
             }
             .onEach { location ->
-                val breadcrumbs = breadcrumbGenerator.getBreadcrumbs(location)
-                log(tag, INFO) { "Breadcrumbs are now $breadcrumbs" }
+                val previousLocation = _location.value.location
+                val pathChanged = location.locationId != previousLocation?.locationId
+
+                val breadcrumbs = if (pathChanged) {
+                    breadcrumbGenerator.getBreadcrumbs(location).also {
+                        log(tag, INFO) { "Breadcrumbs updated: $it" }
+                    }
+                } else {
+                    _location.value.breadcrumbs ?: emptyList()
+                }
+
                 _location.value = State(
                     location = location,
                     breadcrumbs = breadcrumbs,
