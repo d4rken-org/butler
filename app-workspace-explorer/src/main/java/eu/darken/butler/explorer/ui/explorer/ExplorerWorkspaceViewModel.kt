@@ -941,7 +941,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         try {
             val action = WorkspaceAction.Create(
                 type = Workspace.Type.EDITOR,
-                arguments = EditorArguments.Default(filePath = item.lookup.lookedUp)
+                arguments = EditorArguments.Default(filePath = item.lookup.lookedUp),
+                autoFocus = true,
             )
 
             workspaceRemote.execute(action)
