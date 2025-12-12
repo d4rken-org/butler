@@ -6,9 +6,31 @@
 
     <!-- Tabs -->
     <string name="debug_tab_system">System</string>
+    <string name="debug_tab_options">Options</string>
     <string name="debug_tab_workspaces">Workspaces</string>
     <string name="debug_tab_logs">Logs</string>
     <string name="debug_tab_testdata">Test Data</string>
+
+    <!-- Options Section -->
+    <string name="debug_options_debug_header">Debug Options</string>
+    <string name="debug_options_debug_mode">Debug mode</string>
+    <string name="debug_options_debug_mode_desc">Enable verbose logging</string>
+    <string name="debug_options_trace_mode">Trace mode</string>
+    <string name="debug_options_trace_mode_desc">Enable trace-level logging</string>
+    <string name="debug_options_services_header">Service Tests</string>
+    <string name="debug_options_root_test_action">Test Root</string>
+    <string name="debug_options_root_installed_label">Installed</string>
+    <string name="debug_options_root_available_label">Available</string>
+    <string name="debug_options_root_base_check_label">Base check</string>
+    <string name="debug_options_shizuku_test_action">Test Shizuku</string>
+    <string name="debug_options_shizuku_installed_label">Installed</string>
+    <string name="debug_options_shizuku_granted_label">Permission</string>
+    <string name="debug_options_shizuku_compatible_label">Compatible</string>
+    <string name="debug_options_shizuku_service_label">Service</string>
+    <string name="debug_options_test_running">Testing…</string>
+    <string name="debug_options_result_yes">Yes</string>
+    <string name="debug_options_result_no">No</string>
+    <string name="debug_options_result_unknown">Unknown</string>
 
     <!-- System Info Section -->
     <string name="debug_system_device_header">Device</string>
