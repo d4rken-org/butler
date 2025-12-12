@@ -122,6 +122,7 @@ class ExplorerPickerHelperTest : BaseTest() {
                 val config = PickerConfig(
                     callerWorkspaceId = mockk(),
                     selection = PickerConfig.Selection.DirectorySingle,
+                    requireWritable = true,
                 )
                 helper.canConfirmSelection(
                     config = config,
@@ -150,6 +151,7 @@ class ExplorerPickerHelperTest : BaseTest() {
                 val config = PickerConfig(
                     callerWorkspaceId = mockk(),
                     selection = PickerConfig.Selection.DirectorySingle,
+                    requireWritable = true,
                 )
                 helper.canConfirmSelection(
                     config = config,

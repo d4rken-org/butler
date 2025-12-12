@@ -75,7 +75,7 @@ class FlowCmdShellTest : BaseTest() {
             }
         }
 
-        delay(100)
+        delay(500)
         session.close()
     }
 
@@ -90,7 +90,7 @@ class FlowCmdShellTest : BaseTest() {
             }
         }
 
-        delay(100)
+        delay(500)
         session.cancel()
     }
 
