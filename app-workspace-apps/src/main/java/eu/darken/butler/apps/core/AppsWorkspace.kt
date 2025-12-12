@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.arguments.AppsArguments
+import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsEngine
 import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.common.ca.toCaString
@@ -14,16 +15,19 @@ import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.flow.DynamicStateFlow
+import eu.darken.butler.common.pkgs.pkgops.PkgOps
+import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -36,6 +40,9 @@ class AppsWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     appsEngineFactory: AppsEngine.Factory,
     private val appsSettings: AppsSettings,
+    private val pkgOps: PkgOps,
+    private val rootManager: RootManager,
+    private val adbManager: AdbManager,
 ) : Workspace<AppsArguments> {
 
     private val tag = logTag("Apps", "Workspace", id.shortTag)
@@ -55,6 +62,7 @@ class AppsWorkspace @AssistedInject constructor(
 
     data class State(
         val appsState: AppsState = AppsState(),
+        val hasElevatedAccess: Boolean = false,
     )
 
     override val info: Flow<Workspace.Info> = _state.flow.map { state ->
@@ -90,14 +98,37 @@ class AppsWorkspace @AssistedInject constructor(
             }
         }
 
-        // Monitor engine state
-        appsEngine.state
-            .onEach { engineState ->
-                _state.updateBlocking {
-                    copy(appsState = engineState)
-                }
+        // Monitor engine state and elevated access availability
+        combine(
+            appsEngine.state,
+            rootManager.useRoot,
+            adbManager.useAdb,
+        ) { engineState, hasRoot, hasAdb ->
+            _state.updateBlocking {
+                copy(
+                    appsState = engineState,
+                    hasElevatedAccess = hasRoot || hasAdb,
+                )
             }
-            .launchIn(scope)
+        }.launchIn(scope)
+    }
+
+    suspend fun enableApps(apps: List<AppItem>) {
+        log(tag) { "Enabling ${apps.size} apps" }
+        apps.forEach { app ->
+            pkgOps.changePackageState(app.id, enabled = true)
+        }
+        appsEngine.refresh()
+        appsEngine.clearSelection()
+    }
+
+    suspend fun disableApps(apps: List<AppItem>) {
+        log(tag) { "Disabling ${apps.size} apps" }
+        apps.forEach { app ->
+            pkgOps.changePackageState(app.id, enabled = false)
+        }
+        appsEngine.refresh()
+        appsEngine.clearSelection()
     }
 
     override suspend fun release() {

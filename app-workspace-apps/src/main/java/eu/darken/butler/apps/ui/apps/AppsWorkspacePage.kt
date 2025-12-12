@@ -247,6 +247,8 @@ private fun AppsWorkspacePage(
         onAction = { action -> vm?.onAction(action) },
         onFilterApply = { filter -> vm?.onFilterChanged(filter) },
         onSortApply = { sortSettings -> vm?.onSortSettingsChanged(sortSettings) },
+        onConfirmEnable = { apps -> vm?.performEnableApps(apps) },
+        onConfirmDisable = { apps -> vm?.performDisableApps(apps) },
     )
 }
 

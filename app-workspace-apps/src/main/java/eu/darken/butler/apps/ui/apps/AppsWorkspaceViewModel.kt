@@ -95,11 +95,12 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     }
 
     val state: Flow<State> = combine(
+        workspaceSource.filterNotNull().flatMapLatest { it.state },
         workspaceSource.filterNotNull().flatMapLatest { it.appsEngine.state },
         searchQueryFlow,
         viewModeFlow,
         dialogStateFlow,
-    ) { appsState, searchQuery, viewMode, dialogState ->
+    ) { workspaceState, appsState, searchQuery, viewMode, dialogState ->
         // Calculate available actions based on selection state
         val actions = if (appsState.selectedAppIds.isNotEmpty()) {
             val selectedApps = appsState.filteredApps.filter { it.packageName in appsState.selectedAppIds }
@@ -112,16 +113,19 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     add(AppsAction.SelectAll)
                 }
 
-                // Disable (only if all selected apps are enabled)
-                val disableAction = AppsAction.Disable(selectedApps)
-                if (disableAction.isVisible) {
-                    add(disableAction)
-                }
+                // Disable/Enable only if elevated access (root/Shizuku) is available
+                if (workspaceState.hasElevatedAccess) {
+                    // Disable (only if all selected apps are enabled)
+                    val disableAction = AppsAction.Disable(selectedApps)
+                    if (disableAction.isVisible) {
+                        add(disableAction)
+                    }
 
-                // Enable (only if any selected apps are disabled)
-                val enableAction = AppsAction.Enable(selectedApps)
-                if (enableAction.isVisible) {
-                    add(enableAction)
+                    // Enable (only if any selected apps are disabled)
+                    val enableAction = AppsAction.Enable(selectedApps)
+                    if (enableAction.isVisible) {
+                        add(enableAction)
+                    }
                 }
 
                 // Uninstall
@@ -286,6 +290,18 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow.value = AppsDialogState.None
     }
 
+    fun performEnableApps(apps: List<AppItem>) = launch {
+        log(tag) { "Enabling ${apps.size} apps" }
+        dismissDialog()
+        getWorkspace().enableApps(apps)
+    }
+
+    fun performDisableApps(apps: List<AppItem>) = launch {
+        log(tag) { "Disabling ${apps.size} apps" }
+        dismissDialog()
+        getWorkspace().disableApps(apps)
+    }
+
     fun onAction(action: AppsAction) {
         log(tag) { "Executing action: ${action.javaClass.simpleName}" }
 
@@ -307,13 +323,11 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             is AppsAction.Disable -> launch {
                 log(tag) { "Disable action for ${action.apps.size} apps" }
                 dialogStateFlow.value = AppsDialogState.ConfirmDisable(action.apps)
-                // TODO: Implement actual disable operation
             }
 
             is AppsAction.Enable -> launch {
                 log(tag) { "Enable action for ${action.apps.size} apps" }
                 dialogStateFlow.value = AppsDialogState.ConfirmEnable(action.apps)
-                // TODO: Implement actual enable operation
             }
 
             is AppsAction.Uninstall -> launch {
