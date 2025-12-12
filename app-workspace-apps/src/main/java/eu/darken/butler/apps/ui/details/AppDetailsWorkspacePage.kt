@@ -42,6 +42,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -73,7 +74,8 @@ fun AppDetailsWorkspacePageHost(
     ),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    ErrorEventHandler(vm, vm.navController)
+    ErrorEventHandler(vm)
+    NavigationEventHandler(vm, workspaceButtonVm)
 
     val workspaceButtonState by waitForState(workspaceButtonVm.state)
     val state by waitForState(vm.state)

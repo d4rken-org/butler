@@ -7,7 +7,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.upgrade.core.OurSku
 import eu.darken.butler.upgrade.core.UpgradeRepoGplay
@@ -29,9 +28,8 @@ private sealed interface QueryState<out T> {
 @HiltViewModel
 class UpgradeViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val upgradeRepo: UpgradeRepoGplay,
-) : ViewModel4(dispatcherProvider, logTag("Upgrade", "Screen", "VM"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Upgrade", "Screen", "VM")) {
 
     val events = SingleEventFlow<UpgradeEvents>()
 

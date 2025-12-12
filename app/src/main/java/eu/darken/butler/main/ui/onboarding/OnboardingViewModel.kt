@@ -9,7 +9,6 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.motd.MotdSettings
@@ -20,11 +19,10 @@ import javax.inject.Inject
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
-    navCtrl: NavigationController,
     private val generalSettings: GeneralSettings,
     private val motdSettings: MotdSettings,
     private val webpageTool: WebpageTool,
-) : ViewModel4(dispatchers, logTag("Onboarding","Screen","VM"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Onboarding","Screen","VM")) {
 
     val state = combine(
         generalSettings.isOnboardingCompleted.flow,

@@ -27,6 +27,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.motd.MotdCard
 import eu.darken.butler.workspace.core.Workspace
@@ -53,6 +54,7 @@ fun WorkspacesScreenHost(
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
+    NavigationEventHandler(vm, workspaceButtonVm)
 
     val context = LocalContext.current
     val workspaceButtonState by workspaceButtonVm.state.collectAsState(initial = null)

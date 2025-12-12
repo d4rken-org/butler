@@ -13,7 +13,6 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.EditorWorkspace
@@ -41,12 +40,11 @@ import kotlinx.coroutines.flow.map
 class EditorWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
-    navCtrl: NavigationController,
     private val workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val editorSettings: EditorSettings,
     private val clipboardHelper: SystemClipboardHelper,
-) : ViewModel4(dispatchers, logTag("Editor", "Workspace", id.shortTag, "Page"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Editor", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<EditorWorkspace?> = workspaceProvider.retrieve(id).map { it as EditorWorkspace? }
     private suspend fun getWorkspace(): EditorWorkspace = workspaceSource.filterNotNull().first()

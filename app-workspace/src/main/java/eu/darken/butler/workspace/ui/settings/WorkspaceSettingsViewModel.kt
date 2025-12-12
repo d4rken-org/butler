@@ -5,7 +5,6 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
@@ -15,10 +14,9 @@ import javax.inject.Inject
 @HiltViewModel
 class WorkspaceSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val workspaceSettings: WorkspaceSettings,
     private val sessionStorage: eu.darken.butler.workspace.core.session.WorkspaceSessionStorage,
-) : ViewModel4(dispatcherProvider, logTag("Workspace", "Settings", "Screen", "VM"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Workspace", "Settings", "Screen", "VM")) {
 
     val state = combine(
         workspaceSettings.swipeGesturesEnabled.flow,

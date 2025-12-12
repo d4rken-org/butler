@@ -31,7 +31,6 @@ import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.navigation.upgrade
@@ -111,7 +110,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     @ApplicationContext private val context: Context,
     dispatchers: DispatcherProvider,
-    navController: NavigationController,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val actionProvider: DefaultActionProvider,
@@ -133,7 +131,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val itemInfoCalculator: ItemInfoCalculator,
     private val pickerHelper: ExplorerPickerHelper,
     private val errorReportTool: ErrorReportTool,
-) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page"), navController) {
+) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
     private val viewStyleFlow = MutableStateFlow<ExplorerViewStyle>(explorerSettings.defaultViewStyle.valueBlocking)

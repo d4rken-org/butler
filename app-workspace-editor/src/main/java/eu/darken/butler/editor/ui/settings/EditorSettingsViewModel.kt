@@ -5,7 +5,6 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorSettings
 import kotlinx.coroutines.flow.combine
@@ -17,9 +16,8 @@ class EditorSettingsViewModel
 @Inject
 constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val editorSettings: EditorSettings,
-) : ViewModel4(dispatcherProvider, logTag("Editor", "Settings", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Editor", "Settings", "ViewModel")) {
 
     val state = combine(
         editorSettings.showLineNumbers.flow,

@@ -14,7 +14,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.issue.Issue
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
@@ -51,10 +50,9 @@ import kotlinx.coroutines.flow.onEach
 class SaverWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
-    navController: NavigationController,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
-) : ViewModel4(dispatchers, logTag("Saver", "Workspace", id.shortTag, "Page"), navController) {
+) : ViewModel4(dispatchers, logTag("Saver", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<SaverWorkspace?> =
         workspaceProvider.retrieve(id)

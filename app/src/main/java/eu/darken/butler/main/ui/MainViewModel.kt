@@ -7,7 +7,6 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
 import android.net.Uri
@@ -31,12 +30,11 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val upgradeRepo: UpgradeRepo,
     private val generalSettings: GeneralSettings,
     private val workspaceRemote: WorkspaceRemote,
     private val json: Json,
-) : ViewModel4(dispatcherProvider, logTag("Main", "Screen", "VM"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Main", "Screen", "VM")) {
 
     val themeState = generalSettings.themeState.asStateFlow()
 

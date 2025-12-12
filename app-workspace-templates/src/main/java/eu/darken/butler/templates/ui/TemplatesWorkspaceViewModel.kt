@@ -8,7 +8,6 @@ import eu.darken.butler.apps.ui.AppsWorkspaceTemplate
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
 import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
@@ -25,10 +24,9 @@ import kotlinx.coroutines.flow.combine
 class TemplatesWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
-    navCtrl: NavigationController,
     private val workspaceRemote: WorkspaceRemote,
     private val upgradeRepo: UpgradeRepo,
-) : ViewModel4(dispatchers, logTag( "Templates","Workspace", id.shortTag), navCtrl) {
+) : ViewModel4(dispatchers, logTag( "Templates","Workspace", id.shortTag)) {
 
     private val templates = MutableStateFlow(
         listOf(

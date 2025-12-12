@@ -57,6 +57,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
@@ -122,7 +123,8 @@ fun ExplorerWorkspacePageHost(
     ),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    ErrorEventHandler(vm, vm.navController)
+    ErrorEventHandler(vm)
+    NavigationEventHandler(vm, workspaceButtonVm)
 
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 

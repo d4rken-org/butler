@@ -18,7 +18,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.core.local.deleteAll
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import kotlinx.coroutines.flow.Flow
 import java.io.File
@@ -26,12 +25,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecorderViewModel @Inject constructor(
-    navCtrl: NavigationController,
     dispatchers: DispatcherProvider,
     handle: SavedStateHandle,
     @ApplicationContext private val context: Context,
     private val webpageTool: WebpageTool,
-) : ViewModel4(dispatchers, logTag("Debug", "Recorder", "Screen", "VM"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Debug", "Recorder", "Screen", "VM")) {
 
     private val sessionPath = handle.get<String>(RecorderActivity.RECORD_PATH)?.let { File(it) }
     private val zipPath = sessionPath?.let { File(it.parentFile, "${it.name}.zip") }

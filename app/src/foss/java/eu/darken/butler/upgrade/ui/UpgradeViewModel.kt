@@ -4,7 +4,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.upgrade.core.UpgradeRepoFoss
 import kotlinx.coroutines.flow.filter
@@ -14,9 +13,8 @@ import javax.inject.Inject
 @HiltViewModel
 class UpgradeViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val upgradeRepo: UpgradeRepoFoss,
-) : ViewModel4(dispatcherProvider, logTag("Upgrade","Screen","VM"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Upgrade","Screen","VM")) {
 
     fun openSponsor() = launch {
         log(tag) { "openSponsor()" }

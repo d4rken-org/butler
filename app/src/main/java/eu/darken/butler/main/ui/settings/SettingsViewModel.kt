@@ -6,7 +6,6 @@ import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.upgrade.UpgradeRepo
 import kotlinx.coroutines.flow.map
@@ -15,10 +14,9 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val webpageTool: WebpageTool,
     private val upgradeRepo: UpgradeRepo,
-) : ViewModel4(dispatcherProvider, logTag("Settings", "ViewModel"), navCtrl) {
+) : ViewModel4(dispatcherProvider, logTag("Settings", "ViewModel")) {
 
     val state = upgradeRepo.upgradeInfo
         .map { upgradeInfo ->

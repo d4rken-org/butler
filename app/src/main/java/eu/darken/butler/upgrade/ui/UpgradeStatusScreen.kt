@@ -36,13 +36,15 @@ import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.upgrade.UpgradeRepo
 import kotlin.time.Clock
 
 @Composable
 fun UpgradeStatusScreenHost(vm: UpgradeStatusViewModel = hiltViewModel()) {
-    ErrorEventHandler(vm, vm.navController)
+    ErrorEventHandler(vm)
+    NavigationEventHandler(vm)
 
     val state by waitForState(vm.state)
 

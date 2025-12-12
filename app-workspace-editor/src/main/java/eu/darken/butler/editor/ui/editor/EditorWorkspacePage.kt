@@ -42,6 +42,7 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
@@ -73,6 +74,7 @@ fun EditorWorkspacePageHost(
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
+    NavigationEventHandler(vm, workspaceButtonVm)
 
     val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
 

@@ -7,7 +7,6 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -25,12 +24,11 @@ import kotlin.time.Duration.Companion.milliseconds
 @HiltViewModel
 class WorkspaceManagerViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
-    navCtrl: NavigationController,
     private val workspaceRepo: WorkspaceRepo,
     private val workspaceSettings: WorkspaceSettings,
     private val workspacePageManager: WorkspacePageManager,
     private val workspacePreviewManager: WorkspacePreviewManager,
-) : ViewModel4(dispatchers, logTag("Workspace", "Manager", "VM"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Workspace", "Manager", "VM")) {
 
     private val filterOperationsFlow = MutableStateFlow(false)
     private val filterAttentionFlow = MutableStateFlow(false)

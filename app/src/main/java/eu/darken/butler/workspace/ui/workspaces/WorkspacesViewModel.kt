@@ -8,7 +8,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
@@ -40,7 +39,6 @@ import kotlin.uuid.Uuid
 @HiltViewModel
 class WorkspacesViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
-    private val navCtrl: NavigationController,
     upgradeRepo: UpgradeRepo,
     private val workspaceRepo: WorkspaceRepo,
     workspaceSettings: WorkspaceSettings,
@@ -50,7 +48,7 @@ class WorkspacesViewModel @Inject constructor(
     private val motdRepo: MotdRepo,
     private val webpageTool: WebpageTool,
     private val errorReportTool: ErrorReportTool,
-) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM"), navCtrl) {
+) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM")) {
 
     private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())
 

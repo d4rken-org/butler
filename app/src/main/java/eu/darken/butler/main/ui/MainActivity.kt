@@ -12,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
@@ -26,8 +27,10 @@ import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.LocalNavigationController
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.NavigationDestination
 import eu.darken.butler.common.navigation.NavigationEntry
 import eu.darken.butler.common.navigation.onboarding
@@ -90,11 +93,14 @@ class MainActivity : Activity2() {
                         window.decorView.setBackgroundColor(backgroundColor.toArgb())
                     }
 
-                    ErrorEventHandler(vm, navCtrl)
+                    CompositionLocalProvider(LocalNavigationController provides navCtrl) {
+                        ErrorEventHandler(vm)
+                        NavigationEventHandler(vm)
 
-                    vmState?.let { mainState ->
-                        log(TAG) { "Main state: $mainState" }
-                        Navigation(mainState)
+                        vmState?.let { mainState ->
+                            log(TAG) { "Main state: $mainState" }
+                            Navigation(mainState)
+                        }
                     }
                 }
             }

@@ -41,6 +41,7 @@ import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.settings
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
@@ -66,7 +67,8 @@ fun TemplatesWorkspacePageHost(
     ),
     workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
-    ErrorEventHandler(vm, vm.navController)
+    ErrorEventHandler(vm)
+    NavigationEventHandler(vm, workspaceButtonVm)
 
     val state by waitForState(vm.state)
     log(vm.tag) { "Compose state: $state" }

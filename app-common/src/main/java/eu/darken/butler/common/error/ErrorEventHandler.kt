@@ -6,13 +6,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.navigation.LocalNavigationController
 
 @Composable
-fun ErrorEventHandler(
-    source: ErrorEventSource,
-    navController: NavigationController? = null,
-) {
+fun ErrorEventHandler(source: ErrorEventSource) {
+    val navController = LocalNavigationController.current
     val errorEvents = source.errorEvents
     var currentError by remember { mutableStateOf<Throwable?>(null) }
 

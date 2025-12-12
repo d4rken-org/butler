@@ -16,6 +16,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.onboarding.OnboardingViewModel.State.*
 import eu.darken.butler.main.ui.onboarding.pages.BetaPage
@@ -26,7 +27,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreenHost(vm: OnboardingViewModel = hiltViewModel()) {
-    ErrorEventHandler(vm, vm.navController)
+    ErrorEventHandler(vm)
+    NavigationEventHandler(vm)
 
     val state by waitForState(vm.state)
 

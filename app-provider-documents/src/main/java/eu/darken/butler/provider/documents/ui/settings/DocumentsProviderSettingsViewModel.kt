@@ -6,7 +6,6 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.provider.documents.core.DocumentsProviderSettings
 import kotlinx.coroutines.flow.map
@@ -15,12 +14,10 @@ import javax.inject.Inject
 @HiltViewModel
 class DocumentsProviderSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    navCtrl: NavigationController,
     private val documentsProviderSettings: DocumentsProviderSettings,
 ) : ViewModel4(
     dispatcherProvider,
     logTag("Settings", "DocumentsProvider", "ViewModel"),
-    navCtrl,
 ) {
 
     val state = documentsProviderSettings.isEnabled.flow.map { isEnabled ->

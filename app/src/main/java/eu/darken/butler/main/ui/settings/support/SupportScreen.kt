@@ -30,6 +30,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.Discord
 import eu.darken.butler.common.debug.recorder.ui.RecorderConsentDialog
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
@@ -39,6 +40,7 @@ import java.io.File
 @Composable
 fun SupportScreenHost(vm: SupportScreenViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
+    NavigationEventHandler(vm)
 
     val state by waitForState(vm.state)
 
