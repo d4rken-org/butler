@@ -110,7 +110,7 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     fun navigateBack() {
         log(tag) { "navigateBack()" }
-        navUp()
+        workspacePageManager.hideManagerOverlay()
     }
 
     fun dismissBadgeExplanation() = launch {

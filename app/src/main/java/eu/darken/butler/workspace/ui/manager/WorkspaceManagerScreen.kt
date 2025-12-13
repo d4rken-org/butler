@@ -19,7 +19,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,50 +31,12 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.ScrollPop
-import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
-
-@Composable
-fun WorkspaceManagerScreenHost(
-    vm: WorkspaceManagerViewModel = hiltViewModel()
-) {
-    // Invalidate preview cache every time the screen appears
-    LaunchedEffect(Unit) {
-        vm.onScreenAppeared()
-    }
-
-    ErrorEventHandler(vm)
-    NavigationEventHandler(vm)
-
-    val state by waitForState(vm.state)
-    log(vm.tag) { "Compose state: $state" }
-
-    state?.let { currentState ->
-        WorkspaceManagerScreen(
-            state = currentState,
-            onCloseWorkspace = vm::closeWorkspace,
-            onReorderWorkspaces = vm::reorderWorkspaces,
-            onSelectWorkspace = vm::selectWorkspace,
-            onCreateWorkspace = vm::createWorkspace,
-            onNavigateBack = vm::navigateBack,
-            onDismissBadgeExplanation = vm::dismissBadgeExplanation,
-            onDismissLongPressHint = vm::dismissLongPressHint,
-            onCloseAllWorkspaces = vm::closeAllWorkspaces,
-            onTabsClick = vm::clearFilters,
-            onOperationsFilterClick = vm::toggleOperationsFilter,
-            onAttentionFilterClick = vm::toggleAttentionFilter,
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -226,4 +226,24 @@ class WorkspacePageManagerTest : BaseTest() {
 
         pageManager.state.value.focusedWorkspaceId shouldBe callerWorkspace
     }
+
+    @Test
+    fun `manager overlay is hidden by default`() = runTest {
+        pageManager.state.value.isManagerOverlayVisible shouldBe false
+    }
+
+    @Test
+    fun `showManagerOverlay sets visibility to true`() = runTest {
+        pageManager.showManagerOverlay()
+        pageManager.state.value.isManagerOverlayVisible shouldBe true
+    }
+
+    @Test
+    fun `hideManagerOverlay sets visibility to false`() = runTest {
+        pageManager.showManagerOverlay()
+        pageManager.state.value.isManagerOverlayVisible shouldBe true
+
+        pageManager.hideManagerOverlay()
+        pageManager.state.value.isManagerOverlayVisible shouldBe false
+    }
 }
