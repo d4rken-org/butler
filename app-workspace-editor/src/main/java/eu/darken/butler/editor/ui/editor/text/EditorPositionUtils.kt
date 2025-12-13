@@ -2,6 +2,7 @@ package eu.darken.butler.editor.ui.editor.text
 
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,7 +35,9 @@ internal fun calculatePositionFromOffset(
     visibleLineContent: Map<Int, String>,
     density: Density,
     fontSize: Int,
-    tabSize: Int
+    tabSize: Int,
+    wordWrap: Boolean = false,
+    textLayouts: Map<Int, TextLayoutResult> = emptyMap(),
 ): PositionCalculationResult? {
     val layoutInfo = contentListState.layoutInfo
     val clickedItem = layoutInfo.visibleItemsInfo.find { item ->
@@ -49,15 +52,62 @@ internal fun calculatePositionFromOffset(
     val contentPaddingPx = with(density) { 8.dp.toPx() }
     val adjustedX = offset.x - contentPaddingPx
 
-    val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
     val lineContent = visibleLineContent[lineIndex] ?: ""
     val expandedContent = lineContent.expandTabs(tabSize)
 
-    val clickedColumn = if (adjustedX < 0) {
-        0
+    // When word wrap is enabled and we have TextLayoutResult, use it for accurate position
+    val clickedColumn = if (wordWrap && textLayouts.containsKey(lineIndex)) {
+        val layout = textLayouts[lineIndex]!!
+        // Calculate Y position relative to the item (not the list)
+        val relativeY = offset.y - clickedItem.offset
+        // Use TextLayoutResult to get character offset at tap position
+        val charOffset = layout.getOffsetForPosition(Offset(adjustedX.coerceAtLeast(0f), relativeY.coerceAtLeast(0f)))
+
+        // Get the visual line containing this character
+        val visualLine = if (expandedContent.isNotEmpty()) {
+            layout.getLineForOffset(charOffset.coerceIn(0, expandedContent.length - 1))
+        } else {
+            0
+        }
+        val visualLineEnd = layout.getLineEnd(visualLine)
+
+        // Check if tap is past the right edge of the last char on this visual line
+        val lastCharOnVisualLine = (visualLineEnd - 1).coerceAtLeast(0)
+        val adjustedOffset = if (charOffset >= lastCharOnVisualLine && expandedContent.isNotEmpty()) {
+            try {
+                val charBounds = layout.getBoundingBox(lastCharOnVisualLine.coerceIn(0, expandedContent.length - 1))
+                if (adjustedX > charBounds.right) {
+                    visualLineEnd  // Place cursor at end of visual line
+                } else if (adjustedX > (charBounds.left + charBounds.right) / 2) {
+                    charOffset + 1  // Past center, move one position right
+                } else {
+                    charOffset
+                }
+            } catch (e: Exception) {
+                charOffset
+            }
+        } else if (charOffset < expandedContent.length && expandedContent.isNotEmpty()) {
+            // Normal case: check if past center of current char
+            try {
+                val charBounds = layout.getBoundingBox(charOffset)
+                if (adjustedX > (charBounds.left + charBounds.right) / 2) charOffset + 1 else charOffset
+            } catch (e: Exception) {
+                charOffset
+            }
+        } else {
+            charOffset
+        }
+
+        adjustedOffset.coerceIn(0, expandedContent.length)
     } else {
-        val calculatedColumn = (adjustedX / charWidth).toInt()
-        calculatedColumn.coerceIn(0, expandedContent.length)
+        // Fallback: estimate column from X position
+        val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
+        if (adjustedX < 0) {
+            0
+        } else {
+            val calculatedColumn = (adjustedX / charWidth).toInt()
+            calculatedColumn.coerceIn(0, expandedContent.length)
+        }
     }
 
     val position = createUiTextPosition(

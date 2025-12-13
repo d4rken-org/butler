@@ -85,6 +85,10 @@ class EditorWorkspace @AssistedInject constructor(
 
     val filePath: APath<*>? get() = (creationArguments as? EditorArguments.Default)?.filePath
 
+    // Track engine being initialized to allow cancellation
+    @Volatile
+    private var pendingEngine: EditorEngine? = null
+
     private val engineHolder = DynamicStateFlow<EditorEngine>(
         loggingTag = tag,
         parentScope = workspaceScope,
@@ -218,28 +222,46 @@ class EditorWorkspace @AssistedInject constructor(
     private suspend fun switchEngine(newFilePath: APath<*>?) {
         log(tag, INFO) { "Switching engine to: ${newFilePath?.name ?: "scratch buffer"}" }
 
-        engineHolder.updateBlocking {
-            // 'this' is the old engine (receiver of extension function)
-            // Create and initialize new engine
-            val newEngine = editorEngineFactory.create(id, newFilePath)
-            val initResult = newEngine.initialize()
+        // Create new engine outside updateBlocking so we can track it for cancellation
+        val newEngine = editorEngineFactory.create(id, newFilePath)
+        pendingEngine = newEngine
 
-            if (initResult.isFailure) {
-                newEngine.release()
-                val error = initResult.exceptionOrNull() ?: Exception("Failed to initialize engine")
-                log(tag, ERROR) { "Failed to switch engine: ${error.asLog()}" }
-                throw error
+        try {
+            engineHolder.updateBlocking {
+                // 'this' is the old engine (receiver of extension function)
+                val initResult = newEngine.initialize()
+
+                if (initResult.isFailure) {
+                    newEngine.release()
+                    val error = initResult.exceptionOrNull() ?: Exception("Failed to initialize engine")
+                    log(tag, ERROR) { "Failed to switch engine: ${error.asLog()}" }
+                    throw error
+                }
+
+                log(tag, DEBUG) { "Engine switched successfully" }
+                // Old engine (this) cleanup happens automatically via onRelease callback
+                newEngine
             }
-
-            log(tag, DEBUG) { "Engine switched successfully" }
-            // Old engine (this) cleanup happens automatically via onRelease callback
-            newEngine
+        } finally {
+            pendingEngine = null
         }
     }
 
     // Editor operations
     suspend fun openFile(filePath: APath<*>) = switchEngine(filePath)
     suspend fun closeFile() = switchEngine(null)
+
+    /**
+     * Cancels an in-progress file open operation.
+     * Safe to call even if no operation is running.
+     */
+    fun cancelFileOpen() {
+        pendingEngine?.let { engine ->
+            log(tag, INFO) { "Cancelling file open for pending engine" }
+            engine.cancelInitialization()
+        }
+    }
+
     suspend fun saveFile() = engineHolder.value().saveFile()
     suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> {
         val engine = engineHolder.value()

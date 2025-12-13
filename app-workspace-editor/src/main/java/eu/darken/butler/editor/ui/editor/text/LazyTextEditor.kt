@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.foundation.rememberScrollState
 import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import androidx.compose.foundation.text.BasicTextField
@@ -30,6 +32,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -250,6 +253,12 @@ private fun DualColumnEditorContent(
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
 
+    // Track measured heights for each line when word wrap is enabled
+    val lineHeights = remember { mutableStateMapOf<Int, Int>() }
+
+    // Track TextLayoutResults for accurate tap position calculation when word wrap is enabled
+    val textLayouts = remember { mutableStateMapOf<Int, TextLayoutResult>() }
+
     // Measure actual character width for accurate positioning
     val textMeasurer = rememberTextMeasurer()
     val actualCharWidth = remember(fontSize) {
@@ -377,9 +386,18 @@ private fun DualColumnEditorContent(
                         count = totalLines,
                         key = { index -> "line_num_$index" }
                     ) { lineIndex ->
+                        val measuredHeight = if (wordWrap) lineHeights[lineIndex] else null
+
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .then(
+                                    if (measuredHeight != null) {
+                                        Modifier.height(with(density) { measuredHeight.toDp() })
+                                    } else {
+                                        Modifier
+                                    }
+                                )
                                 .padding(horizontal = 8.dp, vertical = 2.dp),
                             contentAlignment = Alignment.TopEnd
                         ) {
@@ -458,7 +476,9 @@ private fun DualColumnEditorContent(
                                     visibleLineContent = currentVisibleLineContent,
                                     density = density,
                                     fontSize = fontSize,
-                                    tabSize = tabSize
+                                    tabSize = tabSize,
+                                    wordWrap = wordWrap,
+                                    textLayouts = textLayouts,
                                 )
 
                                 if (result != null) {
@@ -510,7 +530,9 @@ private fun DualColumnEditorContent(
                                     visibleLineContent = currentVisibleLineContent,
                                     density = density,
                                     fontSize = fontSize,
-                                    tabSize = tabSize
+                                    tabSize = tabSize,
+                                    wordWrap = wordWrap,
+                                    textLayouts = textLayouts,
                                 )
 
                                 if (result != null) {
@@ -542,7 +564,13 @@ private fun DualColumnEditorContent(
                         wordWrap = wordWrap,
                         fontSize = fontSize,
                         tabSize = tabSize,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        onHeightMeasured = if (wordWrap) { height ->
+                            lineHeights[lineIndex] = height
+                        } else null,
+                        onTextLayoutResult = if (wordWrap) { layoutResult ->
+                            textLayouts[lineIndex] = layoutResult
+                        } else null,
                     )
                 }
             }
@@ -566,7 +594,9 @@ private fun DualColumnEditorContent(
                         visibleLineContent = currentVisibleLineContent,
                         density = density,
                         fontSize = fontSize,
-                        tabSize = tabSize
+                        tabSize = tabSize,
+                        wordWrap = wordWrap,
+                        textLayouts = textLayouts,
                     )
 
                     if (result != null) {
@@ -580,7 +610,10 @@ private fun DualColumnEditorContent(
 
                         onSelectionChange(newStart to newEnd)
                     }
-                }
+                },
+                wordWrap = wordWrap,
+                textLayouts = textLayouts,
+                visibleLineContent = currentVisibleLineContent,
             )
 
             // End handle
@@ -597,7 +630,9 @@ private fun DualColumnEditorContent(
                         visibleLineContent = currentVisibleLineContent,
                         density = density,
                         fontSize = fontSize,
-                        tabSize = tabSize
+                        tabSize = tabSize,
+                        wordWrap = wordWrap,
+                        textLayouts = textLayouts,
                     )
 
                     if (result != null) {
@@ -611,7 +646,10 @@ private fun DualColumnEditorContent(
 
                         onSelectionChange(newStart to newEnd)
                     }
-                }
+                },
+                wordWrap = wordWrap,
+                textLayouts = textLayouts,
+                visibleLineContent = currentVisibleLineContent,
             )
         }
     }

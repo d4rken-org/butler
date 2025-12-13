@@ -35,6 +35,11 @@ sealed interface EditorPageAction {
          * Close the current file
          */
         data object Close : File
+
+        /**
+         * Cancel an in-progress file open operation
+         */
+        data object CancelOpen : File
     }
 
     /**

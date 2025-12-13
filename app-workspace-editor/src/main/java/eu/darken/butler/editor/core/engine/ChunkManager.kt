@@ -8,11 +8,13 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.coroutines.coroutineContext
 
 class ChunkManager @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -271,6 +273,9 @@ class ChunkManager @AssistedInject constructor(
 
         // Load all chunks first (may evict stale chunks due to boundary adjustments)
         for (chunkId in relevantChunkIds) {
+            // Check for cancellation before each chunk load
+            coroutineContext.ensureActive()
+
             // Always call loadChunk() - it validates cached chunks and evicts stale ones
             val loadResult = loadChunk(chunkId)
             if (loadResult.isFailure) {

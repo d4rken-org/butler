@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -28,6 +29,13 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.core.engine.TextPosition
 
+private data class SelectionBounds(
+    val left: Float,
+    val top: Float,
+    val width: Float,
+    val height: Float,
+)
+
 @Composable
 internal fun TextLineItem(
     lineIndex: Int,
@@ -39,7 +47,9 @@ internal fun TextLineItem(
     wordWrap: Boolean,
     fontSize: Int,
     tabSize: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onHeightMeasured: ((Int) -> Unit)? = null,
+    onTextLayoutResult: ((TextLayoutResult) -> Unit)? = null,
 ) {
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val density = LocalDensity.current
@@ -71,27 +81,71 @@ internal fun TextLineItem(
         label = "cursor_alpha"
     )
 
-    val backgroundColor = if (isCurrentLine) {
+    // When word wrap is OFF, highlight entire line. When ON, we'll draw only the cursor's visual line.
+    val backgroundColor = if (isCurrentLine && !wordWrap) {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     } else {
         Color.Transparent
     }
 
+    val lineHighlightColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+
     val cursorModifier = if (isCurrentLine && selection == null) {
         Modifier.drawWithContent {
-            drawContent()
             val expandedText = lineContent.expandTabs(tabSize)
             val position = cursorPosition.column
-
             val layoutResult = textLayoutResult
+
+            // When word wrap is enabled, draw highlight only for the visual line containing cursor
+            if (wordWrap && layoutResult != null && layoutResult.lineCount > 0) {
+                val cursorOffset = position.coerceIn(0, expandedText.length)
+                // Handle boundary case: if cursor is at start of a visual line, it's actually
+                // at the end of the previous visual line
+                val rawVisualLine = if (cursorOffset < expandedText.length) {
+                    layoutResult.getLineForOffset(cursorOffset)
+                } else {
+                    layoutResult.lineCount - 1
+                }
+                val visualLine = if (rawVisualLine > 0 && cursorOffset == layoutResult.getLineStart(rawVisualLine)) {
+                    rawVisualLine - 1
+                } else {
+                    rawVisualLine
+                }
+                val lineTop = layoutResult.getLineTop(visualLine)
+                val lineBottom = layoutResult.getLineBottom(visualLine)
+
+                drawRect(
+                    color = lineHighlightColor,
+                    topLeft = Offset(0f, lineTop),
+                    size = Size(size.width, lineBottom - lineTop)
+                )
+            }
+
+            drawContent()
+
+            // Calculate boundary state for wrapped text - used for both X and Y positioning
+            val isAtBoundary = if (wordWrap && layoutResult != null && layoutResult.lineCount > 1) {
+                val cursorOffset = position.coerceIn(0, expandedText.length)
+                val rawVisualLine = if (cursorOffset < expandedText.length) {
+                    layoutResult.getLineForOffset(cursorOffset)
+                } else {
+                    layoutResult.lineCount - 1
+                }
+                rawVisualLine > 0 && cursorOffset == layoutResult.getLineStart(rawVisualLine)
+            } else {
+                false
+            }
+
+            // Calculate cursor X - at boundary, use right edge of previous char
             val cursorX = when {
+                isAtBoundary && position > 0 && layoutResult != null -> {
+                    layoutResult.getBoundingBox(position - 1).right
+                }
                 layoutResult != null && position < expandedText.length -> {
-                    val boundingBox = layoutResult.getBoundingBox(position)
-                    boundingBox.left
+                    layoutResult.getBoundingBox(position).left
                 }
                 layoutResult != null && position == expandedText.length && expandedText.isNotEmpty() -> {
-                    val boundingBox = layoutResult.getBoundingBox(expandedText.length - 1)
-                    boundingBox.right
+                    layoutResult.getBoundingBox(expandedText.length - 1).right
                 }
                 else -> {
                     val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
@@ -99,11 +153,25 @@ internal fun TextLineItem(
                 }
             }
 
+            // Calculate cursor Y position - for wrapped text, draw on correct visual line
+            val (cursorTop, cursorBottom) = if (wordWrap && layoutResult != null && layoutResult.lineCount > 1) {
+                val cursorOffset = position.coerceIn(0, expandedText.length)
+                val rawVisualLine = if (cursorOffset < expandedText.length) {
+                    layoutResult.getLineForOffset(cursorOffset)
+                } else {
+                    layoutResult.lineCount - 1
+                }
+                val visualLine = if (isAtBoundary) rawVisualLine - 1 else rawVisualLine
+                layoutResult.getLineTop(visualLine) to layoutResult.getLineBottom(visualLine)
+            } else {
+                0f to size.height
+            }
+
             if (isFocused) {
                 drawLine(
                     color = cursorColor.copy(alpha = cursorAlpha),
-                    start = Offset(cursorX, 0f),
-                    end = Offset(cursorX, size.height),
+                    start = Offset(cursorX, cursorTop),
+                    end = Offset(cursorX, cursorBottom),
                     strokeWidth = 3.dp.toPx()
                 )
             } else {
@@ -136,8 +204,8 @@ internal fun TextLineItem(
 
                 drawRect(
                     color = cursorColor.copy(alpha = 0.4f),
-                    topLeft = Offset(cursorX, 0f),
-                    size = Size(blockWidth, size.height)
+                    topLeft = Offset(cursorX, cursorTop),
+                    size = Size(blockWidth, cursorBottom - cursorTop)
                 )
             }
         }
@@ -150,6 +218,9 @@ internal fun TextLineItem(
             .background(backgroundColor)
             .padding(horizontal = 8.dp, vertical = 2.dp)
             .then(cursorModifier)
+            .onGloballyPositioned { coordinates ->
+                onHeightMeasured?.invoke(coordinates.size.height)
+            }
     ) {
         SelectableText(
             text = lineContent.expandTabs(tabSize).ifEmpty { " " },
@@ -160,6 +231,7 @@ internal fun TextLineItem(
             fontSize = fontSize,
             onTextLayout = { layoutResult ->
                 textLayoutResult = layoutResult
+                onTextLayoutResult?.invoke(layoutResult)
             },
             modifier = Modifier.fillMaxWidth()
         )
@@ -190,10 +262,51 @@ internal fun SelectableText(
                     val selectionEnd = if (lineIndex == end.line) end.column else text.length
 
                     if (selectionStart < selectionEnd) {
-                        // Use TextLayoutResult for accurate positioning if available
                         val layout = layoutResult
-                        val (startX, width) = if (layout != null && selectionStart < text.length && selectionEnd <= text.length) {
-                            try {
+                        val selectionColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+
+                        if (layout != null && wordWrap && layout.lineCount > 1) {
+                            // Multi-line wrapped text: draw selection for each visual line
+                            val startVisualLine = layout.getLineForOffset(selectionStart.coerceIn(0, text.length.coerceAtLeast(1) - 1))
+                            val endVisualLine = layout.getLineForOffset((selectionEnd - 1).coerceIn(0, text.length.coerceAtLeast(1) - 1))
+
+                            for (visualLine in startVisualLine..endVisualLine) {
+                                val lineStartOffset = layout.getLineStart(visualLine)
+                                val lineEndOffset = layout.getLineEnd(visualLine)
+
+                                // Calculate selection bounds for this visual line
+                                val selStartInLine = selectionStart.coerceIn(lineStartOffset, lineEndOffset)
+                                val selEndInLine = selectionEnd.coerceIn(lineStartOffset, lineEndOffset)
+
+                                if (selStartInLine < selEndInLine && text.isNotEmpty()) {
+                                    // Calculate bounds outside composable scope
+                                    val bounds = runCatching {
+                                        val startBounds = layout.getBoundingBox(selStartInLine.coerceIn(0, text.length - 1))
+                                        val endBounds = layout.getBoundingBox((selEndInLine - 1).coerceIn(0, text.length - 1))
+                                        val left = startBounds.left
+                                        val right = endBounds.right
+                                        val top = layout.getLineTop(visualLine)
+                                        val bottom = layout.getLineBottom(visualLine)
+                                        SelectionBounds(left, top, right - left, bottom - top)
+                                    }.getOrNull()
+
+                                    bounds?.let { b ->
+                                        Box(
+                                            modifier = Modifier
+                                                .offset(
+                                                    x = with(density) { b.left.toDp() },
+                                                    y = with(density) { b.top.toDp() }
+                                                )
+                                                .width(with(density) { b.width.toDp() })
+                                                .height(with(density) { b.height.toDp() })
+                                                .background(selectionColor)
+                                        )
+                                    }
+                                }
+                            }
+                        } else if (layout != null && selectionStart < text.length && selectionEnd <= text.length) {
+                            // Single line or no wrap: calculate bounds first
+                            val bounds = runCatching {
                                 val startBounds = if (selectionStart < text.length) {
                                     layout.getBoundingBox(selectionStart)
                                 } else {
@@ -208,30 +321,47 @@ internal fun SelectableText(
                                     startBounds
                                 }
 
-                                val startXPos = startBounds.left
-                                val endXPos = endBounds.right
-                                startXPos to (endXPos - startXPos)
-                            } catch (e: Exception) {
+                                SelectionBounds(
+                                    startBounds.left,
+                                    0f,
+                                    endBounds.right - startBounds.left,
+                                    layout.size.height.toFloat()
+                                )
+                            }.getOrNull()
+
+                            if (bounds != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .offset(x = with(density) { bounds.left.toDp() })
+                                        .width(with(density) { bounds.width.toDp() })
+                                        .height(with(density) { bounds.height.toDp() })
+                                        .background(selectionColor)
+                                )
+                            } else {
                                 // Fallback to character width estimation
                                 val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-                                (selectionStart * charWidth) to ((selectionEnd - selectionStart) * charWidth)
+                                Box(
+                                    modifier = Modifier
+                                        .offset(x = with(density) { (selectionStart * charWidth).toDp() })
+                                        .width(with(density) { ((selectionEnd - selectionStart) * charWidth).toDp() })
+                                        .height(with(density) { (fontSize * 1.5f).sp.toDp() })
+                                        .background(selectionColor)
+                                )
                             }
                         } else {
                             // Fallback to character width estimation
                             val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-                            (selectionStart * charWidth) to ((selectionEnd - selectionStart) * charWidth)
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = with(density) { (selectionStart * charWidth).toDp() })
+                                    .width(with(density) { ((selectionEnd - selectionStart) * charWidth).toDp() })
+                                    .height(with(density) {
+                                        val height: Float = layoutResult?.size?.height?.toFloat() ?: (fontSize * 1.5f).sp.toPx()
+                                        height.toDp()
+                                    })
+                                    .background(selectionColor)
+                            )
                         }
-
-                        Box(
-                            modifier = Modifier
-                                .offset(x = with(density) { startX.toDp() })
-                                .width(with(density) { width.toDp() })
-                                .height(with(density) {
-                                    val height: Float = layoutResult?.size?.height?.toFloat() ?: (fontSize * 1.5f).sp.toPx()
-                                    height.toDp()
-                                })
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-                        )
                     }
                 }
             }

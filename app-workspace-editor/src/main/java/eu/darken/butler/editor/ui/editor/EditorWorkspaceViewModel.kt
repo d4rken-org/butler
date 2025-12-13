@@ -26,6 +26,9 @@ import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -49,13 +52,14 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val workspaceSource: Flow<EditorWorkspace?> = workspaceProvider.retrieve(id).map { it as EditorWorkspace? }
     private suspend fun getWorkspace(): EditorWorkspace = workspaceSource.filterNotNull().first()
 
-    private val _isLoading = MutableStateFlow(true)
+    private val _isLoading = MutableStateFlow(false)
+    private val _loadingFilePath = MutableStateFlow<APath<*>?>(null)
     private val _showGoToLineDialog = MutableStateFlow(false)
     private val _showSearchDialog = MutableStateFlow(false)
     private val _searchQueryInput = MutableStateFlow("")
     private val _currentSearchResultIndex = MutableStateFlow(0)
     private val _searchCaseSensitive = MutableStateFlow(false)
-    private var currentWorkspace: EditorWorkspace? = null
+    private var openFileJob: Job? = null
 
     private val dialogStates = combine(
         _showGoToLineDialog,
@@ -72,21 +76,34 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         Triple(searchQueryInput, currentSearchResultIndex, searchCaseSensitive)
     }
 
+    private val loadingStates = combine(
+        _isLoading,
+        _loadingFilePath,
+    ) { isLoading, loadingFilePath ->
+        isLoading to loadingFilePath
+    }
+
     val state = combine(
         workspaceSource.filterNotNull().flatMapLatest { it.editorState },
-        _isLoading,
+        loadingStates,
         dialogStates,
         searchStates,
         flowOf(id),
-    ) { editorState, isLoading, dialogs, search, workspaceId ->
+    ) { editorState, loading, dialogs, search, workspaceId ->
+        val (isLoading, loadingFilePath) = loading
         val (showGoToLineDialog, showSearchDialog) = dialogs
         val (searchQueryInput, currentSearchResultIndex, searchCaseSensitive) = search
+
+        // Use loading file path for title when loading, otherwise use fileInfo
+        val displayPath = editorState.fileInfo?.path ?: loadingFilePath
+        val title = displayPath?.userReadableName ?: "No File".toCaString()
+        val subTitle = displayPath?.parent?.userReadablePath ?: "In-Memory-Buffer".toCaString()
 
         State(
             id = workspaceId,
             fileInfo = editorState.fileInfo,
-            title = editorState.fileInfo?.path?.userReadableName ?: "No File".toCaString(),
-            subTitle = editorState.fileInfo?.path?.parent?.userReadablePath ?: "In-Memory-Buffer".toCaString(),
+            title = title,
+            subTitle = subTitle,
             totalLines = editorState.totalLines,
             isModified = editorState.isModified,
             currentContent = editorState.currentContent,
@@ -126,15 +143,33 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun openFile(filePath: APath<*>) {
-        launch {
+        openFileJob?.cancel()
+        openFileJob = vmScope.launch {
             try {
+                _loadingFilePath.value = filePath
                 _isLoading.value = true
                 getWorkspace().openFile(filePath)
+            } catch (e: CancellationException) {
+                log(tag, INFO) { "File open cancelled: $filePath" }
+                throw e
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to open file: $filePath - ${e.asLog()}" }
             } finally {
                 _isLoading.value = false
+                _loadingFilePath.value = null
+                openFileJob = null
             }
+        }
+    }
+
+    fun cancelFileOpen() {
+        log(tag) { "Cancelling file open" }
+        // Cancel the ViewModel's waiting job
+        openFileJob?.cancel()
+        openFileJob = null
+        // Also cancel the engine initialization directly (bypasses scope isolation)
+        vmScope.launch {
+            getWorkspace().cancelFileOpen()
         }
     }
 
@@ -358,6 +393,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.File.Open -> openFile(action.path)
             is EditorPageAction.File.Save -> saveFile()
             is EditorPageAction.File.Close -> closeFile()
+            is EditorPageAction.File.CancelOpen -> cancelFileOpen()
 
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
@@ -407,6 +443,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val searchCaseSensitive: Boolean = false,
     ) {
         val hasFile: Boolean get() = fileInfo != null
+        val isFileReady: Boolean get() = fileInfo != null && !isLoading
         val hasSelection: Boolean get() = selectionRange != null
         val hasSearchResults: Boolean get() = searchResults.isNotEmpty()
         val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
