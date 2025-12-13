@@ -12,3 +12,14 @@ import androidx.compose.runtime.compositionLocalOf
  * Default value is `true` for backwards compatibility with single-pane layouts.
  */
 val LocalWorkspaceFocused = compositionLocalOf { true }
+
+/**
+ * CompositionLocal that provides a callback to request workspace focus.
+ *
+ * Nested components (like text fields) that consume click events should call this
+ * to ensure their parent workspace becomes focused when tapped. Without this,
+ * clicks on text fields don't propagate to the pane's click handler.
+ *
+ * Default is `null` - components should check before invoking.
+ */
+val LocalWorkspaceFocusRequest = compositionLocalOf<(() -> Unit)?> { null }

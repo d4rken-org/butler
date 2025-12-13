@@ -34,6 +34,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -56,11 +57,19 @@ fun SearchBar(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val isWorkspaceFocused = LocalWorkspaceFocused.current
+    val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
     val colors = MaterialTheme.colorScheme
     val focusRequester = remember { FocusRequester() }
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
     var hasInitialFocused by remember { mutableStateOf(false) }
+
+    // Request workspace focus when text field gains focus (user tapped it)
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
+            requestWorkspaceFocus?.invoke()
+        }
+    }
 
     // Only request focus when workspace is focused, clear when it loses focus
     LaunchedEffect(isWorkspaceFocused) {

@@ -25,6 +25,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -226,6 +227,7 @@ private fun DualColumnEditorContent(
     val currentVisibleLineContent by rememberUpdatedState(visibleLineContent)
     val currentVisibleRange by rememberUpdatedState(visibleRange)
     val isWorkspaceFocused = LocalWorkspaceFocused.current
+    val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
     val focusManager = LocalFocusManager.current
 
     // Clear focus when workspace loses focus (multi-pane adaptive layout support)
@@ -416,9 +418,12 @@ private fun DualColumnEditorContent(
                 contentPadding = PaddingValues(bottom = 52.dp),
                 modifier = contentModifier
                     .then(focusBorderModifier)
-                    .pointerInput(isWorkspaceFocused) {
+                    .pointerInput(isWorkspaceFocused, requestWorkspaceFocus) {
                         detectTapGestures(
                             onTap = { offset ->
+                                // Request workspace focus so this pane becomes active
+                                requestWorkspaceFocus?.invoke()
+
                                 // Request focus first (only if workspace is focused)
                                 if (isWorkspaceFocused) {
                                     try {
@@ -483,6 +488,9 @@ private fun DualColumnEditorContent(
                                 }
                             },
                             onLongPress = { offset ->
+                                // Request workspace focus so this pane becomes active
+                                requestWorkspaceFocus?.invoke()
+
                                 // Request focus (only if workspace is focused)
                                 if (isWorkspaceFocused) {
                                     try {

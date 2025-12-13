@@ -24,6 +24,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -208,6 +209,7 @@ internal fun ClassicWorkspaceContainer(
                     } else {
                         CompositionLocalProvider(
                             LocalWorkspaceFocused provides (state.focused == paneInfo.id),
+                            LocalWorkspaceFocusRequest provides { onWorkspaceScreenAction(WorkspaceScreenAction.Select(paneInfo.id)) },
                         ) {
                             WorkspaceOverlayContainer(
                                 workspaceId = paneInfo.id,
