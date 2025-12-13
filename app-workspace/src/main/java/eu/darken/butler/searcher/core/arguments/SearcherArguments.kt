@@ -1,5 +1,7 @@
 package eu.darken.butler.searcher.core.arguments
 
+import eu.darken.butler.searcher.core.ContentQuery
+import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.parcelize.Parcelize
@@ -19,5 +21,8 @@ sealed interface SearcherArguments : Workspace.Arguments {
     @Parcelize
     data class Default(
         val startTargets: List<SearchTarget>? = null,
+        val filenameQuery: FilenameQuery? = null,
+        val contentQuery: ContentQuery? = null,
+        val startSearch: Boolean = false,
     ) : SearcherArguments
 }

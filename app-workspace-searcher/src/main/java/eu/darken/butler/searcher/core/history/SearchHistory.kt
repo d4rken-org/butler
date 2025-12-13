@@ -37,7 +37,8 @@ class SearchHistory @Inject constructor(
     private val converter = SearchQueryConverter()
 
     suspend fun addSearch(query: SearchQuery): String {
-        log(TAG, Logging.Priority.INFO) { "Adding search to history: ${query.query}" }
+        val displayQuery = buildDisplayQuery(query)
+        log(TAG, Logging.Priority.INFO) { "Adding search to history: $displayQuery" }
 
         val now = Clock.System.now()
 
@@ -49,7 +50,7 @@ class SearchHistory @Inject constructor(
             val timeDiff = now - existingEntry.searchedAt
             if (timeDiff.inWholeMinutes < 5) {
                 // Update existing entry's timestamp instead of creating new one
-                log(TAG) { "Updating timestamp for existing search: ${query.query}" }
+                log(TAG) { "Updating timestamp for existing search: $displayQuery" }
                 searchHistoryDao.updateTimestamp(existingEntry.id, now)
                 existingEntry.id
             } else {
@@ -75,12 +76,26 @@ class SearchHistory @Inject constructor(
 
     private suspend fun createNewSearchEntry(query: SearchQuery, timestamp: Instant): String {
         val entity = SearchHistoryEntity(
-            baseQuery = query.query,
+            baseQuery = buildDisplayQuery(query),
             rawQuery = converter.fromSearchQuery(query),
-            searchedAt = timestamp
+            searchedAt = timestamp,
         )
         searchHistoryDao.insert(entity)
         return entity.id
+    }
+
+    private fun buildDisplayQuery(query: SearchQuery): String = buildString {
+        val hasFilename = query.filenameQuery.isNotEmpty
+        val hasContent = query.contentQuery.isNotEmpty
+        when {
+            hasFilename && hasContent -> {
+                append(query.filenameQuery.pattern)
+                append(" | ")
+                append(query.contentQuery.pattern)
+            }
+            hasFilename -> append(query.filenameQuery.pattern)
+            hasContent -> append(query.contentQuery.pattern)
+        }
     }
 
     suspend fun updateResultCount(id: String, resultCount: Int) {

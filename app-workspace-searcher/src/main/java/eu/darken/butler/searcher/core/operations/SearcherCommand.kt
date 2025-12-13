@@ -1,12 +1,15 @@
 package eu.darken.butler.searcher.core.operations
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.searcher.core.ContentQuery
+import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 
 sealed interface SearcherCommand {
     data class Search(
-        val query: String,
+        val filenameQuery: FilenameQuery = FilenameQuery(),
+        val contentQuery: ContentQuery = ContentQuery(),
         val targets: List<SearchTarget>,
         val filter: SearchQuery.Filter = SearchQuery.Filter(),
         val options: SearchQuery.Options = SearchQuery.Options(),

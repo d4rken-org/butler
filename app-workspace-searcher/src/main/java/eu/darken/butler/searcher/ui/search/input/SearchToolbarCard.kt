@@ -14,23 +14,32 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Description
+import androidx.compose.material.icons.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.searcher.R
+import eu.darken.butler.searcher.core.ContentQuery
+import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
@@ -46,16 +55,20 @@ fun SearchToolbarCard(
     state: SearcherWorkspaceViewModel.State,
     design: WorkspaceDesign,
     collapsedFraction: Float = 0f,
-    onUpdateQuery: (TextFieldValue) -> Unit,
+    onUpdateFilenameQuery: (TextFieldValue) -> Unit,
+    onUpdateContentQuery: (TextFieldValue) -> Unit,
     onRemoveSearchPath: (SearchTarget) -> Unit,
     onTogglePathEnabled: (SearchTarget) -> Unit,
     onPerformSearch: () -> Unit,
     onExplicitSearch: () -> Unit = onPerformSearch,
     onCancelSearch: () -> Unit,
-    onToggleCaseSensitive: () -> Unit,
-    onToggleWholeWord: () -> Unit,
-    onToggleRegex: () -> Unit,
-    onToggleSearchContent: () -> Unit,
+    onToggleFilenameCaseSensitive: () -> Unit,
+    onToggleFilenameWholeWord: () -> Unit,
+    onToggleFilenameRegex: () -> Unit,
+    onToggleContentCaseSensitive: () -> Unit,
+    onToggleContentWholeWord: () -> Unit,
+    onToggleContentRegex: () -> Unit,
+    onToggleContentSearch: () -> Unit,
     onOpenPathPicker: (() -> Unit)? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
@@ -101,17 +114,31 @@ fun SearchToolbarCard(
                         tint = MaterialTheme.colorScheme.primary
                     )
 
+                    val displayText = buildString {
+                        val hasFilename = state.filenameQuery.text.isNotBlank()
+                        val hasContent = state.contentQuery.text.isNotBlank()
+                        when {
+                            hasFilename && hasContent -> {
+                                append(state.filenameQuery.text)
+                                append(" | ")
+                                append(state.contentQuery.text)
+                            }
+
+                            hasFilename -> append(state.filenameQuery.text)
+                            hasContent -> append(state.contentQuery.text)
+                        }
+                    }
                     Text(
-                        text = state.searchQuery.text.ifBlank { "Search" },
+                        text = displayText.ifBlank { stringResource(R.string.searcher_placeholder_search) },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (state.searchQuery.text.isBlank()) {
+                        color = if (displayText.isBlank()) {
                             MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         } else {
                             MaterialTheme.colorScheme.onSurface
                         },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
 
                     if (design.isSingle) {
@@ -123,20 +150,78 @@ fun SearchToolbarCard(
                     }
                 }
             } else {
-                // Expanded state - full interactive card
+                // Expanded state - full interactive card with dual pattern fields
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.Top,
                 ) {
-                    SearchBar(
-                        query = state.searchQuery,
-                        onQueryChange = onUpdateQuery,
-                        onSearch = onExplicitSearch,
-                        isSearching = state.isSearching,
-                        onCancel = if (state.isSearching) onCancelSearch else null,
-                        modifier = Modifier.weight(1f)
-                    )
+                    // Unified surface for both pattern fields
+                    Surface(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                    ) {
+                        Column {
+                            // Filename pattern field
+                            PatternField(
+                                query = state.filenameQuery,
+                                onQueryChange = onUpdateFilenameQuery,
+                                onSearch = onExplicitSearch,
+                                placeholder = stringResource(R.string.searcher_placeholder_filename),
+                                leadingIcon = Icons.TwoTone.InsertDriveFile,
+                                caseSensitive = state.filenameOptions.caseSensitive,
+                                wholeWord = state.filenameOptions.wholeWord,
+                                useRegex = state.filenameOptions.useRegex,
+                                onToggleCaseSensitive = onToggleFilenameCaseSensitive,
+                                onToggleWholeWord = onToggleFilenameWholeWord,
+                                onToggleRegex = onToggleFilenameRegex,
+                                extraMenuItems = {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.searcher_option_search_content_label)) },
+                                        onClick = onToggleContentSearch,
+                                        leadingIcon = {
+                                            Checkbox(
+                                                checked = state.contentSearchEnabled,
+                                                onCheckedChange = null,
+                                            )
+                                        },
+                                    )
+                                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                                },
+                            )
+
+                            // Content pattern field (conditionally visible)
+                            AnimatedVisibility(
+                                visible = state.contentSearchEnabled,
+                                enter = expandVertically(),
+                                exit = shrinkVertically(),
+                            ) {
+                                Column {
+                                    // Divider between fields
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(horizontal = 12.dp),
+                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                    )
+
+                                    // Content pattern field
+                                    PatternField(
+                                        query = state.contentQuery,
+                                        onQueryChange = onUpdateContentQuery,
+                                        onSearch = onExplicitSearch,
+                                        placeholder = stringResource(R.string.searcher_placeholder_content),
+                                        leadingIcon = Icons.TwoTone.Description,
+                                        caseSensitive = state.contentOptions.caseSensitive,
+                                        wholeWord = state.contentOptions.wholeWord,
+                                        useRegex = state.contentOptions.useRegex,
+                                        onToggleCaseSensitive = onToggleContentCaseSensitive,
+                                        onToggleWholeWord = onToggleContentWholeWord,
+                                        onToggleRegex = onToggleContentRegex,
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     if (design.isSingle) {
                         Spacer(modifier = Modifier.width(8.dp))
@@ -152,26 +237,12 @@ fun SearchToolbarCard(
                 AnimatedVisibility(
                     visible = !isCollapsed,
                     enter = expandVertically(),
-                    exit = shrinkVertically()
+                    exit = shrinkVertically(),
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy((-4).dp)
-                    ) {
-                        SearchOptionsRow(
-                            caseSensitive = state.caseSensitive,
-                            wholeWord = state.wholeWord,
-                            useRegex = state.useRegex,
-                            searchContent = state.searchContent,
-                            onToggleCaseSensitive = onToggleCaseSensitive,
-                            onToggleWholeWord = onToggleWholeWord,
-                            onToggleRegex = onToggleRegex,
-                            onToggleSearchContent = onToggleSearchContent,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
+                    Column() {
                         HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+                            modifier = Modifier.padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                         )
 
                         MultiPathChipBar(
@@ -198,25 +269,29 @@ private fun SearchToolbarCardPreview() {
                 id = Workspace.Id(),
                 searchTargets = listOf(
                     SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download"))
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
                 ),
-                searchQuery = TextFieldValue("example search"),
-                caseSensitive = false,
-                wholeWord = false,
-                useRegex = false,
-                searchContent = false,
+                filenameQuery = TextFieldValue("*.kt"),
+                contentQuery = TextFieldValue("TODO"),
+                filenameOptions = FilenameQuery(useRegex = true),
+                contentOptions = ContentQuery(wholeWord = true),
+                contentSearchEnabled = true,
             ),
             design = WorkspaceDesign(),
-            onUpdateQuery = {},
+            onUpdateFilenameQuery = {},
+            onUpdateContentQuery = {},
             onRemoveSearchPath = {},
             onTogglePathEnabled = {},
             onPerformSearch = {},
             onCancelSearch = {},
-            onToggleCaseSensitive = {},
-            onToggleWholeWord = {},
-            onToggleRegex = {},
-            onToggleSearchContent = {},
-            modifier = Modifier.padding(16.dp)
+            onToggleFilenameCaseSensitive = {},
+            onToggleFilenameWholeWord = {},
+            onToggleFilenameRegex = {},
+            onToggleContentCaseSensitive = {},
+            onToggleContentWholeWord = {},
+            onToggleContentRegex = {},
+            onToggleContentSearch = {},
+            modifier = Modifier.padding(16.dp),
         )
     }
 }
@@ -231,24 +306,25 @@ private fun SearchToolbarCardCollapsedPreview() {
                 id = Workspace.Id(),
                 searchTargets = listOf(
                     SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download"))
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
                 ),
-                searchQuery = TextFieldValue("example search"),
-                caseSensitive = false,
-                wholeWord = false,
-                useRegex = false,
-                searchContent = false,
+                filenameQuery = TextFieldValue("*.kt"),
+                contentQuery = TextFieldValue("TODO"),
             ),
             design = WorkspaceDesign(),
-            onUpdateQuery = {},
+            onUpdateFilenameQuery = {},
+            onUpdateContentQuery = {},
             onRemoveSearchPath = {},
             onTogglePathEnabled = {},
             onPerformSearch = {},
             onCancelSearch = {},
-            onToggleCaseSensitive = {},
-            onToggleWholeWord = {},
-            onToggleRegex = {},
-            onToggleSearchContent = {},
+            onToggleFilenameCaseSensitive = {},
+            onToggleFilenameWholeWord = {},
+            onToggleFilenameRegex = {},
+            onToggleContentCaseSensitive = {},
+            onToggleContentWholeWord = {},
+            onToggleContentRegex = {},
+            onToggleContentSearch = {},
             modifier = Modifier.padding(16.dp),
             collapsedFraction = 1f,
         )

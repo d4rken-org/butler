@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.searcher.core.history.SearchHistory
+import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
@@ -206,40 +207,31 @@ object SearcherMockDataProvider {
             id = "history-1",
             baseQuery = "config.json",
             searchQuery = SearchQuery.create(
-                query = "config.json",
                 paths = listOf(LocalPath.build("/storage/emulated/0/Android")),
-                caseSensitive = false,
-                wholeWord = false,
-                useRegex = false
+                filenameQuery = FilenameQuery(pattern = "config.json"),
             ),
             searchedAt = Clock.System.now() - 1.hours,
-            resultCount = 5
+            resultCount = 5,
         ),
         SearchHistory.SearchHistoryItem(
             id = "history-2",
             baseQuery = "photos",
             searchQuery = SearchQuery.create(
-                query = "photos",
                 paths = listOf(LocalPath.build("/storage/emulated/0/DCIM")),
-                caseSensitive = false,
-                wholeWord = true,
-                useRegex = false
+                filenameQuery = FilenameQuery(pattern = "photos", wholeWord = true),
             ),
             searchedAt = Clock.System.now() - 3.hours,
-            resultCount = 0
+            resultCount = 0,
         ),
         SearchHistory.SearchHistoryItem(
             id = "history-3",
             baseQuery = "readme",
             searchQuery = SearchQuery.create(
-                query = "readme",
                 paths = listOf(LocalPath.build("/storage/emulated/0/Documents")),
-                caseSensitive = true,
-                wholeWord = false,
-                useRegex = false
+                filenameQuery = FilenameQuery(pattern = "readme", caseSensitive = true),
             ),
             searchedAt = Clock.System.now() - 5.hours,
-            resultCount = 12
+            resultCount = 12,
         )
     )
 
@@ -325,7 +317,7 @@ object SearcherMockDataProvider {
 
         return SearcherWorkspaceViewModel.State(
             id = workspaceId,
-            searchQuery = TextFieldValue("config"),
+            filenameQuery = TextFieldValue("config"),
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
             ),
@@ -375,7 +367,7 @@ object SearcherMockDataProvider {
     fun createMockSearchingWithProgressState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State =
         SearcherWorkspaceViewModel.State(
             id = workspaceId,
-            searchQuery = TextFieldValue("log"),
+            filenameQuery = TextFieldValue("log"),
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Android")),
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),

@@ -44,13 +44,16 @@ sealed interface SearchItem : Parcelable {
 
     @Parcelize
     data class MatchContext(
+        val matchType: MatchType = MatchType.FILENAME,
         val lineNumber: Int? = null,
         val matchedLine: String? = null,
         val startIndex: Int? = null,
         val endIndex: Int? = null,
         val contextBefore: List<String>? = null,
         val contextAfter: List<String>? = null,
-    ) : Parcelable
+    ) : Parcelable {
+        enum class MatchType { FILENAME, CONTENT, BOTH }
+    }
 
     companion object {
         fun fromLookup(

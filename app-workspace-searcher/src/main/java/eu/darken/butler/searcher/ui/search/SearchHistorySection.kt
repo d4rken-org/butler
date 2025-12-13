@@ -38,6 +38,8 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.common.ui.SwipeToDismissItem
 import eu.darken.butler.searcher.R
+import eu.darken.butler.searcher.core.ContentQuery
+import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.history.SearchHistory
@@ -243,15 +245,12 @@ private fun SearchHistoryItemPreview() {
                 id = "preview-1",
                 baseQuery = "gradle build",
                 searchQuery = SearchQuery.create(
-                    query = "gradle build",
                     paths = listOf(
                         LocalPath.build("/storage/emulated/0/Documents"),
                         LocalPath.build("/storage/emulated/0/Download"),
                         LocalPath.build("/storage/emulated/0/Music"),
                     ),
-                    caseSensitive = false,
-                    wholeWord = false,
-                    useRegex = false
+                    filenameQuery = FilenameQuery(pattern = "gradle build"),
                 ),
                 searchedAt = Clock.System.now() - 30.minutes,
                 resultCount = 42
@@ -271,11 +270,8 @@ private fun SearchHistoryItemNoResultsPreview() {
                 id = "preview-2",
                 baseQuery = "nonexistent",
                 searchQuery = SearchQuery.create(
-                    query = "nonexistent",
                     paths = listOf(LocalPath.build("/storage/emulated/0")),
-                    caseSensitive = true,
-                    wholeWord = true,
-                    useRegex = false
+                    filenameQuery = FilenameQuery(pattern = "nonexistent", caseSensitive = true, wholeWord = true),
                 ),
                 searchedAt = Clock.System.now() - 2.hours,
                 resultCount = 0
@@ -299,40 +295,31 @@ private fun SearchHistorySectionPreview() {
                         id = "preview-1",
                         baseQuery = "gradle build",
                         searchQuery = SearchQuery.create(
-                            query = "gradle build",
                             paths = listOf(LocalPath.build("/home/user/projects")),
-                            caseSensitive = false,
-                            wholeWord = false,
-                            useRegex = false
+                            filenameQuery = FilenameQuery(pattern = "gradle build"),
                         ),
                         searchedAt = Clock.System.now() - 30.minutes,
-                        resultCount = 42
+                        resultCount = 42,
                     ),
                     SearchHistory.SearchHistoryItem(
                         id = "preview-2",
                         baseQuery = "nonexistent",
                         searchQuery = SearchQuery.create(
-                            query = "nonexistent",
                             paths = listOf(LocalPath.build("/storage/emulated/0")),
-                            caseSensitive = true,
-                            wholeWord = true,
-                            useRegex = false
+                            filenameQuery = FilenameQuery(pattern = "nonexistent", caseSensitive = true, wholeWord = true),
                         ),
                         searchedAt = Clock.System.now() - 2.hours,
-                        resultCount = 0
+                        resultCount = 0,
                     ),
                     SearchHistory.SearchHistoryItem(
                         id = "preview-3",
                         baseQuery = "import android",
                         searchQuery = SearchQuery.create(
-                            query = "import android",
                             paths = listOf(LocalPath.build("/home/user/android-project/src")),
-                            caseSensitive = false,
-                            wholeWord = false,
-                            useRegex = false
+                            contentQuery = ContentQuery(pattern = "import android"),
                         ),
                         searchedAt = Clock.System.now() - 5.hours,
-                        resultCount = 127
+                        resultCount = 127,
                     )
                 ),
                 onHistoryItemClick = {},

@@ -23,9 +23,14 @@ sealed interface SearcherPageAction {
      */
     sealed interface Search : SearcherPageAction {
         /**
-         * Update the search query text
+         * Update the filename pattern query text
          */
-        data class UpdateQuery(val query: TextFieldValue) : Search
+        data class UpdateFilenameQuery(val query: TextFieldValue) : Search
+
+        /**
+         * Update the content pattern query text
+         */
+        data class UpdateContentQuery(val query: TextFieldValue) : Search
 
         /**
          * Perform search with current query (auto-triggered)
@@ -49,28 +54,21 @@ sealed interface SearcherPageAction {
     }
 
     /**
-     * Search option toggles
+     * Search option toggles - per-field options for filename and content patterns
      */
     sealed interface Options : SearcherPageAction {
-        /**
-         * Toggle case-sensitive search
-         */
-        data object ToggleCaseSensitive : Options
+        // Filename pattern options
+        data object ToggleFilenameCaseSensitive : Options
+        data object ToggleFilenameWholeWord : Options
+        data object ToggleFilenameRegex : Options
 
-        /**
-         * Toggle whole word matching
-         */
-        data object ToggleWholeWord : Options
+        // Content pattern options
+        data object ToggleContentCaseSensitive : Options
+        data object ToggleContentWholeWord : Options
+        data object ToggleContentRegex : Options
 
-        /**
-         * Toggle regex search mode
-         */
-        data object ToggleRegex : Options
-
-        /**
-         * Toggle file content search
-         */
-        data object ToggleSearchContent : Options
+        // Content search toggle (shows/hides content field)
+        data object ToggleContentSearch : Options
     }
 
     /**

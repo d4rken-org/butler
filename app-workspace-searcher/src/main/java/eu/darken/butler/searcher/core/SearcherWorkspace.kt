@@ -48,7 +48,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 
 class SearcherWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
-    @Assisted private val creationArguments: SearcherArguments,
+    @Assisted val creationArguments: SearcherArguments,
     dispatcherProvider: DispatcherProvider,
     private val issueHandler: IssueHandler,
     private val operationsManager: OperationsManager,
@@ -62,7 +62,12 @@ class SearcherWorkspace @AssistedInject constructor(
             CoroutineName(tag) +
             CoroutineExceptionHandler { _, throwable ->
                 log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
-                // TODO: Add error state to workspace if needed
+                _searchState.update { state ->
+                    state.copy(
+                        searchStatus = State.SearchStatus.ERROR,
+                        error = throwable as? Exception ?: Exception("Workspace error", throwable),
+                    )
+                }
             }
     )
 
@@ -71,7 +76,14 @@ class SearcherWorkspace @AssistedInject constructor(
     override val type: Workspace.Type = Workspace.Type.SEARCHER
 
     override suspend fun createArguments(): SearcherArguments {
-        return creationArguments
+        val currentState = _searchState.value
+        val targets = searchEngine.targetState.value
+        return SearcherArguments.Default(
+            startTargets = targets.ifEmpty { null },
+            filenameQuery = currentState.currentSearchQuery?.filenameQuery,
+            contentQuery = currentState.currentSearchQuery?.contentQuery,
+            startSearch = false,
+        )
     }
 
     override val info: MutableStateFlow<Workspace.Info> = MutableStateFlow(
@@ -144,12 +156,26 @@ class SearcherWorkspace @AssistedInject constructor(
     init {
         log(tag, INFO) { "Initialized" }
 
-        // Initialize search targets from arguments if provided
+        // Initialize search targets and query from arguments if provided
         scope.launch {
             val args = creationArguments as? SearcherArguments.Default
             if (args?.startTargets != null) {
                 log(tag, INFO) { "Using targets from arguments: ${args.startTargets}" }
                 searchEngine.updateTargets { args.startTargets!! }
+            }
+
+            // Initialize search query from arguments (for restore persistence)
+            if (args?.filenameQuery?.isNotEmpty == true || args?.contentQuery?.isNotEmpty == true) {
+                log(tag, INFO) { "Restoring query from arguments: filename=${args.filenameQuery?.pattern}, content=${args.contentQuery?.pattern}" }
+                _searchState.update { state ->
+                    state.copy(
+                        currentSearchQuery = SearchQuery(
+                            filenameQuery = args.filenameQuery ?: FilenameQuery(),
+                            contentQuery = args.contentQuery ?: ContentQuery(),
+                            targets = args.startTargets ?: emptyList(),
+                        )
+                    )
+                }
             }
         }
 
@@ -185,7 +211,7 @@ class SearcherWorkspace @AssistedInject constructor(
     }
 
     private suspend fun processSearchRequest(command: SearcherCommand.Search) {
-        log(tag) { "processSearchRequest(): ${command.query}" }
+        log(tag) { "processSearchRequest(): filename=${command.filenameQuery.pattern}, content=${command.contentQuery.pattern}" }
 
         // Set initial progress with first target
         val initialProgress = (command.targets.firstOrNull() as? SearchTarget.Path)?.let { firstTarget ->
@@ -198,7 +224,8 @@ class SearcherWorkspace @AssistedInject constructor(
 
         // Build search query for display
         val searchQuery = SearchQuery(
-            query = command.query,
+            filenameQuery = command.filenameQuery,
+            contentQuery = command.contentQuery,
             targets = command.targets,
             filter = command.filter,
             options = command.options,
@@ -214,6 +241,16 @@ class SearcherWorkspace @AssistedInject constructor(
                 error = null,
             )
         }
+
+        // Update workspace info with current search (triggers session save + shows in tab)
+        val subtitleText = buildString {
+            append(command.filenameQuery.pattern)
+            if (command.contentQuery.isNotEmpty) {
+                append(" | ")
+                append(command.contentQuery.pattern)
+            }
+        }
+        info.value = info.value.copy(subtitle = subtitleText.toCaString())
 
         // Delegate to engine
         when (val result = searchEngine.search(command, onProgress = { engineProgress ->

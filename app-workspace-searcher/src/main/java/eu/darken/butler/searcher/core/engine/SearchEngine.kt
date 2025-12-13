@@ -19,26 +19,22 @@ import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
-import javax.inject.Inject
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -70,7 +66,7 @@ class SearchEngine @AssistedInject constructor(
     init {
         log(tag, INFO) { "Initialized" }
         scope.launch {
-            val savedTargets = searcherSettings.defaultSearchTargets.value()
+            val savedTargets = searcherSettings.searchDefaultTargets.value()
             if (savedTargets != null) {
                 log(tag, INFO) { "Loaded ${savedTargets.size} targets from settings" }
                 _targetState.value = savedTargets
@@ -132,7 +128,7 @@ class SearchEngine @AssistedInject constructor(
         log(tag, INFO) { "Updating search targets: ${newTargets.size} targets" }
         _targetState.value = newTargets
         scope.launch {
-            searcherSettings.defaultSearchTargets.value(newTargets)
+            searcherSettings.searchDefaultTargets.value(newTargets)
         }
     }
 
@@ -141,7 +137,7 @@ class SearchEngine @AssistedInject constructor(
         val defaultPaths = getDefaultSearchPaths()
         _targetState.value = defaultPaths
         scope.launch {
-            searcherSettings.defaultSearchTargets.value(defaultPaths)
+            searcherSettings.searchDefaultTargets.value(defaultPaths)
         }
     }
 
@@ -175,11 +171,11 @@ class SearchEngine @AssistedInject constructor(
         command: SearcherCommand.Search,
         onProgress: ((SearchProgress) -> Unit)? = null
     ): Result {
-        log(tag, INFO) { "search(): ${command.query}" }
+        log(tag, INFO) { "search(): filename=${command.filenameQuery.pattern}, content=${command.contentQuery.pattern}" }
 
-        // Validate query
-        if (command.query.isBlank()) {
-            log(tag, WARN) { "Skipping search with blank query" }
+        // Validate patterns - at least one must be non-empty
+        if (command.filenameQuery.isEmpty && command.contentQuery.isEmpty) {
+            log(tag, WARN) { "Skipping search - both patterns are empty" }
             return Result.InvalidQuery
         }
 
@@ -223,7 +219,8 @@ class SearchEngine @AssistedInject constructor(
 
             // Permission check passed, proceed with search
             val searchQuery = SearchQuery(
-                query = command.query,
+                filenameQuery = command.filenameQuery,
+                contentQuery = command.contentQuery,
                 targets = command.targets,
                 filter = command.filter,
                 options = command.options,
@@ -255,7 +252,7 @@ class SearchEngine @AssistedInject constructor(
             .filterIsInstance<SearchTarget.Path>()
             .filter { it.enabled }
 
-        log(tag, INFO) { "Starting concurrent search with query: ${searchQuery.query} across ${enabledTargets.size} enabled path(s)" }
+        log(tag, INFO) { "Starting concurrent search (filename: ${searchQuery.filenameQuery.pattern}, content: ${searchQuery.contentQuery.pattern}) across ${enabledTargets.size} enabled path(s)" }
 
         // Initialize target progress states
         val initialProgress = enabledTargets.map { target ->
@@ -312,8 +309,9 @@ class SearchEngine @AssistedInject constructor(
                         // Check max results across all scanners
                         val found = foundCounter.incrementAndGet()
                         if (maxResults != null && found > maxResults) {
-                            log(tag, INFO) { "Max results reached ($found)" }
+                            log(tag, INFO) { "Max results reached ($found), skipping item" }
                             cancel("Max results reached")
+                            return@collect // Don't send this result
                         }
                         send(result) // Send to channelFlow
                     }
