@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.foundation.rememberScrollState
 import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import androidx.compose.foundation.text.BasicTextField
@@ -224,6 +226,9 @@ private fun DualColumnEditorContent(
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
 
+    // Track measured heights for each line when word wrap is enabled
+    val lineHeights = remember { mutableStateMapOf<Int, Int>() }
+
     // Measure actual character width for accurate positioning
     val textMeasurer = rememberTextMeasurer()
     val actualCharWidth = remember(fontSize) {
@@ -351,9 +356,18 @@ private fun DualColumnEditorContent(
                         count = totalLines,
                         key = { index -> "line_num_$index" }
                     ) { lineIndex ->
+                        val measuredHeight = if (wordWrap) lineHeights[lineIndex] else null
+
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .then(
+                                    if (measuredHeight != null) {
+                                        Modifier.height(with(density) { measuredHeight.toDp() })
+                                    } else {
+                                        Modifier
+                                    }
+                                )
                                 .padding(horizontal = 8.dp, vertical = 2.dp),
                             contentAlignment = Alignment.TopEnd
                         ) {
@@ -506,7 +520,10 @@ private fun DualColumnEditorContent(
                         wordWrap = wordWrap,
                         fontSize = fontSize,
                         tabSize = tabSize,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        onHeightMeasured = if (wordWrap) { height ->
+                            lineHeights[lineIndex] = height
+                        } else null,
                     )
                 }
             }
