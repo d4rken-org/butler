@@ -98,8 +98,19 @@ internal fun TextLineItem(
 
             // When word wrap is enabled, draw highlight only for the visual line containing cursor
             if (wordWrap && layoutResult != null && layoutResult.lineCount > 0) {
-                val cursorOffset = position.coerceIn(0, expandedText.length.coerceAtLeast(1) - 1)
-                val visualLine = if (expandedText.isEmpty()) 0 else layoutResult.getLineForOffset(cursorOffset)
+                val cursorOffset = position.coerceIn(0, expandedText.length)
+                // Handle boundary case: if cursor is at start of a visual line, it's actually
+                // at the end of the previous visual line
+                val rawVisualLine = if (cursorOffset < expandedText.length) {
+                    layoutResult.getLineForOffset(cursorOffset)
+                } else {
+                    layoutResult.lineCount - 1
+                }
+                val visualLine = if (rawVisualLine > 0 && cursorOffset == layoutResult.getLineStart(rawVisualLine)) {
+                    rawVisualLine - 1
+                } else {
+                    rawVisualLine
+                }
                 val lineTop = layoutResult.getLineTop(visualLine)
                 val lineBottom = layoutResult.getLineBottom(visualLine)
 
@@ -112,14 +123,29 @@ internal fun TextLineItem(
 
             drawContent()
 
+            // Calculate boundary state for wrapped text - used for both X and Y positioning
+            val isAtBoundary = if (wordWrap && layoutResult != null && layoutResult.lineCount > 1) {
+                val cursorOffset = position.coerceIn(0, expandedText.length)
+                val rawVisualLine = if (cursorOffset < expandedText.length) {
+                    layoutResult.getLineForOffset(cursorOffset)
+                } else {
+                    layoutResult.lineCount - 1
+                }
+                rawVisualLine > 0 && cursorOffset == layoutResult.getLineStart(rawVisualLine)
+            } else {
+                false
+            }
+
+            // Calculate cursor X - at boundary, use right edge of previous char
             val cursorX = when {
+                isAtBoundary && position > 0 && layoutResult != null -> {
+                    layoutResult.getBoundingBox(position - 1).right
+                }
                 layoutResult != null && position < expandedText.length -> {
-                    val boundingBox = layoutResult.getBoundingBox(position)
-                    boundingBox.left
+                    layoutResult.getBoundingBox(position).left
                 }
                 layoutResult != null && position == expandedText.length && expandedText.isNotEmpty() -> {
-                    val boundingBox = layoutResult.getBoundingBox(expandedText.length - 1)
-                    boundingBox.right
+                    layoutResult.getBoundingBox(expandedText.length - 1).right
                 }
                 else -> {
                     val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
@@ -129,8 +155,13 @@ internal fun TextLineItem(
 
             // Calculate cursor Y position - for wrapped text, draw on correct visual line
             val (cursorTop, cursorBottom) = if (wordWrap && layoutResult != null && layoutResult.lineCount > 1) {
-                val cursorOffset = position.coerceIn(0, expandedText.length.coerceAtLeast(1) - 1)
-                val visualLine = if (expandedText.isEmpty()) 0 else layoutResult.getLineForOffset(cursorOffset)
+                val cursorOffset = position.coerceIn(0, expandedText.length)
+                val rawVisualLine = if (cursorOffset < expandedText.length) {
+                    layoutResult.getLineForOffset(cursorOffset)
+                } else {
+                    layoutResult.lineCount - 1
+                }
+                val visualLine = if (isAtBoundary) rawVisualLine - 1 else rawVisualLine
                 layoutResult.getLineTop(visualLine) to layoutResult.getLineBottom(visualLine)
             } else {
                 0f to size.height

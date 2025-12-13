@@ -78,14 +78,28 @@ internal fun SelectionHandle(
             val layout = textLayouts[position.line]!!
             val textLength = visibleLineContent[position.line]?.length ?: 0
             if (textLength > 0) {
-                val clampedColumn = position.column.coerceIn(0, textLength - 1)
-                val visualLine = layout.getLineForOffset(clampedColumn)
+                val columnForCalc = position.column.coerceIn(0, textLength)
+
+                // Calculate visual line, handling boundary case
+                // getLineForOffset(N) returns the line where char N starts, but if N equals
+                // getLineStart of that line (i.e., it's at a line boundary), cursor should
+                // appear at the END of the previous visual line, not start of next
+                val rawVisualLine = if (columnForCalc < textLength) {
+                    layout.getLineForOffset(columnForCalc)
+                } else {
+                    layout.lineCount - 1
+                }
+                val isAtBoundary = rawVisualLine > 0 && columnForCalc == layout.getLineStart(rawVisualLine)
+                val visualLine = if (isAtBoundary) rawVisualLine - 1 else rawVisualLine
                 visualLineOffsetY = layout.getLineTop(visualLine)
 
                 // Calculate X position from TextLayoutResult
-                val columnForX = position.column.coerceIn(0, textLength)
-                visualCharOffsetX = if (columnForX < textLength) {
-                    layout.getBoundingBox(columnForX).left
+                // At boundary: use right edge of previous char (end of visual line)
+                // Otherwise: use left edge of current char
+                visualCharOffsetX = if (isAtBoundary && columnForCalc > 0) {
+                    layout.getBoundingBox(columnForCalc - 1).right
+                } else if (columnForCalc < textLength) {
+                    layout.getBoundingBox(columnForCalc).left
                 } else {
                     layout.getBoundingBox(textLength - 1).right
                 }
