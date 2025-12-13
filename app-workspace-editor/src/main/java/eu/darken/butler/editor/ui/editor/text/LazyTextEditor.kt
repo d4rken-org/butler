@@ -84,10 +84,12 @@ fun LazyTextEditor(
     val lineNumbersListState = rememberLazyListState()
     val contentListState = rememberLazyListState()
 
-    // Clear focus when workspace loses focus (multi-pane adaptive layout support)
+    // Release focus when workspace loses focus (multi-pane adaptive layout support)
+    // Use freeFocus() instead of clearFocus() to only release this component's focus,
+    // not clear focus globally (which would break focus transfer to other workspaces)
     LaunchedEffect(isWorkspaceFocused) {
         if (!isWorkspaceFocused) {
-            focusManager.clearFocus()
+            try { focusRequester.freeFocus() } catch (_: Exception) {}
         }
     }
     val horizontalScrollState = rememberScrollState()
@@ -230,10 +232,12 @@ private fun DualColumnEditorContent(
     val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
     val focusManager = LocalFocusManager.current
 
-    // Clear focus when workspace loses focus (multi-pane adaptive layout support)
+    // Release focus when workspace loses focus (multi-pane adaptive layout support)
+    // Use freeFocus() instead of clearFocus() to only release this component's focus,
+    // not clear focus globally (which would break focus transfer to other workspaces)
     LaunchedEffect(isWorkspaceFocused) {
         if (!isWorkspaceFocused) {
-            focusManager.clearFocus()
+            try { focusRequester.freeFocus() } catch (_: Exception) {}
         }
     }
 

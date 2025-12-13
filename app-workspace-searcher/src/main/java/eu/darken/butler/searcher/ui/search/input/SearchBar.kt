@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalFocusManager
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import androidx.compose.ui.graphics.Color
@@ -55,7 +54,6 @@ fun SearchBar(
     onCancel: (() -> Unit)? = null,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
     val isWorkspaceFocused = LocalWorkspaceFocused.current
     val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
     val colors = MaterialTheme.colorScheme
@@ -71,13 +69,15 @@ fun SearchBar(
         }
     }
 
-    // Only request focus when workspace is focused, clear when it loses focus
+    // Only request focus when workspace is focused, release when it loses focus
+    // Use freeFocus() instead of clearFocus() to only release this component's focus,
+    // not clear focus globally (which would break focus transfer to other workspaces)
     LaunchedEffect(isWorkspaceFocused) {
         if (isWorkspaceFocused && !hasInitialFocused) {
             focusRequester.requestFocus()
             hasInitialFocused = true
         } else if (!isWorkspaceFocused) {
-            focusManager.clearFocus()
+            try { focusRequester.freeFocus() } catch (_: Exception) {}
         }
     }
 
