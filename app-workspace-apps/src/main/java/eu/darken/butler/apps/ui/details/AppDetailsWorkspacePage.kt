@@ -84,6 +84,7 @@ fun AppDetailsWorkspacePageHost(
         AppDetailsWorkspacePage(
             design = design,
             state = currentState,
+            workspaceId = id,
             workspaceButtonState = workspaceButtonState,
             workspaceActionHandler = workspaceButtonVm,
             onPageAction = { action ->
@@ -108,6 +109,7 @@ fun AppDetailsWorkspacePage(
     modifier: Modifier = Modifier,
     design: WorkspaceDesign,
     state: AppDetailsWorkspace.State,
+    workspaceId: Workspace.Id? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
     onPageAction: (AppDetailsPageAction) -> Unit = {},
@@ -305,6 +307,7 @@ fun AppDetailsWorkspacePage(
             isModal = isModal,
             collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
             onBackClick = { onPageAction(AppDetailsPageAction.Close) },
+            currentWorkspaceId = workspaceId,
             workspaceButtonState = workspaceButtonState,
             workspaceActionHandler = workspaceActionHandler,
         )
