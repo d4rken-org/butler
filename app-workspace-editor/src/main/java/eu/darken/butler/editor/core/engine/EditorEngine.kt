@@ -16,6 +16,7 @@ import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -72,6 +73,7 @@ class EditorEngine @AssistedInject constructor(
     val error: StateFlow<Throwable?> = _error.asStateFlow()
 
     private val isInitializing = AtomicBoolean(true)
+    private var initializationJob: Job? = null
 
     val fileInfo: Flow<FileInfo?> = state.map { s ->
         when (s) {
@@ -149,6 +151,9 @@ class EditorEngine @AssistedInject constructor(
     }
 
     suspend fun initialize(): Result<Unit> = stateMutex.withLock {
+        // Capture the job for cancellation support
+        initializationJob = currentCoroutineContext()[Job]
+
         return try {
             log(tag) { "Initializing engine with: ${filePath?.name ?: "in-memory editor"}" }
 
@@ -183,6 +188,7 @@ class EditorEngine @AssistedInject constructor(
             val endLine = minOf(50, resources.textBuffer.totalLines.value - 1)
             if (endLine >= 0) {
                 _visibleRange.value = 0..endLine
+                currentCoroutineContext().ensureActive()
                 val contentResult = resources.textBuffer.getTextForRange(0, endLine)
                 if (contentResult.isSuccess) {
                     _currentContent.value = contentResult.getOrNull() ?: ""
@@ -204,13 +210,28 @@ class EditorEngine @AssistedInject constructor(
 
             log(tag) { "Successfully initialized engine with: ${filePath?.name ?: "in-memory editor"}" }
             isInitializing.set(false)
+            initializationJob = null
             Result.success(Unit)
 
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to initialize engine: ${filePath?.name} - ${e.asLog()}" }
             _state.value = EditorState.Error(e, _state.value)
             _error.value = e
+            initializationJob = null
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Cancels an in-progress file initialization.
+     * Safe to call even if no initialization is running.
+     */
+    fun cancelInitialization() {
+        initializationJob?.let { job ->
+            log(tag, INFO) { "Cancelling initialization" }
+            job.cancel()
+            initializationJob = null
+            _state.value = EditorState.Empty
         }
     }
 

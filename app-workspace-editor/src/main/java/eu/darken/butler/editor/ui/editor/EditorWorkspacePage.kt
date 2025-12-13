@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.ui.editor
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,13 +8,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
 import androidx.compose.material.icons.twotone.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -169,48 +173,56 @@ fun EditorWorkspacePage(
                     )
                 }
 
-                // Main editor content - now using fixed LazyTextEditor
+                // Main editor content - conditional rendering based on file state
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
                 ) {
-                    LazyTextEditor(
-                        content = state.currentContent,
-                        totalLines = state.totalLines,
-                        cursorPosition = state.cursorPosition,
-                        selection = state.selectionRange,
-                        visibleRange = state.visibleRange,
-                        showLineNumbers = state.showLineNumbers,
-                        wordWrap = state.wordWrap,
-                        fontSize = 14,
-                        tabSize = 4,
-                        onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
-                        onTextDelete = { count -> onPageAction(EditorPageAction.Edit.DeleteAtCursor(count)) },
-                        onCursorPositionChange = { position ->
-                            onPageAction(
-                                EditorPageAction.Navigation.SetCursor(
-                                    position
-                                )
-                            )
-                        },
-                        onSelectionChange = { selection ->
-                            if (selection != null) {
+                    if (state.fileInfo == null && state.isLoading) {
+                        // Initial file load - show centered loading overlay
+                        EditorLoadingOverlay(
+                            onCancel = { onPageAction(EditorPageAction.File.CancelOpen) }
+                        )
+                    } else {
+                        // Show editor (with file content or empty in-memory buffer)
+                        LazyTextEditor(
+                            content = state.currentContent,
+                            totalLines = state.totalLines,
+                            cursorPosition = state.cursorPosition,
+                            selection = state.selectionRange,
+                            visibleRange = state.visibleRange,
+                            showLineNumbers = state.showLineNumbers,
+                            wordWrap = state.wordWrap,
+                            fontSize = 14,
+                            tabSize = 4,
+                            onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
+                            onTextDelete = { count -> onPageAction(EditorPageAction.Edit.DeleteAtCursor(count)) },
+                            onCursorPositionChange = { position ->
                                 onPageAction(
-                                    EditorPageAction.Navigation.SetSelection(
-                                        selection.first,
-                                        selection.second
+                                    EditorPageAction.Navigation.SetCursor(
+                                        position
                                     )
                                 )
-                            } else {
-                                onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
-                            }
-                        },
-                        onVisibleRangeChange = { range ->
-                            onPageAction(EditorPageAction.Navigation.UpdateVisibleRange(range.first, range.last))
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
+                            },
+                            onSelectionChange = { selection ->
+                                if (selection != null) {
+                                    onPageAction(
+                                        EditorPageAction.Navigation.SetSelection(
+                                            selection.first,
+                                            selection.second
+                                        )
+                                    )
+                                } else {
+                                    onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
+                                }
+                            },
+                            onVisibleRangeChange = { range ->
+                                onPageAction(EditorPageAction.Navigation.UpdateVisibleRange(range.first, range.last))
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
 
                 // Search results
@@ -422,6 +434,35 @@ private fun SearchResultsBar(
 }
 
 @Composable
+private fun EditorLoadingOverlay(
+    modifier: Modifier = Modifier,
+    fileName: String? = null,
+    onCancel: () -> Unit = {},
+) {
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(48.dp)
+            )
+            Text(
+                text = fileName ?: stringResource(R.string.editor_loading_file),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            TextButton(onClick = onCancel) {
+                Text(stringResource(R.string.editor_action_cancel_loading))
+            }
+        }
+    }
+}
+
+@Composable
 private fun GoToLineDialog(
     totalLines: Int,
     onGoToLine: (Int) -> Unit,
@@ -513,5 +554,13 @@ private fun EditorPagePreview() {
             ),
             onPageAction = {}
         )
+    }
+}
+
+@Preview2
+@Composable
+private fun EditorLoadingOverlayPreview() {
+    PreviewWrapper {
+        EditorLoadingOverlay()
     }
 }

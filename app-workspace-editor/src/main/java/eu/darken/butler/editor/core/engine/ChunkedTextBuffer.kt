@@ -9,11 +9,13 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.coroutines.coroutineContext
 import java.util.LinkedList
 
 class ChunkedTextBuffer @AssistedInject constructor(
@@ -895,6 +897,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
 
         for ((index, chunkId) in chunkIds.withIndex()) {
+            // Allow cancellation during long metadata builds
+            coroutineContext.ensureActive()
+
             // Use snapshotted boundary data (prevents stale reads during concurrent edits)
             val boundary = boundariesSnapshot[chunkId]
                 ?: throw IllegalStateException("No boundary for chunk $chunkId")
@@ -908,6 +913,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 // Load chunk to count lines (first initialization or after boundary adjustment)
                 val chunk = chunkManager.getChunk(chunkId)
                     ?: chunkManager.loadChunk(chunkId).getOrThrow()
+
+                // Check for cancellation after I/O completes
+                coroutineContext.ensureActive()
 
                 // Count lines using detected line ending style
                 val content = chunk.content

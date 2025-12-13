@@ -37,6 +37,11 @@
 
     <string name="editor_infobar_selected_x_y">Selected %1$s, %2$s</string>
 
+    <!-- Editor loading states -->
+    <string name="editor_loading_file">Loading file…</string>
+    <string name="editor_saving">Saving…</string>
+    <string name="editor_action_cancel_loading">Cancel</string>
+
     <!-- Editor UI elements -->
     <string name="editor_modified_indicator">•</string>
     <string name="editor_error_unknown">Unknown error</string>
