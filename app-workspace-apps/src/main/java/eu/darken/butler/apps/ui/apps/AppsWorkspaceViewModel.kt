@@ -10,6 +10,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.apps.core.AppsSettings
+import eu.darken.butler.apps.core.AppsViewStyle
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.arguments.AppDetailsArguments
 import eu.darken.butler.apps.core.engine.AppItem
@@ -17,13 +18,16 @@ import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.core.engine.SortSettings
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
+import eu.darken.butler.saver.core.arguments.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -53,13 +57,13 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     private suspend fun getWorkspace(): AppsWorkspace = workspaceSource.filterNotNull().first()
 
     private val searchQueryFlow = MutableStateFlow(TextFieldValue(""))
-    private val viewModeFlow = MutableStateFlow(ViewMode.LIST)
+    private val viewStyleFlow = MutableStateFlow<AppsViewStyle>(appsSettings.defaultViewStyle.valueBlocking)
     private val dialogStateFlow = MutableStateFlow<AppsDialogState>(AppsDialogState.None)
 
     data class State(
         val appsState: AppsState = AppsState(),
         val searchQuery: TextFieldValue = TextFieldValue(""),
-        val viewMode: ViewMode = ViewMode.LIST,
+        val viewStyle: AppsViewStyle = AppsViewStyle.default(),
         val isLoading: Boolean = true,
         val dialogState: AppsDialogState = AppsDialogState.None,
         val availableActions: List<AppsAction> = emptyList(),
@@ -93,11 +97,12 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     }
 
     val state: Flow<State> = combine(
+        workspaceSource.filterNotNull().flatMapLatest { it.state },
         workspaceSource.filterNotNull().flatMapLatest { it.appsEngine.state },
         searchQueryFlow,
-        viewModeFlow,
+        viewStyleFlow,
         dialogStateFlow,
-    ) { appsState, searchQuery, viewMode, dialogState ->
+    ) { workspaceState, appsState, searchQuery, viewStyle, dialogState ->
         // Calculate available actions based on selection state
         val actions = if (appsState.selectedAppIds.isNotEmpty()) {
             val selectedApps = appsState.filteredApps.filter { it.packageName in appsState.selectedAppIds }
@@ -110,16 +115,19 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     add(AppsAction.SelectAll)
                 }
 
-                // Disable (only if all selected apps are enabled)
-                val disableAction = AppsAction.Disable(selectedApps)
-                if (disableAction.isVisible) {
-                    add(disableAction)
-                }
+                // Disable/Enable only if elevated access (root/Shizuku) is available
+                if (workspaceState.hasElevatedAccess) {
+                    // Disable (only if all selected apps are enabled)
+                    val disableAction = AppsAction.Disable(selectedApps)
+                    if (disableAction.isVisible) {
+                        add(disableAction)
+                    }
 
-                // Enable (only if any selected apps are disabled)
-                val enableAction = AppsAction.Enable(selectedApps)
-                if (enableAction.isVisible) {
-                    add(enableAction)
+                    // Enable (only if any selected apps are disabled)
+                    val enableAction = AppsAction.Enable(selectedApps)
+                    if (enableAction.isVisible) {
+                        add(enableAction)
+                    }
                 }
 
                 // Uninstall
@@ -145,22 +153,23 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 add(AppsAction.Refresh)
                 add(AppsAction.Sort)
                 add(AppsAction.Filter)
+                // View style toggle - shows the CURRENT style, clicking switches to the other
+                val toggledViewStyle = when (viewStyle) {
+                    is AppsViewStyle.List -> AppsViewStyle.Grid()
+                    is AppsViewStyle.Grid -> AppsViewStyle.List()
+                }
+                add(AppsAction.UpdateViewStyle(toggledViewStyle))
             }
         }
 
         State(
             appsState = appsState,
             searchQuery = searchQuery,
-            viewMode = viewMode,
+            viewStyle = viewStyle,
             isLoading = appsState.isLoading,
             dialogState = dialogState,
             availableActions = actions,
         )
-    }
-
-    enum class ViewMode {
-        LIST,
-        GRID,
     }
 
     fun onAppClick(item: AppItem) = launch {
@@ -284,6 +293,18 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         dialogStateFlow.value = AppsDialogState.None
     }
 
+    fun performEnableApps(apps: List<AppItem>) = launch {
+        log(tag) { "Enabling ${apps.size} apps" }
+        dismissDialog()
+        getWorkspace().enableApps(apps)
+    }
+
+    fun performDisableApps(apps: List<AppItem>) = launch {
+        log(tag) { "Disabling ${apps.size} apps" }
+        dismissDialog()
+        getWorkspace().disableApps(apps)
+    }
+
     fun onAction(action: AppsAction) {
         log(tag) { "Executing action: ${action.javaClass.simpleName}" }
 
@@ -305,13 +326,11 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             is AppsAction.Disable -> launch {
                 log(tag) { "Disable action for ${action.apps.size} apps" }
                 dialogStateFlow.value = AppsDialogState.ConfirmDisable(action.apps)
-                // TODO: Implement actual disable operation
             }
 
             is AppsAction.Enable -> launch {
                 log(tag) { "Enable action for ${action.apps.size} apps" }
                 dialogStateFlow.value = AppsDialogState.ConfirmEnable(action.apps)
-                // TODO: Implement actual enable operation
             }
 
             is AppsAction.Uninstall -> launch {
@@ -334,8 +353,22 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
             is AppsAction.ExportApk -> launch {
                 log(tag) { "Export APK action for ${action.apps.size} apps" }
-                // TODO: Implement APK export
-                log(tag, WARN) { "Export APK not implemented yet" }
+                val apkUris = action.apps.mapNotNull { app ->
+                    (app.pkg as? SourceAvailable)?.sourceDir?.path?.let { "file://$it" }
+                }
+                if (apkUris.isNotEmpty()) {
+                    workspaceRemote.createAndFocus(
+                        type = Workspace.Type.SAVER,
+                        arguments = SaverArguments.Default(
+                            sourceUris = apkUris,
+                            callerPackage = null,
+                        ),
+                    )
+                    // Clear selection after initiating export
+                    getWorkspace().appsEngine.clearSelection()
+                } else {
+                    log(tag, WARN) { "No APK source paths available for export" }
+                }
             }
 
             is AppsAction.Share -> launch {
@@ -359,6 +392,13 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     type = Workspace.Type.EXPLORER,
                     arguments = ExplorerArguments.Default(startPath = action.path),
                 )
+            }
+
+            is AppsAction.UpdateViewStyle -> {
+                viewStyleFlow.value = action.viewStyle
+                launch {
+                    appsSettings.defaultViewStyle.value(action.viewStyle)
+                }
             }
         }
     }

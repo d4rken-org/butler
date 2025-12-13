@@ -35,6 +35,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -48,6 +49,7 @@ fun AppDetailsToolbarCard(
     isModal: Boolean,
     collapsedFraction: Float = 0f,
     onBackClick: () -> Unit,
+    currentWorkspaceId: Workspace.Id? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
@@ -143,6 +145,7 @@ fun AppDetailsToolbarCard(
                 WorkspaceButton(
                     buttonSize = 40.dp,
                     state = workspaceButtonState,
+                    currentWorkspaceId = currentWorkspaceId,
                     workspaceActionHandler = workspaceActionHandler,
                 )
             }

@@ -42,6 +42,8 @@
     <string name="apps_action_deselect_all">Deselect all</string>
     <string name="apps_action_open_in_tab">Open in tab</string>
     <string name="apps_action_force_stop">Force stop</string>
+    <string name="apps_action_view_grid">Grid view</string>
+    <string name="apps_action_view_list">List view</string>
 
     <!-- Action Descriptions -->
     <string name="apps_action_launch_desc">Start the application</string>
@@ -139,5 +141,15 @@
     <string name="apps_data_size_label">Data</string>
     <string name="apps_cache_size_label">Cache</string>
     <string name="apps_total_size_label">Total</string>
+
+    <!-- Components Section -->
+    <string name="apps_details_section_components">Components</string>
+    <string name="apps_components_activities_label">Activities</string>
+    <string name="apps_components_services_label">Services</string>
+    <string name="apps_components_receivers_label">Broadcast Receivers</string>
+    <string name="apps_components_providers_label">Content Providers</string>
+    <string name="apps_components_exported">Exported</string>
+    <string name="apps_components_empty">No components found</string>
+    <string name="apps_components_and_more">…and %d more</string>
 
 </resources>

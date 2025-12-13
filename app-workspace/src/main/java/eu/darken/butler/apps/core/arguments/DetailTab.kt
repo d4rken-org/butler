@@ -13,4 +13,9 @@ enum class DetailTab {
      * Package info tab showing APK details, manifest, components, signing info
      */
     PACKAGE_INFO,
+
+    /**
+     * Components tab showing activities, services, receivers, and providers
+     */
+    COMPONENTS,
 }

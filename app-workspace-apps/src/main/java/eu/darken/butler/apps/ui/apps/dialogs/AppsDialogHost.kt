@@ -2,6 +2,7 @@ package eu.darken.butler.apps.ui.apps.dialogs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.AppsAction
 
 @Composable
@@ -11,6 +12,8 @@ fun AppsDialogHost(
     onAction: (AppsAction) -> Unit,
     onFilterApply: (eu.darken.butler.apps.core.engine.AppsState.FilterConfig) -> Unit,
     onSortApply: (eu.darken.butler.apps.core.engine.SortSettings) -> Unit,
+    onConfirmEnable: (List<AppItem>) -> Unit,
+    onConfirmDisable: (List<AppItem>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (dialogState) {
@@ -53,9 +56,7 @@ fun AppsDialogHost(
                 apps = dialogState.apps,
                 confirmButtonText = "Disable",
                 isDestructive = false,
-                onConfirm = {
-                    // TODO: Implement actual disable operation
-                },
+                onConfirm = { onConfirmDisable(dialogState.apps) },
                 onDismiss = onDismiss,
                 modifier = modifier,
             )
@@ -68,9 +69,7 @@ fun AppsDialogHost(
                 apps = dialogState.apps,
                 confirmButtonText = "Enable",
                 isDestructive = false,
-                onConfirm = {
-                    // TODO: Implement actual enable operation
-                },
+                onConfirm = { onConfirmEnable(dialogState.apps) },
                 onDismiss = onDismiss,
                 modifier = modifier,
             )

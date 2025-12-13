@@ -39,24 +39,17 @@ class AppsSettings @Inject constructor(
         json,
     )
 
-    val viewMode = dataStore.createValue(
-        "apps.view.mode",
-        ViewMode.LIST,
+    val defaultViewStyle = dataStore.createValue(
+        "apps.view.style.default",
+        AppsViewStyle.default(),
         json,
     )
 
     override val mapper = PreferenceStoreMapper(
         defaultFilterConfig,
         defaultSortSettings,
-        viewMode,
+        defaultViewStyle,
     )
-
-    @Serializable
-    enum class ViewMode {
-        LIST,
-        GRID,
-        ;
-    }
 
     companion object {
         internal val TAG = logTag("Apps", "Settings")
