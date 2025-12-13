@@ -55,22 +55,28 @@ class WorkspacePageManager @Inject constructor(
                     is WorkspaceEvent.Created -> {
                         handleWorkspaceCreated(event.workspaceId, event.replacedId, event.autoFocus)
                     }
+
                     is WorkspaceEvent.Closed -> {
-                        handleWorkspaceClosed(event.workspaceId)
+                        handleWorkspaceClosed(event.workspaceId, event.callerWorkspaceId)
                     }
+
                     is WorkspaceEvent.ResultEvent -> {
                         // Handled by individual workspaces, UI manager ignores it
                     }
+
                     is WorkspaceEvent.BatchCreationCompleted -> {
                         // Handled by WorkspacesViewModel for banner feedback
                     }
+
                     is WorkspaceEvent.SelectionRequested -> {
                         log(TAG) { "Selection requested for workspace: ${event.workspaceId}" }
                         handleWorkspaceSelection(event.workspaceId)
                     }
+
                     is WorkspaceEvent.Reordered -> {
                         log(TAG) { "Workspaces reordered: ${event.workspaceIds}" }
                     }
+
                     WorkspaceEvent.AllClosed -> {
                         log(TAG) { "All workspaces closed" }
                         _state.update {
@@ -393,48 +399,65 @@ class WorkspacePageManager @Inject constructor(
         }
     }
 
-    private suspend fun handleWorkspaceClosed(workspaceId: Workspace.Id) {
-        log(TAG) { "handleWorkspaceClosed: workspaceId=$workspaceId" }
+    private suspend fun handleWorkspaceClosed(workspaceId: Workspace.Id, callerWorkspaceId: Workspace.Id?) {
+        log(TAG) { "handleWorkspaceClosed: workspaceId=$workspaceId, callerWorkspaceId=$callerWorkspaceId" }
 
         val currentState = _state.value
         val wasSelected = currentState.selectedWorkspaces.values.contains(workspaceId)
         val wasFocused = currentState.focusedWorkspaceId == workspaceId
 
-        if (wasSelected) {
+        log(TAG) { "handleWorkspaceClosed: wasSelected=$wasSelected, wasFocused=$wasFocused" }
+
+        // Get available workspaces BEFORE entering update block (suspending call)
+        val availableWorkspaces = workspaceRemote.state.first().infos.filter { !it.isSubWorkspace }
+        log(TAG) { "handleWorkspaceClosed: availableWorkspaces=${availableWorkspaces.size}" }
+
+        // Prefer returning to caller workspace, fall back to MRU
+        val callerWorkspace = callerWorkspaceId?.let { callerId ->
+            availableWorkspaces.find { it.id == callerId }
+        }
+        val mruWorkspace = availableWorkspaces.maxByOrNull {
+            currentState.workspaceAccessTimes[it.id] ?: Instant.DISTANT_PAST
+        }
+        val nextWorkspace = callerWorkspace ?: mruWorkspace
+        log(TAG) { "handleWorkspaceClosed: callerWorkspace=${callerWorkspace?.id}, mruWorkspace=${mruWorkspace?.id}, nextWorkspace=${nextWorkspace?.id}" }
+
+        if (wasSelected || wasFocused) {
             _state.update { state ->
-                // Remove from selection
+                log(TAG) { "handleWorkspaceClosed.update: state.selectedWorkspaces=${state.selectedWorkspaces}" }
+
+                // Remove closed workspace from selection
                 val position = state.selectedWorkspaces.entries.find { it.value == workspaceId }?.key
+                log(TAG) { "handleWorkspaceClosed.update: position=$position" }
+
                 val newSelections = if (position != null) {
                     state.selectedWorkspaces - position
                 } else {
                     state.selectedWorkspaces
                 }
+                log(TAG) { "handleWorkspaceClosed.update: newSelections=$newSelections" }
 
-                // Select next workspace if this was focused
-                val newFocus = if (wasFocused) {
-                    val workspaces = workspaceRemote.state.first().infos
-                    if (workspaces.isNotEmpty()) {
-                        val newSelected = workspaces.firstOrNull()
-                        newSelected?.let {
-                            // If no workspaces selected, select the first one
-                            if (newSelections.isEmpty()) {
-                                return@update state.copy(
-                                    selectedWorkspaces = mapOf(0 to it.id),
-                                    focusedWorkspaceId = it.id
-                                )
-                            }
-                            it.id
-                        }
-                    } else {
-                        null
-                    }
+                // Determine next workspace to focus
+                val newFocus = if (wasFocused && nextWorkspace != null) {
+                    nextWorkspace.id
+                } else if (wasFocused) {
+                    null
                 } else {
                     state.focusedWorkspaceId
                 }
 
+                // Ensure we have a selection if we have a focus
+                val finalSelections = if (newFocus != null && newSelections.isEmpty()) {
+                    mapOf(0 to newFocus)
+                } else {
+                    newSelections
+                }
+
+                log(TAG) { "handleWorkspaceClosed.update: newFocus=$newFocus, finalSelections=$finalSelections" }
+
                 state.copy(
-                    selectedWorkspaces = newSelections,
-                    focusedWorkspaceId = newFocus
+                    selectedWorkspaces = finalSelections,
+                    focusedWorkspaceId = newFocus,
                 )
             }
         }
