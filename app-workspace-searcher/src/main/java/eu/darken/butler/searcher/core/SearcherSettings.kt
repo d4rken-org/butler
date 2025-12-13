@@ -26,31 +26,27 @@ class SearcherSettings @Inject constructor(
     override val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    // Search defaults for new workspaces
-    val searchDefaults = dataStore.createValue("searcher.defaults", SearchDefaults(), json)
+    val searchDefaultQuery = dataStore.createValue("searcher.search.query.default", SearchDefaults(), json)
+    val searchDefaultTargets = dataStore.createValue<List<SearchTarget>?>("searcher.search.target.default", null, json)
 
-    val defaultSearchTargets = dataStore.createValue<List<SearchTarget>?>("searcher.default.targets", null, json)
     val maxSearchResults = dataStore.createValue("searcher.results.maximum", 1000)
     val saveHistory = dataStore.createValue("searcher.history.enabled", true)
     val maxHistoryItems = dataStore.createValue("searcher.history.maximum", 50)
 
-    val sortSettings = dataStore.createValue("searcher.sort.default", SearchSortSettings(), json)
+    val defaultSort = dataStore.createValue("searcher.sort.default", SearchSortSettings(), json)
 
-    val defaultViewStyle = dataStore.createValue("searcher.view.style.default", SearcherViewStyle.default(), json)
+    val defaultViewStyle = dataStore.createValue("searcher.viewstyle.default", SearcherViewStyle.default(), json)
 
-    val contentSearchBinaries = dataStore.createValue(
-        "searcher.content.include.binaries",
-        false,
-    )
+    val contentSearchBinaries = dataStore.createValue("searcher.content.include.binaries", false)
 
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
-        searchDefaults,
+        searchDefaultQuery,
         maxHistoryItems,
         saveHistory,
         maxSearchResults,
-        defaultSearchTargets,
-        sortSettings,
+        searchDefaultTargets,
+        defaultSort,
         defaultViewStyle,
         contentSearchBinaries,
     )

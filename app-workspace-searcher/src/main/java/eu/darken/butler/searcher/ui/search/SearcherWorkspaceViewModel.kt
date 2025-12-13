@@ -121,7 +121,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
-    private val currentSortSettings = MutableStateFlow(searcherSettings.sortSettings.valueBlocking)
+    private val currentSortSettings = MutableStateFlow(searcherSettings.defaultSort.valueBlocking)
     private val viewStyleFlow = MutableStateFlow(searcherSettings.defaultViewStyle.valueBlocking)
     private var lastAutoExecutedQuery: String? = null
     private var currentSearchId: String? = null
@@ -143,7 +143,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         vmScope.launch {
             val workspace = getWorkspace()
             val args = workspace.creationArguments as? SearcherArguments.Default
-            val defaults = searcherSettings.searchDefaults.valueBlocking
+            val defaults = searcherSettings.searchDefaultQuery.valueBlocking
 
             // Load query options: args > defaults
             filenameOptions.value = args?.filenameQuery?.copy(pattern = "") ?: defaults.filename
@@ -907,7 +907,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     fun onSortOptions(result: eu.darken.butler.searcher.ui.search.dialogs.SearchSortOptionsResult) = launch {
         log(tag) { "onSortOptions($result)" }
         dialogStateFlow.value = SearcherDialogState.None
-        searcherSettings.sortSettings.value(result.sortSettings)
+        searcherSettings.defaultSort.value(result.sortSettings)
         currentSortSettings.value = result.sortSettings
     }
 

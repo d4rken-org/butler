@@ -19,26 +19,22 @@ import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
-import javax.inject.Inject
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -70,7 +66,7 @@ class SearchEngine @AssistedInject constructor(
     init {
         log(tag, INFO) { "Initialized" }
         scope.launch {
-            val savedTargets = searcherSettings.defaultSearchTargets.value()
+            val savedTargets = searcherSettings.searchDefaultTargets.value()
             if (savedTargets != null) {
                 log(tag, INFO) { "Loaded ${savedTargets.size} targets from settings" }
                 _targetState.value = savedTargets
@@ -132,7 +128,7 @@ class SearchEngine @AssistedInject constructor(
         log(tag, INFO) { "Updating search targets: ${newTargets.size} targets" }
         _targetState.value = newTargets
         scope.launch {
-            searcherSettings.defaultSearchTargets.value(newTargets)
+            searcherSettings.searchDefaultTargets.value(newTargets)
         }
     }
 
@@ -141,7 +137,7 @@ class SearchEngine @AssistedInject constructor(
         val defaultPaths = getDefaultSearchPaths()
         _targetState.value = defaultPaths
         scope.launch {
-            searcherSettings.defaultSearchTargets.value(defaultPaths)
+            searcherSettings.searchDefaultTargets.value(defaultPaths)
         }
     }
 
