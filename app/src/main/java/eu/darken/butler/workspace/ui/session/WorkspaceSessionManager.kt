@@ -253,7 +253,7 @@ class WorkspaceSessionManager @Inject constructor(
         return restoredWorkspaceIds
     }
 
-    private suspend fun applyUIState(
+    internal suspend fun applyUIState(
         focusedId: Workspace.Id?,
         selectedIds: Map<Int, Workspace.Id>,
         actualWorkspaceIds: List<Workspace.Id>,
@@ -305,9 +305,11 @@ class WorkspaceSessionManager @Inject constructor(
             }
         }
 
-        // Ensure focused workspace is in pane 0 selection (consistency guarantee)
-        if (validFocusedId != null && selectedWorkspaces[0] != validFocusedId) {
-            log(TAG, WARN) { "Focus/selection mismatch: focus=$validFocusedId, pane0=${selectedWorkspaces[0]}, fixing" }
+        // Ensure focused workspace is visible in at least one pane
+        // This handles: pane count reduction (landscape→portrait), inconsistent saved state
+        // Skip if already in any pane (prevents duplicates) or if it's a sub-workspace (modals aren't in panes)
+        if (validFocusedId != null && validFocusedId !in selectedWorkspaces.values) {
+            log(TAG, WARN) { "Focused workspace $validFocusedId not in any pane, assigning to pane 0" }
             selectedWorkspaces[0] = validFocusedId
         }
 
