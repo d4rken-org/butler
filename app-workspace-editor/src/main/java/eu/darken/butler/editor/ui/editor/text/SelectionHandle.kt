@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,7 +39,10 @@ internal fun SelectionHandle(
     horizontalScrollState: ScrollState,
     actualCharWidth: Float,
     onDrag: (Offset) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    wordWrap: Boolean = false,
+    textLayouts: Map<Int, TextLayoutResult> = emptyMap(),
+    visibleLineContent: Map<Int, String> = emptyMap(),
 ) {
     val density = LocalDensity.current
     val handleColor = MaterialTheme.colorScheme.primary
@@ -55,6 +59,8 @@ internal fun SelectionHandle(
 
     // Use simple state to store Y position, updated via LaunchedEffect observing layout
     var yPosition by remember { mutableStateOf<Float?>(null) }
+    var visualLineOffsetY by remember { mutableStateOf(0f) }
+    var visualCharOffsetX by remember { mutableStateOf(-1f) }  // -1 = use column * charWidth
 
     // Observe layout changes and update Y position
     // This isolates layout reading from composition/offset lambda
@@ -63,6 +69,33 @@ internal fun SelectionHandle(
             contentListState.layoutInfo.visibleItemsInfo.find { it.index == position.line }?.offset
         }.collect { offset ->
             yPosition = offset?.toFloat()
+        }
+    }
+
+    // Calculate visual line offset and X position when word wrap is enabled
+    LaunchedEffect(position.line, position.column, wordWrap, textLayouts) {
+        if (wordWrap && textLayouts.containsKey(position.line)) {
+            val layout = textLayouts[position.line]!!
+            val textLength = visibleLineContent[position.line]?.length ?: 0
+            if (textLength > 0) {
+                val clampedColumn = position.column.coerceIn(0, textLength - 1)
+                val visualLine = layout.getLineForOffset(clampedColumn)
+                visualLineOffsetY = layout.getLineTop(visualLine)
+
+                // Calculate X position from TextLayoutResult
+                val columnForX = position.column.coerceIn(0, textLength)
+                visualCharOffsetX = if (columnForX < textLength) {
+                    layout.getBoundingBox(columnForX).left
+                } else {
+                    layout.getBoundingBox(textLength - 1).right
+                }
+            } else {
+                visualLineOffsetY = 0f
+                visualCharOffsetX = 0f
+            }
+        } else {
+            visualLineOffsetY = 0f
+            visualCharOffsetX = -1f  // Use column * charWidth fallback
         }
     }
 
@@ -75,30 +108,41 @@ internal fun SelectionHandle(
                     // Safely capture yPosition at start of lambda to prevent race conditions
                     val currentYPos = yPosition ?: return@graphicsLayer
 
-                    // Calculate position - hardware accelerated, no recomposition
-                    val horizontalScrollOffset = horizontalScrollState.value.toFloat()
-
-                    // Calculate X position based on column
-                    // Use currentPositionColumn to ensure consistency with drag gesture
-                    val baseX = lineNumberWidthPx + contentPaddingPx + (currentPositionColumn * charWidth) - horizontalScrollOffset
+                    // Calculate X position
+                    val baseX = if (visualCharOffsetX >= 0f) {
+                        // Word wrap: use calculated position from TextLayoutResult (no scroll when wrapped)
+                        lineNumberWidthPx + contentPaddingPx + visualCharOffsetX
+                    } else {
+                        // No wrap: use column * charWidth with scroll offset
+                        val horizontalScrollOffset = horizontalScrollState.value.toFloat()
+                        lineNumberWidthPx + contentPaddingPx + (currentPositionColumn * charWidth) - horizontalScrollOffset
+                    }
                     val xPosition = baseX - handleHalfWidth
 
                     // Use translation for GPU-accelerated positioning
                     translationX = xPosition
-                    translationY = currentYPos
+                    // Add visual line offset for wrapped text positioning
+                    translationY = currentYPos + visualLineOffsetY
                 }
                 .pointerInput(lineNumberWidthPx) {
                     detectDragGestures { change, _ ->
                         // Calculate current handle position for drag conversion
-                        // Use currentPositionColumn to get latest value, not closure-captured value
-                        val horizontalScrollOffset = horizontalScrollState.value.toFloat()
-                        val baseX = lineNumberWidthPx + contentPaddingPx + (currentPositionColumn * charWidth) - horizontalScrollOffset
+                        val currentCharOffsetX = visualCharOffsetX
+                        val baseX = if (currentCharOffsetX >= 0f) {
+                            // Word wrap: use calculated position from TextLayoutResult
+                            lineNumberWidthPx + contentPaddingPx + currentCharOffsetX
+                        } else {
+                            // No wrap: use column * charWidth with scroll offset
+                            val horizontalScrollOffset = horizontalScrollState.value.toFloat()
+                            lineNumberWidthPx + contentPaddingPx + (currentPositionColumn * charWidth) - horizontalScrollOffset
+                        }
                         val xPosition = baseX - handleHalfWidth
                         val currentYPosition = yPosition ?: 0f
 
                         // Convert handle-relative position to LazyColumn coordinates
+                        val horizontalScrollOffset = if (currentCharOffsetX >= 0f) 0f else horizontalScrollState.value.toFloat()
                         val lazyColumnX = (change.position.x + xPosition) - lineNumberWidthPx + horizontalScrollOffset
-                        val lazyColumnY = change.position.y + currentYPosition
+                        val lazyColumnY = change.position.y + currentYPosition + visualLineOffsetY
 
                         onDrag(Offset(lazyColumnX, lazyColumnY))
                         change.consume()

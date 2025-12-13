@@ -49,6 +49,7 @@ internal fun TextLineItem(
     tabSize: Int,
     modifier: Modifier = Modifier,
     onHeightMeasured: ((Int) -> Unit)? = null,
+    onTextLayoutResult: ((TextLayoutResult) -> Unit)? = null,
 ) {
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val density = LocalDensity.current
@@ -80,19 +81,37 @@ internal fun TextLineItem(
         label = "cursor_alpha"
     )
 
-    val backgroundColor = if (isCurrentLine) {
+    // When word wrap is OFF, highlight entire line. When ON, we'll draw only the cursor's visual line.
+    val backgroundColor = if (isCurrentLine && !wordWrap) {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
     } else {
         Color.Transparent
     }
 
+    val lineHighlightColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+
     val cursorModifier = if (isCurrentLine && selection == null) {
         Modifier.drawWithContent {
-            drawContent()
             val expandedText = lineContent.expandTabs(tabSize)
             val position = cursorPosition.column
-
             val layoutResult = textLayoutResult
+
+            // When word wrap is enabled, draw highlight only for the visual line containing cursor
+            if (wordWrap && layoutResult != null && layoutResult.lineCount > 0) {
+                val cursorOffset = position.coerceIn(0, expandedText.length.coerceAtLeast(1) - 1)
+                val visualLine = if (expandedText.isEmpty()) 0 else layoutResult.getLineForOffset(cursorOffset)
+                val lineTop = layoutResult.getLineTop(visualLine)
+                val lineBottom = layoutResult.getLineBottom(visualLine)
+
+                drawRect(
+                    color = lineHighlightColor,
+                    topLeft = Offset(0f, lineTop),
+                    size = Size(size.width, lineBottom - lineTop)
+                )
+            }
+
+            drawContent()
+
             val cursorX = when {
                 layoutResult != null && position < expandedText.length -> {
                     val boundingBox = layoutResult.getBoundingBox(position)
@@ -108,11 +127,20 @@ internal fun TextLineItem(
                 }
             }
 
+            // Calculate cursor Y position - for wrapped text, draw on correct visual line
+            val (cursorTop, cursorBottom) = if (wordWrap && layoutResult != null && layoutResult.lineCount > 1) {
+                val cursorOffset = position.coerceIn(0, expandedText.length.coerceAtLeast(1) - 1)
+                val visualLine = if (expandedText.isEmpty()) 0 else layoutResult.getLineForOffset(cursorOffset)
+                layoutResult.getLineTop(visualLine) to layoutResult.getLineBottom(visualLine)
+            } else {
+                0f to size.height
+            }
+
             if (isFocused) {
                 drawLine(
                     color = cursorColor.copy(alpha = cursorAlpha),
-                    start = Offset(cursorX, 0f),
-                    end = Offset(cursorX, size.height),
+                    start = Offset(cursorX, cursorTop),
+                    end = Offset(cursorX, cursorBottom),
                     strokeWidth = 3.dp.toPx()
                 )
             } else {
@@ -145,8 +173,8 @@ internal fun TextLineItem(
 
                 drawRect(
                     color = cursorColor.copy(alpha = 0.4f),
-                    topLeft = Offset(cursorX, 0f),
-                    size = Size(blockWidth, size.height)
+                    topLeft = Offset(cursorX, cursorTop),
+                    size = Size(blockWidth, cursorBottom - cursorTop)
                 )
             }
         }
@@ -172,6 +200,7 @@ internal fun TextLineItem(
             fontSize = fontSize,
             onTextLayout = { layoutResult ->
                 textLayoutResult = layoutResult
+                onTextLayoutResult?.invoke(layoutResult)
             },
             modifier = Modifier.fillMaxWidth()
         )

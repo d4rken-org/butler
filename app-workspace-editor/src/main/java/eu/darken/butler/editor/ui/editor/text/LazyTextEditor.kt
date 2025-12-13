@@ -29,6 +29,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -228,6 +229,9 @@ private fun DualColumnEditorContent(
 
     // Track measured heights for each line when word wrap is enabled
     val lineHeights = remember { mutableStateMapOf<Int, Int>() }
+
+    // Track TextLayoutResults for accurate tap position calculation when word wrap is enabled
+    val textLayouts = remember { mutableStateMapOf<Int, TextLayoutResult>() }
 
     // Measure actual character width for accurate positioning
     val textMeasurer = rememberTextMeasurer()
@@ -441,7 +445,9 @@ private fun DualColumnEditorContent(
                                     visibleLineContent = currentVisibleLineContent,
                                     density = density,
                                     fontSize = fontSize,
-                                    tabSize = tabSize
+                                    tabSize = tabSize,
+                                    wordWrap = wordWrap,
+                                    textLayouts = textLayouts,
                                 )
 
                                 if (result != null) {
@@ -488,7 +494,9 @@ private fun DualColumnEditorContent(
                                     visibleLineContent = currentVisibleLineContent,
                                     density = density,
                                     fontSize = fontSize,
-                                    tabSize = tabSize
+                                    tabSize = tabSize,
+                                    wordWrap = wordWrap,
+                                    textLayouts = textLayouts,
                                 )
 
                                 if (result != null) {
@@ -524,6 +532,9 @@ private fun DualColumnEditorContent(
                         onHeightMeasured = if (wordWrap) { height ->
                             lineHeights[lineIndex] = height
                         } else null,
+                        onTextLayoutResult = if (wordWrap) { layoutResult ->
+                            textLayouts[lineIndex] = layoutResult
+                        } else null,
                     )
                 }
             }
@@ -547,7 +558,9 @@ private fun DualColumnEditorContent(
                         visibleLineContent = currentVisibleLineContent,
                         density = density,
                         fontSize = fontSize,
-                        tabSize = tabSize
+                        tabSize = tabSize,
+                        wordWrap = wordWrap,
+                        textLayouts = textLayouts,
                     )
 
                     if (result != null) {
@@ -561,7 +574,10 @@ private fun DualColumnEditorContent(
 
                         onSelectionChange(newStart to newEnd)
                     }
-                }
+                },
+                wordWrap = wordWrap,
+                textLayouts = textLayouts,
+                visibleLineContent = currentVisibleLineContent,
             )
 
             // End handle
@@ -578,7 +594,9 @@ private fun DualColumnEditorContent(
                         visibleLineContent = currentVisibleLineContent,
                         density = density,
                         fontSize = fontSize,
-                        tabSize = tabSize
+                        tabSize = tabSize,
+                        wordWrap = wordWrap,
+                        textLayouts = textLayouts,
                     )
 
                     if (result != null) {
@@ -592,7 +610,10 @@ private fun DualColumnEditorContent(
 
                         onSelectionChange(newStart to newEnd)
                     }
-                }
+                },
+                wordWrap = wordWrap,
+                textLayouts = textLayouts,
+                visibleLineContent = currentVisibleLineContent,
             )
         }
     }
