@@ -11,28 +11,24 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -40,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,20 +44,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
@@ -72,7 +71,6 @@ import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
-import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
@@ -87,11 +85,11 @@ import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
 import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
-import eu.darken.butler.explorer.ui.picker.ExplorerPickerTopBar
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
+import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -101,7 +99,9 @@ import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmat
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
+import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
+import eu.darken.butler.workspace.ui.scroll.setHeights
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -186,11 +186,26 @@ fun ExplorerWorkspacePage(
 
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Track actual measured height of the toolbar card
+    val density = LocalDensity.current
+    var actualToolbarHeightPx by remember { mutableIntStateOf(0) }
+    val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
+
+    // Track actual measured height of the info bar
+    var actualInfoBarHeightPx by remember { mutableIntStateOf(0) }
+    val actualInfoBarHeightDp = with(density) { actualInfoBarHeightPx.toDp() }
+
+    // Set the top toolbar heights (expanded and collapsed)
+    topToolbarScrollBehavior.state.setHeights(
+        expandedHeightDp = 56.dp,
+        collapsedHeightDp = 44.dp
+    )
 
     // Pull-to-refresh indicator state - shows briefly then hides to let progress banner take over
     var showPullToRefreshIndicator by remember { mutableStateOf(false) }
@@ -224,22 +239,22 @@ fun ExplorerWorkspacePage(
 
     // Track previous location to detect actual navigation vs item updates
     var previousLocationId by remember { mutableStateOf<String?>(null) }
+    val hasItems = mainState.items != null
 
     // Restore or reset scroll position ONLY when navigating to a different location
-    LaunchedEffect(mainState.locationId) {
+    LaunchedEffect(mainState.locationId, hasItems) {
+        val scrollTag = logTag("Explorer", "Page", "ScrollRestore")
         val locationId = mainState.locationId ?: return@LaunchedEffect
 
-        // Skip if this is the same location (items just updated, not a navigation)
+        // Wait for items to be loaded before restoring scroll
+        if (!hasItems) return@LaunchedEffect
+
+        // Skip if this is the same location (items just updated, not navigation)
         if (locationId == previousLocationId) return@LaunchedEffect
         previousLocationId = locationId
 
-        // Wait for items to load
-        mainStateSource
-            .mapNotNull { it.items?.takeIf { items -> items.isNotEmpty() } }
-            .first()
-
+        log(scrollTag) { "Restoring scroll for $locationId" }
         val savedPosition = vm?.getScrollPosition(locationId)
-        log(logTag("Explorer", "Page", "ScrollRestore")) { "Restoring scroll for $locationId: $savedPosition" }
 
         if (savedPosition != null) {
             // Restore saved position (coming back to previously visited location)
@@ -256,7 +271,7 @@ fun ExplorerWorkspacePage(
         }
 
         // Always reset toolbar visibility on navigation for proper orientation
-        scrollBehavior.state.heightOffset = 0f
+        topToolbarScrollBehavior.state.heightOffset = 0f
         bottomBarScrollBehavior.state.heightOffset = 0f
     }
 
@@ -291,8 +306,8 @@ fun ExplorerWorkspacePage(
         log(tag) { "LaunchedEffect started, collecting revealRequests" }
         vm?.revealRequests?.collect { request ->
             log(tag) { "Received reveal request for path: ${request.path.path}" }
-            // Observe the source Flow directly (not Compose State via snapshotFlow)
-            val targetIndex = mainStateSource
+            // Single observation to get both index and viewStyle (avoid redundant .first() call)
+            val result = mainStateSource
                 .mapNotNull { state ->
                     val items = state.items
                     log(tag) { "State emission: ${items?.size ?: 0} items" }
@@ -307,7 +322,7 @@ fun ExplorerWorkspacePage(
                         }
                     }
                     log(tag) { "Index search result: $index" }
-                    index?.takeIf { it >= 0 }
+                    index?.takeIf { it >= 0 }?.let { it to state.viewStyle }
                 }
                 .timeout(2.seconds)
                 .catch { e ->
@@ -315,15 +330,13 @@ fun ExplorerWorkspacePage(
                 }
                 .firstOrNull()
 
-            if (targetIndex == null) {
+            if (result == null) {
                 log(tag) { "Target index is null, skipping scroll" }
                 return@collect
             }
 
-            log(tag) { "Scrolling to index: $targetIndex (centered)" }
-            // Read current viewStyle for scroll target
-            val currentViewStyle = mainStateSource.first().viewStyle
-            log(tag) { "ViewStyle: $currentViewStyle" }
+            val (targetIndex, currentViewStyle) = result
+            log(tag) { "Scrolling to index: $targetIndex (centered), viewStyle: $currentViewStyle" }
 
             // Calculate offset to center the item in viewport
             when (currentViewStyle) {
@@ -433,7 +446,7 @@ fun ExplorerWorkspacePage(
         label = "clipboardScale"
     )
 
-    Box(
+    Surface(
         modifier = Modifier
             .fillMaxSize()
             .keyboardShortcuts {
@@ -480,311 +493,232 @@ fun ExplorerWorkspacePage(
                 }
             }
     ) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            snackbarHost = {
-                SnackbarHost(
-                    hostState = snackbarHostState,
-                    modifier = Modifier,
-                ) { data ->
-                    ErrorSnackbar(snackbarData = data)
-                }
-            },
-            topBar = {
-                val pickerConfig = mainState.pickerConfig
-                if (pickerConfig != null) {
-                    // Picker mode - use simplified picker top bar
-                    ExplorerPickerTopBar(
-                        selection = pickerConfig.selection,
-                        selectionCount = mainState.selectionState.selectedItems.size,
-                        breadcrumbs = mainState.breadcrumbs.takeIf { it.isNotEmpty() },
-                        currentLocation = mainState.currentLocation,
-                        scrollBehavior = scrollBehavior,
-                        saveAsFilename = mainState.saveAsFilename,
-                        canConfirmSelection = mainState.canConfirmSelection,
-                        onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
-                        onBreadcrumbClick = { navigation -> vm?.navigate(navigation) },
-                        onCancel = { vm?.cancelPicker() },
-                        onConfirm = { vm?.confirmPickerSelection() },
-                    )
-                } else {
-                    // Normal mode - use full explorer top bar
-                    ExplorerTopBar(
-                        workspaceId = workspaceId,
-                        breadcrumbs = mainState.breadcrumbs,
-                        scrollBehavior = scrollBehavior,
-                        onBreadcrumbClick = { target -> vm?.navigate(target) },
-                        onNavigateToPath = { path -> vm?.navigateToPath(path) },
-                        workspaceButtonState = workspaceButtonState,
-                        showWorkspaceButton = design.isSingle,
-                        workspaceActionHandler = workspaceActionHandler,
-                        safLocationManager = vm?.safLocationManager,
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Determine if info bar should be visible
+            val showInfoBar = mainState.info != null || mainState.selectionState.selectedItems.isNotEmpty()
+
+        // Content padding calculation
+        val topContentPadding = 8.dp + actualToolbarHeightDp +
+            (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp)
+
+        // Main content with PullToRefresh
+        PullToRefreshBox(
+            isRefreshing = showPullToRefreshIndicator,
+            onRefresh = handleRefresh,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val mainStateSnap = mainState
+            when {
+                mainStateSnap.setupRequirements.needsAction -> {
+                    // Show setup request or SAF picker card when action needed
+                    PermissionRequestCard(
+                        setupRequirements = mainState.setupRequirements,
+                        onNavigateToSetup = {
+                            vm?.navigateToSetup(mainState.setupRequirements)
+                        },
+                        onLaunchSAFPicker = { grant ->
+                            vm?.launchAndroidDataSAFPicker(grant)
+                        },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = topContentPadding),
                     )
                 }
-            },
-        ) { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = paddingValues.calculateTopPadding())
-            ) {
-                PullToRefreshBox(
-                    isRefreshing = showPullToRefreshIndicator,
-                    onRefresh = handleRefresh
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        ExplorerInfoBar(
-                            info = mainState.info,
-                            selectedCount = mainState.selectionState.selectedItems.size,
-                            onClearSelection = { vm?.clearSelection() },
-                            isTrashDisabled = !mainState.trashEnabled,
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                        )
-
-                        mainState.error?.let { error ->
-                            WorkspaceErrorCard(
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-                                title = stringResource(R.string.explorer_navigation_error_title),
-                                error = error,
-                                onCopyError = { vm?.copyNavigationError() },
-                                onRetry = { vm?.retryNavigation() },
-                                onDismiss = { vm?.dismissNavigationError() },
-                            )
-                        }
-
-                        val mainStateSnap = mainState
-                        when {
-                            mainStateSnap.setupRequirements.needsAction -> {
-                                // Show setup request or SAF picker card when action needed
-                                PermissionRequestCard(
-                                    setupRequirements = mainState.setupRequirements,
-                                    onNavigateToSetup = {
-                                        vm?.navigateToSetup(mainState.setupRequirements)
-                                    },
-                                    onLaunchSAFPicker = { grant ->
-                                        vm?.launchAndroidDataSAFPicker(grant)
-                                    },
-                                    modifier = Modifier.fillMaxSize(),
+                else -> {
+                    // Always render the lazy list/grid for structural stability
+                    when (mainStateSnap.viewStyle) {
+                        is ExplorerViewStyle.List -> {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                contentPadding = PaddingValues(
+                                    start = 12.dp,
+                                    end = 12.dp,
+                                    top = topContentPadding,
+                                    bottom = run {
+                                        val actionBarHeight = if (hasActions) 64.dp else 0.dp
+                                        val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
+                                        val operationsHeight = if (hasOperations) 80.dp else 0.dp
+                                        actionBarHeight + clipboardHeight + operationsHeight + 12.dp
+                                    }
                                 )
-                            }
-                            mainStateSnap.items == null -> {
-                                EmptyState(modifier = Modifier.fillMaxSize())
-                            }
-                            mainStateSnap.items.isEmpty() -> {
-                                BoxWithConstraints(
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .heightIn(min = maxHeight)
-                                            .fillMaxWidth()
-                                            .verticalScroll(rememberScrollState()),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        EmptyDirectoryState()
+                            ) {
+                                // Handle loading state
+                                if (mainStateSnap.items == null) {
+                                    item(key = "loading") {
+                                        EmptyState(modifier = Modifier.fillParentMaxSize())
+                                    }
+                                }
+                                // Handle empty directory state
+                                else if (mainStateSnap.items.isEmpty()) {
+                                    item(key = "empty") {
+                                        Box(
+                                            modifier = Modifier.fillParentMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            EmptyDirectoryState()
+                                        }
+                                    }
+                                }
+                                // Handle normal items
+                                else {
+                                    items(
+                                        items = mainStateSnap.items,
+                                        key = { it.id }
+                                    ) { item ->
+                                        when (item) {
+                                            is ExplorerItem.Lookup -> LookupItemRow(
+                                                item = item,
+                                                isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                onClick = { vm?.onItemClick(item) },
+                                                onLongClick = { vm?.onItemLongClick(item) },
+                                                showSelection = mainStateSnap.shouldShowSelection(item),
+                                                isEnabled = item !in mainStateSnap.disabledItems,
+                                                isHighlighted = item.id in mainStateSnap.highlightedItemIds,
+                                            )
+                                            is ExplorerItem.Peek -> PeekRow(item = item)
+                                            is ExplorerItem.Shortcut -> ShortcutRow(
+                                                item = item,
+                                                isEnabled = item !in mainStateSnap.disabledItems,
+                                                onClick = { vm?.navigate(item) },
+                                            )
+                                            is ExplorerItem.Storage -> StorageRow(
+                                                item = item,
+                                                isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                onClick = {
+                                                    if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
+                                                        vm?.toggleItemSelection(item)
+                                                    } else {
+                                                        vm?.navigate(item)
+                                                    }
+                                                },
+                                                onLongClick = { vm?.toggleItemSelection(item) },
+                                                showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
+                                                    item in mainStateSnap.selectionState.selectableItems,
+                                                isEnabled = item !in mainStateSnap.disabledItems,
+                                            )
+                                            is ExplorerItem.Trash.Root -> TrashItemRow(
+                                                item = item,
+                                                isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                onClick = { vm?.onItemClick(item) },
+                                                onLongClick = { vm?.onItemLongClick(item) },
+                                                showSelection = mainStateSnap.shouldShowSelection(item),
+                                            )
+                                            is ExplorerItem.Trash.Nested -> TrashNestedItemRow(
+                                                item = item,
+                                                isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                onClick = { vm?.onItemClick(item) },
+                                                onLongClick = { vm?.onItemLongClick(item) },
+                                                showSelection = mainStateSnap.shouldShowSelection(item),
+                                            )
+                                        }
                                     }
                                 }
                             }
-                            else -> {
-                                Box(
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    when (mainStateSnap.viewStyle) {
-                                        is ExplorerViewStyle.List -> {
-                                            LazyColumn(
-                                                state = listState,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .nestedScroll(scrollBehavior.nestedScrollConnection)
-                                                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
-                                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                                                contentPadding = PaddingValues(
-                                                    start = 12.dp,
-                                                    end = 12.dp,
-                                                    top = 12.dp,
-                                                    bottom = run {
-                                                        val actionBarHeight =
-                                                            if (hasActions) 64.dp else 0.dp // 48dp + 16dp padding
-                                                        val clipboardHeight =
-                                                            if (hasClipboard) 88.dp else 0.dp // ~80dp + 8dp padding
-                                                        val operationsHeight =
-                                                            if (hasOperations) 80.dp else 0.dp // Operations bar height + padding
-                                                        actionBarHeight + clipboardHeight + operationsHeight + 12.dp // Extra space
-                                                    }
-                                                )
-                                            ) {
-                                                items(
-                                                    items = mainStateSnap.items,
-                                                    key = { it.id }
-                                                ) { item ->
-                                                    when (item) {
-                                                        is ExplorerItem.Lookup -> LookupItemRow(
-                                                            item = item,
-                                                            isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                                item
-                                                            ),
-                                                            onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                            onClick = { vm?.onItemClick(item) },
-                                                            onLongClick = { vm?.onItemLongClick(item) },
-                                                            showSelection = mainStateSnap.shouldShowSelection(item),
-                                                            isEnabled = item !in mainStateSnap.disabledItems,
-                                                            isHighlighted = item.id in mainStateSnap.highlightedItemIds,
-                                                        )
+                        }
 
-                                                        is ExplorerItem.Peek -> PeekRow(
-                                                            item = item
-                                                        )
-
-                                                        is ExplorerItem.Shortcut -> ShortcutRow(
-                                                            item = item,
-                                                            isEnabled = item !in mainStateSnap.disabledItems,
-                                                            onClick = { vm?.navigate(item) },
-                                                        )
-
-                                                        is ExplorerItem.Storage -> StorageRow(
-                                                            item = item,
-                                                            isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                                item
-                                                            ),
-                                                            onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                            onClick = {
-                                                                if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
-                                                                    vm?.toggleItemSelection(item)
-                                                                } else {
-                                                                    vm?.navigate(item)
-                                                                }
-                                                            },
-                                                            onLongClick = { vm?.toggleItemSelection(item) },
-                                                            showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                                item in mainStateSnap.selectionState.selectableItems,
-                                                            isEnabled = item !in mainStateSnap.disabledItems,
-                                                        )
-
-                                                    is ExplorerItem.Trash.Root -> TrashItemRow(
-                                                        item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                            item
-                                                        ),
-                                                        onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                        onClick = { vm?.onItemClick(item) },
-                                                        onLongClick = { vm?.onItemLongClick(item) },
-                                                        showSelection = mainStateSnap.shouldShowSelection(item)
-                                                    )
-
-                                                    is ExplorerItem.Trash.Nested -> TrashNestedItemRow(
-                                                        item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                            item
-                                                        ),
-                                                        onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                        onClick = { vm?.onItemClick(item) },
-                                                        onLongClick = { vm?.onItemLongClick(item) },
-                                                        showSelection = mainStateSnap.shouldShowSelection(item)
-                                                    )
-                                                    }
-                                                }
-                                            }
+                        is ExplorerViewStyle.Grid -> {
+                            LazyVerticalGrid(
+                                state = gridState,
+                                columns = GridCells.Adaptive(minSize = 120.dp),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                contentPadding = PaddingValues(
+                                    start = 2.dp,
+                                    end = 2.dp,
+                                    top = topContentPadding,
+                                    bottom = run {
+                                        val actionBarHeight = if (hasActions) 64.dp else 0.dp
+                                        val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
+                                        val operationsHeight = if (hasOperations) 80.dp else 0.dp
+                                        actionBarHeight + clipboardHeight + operationsHeight + 2.dp
+                                    }
+                                )
+                            ) {
+                                // Handle loading state
+                                if (mainStateSnap.items == null) {
+                                    item(span = { GridItemSpan(maxLineSpan) }, key = "loading") {
+                                        EmptyState(modifier = Modifier.fillMaxSize())
+                                    }
+                                }
+                                // Handle empty directory state
+                                else if (mainStateSnap.items.isEmpty()) {
+                                    item(span = { GridItemSpan(maxLineSpan) }, key = "empty") {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            EmptyDirectoryState()
                                         }
-
-                                        is ExplorerViewStyle.Grid -> {
-                                            LazyVerticalGrid(
-                                                state = gridState,
-                                                columns = GridCells.Adaptive(minSize = 120.dp),
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .nestedScroll(scrollBehavior.nestedScrollConnection)
-                                                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
-                                                verticalArrangement = Arrangement.spacedBy(2.dp),
-                                                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                                contentPadding = PaddingValues(
-                                                    start = 2.dp,
-                                                    end = 2.dp,
-                                                    top = 2.dp,
-                                                    bottom = run {
-                                                        val actionBarHeight =
-                                                            if (hasActions) 64.dp else 0.dp // 48dp + 16dp padding
-                                                        val clipboardHeight =
-                                                            if (hasClipboard) 88.dp else 0.dp // ~80dp + 8dp padding
-                                                        val operationsHeight =
-                                                            if (hasOperations) 80.dp else 0.dp // Operations bar height + padding
-                                                        actionBarHeight + clipboardHeight + operationsHeight + 2.dp // Extra space
+                                    }
+                                }
+                                // Handle normal items
+                                else {
+                                    items(
+                                        items = mainStateSnap.items,
+                                        key = { it.id }
+                                    ) { item ->
+                                        when (item) {
+                                            is ExplorerItem.Lookup -> LookupItemGrid(
+                                                item = item,
+                                                isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                onClick = { vm?.onItemClick(item) },
+                                                onLongClick = { vm?.onItemLongClick(item) },
+                                                showSelection = mainStateSnap.shouldShowSelection(item),
+                                                isEnabled = item !in mainStateSnap.disabledItems,
+                                                isHighlighted = item.id in mainStateSnap.highlightedItemIds,
+                                            )
+                                            is ExplorerItem.Shortcut -> ShortcutGrid(
+                                                item = item,
+                                                isEnabled = item !in mainStateSnap.disabledItems,
+                                                onClick = { vm?.navigate(item) },
+                                            )
+                                            is ExplorerItem.Storage -> StorageGrid(
+                                                item = item,
+                                                isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                onClick = {
+                                                    if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
+                                                        vm?.toggleItemSelection(item)
+                                                    } else {
+                                                        vm?.navigate(item)
                                                     }
-                                                )
-                                            ) {
-                                                items(
-                                                    items = mainStateSnap.items,
-                                                    key = { it.id }
-                                                ) { item ->
-                                                    when (item) {
-                                                        is ExplorerItem.Lookup -> LookupItemGrid(
-                                                            item = item,
-                                                            isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                                item
-                                                            ),
-                                                            onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                            onClick = { vm?.onItemClick(item) },
-                                                            onLongClick = { vm?.onItemLongClick(item) },
-                                                            showSelection = mainStateSnap.shouldShowSelection(item),
-                                                            isEnabled = item !in mainStateSnap.disabledItems,
-                                                            isHighlighted = item.id in mainStateSnap.highlightedItemIds,
-                                                        )
-                                                        is ExplorerItem.Shortcut -> ShortcutGrid(
-                                                            item = item,
-                                                            isEnabled = item !in mainStateSnap.disabledItems,
-                                                            onClick = { vm?.navigate(item) },
-                                                        )
-
-                                                        is ExplorerItem.Storage -> StorageGrid(
-                                                            item = item,
-                                                            isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                                item
-                                                            ),
-                                                            onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                            onClick = {
-                                                                if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
-                                                                    vm?.toggleItemSelection(item)
-                                                                } else {
-                                                                    vm?.navigate(item)
-                                                                }
-                                                            },
-                                                            onLongClick = { vm?.toggleItemSelection(item) },
-                                                            showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                                item in mainStateSnap.selectionState.selectableItems,
-                                                            isEnabled = item !in mainStateSnap.disabledItems,
-                                                        )
-
-                                                        is ExplorerItem.Peek -> PeekGrid(
-                                                            item = item
-                                                        )
-
-                                                    is ExplorerItem.Trash.Root -> TrashItemGrid(
-                                                        item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                            item
-                                                        ),
-                                                        onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                        onClick = { vm?.onItemClick(item) },
-                                                        onLongClick = { vm?.onItemLongClick(item) },
-                                                        showSelection = mainStateSnap.shouldShowSelection(item)
-                                                    )
-
-                                                    is ExplorerItem.Trash.Nested -> TrashNestedItemGrid(
-                                                        item = item,
-                                                        isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                            item
-                                                        ),
-                                                        onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                        onClick = { vm?.onItemClick(item) },
-                                                        onLongClick = { vm?.onItemLongClick(item) },
-                                                        showSelection = mainStateSnap.shouldShowSelection(item)
-                                                    )
-                                                    }
-                                                }
-                                            }
+                                                },
+                                                onLongClick = { vm?.toggleItemSelection(item) },
+                                                showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
+                                                    item in mainStateSnap.selectionState.selectableItems,
+                                                isEnabled = item !in mainStateSnap.disabledItems,
+                                            )
+                                            is ExplorerItem.Peek -> PeekGrid(item = item)
+                                            is ExplorerItem.Trash.Root -> TrashItemGrid(
+                                                item = item,
+                                                isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                onClick = { vm?.onItemClick(item) },
+                                                onLongClick = { vm?.onItemLongClick(item) },
+                                                showSelection = mainStateSnap.shouldShowSelection(item),
+                                            )
+                                            is ExplorerItem.Trash.Nested -> TrashNestedItemGrid(
+                                                item = item,
+                                                isSelected = mainStateSnap.selectionState.selectedItems.contains(item),
+                                                onToggleSelection = { vm?.toggleItemSelection(item) },
+                                                onClick = { vm?.onItemClick(item) },
+                                                onLongClick = { vm?.onItemLongClick(item) },
+                                                showSelection = mainStateSnap.shouldShowSelection(item),
+                                            )
                                         }
                                     }
                                 }
@@ -792,17 +726,85 @@ fun ExplorerWorkspacePage(
                         }
                     }
                 }
-
-                mainState.progress?.let {
-                    LoadingProgressBar(
-                        progress = it,
-                        onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 40.dp) // Position below InfoBar + NavigationErrorCard
-                    )
-                }
             }
+        }
+
+        // Error card (floating)
+        mainState.error?.let { error ->
+            WorkspaceErrorCard(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = 8.dp + actualToolbarHeightDp)
+                    .padding(horizontal = 16.dp),
+                title = stringResource(R.string.explorer_navigation_error_title),
+                error = error,
+                onCopyError = { vm?.copyNavigationError() },
+                onRetry = { vm?.retryNavigation() },
+                onDismiss = { vm?.dismissNavigationError() },
+            )
+        }
+
+        // Loading progress bar (floating)
+        mainState.progress?.let {
+            LoadingProgressBar(
+                progress = it,
+                onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = 8.dp + actualToolbarHeightDp + (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp))
+                    .padding(horizontal = 16.dp)
+            )
+        }
+
+        // Floating toolbar card at top
+        ExplorerToolbarCard(
+            workspaceId = workspaceId,
+            breadcrumbs = mainState.breadcrumbs,
+            design = design,
+            collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
+            onBreadcrumbClick = { target -> vm?.navigate(target) },
+            onNavigateToPath = { path -> vm?.navigateToPath(path) },
+            workspaceButtonState = workspaceButtonState,
+            workspaceActionHandler = workspaceActionHandler,
+            safLocationManager = vm?.safLocationManager,
+            pickerSelection = mainState.pickerConfig?.selection,
+            selectionCount = mainState.selectionState.selectedItems.size,
+            saveAsFilename = mainState.saveAsFilename,
+            canConfirmSelection = mainState.canConfirmSelection,
+            onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
+            onCancel = { vm?.cancelPicker() },
+            onConfirm = { vm?.confirmPickerSelection() },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .onGloballyPositioned { layoutCoordinates ->
+                    actualToolbarHeightPx = layoutCoordinates.size.height
+                }
+        )
+
+        // Floating info bar below toolbar
+        if (showInfoBar) {
+            ExplorerInfoBar(
+                info = mainState.info,
+                selectedCount = mainState.selectionState.selectedItems.size,
+                onClearSelection = { vm?.clearSelection() },
+                isTrashDisabled = !mainState.trashEnabled,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = 16.dp + actualToolbarHeightDp)
+                    .padding(horizontal = 16.dp)
+                    .onGloballyPositioned { layoutCoordinates ->
+                        actualInfoBarHeightPx = layoutCoordinates.size.height
+                    }
+            )
+        }
+
+        // Snackbar host
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) { data ->
+            ErrorSnackbar(snackbarData = data)
         }
 
         // Floating Operations and Clipboard Bars Container
@@ -912,6 +914,7 @@ fun ExplorerWorkspacePage(
                 onDismiss = { showIssueSheet = false },
             )
         }
+        } // Box
     }
 
     // Show add storage bottom sheet

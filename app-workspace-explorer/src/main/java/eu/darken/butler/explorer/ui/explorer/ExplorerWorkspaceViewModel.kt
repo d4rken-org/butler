@@ -3,7 +3,6 @@ package eu.darken.butler.explorer.ui.explorer
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -11,13 +10,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
@@ -41,7 +43,8 @@ import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.explorer.core.ExplorerNavigation.Target.*
+import eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory
+import eu.darken.butler.explorer.core.ExplorerNavigation.Target.Trash
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.ExplorerWorkspace
@@ -57,7 +60,6 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.picker.PickerConfig
-import eu.darken.butler.explorer.ui.picker.ExplorerPickerHelper
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
@@ -65,10 +67,24 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.ClipboardInfo
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.CreateItem
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.DeleteConfirmation
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.EditSortOptions
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.EmptyTrashConfirmation
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.FileOptions
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.FilterOptions
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.ItemInfo
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.LocationStorageName
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.None
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.RemoveLocationConfirmation
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.Rename
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.TrashItemOptions
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.TrashNestedItemOptions
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
+import eu.darken.butler.explorer.ui.picker.ExplorerPickerHelper
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.permissions.core.SAFPickerGrant
 import eu.darken.butler.upgrade.UpgradeRepo
@@ -227,15 +243,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val progress = currentLocation?.progress
         val info = currentLocation?.info
 
-        /**
-         * Determines if selection UI (checkboxes) should be shown for an item.
-         *
-         * Selection UI is shown when:
-         * 1. Item is selectable, AND
-         * 2. Either:
-         *    - In multi-select picker mode (FileMulti/DirectoryMulti), OR
-         *    - In selection mode (items are currently selected)
-         */
         fun shouldShowSelection(item: ExplorerItem): Boolean {
             // Must be selectable
             if (item !in selectionState.selectableItems) return false
@@ -248,9 +255,34 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    // Optimization: Process items separately - only re-sort when items/sort/filter actually change
+    private val processedItemsFlow: Flow<List<ExplorerItem>?> = combine(
+        workspaceState.map { it.currentLocation?.items }.distinctUntilChanged(),
+        currentSortSettings,
+        filterStateFlow,
+        explorerSettings.useRegexPatterns.flow,
+    ) { items, sortSetting, filterState, useRegexPatterns ->
+        items
+            ?.let { applyFilters(it, filterState, useRegexPatterns) }
+            ?.let { itemSorter.sortItems(it, sortSetting) }
+    }
+
+    // Optimization: Selection state only updates when items or selection changes
+    private val derivedSelectionStateFlow: Flow<ExplorerSelectionState> = combine(
+        processedItemsFlow,
+        selectedItemsFlow,
+        pickerConfigFlow,
+    ) { items, selectedItems, pickerConfig ->
+        ExplorerSelectionState(
+            selectedItems = selectedItems,
+            selectableItems = items?.let { pickerHelper.filterSelectableItems(it, pickerConfig) } ?: emptySet(),
+        )
+    }
+
     val state = combine(
         workspaceState,
-        selectedItemsFlow,
+        processedItemsFlow,
+        derivedSelectionStateFlow,
         viewStyleFlow,
         dialogStateFlow,
         currentSortSettings,
@@ -262,10 +294,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         trashManager.isEnabled,
         saveAsFilenameFlow,
         highlightedItemIds,
-    ) { wsState, selectedItems, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds ->
-        val items = wsState.currentLocation?.items
-            ?.let { items -> applyFilters(items, filterState, useRegexPatterns) }
-            ?.let { itemSorter.sortItems(it, sortSetting) }
+    ) { wsState, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds ->
+        // Items already filtered and sorted by processedItemsFlow
+        // Selection state already computed by derivedSelectionStateFlow
 
         val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
@@ -273,13 +304,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val canConfirmSelection = pickerHelper.canConfirmSelection(
             config = pickerConfig,
             currentLocation = wsState.currentLocation,
-            selectedItems = selectedItems,
+            selectedItems = selectionState.selectedItems,
             saveAsFilename = saveAsFilename,
-        )
-
-        val selectionState = ExplorerSelectionState(
-            selectedItems = selectedItems,
-            selectableItems = items?.let { pickerHelper.filterSelectableItems(it, pickerConfig) } ?: emptySet(),
         )
 
         val rawActions = wsState.currentLocation?.let {
