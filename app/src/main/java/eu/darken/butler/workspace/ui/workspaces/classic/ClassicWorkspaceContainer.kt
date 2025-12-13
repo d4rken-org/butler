@@ -9,6 +9,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -17,12 +18,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -49,9 +51,9 @@ internal fun ClassicWorkspaceContainer(
     onDismissBanner: (Workspace.Id) -> Unit,
 ) {
     val effectivePageCount = if (state.onDemandWorkspaceCreation && state.swipeGesturesEnabled) {
-        state.all.size + 1
+        state.tabWorkspaces.size + 1
     } else {
-        state.all.size
+        state.tabWorkspaces.size
     }
     val pagerState = rememberPagerState(pageCount = { effectivePageCount })
 
@@ -69,10 +71,24 @@ internal fun ClassicWorkspaceContainer(
     // Track last synced focus to detect new focus changes that should skip animation
     var lastSyncedFocusId by remember { mutableStateOf<Workspace.Id?>(null) }
 
+    // Track focus changes initiated by user swipe to prevent race condition
+    // where Block A would re-animate after Block B dispatches Select
+    var lastUserSwipeFocusId by remember { mutableStateOf<Workspace.Id?>(null) }
+
     // Sync pager with selected tab
-    LaunchedEffect(state.focused, state.all, state.isRestoring) {
+    LaunchedEffect(state.focused, state.tabWorkspaces, state.isRestoring) {
         val selectedId = state.focused ?: return@LaunchedEffect
-        val selectedIndex = state.all.indexOfFirst { it.id == selectedId }
+
+        // Skip animation if this focus change was initiated by user swipe
+        // (pager is already at the correct page from the swipe gesture)
+        if (selectedId == lastUserSwipeFocusId) {
+            log(TAG, VERBOSE) { "Skipping pager sync - focus change was user-initiated swipe" }
+            lastUserSwipeFocusId = null
+            lastSyncedFocusId = selectedId
+            return@LaunchedEffect
+        }
+
+        val selectedIndex = state.tabWorkspaces.indexOfFirst { it.id == selectedId }
         log(TAG, VERBOSE) {
             "Syncing pager with selected tab: selectedId=$selectedId, selectedIndex=$selectedIndex, currentPage=${pagerState.currentPage}"
         }
@@ -82,7 +98,7 @@ internal fun ClassicWorkspaceContainer(
             return@LaunchedEffect
         }
 
-        if (selectedIndex >= state.all.size || selectedIndex == pagerState.currentPage) {
+        if (selectedIndex >= state.tabWorkspaces.size || selectedIndex == pagerState.currentPage) {
             lastSyncedFocusId = selectedId
             return@LaunchedEffect
         }
@@ -107,15 +123,15 @@ internal fun ClassicWorkspaceContainer(
     val isScrolling by remember { derivedStateOf { pagerState.isScrollInProgress } }
 
     // Sync selected tab with pager when user swipes
-    LaunchedEffect(currentPage, isScrolling, state.all) {
+    LaunchedEffect(currentPage, isScrolling, state.tabWorkspaces) {
         if (isScrolling || isAnimatingProgrammatically) return@LaunchedEffect
 
         log(TAG, VERBOSE) { "Pager scroll completed at page: $currentPage" }
 
         // Check if we're on the extra page (beyond all workspaces)
         // Only trigger if transitioning from a valid page (not on initial render)
-        val isOnPlaceholderPage = currentPage >= state.all.size
-        val isTransitioningFromValidPage = previousPage != null && previousPage!! < state.all.size
+        val isOnPlaceholderPage = currentPage >= state.tabWorkspaces.size
+        val isTransitioningFromValidPage = previousPage != null && previousPage!! < state.tabWorkspaces.size
 
         if (isOnPlaceholderPage && state.onDemandWorkspaceCreation && !isCreatingWorkspace && isTransitioningFromValidPage) {
             log(TAG, INFO) { "User swiped from page $previousPage to placeholder page $currentPage, creating workspace on-demand" }
@@ -125,20 +141,21 @@ internal fun ClassicWorkspaceContainer(
             return@LaunchedEffect
         }
 
-        if (currentPage < 0 || currentPage >= state.all.size) {
+        if (currentPage < 0 || currentPage >= state.tabWorkspaces.size) {
             previousPage = currentPage
             return@LaunchedEffect
         }
 
-        val currentTabId = state.all[currentPage].id
+        val currentTabId = state.tabWorkspaces[currentPage].id
         log(TAG, VERBOSE) { "Current tab ID: $currentTabId, focused: ${state.focused}" }
 
         val focusedTabExists = state.focused?.let { focusedId ->
-            state.all.any { it.id == focusedId }
+            state.tabWorkspaces.any { it.id == focusedId }
         } ?: false
 
         if (focusedTabExists && currentTabId != state.focused) {
             log(TAG, VERBOSE) { "Selecting tab due to user swipe: $currentTabId" }
+            lastUserSwipeFocusId = currentTabId
             onWorkspaceScreenAction(WorkspaceScreenAction.Select(currentTabId))
         } else if (!focusedTabExists) {
             log(TAG, WARN) { "Skipping tab selection - focused tab doesn't exist in tabs list yet" }
@@ -148,15 +165,15 @@ internal fun ClassicWorkspaceContainer(
     }
 
     // Reset creation flag when workspace count increases
-    LaunchedEffect(state.all.size) {
-        if (state.all.isNotEmpty()) {
+    LaunchedEffect(state.tabWorkspaces.size) {
+        if (state.tabWorkspaces.isNotEmpty()) {
             isCreatingWorkspace = false
         }
     }
 
     // Reset creation flag when leaving placeholder page (handles failed creation)
-    LaunchedEffect(currentPage, state.all.size) {
-        if (currentPage < state.all.size) {
+    LaunchedEffect(currentPage, state.tabWorkspaces.size) {
+        if (currentPage < state.tabWorkspaces.size) {
             isCreatingWorkspace = false
         }
     }
@@ -175,7 +192,7 @@ internal fun ClassicWorkspaceContainer(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background
         ) { paddingValues ->
-            if (state.all.isNotEmpty()) {
+            if (state.tabWorkspaces.isNotEmpty()) {
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier
@@ -184,24 +201,29 @@ internal fun ClassicWorkspaceContainer(
                     flingBehavior = flingBehavior,
                     userScrollEnabled = state.swipeGesturesEnabled,
                 ) { page ->
-                    val paneInfo = state.all.getOrNull(page)?.asPaneInfo()
-                    val isPlaceholderPage = page >= state.all.size
+                    val paneInfo = state.tabWorkspaces.getOrNull(page)?.asPaneInfo()
+                    val isPlaceholderPage = page >= state.tabWorkspaces.size
 
                     if (paneInfo == null) {
                         CreatingWorkspacePlaceholder(isCreating = isPlaceholderPage && isCreatingWorkspace)
                     } else {
-                        WorkspaceOverlayContainer(
-                            workspaceId = paneInfo.id,
-                            managerDialogStates = managerDialogStates,
-                            onDismissManagerDialog = onDismissManagerDialog,
-                            onConfirmManagerDialog = onConfirmManagerDialog,
-                            bannerStates = bannerStates,
-                            onDismissBanner = onDismissBanner,
+                        CompositionLocalProvider(
+                            LocalWorkspaceFocused provides (state.focused == paneInfo.id),
+                            LocalWorkspaceFocusRequest provides { onWorkspaceScreenAction(WorkspaceScreenAction.Select(paneInfo.id)) },
                         ) {
-                            WorkspaceMapper(
-                                info = paneInfo,
-                                design = design,
-                            )
+                            WorkspaceOverlayContainer(
+                                workspaceId = paneInfo.id,
+                                managerDialogStates = managerDialogStates,
+                                onDismissManagerDialog = onDismissManagerDialog,
+                                onConfirmManagerDialog = onConfirmManagerDialog,
+                                bannerStates = bannerStates,
+                                onDismissBanner = onDismissBanner,
+                            ) {
+                                WorkspaceMapper(
+                                    info = paneInfo,
+                                    design = design,
+                                )
+                            }
                         }
                     }
                 }
@@ -217,20 +239,15 @@ internal fun ClassicWorkspaceContainer(
         // Position indicator overlay
         val currentWorkspace = state.current
         if (currentWorkspace != null && state.tabWorkspaces.size > 1) {
-            val context = LocalContext.current
             val position = state.tabWorkspaces.indexOfFirst { it.id == currentWorkspace.id } + 1
-            val total = state.tabWorkspaces.size
-            val workspaceName = currentWorkspace.title.get(context)
-
             if (position > 0) {
                 WorkspaceSwitchIndicator(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(horizontal = 16.dp),
+                    info = currentWorkspace,
                     position = position,
-                    totalWorkspaces = total,
-                    workspaceName = workspaceName,
-                    workspaceId = currentWorkspace.id,
+                    totalWorkspaces = state.tabWorkspaces.size,
                 )
             }
         }

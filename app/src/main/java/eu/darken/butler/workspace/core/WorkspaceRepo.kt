@@ -300,8 +300,12 @@ class WorkspaceRepo @Inject constructor(
                     }
                 }
 
+                // Get caller workspace ID before removal (for returning to caller)
+                val closingWorkspace = _workspaces.value.find { it.id == action.id }
+                val callerWorkspaceId = closingWorkspace?.info?.first()?.callerWorkspaceId
+
                 _workspaces.value = _workspaces.value.filter { it.id != action.id }
-                _events.emit(WorkspaceEvent.Closed(workspaceId = action.id))
+                _events.emit(WorkspaceEvent.Closed(workspaceId = action.id, callerWorkspaceId = callerWorkspaceId))
 
                 WorkspaceAction.Close.Result
             }

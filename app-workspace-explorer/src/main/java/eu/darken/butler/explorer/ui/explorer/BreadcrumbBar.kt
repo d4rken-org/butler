@@ -36,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
@@ -77,6 +79,9 @@ fun BreadcrumbBar(
     var editTextValue by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
+    val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
+    var hadFocusWhileEditing by remember { mutableStateOf(false) }
 
     // Detect current path type and extract relevant information
     data class PathInfo(
@@ -147,11 +152,24 @@ fun BreadcrumbBar(
         }
     }
 
-    // Enter edit mode with current path
-    LaunchedEffect(isEditMode, pathInfo) {
-        if (isEditMode) {
-            editTextValue = TextFieldValue(pathInfo.displayPath, TextRange(pathInfo.displayPath.length))
-            focusRequester.requestFocus()
+    // Handle edit mode focus - track whether we had focus to distinguish "waiting for focus" from "lost focus"
+    LaunchedEffect(isEditMode, pathInfo, isWorkspaceFocused) {
+        when {
+            isEditMode && isWorkspaceFocused -> {
+                // Enter/stay in edit mode
+                editTextValue = TextFieldValue(pathInfo.displayPath, TextRange(pathInfo.displayPath.length))
+                focusRequester.requestFocus()
+                hadFocusWhileEditing = true
+            }
+            isEditMode && !isWorkspaceFocused && hadFocusWhileEditing -> {
+                // Lost focus after having it - user clicked away, exit edit mode
+                isEditMode = false
+                keyboardController?.hide()
+            }
+            // isEditMode && !isWorkspaceFocused && !hadFocusWhileEditing -> waiting for workspace focus
+            !isEditMode -> {
+                hadFocusWhileEditing = false
+            }
         }
     }
 
@@ -185,6 +203,7 @@ fun BreadcrumbBar(
                         modifier = Modifier
                             .clip(RoundedCornerShape(4.dp))
                             .clickable {
+                                requestWorkspaceFocus?.invoke()
                                 // Navigate to root when clicking prefix
                                 when (val path = pathInfo.path) {
                                     is SAFPath -> {
@@ -326,6 +345,7 @@ fun BreadcrumbBar(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
                                 .clickable {
+                                    requestWorkspaceFocus?.invoke()
                                     when {
                                         // Only allow edit mode for actual directory paths, not Home/Device
                                         isLast && onNavigateToPath != null &&

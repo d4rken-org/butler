@@ -11,6 +11,7 @@ sealed interface WorkspaceEvent {
 
     data class Closed(
         val workspaceId: Workspace.Id,
+        val callerWorkspaceId: Workspace.Id? = null,
     ) : WorkspaceEvent
 
     data class Reordered(

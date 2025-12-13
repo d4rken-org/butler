@@ -23,6 +23,9 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -76,8 +79,19 @@ fun LazyTextEditor(
         }
     }
     val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
     val lineNumbersListState = rememberLazyListState()
     val contentListState = rememberLazyListState()
+
+    // Release focus when workspace loses focus (multi-pane adaptive layout support)
+    // Use freeFocus() instead of clearFocus() to only release this component's focus,
+    // not clear focus globally (which would break focus transfer to other workspaces)
+    LaunchedEffect(isWorkspaceFocused) {
+        if (!isWorkspaceFocused) {
+            try { focusRequester.freeFocus() } catch (_: Exception) {}
+        }
+    }
     val horizontalScrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
@@ -214,6 +228,18 @@ private fun DualColumnEditorContent(
     // Ensure drag handlers always see latest values, not captured closures
     val currentVisibleLineContent by rememberUpdatedState(visibleLineContent)
     val currentVisibleRange by rememberUpdatedState(visibleRange)
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
+    val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
+    val focusManager = LocalFocusManager.current
+
+    // Release focus when workspace loses focus (multi-pane adaptive layout support)
+    // Use freeFocus() instead of clearFocus() to only release this component's focus,
+    // not clear focus globally (which would break focus transfer to other workspaces)
+    LaunchedEffect(isWorkspaceFocused) {
+        if (!isWorkspaceFocused) {
+            try { focusRequester.freeFocus() } catch (_: Exception) {}
+        }
+    }
 
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     var isFocused by remember { mutableStateOf(false) }
@@ -396,14 +422,19 @@ private fun DualColumnEditorContent(
                 contentPadding = PaddingValues(bottom = 52.dp),
                 modifier = contentModifier
                     .then(focusBorderModifier)
-                    .pointerInput(Unit) {
+                    .pointerInput(isWorkspaceFocused, requestWorkspaceFocus) {
                         detectTapGestures(
                             onTap = { offset ->
-                                // Request focus first
-                                try {
-                                    focusRequester.requestFocus()
-                                } catch (e: Exception) {
-                                    log(tag, WARN) { "Failed to request focus: ${e.message}" }
+                                // Request workspace focus so this pane becomes active
+                                requestWorkspaceFocus?.invoke()
+
+                                // Request focus first (only if workspace is focused)
+                                if (isWorkspaceFocused) {
+                                    try {
+                                        focusRequester.requestFocus()
+                                    } catch (e: Exception) {
+                                        log(tag, WARN) { "Failed to request focus: ${e.message}" }
+                                    }
                                 }
 
                                 val currentTime = System.currentTimeMillis()
@@ -461,11 +492,16 @@ private fun DualColumnEditorContent(
                                 }
                             },
                             onLongPress = { offset ->
-                                // Request focus
-                                try {
-                                    focusRequester.requestFocus()
-                                } catch (e: Exception) {
-                                    log(tag, WARN) { "Failed to request focus: ${e.message}" }
+                                // Request workspace focus so this pane becomes active
+                                requestWorkspaceFocus?.invoke()
+
+                                // Request focus (only if workspace is focused)
+                                if (isWorkspaceFocused) {
+                                    try {
+                                        focusRequester.requestFocus()
+                                    } catch (e: Exception) {
+                                        log(tag, WARN) { "Failed to request focus: ${e.message}" }
+                                    }
                                 }
 
                                 val result = calculatePositionFromOffset(
@@ -580,12 +616,14 @@ private fun DualColumnEditorContent(
         }
     }
 
-    // Request focus when content is loaded
-    LaunchedEffect(totalLines) {
-        try {
-            focusRequester.requestFocus()
-        } catch (e: Exception) {
-            // Ignore focus errors
+    // Request focus when content is loaded (only if workspace is focused)
+    LaunchedEffect(totalLines, isWorkspaceFocused) {
+        if (isWorkspaceFocused) {
+            try {
+                focusRequester.requestFocus()
+            } catch (e: Exception) {
+                // Ignore focus errors
+            }
         }
     }
 }
