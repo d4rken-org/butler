@@ -1,5 +1,6 @@
 package eu.darken.butler.apps.ui.details
 
+import android.content.pm.ActivityInfo
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -59,6 +60,7 @@ sealed interface AppDetailsPageAction {
     data class Uninstall(val app: AppInfo) : AppDetailsPageAction
     data class ExportApk(val app: AppInfo) : AppDetailsPageAction
     data class ShareApk(val app: AppInfo) : AppDetailsPageAction
+    data class LaunchActivity(val activity: ActivityInfo) : AppDetailsPageAction
 }
 
 @Composable
@@ -94,6 +96,7 @@ fun AppDetailsWorkspacePageHost(
                     is AppDetailsPageAction.Uninstall -> vm.onUninstall(action.app)
                     is AppDetailsPageAction.ExportApk -> vm.onExportApk(action.app)
                     is AppDetailsPageAction.ShareApk -> vm.onShareApk(action.app)
+                    is AppDetailsPageAction.LaunchActivity -> vm.onLaunchActivity(action.activity)
                 }
             },
         )
@@ -246,6 +249,38 @@ fun AppDetailsWorkspacePage(
                                 onForceStop = { /* TODO: Not implemented yet */ },
                                 onClearCache = { /* TODO: Not implemented yet */ },
                                 onClearData = { /* TODO: Not implemented yet */ },
+                            )
+                        }
+                    }
+                }
+
+                item { Spacer(modifier = Modifier.height(8.dp)) }
+
+                // Components Section
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 1.dp
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.apps_details_section_components),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+                            ComponentsSection(
+                                app = appInfo,
+                                onLaunchActivity = { activity ->
+                                    onPageAction(AppDetailsPageAction.LaunchActivity(activity))
+                                },
                             )
                         }
                     }

@@ -1,7 +1,9 @@
 package eu.darken.butler.apps.core.details
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.provider.Settings
 import androidx.core.net.toUri
 import dagger.assisted.Assisted
@@ -15,9 +17,11 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.navigation.NavigationController
+import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.pkgs.isEnabled
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
+import eu.darken.butler.saver.core.arguments.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -91,8 +95,18 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
 
     fun onExportApk(app: AppInfo) = launch {
         log(tag) { "Exporting APK: ${app.packageName}" }
-        // TODO: Implement APK export
-        log(tag, WARN) { "Export APK not implemented yet" }
+        val apkUri = (app.install as? SourceAvailable)?.sourceDir?.path?.let { "file://$it" }
+        if (apkUri != null) {
+            workspaceRemote.createAndFocus(
+                type = Workspace.Type.SAVER,
+                arguments = SaverArguments.Default(
+                    sourceUris = listOf(apkUri),
+                    callerPackage = null,
+                ),
+            )
+        } else {
+            log(tag, WARN) { "No APK source path available for: ${app.packageName}" }
+        }
     }
 
     fun onShareApk(app: AppInfo) = launch {
@@ -105,6 +119,19 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "Toggle enable/disable: ${app.packageName}, current=${app.install.isEnabled}" }
         // TODO: Implement enable/disable operation
         log(tag, WARN) { "Enable/disable not implemented yet" }
+    }
+
+    fun onLaunchActivity(activityInfo: ActivityInfo) {
+        log(tag) { "Launching activity: ${activityInfo.name}" }
+        try {
+            val intent = Intent().apply {
+                component = ComponentName(activityInfo.packageName, activityInfo.name)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            log(tag, WARN) { "Failed to launch activity ${activityInfo.name}: $e" }
+        }
     }
 
     fun close() = launch {

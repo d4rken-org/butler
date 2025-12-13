@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,9 +34,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.AppsViewStyle
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogHost
+import eu.darken.butler.apps.ui.apps.items.AppGridItem
 import eu.darken.butler.apps.ui.apps.items.AppListItem
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.compose.Preview2
@@ -122,65 +127,111 @@ private fun AppsWorkspacePage(
             onRefresh = { vm?.onRefresh() },
         ) {
             // Scrollable content layer - with padding for pinned toolbar/infobar
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
-                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
-                contentPadding = PaddingValues(
-                    top = topToolbarScrollBehavior.state.getCurrentHeightDp(),
-                    bottom = if (hasActions) 72.dp else 8.dp,
-                ),
-            ) {
-                when {
-                    state.isLoading && state.apps.isEmpty() -> {
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 100.dp, bottom = 32.dp, start = 32.dp, end = 32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                CircularProgressIndicator()
-                                Text(stringResource(R.string.apps_empty_loading))
+            when (state.viewStyle) {
+                is AppsViewStyle.List -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                            .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                        contentPadding = PaddingValues(
+                            top = topToolbarScrollBehavior.state.getCurrentHeightDp(),
+                            bottom = if (hasActions) 72.dp else 8.dp,
+                        ),
+                    ) {
+                        when {
+                            state.isLoading && state.apps.isEmpty() -> {
+                                item {
+                                    AppsEmptyLoadingContent()
+                                }
+                            }
+
+                            state.apps.isEmpty() -> {
+                                item {
+                                    AppsEmptyContent()
+                                }
+                            }
+
+                            else -> {
+                                items(
+                                    items = state.apps,
+                                    key = { it.pkg.installId }
+                                ) { appItem ->
+                                    AppListItem(
+                                        item = appItem,
+                                        isSelected = appItem.packageName in state.selectedAppIds,
+                                        onClick = {
+                                            if (state.isMultiSelectMode) {
+                                                vm?.onAppLongClick(appItem)
+                                            } else {
+                                                vm?.showAppDetails(appItem)
+                                            }
+                                        },
+                                        onLongClick = { vm?.onAppLongClick(appItem) },
+                                        showSelection = state.isMultiSelectMode,
+                                    )
+                                }
                             }
                         }
                     }
+                }
 
-                    state.apps.isEmpty() -> {
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 100.dp, bottom = 32.dp, start = 32.dp, end = 32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(stringResource(R.string.apps_empty_no_apps))
-                                Text(stringResource(R.string.apps_empty_no_apps_desc))
-                            }
-                        }
+                is AppsViewStyle.Grid -> {
+                    val gridSize = (state.viewStyle as AppsViewStyle.Grid).size
+                    val minSize = when (gridSize) {
+                        AppsViewStyle.Grid.GridSize.SMALL -> 90.dp
+                        AppsViewStyle.Grid.GridSize.MEDIUM -> 120.dp
+                        AppsViewStyle.Grid.GridSize.LARGE -> 160.dp
                     }
 
-                    else -> {
-                        items(
-                            items = state.apps,
-                            key = { it.pkg.installId }
-                        ) { appItem ->
-                            AppListItem(
-                                item = appItem,
-                                isSelected = appItem.packageName in state.selectedAppIds,
-                                onClick = {
-                                    if (state.isMultiSelectMode) {
-                                        vm?.onAppLongClick(appItem)
-                                    } else {
-                                        vm?.showAppDetails(appItem)
-                                    }
-                                },
-                                onLongClick = { vm?.onAppLongClick(appItem) },
-                                showSelection = state.isMultiSelectMode,
-                            )
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = minSize),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                            .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                        contentPadding = PaddingValues(
+                            top = topToolbarScrollBehavior.state.getCurrentHeightDp(),
+                            bottom = if (hasActions) 72.dp else 8.dp,
+                            start = 8.dp,
+                            end = 8.dp,
+                        ),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        when {
+                            state.isLoading && state.apps.isEmpty() -> {
+                                item {
+                                    AppsEmptyLoadingContent()
+                                }
+                            }
+
+                            state.apps.isEmpty() -> {
+                                item {
+                                    AppsEmptyContent()
+                                }
+                            }
+
+                            else -> {
+                                items(
+                                    items = state.apps,
+                                    key = { it.pkg.installId }
+                                ) { appItem ->
+                                    AppGridItem(
+                                        item = appItem,
+                                        isSelected = appItem.packageName in state.selectedAppIds,
+                                        onClick = {
+                                            if (state.isMultiSelectMode) {
+                                                vm?.onAppLongClick(appItem)
+                                            } else {
+                                                vm?.showAppDetails(appItem)
+                                            }
+                                        },
+                                        onLongClick = { vm?.onAppLongClick(appItem) },
+                                        showSelection = state.isMultiSelectMode,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -250,6 +301,34 @@ private fun AppsWorkspacePage(
         onConfirmEnable = { apps -> vm?.performEnableApps(apps) },
         onConfirmDisable = { apps -> vm?.performDisableApps(apps) },
     )
+}
+
+@Composable
+private fun AppsEmptyLoadingContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 100.dp, bottom = 32.dp, start = 32.dp, end = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        CircularProgressIndicator()
+        Text(stringResource(R.string.apps_empty_loading))
+    }
+}
+
+@Composable
+private fun AppsEmptyContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 100.dp, bottom = 32.dp, start = 32.dp, end = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(stringResource(R.string.apps_empty_no_apps))
+        Text(stringResource(R.string.apps_empty_no_apps_desc))
+    }
 }
 
 @Preview2

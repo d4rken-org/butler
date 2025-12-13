@@ -12,6 +12,8 @@ import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.FilterAlt
 import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.GridView
+import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.GetApp
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Refresh
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.apps.R
+import eu.darken.butler.apps.core.AppsViewStyle
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
@@ -59,6 +62,22 @@ sealed interface AppsAction : WorkspaceAction {
     data object Filter : AppsAction {
         override val icon = Icons.TwoTone.FilterAlt
         override val label = R.string.apps_action_filter.toCaString()
+        override val group = WorkspaceAction.Group.SECONDARY
+    }
+
+    data class UpdateViewStyle(
+        val viewStyle: AppsViewStyle,
+    ) : AppsAction {
+        override val icon: ImageVector
+            get() = when (viewStyle) {
+                is AppsViewStyle.List -> Icons.TwoTone.GridView // Show grid icon to switch TO grid
+                is AppsViewStyle.Grid -> Icons.AutoMirrored.TwoTone.ViewList // Show list icon to switch TO list
+            }
+        override val label: CaString
+            get() = when (viewStyle) {
+                is AppsViewStyle.List -> R.string.apps_action_view_grid.toCaString()
+                is AppsViewStyle.Grid -> R.string.apps_action_view_list.toCaString()
+            }
         override val group = WorkspaceAction.Group.SECONDARY
     }
 
