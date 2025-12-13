@@ -291,9 +291,9 @@ fun SearcherWorkspacePage(
             )
 
             // Conditional rendering: History mode vs Results mode
-            val showHistory = currentState.searchQuery.text.isBlank() &&
-                !currentState.hasResults &&
-                currentState.searchHistory.isNotEmpty()
+            val hasNoQuery = currentState.filenameQuery.text.isBlank() && currentState.contentQuery.text.isBlank()
+            // Show history when no results (even if query is filled from restore)
+            val showHistory = !currentState.hasResults && currentState.searchHistory.isNotEmpty()
 
             when {
                 showHistory -> {
@@ -400,7 +400,7 @@ fun SearcherWorkspacePage(
                                 }
 
                                 // Empty state placeholder when no query and no history
-                                if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isEmpty()) {
+                                if (hasNoQuery && currentState.searchHistory.isEmpty()) {
                                     item {
                                         Box(
                                             modifier = Modifier
@@ -485,7 +485,7 @@ fun SearcherWorkspacePage(
                                 }
 
                                 // Empty state placeholder when no query and no history
-                                if (currentState.searchQuery.text.isBlank() && currentState.searchHistory.isEmpty()) {
+                                if (hasNoQuery && currentState.searchHistory.isEmpty()) {
                                     item {
                                         Box(
                                             modifier = Modifier
@@ -515,16 +515,20 @@ fun SearcherWorkspacePage(
                 state = currentState,
                 design = design,
                 collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
-                onUpdateQuery = { onPageAction(SearcherPageAction.Search.UpdateQuery(it)) },
+                onUpdateFilenameQuery = { onPageAction(SearcherPageAction.Search.UpdateFilenameQuery(it)) },
+                onUpdateContentQuery = { onPageAction(SearcherPageAction.Search.UpdateContentQuery(it)) },
                 onRemoveSearchPath = { onPageAction(SearcherPageAction.Targets.Remove(it)) },
                 onTogglePathEnabled = { onPageAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
                 onPerformSearch = { onPageAction(SearcherPageAction.Search.Perform) },
                 onExplicitSearch = { onPageAction(SearcherPageAction.Search.Explicit) },
                 onCancelSearch = { onPageAction(SearcherPageAction.Search.Cancel) },
-                onToggleCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleCaseSensitive) },
-                onToggleWholeWord = { onPageAction(SearcherPageAction.Options.ToggleWholeWord) },
-                onToggleRegex = { onPageAction(SearcherPageAction.Options.ToggleRegex) },
-                onToggleSearchContent = { onPageAction(SearcherPageAction.Options.ToggleSearchContent) },
+                onToggleFilenameCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleFilenameCaseSensitive) },
+                onToggleFilenameWholeWord = { onPageAction(SearcherPageAction.Options.ToggleFilenameWholeWord) },
+                onToggleFilenameRegex = { onPageAction(SearcherPageAction.Options.ToggleFilenameRegex) },
+                onToggleContentCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleContentCaseSensitive) },
+                onToggleContentWholeWord = { onPageAction(SearcherPageAction.Options.ToggleContentWholeWord) },
+                onToggleContentRegex = { onPageAction(SearcherPageAction.Options.ToggleContentRegex) },
+                onToggleContentSearch = { onPageAction(SearcherPageAction.Options.ToggleContentSearch) },
                 onOpenPathPicker = { onPageAction(SearcherPageAction.Targets.OpenPicker) },
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,

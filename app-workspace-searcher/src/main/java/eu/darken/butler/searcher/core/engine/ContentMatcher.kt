@@ -8,8 +8,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.searcher.core.ContentQuery
 import eu.darken.butler.searcher.core.SearchItem
-import eu.darken.butler.searcher.core.SearchQuery
 import kotlinx.coroutines.withContext
 import okio.buffer
 import okio.use
@@ -27,16 +27,16 @@ class ContentMatcher @AssistedInject constructor(
     private val tag = logTag("Searcher", "Workspace", workspaceId.shortTag, "ContentMatcher")
 
     /**
-     * Checks if file content matches the search query and returns match context if found.
+     * Checks if file content matches the pattern and returns match context if found.
      *
      * @param lookup The file to search within
-     * @param query The search query parameters
+     * @param query The content query with search text and options
      * @param includeBinaries Whether to search binary files or skip them
      * @return MatchContext with line number and snippet if match found, null otherwise
      */
     suspend fun matchesContent(
         lookup: APathLookup<*>,
-        query: SearchQuery,
+        query: ContentQuery,
         includeBinaries: Boolean,
     ): SearchItem.MatchContext? = withContext(dispatcherProvider.IO) {
         // 1. Size check - skip files that are too large
@@ -100,23 +100,23 @@ class ContentMatcher @AssistedInject constructor(
     }
 
     /**
-     * Searches for query in content and returns match context with line information.
+     * Searches for pattern in content and returns match context with line information.
      */
     private fun findMatch(
         content: String,
-        query: SearchQuery,
+        query: ContentQuery,
     ): SearchItem.MatchContext? {
-        val searchText = query.query
+        val searchText = query.pattern
 
-        // Guard against empty/blank queries - prevents invalid regex patterns
+        // Guard against empty/blank patterns - prevents invalid regex patterns
         if (searchText.isBlank()) {
-            log(tag, WARN) { "Skipping content search - empty query" }
+            log(tag, WARN) { "Skipping content search - empty pattern" }
             return null
         }
 
-        val caseSensitive = query.filter.caseSensitive
-        val useRegex = query.filter.useRegex
-        val wholeWord = query.filter.wholeWord
+        val caseSensitive = query.caseSensitive
+        val useRegex = query.useRegex
+        val wholeWord = query.wholeWord
 
         // Split into lines (content is already limited to 128KB, so this is safe)
         val lines = content.lines()
@@ -173,6 +173,7 @@ class ContentMatcher @AssistedInject constructor(
                 }
 
                 return SearchItem.MatchContext(
+                    matchType = SearchItem.MatchContext.MatchType.CONTENT,
                     lineNumber = index + 1, // 1-based line numbers for UI
                     matchedLine = line, // Keep full line, UI will handle display truncation
                     startIndex = matchRange.first,

@@ -12,6 +12,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.MetadataRepo
+import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import kotlinx.coroutines.CancellationException
@@ -102,9 +103,14 @@ class PathScanner @AssistedInject constructor(
                             if (matchResult != null) {
                                 resultsFound++
                                 val metadata = metadataRepo.extract(lookup)
+                                val matchedQuery = when (matchResult.matchType) {
+                                    SearchItem.MatchContext.MatchType.FILENAME -> query.filenameQuery.pattern
+                                    SearchItem.MatchContext.MatchType.CONTENT -> query.contentQuery.pattern
+                                    SearchItem.MatchContext.MatchType.BOTH -> query.filenameQuery.pattern
+                                }
                                 SearchItem.fromLookup(
                                     lookup = lookup,
-                                    matchedQuery = query.query,
+                                    matchedQuery = matchedQuery,
                                     matchContext = matchResult,
                                     metadata = metadata,
                                 )
@@ -164,15 +170,57 @@ class PathScanner @AssistedInject constructor(
         searchQuery: SearchQuery,
         includeBinaries: Boolean,
     ): SearchItem.MatchContext? = withContext(dispatcherProvider.Default) {
-        val query = searchQuery.query
-        val filter = searchQuery.filter
+        val filenameQuery = searchQuery.filenameQuery
+        val contentQuery = searchQuery.contentQuery
+        val hasFilenameQuery = filenameQuery.isNotEmpty
+        val hasContentQuery = contentQuery.isNotEmpty
 
-        // Name matching
-        val name = lookup.name
-        val nameMatches = when {
-            filter.useRegex -> {
+        when {
+            // Case 1: Only filename pattern - match filename only
+            hasFilenameQuery && !hasContentQuery -> {
+                if (matchesFilename(lookup.name, filenameQuery)) {
+                    SearchItem.MatchContext(matchType = SearchItem.MatchContext.MatchType.FILENAME)
+                } else {
+                    null
+                }
+            }
+
+            // Case 2: Only content pattern - match content only (for files)
+            !hasFilenameQuery && hasContentQuery -> {
+                if (lookup.fileType != FileType.FILE) return@withContext null
+                contentMatcher.matchesContent(lookup, contentQuery, includeBinaries)
+            }
+
+            // Case 3: Both patterns - filename must match first (AND logic)
+            hasFilenameQuery && hasContentQuery -> {
+                // First: filename must match
+                if (!matchesFilename(lookup.name, filenameQuery)) {
+                    return@withContext null
+                }
+
+                // Only files can have content matches
+                if (lookup.fileType != FileType.FILE) {
+                    return@withContext null
+                }
+
+                // Second: content must match
+                val contentMatch = contentMatcher.matchesContent(lookup, contentQuery, includeBinaries)
+                contentMatch?.copy(matchType = SearchItem.MatchContext.MatchType.BOTH)
+            }
+
+            // Case 4: No patterns - shouldn't happen
+            else -> null
+        }
+    }
+
+    private fun matchesFilename(name: String, filenameQuery: FilenameQuery): Boolean {
+        val query = filenameQuery.pattern
+        if (query.isBlank()) return false
+
+        return when {
+            filenameQuery.useRegex -> {
                 try {
-                    val regex = if (filter.caseSensitive) {
+                    val regex = if (filenameQuery.caseSensitive) {
                         query.toRegex()
                     } else {
                         query.toRegex(RegexOption.IGNORE_CASE)
@@ -184,32 +232,20 @@ class PathScanner @AssistedInject constructor(
                 }
             }
 
-            filter.wholeWord -> {
-                val pattern = "\\b${Regex.escape(query)}\\b"
-                val regex = if (filter.caseSensitive) {
-                    pattern.toRegex()
+            filenameQuery.wholeWord -> {
+                val wordPattern = "\\b${Regex.escape(query)}\\b"
+                val regex = if (filenameQuery.caseSensitive) {
+                    wordPattern.toRegex()
                 } else {
-                    pattern.toRegex(RegexOption.IGNORE_CASE)
+                    wordPattern.toRegex(RegexOption.IGNORE_CASE)
                 }
                 regex.containsMatchIn(name)
             }
 
             else -> {
-                name.contains(query, ignoreCase = !filter.caseSensitive)
+                name.contains(query, ignoreCase = !filenameQuery.caseSensitive)
             }
         }
-
-        // If filename matches, return empty match context (indicates filename match)
-        if (nameMatches) {
-            return@withContext SearchItem.MatchContext()
-        }
-
-        // If content search is enabled and this is a file, search content
-        if (searchQuery.options.searchContent && lookup.fileType == FileType.FILE) {
-            return@withContext contentMatcher.matchesContent(lookup, searchQuery, includeBinaries)
-        }
-
-        null
     }
 
     @AssistedFactory

@@ -26,10 +26,8 @@ class SearcherSettings @Inject constructor(
     override val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    val caseSensitive = dataStore.createValue("searcher.case_sensitive", false)
-    val wholeWord = dataStore.createValue("searcher.whole_word", false)
-    val useRegex = dataStore.createValue("searcher.use_regex", false)
-    val searchContent = dataStore.createValue("searcher.search_content", false)
+    // Search defaults for new workspaces
+    val searchDefaults = dataStore.createValue("searcher.defaults", SearchDefaults(), json)
 
     val defaultSearchTargets = dataStore.createValue<List<SearchTarget>?>("searcher.default.targets", null, json)
     val maxSearchResults = dataStore.createValue("searcher.results.maximum", 1000)
@@ -47,10 +45,7 @@ class SearcherSettings @Inject constructor(
 
     override val mapper = PreferenceStoreMapper(
         debugSettings.isDebugMode,
-        caseSensitive,
-        wholeWord,
-        useRegex,
-        searchContent,
+        searchDefaults,
         maxHistoryItems,
         saveHistory,
         maxSearchResults,

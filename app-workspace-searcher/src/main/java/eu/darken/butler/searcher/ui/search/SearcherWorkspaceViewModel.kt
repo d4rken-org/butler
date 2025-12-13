@@ -33,11 +33,14 @@ import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.searcher.core.ContentQuery
+import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.searcher.core.arguments.SearcherArguments
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.history.SearchHistory
@@ -106,7 +109,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private suspend fun getWorkspace(): SearcherWorkspace = workspaceSource.filterNotNull().first()
 
-    private val searchQuery = MutableStateFlow(TextFieldValue(""))
+    private val filenameQuery = MutableStateFlow(TextFieldValue(""))
+    private val contentQuery = MutableStateFlow(TextFieldValue(""))
+
+    // Per-field options (workspace-local, loaded from defaults on init)
+    private val filenameOptions = MutableStateFlow(FilenameQuery())
+    private val contentOptions = MutableStateFlow(ContentQuery())
+
+    private val contentSearchEnabled = MutableStateFlow(false)
     private val currentFilter = MutableStateFlow(SearchQuery.Filter())
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
@@ -129,17 +139,41 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         .flatMapLatest { it.state }
 
     init {
-        combine(
-            searcherSettings.caseSensitive.flow,
-            searcherSettings.wholeWord.flow,
-            searcherSettings.useRegex.flow,
-        ) { caseSensitive, wholeWord, useRegex ->
-            currentFilter.value = currentFilter.value.copy(
-                caseSensitive = caseSensitive,
-                wholeWord = wholeWord,
-                useRegex = useRegex,
-            )
-        }.launchIn(vmScope)
+        // Initialize query options and text from arguments or defaults
+        vmScope.launch {
+            val workspace = getWorkspace()
+            val args = workspace.creationArguments as? SearcherArguments.Default
+            val defaults = searcherSettings.searchDefaults.valueBlocking
+
+            // Load query options: args > defaults
+            filenameOptions.value = args?.filenameQuery?.copy(pattern = "") ?: defaults.filename
+            contentOptions.value = args?.contentQuery?.copy(pattern = "") ?: defaults.content
+
+            // Content search enabled if contentQuery provided, else use defaults
+            contentSearchEnabled.value = args?.contentQuery?.isNotEmpty == true
+                || (args?.contentQuery == null && defaults.contentSearchEnabled)
+
+            // Pre-fill query text if provided in args
+            args?.filenameQuery?.pattern?.takeIf { it.isNotBlank() }?.let {
+                filenameQuery.value = TextFieldValue(it)
+            }
+            args?.contentQuery?.pattern?.takeIf { it.isNotBlank() }?.let {
+                contentQuery.value = TextFieldValue(it)
+            }
+
+            // Prevent auto-search flow from triggering on restored queries
+            if (filenameQuery.value.text.isNotBlank() || contentQuery.value.text.isNotBlank()) {
+                lastAutoExecutedQuery = "${filenameQuery.value.text}|${contentQuery.value.text}"
+            }
+
+            // Auto-execute search if requested
+            if (args?.startSearch == true &&
+                (filenameQuery.value.text.isNotBlank() || contentQuery.value.text.isNotBlank())
+            ) {
+                log(tag, INFO) { "Auto-starting search from arguments" }
+                performSearch(saveToHistory = true)
+            }
+        }
 
         // Handle dialog events
         dialogEvents
@@ -184,26 +218,27 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
 
         // Auto-search on query text changes with debouncing
-        searchQuery
+        kotlinx.coroutines.flow.combine(filenameQuery, contentQuery) { filename, content ->
+            filename.text to content.text
+        }
             .debounce(500)
-            .map { it.text }
             .distinctUntilChanged()
-            .filter { it.isNotBlank() }
-            .filter { it != lastAutoExecutedQuery }
-            .onEach { query ->
-                log(tag, INFO) { "Auto-triggering search for query: $query" }
-                lastAutoExecutedQuery = query
+            .filter { pair -> pair.first.isNotBlank() || pair.second.isNotBlank() }
+            .filter { pair -> "${pair.first}|${pair.second}" != lastAutoExecutedQuery }
+            .onEach { pair ->
+                log(tag, INFO) { "Auto-triggering search for filename: ${pair.first}, content: ${pair.second}" }
+                lastAutoExecutedQuery = "${pair.first}|${pair.second}"
                 performSearch(saveToHistory = true)
             }
             .launchIn(vmScope)
 
-        // Auto-search on target changes (when query exists)
+        // Auto-search on target changes (when at least one query exists)
         workspaceSearchState
             .map { it.searchTargets }
             .distinctUntilChanged()
             .drop(1) // Skip initial state to avoid triggering on setup
             .debounce(300) // Short debounce for rapid changes
-            .filter { searchQuery.value.text.isNotBlank() }
+            .filter { filenameQuery.value.text.isNotBlank() || contentQuery.value.text.isNotBlank() }
             .onEach { targets ->
                 log(tag, INFO) { "Auto-triggering search due to target change: ${targets.size} targets" }
                 performSearch(saveToHistory = true)
@@ -224,7 +259,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 val hadPermissionError = prev.second == SearcherWorkspace.State.SearchStatus.ERROR
                 wasNeedingSetup && noLongerNeedsSetup && hadPermissionError
             }
-            .filter { searchQuery.value.text.isNotBlank() }
+            .filter { filenameQuery.value.text.isNotBlank() || contentQuery.value.text.isNotBlank() }
             .onEach {
                 log(tag, INFO) { "Permissions granted after setup, auto-retrying search" }
                 performSearch(saveToHistory = false)
@@ -287,18 +322,21 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         .asStateFlow()
 
     val state: Flow<State> = combine(
-        searchQuery,
+        filenameQuery,
+        contentQuery,
+        filenameOptions,
+        contentOptions,
+        contentSearchEnabled,
         workspaceSearchState,
         searcherSettings.maxHistoryItems.flow.flatMapLatest { searchHistory.getSearches(it) },
         currentFilter,
-        searcherSettings.searchContent.flow,
         selectionState,
         quickActionsResult,
         dialogStateFlow,
         currentSortSettings,
         viewStyleFlow,
         trashSettings.enabled.flow,
-    ) { query: TextFieldValue, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, searchContent: Boolean, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean ->
+    ) { filenameQ: TextFieldValue, contentQ: TextFieldValue, fnOptions: FilenameQuery, ctOptions: ContentQuery, contentSearchOn: Boolean, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean ->
         val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -344,15 +382,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         State(
             id = id,
-            searchQuery = query,
+            filenameQuery = filenameQ,
+            contentQuery = contentQ,
+            filenameOptions = fnOptions,
+            contentOptions = ctOptions,
+            contentSearchEnabled = contentSearchOn,
             workspaceState = updatedWorkspaceState,
             searchHistory = history,
             currentFilter = filter,
             searchTargets = workspaceState.searchTargets,
-            caseSensitive = filter.caseSensitive,
-            wholeWord = filter.wholeWord,
-            useRegex = filter.useRegex,
-            searchContent = searchContent,
             setupRequirements = workspaceState.setupRequirements,
             selectionState = updatedSelectionState,
             quickActionsResult = quickActions,
@@ -370,7 +408,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG, INFO) { "Restoring search from history: ${item.baseQuery}" }
         item.searchQuery?.let { query ->
             // Update all parameters atomically
-            searchQuery.value = TextFieldValue(query.query)
+            filenameQuery.value = TextFieldValue(query.filenameQuery.pattern)
+            contentQuery.value = TextFieldValue(query.contentQuery.pattern)
+
+            // Update per-field options (copy the pattern options, not the pattern text)
+            filenameOptions.value = query.filenameQuery.copy(pattern = "")
+            contentOptions.value = query.contentQuery.copy(pattern = "")
+
+            // Enable content search if the restored query has content
+            if (query.contentQuery.isNotEmpty) {
+                contentSearchEnabled.value = true
+            }
+
             currentFilter.value = query.filter
 
             // Update targets
@@ -383,23 +432,26 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             selectionState.value = SearcherSelectionState()
 
             // Prevent auto-search from double-triggering
-            lastAutoExecutedQuery = query.query
+            lastAutoExecutedQuery = "${query.filenameQuery.pattern}|${query.contentQuery.pattern}"
 
             // Explicitly trigger search (don't rely on auto-search)
             performSearch(saveToHistory = false)
         } ?: run {
             // Fallback for legacy history items without full query
-            searchQuery.value = TextFieldValue(item.baseQuery)
-            lastAutoExecutedQuery = item.baseQuery
+            filenameQuery.value = TextFieldValue(item.baseQuery)
+            lastAutoExecutedQuery = "${item.baseQuery}|"
             performSearch(saveToHistory = false)
         }
     }
 
     fun performSearch(saveToHistory: Boolean = false) {
-        val query = searchQuery.value.text
-        if (query.isBlank()) return
+        val filenameText = filenameQuery.value.text
+        val contentText = contentQuery.value.text
 
-        log(TAG, INFO) { "Performing search: $query" }
+        // At least one pattern must be non-empty
+        if (filenameText.isBlank() && contentText.isBlank()) return
+
+        log(TAG, INFO) { "Performing search: filename=$filenameText, content=$contentText" }
 
         // Clear selection state when starting new search
         selectionState.value = SearcherSelectionState()
@@ -414,13 +466,29 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 return@launch
             }
 
-            // Build search command (inside coroutine to access suspend .value())
+            // Build pattern queries with per-field options
+            val fnOpts = filenameOptions.value
+            val filenameQueryValue = FilenameQuery(
+                pattern = filenameText,
+                caseSensitive = fnOpts.caseSensitive,
+                wholeWord = fnOpts.wholeWord,
+                useRegex = fnOpts.useRegex,
+            )
+            val ctOpts = contentOptions.value
+            val contentQueryValue = ContentQuery(
+                pattern = contentText,
+                caseSensitive = ctOpts.caseSensitive,
+                wholeWord = ctOpts.wholeWord,
+                useRegex = ctOpts.useRegex,
+            )
+
+            // Build search command
             val searchCommand = SearcherCommand.Search(
-                query = query,
+                filenameQuery = filenameQueryValue,
+                contentQuery = contentQueryValue,
                 targets = targets,
                 filter = currentFilter.value,
                 options = SearchQuery.Options(
-                    searchContent = searcherSettings.searchContent.value(),
                     maxResults = searcherSettings.maxSearchResults.value(),
                 ),
                 saveToHistory = saveToHistory,
@@ -431,10 +499,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             // Record search in history only if explicitly requested
             if (saveToHistory) {
                 val searchRequest = SearchQuery(
-                    query = query,
+                    filenameQuery = filenameQueryValue,
+                    contentQuery = contentQueryValue,
                     targets = targets,
                     options = searchCommand.options,
-                    filter = searchCommand.filter
+                    filter = searchCommand.filter,
                 )
                 currentSearchId = searchHistory.addSearch(searchRequest)
             }
@@ -451,7 +520,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     fun clearResults() {
         log(TAG) { "Clearing search results" }
-        searchQuery.value = TextFieldValue("")
+        filenameQuery.value = TextFieldValue("")
+        contentQuery.value = TextFieldValue("")
         // Clear selection state
         selectionState.value = SearcherSelectionState()
         // Clear workspace state via command
@@ -749,15 +819,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     data class State(
         val id: Workspace.Id,
-        val searchQuery: TextFieldValue = TextFieldValue(""),
+        val filenameQuery: TextFieldValue = TextFieldValue(""),
+        val contentQuery: TextFieldValue = TextFieldValue(""),
+        val filenameOptions: FilenameQuery = FilenameQuery(),
+        val contentOptions: ContentQuery = ContentQuery(),
+        val contentSearchEnabled: Boolean = false,
         val workspaceState: SearcherWorkspace.State = SearcherWorkspace.State(),
         val searchHistory: List<SearchHistory.SearchHistoryItem> = emptyList(),
         val currentFilter: SearchQuery.Filter = SearchQuery.Filter(),
         val searchTargets: List<SearchTarget>,
-        val caseSensitive: Boolean = false,
-        val wholeWord: Boolean = false,
-        val useRegex: Boolean = false,
-        val searchContent: Boolean = false,
         val setupRequirements: PathRequirements = PathRequirements(),
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
         val quickActionsResult: SearchItem? = null,
@@ -966,11 +1036,19 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG, INFO) { "onPageAction(): $action" }
         when (action) {
             // Search actions
-            is SearcherPageAction.Search.UpdateQuery -> {
-                log(TAG, INFO) { "Updating search query: ${action.query.text}" }
-                searchQuery.value = action.query
-                // Auto-clear results when query becomes empty
-                if (action.query.text.isBlank()) {
+            is SearcherPageAction.Search.UpdateFilenameQuery -> {
+                log(TAG, INFO) { "Updating filename query: ${action.query.text}" }
+                filenameQuery.value = action.query
+                // Auto-clear results when both queries become empty
+                if (action.query.text.isBlank() && contentQuery.value.text.isBlank()) {
+                    clearResults()
+                }
+            }
+            is SearcherPageAction.Search.UpdateContentQuery -> {
+                log(TAG, INFO) { "Updating content query: ${action.query.text}" }
+                contentQuery.value = action.query
+                // Auto-clear results when both queries become empty
+                if (action.query.text.isBlank() && filenameQuery.value.text.isBlank()) {
                     clearResults()
                 }
             }
@@ -982,30 +1060,36 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Search.Cancel -> cancelSearch()
             is SearcherPageAction.Search.ClearResults -> clearResults()
 
-            // Options
-            is SearcherPageAction.Options.ToggleCaseSensitive -> {
-                vmScope.launch {
-                    val current = searcherSettings.caseSensitive.flow.first()
-                    searcherSettings.caseSensitive.update { !current }
-                }
+            // Filename pattern options (workspace-local, not saved to settings)
+            is SearcherPageAction.Options.ToggleFilenameCaseSensitive -> {
+                filenameOptions.update { it.copy(caseSensitive = !it.caseSensitive) }
+                performSearch(saveToHistory = false)
             }
-            is SearcherPageAction.Options.ToggleWholeWord -> {
-                vmScope.launch {
-                    val current = searcherSettings.wholeWord.flow.first()
-                    searcherSettings.wholeWord.update { !current }
-                }
+            is SearcherPageAction.Options.ToggleFilenameWholeWord -> {
+                filenameOptions.update { it.copy(wholeWord = !it.wholeWord) }
+                performSearch(saveToHistory = false)
             }
-            is SearcherPageAction.Options.ToggleRegex -> {
-                vmScope.launch {
-                    val current = searcherSettings.useRegex.flow.first()
-                    searcherSettings.useRegex.update { !current }
-                }
+            is SearcherPageAction.Options.ToggleFilenameRegex -> {
+                filenameOptions.update { it.copy(useRegex = !it.useRegex) }
+                performSearch(saveToHistory = false)
             }
-            is SearcherPageAction.Options.ToggleSearchContent -> {
-                vmScope.launch {
-                    val current = searcherSettings.searchContent.flow.first()
-                    searcherSettings.searchContent.update { !current }
-                }
+
+            // Content pattern options (workspace-local, not saved to settings)
+            is SearcherPageAction.Options.ToggleContentCaseSensitive -> {
+                contentOptions.update { it.copy(caseSensitive = !it.caseSensitive) }
+                performSearch(saveToHistory = false)
+            }
+            is SearcherPageAction.Options.ToggleContentWholeWord -> {
+                contentOptions.update { it.copy(wholeWord = !it.wholeWord) }
+                performSearch(saveToHistory = false)
+            }
+            is SearcherPageAction.Options.ToggleContentRegex -> {
+                contentOptions.update { it.copy(useRegex = !it.useRegex) }
+                performSearch(saveToHistory = false)
+            }
+            is SearcherPageAction.Options.ToggleContentSearch -> {
+                contentSearchEnabled.value = !contentSearchEnabled.value
+                performSearch(saveToHistory = false)
             }
 
             // Targets

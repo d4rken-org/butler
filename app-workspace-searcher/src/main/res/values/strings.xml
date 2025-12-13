@@ -23,6 +23,8 @@
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Recent searches</string>
     <string name="searcher_placeholder_search">Search files and folders</string>
+    <string name="searcher_placeholder_filename">Filename pattern…</string>
+    <string name="searcher_placeholder_content">Content pattern…</string>
     <string name="searcher_search_error">Search error</string>
     <string name="searcher_no_paths_hint">Tap + to add search paths</string>
     <string name="searcher_add_path_action">Add path</string>
@@ -32,13 +34,14 @@
     <string name="searcher_add_default_paths_action">Add default search paths</string>
 
     <!-- Search Options -->
-    <string name="searcher_option_case_sensitive_label">Aa</string>
+    <string name="searcher_options_action">Options</string>
+    <string name="searcher_option_case_sensitive_label">Case sensitive</string>
     <string name="searcher_option_case_sensitive_desc">Case sensitive search</string>
-    <string name="searcher_option_whole_word_label">Word</string>
+    <string name="searcher_option_whole_word_label">Whole word</string>
     <string name="searcher_option_whole_word_desc">Whole word search</string>
-    <string name="searcher_option_regex_label">.*</string>
+    <string name="searcher_option_regex_label">Regular expression</string>
     <string name="searcher_option_regex_desc">Regular expression search</string>
-    <string name="searcher_option_search_content_label">Content</string>
+    <string name="searcher_option_search_content_label">Search content</string>
     <string name="searcher_option_search_content_desc">Search file contents</string>
 
     <!-- Search history actions -->

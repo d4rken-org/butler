@@ -11,10 +11,11 @@ import kotlin.time.Instant
 @Serializable
 @Parcelize
 data class SearchQuery(
-    val query: String,
+    val filenameQuery: FilenameQuery = FilenameQuery(),
+    val contentQuery: ContentQuery = ContentQuery(),
     val targets: List<SearchTarget>,
     val options: Options = Options(),
-    val filter: Filter = Filter()
+    val filter: Filter = Filter(),
 ) : Parcelable {
 
     init {
@@ -24,9 +25,8 @@ data class SearchQuery(
     @Serializable
     @Parcelize
     data class Options(
-        val searchContent: Boolean = false,
         val maxResults: Int? = null,
-        val followSymlinks: Boolean = false
+        val followSymlinks: Boolean = false,
     ) : Parcelable
 
     @Serializable
@@ -36,43 +36,28 @@ data class SearchQuery(
         val fileTypes: Set<FileType>? = null,
         val minSize: Long? = null,
         val maxSize: Long? = null,
-        
+
         // Date filters
         @Contextual val modifiedAfter: Instant? = null,
         @Contextual val modifiedBefore: Instant? = null,
-        
+
         // Path filters
         val includePaths: Set<String>? = null,
         val excludePaths: Set<String>? = null,
         val searchHidden: Boolean = false,
-        
-        // Search mode filters
-        val caseSensitive: Boolean = false,
-        val useRegex: Boolean = false,
-        val wholeWord: Boolean = false
     ) : Parcelable
-    
+
     companion object {
         fun create(
-            query: String,
             paths: List<APath<*>>,
-            searchContent: Boolean = false,
-            caseSensitive: Boolean = false,
-            useRegex: Boolean = false,
-            wholeWord: Boolean = false,
-            maxResults: Int? = null
+            filenameQuery: FilenameQuery = FilenameQuery(),
+            contentQuery: ContentQuery = ContentQuery(),
+            maxResults: Int? = null,
         ) = SearchQuery(
-            query = query,
+            filenameQuery = filenameQuery,
+            contentQuery = contentQuery,
             targets = paths.map { SearchTarget.Path.from(it) },
-            options = Options(
-                searchContent = searchContent,
-                maxResults = maxResults
-            ),
-            filter = Filter(
-                caseSensitive = caseSensitive,
-                useRegex = useRegex,
-                wholeWord = wholeWord
-            )
+            options = Options(maxResults = maxResults),
         )
     }
 }

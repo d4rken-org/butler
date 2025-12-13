@@ -175,11 +175,11 @@ class SearchEngine @AssistedInject constructor(
         command: SearcherCommand.Search,
         onProgress: ((SearchProgress) -> Unit)? = null
     ): Result {
-        log(tag, INFO) { "search(): ${command.query}" }
+        log(tag, INFO) { "search(): filename=${command.filenameQuery.pattern}, content=${command.contentQuery.pattern}" }
 
-        // Validate query
-        if (command.query.isBlank()) {
-            log(tag, WARN) { "Skipping search with blank query" }
+        // Validate patterns - at least one must be non-empty
+        if (command.filenameQuery.isEmpty && command.contentQuery.isEmpty) {
+            log(tag, WARN) { "Skipping search - both patterns are empty" }
             return Result.InvalidQuery
         }
 
@@ -223,7 +223,8 @@ class SearchEngine @AssistedInject constructor(
 
             // Permission check passed, proceed with search
             val searchQuery = SearchQuery(
-                query = command.query,
+                filenameQuery = command.filenameQuery,
+                contentQuery = command.contentQuery,
                 targets = command.targets,
                 filter = command.filter,
                 options = command.options,
@@ -255,7 +256,7 @@ class SearchEngine @AssistedInject constructor(
             .filterIsInstance<SearchTarget.Path>()
             .filter { it.enabled }
 
-        log(tag, INFO) { "Starting concurrent search with query: ${searchQuery.query} across ${enabledTargets.size} enabled path(s)" }
+        log(tag, INFO) { "Starting concurrent search (filename: ${searchQuery.filenameQuery.pattern}, content: ${searchQuery.contentQuery.pattern}) across ${enabledTargets.size} enabled path(s)" }
 
         // Initialize target progress states
         val initialProgress = enabledTargets.map { target ->
