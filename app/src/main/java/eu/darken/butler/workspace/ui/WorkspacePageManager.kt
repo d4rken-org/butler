@@ -127,8 +127,23 @@ class WorkspacePageManager @Inject constructor(
         handleWorkspaceSelection(workspaceId)
     }
 
-    fun handleWorkspaceSelection(workspaceId: Workspace.Id) {
+    suspend fun handleWorkspaceSelection(workspaceId: Workspace.Id) {
         log(TAG) { "handleWorkspaceSelection: workspaceId=$workspaceId" }
+
+        // Check if this is a sub-workspace (modal) - they only get focus, not pane assignment
+        val workspaceInfo = workspaceRemote.state.first().infos.find { it.id == workspaceId }
+        val isSubWorkspace = workspaceInfo?.isSubWorkspace == true
+
+        if (isSubWorkspace) {
+            log(TAG) { "Sub-workspace selected, only updating focus (not pane selections)" }
+            _state.update { state ->
+                state.copy(
+                    focusedWorkspaceId = workspaceId,
+                    workspaceAccessTimes = state.workspaceAccessTimes + (workspaceId to Clock.System.now()),
+                )
+            }
+            return
+        }
 
         _state.update { currentState ->
             val existingPosition = currentState.selectedWorkspaces.entries.find { it.value == workspaceId }?.key
