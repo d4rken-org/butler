@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -238,20 +237,15 @@ internal fun ClassicWorkspaceContainer(
         // Position indicator overlay
         val currentWorkspace = state.current
         if (currentWorkspace != null && state.tabWorkspaces.size > 1) {
-            val context = LocalContext.current
             val position = state.tabWorkspaces.indexOfFirst { it.id == currentWorkspace.id } + 1
-            val total = state.tabWorkspaces.size
-            val workspaceName = currentWorkspace.title.get(context)
-
             if (position > 0) {
                 WorkspaceSwitchIndicator(
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(horizontal = 16.dp),
+                    info = currentWorkspace,
                     position = position,
-                    totalWorkspaces = total,
-                    workspaceName = workspaceName,
-                    workspaceId = currentWorkspace.id,
+                    totalWorkspaces = state.tabWorkspaces.size,
                 )
             }
         }
