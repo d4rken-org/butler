@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import androidx.compose.ui.window.DialogProperties
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePageHost
 import eu.darken.butler.apps.ui.details.AppDetailsWorkspacePageHost
@@ -50,15 +52,19 @@ fun WorkspaceModalDialog(
             decorFitsSystemWindows = false
         )
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.systemBars)
+        CompositionLocalProvider(
+            LocalWorkspaceFocused provides true,
         ) {
-            WorkspaceModalContent(
-                workspace = workspace,
-                design = design,
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.systemBars)
+            ) {
+                WorkspaceModalContent(
+                    workspace = workspace,
+                    design = design,
+                )
+            }
         }
     }
 }

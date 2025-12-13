@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
@@ -77,6 +78,7 @@ fun BreadcrumbBar(
     var editTextValue by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
 
     // Detect current path type and extract relevant information
     data class PathInfo(
@@ -147,11 +149,15 @@ fun BreadcrumbBar(
         }
     }
 
-    // Enter edit mode with current path
-    LaunchedEffect(isEditMode, pathInfo) {
-        if (isEditMode) {
+    // Enter edit mode with current path (exit if workspace loses focus)
+    LaunchedEffect(isEditMode, pathInfo, isWorkspaceFocused) {
+        if (isEditMode && isWorkspaceFocused) {
             editTextValue = TextFieldValue(pathInfo.displayPath, TextRange(pathInfo.displayPath.length))
             focusRequester.requestFocus()
+        } else if (isEditMode && !isWorkspaceFocused) {
+            // Exit edit mode when workspace loses focus
+            isEditMode = false
+            keyboardController?.hide()
         }
     }
 
