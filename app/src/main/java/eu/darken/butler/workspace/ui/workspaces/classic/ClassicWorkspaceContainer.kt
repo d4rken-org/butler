@@ -9,6 +9,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -23,6 +24,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -205,18 +207,22 @@ internal fun ClassicWorkspaceContainer(
                     if (paneInfo == null) {
                         CreatingWorkspacePlaceholder(isCreating = isPlaceholderPage && isCreatingWorkspace)
                     } else {
-                        WorkspaceOverlayContainer(
-                            workspaceId = paneInfo.id,
-                            managerDialogStates = managerDialogStates,
-                            onDismissManagerDialog = onDismissManagerDialog,
-                            onConfirmManagerDialog = onConfirmManagerDialog,
-                            bannerStates = bannerStates,
-                            onDismissBanner = onDismissBanner,
+                        CompositionLocalProvider(
+                            LocalWorkspaceFocused provides (state.focused == paneInfo.id),
                         ) {
-                            WorkspaceMapper(
-                                info = paneInfo,
-                                design = design,
-                            )
+                            WorkspaceOverlayContainer(
+                                workspaceId = paneInfo.id,
+                                managerDialogStates = managerDialogStates,
+                                onDismissManagerDialog = onDismissManagerDialog,
+                                onConfirmManagerDialog = onConfirmManagerDialog,
+                                bannerStates = bannerStates,
+                                onDismissBanner = onDismissBanner,
+                            ) {
+                                WorkspaceMapper(
+                                    info = paneInfo,
+                                    design = design,
+                                )
+                            }
                         }
                     }
                 }

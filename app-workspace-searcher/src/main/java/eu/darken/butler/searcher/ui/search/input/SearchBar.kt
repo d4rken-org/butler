@@ -25,11 +25,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -50,13 +54,22 @@ fun SearchBar(
     onCancel: (() -> Unit)? = null,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
     val colors = MaterialTheme.colorScheme
     val focusRequester = remember { FocusRequester() }
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    var hasInitialFocused by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    // Only request focus when workspace is focused, clear when it loses focus
+    LaunchedEffect(isWorkspaceFocused) {
+        if (isWorkspaceFocused && !hasInitialFocused) {
+            focusRequester.requestFocus()
+            hasInitialFocused = true
+        } else if (!isWorkspaceFocused) {
+            focusManager.clearFocus()
+        }
     }
 
     Surface(

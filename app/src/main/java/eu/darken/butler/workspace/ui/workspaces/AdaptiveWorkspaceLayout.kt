@@ -15,6 +15,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
@@ -125,35 +126,43 @@ fun AdaptiveWorkspaceLayout(
 
                             Box {
                                 // Background: Parent workspace
-                                WorkspaceOverlayContainer(
-                                    workspaceId = info.id,
-                                    managerDialogStates = managerDialogStates,
-                                    onDismissManagerDialog = onDismissManagerDialog,
-                                    onConfirmManagerDialog = onConfirmManagerDialog,
-                                    bannerStates = bannerStates,
-                                    onDismissBanner = onDismissBanner,
+                                CompositionLocalProvider(
+                                    LocalWorkspaceFocused provides (focusedId == info.id),
                                 ) {
-                                    WorkspaceMapper(
-                                        info = info,
-                                        design = design,
-                                    )
+                                    WorkspaceOverlayContainer(
+                                        workspaceId = info.id,
+                                        managerDialogStates = managerDialogStates,
+                                        onDismissManagerDialog = onDismissManagerDialog,
+                                        onConfirmManagerDialog = onConfirmManagerDialog,
+                                        bannerStates = bannerStates,
+                                        onDismissBanner = onDismissBanner,
+                                    ) {
+                                        WorkspaceMapper(
+                                            info = info,
+                                            design = design,
+                                        )
+                                    }
                                 }
 
                                 // Overlay: Child modal (if any)
                                 childModal?.let { modal ->
                                     key(modal.id) {
-                                        WorkspaceOverlayContainer(
-                                            workspaceId = modal.id,
-                                            managerDialogStates = managerDialogStates,
-                                            onDismissManagerDialog = onDismissManagerDialog,
-                                            onConfirmManagerDialog = onConfirmManagerDialog,
-                                            bannerStates = bannerStates,
-                                            onDismissBanner = onDismissBanner,
+                                        CompositionLocalProvider(
+                                            LocalWorkspaceFocused provides (focusedId == modal.id),
                                         ) {
-                                            WorkspaceMapper(
-                                                info = modal.asPaneInfo(),
-                                                design = design,
-                                            )
+                                            WorkspaceOverlayContainer(
+                                                workspaceId = modal.id,
+                                                managerDialogStates = managerDialogStates,
+                                                onDismissManagerDialog = onDismissManagerDialog,
+                                                onConfirmManagerDialog = onConfirmManagerDialog,
+                                                bannerStates = bannerStates,
+                                                onDismissBanner = onDismissBanner,
+                                            ) {
+                                                WorkspaceMapper(
+                                                    info = modal.asPaneInfo(),
+                                                    design = design,
+                                                )
+                                            }
                                         }
                                     }
                                 }
