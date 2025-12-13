@@ -69,9 +69,23 @@ internal fun ClassicWorkspaceContainer(
     // Track last synced focus to detect new focus changes that should skip animation
     var lastSyncedFocusId by remember { mutableStateOf<Workspace.Id?>(null) }
 
+    // Track focus changes initiated by user swipe to prevent race condition
+    // where Block A would re-animate after Block B dispatches Select
+    var lastUserSwipeFocusId by remember { mutableStateOf<Workspace.Id?>(null) }
+
     // Sync pager with selected tab
     LaunchedEffect(state.focused, state.all, state.isRestoring) {
         val selectedId = state.focused ?: return@LaunchedEffect
+
+        // Skip animation if this focus change was initiated by user swipe
+        // (pager is already at the correct page from the swipe gesture)
+        if (selectedId == lastUserSwipeFocusId) {
+            log(TAG, VERBOSE) { "Skipping pager sync - focus change was user-initiated swipe" }
+            lastUserSwipeFocusId = null
+            lastSyncedFocusId = selectedId
+            return@LaunchedEffect
+        }
+
         val selectedIndex = state.all.indexOfFirst { it.id == selectedId }
         log(TAG, VERBOSE) {
             "Syncing pager with selected tab: selectedId=$selectedId, selectedIndex=$selectedIndex, currentPage=${pagerState.currentPage}"
@@ -139,6 +153,7 @@ internal fun ClassicWorkspaceContainer(
 
         if (focusedTabExists && currentTabId != state.focused) {
             log(TAG, VERBOSE) { "Selecting tab due to user swipe: $currentTabId" }
+            lastUserSwipeFocusId = currentTabId
             onWorkspaceScreenAction(WorkspaceScreenAction.Select(currentTabId))
         } else if (!focusedTabExists) {
             log(TAG, WARN) { "Skipping tab selection - focused tab doesn't exist in tabs list yet" }
