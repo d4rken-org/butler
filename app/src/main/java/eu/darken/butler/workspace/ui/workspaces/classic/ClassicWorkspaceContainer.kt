@@ -50,9 +50,9 @@ internal fun ClassicWorkspaceContainer(
     onDismissBanner: (Workspace.Id) -> Unit,
 ) {
     val effectivePageCount = if (state.onDemandWorkspaceCreation && state.swipeGesturesEnabled) {
-        state.all.size + 1
+        state.tabWorkspaces.size + 1
     } else {
-        state.all.size
+        state.tabWorkspaces.size
     }
     val pagerState = rememberPagerState(pageCount = { effectivePageCount })
 
@@ -75,7 +75,7 @@ internal fun ClassicWorkspaceContainer(
     var lastUserSwipeFocusId by remember { mutableStateOf<Workspace.Id?>(null) }
 
     // Sync pager with selected tab
-    LaunchedEffect(state.focused, state.all, state.isRestoring) {
+    LaunchedEffect(state.focused, state.tabWorkspaces, state.isRestoring) {
         val selectedId = state.focused ?: return@LaunchedEffect
 
         // Skip animation if this focus change was initiated by user swipe
@@ -87,7 +87,7 @@ internal fun ClassicWorkspaceContainer(
             return@LaunchedEffect
         }
 
-        val selectedIndex = state.all.indexOfFirst { it.id == selectedId }
+        val selectedIndex = state.tabWorkspaces.indexOfFirst { it.id == selectedId }
         log(TAG, VERBOSE) {
             "Syncing pager with selected tab: selectedId=$selectedId, selectedIndex=$selectedIndex, currentPage=${pagerState.currentPage}"
         }
@@ -97,7 +97,7 @@ internal fun ClassicWorkspaceContainer(
             return@LaunchedEffect
         }
 
-        if (selectedIndex >= state.all.size || selectedIndex == pagerState.currentPage) {
+        if (selectedIndex >= state.tabWorkspaces.size || selectedIndex == pagerState.currentPage) {
             lastSyncedFocusId = selectedId
             return@LaunchedEffect
         }
@@ -122,15 +122,15 @@ internal fun ClassicWorkspaceContainer(
     val isScrolling by remember { derivedStateOf { pagerState.isScrollInProgress } }
 
     // Sync selected tab with pager when user swipes
-    LaunchedEffect(currentPage, isScrolling, state.all) {
+    LaunchedEffect(currentPage, isScrolling, state.tabWorkspaces) {
         if (isScrolling || isAnimatingProgrammatically) return@LaunchedEffect
 
         log(TAG, VERBOSE) { "Pager scroll completed at page: $currentPage" }
 
         // Check if we're on the extra page (beyond all workspaces)
         // Only trigger if transitioning from a valid page (not on initial render)
-        val isOnPlaceholderPage = currentPage >= state.all.size
-        val isTransitioningFromValidPage = previousPage != null && previousPage!! < state.all.size
+        val isOnPlaceholderPage = currentPage >= state.tabWorkspaces.size
+        val isTransitioningFromValidPage = previousPage != null && previousPage!! < state.tabWorkspaces.size
 
         if (isOnPlaceholderPage && state.onDemandWorkspaceCreation && !isCreatingWorkspace && isTransitioningFromValidPage) {
             log(TAG, INFO) { "User swiped from page $previousPage to placeholder page $currentPage, creating workspace on-demand" }
@@ -140,16 +140,16 @@ internal fun ClassicWorkspaceContainer(
             return@LaunchedEffect
         }
 
-        if (currentPage < 0 || currentPage >= state.all.size) {
+        if (currentPage < 0 || currentPage >= state.tabWorkspaces.size) {
             previousPage = currentPage
             return@LaunchedEffect
         }
 
-        val currentTabId = state.all[currentPage].id
+        val currentTabId = state.tabWorkspaces[currentPage].id
         log(TAG, VERBOSE) { "Current tab ID: $currentTabId, focused: ${state.focused}" }
 
         val focusedTabExists = state.focused?.let { focusedId ->
-            state.all.any { it.id == focusedId }
+            state.tabWorkspaces.any { it.id == focusedId }
         } ?: false
 
         if (focusedTabExists && currentTabId != state.focused) {
@@ -164,15 +164,15 @@ internal fun ClassicWorkspaceContainer(
     }
 
     // Reset creation flag when workspace count increases
-    LaunchedEffect(state.all.size) {
-        if (state.all.isNotEmpty()) {
+    LaunchedEffect(state.tabWorkspaces.size) {
+        if (state.tabWorkspaces.isNotEmpty()) {
             isCreatingWorkspace = false
         }
     }
 
     // Reset creation flag when leaving placeholder page (handles failed creation)
-    LaunchedEffect(currentPage, state.all.size) {
-        if (currentPage < state.all.size) {
+    LaunchedEffect(currentPage, state.tabWorkspaces.size) {
+        if (currentPage < state.tabWorkspaces.size) {
             isCreatingWorkspace = false
         }
     }
@@ -191,7 +191,7 @@ internal fun ClassicWorkspaceContainer(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background
         ) { paddingValues ->
-            if (state.all.isNotEmpty()) {
+            if (state.tabWorkspaces.isNotEmpty()) {
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier
@@ -200,8 +200,8 @@ internal fun ClassicWorkspaceContainer(
                     flingBehavior = flingBehavior,
                     userScrollEnabled = state.swipeGesturesEnabled,
                 ) { page ->
-                    val paneInfo = state.all.getOrNull(page)?.asPaneInfo()
-                    val isPlaceholderPage = page >= state.all.size
+                    val paneInfo = state.tabWorkspaces.getOrNull(page)?.asPaneInfo()
+                    val isPlaceholderPage = page >= state.tabWorkspaces.size
 
                     if (paneInfo == null) {
                         CreatingWorkspacePlaceholder(isCreating = isPlaceholderPage && isCreatingWorkspace)
