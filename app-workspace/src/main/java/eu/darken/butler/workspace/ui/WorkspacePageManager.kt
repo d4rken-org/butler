@@ -38,6 +38,7 @@ class WorkspacePageManager @Inject constructor(
         val selectedWorkspaces: Map<Int, Workspace.Id> = emptyMap(),
         val currentPaneCount: Int = 1,
         val workspaceAccessTimes: Map<Workspace.Id, Instant> = emptyMap(),
+        val isManagerOverlayVisible: Boolean = false,
     ) : Parcelable
 
     private val _state = MutableStateFlow(State())
@@ -119,6 +120,16 @@ class WorkspacePageManager @Inject constructor(
         if (savedState != null) {
             _state.value = savedState
         }
+    }
+
+    fun showManagerOverlay() {
+        log(TAG) { "showManagerOverlay()" }
+        _state.update { it.copy(isManagerOverlayVisible = true) }
+    }
+
+    fun hideManagerOverlay() {
+        log(TAG) { "hideManagerOverlay()" }
+        _state.update { it.copy(isManagerOverlayVisible = false) }
     }
 
     suspend fun selectWorkspaceFromManager(workspaceId: Workspace.Id) {

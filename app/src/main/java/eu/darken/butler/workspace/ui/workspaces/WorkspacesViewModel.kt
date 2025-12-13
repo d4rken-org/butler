@@ -46,7 +46,7 @@ class WorkspacesViewModel @Inject constructor(
     private val workspaceRepo: WorkspaceRepo,
     workspaceSettings: WorkspaceSettings,
     private val savedStateHandle: SavedStateHandle,
-    private val workspacePageManager: WorkspacePageManager,
+    val workspacePageManager: WorkspacePageManager,
     private val sessionManager: WorkspaceSessionManager,
     private val motdRepo: MotdRepo,
     private val webpageTool: WebpageTool,

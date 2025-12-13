@@ -10,6 +10,7 @@ import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.ui.WorkspacePageManager
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -17,6 +18,7 @@ import javax.inject.Inject
 class WorkspaceButtonViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
     private val workspaceRemote: WorkspaceRemote,
+    private val workspacePageManager: WorkspacePageManager,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM")), WorkspaceActionHandler {
 
     init {
@@ -37,8 +39,8 @@ class WorkspaceButtonViewModel @Inject constructor(
     }
 
     override fun navToWorkspaceManager() {
-        log(tag) { "onNavToWorkspaceManager()" }
-        navTo(Nav.workspaceManager())
+        log(tag) { "showWorkspaceManager()" }
+        workspacePageManager.showManagerOverlay()
     }
 
     override fun navToSettings() {
