@@ -5,6 +5,7 @@ import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.FolderShared
+import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PhoneAndroid
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -21,6 +22,8 @@ import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.TrashItemReference
@@ -644,6 +647,50 @@ object MockDataProvider {
             ),
             parentRef = parentRef,
             relativePath = actualRelativePath,
+        )
+    }
+
+    // MARK: - Breadcrumb Factories
+
+    fun createHomeBreadcrumb(): ExplorerBreadcrumb {
+        return ExplorerBreadcrumb(
+            label = R.string.explorer_navigation_home.toCaString(),
+            icon = Icons.TwoTone.Home,
+            target = ExplorerNavigation.Target.Home,
+            showIcon = true,
+            showText = false,
+        )
+    }
+
+    fun createStorageBreadcrumbs(): List<ExplorerBreadcrumb> {
+        return listOf(
+            createHomeBreadcrumb(),
+            ExplorerBreadcrumb(
+                label = "storage".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage")),
+            ),
+            ExplorerBreadcrumb(
+                label = "emulated".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated")),
+            ),
+            ExplorerBreadcrumb(
+                label = "0".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
+            ),
+        )
+    }
+
+    fun createDownloadBreadcrumbs(): List<ExplorerBreadcrumb> {
+        return listOf(
+            createHomeBreadcrumb(),
+            ExplorerBreadcrumb(
+                label = "sdcard".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
+            ),
+            ExplorerBreadcrumb(
+                label = "Download".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Download")),
+            ),
         )
     }
 }
