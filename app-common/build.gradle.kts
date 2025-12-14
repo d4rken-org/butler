@@ -64,6 +64,10 @@ dependencies {
     addIO()
     addTesting()
 
+    // Compose UI testing with Robolectric
+    testImplementation(platform("androidx.compose:compose-bom:2025.06.01"))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+
     addNavigation3()
     addCoil()
     addLottie()

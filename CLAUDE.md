@@ -92,6 +92,49 @@ When running gradle test commands, use the Task tool with a sub-agent to keep ve
 
 This aligns with the "Agent instructions" principle of maintaining focused contexts and optimizes token usage.
 
+#### Compose UI Testing
+
+Compose UI tests run on Robolectric for fast local execution without an emulator.
+
+**Infrastructure:**
+- Extend `ComposeTest` base class from `app-common-test`
+- Uses `TestApplication` for fast test initialization (~10s vs ~2min)
+- Wrap composables in `PreviewWrapper` for theming
+
+**Known Limitations (Robolectric):**
+- No native bitmap (`ImageBitmap()` causes NullPointerException)
+- No drawing (`captureToImage()` deadlocks)
+- Text measurement is inaccurate (fixed height, 1px width per char)
+
+**Use for:** Testing component behavior, clicks, callbacks, content display
+**Not for:** Visual appearance, screenshot comparison, layout pixel precision
+
+**Example:**
+```kotlin
+class MyComponentTest : ComposeTest() {
+    @Test
+    fun `click triggers callback`() {
+        var clicked = false
+        composeTestRule.setContent {
+            PreviewWrapper {
+                MyComponent(onClick = { clicked = true })
+            }
+        }
+        composeTestRule.onNodeWithText("Click me").performClick()
+        clicked shouldBe true
+    }
+}
+```
+
+**Running tests:**
+```bash
+# Module without flavors
+./gradlew :app-workspace:testDebugUnitTest --tests "*.MyComponentTest"
+
+# Module with flavors (app-common)
+./gradlew :app-common:testFossDebugUnitTest --tests "*.MyComponentTest"
+```
+
 ### Debugging
 
 #### Taking Screenshots via ADB
@@ -384,7 +427,7 @@ val childWorkspaces = _workspaces.value.filter { ws ->
   - Place compose previews below the composable being previewed
   - Preview function naming: `ComponentNamePreview()` and mark as `private`
 - Write tests for web APIs and serialized data.
-- No UI tests required.
+- Compose UI tests supported via Robolectric (see "Compose UI Testing" section).
 - Use FOSS debug flavor for local testing.
 - Don't add code comments for obvious code.
 - Write minimalistic and concise code (omit comments).

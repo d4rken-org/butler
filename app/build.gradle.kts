@@ -219,6 +219,10 @@ dependencies {
 
     addTesting()
 
+    // Compose UI testing with Robolectric
+    testImplementation(platform("androidx.compose:compose-bom:2025.06.01"))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+
     implementation("io.github.z4kn4fein:semver:3.0.0")
 
     // Drag and drop support for LazyColumn

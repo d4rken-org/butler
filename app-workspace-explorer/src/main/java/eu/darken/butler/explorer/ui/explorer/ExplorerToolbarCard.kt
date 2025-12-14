@@ -18,7 +18,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
-import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -38,16 +37,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
@@ -210,6 +208,40 @@ private fun NormalToolbarContent(
 }
 
 @Composable
+private fun SaveAsFilenameInput(
+    filename: String,
+    onFilenameChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 4.dp),
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+        )
+
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = filename,
+            onValueChange = onFilenameChange,
+            label = { Text(stringResource(R.string.explorer_picker_save_as_filename_label)) },
+            placeholder = { Text(stringResource(R.string.explorer_picker_save_as_filename_hint)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.TwoTone.Description,
+                    contentDescription = null,
+                )
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { if (filename.isNotBlank()) onConfirm() }
+            ),
+        )
+    }
+}
+
+@Composable
 private fun PickerToolbarContent(
     breadcrumbs: List<ExplorerBreadcrumb>,
     isCollapsed: Boolean,
@@ -309,31 +341,11 @@ private fun PickerToolbarContent(
                 enter = expandVertically(),
                 exit = shrinkVertically(),
             ) {
-                Column {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-                    )
-
-                    OutlinedTextField(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = saveAsFilename,
-                        onValueChange = onSaveAsFilenameChange,
-                        label = { Text(stringResource(R.string.explorer_picker_save_as_filename_label)) },
-                        placeholder = { Text(stringResource(R.string.explorer_picker_save_as_filename_hint)) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.TwoTone.Description,
-                                contentDescription = null,
-                            )
-                        },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(
-                            onDone = { if (saveAsFilename.isNotBlank()) onConfirm() }
-                        ),
-                    )
-                }
+                SaveAsFilenameInput(
+                    filename = saveAsFilename,
+                    onFilenameChange = onSaveAsFilenameChange,
+                    onConfirm = onConfirm,
+                )
             }
 
             // Row 3: Breadcrumbs
@@ -379,32 +391,10 @@ private fun getPickerButtonText(selection: PickerConfig.Selection, selectionCoun
 @Preview2
 @Composable
 private fun ExplorerToolbarCardExpandedPreview() {
-    val mockBreadcrumbs = listOf(
-        ExplorerBreadcrumb(
-            label = R.string.explorer_navigation_home.toCaString(),
-            icon = Icons.TwoTone.Home,
-            target = ExplorerNavigation.Target.Home,
-            showIcon = true,
-            showText = false,
-        ),
-        ExplorerBreadcrumb(
-            label = "storage".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage")),
-        ),
-        ExplorerBreadcrumb(
-            label = "emulated".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated")),
-        ),
-        ExplorerBreadcrumb(
-            label = "0".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
-        ),
-    )
-
     PreviewWrapper {
         ExplorerToolbarCard(
             workspaceId = Workspace.Id(),
-            breadcrumbs = mockBreadcrumbs,
+            breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
             design = WorkspaceDesign(),
             collapsedFraction = 0f,
             onBreadcrumbClick = {},
@@ -417,32 +407,10 @@ private fun ExplorerToolbarCardExpandedPreview() {
 @Preview2
 @Composable
 private fun ExplorerToolbarCardCollapsedPreview() {
-    val mockBreadcrumbs = listOf(
-        ExplorerBreadcrumb(
-            label = R.string.explorer_navigation_home.toCaString(),
-            icon = Icons.TwoTone.Home,
-            target = ExplorerNavigation.Target.Home,
-            showIcon = true,
-            showText = false,
-        ),
-        ExplorerBreadcrumb(
-            label = "storage".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage")),
-        ),
-        ExplorerBreadcrumb(
-            label = "emulated".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated")),
-        ),
-        ExplorerBreadcrumb(
-            label = "0".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
-        ),
-    )
-
     PreviewWrapper {
         ExplorerToolbarCard(
             workspaceId = Workspace.Id(),
-            breadcrumbs = mockBreadcrumbs,
+            breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
             design = WorkspaceDesign(),
             collapsedFraction = 1f,
             onBreadcrumbClick = {},
@@ -471,28 +439,10 @@ private fun ExplorerToolbarCardLoadingPreview() {
 @Preview2
 @Composable
 private fun ExplorerToolbarCardPickerExpandedPreview() {
-    val mockBreadcrumbs = listOf(
-        ExplorerBreadcrumb(
-            label = R.string.explorer_navigation_home.toCaString(),
-            icon = Icons.TwoTone.Home,
-            target = ExplorerNavigation.Target.Home,
-            showIcon = true,
-            showText = false,
-        ),
-        ExplorerBreadcrumb(
-            label = "sdcard".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
-        ),
-        ExplorerBreadcrumb(
-            label = "Download".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Download")),
-        ),
-    )
-
     PreviewWrapper {
         ExplorerToolbarCard(
             workspaceId = Workspace.Id(),
-            breadcrumbs = mockBreadcrumbs,
+            breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
             design = WorkspaceDesign(),
             collapsedFraction = 0f,
             onBreadcrumbClick = {},
@@ -509,28 +459,10 @@ private fun ExplorerToolbarCardPickerExpandedPreview() {
 @Preview2
 @Composable
 private fun ExplorerToolbarCardPickerCollapsedPreview() {
-    val mockBreadcrumbs = listOf(
-        ExplorerBreadcrumb(
-            label = R.string.explorer_navigation_home.toCaString(),
-            icon = Icons.TwoTone.Home,
-            target = ExplorerNavigation.Target.Home,
-            showIcon = true,
-            showText = false,
-        ),
-        ExplorerBreadcrumb(
-            label = "sdcard".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
-        ),
-        ExplorerBreadcrumb(
-            label = "Download".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Download")),
-        ),
-    )
-
     PreviewWrapper {
         ExplorerToolbarCard(
             workspaceId = Workspace.Id(),
-            breadcrumbs = mockBreadcrumbs,
+            breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
             design = WorkspaceDesign(),
             collapsedFraction = 1f,
             onBreadcrumbClick = {},
@@ -547,28 +479,10 @@ private fun ExplorerToolbarCardPickerCollapsedPreview() {
 @Preview2
 @Composable
 private fun ExplorerToolbarCardSaveAsExpandedPreview() {
-    val mockBreadcrumbs = listOf(
-        ExplorerBreadcrumb(
-            label = R.string.explorer_navigation_home.toCaString(),
-            icon = Icons.TwoTone.Home,
-            target = ExplorerNavigation.Target.Home,
-            showIcon = true,
-            showText = false,
-        ),
-        ExplorerBreadcrumb(
-            label = "sdcard".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
-        ),
-        ExplorerBreadcrumb(
-            label = "Download".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Download")),
-        ),
-    )
-
     PreviewWrapper {
         ExplorerToolbarCard(
             workspaceId = Workspace.Id(),
-            breadcrumbs = mockBreadcrumbs,
+            breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
             design = WorkspaceDesign(),
             collapsedFraction = 0f,
             onBreadcrumbClick = {},
@@ -587,28 +501,10 @@ private fun ExplorerToolbarCardSaveAsExpandedPreview() {
 @Preview2
 @Composable
 private fun ExplorerToolbarCardSaveAsCollapsedPreview() {
-    val mockBreadcrumbs = listOf(
-        ExplorerBreadcrumb(
-            label = R.string.explorer_navigation_home.toCaString(),
-            icon = Icons.TwoTone.Home,
-            target = ExplorerNavigation.Target.Home,
-            showIcon = true,
-            showText = false,
-        ),
-        ExplorerBreadcrumb(
-            label = "sdcard".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
-        ),
-        ExplorerBreadcrumb(
-            label = "Download".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Download")),
-        ),
-    )
-
     PreviewWrapper {
         ExplorerToolbarCard(
             workspaceId = Workspace.Id(),
-            breadcrumbs = mockBreadcrumbs,
+            breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
             design = WorkspaceDesign(),
             collapsedFraction = 1f,
             onBreadcrumbClick = {},

@@ -70,6 +70,10 @@ dependencies {
     addRoomDb()
     addTesting()
 
+    // Compose UI testing with Robolectric
+    testImplementation(platform("androidx.compose:compose-bom:2025.06.01"))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+
     // Performance graphs
     implementation("com.patrykandpatrick.vico:compose-m3:2.2.0")
 }
