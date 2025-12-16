@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -53,12 +52,11 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.keyboard.KeyboardShortcut
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.keyboard.keyboardShortcuts
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
-import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
@@ -84,7 +82,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearcherWorkspacePage(
     workspaceId: Workspace.Id,
@@ -124,25 +121,27 @@ fun SearcherWorkspacePage(
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
     // Wrapped selection callbacks that clear focus and hide keyboard
-    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
-        { result ->
-            focusManager.clearFocus()
-            keyboardController?.hide()
-            onPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
-        }
-    }
-
-    val wrappedOnToggleSelection: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
-        { result ->
-            // Only clear focus and hide keyboard when entering selection mode (first selection)
-            // Not when already in selection mode (subsequent toggles)
-            if (state?.selectionState?.isSelectionMode != true) {
+    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit =
+        remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
+            { result ->
                 focusManager.clearFocus()
                 keyboardController?.hide()
+                onPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
             }
-            onPageAction(SearcherPageAction.Results.ToggleSelection(result))
         }
-    }
+
+    val wrappedOnToggleSelection: (SearchItem) -> Unit =
+        remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
+            { result ->
+                // Only clear focus and hide keyboard when entering selection mode (first selection)
+                // Not when already in selection mode (subsequent toggles)
+                if (state?.selectionState?.isSelectionMode != true) {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                }
+                onPageAction(SearcherPageAction.Results.ToggleSelection(result))
+            }
+        }
 
     // Re-request focus for keyboard shortcuts after clearing focus
     // This ensures shortcuts continue working after selecting a result
@@ -179,7 +178,7 @@ fun SearcherWorkspacePage(
     val hasActions by remember {
         derivedStateOf {
             state?.selectionState?.selectedResultIds?.isNotEmpty() == true ||
-            state?.listItems?.isNotEmpty() == true
+                state?.listItems?.isNotEmpty() == true
         }
     }
 

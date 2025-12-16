@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -35,8 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppsViewStyle
-import eu.darken.butler.apps.core.engine.AppItem
-import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogHost
 import eu.darken.butler.apps.ui.apps.items.AppGridItem
 import eu.darken.butler.apps.ui.apps.items.AppListItem
@@ -81,7 +78,6 @@ fun AppsWorkspacePageHost(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AppsWorkspacePage(
     workspaceId: Workspace.Id,

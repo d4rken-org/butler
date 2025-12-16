@@ -6,7 +6,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.core.spring
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
@@ -31,7 +30,6 @@ import kotlin.math.abs
  * A scroll behavior for bottom bars that mimics the behavior of Material3's top bar scroll behaviors.
  * The bar will hide when scrolling down and show when scrolling up, similar to exitAlwaysScrollBehavior.
  */
-@ExperimentalMaterial3Api
 @Stable
 class BottomBarScrollBehavior(
     val state: BottomBarScrollState = BottomBarScrollState(),
@@ -39,10 +37,10 @@ class BottomBarScrollBehavior(
     val flingAnimationSpec: FloatDecayAnimationSpec? = null
 ) {
     val nestedScrollConnection = object : NestedScrollConnection {
-        
+
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
             state.heightOffsetLimit = -state.height
-            
+
             // Immediate response to scroll direction
             val delta = available.y
             return if (abs(delta) > 5f) { // Small sensitivity threshold
@@ -108,7 +106,6 @@ class BottomBarScrollBehavior(
 /**
  * State for managing the scroll behavior of a bottom bar.
  */
-@ExperimentalMaterial3Api
 @Stable
 class BottomBarScrollState(
     initialHeightOffsetLimit: Float = -Float.MAX_VALUE,
@@ -153,7 +150,7 @@ class BottomBarScrollState(
          */
         val Saver: Saver<BottomBarScrollState, *> = listSaver(
             save = { listOf(it.heightOffsetLimit, it.heightOffset, it.height) },
-            restore = { 
+            restore = {
                 BottomBarScrollState(
                     initialHeightOffsetLimit = it[0],
                     initialHeightOffset = it[1],
@@ -213,7 +210,7 @@ class BottomBarScrollState(
                     remainingVelocity = velocity
                     val coercedValue = value.coerceAtLeast(heightOffsetLimit)
                     heightOffset = coercedValue.coerceAtMost(0f)
-                    
+
                     if (coercedValue == 0f) {
                         throw CancellationException()
                     }
@@ -250,7 +247,6 @@ class BottomBarScrollState(
 /**
  * Create and remember a [BottomBarScrollBehavior] with the default parameters.
  */
-@ExperimentalMaterial3Api
 @Composable
 fun rememberBottomBarScrollBehavior(
     state: BottomBarScrollState = rememberBottomBarScrollState(),
@@ -263,7 +259,6 @@ fun rememberBottomBarScrollBehavior(
 /**
  * Create and remember a [BottomBarScrollState].
  */
-@ExperimentalMaterial3Api
 @Composable
 fun rememberBottomBarScrollState(): BottomBarScrollState {
     return rememberSaveable(saver = Saver) {
@@ -274,7 +269,6 @@ fun rememberBottomBarScrollState(): BottomBarScrollState {
 /**
  * Returns the height of the bottom bar in dp for the given scroll state.
  */
-@ExperimentalMaterial3Api
 @Composable
 fun BottomBarScrollState.getHeightDp(): Dp {
     val density = LocalDensity.current
@@ -284,12 +278,11 @@ fun BottomBarScrollState.getHeightDp(): Dp {
 /**
  * Sets the height of the bottom bar for the scroll state.
  */
-@ExperimentalMaterial3Api
 @Composable
 fun BottomBarScrollState.setHeight(heightDp: Dp) {
     val density = LocalDensity.current
     val heightPx = with(density) { heightDp.toPx() }
-    
+
     SideEffect {
         if (height != heightPx) {
             height = heightPx

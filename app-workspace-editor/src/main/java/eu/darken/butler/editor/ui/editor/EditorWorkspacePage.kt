@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
 import androidx.compose.material.icons.twotone.KeyboardArrowUp
@@ -104,7 +103,6 @@ fun EditorWorkspacePageHost(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorWorkspacePage(
     workspaceId: Workspace.Id,
