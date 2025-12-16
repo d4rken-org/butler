@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.elements
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -52,6 +52,7 @@ import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.engine.SearchEngine
+import java.io.IOException
 
 @Composable
 fun SearchProgressCard(
@@ -608,7 +609,7 @@ private fun SearchProgressCardCompletedWithErrorsPreview() {
                     "/storage/usb",
                     150,
                     0,
-                    exception = java.io.IOException("I/O error: Device not accessible")
+                    exception = IOException("I/O error: Device not accessible")
                 ),
                 createSearchTargetProgress(
                     SearchEngine.SearchTargetProgress.Status.COMPLETED,
@@ -695,7 +696,7 @@ private fun SearchProgressCardCompletedWithErrorsCollapsedPreview() {
                     "/storage/usb",
                     150,
                     0,
-                    exception = java.io.IOException("I/O error: Device not accessible")
+                    exception = IOException("I/O error: Device not accessible")
                 ),
                 createSearchTargetProgress(
                     SearchEngine.SearchTargetProgress.Status.COMPLETED,

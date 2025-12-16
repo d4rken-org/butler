@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search.rows
+package eu.darken.butler.searcher.ui.search.items.rows
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

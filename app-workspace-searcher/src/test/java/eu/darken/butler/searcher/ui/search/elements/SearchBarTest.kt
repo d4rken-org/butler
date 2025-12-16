@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search.input
+package eu.darken.butler.searcher.ui.search.elements
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction

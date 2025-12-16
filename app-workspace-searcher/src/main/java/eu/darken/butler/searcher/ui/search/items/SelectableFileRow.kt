@@ -1,8 +1,10 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.items
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,8 +25,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
-import eu.darken.butler.searcher.ui.search.rows.FileInfo
-import eu.darken.butler.searcher.ui.search.rows.StandardFileIcon
+import eu.darken.butler.searcher.ui.search.items.rows.FileInfo
+import eu.darken.butler.searcher.ui.search.items.rows.StandardFileIcon
 
 @Composable
 fun SelectableFileRow(
@@ -99,9 +101,9 @@ private fun SelectableFileRowPreview() {
     )
 
     PreviewWrapper {
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Normal mode
             SelectableFileRow(

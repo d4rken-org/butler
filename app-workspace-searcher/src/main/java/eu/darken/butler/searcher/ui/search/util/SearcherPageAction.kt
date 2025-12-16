@@ -1,12 +1,12 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.util
 
 import androidx.compose.ui.text.input.TextFieldValue
-import eu.darken.butler.searcher.core.history.SearchHistory
+import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
-import eu.darken.butler.permissions.core.PathRequirements
 
 /**
  * Sealed interface representing all page-level actions in the Searcher workspace.

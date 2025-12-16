@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search.input
+package eu.darken.butler.searcher.ui.search.elements
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource

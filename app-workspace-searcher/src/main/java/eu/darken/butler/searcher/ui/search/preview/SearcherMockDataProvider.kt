@@ -11,7 +11,7 @@ import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.engine.SearchEngine
-import eu.darken.butler.searcher.ui.search.SearcherAction
+import eu.darken.butler.searcher.ui.search.util.SearcherAction
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
 import kotlin.time.Clock

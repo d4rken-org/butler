@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.elements
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,10 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Storage
-import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -25,26 +24,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.R
-import eu.darken.butler.setup.core.SetupModule
 
 @Composable
-fun PermissionSetupCard(
-    setupRequirements: PathRequirements,
-    onOpenSetup: () -> Unit,
+fun SearchTargetsEmptyStateCard(
+    onAddDefaultPaths: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -52,46 +49,39 @@ fun PermissionSetupCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Icon(
-                    imageVector = Icons.TwoTone.Storage,
+                    imageVector = Icons.TwoTone.FolderOpen,
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.primary
                 )
 
                 Text(
-                    text = stringResource(eu.darken.butler.common.R.string.setup_required_card_title),
+                    text = stringResource(R.string.searcher_empty_state_title),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
             Text(
-                text = stringResource(R.string.searcher_setup_required_body),
+                text = stringResource(R.string.searcher_empty_state_description),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Button(
-                onClick = onOpenSetup,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
+                onClick = onAddDefaultPaths,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
-                    imageVector = Icons.TwoTone.Tune,
+                    imageVector = Icons.TwoTone.Storage,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = stringResource(eu.darken.butler.common.R.string.setup_required_card_setup_action),
-                    style = MaterialTheme.typography.labelMedium
+                    text = stringResource(R.string.searcher_add_default_paths_action),
+                    style = MaterialTheme.typography.labelLarge
                 )
             }
         }
@@ -100,15 +90,10 @@ fun PermissionSetupCard(
 
 @Preview2
 @Composable
-private fun PermissionSetupCardPreview() {
+private fun SearchTargetsEmptyStateCardPreview() {
     PreviewWrapper {
-        PermissionSetupCard(
-            setupRequirements = PathRequirements(
-                combos = setOf(
-                    setOf(SetupModule.Type.STORAGE, SetupModule.Type.ROOT),
-                )
-            ),
-            onOpenSetup = {},
+        SearchTargetsEmptyStateCard(
+            onAddDefaultPaths = {}
         )
     }
 }
