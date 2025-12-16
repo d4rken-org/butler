@@ -223,7 +223,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         kotlinx.coroutines.flow.combine(filenameQuery, contentQuery) { filename, content ->
             filename.text to content.text
         }
-            .debounce(500)
+            .debounce(1000)
             .distinctUntilChanged()
             .filter { pair -> pair.first.isNotBlank() || pair.second.isNotBlank() }
             .filter { pair -> "${pair.first}|${pair.second}" != lastAutoExecutedQuery }
