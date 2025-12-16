@@ -226,7 +226,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .onEach { pair ->
                 log(tag, INFO) { "Auto-triggering search for filename: ${pair.first}, content: ${pair.second}" }
                 lastAutoExecutedQuery = "${pair.first}|${pair.second}"
-                performSearch(saveToHistory = true)
+                performSearch(saveToHistory = false)
             }
             .launchIn(vmScope)
 
@@ -239,7 +239,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .filter { filenameQuery.value.text.isNotBlank() || contentQuery.value.text.isNotBlank() }
             .onEach { targets ->
                 log(tag, INFO) { "Auto-triggering search due to target change: ${targets.size} targets" }
-                performSearch(saveToHistory = true)
+                performSearch(saveToHistory = false)
             }
             .launchIn(vmScope)
 
