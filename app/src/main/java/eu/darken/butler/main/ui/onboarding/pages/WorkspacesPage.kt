@@ -40,6 +40,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.main.ui.onboarding.components.CardLayout
+import eu.darken.butler.main.ui.onboarding.components.OnboardingContentWrapper
 import eu.darken.butler.main.ui.onboarding.components.OnboardingInfoCard
 import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
 import eu.darken.butler.workspace.core.Workspace
@@ -55,12 +56,13 @@ internal fun WorkspacesPage(
     LaunchedEffect(Unit) {
         isVisible = true
     }
-    
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp)
-    ) {
+
+    OnboardingContentWrapper {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp)
+        ) {
         AnimatedVisibility(
             visible = isVisible,
             enter = fadeIn(
@@ -209,6 +211,7 @@ internal fun WorkspacesPage(
             ) {
                 Text(text = stringResource(R.string.onboarding_workspaces_action))
             }
+        }
         }
     }
 }
