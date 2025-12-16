@@ -72,6 +72,7 @@ import eu.darken.butler.searcher.ui.search.elements.searchHistorySection
 import eu.darken.butler.searcher.ui.search.items.SelectableFileGrid
 import eu.darken.butler.searcher.ui.search.items.SelectableFileRow
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
+import eu.darken.butler.searcher.ui.search.util.SearchListItem
 import eu.darken.butler.searcher.ui.search.util.SearcherAction
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace

@@ -13,6 +13,7 @@ import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.searcher.ui.search.util.SearcherAction
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
+import eu.darken.butler.searcher.ui.search.util.SearcherSelectionState
 import eu.darken.butler.workspace.core.Workspace
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
@@ -345,7 +346,7 @@ object SearcherMockDataProvider {
                     )
                 ),
             ),
-            selectionState = eu.darken.butler.searcher.ui.search.SearcherSelectionState(
+            selectionState = SearcherSelectionState(
                 selectableResults = results,
                 selectedResultIds = selectedResults.map { it.path.path }.toSet()
             ),

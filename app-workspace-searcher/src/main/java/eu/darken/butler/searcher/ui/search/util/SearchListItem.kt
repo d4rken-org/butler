@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.util
 
 import eu.darken.butler.searcher.core.SearchItem
 import kotlin.time.Instant
