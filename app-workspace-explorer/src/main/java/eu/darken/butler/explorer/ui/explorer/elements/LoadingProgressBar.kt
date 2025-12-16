@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.util
+package eu.darken.butler.explorer.ui.explorer.elements
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn

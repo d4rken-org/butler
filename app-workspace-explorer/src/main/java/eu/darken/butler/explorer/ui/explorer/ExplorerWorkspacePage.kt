@@ -69,7 +69,11 @@ import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
-import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
+import eu.darken.butler.explorer.ui.explorer.elements.EmptyDirectoryState
+import eu.darken.butler.explorer.ui.explorer.elements.EmptyState
+import eu.darken.butler.explorer.ui.explorer.elements.ErrorSnackbar
+import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
+import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
 import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
@@ -82,9 +86,10 @@ import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
-import eu.darken.butler.explorer.ui.explorer.util.PermissionRequestCard
+import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
-import eu.darken.butler.explorer.ui.explorer.util.LoadingProgressBar
+import eu.darken.butler.explorer.ui.explorer.elements.LoadingProgressBar
+import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
@@ -758,30 +763,32 @@ fun ExplorerWorkspacePage(
         }
 
         // Floating toolbar card at top
-        ExplorerToolbarCard(
-            workspaceId = workspaceId,
-            breadcrumbs = mainState.breadcrumbs,
-            design = design,
-            collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
-            onBreadcrumbClick = { target -> vm?.navigate(target) },
-            onNavigateToPath = { path -> vm?.navigateToPath(path) },
-            workspaceButtonState = workspaceButtonState,
-            workspaceActionHandler = workspaceActionHandler,
-            safLocationManager = vm?.safLocationManager,
-            pickerSelection = mainState.pickerConfig?.selection,
-            selectionCount = mainState.selectionState.selectedItems.size,
-            saveAsFilename = mainState.saveAsFilename,
-            canConfirmSelection = mainState.canConfirmSelection,
-            onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
-            onCancel = { vm?.cancelPicker() },
-            onConfirm = { vm?.confirmPickerSelection() },
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .onGloballyPositioned { layoutCoordinates ->
-                    actualToolbarHeightPx = layoutCoordinates.size.height
-                }
-        )
+            ExplorerToolbarCard(
+                workspaceId = workspaceId,
+                breadcrumbs = mainState.breadcrumbs,
+                design = design,
+                collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
+                onBreadcrumbClick = { target -> vm?.navigate(target) },
+                onNavigateToPath = { path -> vm?.navigateToPath(path) },
+                onSetAsHome = { path -> vm?.setAsDefaultStartPath(path) },
+                onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
+                workspaceButtonState = workspaceButtonState,
+                workspaceActionHandler = workspaceActionHandler,
+                safLocationManager = vm?.safLocationManager,
+                pickerSelection = mainState.pickerConfig?.selection,
+                selectionCount = mainState.selectionState.selectedItems.size,
+                saveAsFilename = mainState.saveAsFilename,
+                canConfirmSelection = mainState.canConfirmSelection,
+                onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
+                onCancel = { vm?.cancelPicker() },
+                onConfirm = { vm?.confirmPickerSelection() },
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .onGloballyPositioned { layoutCoordinates ->
+                        actualToolbarHeightPx = layoutCoordinates.size.height
+                    }
+            )
 
         // Floating info bar below toolbar
         if (showInfoBar) {

@@ -135,6 +135,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Home</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Set as home</string>
+    <string name="explorer_breadcrumb_copy_path_action">Copy path</string>
     <string name="explorer_navigation_device">Device</string>
     <string name="explorer_navigation_trash">Trash</string>
     <string name="explorer_navigation_trash_desc">Recover deleted files</string>

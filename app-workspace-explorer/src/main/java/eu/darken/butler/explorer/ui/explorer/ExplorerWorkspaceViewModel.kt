@@ -85,6 +85,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
 import eu.darken.butler.explorer.ui.explorer.util.CopyErrorTool
+import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.explorer.ui.explorer.util.ItemInfoCalculator
 import eu.darken.butler.explorer.ui.picker.ExplorerPickerHelper
 import eu.darken.butler.permissions.core.PathRequirements
@@ -1591,6 +1592,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun copyPathToSystemClipboard(path: String) = launch {
         log(tag) { "copyPathToSystemClipboard($path)" }
         systemClipboardHelper.copyToClipboard(path)
+    }
+
+    fun setAsDefaultStartPath(path: APath<*>) = launch {
+        log(tag) { "setAsDefaultStartPath($path)" }
+        explorerSettings.defaultStartPath.value(path)
     }
 
     fun onButlerIconClick() = launch {

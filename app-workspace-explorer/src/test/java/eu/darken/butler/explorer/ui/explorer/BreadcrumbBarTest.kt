@@ -12,6 +12,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.ui.explorer.elements.BreadcrumbBar
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest

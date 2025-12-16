@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer
+package eu.darken.butler.explorer.ui.explorer.elements
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
@@ -36,6 +36,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -61,6 +62,8 @@ fun ExplorerToolbarCard(
     collapsedFraction: Float = 0f,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: (APath<*>) -> Unit,
+    onSetAsHome: ((APath<*>) -> Unit)? = null,
+    onCopyPath: ((String) -> Unit)? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
     safLocationManager: SAFLocationManager? = null,
@@ -113,6 +116,8 @@ fun ExplorerToolbarCard(
                 design = design,
                 onBreadcrumbClick = onBreadcrumbClick,
                 onNavigateToPath = onNavigateToPath,
+                onSetAsHome = onSetAsHome,
+                onCopyPath = onCopyPath,
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,
                 safLocationManager = safLocationManager,
@@ -126,10 +131,12 @@ private fun NormalToolbarContent(
     workspaceId: Workspace.Id,
     breadcrumbs: List<ExplorerBreadcrumb>,
     isCollapsed: Boolean,
-    cardPadding: androidx.compose.ui.unit.Dp,
+    cardPadding: Dp,
     design: WorkspaceDesign,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: (APath<*>) -> Unit,
+    onSetAsHome: ((APath<*>) -> Unit)?,
+    onCopyPath: ((String) -> Unit)?,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceActionHandler: WorkspaceActionHandler?,
     safLocationManager: SAFLocationManager?,
@@ -189,6 +196,8 @@ private fun NormalToolbarContent(
                 breadcrumbs = breadcrumbs,
                 onBreadcrumbClick = onBreadcrumbClick,
                 onNavigateToPath = onNavigateToPath,
+                onSetAsHome = onSetAsHome,
+                onCopyPath = onCopyPath,
                 safLocationManager = safLocationManager,
                 showBackground = false,
                 modifier = Modifier.weight(1f),
@@ -245,7 +254,7 @@ private fun SaveAsFilenameInput(
 private fun PickerToolbarContent(
     breadcrumbs: List<ExplorerBreadcrumb>,
     isCollapsed: Boolean,
-    cardPadding: androidx.compose.ui.unit.Dp,
+    cardPadding: Dp,
     pickerSelection: PickerConfig.Selection,
     selectionCount: Int,
     saveAsFilename: String,

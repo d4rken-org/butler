@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer
+package eu.darken.butler.explorer.ui.explorer.elements
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons

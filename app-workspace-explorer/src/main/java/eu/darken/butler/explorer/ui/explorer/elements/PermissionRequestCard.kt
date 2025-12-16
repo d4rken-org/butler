@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer.util
+package eu.darken.butler.explorer.ui.explorer.elements
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement

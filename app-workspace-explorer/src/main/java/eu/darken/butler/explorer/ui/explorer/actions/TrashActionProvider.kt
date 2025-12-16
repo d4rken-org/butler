@@ -7,7 +7,7 @@ import androidx.compose.material.icons.twotone.Restore
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
+import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import javax.inject.Inject
 
 /**

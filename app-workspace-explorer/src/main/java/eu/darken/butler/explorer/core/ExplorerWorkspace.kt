@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
@@ -73,6 +74,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val createOperationFactory: CreateOperation.Factory,
     private val copyOperationFactory: CopyOperation.Factory,
     private val moveOperationFactory: MoveOperation.Factory,
+    private val explorerSettings: ExplorerSettings,
 ) : Workspace<ExplorerArguments> {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
@@ -241,10 +243,19 @@ class ExplorerWorkspace @AssistedInject constructor(
                     is ExplorerArguments.Picker -> creationArguments.startPath
                     is ExplorerArguments.Default -> creationArguments.startPath
                 }
-                if (startPath != null) {
-                    navigationRequests.emit(ExplorerNavigation.Target.Directory(startPath))
-                } else {
-                    navigationRequests.emit(ExplorerNavigation.Target.Home)
+                when {
+                    startPath != null -> {
+                        navigationRequests.emit(ExplorerNavigation.Target.Directory(startPath))
+                    }
+                    else -> {
+                        val defaultPath = explorerSettings.defaultStartPath.value()
+                        if (defaultPath != null) {
+                            log(tag, INFO) { "Using default start path from settings: $defaultPath" }
+                            navigationRequests.emit(ExplorerNavigation.Target.Directory(defaultPath))
+                        } else {
+                            navigationRequests.emit(ExplorerNavigation.Target.Home)
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to initialize: $e" }
