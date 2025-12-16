@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material.icons.twotone.Palette
 import androidx.compose.material.icons.twotone.Translate
@@ -58,6 +59,7 @@ fun GeneralSettingsScreen(
     onUpdateCheckEnabledChange: (Boolean) -> Unit,
     onMotdEnabledChange: (Boolean) -> Unit,
     onConfirmExitEnabledChange: (Boolean) -> Unit,
+    onDocumentsProviderEnabledChange: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -209,6 +211,21 @@ fun GeneralSettingsScreen(
                 SettingsDivider()
             }
 
+            item {
+                SettingsCategoryHeader(
+                    text = stringResource(R.string.settings_category_integration_label)
+                )
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.FolderOpen,
+                    title = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_enabled_title),
+                    subtitle = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_enabled_desc),
+                    checked = state.isDocumentsProviderEnabled,
+                    onCheckedChange = onDocumentsProviderEnabledChange
+                )
+            }
 
             item {
                 SettingsCategoryHeader(
@@ -293,6 +310,7 @@ private fun GeneralSettingsScreenPreview() {
             onUpdateCheckEnabledChange = {},
             onMotdEnabledChange = {},
             onConfirmExitEnabledChange = {},
+            onDocumentsProviderEnabledChange = {},
             onUpgradeButler = {},
         )
     }
@@ -316,6 +334,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onUpdateCheckEnabledChange = { vm.updateUpdateCheckEnabled(it) },
             onMotdEnabledChange = { vm.updateMotdEnabled(it) },
             onConfirmExitEnabledChange = { vm.updateConfirmExitEnabled(it) },
+            onDocumentsProviderEnabledChange = { vm.updateDocumentsProviderEnabled(it) },
             onUpgradeButler = { vm.upgradeButler() },
         )
     }

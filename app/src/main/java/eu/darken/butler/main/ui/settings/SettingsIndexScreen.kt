@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.twotone.ListAlt
 import androidx.compose.material.icons.twotone.Favorite
-import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.PrivacyTip
 import androidx.compose.material.icons.twotone.PushPin
@@ -158,16 +157,6 @@ fun SettingsIndexScreen(
                     title = stringResource(R.string.storage_settings_title),
                     subtitle = stringResource(R.string.storage_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.storage()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.FolderOpen,
-                    title = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_settings_title),
-                    subtitle = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.providerDocuments()) },
                 )
                 SettingsDivider()
             }
