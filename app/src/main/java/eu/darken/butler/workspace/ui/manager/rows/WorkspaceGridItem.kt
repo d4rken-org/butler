@@ -2,7 +2,6 @@ package eu.darken.butler.workspace.ui.manager.rows
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -74,63 +73,63 @@ fun WorkspaceGridItem(
                 .padding(6.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-                Row(
-                    modifier = with(reorderableScope) {
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(start = 4.dp)
-                            .draggableHandle(
-                                onDragStarted = {
-                                    onDragStarted()
-                                    haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
-                                },
-                                onDragStopped = {
-                                    onDragStopped()
-                                    haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
-                                },
-                            )
-                    },
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            Row(
+                modifier = with(reorderableScope) {
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 4.dp)
+                        .draggableHandle(
+                            onDragStarted = {
+                                onDragStarted()
+                                haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+                            },
+                            onDragStopped = {
+                                onDragStopped()
+                                haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                            },
+                        )
+                },
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    modifier = Modifier.size(16.dp),
+                    imageVector = workspace.type.icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = workspace.title.asComposable(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                IconButton(
+                    modifier = Modifier.size(24.dp),
+                    onClick = onClose,
                 ) {
                     Icon(
-                        modifier = Modifier.size(16.dp),
-                        imageVector = workspace.type.icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp),
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = stringResource(R.string.workspace_row_close_content_desc),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     )
-
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = workspace.title.asComposable(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-
-                    IconButton(
-                        modifier = Modifier.size(24.dp),
-                        onClick = onClose,
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(18.dp),
-                            imageVector = Icons.TwoTone.Close,
-                            contentDescription = stringResource(R.string.workspace_row_close_content_desc),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        )
-                    }
                 }
-
-                WorkspacePreview(
-                    modifier = Modifier.fillMaxWidth(),
-                    workspaceId = workspace.id,
-                    type = workspace.type,
-                    livePreview = livePreview,
-                    paneNumber = workspace.paneNumber,
-                    shouldShowBadge = workspace.paneNumber != null && currentPaneCount > 1,
-                )
             }
+
+            WorkspacePreview(
+                modifier = Modifier.fillMaxWidth(),
+                workspaceId = workspace.id,
+                type = workspace.type,
+                livePreview = livePreview,
+                paneNumber = workspace.paneNumber,
+                shouldShowBadge = workspace.paneNumber != null && currentPaneCount > 1,
+            )
+        }
 
     }
 }

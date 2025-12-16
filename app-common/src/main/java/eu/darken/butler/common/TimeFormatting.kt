@@ -3,7 +3,6 @@ package eu.darken.butler.common
 import android.content.Context
 import android.icu.text.RelativeDateTimeFormatter
 import android.text.format.DateFormat
-import android.text.format.DateUtils
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext

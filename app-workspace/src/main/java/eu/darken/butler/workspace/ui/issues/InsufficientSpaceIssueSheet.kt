@@ -55,7 +55,7 @@ fun InsufficientSpaceIssueSheet(
         HorizontalDivider()
 
         Text(
-            modifier  = modifier.padding(bottom = 8.dp),
+            modifier = modifier.padding(bottom = 8.dp),
             text = issue.description.asComposable(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

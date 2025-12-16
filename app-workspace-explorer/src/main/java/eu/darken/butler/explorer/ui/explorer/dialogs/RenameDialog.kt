@@ -16,9 +16,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -58,7 +58,7 @@ fun RenameDialog(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -82,7 +82,8 @@ fun RenameDialog(
                     isError = isError,
                     supportingText = if (isError) {
                         {
-                            val chars = (validation as FilenameValidator.ValidationResult.Invalid).invalidChars.joinToString(" ")
+                            val chars =
+                                (validation as FilenameValidator.ValidationResult.Invalid).invalidChars.joinToString(" ")
                             Text(stringResource(CommonR.string.general_filename_validation_error, chars))
                         }
                     } else null,
@@ -98,8 +99,8 @@ fun RenameDialog(
                     }
                 },
                 enabled = textFieldValue.text.trim().isNotBlank() &&
-                         textFieldValue.text.trim() != currentName &&
-                         !isError
+                    textFieldValue.text.trim() != currentName &&
+                    !isError
             ) {
                 Text(stringResource(CommonR.string.general_rename_action))
             }

@@ -63,6 +63,7 @@
             <intent-filter>
                 <action android:name="eu.darken.butler.EXPLORER_OPEN_PATH" />
                 <action android:name="eu.darken.butler.EXPLORER_NEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
@@ -117,8 +118,7 @@
         </provider>
 
         <!-- Debug stuff-->
-        <activity
-            android:name="eu.darken.butler.common.debug.recorder.ui.RecorderActivity"/>
+        <activity android:name="eu.darken.butler.common.debug.recorder.ui.RecorderActivity" />
 
         <service
             android:name="eu.darken.butler.common.debug.recorder.core.RecorderService"

@@ -23,8 +23,8 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
@@ -109,7 +109,10 @@ internal fun ClassicWorkspaceContainer(
 
         isAnimatingProgrammatically = true
         if (shouldSkipAnimation) {
-            log(TAG, VERBOSE) { "Jumping pager to page $selectedIndex (restoration=${ state.isRestoring}, firstSync=$isFirstSyncForFocus)" }
+            log(
+                TAG,
+                VERBOSE
+            ) { "Jumping pager to page $selectedIndex (restoration=${state.isRestoring}, firstSync=$isFirstSyncForFocus)" }
             pagerState.scrollToPage(selectedIndex)
         } else {
             log(TAG, VERBOSE) { "Animating pager to page $selectedIndex" }
@@ -134,7 +137,10 @@ internal fun ClassicWorkspaceContainer(
         val isTransitioningFromValidPage = previousPage != null && previousPage!! < state.tabWorkspaces.size
 
         if (isOnPlaceholderPage && state.onDemandWorkspaceCreation && !isCreatingWorkspace && isTransitioningFromValidPage) {
-            log(TAG, INFO) { "User swiped from page $previousPage to placeholder page $currentPage, creating workspace on-demand" }
+            log(
+                TAG,
+                INFO
+            ) { "User swiped from page $previousPage to placeholder page $currentPage, creating workspace on-demand" }
             isCreatingWorkspace = true
             onWorkspaceScreenAction(WorkspaceScreenAction.CreateOnDemand)
             previousPage = currentPage
@@ -209,7 +215,13 @@ internal fun ClassicWorkspaceContainer(
                     } else {
                         CompositionLocalProvider(
                             LocalWorkspaceFocused provides (state.focused == paneInfo.id),
-                            LocalWorkspaceFocusRequest provides { onWorkspaceScreenAction(WorkspaceScreenAction.Select(paneInfo.id)) },
+                            LocalWorkspaceFocusRequest provides {
+                                onWorkspaceScreenAction(
+                                    WorkspaceScreenAction.Select(
+                                        paneInfo.id
+                                    )
+                                )
+                            },
                         ) {
                             WorkspaceOverlayContainer(
                                 workspaceId = paneInfo.id,

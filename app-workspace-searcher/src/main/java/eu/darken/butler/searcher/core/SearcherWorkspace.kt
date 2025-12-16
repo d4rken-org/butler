@@ -166,7 +166,10 @@ class SearcherWorkspace @AssistedInject constructor(
 
             // Initialize search query from arguments (for restore persistence)
             if (args?.filenameQuery?.isNotEmpty == true || args?.contentQuery?.isNotEmpty == true) {
-                log(tag, INFO) { "Restoring query from arguments: filename=${args.filenameQuery?.pattern}, content=${args.contentQuery?.pattern}" }
+                log(
+                    tag,
+                    INFO
+                ) { "Restoring query from arguments: filename=${args.filenameQuery?.pattern}, content=${args.contentQuery?.pattern}" }
                 _searchState.update { state ->
                     state.copy(
                         currentSearchQuery = SearchQuery(

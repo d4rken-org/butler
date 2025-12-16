@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -36,8 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
@@ -58,10 +55,13 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.BreadcrumbGenerator
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import java.io.File
 
 @Composable
@@ -103,9 +103,10 @@ fun BreadcrumbBar(
                         val safRootPath = SAFPath.build(path.treeRootUri)
                         val rootBreadcrumb = breadcrumbs.find {
                             it.target is ExplorerNavigation.Target.Directory &&
-                            it.target.path == safRootPath
+                                it.target.path == safRootPath
                         }
-                        val locationName = safLocationManager?.findPermissionFor(path)?.location?.displayName?.get(context)
+                        val locationName =
+                            safLocationManager?.findPermissionFor(path)?.location?.displayName?.get(context)
 
                         PathInfo(
                             displayPath = segmentsPath, // Empty when at SAF root
@@ -121,8 +122,8 @@ fun BreadcrumbBar(
                         // Find the "/" root breadcrumb
                         val rootBreadcrumb = breadcrumbs.find {
                             it.target is ExplorerNavigation.Target.Directory &&
-                            it.target.path is LocalPath &&
-                            it.target.path.path == "/"
+                                it.target.path is LocalPath &&
+                                it.target.path.path == "/"
                         }
 
                         PathInfo(

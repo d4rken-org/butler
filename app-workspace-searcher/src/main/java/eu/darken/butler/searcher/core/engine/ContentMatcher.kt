@@ -1,8 +1,10 @@
 package eu.darken.butler.searcher.core.engine
 
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -10,14 +12,10 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.searcher.core.ContentQuery
 import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.withContext
 import okio.buffer
 import okio.use
-import javax.inject.Inject
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import eu.darken.butler.workspace.core.Workspace
 
 class ContentMatcher @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -186,6 +184,7 @@ class ContentMatcher @AssistedInject constructor(
 
         return null // No match found
     }
+
     private val searchableExtensions = setOf(
         "txt", "log", "md", "markdown", "rst",
         "json", "xml", "yaml", "yml", "toml", "ini", "conf", "config",

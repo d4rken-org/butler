@@ -5,7 +5,6 @@ import android.content.pm.PackageInfo
 import eu.darken.butler.apps.core.details.AppInfo
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsState
-import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider.MockTimes.hoursAgo
 import eu.darken.butler.common.ca.CaDrawable
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString

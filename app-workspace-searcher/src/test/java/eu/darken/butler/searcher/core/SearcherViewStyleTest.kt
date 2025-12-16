@@ -1,7 +1,6 @@
 package eu.darken.butler.searcher.core
 
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest

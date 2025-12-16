@@ -57,13 +57,13 @@ class EditorSettings @Inject constructor(
         // File Handling Settings
         autoSaveInterval,
         autoSaveEnabled,
-        
+
         // Search Settings
         searchCaseSensitive,
         searchRegex,
         searchWrapAround,
         maxSearchResults,
-        
+
         // Editor Behavior
         autoIndent,
         highlightCurrentLine,

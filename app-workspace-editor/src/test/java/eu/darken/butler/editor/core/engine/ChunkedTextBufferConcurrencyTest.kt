@@ -2,7 +2,6 @@ package eu.darken.butler.editor.core.engine
 
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.workspace.core.Workspace
-import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain

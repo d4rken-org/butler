@@ -1,6 +1,5 @@
 package eu.darken.butler.saver.ui.saver
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,22 +27,15 @@ import eu.darken.butler.saver.R
 import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.saver.core.SaverWorkspace
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import kotlin.time.Clock
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Save
-import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.progress.Progress
-import eu.darken.butler.saver.core.operations.SaveFilesReport
-import eu.darken.butler.workspace.core.operations.Operation
 
 @Composable
 fun SaverWorkspacePageHost(

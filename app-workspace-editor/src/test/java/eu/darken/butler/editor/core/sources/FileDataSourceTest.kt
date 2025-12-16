@@ -83,7 +83,8 @@ class FileDataSourceTest : BaseTest() {
     private fun boundaries(vararg entries: Pair<TextChunk, Pair<Long, Long>>): Map<TextChunk.ChunkId, ChunkBoundary> {
         return entries.associate { (chunk, offsets) ->
             // Calculate line count from chunk content
-            val lineCount = chunk.content.count { it == '\n' } + if (chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) 1 else 0
+            val lineCount =
+                chunk.content.count { it == '\n' } + if (chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) 1 else 0
             chunk.id to ChunkBoundary(offsets.first, offsets.second, lineCount)
         }
     }

@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import androidx.compose.ui.window.DialogProperties
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePageHost
 import eu.darken.butler.apps.ui.details.AppDetailsWorkspacePageHost
@@ -23,6 +22,7 @@ import eu.darken.butler.saver.ui.saver.SaverWorkspacePageHost
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
 import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 /**

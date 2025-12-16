@@ -37,12 +37,12 @@ internal fun TripleMainLeftLayout(
     paneContent: @Composable (WorkspacePaneInfo?, Int) -> Unit,
 ) {
     val showFocusBorder = selected.size > 1
-    
+
     val onTripleMainChange = { newPos: Float ->
         val updated = dividerPositions.withTripleMain(newPos)
         onDividerPositionsChange(updated)
     }
-    
+
     val onTripleSecondaryChange = { newPos: Float ->
         val updated = dividerPositions.withTripleSecondary(newPos)
         onDividerPositionsChange(updated)
@@ -138,7 +138,7 @@ private fun TripleMainLeftLayoutPreview() {
             type = Workspace.Type.EDITOR,
             title = "Editor".toCaString(),
         )
-        
+
         TripleMainLeftLayout(
             selected = mapOf(0 to workspace1.asPaneInfo(), 1 to workspace2.asPaneInfo(), 2 to workspace3.asPaneInfo()),
             focusedTabId = workspace1.id,

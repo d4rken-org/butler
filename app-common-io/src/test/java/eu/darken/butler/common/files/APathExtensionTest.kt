@@ -60,8 +60,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `match operator - SAFPath`() {
-        val file1: APath<*> =SAFPath.build(treeUri, "test", "file1")
-        val file2: APath<*> =SAFPath.build(treeUri, "test", "file2")
+        val file1: APath<*> = SAFPath.build(treeUri, "test", "file1")
+        val file2: APath<*> = SAFPath.build(treeUri, "test", "file2")
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "test", "file1"),
@@ -87,8 +87,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `match operator - mixes types`() {
-        val file1: APath<*> =LocalPath.build("test", "file1")
-        val file2: APath<*> =SAFPath.build(treeUri, "test", "file2")
+        val file1: APath<*> = LocalPath.build("test", "file1")
+        val file2: APath<*> = SAFPath.build(treeUri, "test", "file2")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("test", "file1"),
@@ -112,8 +112,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isAncestorOf operator - LocalPath`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =LocalPath.build("parent", "child", "niece")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = LocalPath.build("parent", "child", "niece")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -152,8 +152,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isAncestorOf operator - SAFPath`() {
-        val file1: APath<*> =SAFPath.build(treeUri, "parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+        val file1: APath<*> = SAFPath.build(treeUri, "parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child", "niece")
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent"),
@@ -190,8 +190,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isAncestorOf operator - mixed types`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child", "niece")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -215,8 +215,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isDescendantOf operator - LocalPath`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =LocalPath.build("parent", "child", "niece")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = LocalPath.build("parent", "child", "niece")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -255,8 +255,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isDescendantOf operator - SAFPath`() {
-        val file1: APath<*> =SAFPath.build(treeUri, "parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+        val file1: APath<*> = SAFPath.build(treeUri, "parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child", "niece")
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent"),
@@ -293,8 +293,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isDescendantOf operator - mixed types`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child", "niece")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -320,8 +320,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isDescendantOfOrSelf operator - LocalPath`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =LocalPath.build("parent", "child", "niece")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = LocalPath.build("parent", "child", "niece")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -360,8 +360,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isDescendantOfOrSelf operator - SAFPath`() {
-        val file1: APath<*> =SAFPath.build(treeUri, "parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+        val file1: APath<*> = SAFPath.build(treeUri, "parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child", "niece")
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent"),
@@ -398,8 +398,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isDescendantOfOrSelf operator - mixed types`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child", "niece")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -423,8 +423,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isAncestorOfOrSelf operator - LocalPath`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =LocalPath.build("parent", "child", "niece")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = LocalPath.build("parent", "child", "niece")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -463,8 +463,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isAncestorOfOrSelf operator - SAFPath`() {
-        val file1: APath<*> =SAFPath.build(treeUri, "parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+        val file1: APath<*> = SAFPath.build(treeUri, "parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child", "niece")
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent"),
@@ -501,8 +501,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isAncestorOfOrSelf operator - mixed types`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child", "niece")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child", "niece")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -526,8 +526,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isParentOf operator - LocalPath`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =LocalPath.build("parent", "child")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = LocalPath.build("parent", "child")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -566,8 +566,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isParentOf operator - SAFPath`() {
-        val file1: APath<*> =SAFPath.build(treeUri, "parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child")
+        val file1: APath<*> = SAFPath.build(treeUri, "parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child")
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent"),
@@ -604,8 +604,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isParentOf operator - mixed types`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -629,8 +629,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isChildOf operator - LocalPath`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =LocalPath.build("parent", "child")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = LocalPath.build("parent", "child")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -669,8 +669,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isChildOf operator - SAFPath`() {
-        val file1: APath<*> =SAFPath.build(treeUri, "parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child")
+        val file1: APath<*> = SAFPath.build(treeUri, "parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child")
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent"),
@@ -707,8 +707,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `isChildOf operator - mixed types`() {
-        val file1: APath<*> =LocalPath.build("parent")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child")
+        val file1: APath<*> = LocalPath.build("parent")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent"),
@@ -733,8 +733,8 @@ class APathExtensionTest : BaseTest() {
 
 
     @Test fun `startsWith operator - LocalPath`() {
-        val file1: APath<*> =LocalPath.build("parent", "chi")
-        val file2: APath<*> =LocalPath.build("parent", "child")
+        val file1: APath<*> = LocalPath.build("parent", "chi")
+        val file2: APath<*> = LocalPath.build("parent", "child")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "chi"),
@@ -773,8 +773,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `startsWith operator - SAFPath`() {
-        val file1: APath<*> =SAFPath.build(treeUri, "parent", "chi")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child")
+        val file1: APath<*> = SAFPath.build(treeUri, "parent", "chi")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child")
 
         val lookup1: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "parent", "chi"),
@@ -811,8 +811,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `startsWith operator - mixed types`() {
-        val file1: APath<*> =LocalPath.build("parent", "chi")
-        val file2: APath<*> =SAFPath.build(treeUri, "parent", "child")
+        val file1: APath<*> = LocalPath.build("parent", "chi")
+        val file2: APath<*> = SAFPath.build(treeUri, "parent", "child")
 
         val lookup1: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("parent", "chi"),
@@ -836,8 +836,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `remove prefix - LocalPath`() {
-        val prefix: APath<*> =LocalPath.build("pre", "fix")
-        val pre: APath<*> =LocalPath.build("pre")
+        val prefix: APath<*> = LocalPath.build("pre", "fix")
+        val pre: APath<*> = LocalPath.build("pre")
 
         val prefixLookup: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("pre", "fix"),
@@ -872,8 +872,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `remove prefix - SAFPath`() {
-        val prefix: APath<*> =SAFPath.build(treeUri, "pre", "fix")
-        val pre: APath<*> =SAFPath.build(treeUri, "pre")
+        val prefix: APath<*> = SAFPath.build(treeUri, "pre", "fix")
+        val pre: APath<*> = SAFPath.build(treeUri, "pre")
         val prefixLookup: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "pre", "fix"),
             fileType = FileType.FILE,
@@ -905,8 +905,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `remove prefix - mixed types`() {
-        val prefix: APath<*> =LocalPath.build("pre", "fix")
-        val pre: APath<*> =SAFPath.build(treeUri, "pre")
+        val prefix: APath<*> = LocalPath.build("pre", "fix")
+        val pre: APath<*> = SAFPath.build(treeUri, "pre")
 
         prefix.removePrefix(prefix) shouldBe segs()
 
@@ -922,8 +922,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `remove prefix with overlap - LocalPath`() {
-        val prefix: APath<*> =LocalPath.build("prefix", "overlap", "folder")
-        val pre: APath<*> =LocalPath.build("prefix", "overlap")
+        val prefix: APath<*> = LocalPath.build("prefix", "overlap", "folder")
+        val pre: APath<*> = LocalPath.build("prefix", "overlap")
 
         val prefixLookup: APathLookup<*> = LocalPathLookup(
             lookedUp = LocalPath.build("prefix", "overlap", "folder"),
@@ -958,8 +958,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `remove prefix with overlap - SAFPath`() {
-        val prefix: APath<*> =SAFPath.build(treeUri, "prefix", "overlap", "folder")
-        val pre: APath<*> =SAFPath.build(treeUri, "prefix", "overlap")
+        val prefix: APath<*> = SAFPath.build(treeUri, "prefix", "overlap", "folder")
+        val pre: APath<*> = SAFPath.build(treeUri, "prefix", "overlap")
         val prefixLookup: APathLookup<*> = SAFPathLookup(
             lookedUp = SAFPath.build(treeUri, "prefix", "overlap", "folder"),
             fileType = FileType.FILE,
@@ -991,8 +991,8 @@ class APathExtensionTest : BaseTest() {
     }
 
     @Test fun `remove prefix with overlap - mixed types`() {
-        val prefix: APath<*> =LocalPath.build("prefix", "overlap", "folder")
-        val pre: APath<*> =SAFPath.build(treeUri, "prefix", "overlap")
+        val prefix: APath<*> = LocalPath.build("prefix", "overlap", "folder")
+        val pre: APath<*> = SAFPath.build(treeUri, "prefix", "overlap")
 
         shouldThrow<IllegalArgumentException> {
             pre.removePrefix(prefix, overlap = 1)
@@ -1007,44 +1007,44 @@ class APathExtensionTest : BaseTest() {
 
     // https://github.com/d4rken/butler/issues/1100
     @Test fun `remove prefix SAF - issue 1100`() {
-        val searchpath: APath<*> =SAFPath.build(treeUri)
-        val path: APath<*> =SAFPath.build(treeUri, "nextcloud", "folder")
+        val searchpath: APath<*> = SAFPath.build(treeUri)
+        val path: APath<*> = SAFPath.build(treeUri, "nextcloud", "folder")
 
         path.removePrefix(searchpath, overlap = 0) shouldBe segs("nextcloud", "folder")
     }
 
     @Test fun `filterDistinctRoots operator - LocalPath`() {
-        val file1: APath<*> =LocalPath.build("test", "file1")
-        val file1s: APath<*> =LocalPath.build("test", "file1", "sub")
-        val file2: APath<*> =LocalPath.build("test", "file2")
-        val file2s: APath<*> =LocalPath.build("test", "file2", "sub")
+        val file1: APath<*> = LocalPath.build("test", "file1")
+        val file1s: APath<*> = LocalPath.build("test", "file1", "sub")
+        val file2: APath<*> = LocalPath.build("test", "file2")
+        val file2s: APath<*> = LocalPath.build("test", "file2", "sub")
 
         setOf(file1, file1s, file2, file2s).filterDistinctRoots() shouldBe setOf(file1, file2)
     }
 
     @Test fun `filterDistinctRoots operator - LocalPath - edgecase caught`() {
-        val file1: APath<*> =LocalPath.build("data", "log", "knoxsdk.log.0.lck")
-        val file2: APath<*> =LocalPath.build("data", "log", "knoxsdk.log.0")
-        val file3: APath<*> =LocalPath.build("data", "log", "knoxsdk.log.0.1.lck")
-        val file4: APath<*> =LocalPath.build("data", "log", "knoxsdk.log.0.1")
+        val file1: APath<*> = LocalPath.build("data", "log", "knoxsdk.log.0.lck")
+        val file2: APath<*> = LocalPath.build("data", "log", "knoxsdk.log.0")
+        val file3: APath<*> = LocalPath.build("data", "log", "knoxsdk.log.0.1.lck")
+        val file4: APath<*> = LocalPath.build("data", "log", "knoxsdk.log.0.1")
 
         setOf(file1, file2, file3, file4).filterDistinctRoots() shouldBe setOf(file1, file2, file3, file4)
     }
 
     @Test fun `filterDistinctRoots operator - SAFPath`() {
-        val file1: APath<*> =SAFPath.build(treeUri, "test", "file1")
-        val file1s: APath<*> =SAFPath.build(treeUri, "test", "file1", "sub")
-        val file2: APath<*> =SAFPath.build(treeUri, "test", "file2")
-        val file2s: APath<*> =SAFPath.build(treeUri, "test", "file2", "sub")
+        val file1: APath<*> = SAFPath.build(treeUri, "test", "file1")
+        val file1s: APath<*> = SAFPath.build(treeUri, "test", "file1", "sub")
+        val file2: APath<*> = SAFPath.build(treeUri, "test", "file2")
+        val file2s: APath<*> = SAFPath.build(treeUri, "test", "file2", "sub")
 
         setOf(file1, file1s, file2, file2s).filterDistinctRoots() shouldBe setOf(file1, file2)
     }
 
     @Test fun `filterDistinctRoots operator - mixes types`() {
-        val file1: APath<*> =LocalPath.build("test", "file1")
-        val file1s: APath<*> =LocalPath.build("test", "file1", "sub")
-        val file2: APath<*> =SAFPath.build(treeUri, "test", "file2")
-        val file2s: APath<*> =SAFPath.build(treeUri, "test", "file2", "sub")
+        val file1: APath<*> = LocalPath.build("test", "file1")
+        val file1s: APath<*> = LocalPath.build("test", "file1", "sub")
+        val file2: APath<*> = SAFPath.build(treeUri, "test", "file2")
+        val file2s: APath<*> = SAFPath.build(treeUri, "test", "file2", "sub")
 
         setOf(file1, file1s, file2, file2s).filterDistinctRoots() shouldBe setOf(file1, file2)
     }

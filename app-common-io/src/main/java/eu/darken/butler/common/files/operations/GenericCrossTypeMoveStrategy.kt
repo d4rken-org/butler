@@ -56,7 +56,7 @@ import eu.darken.butler.common.files.FileSystemOps
 class GenericCrossTypeMoveStrategy<
     SP : APath<SP>, SPL : APathLookup<SP>,
     DP : APath<DP>, DPL : APathLookup<DP>
-> : TransferStrategy<SP, SPL, DP, DPL> {
+    > : TransferStrategy<SP, SPL, DP, DPL> {
 
     private val copyStrategy = GenericCrossTypeCopyStrategy<SP, SPL, DP, DPL>()
 

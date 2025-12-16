@@ -62,7 +62,7 @@ fun Modifier.keyboardShortcuts(
     return this
         .focusRequester(actualFocusRequester)
         .focusable()
-        .onKeyEvent { event ->            scope.handle(event)        }
+        .onKeyEvent { event -> scope.handle(event) }
 }
 
 private val TAG = logTag("Keyboard", "Handler")
@@ -89,7 +89,10 @@ class KeyboardShortcutScope {
      * @return true if a shortcut was matched and consumed, false otherwise
      */
     internal fun handle(event: KeyEvent): Boolean {
-        log(TAG, VERBOSE) { "KeyEvent received: key=${event.key}, type=${event.type}, ctrl=${event.isCtrlPressed}, alt=${event.isAltPressed}, shift=${event.isShiftPressed}" }
+        log(
+            TAG,
+            VERBOSE
+        ) { "KeyEvent received: key=${event.key}, type=${event.type}, ctrl=${event.isCtrlPressed}, alt=${event.isAltPressed}, shift=${event.isShiftPressed}" }
 
         for ((shortcut, action) in shortcuts) {
             if (shortcut.matches(event)) {

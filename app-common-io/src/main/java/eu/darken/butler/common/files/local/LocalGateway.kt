@@ -11,7 +11,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.causeChain
-import eu.darken.butler.common.error.causes
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -21,8 +20,6 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.PathException
-import eu.darken.butler.common.files.errors.ReadException
-import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
@@ -827,13 +824,15 @@ class LocalGateway @Inject constructor(
                                     hasRoot() -> {
                                         log(TAG, VERBOSE) { "copy(AUTO->NORMAL->ROOT): To $destination" }
                                         rootOps { client ->
-                                            client.copy(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
+                                            client.copy(sources, destination, escalationAwareOnIssue, options)
+                                                .collect { emit(it) }
                                         }
                                     }
                                     hasAdb() -> {
                                         log(TAG, VERBOSE) { "copy(AUTO->NORMAL->ADB): To $destination" }
                                         adbOps { client ->
-                                            client.copy(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
+                                            client.copy(sources, destination, escalationAwareOnIssue, options)
+                                                .collect { emit(it) }
                                         }
                                     }
                                 }
@@ -959,13 +958,15 @@ class LocalGateway @Inject constructor(
                                     hasRoot() -> {
                                         log(TAG, VERBOSE) { "move(AUTO->NORMAL->ROOT): To $destination" }
                                         rootOps { client ->
-                                            client.move(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
+                                            client.move(sources, destination, escalationAwareOnIssue, options)
+                                                .collect { emit(it) }
                                         }
                                     }
                                     hasAdb() -> {
                                         log(TAG, VERBOSE) { "move(AUTO->NORMAL->ADB): To $destination" }
                                         adbOps { client ->
-                                            client.move(sources, destination, escalationAwareOnIssue, options).collect { emit(it) }
+                                            client.move(sources, destination, escalationAwareOnIssue, options)
+                                                .collect { emit(it) }
                                         }
                                     }
                                 }

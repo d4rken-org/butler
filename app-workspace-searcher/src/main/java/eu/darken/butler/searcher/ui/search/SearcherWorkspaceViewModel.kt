@@ -10,13 +10,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.TextFileDetector
@@ -39,9 +39,9 @@ import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherSettings
-import eu.darken.butler.searcher.core.arguments.SearcherArguments
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
+import eu.darken.butler.searcher.core.arguments.SearcherArguments
 import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
@@ -247,7 +247,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceSearchState
             .map { it.setupRequirements.needsSetup to it.searchStatus }
             .distinctUntilChanged()
-            .scan(Pair(false to SearcherWorkspace.State.SearchStatus.IDLE, false to SearcherWorkspace.State.SearchStatus.IDLE)) { prev, curr ->
+            .scan(
+                Pair(
+                    false to SearcherWorkspace.State.SearchStatus.IDLE,
+                    false to SearcherWorkspace.State.SearchStatus.IDLE
+                )
+            ) { prev, curr ->
                 Pair(prev.second, curr)
             }
             .filter { (prev, curr) ->

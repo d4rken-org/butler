@@ -23,16 +23,15 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.BuildConfigWrap
-import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.LocalNavigationController
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.NavigationDestination
 import eu.darken.butler.common.navigation.NavigationEntry
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.onboarding
 import eu.darken.butler.common.theming.MyAppTheme
 import eu.darken.butler.common.theming.ThemeState
@@ -42,6 +41,7 @@ import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
 import eu.darken.butler.workspace.ui.workspaces.workspaces
 import javax.inject.Inject
+import eu.darken.butler.common.R as CommonR
 
 @AndroidEntryPoint
 class MainActivity : Activity2() {

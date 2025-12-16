@@ -42,7 +42,7 @@ internal fun WelcomePage(
     LaunchedEffect(Unit) {
         isVisible = true
     }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()

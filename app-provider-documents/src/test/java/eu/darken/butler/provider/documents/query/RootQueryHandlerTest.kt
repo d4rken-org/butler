@@ -4,13 +4,11 @@ import android.content.Context
 import android.provider.DocumentsContract
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.datastore.DataStoreValue
-import eu.darken.butler.common.datastore.value
 import eu.darken.butler.provider.documents.core.DocumentsProviderSettings
 import eu.darken.butler.provider.documents.core.ProviderLocation
 import eu.darken.butler.provider.documents.core.query.RootQueryHandler
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf

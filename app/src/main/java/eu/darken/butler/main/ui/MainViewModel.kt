@@ -1,5 +1,6 @@
 package eu.darken.butler.main.ui
 
+import android.net.Uri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -7,10 +8,9 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
-import android.net.Uri
-import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.main.core.GeneralSettings

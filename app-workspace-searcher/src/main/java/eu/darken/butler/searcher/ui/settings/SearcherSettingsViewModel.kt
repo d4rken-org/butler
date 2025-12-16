@@ -6,8 +6,8 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.searcher.core.history.SearchHistory
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart

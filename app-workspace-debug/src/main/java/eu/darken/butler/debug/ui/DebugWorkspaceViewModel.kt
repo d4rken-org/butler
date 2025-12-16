@@ -19,6 +19,7 @@ import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.flow.throttleLatest
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.navigation.NavigationController
@@ -27,13 +28,9 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.debug.core.DebugLogRepo
 import eu.darken.butler.debug.core.testdata.TestDataGenerator
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
-import eu.darken.butler.common.flow.combine
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = DebugWorkspaceViewModel.Factory::class)
 class DebugWorkspaceViewModel @AssistedInject constructor(

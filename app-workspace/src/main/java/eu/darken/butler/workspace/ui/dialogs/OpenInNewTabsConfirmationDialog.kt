@@ -4,10 +4,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
+import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun OpenInNewTabsConfirmationDialog(

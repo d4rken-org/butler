@@ -8,12 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.common.compose.ButlerIcon
 import eu.darken.butler.common.compose.ButlerIconVariant
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
+import eu.darken.butler.common.R as CommonR
 
 @Composable
 fun WorkspaceLimitDialog(

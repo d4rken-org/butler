@@ -26,7 +26,7 @@ class GenericCrossTypeCopyStrategyTest : BaseTest() {
     private lateinit var strategy: GenericCrossTypeCopyStrategy<
         LocalPath, LocalPathLookup,
         LocalPath, LocalPathLookup
-    >
+        >
 
     @BeforeEach
     fun setup() {

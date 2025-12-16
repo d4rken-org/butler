@@ -11,7 +11,6 @@ import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
 import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.workspaces.classic.CreatingWorkspacePlaceholder
 
 @Composable
 fun WorkspaceMapper(

@@ -66,7 +66,7 @@ fun SwipeToDismissItem(
         },
         positionalThreshold = { totalDistance -> totalDistance * dismissThreshold }
     )
-    
+
     // Handle programmatic dismiss trigger (e.g., for clear all animations)
     if (programmaticDismissTrigger > 0L) {
         val wasEnabledWhenTriggered = remember(programmaticDismissTrigger) { enabled }
@@ -79,7 +79,7 @@ fun SwipeToDismissItem(
             }
         }
     }
-    
+
     SwipeToDismissBox(
         state = dismissState,
         modifier = modifier,

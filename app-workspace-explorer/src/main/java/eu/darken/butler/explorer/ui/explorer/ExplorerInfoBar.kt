@@ -172,7 +172,7 @@ fun ExplorerInfoBar(
                 }
 
                 is ExplorerLocation.Trash.Root.Info -> {
-                    if(selectedCount > 0) return@WorkspaceInfoBar
+                    if (selectedCount > 0) return@WorkspaceInfoBar
                     Spacer(modifier = Modifier.weight(1f))
                     if (info.totalSize > 0) {
                         InfoChip(

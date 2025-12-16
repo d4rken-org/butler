@@ -39,8 +39,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.formatAsFileSize
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem

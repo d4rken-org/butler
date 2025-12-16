@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Launch
 import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.automirrored.twotone.Sort
+import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.CleaningServices
@@ -12,9 +13,8 @@ import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.FilterAlt
 import androidx.compose.material.icons.twotone.FolderOpen
-import androidx.compose.material.icons.twotone.GridView
-import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.GetApp
+import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.SelectAll

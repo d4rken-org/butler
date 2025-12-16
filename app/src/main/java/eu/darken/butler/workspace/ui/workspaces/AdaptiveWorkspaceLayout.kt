@@ -12,13 +12,13 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
-import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
-import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DragDropState
@@ -129,7 +129,13 @@ fun AdaptiveWorkspaceLayout(
                                 // Background: Parent workspace
                                 CompositionLocalProvider(
                                     LocalWorkspaceFocused provides (focusedId == info.id),
-                                    LocalWorkspaceFocusRequest provides { onScreenAction(WorkspaceScreenAction.Focus(info.id)) },
+                                    LocalWorkspaceFocusRequest provides {
+                                        onScreenAction(
+                                            WorkspaceScreenAction.Focus(
+                                                info.id
+                                            )
+                                        )
+                                    },
                                 ) {
                                     WorkspaceOverlayContainer(
                                         workspaceId = info.id,
@@ -151,7 +157,13 @@ fun AdaptiveWorkspaceLayout(
                                     key(modal.id) {
                                         CompositionLocalProvider(
                                             LocalWorkspaceFocused provides (focusedId == modal.id),
-                                            LocalWorkspaceFocusRequest provides { onScreenAction(WorkspaceScreenAction.Focus(modal.id)) },
+                                            LocalWorkspaceFocusRequest provides {
+                                                onScreenAction(
+                                                    WorkspaceScreenAction.Focus(
+                                                        modal.id
+                                                    )
+                                                )
+                                            },
                                         ) {
                                             WorkspaceOverlayContainer(
                                                 workspaceId = modal.id,

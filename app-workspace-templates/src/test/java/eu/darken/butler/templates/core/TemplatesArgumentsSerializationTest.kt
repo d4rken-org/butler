@@ -3,7 +3,6 @@ package eu.darken.butler.templates.core
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import eu.darken.butler.templates.core.arguments.TemplatesArguments
 import io.kotest.matchers.shouldBe
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest

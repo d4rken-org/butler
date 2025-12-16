@@ -48,7 +48,10 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one permission issue
         issueResolver.resolveIssue(
-            PathActionIssue.InsufficientPermission(destination = testLookup, exception = AccessDeniedException(testPath.path))
+            PathActionIssue.InsufficientPermission(
+                destination = testLookup,
+                exception = AccessDeniedException(testPath.path)
+            )
         )
 
         var skippedCalled = false
@@ -237,7 +240,10 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one permission issue
         issueResolver.resolveIssue(
-            PathActionIssue.InsufficientPermission(destination = testLookup, exception = AccessDeniedException(testPath.path))
+            PathActionIssue.InsufficientPermission(
+                destination = testLookup,
+                exception = AccessDeniedException(testPath.path)
+            )
         )
 
         var skippedCalled = false
@@ -374,7 +380,10 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one permission issue
         issueResolver.resolveIssue(
-            PathActionIssue.InsufficientPermission(destination = testLookup, exception = SecurityException("Access denied"))
+            PathActionIssue.InsufficientPermission(
+                destination = testLookup,
+                exception = SecurityException("Access denied")
+            )
         )
 
         var skippedCalled = false
@@ -406,7 +415,10 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one permission issue
         issueResolver.resolveIssue(
-            PathActionIssue.InsufficientPermission(destination = testLookup, exception = AccessDeniedException(testPath.path))
+            PathActionIssue.InsufficientPermission(
+                destination = testLookup,
+                exception = AccessDeniedException(testPath.path)
+            )
         )
 
         var skippedCalled = false

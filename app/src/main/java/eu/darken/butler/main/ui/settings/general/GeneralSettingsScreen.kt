@@ -32,15 +32,15 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.EnumSelectorDialog
-import eu.darken.butler.common.settings.ThemeColorSelectorDialog
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
+import eu.darken.butler.common.settings.ThemeColorSelectorDialog
 import eu.darken.butler.common.theming.ThemeColor
-import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.common.ui.waitForState
@@ -152,7 +152,7 @@ fun GeneralSettingsScreen(
 
             item {
                 val isMaterialYouActive = state.themeState.style == ThemeStyle.MATERIAL_YOU && hasApiLevel(31)
-                
+
                 SettingsPreferenceItem(
                     icon = Icons.TwoTone.Palette,
                     title = stringResource(R.string.ui_theme_color_setting_label),

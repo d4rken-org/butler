@@ -10,9 +10,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.dialogs.OpenInNewTabsConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceCloseConfirmationDialog
-import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.feedback.WorkspaceBanner
 

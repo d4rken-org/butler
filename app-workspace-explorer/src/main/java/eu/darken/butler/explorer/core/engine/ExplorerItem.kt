@@ -45,6 +45,7 @@ sealed interface ExplorerItem {
         val target: ExplorerNavigation.Target.Directory
         val totalBytes: Long?
         val availableBytes: Long?
+
         /** Whether this storage location is writable. Null means unknown (treated as writable). */
         val canWrite: Boolean?
 
@@ -95,6 +96,7 @@ sealed interface ExplorerItem {
         val permissions: Permissions?
         val createdAt: Instant?
         val metadata: FileMetadata?
+
         /** Whether this item is writable. Null means unknown (treated as writable). */
         val canWrite: Boolean?
 

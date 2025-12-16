@@ -118,7 +118,7 @@ fun EmptyDirectoryState(
                 }
 
                 Text(
-                text = title ?: defaultTitle,
+                    text = title ?: defaultTitle,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,

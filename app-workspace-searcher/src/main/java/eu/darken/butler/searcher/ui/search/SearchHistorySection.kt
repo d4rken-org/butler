@@ -306,7 +306,11 @@ private fun SearchHistorySectionPreview() {
                         baseQuery = "nonexistent",
                         searchQuery = SearchQuery.create(
                             paths = listOf(LocalPath.build("/storage/emulated/0")),
-                            filenameQuery = FilenameQuery(pattern = "nonexistent", caseSensitive = true, wholeWord = true),
+                            filenameQuery = FilenameQuery(
+                                pattern = "nonexistent",
+                                caseSensitive = true,
+                                wholeWord = true
+                            ),
                         ),
                         searchedAt = Clock.System.now() - 2.hours,
                         resultCount = 0,

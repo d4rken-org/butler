@@ -143,12 +143,17 @@ fun SupportScreen(
                     icon = if (state.isRecording) Icons.TwoTone.Notifications else Icons.TwoTone.Description,
                     title = stringResource(R.string.settings_support_debuglog_label),
                     subtitle = if (state.isRecording) {
-                        stringResource(R.string.settings_support_debuglog_recording_desc) + 
-                        (state.logPath?.let { "\n" + stringResource(R.string.settings_support_debuglog_path, it.path) } ?: "")
+                        stringResource(R.string.settings_support_debuglog_recording_desc) +
+                            (state.logPath?.let {
+                                "\n" + stringResource(
+                                    R.string.settings_support_debuglog_path,
+                                    it.path
+                                )
+                            } ?: "")
                     } else {
                         stringResource(R.string.settings_support_debuglog_desc)
                     },
-                    onClick = { 
+                    onClick = {
                         if (state.isRecording) {
                             // If already recording, stop immediately
                             onDebugLog()

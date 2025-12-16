@@ -36,8 +36,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.NavigationDestination
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader

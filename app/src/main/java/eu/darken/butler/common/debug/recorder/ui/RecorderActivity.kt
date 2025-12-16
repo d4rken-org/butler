@@ -17,11 +17,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.theming.MyAppTheme
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.GeneralSettings
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @AndroidEntryPoint

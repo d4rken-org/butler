@@ -2,7 +2,6 @@ package eu.darken.butler.main.core.shortcuts
 
 import eu.darken.butler.common.files.APath
 import kotlinx.serialization.Contextual
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 import kotlin.time.Instant

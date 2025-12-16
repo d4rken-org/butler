@@ -32,7 +32,7 @@ fun AdaptiveWorkspaceManagerContent(
         modifier = Modifier.fillMaxSize()
     ) {
         val screenWidth = maxWidth
-        
+
         // Maximum content width for large screens
         val maxContentWidth = 840.dp
         val contentModifier = if (screenWidth > maxContentWidth) {

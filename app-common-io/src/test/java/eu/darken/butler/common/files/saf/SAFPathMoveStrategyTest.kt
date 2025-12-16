@@ -1,7 +1,6 @@
 package eu.darken.butler.common.files.saf
 
 import eu.darken.butler.common.files.SAFPath
-import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.operations.TransferStrategy
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf

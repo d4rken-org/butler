@@ -33,7 +33,7 @@ data class KeyboardShortcut(
             event.isAltPressed == alt &&
             event.isShiftPressed == shift
 
-        if (matches)             log(TAG, INFO) { "Shortcut matched: $this" }
+        if (matches) log(TAG, INFO) { "Shortcut matched: $this" }
 
         return matches
     }

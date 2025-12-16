@@ -14,7 +14,7 @@ import javax.inject.Inject
 class UpgradeViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val upgradeRepo: UpgradeRepoFoss,
-) : ViewModel4(dispatcherProvider, logTag("Upgrade","Screen","VM")) {
+) : ViewModel4(dispatcherProvider, logTag("Upgrade", "Screen", "VM")) {
 
     fun openSponsor() = launch {
         log(tag) { "openSponsor()" }

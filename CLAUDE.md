@@ -97,11 +97,13 @@ This aligns with the "Agent instructions" principle of maintaining focused conte
 Compose UI tests run on Robolectric for fast local execution without an emulator.
 
 **Infrastructure:**
+
 - Extend `ComposeTest` base class from `app-common-test`
 - Uses `TestApplication` for fast test initialization (~10s vs ~2min)
 - Wrap composables in `PreviewWrapper` for theming
 
 **Known Limitations (Robolectric):**
+
 - No native bitmap (`ImageBitmap()` causes NullPointerException)
 - No drawing (`captureToImage()` deadlocks)
 - Text measurement is inaccurate (fixed height, 1px width per char)
@@ -110,6 +112,7 @@ Compose UI tests run on Robolectric for fast local execution without an emulator
 **Not for:** Visual appearance, screenshot comparison, layout pixel precision
 
 **Example:**
+
 ```kotlin
 class MyComponentTest : ComposeTest() {
     @Test
@@ -127,6 +130,7 @@ class MyComponentTest : ComposeTest() {
 ```
 
 **Running tests:**
+
 ```bash
 # Module without flavors
 ./gradlew :app-workspace:testDebugUnitTest --tests "*.MyComponentTest"
@@ -153,6 +157,7 @@ mkdir -p .claude/tmp && adb shell screencap -p > .claude/tmp/screenshot.png
 ```
 
 Use cases:
+
 - Verifying UI element positioning (badges, overlays, spacing)
 - Checking visual appearance of components
 - Confirming layout issues before/after fixes
@@ -210,13 +215,16 @@ adb shell "sh /sdcard/create-test-files.sh /sdcard/aButlerTests"
 ### Module Structure
 
 #### Core Application
+
 - `app`: Main application module with entry point, flavor-specific implementations, and setup flow.
 
 #### Foundation Modules
+
 - `app-common`: Core shared utilities, base architecture components, custom ViewModel hierarchy, theming system.
 - `app-common-test`: Testing utilities, helpers, and base test classes for all modules.
 
-#### Platform Integration Modules  
+#### Platform Integration Modules
+
 - `app-common-io`: File I/O operations, abstract path system (APath), gateway pattern for file access methods.
 - `app-common-root`: Root access functionality and root-based file operations.
 - `app-common-adb`: Android Debug Bridge integration via Shizuku API.
@@ -224,6 +232,7 @@ adb shell "sh /sdcard/create-test-files.sh /sdcard/aButlerTests"
 - `app-common-pkgs`: Package management utilities and package event handling.
 
 #### Workspace Modules
+
 - `app-workspace`: Core workspace framework, base classes, and tab-like workspace management.
 - `app-workspace-explorer`: File browsing workspace with navigation, file operations, sorting/filtering.
 - `app-workspace-searcher`: File search workspace with search engine, filters, and result caching.
@@ -232,17 +241,21 @@ adb shell "sh /sdcard/create-test-files.sh /sdcard/aButlerTests"
 
 ### Modal Workspace Pattern
 
-Butler supports **modal workspaces** - workspaces that render as full-screen overlays instead of tabs. This pattern enables workspace-to-workspace interactions like file/folder pickers, while maintaining full workspace capabilities.
+Butler supports **modal workspaces
+** - workspaces that render as full-screen overlays instead of tabs. This pattern enables workspace-to-workspace interactions like file/folder pickers, while maintaining full workspace capabilities.
 
 #### Core Concept: Sub-Workspaces
 
-A **sub-workspace** is a workspace created by another workspace to return a result (e.g., Explorer picker launched by Searcher). Sub-workspaces:
+A **sub-workspace
+** is a workspace created by another workspace to return a result (e.g., Explorer picker launched by Searcher). Sub-workspaces:
+
 - Render as full-screen modals that block background interaction
 - Maintain full workspace capabilities (navigation, operations, permissions)
 - Automatically close when their parent workspace closes
 - Return results via `WorkspaceEvent.PickerResult`
 
-**Architectural Principle:** The domain layer exposes workspace relationships (`callerWorkspaceId`), the UI layer decides presentation (modal vs tab).
+**Architectural Principle:** The domain layer exposes workspace relationships (
+`callerWorkspaceId`), the UI layer decides presentation (modal vs tab).
 
 #### Creating a Result-Returning Workspace
 
@@ -261,6 +274,7 @@ data class ExplorerPickerArguments(
 ```
 
 **Key Points:**
+
 - Inherit from `Workspace.ArgumentsForResult` (not just `Workspace.Arguments`)
 - Override `callerWorkspaceId` property to expose the calling workspace
 - This enables generic parent-child tracking across all workspace types
@@ -302,7 +316,9 @@ workspaceRemote.cancelResult(
 )
 ```
 
-**Note:** The `returnResult()` and `cancelResult()` convenience functions combine event emission with automatic workspace closure. For more complex flows requiring multiple events before closing, use `workspaceRemote.emitEvent()` and `workspaceRemote.execute(Close())` separately.
+**Note:** The `returnResult()` and
+`cancelResult()` convenience functions combine event emission with automatic workspace closure. For more complex flows requiring multiple events before closing, use
+`workspaceRemote.emitEvent()` and `workspaceRemote.execute(Close())` separately.
 
 #### Launching a Modal Workspace
 
@@ -322,16 +338,16 @@ val result = workspaceRemote.execute(
 ) as WorkspaceAction.Create.Result
 
 // 2. Listen for results using convenience extension
-import eu.darken.butler.workspace.core.handleResult
+import eu . darken . butler . workspace . core . handleResult
 
-workspaceRemote.events
-    .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
-        // Handle result
-        val selectedPath = result.selectedPaths.firstOrNull()
-        updateSearchPath(selectedPath)
-        // Workspace closes automatically - no manual close needed
-    }
-    .launchInViewModel()
+    workspaceRemote.events
+        .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
+            // Handle result
+            val selectedPath = result.selectedPaths.firstOrNull()
+            updateSearchPath(selectedPath)
+            // Workspace closes automatically - no manual close needed
+        }
+        .launchInViewModel()
 ```
 
 #### UI Rendering
@@ -341,13 +357,14 @@ The UI layer automatically renders sub-workspaces as modals:
 ```kotlin
 // WorkspacesViewModel.State derives presentation:
 val tabWorkspaces: List<Workspace.Info>
-    get() = state.infos.filter { !it.isSubWorkspace }  // Normal workspaces
+get() = state.infos.filter { !it.isSubWorkspace }  // Normal workspaces
 
 val modalWorkspace: Workspace.Info?
-    get() = state.infos.firstOrNull { it.isSubWorkspace }  // Modal overlay
+get() = state.infos.firstOrNull { it.isSubWorkspace }  // Modal overlay
 ```
 
-**No workspace code changes needed** - the UI layer uses `Workspace.Info.isSubWorkspace` (derived from `callerWorkspaceId != null`) to decide rendering.
+**No workspace code changes needed** - the UI layer uses `Workspace.Info.isSubWorkspace` (derived from
+`callerWorkspaceId != null`) to decide rendering.
 
 #### Parent-Child Lifecycle
 
@@ -363,6 +380,7 @@ val childWorkspaces = _workspaces.value.filter { ws ->
 ```
 
 **Benefits:**
+
 - Prevents orphaned picker workspaces
 - No manual tracking needed
 - Works for any `ArgumentsForResult` implementation
@@ -370,26 +388,28 @@ val childWorkspaces = _workspaces.value.filter { ws ->
 #### Example Use Cases
 
 1. **File/Folder Picker** (Implemented)
-   - Searcher launches Explorer picker to select search directory
-   - Full Explorer features: navigation, permissions, folder creation
-   - Returns selected path, closes automatically
+    - Searcher launches Explorer picker to select search directory
+    - Full Explorer features: navigation, permissions, folder creation
+    - Returns selected path, closes automatically
 
 2. **File Picker for Editor** (Future)
-   - Editor launches Explorer picker to open files
-   - Multi-select support for opening multiple files
+    - Editor launches Explorer picker to open files
+    - Multi-select support for opening multiple files
 
 3. **Template Picker** (Future)
-   - Any workspace can launch Templates picker to switch types
-   - Returns selected template, workspace morphs
+    - Any workspace can launch Templates picker to switch types
+    - Returns selected template, workspace morphs
 
 #### Best Practices
 
 **Domain Layer:**
+
 - ❌ Don't expose UI concepts like `presentationMode`, `displayStyle`, `renderType`
 - ✅ Do expose domain relationships like `callerWorkspaceId`, `parentId`, `ownerWorkspaceId`
 - Let UI layer derive presentation from domain data
 
 **Result Events:**
+
 - All result events implement `WorkspaceEvent.ResultEvent` interface
 - Use specific event types for different result payloads (e.g., `PickerResult`)
 - Include both `workspaceId` and `callerWorkspaceId` for robust routing
@@ -398,12 +418,14 @@ val childWorkspaces = _workspaces.value.filter { ws ->
 - For complex flows (preview, validation), emit events separately and close manually
 
 **Handling Results:**
+
 - Use `handleResult<T>()` flow extension for automatic filtering and type-safe handling
 - No manual workspace close needed - `handleResult()` filters terminal events
 - For multiple result types, chain multiple `handleResult()` calls
 - Example: `.handleResult<PickerResult>(id) { /* handle */ }.launchIn(scope)`
 
 **Naming:**
+
 - Arguments: `[Type]PickerArguments` (e.g., `ExplorerPickerArguments`)
 - Config: `PickerConfig` (stored in workspace instance, not flowed)
 - Events: `[Type]Result` (e.g., `PickerResult`)
@@ -415,17 +437,17 @@ val childWorkspaces = _workspaces.value.filter { ws ->
 - All user facing strings should be extract to `values/strings.xml` and translated for all other languages too.
 - Prefer adding to existing files unless creating new logical components.
 - **Composable organization**:
-  - Reusable composables should be in their own files (e.g., `ButlerIcon.kt`, `ColoredTitleText.kt`)
-  - Screen-specific composables can remain in the screen file unless the file grows too large
-  - Extract screen-specific composables to separate files when the main file exceeds ~200 lines
-  - **Always add `@Preview2` functions for ALL composables** (including screen-level pages):
-    - For simple composables: Create standard previews with representative data
-    - For complex screens with Flow/ViewModel dependencies:
-      - Use mock state objects with `flowOf()` for Flow parameters
-      - Create multiple preview scenarios where applicable (empty state, loading, with data, error states)
-      - Example: `SearcherWorkspacePage` should have previews showing different UI states
-  - Place compose previews below the composable being previewed
-  - Preview function naming: `ComponentNamePreview()` and mark as `private`
+    - Reusable composables should be in their own files (e.g., `ButlerIcon.kt`, `ColoredTitleText.kt`)
+    - Screen-specific composables can remain in the screen file unless the file grows too large
+    - Extract screen-specific composables to separate files when the main file exceeds ~200 lines
+    - **Always add `@Preview2` functions for ALL composables** (including screen-level pages):
+        - For simple composables: Create standard previews with representative data
+        - For complex screens with Flow/ViewModel dependencies:
+            - Use mock state objects with `flowOf()` for Flow parameters
+            - Create multiple preview scenarios where applicable (empty state, loading, with data, error states)
+            - Example: `SearcherWorkspacePage` should have previews showing different UI states
+    - Place compose previews below the composable being previewed
+    - Preview function naming: `ComponentNamePreview()` and mark as `private`
 - Write tests for web APIs and serialized data.
 - Compose UI tests supported via Robolectric (see "Compose UI Testing" section).
 - Use FOSS debug flavor for local testing.
@@ -451,9 +473,9 @@ val childWorkspaces = _workspaces.value.filter { ws ->
 - Reactive programming with Kotlin Flow and StateFlow.
 - Centralized error handling with `ErrorEventHandler`.
 - DataStore-based settings with kotlinx serialization.
-  - When accessing settings values, use the `.value()` extension function instead of `.flow.first()`
-  - Example: `searcherSettings.defaultSearchPath.value()` not `searcherSettings.defaultSearchPath.flow.first()`
-  - For setting values use: `searcherSettings.someSetting.value(newValue)`
+    - When accessing settings values, use the `.value()` extension function instead of `.flow.first()`
+    - Example: `searcherSettings.defaultSearchPath.value()` not `searcherSettings.defaultSearchPath.flow.first()`
+    - For setting values use: `searcherSettings.someSetting.value(newValue)`
 - Jetpack Compose for UI.
 - Hilt for dependency injection.
 - Kotlin Coroutines & Flow for async operations.
@@ -462,13 +484,14 @@ val childWorkspaces = _workspaces.value.filter { ws ->
 - Room for database operations.
 - Use `FlowCombineExtensions` instead of nesting multiple combine statements.
 - Prefer Kotlin standard library types over Java equivalents:
-  - Use `kotlin.Uuid` instead of `java.util.UUID`
-  - Use `kotlin.time.Instant` instead of `java.time.Instant`  
-  - Use `kotlin.time.Duration` instead of `java.time.Duration`
-  - Use Kotlin collections and their extension functions
+    - Use `kotlin.Uuid` instead of `java.util.UUID`
+    - Use `kotlin.time.Instant` instead of `java.time.Instant`
+    - Use `kotlin.time.Duration` instead of `java.time.Duration`
+    - Use Kotlin collections and their extension functions
 - Check if `@OptIn` annotations are actually necessary before adding them:
-  - Many experimental APIs (like `ExperimentalMaterial3Api`) are already enabled project-wide via gradle compile flags (`freeCompilerArgs`)
-  - Only add `@OptIn` if you get a compilation error without it
+    - Many experimental APIs (like
+      `ExperimentalMaterial3Api`) are already enabled project-wide via gradle compile flags (`freeCompilerArgs`)
+    - Only add `@OptIn` if you get a compilation error without it
 
 #### Dependency Injection
 
@@ -489,19 +512,23 @@ val childWorkspaces = _workspaces.value.filter { ws ->
 
 - All user-facing texts need to be extracted to a `strings.xml` resources file to be localizable.
 - Composables should access strings by `stringResource(id = R.string.my_string)`.
-- Backend classes (those in the `core`) packages and other non-composables should use `CAString` to provide localized strings.
-  - `R.string.xxx.toCaString()`
-  - `R.string.xxx.toCaString("Argument")`
-  - `caString { getString(R.plurals.xxx, count, count) }`
+- Backend classes (those in the `core`) packages and other non-composables should use
+  `CAString` to provide localized strings.
+    - `R.string.xxx.toCaString()`
+    - `R.string.xxx.toCaString("Argument")`
+    - `caString { getString(R.plurals.xxx, count, count) }`
 - Localized strings with multiple arguments should use ordered placeholders (i.e. `%1$s is %2$d`).
 - Use ellipsis characters (`…`) instead of 3 manual dots (`...`).
 - Use the `strings.xml` file that belongs to respective feature module.
-- General texts that are used through-out multiple modules should be placed in the `strings.xml` file of the `app-common` module.
-- Before creating a new entry, check if `strings.xml` file in the `app-common` module already contains a general version.
-- String IDs should be prefixed with their respective module name. Re-used strings should be prefixed with `general` or `common`.
+- General texts that are used through-out multiple modules should be placed in the `strings.xml` file of the
+  `app-common` module.
+- Before creating a new entry, check if `strings.xml` file in the
+  `app-common` module already contains a general version.
+- String IDs should be prefixed with their respective module name. Re-used strings should be prefixed with `general` or
+  `common`.
 - Where possible string IDs should not contain implementation details.
-  - Postfix with `_action` instead of prefixing with `button_`.
-  - Instead of `module_screen_button_open` it should be `module_screen_open_action`
+    - Postfix with `_action` instead of prefixing with `button_`.
+    - Instead of `module_screen_button_open` it should be `module_screen_open_action`
 
 #### MVVM with Custom ViewModel Hierarchy
 
@@ -514,16 +541,19 @@ val childWorkspaces = _workspaces.value.filter { ws ->
 #### General
 
 - Abstract path system (`APath`, `RawPath`).
-  - `APath` offers path segment infos via `segments`. Use that instead of path splitting.
+    - `APath` offers path segment infos via `segments`. Use that instead of path splitting.
 - Gateway pattern for different file access methods.
 - Support for root, ADB, and shell operations.
 
 #### Type Converters and Serialization
 
 - When creating type converters or serialization tools, consider the scope:
-  - **Global types** (e.g., `Instant`, `Duration`, `Uuid`): Place converters in the `app-common` module for reuse across the entire application
-  - **Workspace-specific types**: Place converters in the respective workspace module (e.g., editor-specific converters in `app-workspace-editor`)
-  - This ensures proper code organization and prevents duplication
+    - **Global types** (e.g., `Instant`, `Duration`, `Uuid`): Place converters in the
+      `app-common` module for reuse across the entire application
+    - **Workspace-specific types
+      **: Place converters in the respective workspace module (e.g., editor-specific converters in
+      `app-workspace-editor`)
+    - This ensures proper code organization and prevents duplication
 
 ### Logging
 

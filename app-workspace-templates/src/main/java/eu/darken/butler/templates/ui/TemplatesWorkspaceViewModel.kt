@@ -7,7 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.apps.ui.AppsWorkspaceTemplate
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.ViewModel4
@@ -29,7 +29,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val upgradeRepo: UpgradeRepo,
-) : ViewModel4(dispatchers, logTag( "Templates","Workspace", id.shortTag)) {
+) : ViewModel4(dispatchers, logTag("Templates", "Workspace", id.shortTag)) {
 
     private val templates = MutableStateFlow(
         buildList {

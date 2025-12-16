@@ -218,10 +218,12 @@ class WorkspacePageManagerTest : BaseTest() {
         pageManager.handleWorkspaceSelection(callerWorkspace)
         pageManager.handleWorkspaceSelection(subWorkspace)
 
-        eventsFlow.emit(WorkspaceEvent.Closed(
-            workspaceId = subWorkspace,
-            callerWorkspaceId = callerWorkspace,
-        ))
+        eventsFlow.emit(
+            WorkspaceEvent.Closed(
+                workspaceId = subWorkspace,
+                callerWorkspaceId = callerWorkspace,
+            )
+        )
         testScope.testScheduler.advanceUntilIdle()
 
         pageManager.state.value.focusedWorkspaceId shouldBe callerWorkspace

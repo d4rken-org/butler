@@ -25,10 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -61,7 +61,7 @@ fun CreateItemDialog(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -86,7 +86,8 @@ fun CreateItemDialog(
                     isError = isError,
                     supportingText = if (isError) {
                         {
-                            val chars = (validation as FilenameValidator.ValidationResult.Invalid).invalidChars.joinToString(" ")
+                            val chars =
+                                (validation as FilenameValidator.ValidationResult.Invalid).invalidChars.joinToString(" ")
                             Text(stringResource(CommonR.string.general_filename_validation_error, chars))
                         }
                     } else null,
@@ -99,7 +100,7 @@ fun CreateItemDialog(
                         }
                     ),
                 )
-                
+
                 Column(
                     modifier = Modifier.selectableGroup(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -109,7 +110,7 @@ fun CreateItemDialog(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    
+
                     Row(
                         Modifier
                             .fillMaxWidth()
@@ -131,7 +132,7 @@ fun CreateItemDialog(
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     }
-                    
+
                     Row(
                         Modifier
                             .fillMaxWidth()

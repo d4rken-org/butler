@@ -4,8 +4,7 @@ import android.os.Parcelable
 import coil3.ImageLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.ViewModel4

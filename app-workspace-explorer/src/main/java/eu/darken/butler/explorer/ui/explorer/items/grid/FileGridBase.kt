@@ -105,7 +105,7 @@ internal fun FileGridBase(
             if (previewContent != null) {
                 previewContent()
             }
-            
+
             // Top bar with icon and size
             Row(
                 modifier = Modifier
@@ -146,7 +146,7 @@ internal fun FileGridBase(
                     )
                 }
             }
-            
+
             // Bottom bar with filename
             Box(
                 modifier = Modifier

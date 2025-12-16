@@ -7,7 +7,8 @@ sealed class WorkspaceManagerColumnItemKey : Parcelable {
     @Parcelize
     data object StatusCard : WorkspaceManagerColumnItemKey()
 
-    sealed class Workspace(open val id: eu.darken.butler.workspace.core.Workspace.Id) : WorkspaceManagerColumnItemKey() {
+    sealed class Workspace(open val id: eu.darken.butler.workspace.core.Workspace.Id) :
+        WorkspaceManagerColumnItemKey() {
         @Parcelize
         data class Standard(override val id: eu.darken.butler.workspace.core.Workspace.Id) : Workspace(id)
 

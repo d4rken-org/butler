@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,7 +38,7 @@ fun SettingsBaseItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val contentAlpha = if (enabled) 1f else 0.5f
-        
+
         if (icon != null) {
             Icon(
                 imageVector = icon,
