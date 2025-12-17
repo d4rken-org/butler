@@ -439,8 +439,10 @@ fun ExplorerWorkspacePage(
             val showInfoBar = mainState.info != null || mainState.selectionState.selectedItems.isNotEmpty()
 
             // Content padding calculation
-            val topContentPadding = 8.dp + actualToolbarHeightDp +
-                (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp)
+            val topContentPadding = 8.dp + // Distance between screen and bars
+                actualToolbarHeightDp +
+                (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp) +
+                8.dp // Padding between list and upper toolbars
 
             // Main content with PullToRefresh
             PullToRefreshBox(
