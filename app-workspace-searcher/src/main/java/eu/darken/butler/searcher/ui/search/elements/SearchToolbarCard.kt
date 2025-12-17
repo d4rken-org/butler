@@ -31,7 +31,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
@@ -55,8 +54,8 @@ fun SearchToolbarCard(
     state: SearcherWorkspaceViewModel.State,
     design: WorkspaceDesign,
     collapsedFraction: Float = 0f,
-    onUpdateFilenameQuery: (TextFieldValue) -> Unit,
-    onUpdateContentQuery: (TextFieldValue) -> Unit,
+    onUpdateFilenameQuery: (String) -> Unit,
+    onUpdateContentQuery: (String) -> Unit,
     onRemoveSearchPath: (SearchTarget) -> Unit,
     onTogglePathEnabled: (SearchTarget) -> Unit,
     onPerformSearch: () -> Unit,
@@ -115,17 +114,17 @@ fun SearchToolbarCard(
                     )
 
                     val displayText = buildString {
-                        val hasFilename = state.filenameQuery.text.isNotBlank()
-                        val hasContent = state.contentQuery.text.isNotBlank()
+                        val hasFilename = state.filenameQuery.isNotBlank()
+                        val hasContent = state.contentQuery.isNotBlank()
                         when {
                             hasFilename && hasContent -> {
-                                append(state.filenameQuery.text)
+                                append(state.filenameQuery)
                                 append(" | ")
-                                append(state.contentQuery.text)
+                                append(state.contentQuery)
                             }
 
-                            hasFilename -> append(state.filenameQuery.text)
-                            hasContent -> append(state.contentQuery.text)
+                            hasFilename -> append(state.filenameQuery)
+                            hasContent -> append(state.contentQuery)
                         }
                     }
                     Text(
@@ -165,8 +164,8 @@ fun SearchToolbarCard(
                         Column {
                             // Filename pattern field
                             PatternField(
-                                query = state.filenameQuery,
-                                onQueryChange = onUpdateFilenameQuery,
+                                text = state.filenameQuery,
+                                onTextChange = onUpdateFilenameQuery,
                                 onSearch = onExplicitSearch,
                                 placeholder = stringResource(R.string.searcher_placeholder_filename),
                                 leadingIcon = Icons.TwoTone.InsertDriveFile,
@@ -206,8 +205,8 @@ fun SearchToolbarCard(
 
                                     // Content pattern field
                                     PatternField(
-                                        query = state.contentQuery,
-                                        onQueryChange = onUpdateContentQuery,
+                                        text = state.contentQuery,
+                                        onTextChange = onUpdateContentQuery,
                                         onSearch = onExplicitSearch,
                                         placeholder = stringResource(R.string.searcher_placeholder_content),
                                         leadingIcon = Icons.TwoTone.Description,
@@ -271,8 +270,8 @@ private fun SearchToolbarCardPreview() {
                     SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
                     SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
                 ),
-                filenameQuery = TextFieldValue("*.kt"),
-                contentQuery = TextFieldValue("TODO"),
+                filenameQuery = "*.kt",
+                contentQuery = "TODO",
                 filenameOptions = FilenameQuery(useRegex = true),
                 contentOptions = ContentQuery(wholeWord = true),
                 contentSearchEnabled = true,
@@ -308,8 +307,8 @@ private fun SearchToolbarCardCollapsedPreview() {
                     SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
                     SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
                 ),
-                filenameQuery = TextFieldValue("*.kt"),
-                contentQuery = TextFieldValue("TODO"),
+                filenameQuery = "*.kt",
+                contentQuery = "TODO",
             ),
             design = WorkspaceDesign(),
             onUpdateFilenameQuery = {},

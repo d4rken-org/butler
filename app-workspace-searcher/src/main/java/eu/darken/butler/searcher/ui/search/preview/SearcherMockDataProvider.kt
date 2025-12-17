@@ -1,6 +1,5 @@
 package eu.darken.butler.searcher.ui.search.preview
 
-import androidx.compose.ui.text.input.TextFieldValue
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -318,7 +317,7 @@ object SearcherMockDataProvider {
 
         return SearcherWorkspaceViewModel.State(
             id = workspaceId,
-            filenameQuery = TextFieldValue("config"),
+            filenameQuery = "config",
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
             ),
@@ -368,7 +367,7 @@ object SearcherMockDataProvider {
     fun createMockSearchingWithProgressState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State =
         SearcherWorkspaceViewModel.State(
             id = workspaceId,
-            filenameQuery = TextFieldValue("log"),
+            filenameQuery = "log",
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Android")),
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),

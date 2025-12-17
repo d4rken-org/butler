@@ -303,7 +303,7 @@ fun SearcherWorkspacePage(
             )
 
             // Conditional rendering: History mode vs Results mode
-            val hasNoQuery = currentState.filenameQuery.text.isBlank() && currentState.contentQuery.text.isBlank()
+            val hasNoQuery = currentState.filenameQuery.isBlank() && currentState.contentQuery.isBlank()
             // Show history when no results (even if query is filled from restore)
             val showHistory = !currentState.hasResults && currentState.searchHistory.isNotEmpty()
 
