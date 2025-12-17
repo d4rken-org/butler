@@ -1,4 +1,4 @@
-package eu.darken.butler.main.ui.settings.storage
+package eu.darken.butler.main.ui.settings.previews
 
 import android.os.Parcelable
 import coil3.ImageLoader
@@ -16,10 +16,10 @@ import kotlinx.parcelize.Parcelize
 import javax.inject.Inject
 
 @HiltViewModel
-class StorageSettingsViewModel @Inject constructor(
+class PreviewsSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val imageLoader: ImageLoader,
-) : ViewModel4(dispatcherProvider, logTag("Settings", "Storage", "ViewModel")) {
+) : ViewModel4(dispatcherProvider, logTag("Settings", "Previews", "ViewModel")) {
 
     private val refreshTrigger = MutableStateFlow(0)
 

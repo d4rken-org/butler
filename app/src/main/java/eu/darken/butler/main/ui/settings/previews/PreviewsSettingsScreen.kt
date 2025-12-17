@@ -1,4 +1,4 @@
-package eu.darken.butler.main.ui.settings.storage
+package eu.darken.butler.main.ui.settings.previews
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,21 +36,20 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.SettingsBaseItem
-import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.ui.waitForState
 import kotlinx.coroutines.launch
 
 @Composable
-fun StorageSettingsScreenHost(vm: StorageSettingsViewModel = hiltViewModel()) {
+fun PreviewsSettingsScreenHost(vm: PreviewsSettingsViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
     val state by waitForState(vm.state)
 
     state?.let { state ->
-        StorageSettingsScreen(
+        PreviewsSettingsScreen(
             state = state,
             onNavigateUp = { vm.navUp() },
             onClearDiskCache = { vm.clearPreviewDiskCache() },
@@ -62,8 +61,8 @@ fun StorageSettingsScreenHost(vm: StorageSettingsViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun StorageSettingsScreen(
-    state: StorageSettingsViewModel.State,
+fun PreviewsSettingsScreen(
+    state: PreviewsSettingsViewModel.State,
     onNavigateUp: () -> Unit,
     onClearDiskCache: () -> Unit,
     onClearMemoryCache: () -> Unit,
@@ -85,7 +84,7 @@ fun StorageSettingsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.storage_settings_title)) },
+                title = { Text(stringResource(R.string.previews_settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
@@ -103,10 +102,6 @@ fun StorageSettingsScreen(
                 .padding(paddingValues),
             verticalArrangement = Arrangement.Top
         ) {
-            item {
-                SettingsCategoryHeader(text = stringResource(R.string.storage_category_previews_label))
-            }
-
             item {
                 SettingsPreferenceItem(
                     icon = Icons.TwoTone.Storage,
@@ -272,10 +267,10 @@ private fun getString(resId: Int): String = stringResource(resId)
 
 @Preview2
 @Composable
-private fun StorageSettingsScreenPreview() {
+private fun PreviewsSettingsScreenPreview() {
     PreviewWrapper {
-        StorageSettingsScreen(
-            state = StorageSettingsViewModel.State(
+        PreviewsSettingsScreen(
+            state = PreviewsSettingsViewModel.State(
                 previewDiskCacheSize = 125_300_100,
                 previewMemoryCacheSize = 45_200_000,
             ),

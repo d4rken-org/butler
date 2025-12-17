@@ -9,13 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.twotone.ListAlt
 import androidx.compose.material.icons.twotone.Favorite
-import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.PrivacyTip
-import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Stars
-import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Icon
@@ -138,36 +135,6 @@ fun SettingsIndexScreen(
                     title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_title),
                     subtitle = stringResource(R.string.workspace_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.workspaces()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.PushPin,
-                    title = stringResource(R.string.shortcuts_settings_title),
-                    subtitle = stringResource(R.string.shortcuts_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.shortcuts()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.Storage,
-                    title = stringResource(R.string.storage_settings_title),
-                    subtitle = stringResource(R.string.storage_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.storage()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.FolderOpen,
-                    title = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_settings_title),
-                    subtitle = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.providerDocuments()) },
                 )
                 SettingsDivider()
             }

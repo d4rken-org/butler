@@ -11,6 +11,8 @@ import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.locale.LocaleManager
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.upgrade
+import eu.darken.butler.main.ui.settings.previews
+import eu.darken.butler.main.ui.settings.shortcuts
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeState
@@ -19,6 +21,7 @@ import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.motd.MotdSettings
+import eu.darken.butler.provider.documents.core.DocumentsProviderSettings
 import eu.darken.butler.upgrade.UpgradeRepo
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
@@ -31,6 +34,7 @@ constructor(
     private val generalSettings: GeneralSettings,
     private val localeManager: LocaleManager,
     private val motdSettings: MotdSettings,
+    private val documentsProviderSettings: DocumentsProviderSettings,
     private val upgradeRepo: UpgradeRepo,
 ) : ViewModel4(dispatcherProvider, logTag("Settings", "General", "ViewModel")) {
 
@@ -40,14 +44,16 @@ constructor(
         generalSettings.isUpdateCheckEnabled.flow,
         motdSettings.isMotdEnabled.flow,
         generalSettings.isConfirmExitEnabled.flow,
+        documentsProviderSettings.isEnabled.flow,
         upgradeRepo.upgradeInfo,
-    ) { themeState, languageSwitcher, updateCheckEnabled, motdEnabled, confirmExitEnabled, upgradeInfo ->
+    ) { themeState, languageSwitcher, updateCheckEnabled, motdEnabled, confirmExitEnabled, isDocumentsProviderEnabled, upgradeInfo ->
         State(
             themeState = themeState,
             showLanguageSwitcher = languageSwitcher,
             updateCheckEnabled = updateCheckEnabled,
             motdEnabled = motdEnabled,
             confirmExitEnabled = confirmExitEnabled,
+            isDocumentsProviderEnabled = isDocumentsProviderEnabled,
             isUpgraded = upgradeInfo.isUpgraded,
         )
     }
@@ -93,9 +99,24 @@ constructor(
         generalSettings.isConfirmExitEnabled.value(enabled)
     }
 
+    fun updateDocumentsProviderEnabled(enabled: Boolean) = launch {
+        log(tag) { "updateDocumentsProviderEnabled($enabled)" }
+        documentsProviderSettings.isEnabled.value(enabled)
+    }
+
     fun upgradeButler() = launch {
         log(tag) { "upgradeButler()" }
         navTo(Nav.Main.upgrade())
+    }
+
+    fun navigateToPreviews() = launch {
+        log(tag) { "navigateToPreviews()" }
+        navTo(Nav.Settings.previews())
+    }
+
+    fun navigateToShortcuts() = launch {
+        log(tag) { "navigateToShortcuts()" }
+        navTo(Nav.Settings.shortcuts())
     }
 
     data class State(
@@ -104,6 +125,7 @@ constructor(
         val updateCheckEnabled: Boolean = false,
         val motdEnabled: Boolean = false,
         val confirmExitEnabled: Boolean = true,
+        val isDocumentsProviderEnabled: Boolean = true,
         val isUpgraded: Boolean = false,
     )
 }
