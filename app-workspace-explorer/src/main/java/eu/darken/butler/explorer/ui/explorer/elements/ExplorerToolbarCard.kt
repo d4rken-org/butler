@@ -76,10 +76,9 @@ fun ExplorerToolbarCard(
     onCancel: () -> Unit = {},
     onConfirm: () -> Unit = {},
 ) {
-    val context = LocalContext.current
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 8.dp else 12.dp,
+        targetValue = if (isCollapsed) 6.dp else 8.dp,
         label = "cardPadding",
     )
 
@@ -142,7 +141,10 @@ private fun NormalToolbarContent(
     safLocationManager: SAFLocationManager?,
 ) {
     val context = LocalContext.current
-
+    val workspaceButtonSize by animateDpAsState(
+        targetValue = if (isCollapsed) 32.dp else 40.dp,
+        label = "workspaceButtonSize",
+    )
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -183,13 +185,6 @@ private fun NormalToolbarContent(
                 )
             }
 
-            if (design.isSingle) {
-                WorkspaceButton(
-                    buttonSize = 32.dp,
-                    state = workspaceButtonState,
-                    workspaceActionHandler = workspaceActionHandler,
-                )
-            }
         } else {
             // Expanded state - full breadcrumb bar
             BreadcrumbBar(
@@ -202,16 +197,17 @@ private fun NormalToolbarContent(
                 showBackground = false,
                 modifier = Modifier.weight(1f),
             )
+        }
 
-            if (design.isSingle) {
-                Spacer(modifier = Modifier.width(8.dp))
+        if (design.isSingle) {
+            Spacer(modifier = Modifier.width(8.dp))
 
-                WorkspaceButton(
-                    state = workspaceButtonState,
-                    currentWorkspaceId = workspaceId,
-                    workspaceActionHandler = workspaceActionHandler,
-                )
-            }
+            WorkspaceButton(
+                state = workspaceButtonState,
+                buttonSize = workspaceButtonSize,
+                currentWorkspaceId = workspaceId,
+                workspaceActionHandler = workspaceActionHandler,
+            )
         }
     }
 }
@@ -408,6 +404,11 @@ private fun ExplorerToolbarCardExpandedPreview() {
             collapsedFraction = 0f,
             onBreadcrumbClick = {},
             onNavigateToPath = {},
+            workspaceButtonState = WorkspaceButtonViewModel.State(
+                workspaceCount = 1,
+                operationsCount = 1,
+                attentionCount = 1,
+            ),
             modifier = Modifier.padding(16.dp),
         )
     }
@@ -424,6 +425,11 @@ private fun ExplorerToolbarCardCollapsedPreview() {
             collapsedFraction = 1f,
             onBreadcrumbClick = {},
             onNavigateToPath = {},
+            workspaceButtonState = WorkspaceButtonViewModel.State(
+                workspaceCount = 1,
+                operationsCount = 1,
+                attentionCount = 1,
+            ),
             modifier = Modifier.padding(16.dp),
         )
     }
