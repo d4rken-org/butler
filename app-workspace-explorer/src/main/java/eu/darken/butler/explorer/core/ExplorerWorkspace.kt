@@ -5,6 +5,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -72,6 +73,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val createOperationFactory: CreateOperation.Factory,
     private val copyOperationFactory: CopyOperation.Factory,
     private val moveOperationFactory: MoveOperation.Factory,
+    private val explorerSettings: ExplorerSettings,
 ) : Workspace<ExplorerArguments> {
 
     private val tag = logTag("Explorer", "Workspace", id.shortTag)
@@ -240,10 +242,19 @@ class ExplorerWorkspace @AssistedInject constructor(
                     is ExplorerArguments.Picker -> creationArguments.startPath
                     is ExplorerArguments.Default -> creationArguments.startPath
                 }
-                if (startPath != null) {
-                    navigationRequests.emit(ExplorerNavigation.Target.Directory(startPath))
-                } else {
-                    navigationRequests.emit(ExplorerNavigation.Target.Home)
+                when {
+                    startPath != null -> {
+                        navigationRequests.emit(ExplorerNavigation.Target.Directory(startPath))
+                    }
+                    else -> {
+                        val defaultLocation = explorerSettings.defaultStartLocation.value()
+                        log(tag, INFO) { "Using default start location from settings: $defaultLocation" }
+                        when (defaultLocation) {
+                            is DefaultStartLocation.Device -> navigationRequests.emit(ExplorerNavigation.Target.Device)
+                            is DefaultStartLocation.Directory -> navigationRequests.emit(ExplorerNavigation.Target.Directory(defaultLocation.path))
+                            is DefaultStartLocation.Home, null -> navigationRequests.emit(ExplorerNavigation.Target.Home)
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to initialize: $e" }

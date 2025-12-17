@@ -68,7 +68,11 @@ import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
-import eu.darken.butler.explorer.ui.explorer.issues.ErrorSnackbar
+import eu.darken.butler.explorer.ui.explorer.elements.EmptyDirectoryState
+import eu.darken.butler.explorer.ui.explorer.elements.EmptyState
+import eu.darken.butler.explorer.ui.explorer.elements.ErrorSnackbar
+import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
+import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
 import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
 import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
@@ -81,8 +85,11 @@ import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
 import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
 import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
-import eu.darken.butler.explorer.ui.explorer.permissions.PermissionRequestCard
+import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.explorer.ui.explorer.elements.LoadingProgressBar
+import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
+import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
@@ -777,6 +784,8 @@ fun ExplorerWorkspacePage(
                 collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
                 onBreadcrumbClick = { target -> vm?.navigate(target) },
                 onNavigateToPath = { path -> vm?.navigateToPath(path) },
+                onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
+                onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,
                 safLocationManager = vm?.safLocationManager,

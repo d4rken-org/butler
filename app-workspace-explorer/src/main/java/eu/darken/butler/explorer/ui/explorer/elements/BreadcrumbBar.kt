@@ -1,7 +1,11 @@
-package eu.darken.butler.explorer.ui.explorer
+package eu.darken.butler.explorer.ui.explorer.elements
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,8 +23,12 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ChevronRight
+import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
@@ -62,14 +71,18 @@ import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import kotlinx.coroutines.delay
 import java.io.File
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BreadcrumbBar(
     modifier: Modifier = Modifier,
     breadcrumbs: List<ExplorerBreadcrumb>,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: ((APath<*>) -> Unit)? = null,
+    onSetAsHome: ((ExplorerNavigation.Target) -> Unit)? = null,
+    onCopyPath: ((String) -> Unit)? = null,
     safLocationManager: SAFLocationManager? = null,
     showBackground: Boolean = true,
 ) {
@@ -82,6 +95,18 @@ fun BreadcrumbBar(
     val isWorkspaceFocused = LocalWorkspaceFocused.current
     val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
     var hadFocusWhileEditing by remember { mutableStateOf(false) }
+    var showContextMenuForIndex by remember { mutableStateOf<Int?>(null) }
+
+    // Animation state for "Set as home" feedback - tracks which breadcrumb to animate
+    var animatingBreadcrumbIndex by remember { mutableStateOf<Int?>(null) }
+
+    // Clear animation after delay
+    LaunchedEffect(animatingBreadcrumbIndex) {
+        if (animatingBreadcrumbIndex != null) {
+            delay(400)
+            animatingBreadcrumbIndex = null
+        }
+    }
 
     // Detect current path type and extract relevant information
     data class PathInfo(
@@ -341,61 +366,126 @@ fun BreadcrumbBar(
                 ) {
                     breadcrumbs.forEachIndexed { index, breadcrumb ->
                         val isLast = index == breadcrumbs.lastIndex
+                        val isDirectory = breadcrumb.target is ExplorerNavigation.Target.Directory
+                        val supportsContextMenu = when (breadcrumb.target) {
+                            is ExplorerNavigation.Target.Home,
+                            is ExplorerNavigation.Target.Device,
+                            is ExplorerNavigation.Target.Directory -> true
+                            else -> false // Trash doesn't support context menu
+                        }
 
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(4.dp))
-                                .clickable {
-                                    requestWorkspaceFocus?.invoke()
-                                    when {
-                                        // Only allow edit mode for actual directory paths, not Home/Device
-                                        isLast && onNavigateToPath != null &&
-                                            breadcrumb.target is ExplorerNavigation.Target.Directory -> {
-                                            // Click on last breadcrumb that is a directory enters edit mode
-                                            isEditMode = true
-                                        }
-                                        !isLast -> {
-                                            // Click on non-last breadcrumbs always navigates
-                                            onBreadcrumbClick(breadcrumb.target)
-                                        }
-                                        // For Home/Device when last, clicking does nothing
-                                        // (could optionally refresh by calling onBreadcrumbClick)
-                                    }
-                                }
-                                .padding(horizontal = 2.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Show icon if showIcon is true and icon exists
-                            if (breadcrumb.showIcon && breadcrumb.icon != null) {
-                                BadgedIcon(
-                                    icon = breadcrumb.icon,
-                                    badge = breadcrumb.badgeIcon,
-                                    iconSize = 20.dp,
-                                    badgeSize = 10.dp,
-                                    iconTint = if (isLast) {
-                                        MaterialTheme.colorScheme.onSurface
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    },
-                                    badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        Box {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .combinedClickable(
+                                        onClick = {
+                                            requestWorkspaceFocus?.invoke()
+                                            when {
+                                                // Only allow edit mode for actual directory paths, not Home/Device
+                                                isLast && onNavigateToPath != null && isDirectory -> {
+                                                    // Click on last breadcrumb that is a directory enters edit mode
+                                                    isEditMode = true
+                                                }
+                                                !isLast -> {
+                                                    // Click on non-last breadcrumbs always navigates
+                                                    onBreadcrumbClick(breadcrumb.target)
+                                                }
+                                                // For Home/Device when last, clicking does nothing
+                                                // (could optionally refresh by calling onBreadcrumbClick)
+                                            }
+                                        },
+                                        onLongClick = {
+                                            // Show context menu for Home, Device, and Directory targets (not Trash)
+                                            if (supportsContextMenu) {
+                                                showContextMenuForIndex = index
+                                            }
+                                        },
+                                    )
+                                    .padding(horizontal = 2.dp, vertical = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Animation state for this breadcrumb
+                                val isAnimating = animatingBreadcrumbIndex == index
+                                val animatedScale by animateFloatAsState(
+                                    targetValue = if (isAnimating) 1.3f else 1f,
+                                    animationSpec = tween(durationMillis = 200),
+                                    label = "breadcrumbScale",
                                 )
+                                val animatedColor = when {
+                                    isAnimating -> MaterialTheme.colorScheme.primary
+                                    isLast -> MaterialTheme.colorScheme.onSurface
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+
+                                // Show icon if showIcon is true and icon exists
+                                if (breadcrumb.showIcon && breadcrumb.icon != null) {
+                                    BadgedIcon(
+                                        modifier = Modifier.scale(animatedScale),
+                                        icon = breadcrumb.icon,
+                                        badge = breadcrumb.badgeIcon,
+                                        iconSize = 20.dp,
+                                        badgeSize = 10.dp,
+                                        iconTint = animatedColor,
+                                        badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+
+                                // Show text if showText is true
+                                if (breadcrumb.showText) {
+                                    Text(
+                                        text = breadcrumb.label.get(context),
+                                        style = if (isLast) {
+                                            MaterialTheme.typography.bodyMedium.copy(color = animatedColor)
+                                        } else {
+                                            MaterialTheme.typography.bodySmall.copy(color = animatedColor)
+                                        },
+                                    )
+                                }
                             }
 
-                            // Show text if showText is true
-                            if (breadcrumb.showText) {
-                                Text(
-                                    text = breadcrumb.label.get(context),
-                                    style = if (isLast) {
-                                        MaterialTheme.typography.bodyMedium.copy(
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    } else {
-                                        MaterialTheme.typography.bodySmall.copy(
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            // Context menu for Home, Device, and Directory breadcrumbs
+                            if (showContextMenuForIndex == index && supportsContextMenu) {
+                                DropdownMenu(
+                                    expanded = true,
+                                    onDismissRequest = { showContextMenuForIndex = null },
+                                ) {
+                                    // "Set as home" available for all supported targets
+                                    if (onSetAsHome != null) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.explorer_breadcrumb_set_as_home_action)) },
+                                            onClick = {
+                                                showContextMenuForIndex = null
+                                                animatingBreadcrumbIndex = index
+                                                onSetAsHome(breadcrumb.target as ExplorerNavigation.Target)
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    imageVector = Icons.TwoTone.Home,
+                                                    contentDescription = null,
+                                                )
+                                            },
                                         )
                                     }
-                                )
+                                    // "Copy path" only available for Directory targets
+                                    if (isDirectory && onCopyPath != null) {
+                                        val directoryTarget = breadcrumb.target as ExplorerNavigation.Target.Directory
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.explorer_breadcrumb_copy_path_action)) },
+                                            onClick = {
+                                                showContextMenuForIndex = null
+                                                onCopyPath(directoryTarget.path.path)
+                                            },
+                                            leadingIcon = {
+                                                Icon(
+                                                    imageVector = Icons.TwoTone.ContentCopy,
+                                                    contentDescription = null,
+                                                )
+                                            },
+                                        )
+                                    }
+                                }
                             }
                         }
 

@@ -30,11 +30,14 @@ class ExplorerSettings @Inject constructor(
 
     val defaultViewStyle = dataStore.createValue("explorer.view.style.default", ExplorerViewStyle.default(), json)
 
+    val defaultStartLocation = dataStore.createValue<DefaultStartLocation?>("explorer.navigation.default_start_location", null, json)
+
     override val mapper = PreferenceStoreMapper(
         sortSettings,
         useRegexPatterns,
         useBackButtonForNavigation,
         defaultViewStyle,
+        defaultStartLocation,
     )
 
     companion object {
