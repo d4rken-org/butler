@@ -73,18 +73,7 @@ import eu.darken.butler.explorer.ui.explorer.elements.EmptyState
 import eu.darken.butler.explorer.ui.explorer.elements.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
-import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
-import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
-import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
-import eu.darken.butler.explorer.ui.explorer.items.grid.StorageGrid
-import eu.darken.butler.explorer.ui.explorer.items.grid.TrashItemGrid
-import eu.darken.butler.explorer.ui.explorer.items.grid.TrashNestedItemGrid
-import eu.darken.butler.explorer.ui.explorer.items.row.LookupItemRow
-import eu.darken.butler.explorer.ui.explorer.items.row.PeekRow
-import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
-import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
-import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
-import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
+import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.elements.LoadingProgressBar
@@ -574,64 +563,15 @@ fun ExplorerWorkspacePage(
                                             items = mainStateSnap.items,
                                             key = { it.id }
                                         ) { item ->
-                                            when (item) {
-                                                is ExplorerItem.Lookup -> LookupItemRow(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                    isHighlighted = item.id in mainStateSnap.highlightedItemIds,
-                                                )
-                                                is ExplorerItem.Peek -> PeekRow(item = item)
-                                                is ExplorerItem.Shortcut -> ShortcutRow(
-                                                    item = item,
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                    onClick = { vm?.navigate(item) },
-                                                )
-                                                is ExplorerItem.Storage -> StorageRow(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = {
-                                                        if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
-                                                            vm?.toggleItemSelection(item)
-                                                        } else {
-                                                            vm?.navigate(item)
-                                                        }
-                                                    },
-                                                    onLongClick = { vm?.toggleItemSelection(item) },
-                                                    showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                        item in mainStateSnap.selectionState.selectableItems,
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                )
-                                                is ExplorerItem.Trash.Root -> TrashItemRow(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                )
-                                                is ExplorerItem.Trash.Nested -> TrashNestedItemRow(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                )
-                                            }
+                                            ExplorerItemRenderer(
+                                                item = item,
+                                                viewStyle = mainStateSnap.viewStyle,
+                                                state = mainStateSnap,
+                                                onItemClick = { vm?.onItemClick(it) },
+                                                onItemLongClick = { vm?.onItemLongClick(it) },
+                                                onNavigate = { vm?.navigate(it) },
+                                                onToggleSelection = { vm?.toggleItemSelection(it) },
+                                            )
                                         }
                                     }
                                 }
@@ -682,64 +622,15 @@ fun ExplorerWorkspacePage(
                                             items = mainStateSnap.items,
                                             key = { it.id }
                                         ) { item ->
-                                            when (item) {
-                                                is ExplorerItem.Lookup -> LookupItemGrid(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                    isHighlighted = item.id in mainStateSnap.highlightedItemIds,
-                                                )
-                                                is ExplorerItem.Shortcut -> ShortcutGrid(
-                                                    item = item,
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                    onClick = { vm?.navigate(item) },
-                                                )
-                                                is ExplorerItem.Storage -> StorageGrid(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = {
-                                                        if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
-                                                            vm?.toggleItemSelection(item)
-                                                        } else {
-                                                            vm?.navigate(item)
-                                                        }
-                                                    },
-                                                    onLongClick = { vm?.toggleItemSelection(item) },
-                                                    showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                        item in mainStateSnap.selectionState.selectableItems,
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                )
-                                                is ExplorerItem.Peek -> PeekGrid(item = item)
-                                                is ExplorerItem.Trash.Root -> TrashItemGrid(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                )
-                                                is ExplorerItem.Trash.Nested -> TrashNestedItemGrid(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                )
-                                            }
+                                            ExplorerItemRenderer(
+                                                item = item,
+                                                viewStyle = mainStateSnap.viewStyle,
+                                                state = mainStateSnap,
+                                                onItemClick = { vm?.onItemClick(it) },
+                                                onItemLongClick = { vm?.onItemLongClick(it) },
+                                                onNavigate = { vm?.navigate(it) },
+                                                onToggleSelection = { vm?.toggleItemSelection(it) },
+                                            )
                                         }
                                     }
                                 }
