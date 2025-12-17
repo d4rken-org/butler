@@ -73,10 +73,10 @@ import eu.darken.butler.explorer.ui.explorer.elements.EmptyState
 import eu.darken.butler.explorer.ui.explorer.elements.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
-import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
-import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
-import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.elements.LoadingProgressBar
+import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
+import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.workspace.core.Workspace
@@ -106,58 +106,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
-
-@Composable
-fun ExplorerWorkspacePageHost(
-    id: Workspace.Id,
-    design: WorkspaceDesign,
-    vm: ExplorerWorkspaceViewModel = hiltViewModel(
-        key = id.longTag,
-        creationCallback = { factory: ExplorerWorkspaceViewModel.Factory -> factory.create(id = id) }
-    ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
-) {
-    ErrorEventHandler(vm)
-    NavigationEventHandler(vm, workspaceButtonVm)
-
-    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
-
-    // SAF directory picker launcher
-    val safPickerLauncher = rememberLauncherForActivityResult(
-        OpenDocumentTreeWithIntent()
-    ) { uri ->
-        uri?.let {
-            coroutineScope.launch {
-                val grant = vm.pendingSAFPickerGrant.first()
-                if (grant != null) {
-                    // Android/data workaround flow - auto-label
-                    vm.handleAndroidDataSAFPickerResult(it, grant)
-                } else {
-                    // Manual addition flow - prompt for label
-                    vm.handleSAFPickerResult(it)
-                }
-            }
-        }
-    }
-
-    // Handle SAF picker launch events
-    LaunchedEffect(vm) {
-        vm.safPickerEvents.collect { intent ->
-            safPickerLauncher.launch(intent)
-        }
-    }
-
-    ExplorerWorkspacePage(
-        workspaceId = id,
-        design = design,
-        mainStateSource = vm.state,
-        clipboardStateSource = vm.clipboard,
-        operationsStateSource = vm.operations,
-        workspaceStateSource = workspaceButtonVm.state,
-        vm = vm,
-        workspaceActionHandler = workspaceButtonVm,
-    )
-}
 
 @Composable
 fun ExplorerWorkspacePage(
@@ -852,6 +800,57 @@ fun ExplorerWorkspacePage(
     }
 }
 
+@Composable
+fun ExplorerWorkspacePageHost(
+    id: Workspace.Id,
+    design: WorkspaceDesign,
+    vm: ExplorerWorkspaceViewModel = hiltViewModel(
+        key = id.longTag,
+        creationCallback = { factory: ExplorerWorkspaceViewModel.Factory -> factory.create(id = id) }
+    ),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
+) {
+    ErrorEventHandler(vm)
+    NavigationEventHandler(vm, workspaceButtonVm)
+
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+    // SAF directory picker launcher
+    val safPickerLauncher = rememberLauncherForActivityResult(
+        OpenDocumentTreeWithIntent()
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                val grant = vm.pendingSAFPickerGrant.first()
+                if (grant != null) {
+                    // Android/data workaround flow - auto-label
+                    vm.handleAndroidDataSAFPickerResult(it, grant)
+                } else {
+                    // Manual addition flow - prompt for label
+                    vm.handleSAFPickerResult(it)
+                }
+            }
+        }
+    }
+
+    // Handle SAF picker launch events
+    LaunchedEffect(vm) {
+        vm.safPickerEvents.collect { intent ->
+            safPickerLauncher.launch(intent)
+        }
+    }
+
+    ExplorerWorkspacePage(
+        workspaceId = id,
+        design = design,
+        mainStateSource = vm.state,
+        clipboardStateSource = vm.clipboard,
+        operationsStateSource = vm.operations,
+        workspaceStateSource = workspaceButtonVm.state,
+        vm = vm,
+        workspaceActionHandler = workspaceButtonVm,
+    )
+}
 
 @Preview2
 @Composable

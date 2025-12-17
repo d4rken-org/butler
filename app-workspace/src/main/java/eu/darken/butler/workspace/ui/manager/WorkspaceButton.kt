@@ -1,6 +1,5 @@
 package eu.darken.butler.workspace.ui.manager
 
-import android.R.attr.*
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -83,7 +82,7 @@ fun WorkspaceButton(
 
             ButlerMascot(
                 modifier = Modifier.size(iconSize),
-                variant = ButlerMascotMode.Animated.RandomCycling()
+                variant = ButlerMascotMode.Animated.RandomCycling(),
             )
         }
 
@@ -178,13 +177,13 @@ fun WorkspaceButton(
                 Text(
                     text = if (state.workspaceCount > 9) "9+" else state.workspaceCount.toString(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = if(buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
-                    lineHeight = if(buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    fontSize = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    lineHeight = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(bottom = if(buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
+                        .padding(bottom = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
                 )
             }
         }
@@ -217,13 +216,13 @@ fun WorkspaceButton(
                 Text(
                     text = if (state.operationsCount > 9) "9+" else state.operationsCount.toString(),
                     color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = if(buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
-                    lineHeight = if(buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    fontSize = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    lineHeight = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(bottom = if(buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
+                        .padding(bottom = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
                 )
             }
         }
@@ -236,7 +235,7 @@ fun WorkspaceButton(
                     .run {
                         when {
                             buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT -> this
-                                .offset(x = 6.dp, y =6.dp)
+                                .offset(x = 6.dp, y = 6.dp)
                                 .size(14.dp)
                                 .visible(true)
                             buttonSize >= WORKSPACE_BUTTON_SIZE_COMPACT -> this
@@ -256,13 +255,13 @@ fun WorkspaceButton(
                 Text(
                     text = if (state.attentionCount > 9) "9+" else state.attentionCount.toString(),
                     color = MaterialTheme.colorScheme.onError,
-                    fontSize = if(buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
-                    lineHeight = if(buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    fontSize = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    lineHeight = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(bottom = if(buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
+                        .padding(bottom = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
                 )
             }
         }
