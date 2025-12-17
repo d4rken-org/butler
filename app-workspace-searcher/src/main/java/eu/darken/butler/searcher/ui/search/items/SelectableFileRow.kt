@@ -16,17 +16,26 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.TintedAsyncImage
+import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.common.formatRelativeTime
+import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
-import eu.darken.butler.searcher.ui.search.items.rows.FileInfo
-import eu.darken.butler.searcher.ui.search.items.rows.StandardFileIcon
 
 @Composable
 fun SelectableFileRow(
@@ -35,16 +44,15 @@ fun SelectableFileRow(
     isSelectionMode: Boolean,
     onClick: () -> Unit,
     onLongPress: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    // Animation values
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected) {
             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
         } else {
             MaterialTheme.colorScheme.surface
         },
-        label = "background_color"
+        label = "background_color",
     )
 
     Card(
@@ -52,41 +60,108 @@ fun SelectableFileRow(
             .fillMaxWidth()
             .combinedClickable(
                 onClick = onClick,
-                onLongClick = onLongPress
+                onLongClick = onLongPress,
             ),
         colors = CardDefaults.cardColors(
-            containerColor = backgroundColor
+            containerColor = backgroundColor,
         ),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Leading content - either checkbox OR icon
             Box(
                 modifier = Modifier.size(40.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 if (isSelectionMode) {
                     Checkbox(
                         checked = isSelected,
-                        onCheckedChange = { onClick() }
+                        onCheckedChange = { onClick() },
                     )
                 } else {
-                    StandardFileIcon(result)
+                    TintedAsyncImage(
+                        model = result.lookup,
+                        contentDescription = result.fileType.name,
+                        modifier = Modifier.size(40.dp),
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
             // File info
-            FileInfo(
-                result = result,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                // Line 1: File name
+                Text(
+                    text = result.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                // Line 2: Size + Date
+                val isDirectory = result.fileType == FileType.DIRECTORY
+                val combinedDetails = buildString {
+                    val size = result.size
+                    if (!isDirectory && size != null) {
+                        if (isNotEmpty()) append(" • ")
+                        append(formatFileSize(size))
+                    }
+
+                    val modifiedAt = result.modifiedAt
+                    if (modifiedAt != null) {
+                        if (isNotEmpty()) append(" • ")
+                        append(formatRelativeTime(modifiedAt))
+                    }
+                }
+
+                if (combinedDetails.isNotEmpty()) {
+                    Text(
+                        text = combinedDetails,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+
+                // Line 3: Parent path
+                Text(
+                    text = result.lookup.parent?.userReadablePath?.asComposable() ?: "",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontSize = 10.sp,
+                        fontFamily = FontFamily.Monospace,
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.MiddleEllipsis,
+                )
+
+                // Line 4: Match context (if available)
+                result.matchContext?.let { context ->
+                    if (context.lineNumber != null && context.matchedLine != null) {
+                        Text(
+                            text = stringResource(
+                                R.string.searcher_match_line_label,
+                                context.lineNumber,
+                                context.matchedLine.trim(),
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -97,13 +172,13 @@ private fun SelectableFileRowPreview() {
     val searchResult = SearcherMockDataProvider.createMockTextFile(
         name = "example.txt",
         sizeKB = 1,
-        hoursAgo = 1
+        hoursAgo = 1,
     )
 
     PreviewWrapper {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             // Normal mode
             SelectableFileRow(
@@ -111,7 +186,7 @@ private fun SelectableFileRowPreview() {
                 isSelected = false,
                 isSelectionMode = false,
                 onClick = {},
-                onLongPress = {}
+                onLongPress = {},
             )
 
             // Selection mode - unselected
@@ -120,7 +195,7 @@ private fun SelectableFileRowPreview() {
                 isSelected = false,
                 isSelectionMode = true,
                 onClick = {},
-                onLongPress = {}
+                onLongPress = {},
             )
 
             // Selection mode - selected
@@ -129,8 +204,35 @@ private fun SelectableFileRowPreview() {
                 isSelected = true,
                 isSelectionMode = true,
                 onClick = {},
-                onLongPress = {}
+                onLongPress = {},
             )
         }
+    }
+}
+
+@Preview2
+@Composable
+private fun SelectableFileRowWithMatchPreview() {
+    val searchResult = SearcherMockDataProvider.createMockSearchResult(
+        name = "config.json",
+        sizeKB = 12,
+        hoursAgo = 3,
+        matchedQuery = "timeout",
+        matchContext = SearchItem.MatchContext(
+            lineNumber = 42,
+            matchedLine = "  \"timeout\": 5000,",
+            startIndex = 2,
+            endIndex = 9,
+        ),
+    )
+
+    PreviewWrapper {
+        SelectableFileRow(
+            result = searchResult,
+            isSelected = false,
+            isSelectionMode = false,
+            onClick = {},
+            onLongPress = {},
+        )
     }
 }

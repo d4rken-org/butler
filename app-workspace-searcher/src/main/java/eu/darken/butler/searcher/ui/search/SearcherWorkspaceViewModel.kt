@@ -2,7 +2,6 @@ package eu.darken.butler.searcher.ui.search
 
 import android.content.Context
 import android.webkit.MimeTypeMap
-import androidx.compose.ui.text.input.TextFieldValue
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -111,8 +110,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     private suspend fun getWorkspace(): SearcherWorkspace = workspaceSource.filterNotNull().first()
 
-    private val filenameQuery = MutableStateFlow(TextFieldValue(""))
-    private val contentQuery = MutableStateFlow(TextFieldValue(""))
+    private val filenameQuery = MutableStateFlow("")
+    private val contentQuery = MutableStateFlow("")
 
     // Per-field options (workspace-local, loaded from defaults on init)
     private val filenameOptions = MutableStateFlow(FilenameQuery())
@@ -157,20 +156,20 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
             // Pre-fill query text if provided in args
             args?.filenameQuery?.pattern?.takeIf { it.isNotBlank() }?.let {
-                filenameQuery.value = TextFieldValue(it)
+                filenameQuery.value = it
             }
             args?.contentQuery?.pattern?.takeIf { it.isNotBlank() }?.let {
-                contentQuery.value = TextFieldValue(it)
+                contentQuery.value = it
             }
 
             // Prevent auto-search flow from triggering on restored queries
-            if (filenameQuery.value.text.isNotBlank() || contentQuery.value.text.isNotBlank()) {
-                lastAutoExecutedQuery = "${filenameQuery.value.text}|${contentQuery.value.text}"
+            if (filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank()) {
+                lastAutoExecutedQuery = "${filenameQuery.value}|${contentQuery.value}"
             }
 
             // Auto-execute search if requested
             if (args?.startSearch == true &&
-                (filenameQuery.value.text.isNotBlank() || contentQuery.value.text.isNotBlank())
+                (filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank())
             ) {
                 log(tag, INFO) { "Auto-starting search from arguments" }
                 performSearch(saveToHistory = true)
@@ -221,15 +220,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
         // Auto-search on query text changes with debouncing
         kotlinx.coroutines.flow.combine(filenameQuery, contentQuery) { filename, content ->
-            filename.text to content.text
+            filename to content
         }
             .debounce(1000)
             .distinctUntilChanged()
-            .filter { pair -> pair.first.isNotBlank() || pair.second.isNotBlank() }
-            .filter { pair -> "${pair.first}|${pair.second}" != lastAutoExecutedQuery }
-            .onEach { pair ->
-                log(tag, INFO) { "Auto-triggering search for filename: ${pair.first}, content: ${pair.second}" }
-                lastAutoExecutedQuery = "${pair.first}|${pair.second}"
+            .filter { (filename, content) -> filename.isNotBlank() || content.isNotBlank() }
+            .filter { (filename, content) -> "$filename|$content" != lastAutoExecutedQuery }
+            .onEach { (filename, content) ->
+                log(tag, INFO) { "Auto-triggering search for filename: $filename, content: $content" }
+                lastAutoExecutedQuery = "$filename|$content"
                 performSearch(saveToHistory = false)
             }
             .launchIn(vmScope)
@@ -240,7 +239,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .distinctUntilChanged()
             .drop(1) // Skip initial state to avoid triggering on setup
             .debounce(300) // Short debounce for rapid changes
-            .filter { filenameQuery.value.text.isNotBlank() || contentQuery.value.text.isNotBlank() }
+            .filter { filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank() }
             .onEach { targets ->
                 log(tag, INFO) { "Auto-triggering search due to target change: ${targets.size} targets" }
                 performSearch(saveToHistory = false)
@@ -266,7 +265,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 val hadPermissionError = prev.second == SearcherWorkspace.State.SearchStatus.ERROR
                 wasNeedingSetup && noLongerNeedsSetup && hadPermissionError
             }
-            .filter { filenameQuery.value.text.isNotBlank() || contentQuery.value.text.isNotBlank() }
+            .filter { filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank() }
             .onEach {
                 log(tag, INFO) { "Permissions granted after setup, auto-retrying search" }
                 performSearch(saveToHistory = false)
@@ -343,7 +342,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         currentSortSettings,
         viewStyleFlow,
         trashSettings.enabled.flow,
-    ) { filenameQ: TextFieldValue, contentQ: TextFieldValue, fnOptions: FilenameQuery, ctOptions: ContentQuery, contentSearchOn: Boolean, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean ->
+    ) { filenameQ: String, contentQ: String, fnOptions: FilenameQuery, ctOptions: ContentQuery, contentSearchOn: Boolean, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean ->
         val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -415,8 +414,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG, INFO) { "Restoring search from history: ${item.baseQuery}" }
         item.searchQuery?.let { query ->
             // Update all parameters atomically
-            filenameQuery.value = TextFieldValue(query.filenameQuery.pattern)
-            contentQuery.value = TextFieldValue(query.contentQuery.pattern)
+            filenameQuery.value = query.filenameQuery.pattern
+            contentQuery.value = query.contentQuery.pattern
 
             // Update per-field options (copy the pattern options, not the pattern text)
             filenameOptions.value = query.filenameQuery.copy(pattern = "")
@@ -445,15 +444,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             performSearch(saveToHistory = false)
         } ?: run {
             // Fallback for legacy history items without full query
-            filenameQuery.value = TextFieldValue(item.baseQuery)
+            filenameQuery.value = item.baseQuery
             lastAutoExecutedQuery = "${item.baseQuery}|"
             performSearch(saveToHistory = false)
         }
     }
 
     fun performSearch(saveToHistory: Boolean = false) {
-        val filenameText = filenameQuery.value.text
-        val contentText = contentQuery.value.text
+        val filenameText = filenameQuery.value
+        val contentText = contentQuery.value
 
         // At least one pattern must be non-empty
         if (filenameText.isBlank() && contentText.isBlank()) return
@@ -527,8 +526,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     fun clearResults() {
         log(TAG) { "Clearing search results" }
-        filenameQuery.value = TextFieldValue("")
-        contentQuery.value = TextFieldValue("")
+        filenameQuery.value = ""
+        contentQuery.value = ""
         // Clear selection state
         selectionState.value = SearcherSelectionState()
         // Clear workspace state via command
@@ -826,8 +825,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     data class State(
         val id: Workspace.Id,
-        val filenameQuery: TextFieldValue = TextFieldValue(""),
-        val contentQuery: TextFieldValue = TextFieldValue(""),
+        val filenameQuery: String = "",
+        val contentQuery: String = "",
         val filenameOptions: FilenameQuery = FilenameQuery(),
         val contentOptions: ContentQuery = ContentQuery(),
         val contentSearchEnabled: Boolean = false,
@@ -1044,18 +1043,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         when (action) {
             // Search actions
             is SearcherPageAction.Search.UpdateFilenameQuery -> {
-                log(TAG, INFO) { "Updating filename query: ${action.query.text}" }
-                filenameQuery.value = action.query
+                log(TAG, INFO) { "Updating filename query: ${action.text}" }
+                filenameQuery.value = action.text
                 // Auto-clear results when both queries become empty
-                if (action.query.text.isBlank() && contentQuery.value.text.isBlank()) {
+                if (action.text.isBlank() && contentQuery.value.isBlank()) {
                     clearResults()
                 }
             }
             is SearcherPageAction.Search.UpdateContentQuery -> {
-                log(TAG, INFO) { "Updating content query: ${action.query.text}" }
-                contentQuery.value = action.query
+                log(TAG, INFO) { "Updating content query: ${action.text}" }
+                contentQuery.value = action.text
                 // Auto-clear results when both queries become empty
-                if (action.query.text.isBlank() && filenameQuery.value.text.isBlank()) {
+                if (action.text.isBlank() && filenameQuery.value.isBlank()) {
                     clearResults()
                 }
             }
