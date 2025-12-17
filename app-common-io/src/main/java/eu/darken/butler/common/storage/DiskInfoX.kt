@@ -5,6 +5,7 @@ import android.os.Build
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 
 
@@ -13,13 +14,13 @@ import java.lang.reflect.Method
  */
 @TargetApi(Build.VERSION_CODES.KITKAT)
 class DiskInfoX(private val diskInfoObject: Any) {
-    private val volumeInfoClass: Class<*> = diskInfoObject.javaClass
+    private val diskInfoClass: Class<*> = diskInfoObject.javaClass
 
     private val methodGetId: Method? by lazy {
         try {
-            volumeInfoClass.getMethod("getId")
+            diskInfoClass.getMethod("getId")
         } catch (e: Exception) {
-            log(WARN) { "volumeInfoClass.getMethod(\"getId\"): ${e.asLog()}" }
+            log(WARN) { "diskInfoClass.getMethod(\"getId\"): ${e.asLog()}" }
             null
         }
     }
@@ -33,9 +34,9 @@ class DiskInfoX(private val diskInfoObject: Any) {
 
     private val methodGetDescription: Method? by lazy {
         try {
-            volumeInfoClass.getMethod("getDescription")
+            diskInfoClass.getMethod("getDescription")
         } catch (e: Exception) {
-            log(WARN) { "volumeInfoClass.getMethod(\"getDescription\"): ${e.asLog()}" }
+            log(WARN) { "diskInfoClass.getMethod(\"getDescription\"): ${e.asLog()}" }
             null
         }
     }
@@ -49,9 +50,9 @@ class DiskInfoX(private val diskInfoObject: Any) {
 
     private val methodIsAdoptable: Method? by lazy {
         try {
-            volumeInfoClass.getMethod("isAdoptable")
+            diskInfoClass.getMethod("isAdoptable")
         } catch (e: Exception) {
-            log(WARN) { "volumeInfoClass.getMethod(\"isAdoptable\"): ${e.asLog()}" }
+            log(WARN) { "diskInfoClass.getMethod(\"isAdoptable\"): ${e.asLog()}" }
             null
         }
     }
@@ -65,9 +66,9 @@ class DiskInfoX(private val diskInfoObject: Any) {
 
     private val methodIsDefaultPrimary: Method? by lazy {
         try {
-            volumeInfoClass.getMethod("isDefaultPrimary")
+            diskInfoClass.getMethod("isDefaultPrimary")
         } catch (e: Exception) {
-            log(WARN) { "volumeInfoClass.getMethod(\"isDefaultPrimary\"): ${e.asLog()}" }
+            log(WARN) { "diskInfoClass.getMethod(\"isDefaultPrimary\"): ${e.asLog()}" }
             null
         }
     }
@@ -81,9 +82,9 @@ class DiskInfoX(private val diskInfoObject: Any) {
 
     private val methodIsSd: Method? by lazy {
         try {
-            volumeInfoClass.getMethod("isSd")
+            diskInfoClass.getMethod("isSd")
         } catch (e: Exception) {
-            log(WARN) { "volumeInfoClass.getMethod(\"isSd\"): ${e.asLog()}" }
+            log(WARN) { "diskInfoClass.getMethod(\"isSd\"): ${e.asLog()}" }
             null
         }
     }
@@ -97,9 +98,9 @@ class DiskInfoX(private val diskInfoObject: Any) {
 
     private val methodIsUsb: Method? by lazy {
         try {
-            volumeInfoClass.getMethod("isUsb")
+            diskInfoClass.getMethod("isUsb")
         } catch (e: Exception) {
-            log(WARN) { "volumeInfoClass.getMethod(\"isUsb\"): ${e.asLog()}" }
+            log(WARN) { "diskInfoClass.getMethod(\"isUsb\"): ${e.asLog()}" }
             null
         }
     }
@@ -108,6 +109,27 @@ class DiskInfoX(private val diskInfoObject: Any) {
             methodIsUsb?.invoke(diskInfoObject) as? Boolean
         } catch (e: ReflectiveOperationException) {
             log(WARN) { "DiskInfoX.isUsb reflection failed" }
+            null
+        }
+
+    private val fieldLabel: Field? by lazy {
+        try {
+            diskInfoClass.getField("label")
+        } catch (e: Exception) {
+            log(WARN) { "diskInfoClass.getField(\"label\"): ${e.asLog()}" }
+            null
+        }
+    }
+
+    /**
+     * The manufacturer/brand label of the disk (e.g., "SanDisk", "Transcend").
+     * This is a public field in DiskInfo that contains the raw label from the device.
+     */
+    val label: String?
+        get() = try {
+            fieldLabel?.get(diskInfoObject) as? String
+        } catch (e: Exception) {
+            log(WARN) { "DiskInfoX.label reflection failed: ${e.asLog()}" }
             null
         }
 
