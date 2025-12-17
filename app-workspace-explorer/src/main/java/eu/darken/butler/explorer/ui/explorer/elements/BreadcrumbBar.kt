@@ -1,5 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.elements
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
@@ -68,6 +71,7 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.BreadcrumbGenerator
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import kotlinx.coroutines.delay
 import java.io.File
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -77,7 +81,7 @@ fun BreadcrumbBar(
     breadcrumbs: List<ExplorerBreadcrumb>,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: ((APath<*>) -> Unit)? = null,
-    onSetAsHome: ((APath<*>) -> Unit)? = null,
+    onSetAsHome: ((ExplorerNavigation.Target) -> Unit)? = null,
     onCopyPath: ((String) -> Unit)? = null,
     safLocationManager: SAFLocationManager? = null,
     showBackground: Boolean = true,
@@ -92,6 +96,17 @@ fun BreadcrumbBar(
     val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
     var hadFocusWhileEditing by remember { mutableStateOf(false) }
     var showContextMenuForIndex by remember { mutableStateOf<Int?>(null) }
+
+    // Animation state for "Set as home" feedback - tracks which breadcrumb to animate
+    var animatingBreadcrumbIndex by remember { mutableStateOf<Int?>(null) }
+
+    // Clear animation after delay
+    LaunchedEffect(animatingBreadcrumbIndex) {
+        if (animatingBreadcrumbIndex != null) {
+            delay(400)
+            animatingBreadcrumbIndex = null
+        }
+    }
 
     // Detect current path type and extract relevant information
     data class PathInfo(
@@ -351,6 +366,12 @@ fun BreadcrumbBar(
                     breadcrumbs.forEachIndexed { index, breadcrumb ->
                         val isLast = index == breadcrumbs.lastIndex
                         val isDirectory = breadcrumb.target is ExplorerNavigation.Target.Directory
+                        val supportsContextMenu = when (breadcrumb.target) {
+                            is ExplorerNavigation.Target.Home,
+                            is ExplorerNavigation.Target.Device,
+                            is ExplorerNavigation.Target.Directory -> true
+                            else -> false // Trash doesn't support context menu
+                        }
 
                         Box {
                             Row(
@@ -374,8 +395,8 @@ fun BreadcrumbBar(
                                             }
                                         },
                                         onLongClick = {
-                                            // Only show context menu for Directory targets
-                                            if (isDirectory) {
+                                            // Show context menu for Home, Device, and Directory targets (not Trash)
+                                            if (supportsContextMenu) {
                                                 showContextMenuForIndex = index
                                             }
                                         },
@@ -384,18 +405,28 @@ fun BreadcrumbBar(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                // Animation state for this breadcrumb
+                                val isAnimating = animatingBreadcrumbIndex == index
+                                val animatedScale by animateFloatAsState(
+                                    targetValue = if (isAnimating) 1.3f else 1f,
+                                    animationSpec = tween(durationMillis = 200),
+                                    label = "breadcrumbScale",
+                                )
+                                val animatedColor = when {
+                                    isAnimating -> MaterialTheme.colorScheme.primary
+                                    isLast -> MaterialTheme.colorScheme.onSurface
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+
                                 // Show icon if showIcon is true and icon exists
                                 if (breadcrumb.showIcon && breadcrumb.icon != null) {
                                     BadgedIcon(
+                                        modifier = Modifier.scale(animatedScale),
                                         icon = breadcrumb.icon,
                                         badge = breadcrumb.badgeIcon,
                                         iconSize = 20.dp,
                                         badgeSize = 10.dp,
-                                        iconTint = if (isLast) {
-                                            MaterialTheme.colorScheme.onSurface
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                        },
+                                        iconTint = animatedColor,
                                         badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
@@ -405,31 +436,28 @@ fun BreadcrumbBar(
                                     Text(
                                         text = breadcrumb.label.get(context),
                                         style = if (isLast) {
-                                            MaterialTheme.typography.bodyMedium.copy(
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
+                                            MaterialTheme.typography.bodyMedium.copy(color = animatedColor)
                                         } else {
-                                            MaterialTheme.typography.bodySmall.copy(
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
+                                            MaterialTheme.typography.bodySmall.copy(color = animatedColor)
+                                        },
                                     )
                                 }
                             }
 
-                            // Context menu for directory breadcrumbs
-                            if (showContextMenuForIndex == index && isDirectory) {
-                                val directoryTarget = breadcrumb.target as ExplorerNavigation.Target.Directory
+                            // Context menu for Home, Device, and Directory breadcrumbs
+                            if (showContextMenuForIndex == index && supportsContextMenu) {
                                 DropdownMenu(
                                     expanded = true,
                                     onDismissRequest = { showContextMenuForIndex = null },
                                 ) {
+                                    // "Set as home" available for all supported targets
                                     if (onSetAsHome != null) {
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.explorer_breadcrumb_set_as_home_action)) },
                                             onClick = {
                                                 showContextMenuForIndex = null
-                                                onSetAsHome(directoryTarget.path)
+                                                animatingBreadcrumbIndex = index
+                                                onSetAsHome(breadcrumb.target as ExplorerNavigation.Target)
                                             },
                                             leadingIcon = {
                                                 Icon(
@@ -439,7 +467,9 @@ fun BreadcrumbBar(
                                             },
                                         )
                                     }
-                                    if (onCopyPath != null) {
+                                    // "Copy path" only available for Directory targets
+                                    if (isDirectory && onCopyPath != null) {
+                                        val directoryTarget = breadcrumb.target as ExplorerNavigation.Target.Directory
                                         DropdownMenuItem(
                                             text = { Text(stringResource(R.string.explorer_breadcrumb_copy_path_action)) },
                                             onClick = {

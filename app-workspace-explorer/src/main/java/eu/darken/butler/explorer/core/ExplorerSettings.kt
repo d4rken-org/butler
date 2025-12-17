@@ -8,7 +8,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.datastore.PreferenceScreenData
 import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
-import eu.darken.butler.common.files.serialization.createAPathValue
 import eu.darken.butler.common.debug.logging.logTag
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -31,14 +30,14 @@ class ExplorerSettings @Inject constructor(
 
     val defaultViewStyle = dataStore.createValue("explorer.view.style.default", ExplorerViewStyle.default(), json)
 
-    val defaultStartPath = dataStore.createAPathValue("explorer.navigation.default_start_path", null, json)
+    val defaultStartLocation = dataStore.createValue<DefaultStartLocation?>("explorer.navigation.default_start_location", null, json)
 
     override val mapper = PreferenceStoreMapper(
         sortSettings,
         useRegexPatterns,
         useBackButtonForNavigation,
         defaultViewStyle,
-        defaultStartPath,
+        defaultStartLocation,
     )
 
     companion object {

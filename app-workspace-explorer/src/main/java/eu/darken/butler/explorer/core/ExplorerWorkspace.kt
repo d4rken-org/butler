@@ -248,12 +248,12 @@ class ExplorerWorkspace @AssistedInject constructor(
                         navigationRequests.emit(ExplorerNavigation.Target.Directory(startPath))
                     }
                     else -> {
-                        val defaultPath = explorerSettings.defaultStartPath.value()
-                        if (defaultPath != null) {
-                            log(tag, INFO) { "Using default start path from settings: $defaultPath" }
-                            navigationRequests.emit(ExplorerNavigation.Target.Directory(defaultPath))
-                        } else {
-                            navigationRequests.emit(ExplorerNavigation.Target.Home)
+                        val defaultLocation = explorerSettings.defaultStartLocation.value()
+                        log(tag, INFO) { "Using default start location from settings: $defaultLocation" }
+                        when (defaultLocation) {
+                            is DefaultStartLocation.Device -> navigationRequests.emit(ExplorerNavigation.Target.Device)
+                            is DefaultStartLocation.Directory -> navigationRequests.emit(ExplorerNavigation.Target.Directory(defaultLocation.path))
+                            is DefaultStartLocation.Home, null -> navigationRequests.emit(ExplorerNavigation.Target.Home)
                         }
                     }
                 }

@@ -12,10 +12,7 @@ import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -41,10 +38,9 @@ import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.DefaultStartLocation
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory
-import eu.darken.butler.explorer.core.ExplorerNavigation.Target.Trash
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.ExplorerWorkspace
@@ -67,20 +63,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.ClipboardInfo
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.CreateItem
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.DeleteConfirmation
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.EditSortOptions
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.EmptyTrashConfirmation
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.FileOptions
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.FilterOptions
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.ItemInfo
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.LocationStorageName
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.None
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.RemoveLocationConfirmation
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.Rename
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.TrashItemOptions
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.TrashNestedItemOptions
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
@@ -458,7 +441,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         when (item) {
             is ExplorerItem.Path -> when (item) {
                 is ExplorerItem.Directory -> {
-                    getWorkspace().navigate(Directory(item.lookup.lookedUp))
+                    getWorkspace().navigate(ExplorerNavigation.Target.Directory(item.lookup.lookedUp))
                     clearSelection()
                 }
                 is ExplorerItem.File -> {
@@ -474,7 +457,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
                             if (targetLookup.isDirectory) {
                                 log(tag, INFO) { "Following symlink to directory: ${item.targetPath}" }
-                                getWorkspace().navigate(Directory(target))
+                                getWorkspace().navigate(ExplorerNavigation.Target.Directory(target))
                                 clearSelection()
                                 return@launch
                             } else {
@@ -520,7 +503,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 } else if (item.trashLookup?.fileType == FileType.DIRECTORY && item.isAvailable) {
                     // Navigate into trashed folder
                     val ref = TrashItemReference.from(item)
-                    getWorkspace().navigate(Trash.Nested(ref, ""))
+                    getWorkspace().navigate(ExplorerNavigation.Target.Trash.Nested(ref, ""))
                     clearSelection()
                 } else {
                     dialogStateFlow.value = TrashItemOptions(item)
@@ -531,7 +514,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     toggleItemSelection(item)
                 } else if (item.isDirectory) {
                     // Navigate deeper into nested trash
-                    getWorkspace().navigate(Trash.Nested(item.parentRef, item.relativePath))
+                    getWorkspace().navigate(ExplorerNavigation.Target.Trash.Nested(item.parentRef, item.relativePath))
                     clearSelection()
                 } else {
                     // Show options for nested files
@@ -543,7 +526,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun navigateToPath(path: APath<*>) = launch {
         log(tag) { "navigateToPath($path)" }
-        getWorkspace().navigate(Directory(path))
+        getWorkspace().navigate(ExplorerNavigation.Target.Directory(path))
         clearSelection()
     }
 
@@ -1526,7 +1509,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
             if (safPath != null) {
                 log(tag) { "Navigating to SAF path: $safPath" }
-                getWorkspace().navigate(Directory(safPath))
+                getWorkspace().navigate(ExplorerNavigation.Target.Directory(safPath))
             } else {
                 log(tag, WARN) { "Failed to convert ${grant.targetPath} to SAFPath after permission grant" }
                 // Fallback: just refresh current location
@@ -1582,7 +1565,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     val firstPath = clip.paths.first()
                     val parentPath = firstPath.parent
                     if (parentPath != null) {
-                        getWorkspace().navigate(Directory(parentPath))
+                        getWorkspace().navigate(ExplorerNavigation.Target.Directory(parentPath))
                     }
                 }
             }
@@ -1594,9 +1577,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         systemClipboardHelper.copyToClipboard(path)
     }
 
-    fun setAsDefaultStartPath(path: APath<*>) = launch {
-        log(tag) { "setAsDefaultStartPath($path)" }
-        explorerSettings.defaultStartPath.value(path)
+    fun setAsDefaultStartLocation(target: ExplorerNavigation.Target) = launch {
+        log(tag) { "setAsDefaultStartLocation($target)" }
+        val location = when (target) {
+            is ExplorerNavigation.Target.Home -> DefaultStartLocation.Home
+            is ExplorerNavigation.Target.Device -> DefaultStartLocation.Device
+            is ExplorerNavigation.Target.Directory -> DefaultStartLocation.Directory(target.path)
+            else -> return@launch // Ignore Trash targets
+        }
+        explorerSettings.defaultStartLocation.value(location)
     }
 
     fun onButlerIconClick() = launch {

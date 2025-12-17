@@ -770,7 +770,7 @@ fun ExplorerWorkspacePage(
                 collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
                 onBreadcrumbClick = { target -> vm?.navigate(target) },
                 onNavigateToPath = { path -> vm?.navigateToPath(path) },
-                onSetAsHome = { path -> vm?.setAsDefaultStartPath(path) },
+                onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
                 onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,
