@@ -208,7 +208,7 @@ fun TemplatesWorkspacePage(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 16.dp, end = 16.dp),
-                buttonSize = 40.dp,
+                buttonSize = 48.dp,
                 state = workspaceButtonState,
                 currentWorkspaceId = workspaceId,
                 workspaceActionHandler = workspaceActionHandler,

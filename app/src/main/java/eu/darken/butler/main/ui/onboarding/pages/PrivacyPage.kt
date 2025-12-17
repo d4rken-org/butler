@@ -35,6 +35,7 @@ import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.main.ui.onboarding.components.OnboardingContentWrapper
 import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
 import kotlin.time.Duration.Companion.seconds
 
@@ -53,11 +54,12 @@ internal fun PrivacyPage(
         isVisible = true
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp)
-    ) {
+    OnboardingContentWrapper {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp)
+        ) {
         AnimatedVisibility(
             visible = isVisible,
             enter = fadeIn(
@@ -176,6 +178,7 @@ internal fun PrivacyPage(
             ) {
                 Text(stringResource(R.string.onboarding_privacy_action))
             }
+        }
         }
     }
 }
