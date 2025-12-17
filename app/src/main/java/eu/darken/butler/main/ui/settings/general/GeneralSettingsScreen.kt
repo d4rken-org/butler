@@ -10,6 +10,7 @@ import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material.icons.twotone.Palette
+import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material.icons.twotone.Update
 import androidx.compose.material3.Icon
@@ -63,6 +64,7 @@ fun GeneralSettingsScreen(
     onConfirmExitEnabledChange: (Boolean) -> Unit,
     onDocumentsProviderEnabledChange: (Boolean) -> Unit,
     onNavigateToPreviews: () -> Unit,
+    onNavigateToShortcuts: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -228,6 +230,16 @@ fun GeneralSettingsScreen(
                     checked = state.isDocumentsProviderEnabled,
                     onCheckedChange = onDocumentsProviderEnabledChange
                 )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.TwoTone.PushPin,
+                    title = stringResource(R.string.shortcuts_settings_title),
+                    subtitle = stringResource(R.string.shortcuts_settings_subtitle),
+                    onClick = onNavigateToShortcuts,
+                )
             }
 
             item {
@@ -257,7 +269,7 @@ fun GeneralSettingsScreen(
                 )
                 SettingsDivider()
             }
-            
+
             item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.Notifications,
@@ -326,6 +338,7 @@ private fun GeneralSettingsScreenPreview() {
             onConfirmExitEnabledChange = {},
             onDocumentsProviderEnabledChange = {},
             onNavigateToPreviews = {},
+            onNavigateToShortcuts = {},
             onUpgradeButler = {},
         )
     }
@@ -351,6 +364,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onConfirmExitEnabledChange = { vm.updateConfirmExitEnabled(it) },
             onDocumentsProviderEnabledChange = { vm.updateDocumentsProviderEnabled(it) },
             onNavigateToPreviews = { vm.navigateToPreviews() },
+            onNavigateToShortcuts = { vm.navigateToShortcuts() },
             onUpgradeButler = { vm.upgradeButler() },
         )
     }

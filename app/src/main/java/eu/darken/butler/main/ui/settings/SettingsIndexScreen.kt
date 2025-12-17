@@ -11,7 +11,6 @@ import androidx.compose.material.icons.automirrored.twotone.ListAlt
 import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.PrivacyTip
-import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Stars
 import androidx.compose.material.icons.twotone.Tune
@@ -136,16 +135,6 @@ fun SettingsIndexScreen(
                     title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_title),
                     subtitle = stringResource(R.string.workspace_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.workspaces()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.PushPin,
-                    title = stringResource(R.string.shortcuts_settings_title),
-                    subtitle = stringResource(R.string.shortcuts_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.shortcuts()) },
                 )
                 SettingsDivider()
             }
