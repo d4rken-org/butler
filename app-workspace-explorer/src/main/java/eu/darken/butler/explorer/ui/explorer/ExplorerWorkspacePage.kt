@@ -881,11 +881,24 @@ fun ExplorerWorkspacePagePreview() {
 fun ExplorerWorkspacePageEmptyPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
         currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/empty/folder"),
+            path = LocalPath.build("/sdcard/EmptyFolder"),
             items = emptyList(),
             progress = null,
         ),
-        breadcrumbs = emptyList(),
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_home.toCaString(),
+                target = ExplorerNavigation.Target.Home
+            ),
+            ExplorerBreadcrumb(
+                label = "sdcard".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard"))
+            ),
+            ExplorerBreadcrumb(
+                label = "EmptyFolder".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/EmptyFolder"))
+            ),
+        ),
         items = emptyList(),
     )
     PreviewWrapper {
@@ -906,14 +919,27 @@ fun ExplorerWorkspacePageEmptyPreview() {
 fun ExplorerWorkspacePageErrorPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
         currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/empty/folder"),
+            path = LocalPath.build("/permission/denied"),
             items = emptyList(),
             progress = null,
         ),
-        breadcrumbs = emptyList(),
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_home.toCaString(),
+                target = ExplorerNavigation.Target.Home
+            ),
+            ExplorerBreadcrumb(
+                label = "permission".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission"))
+            ),
+            ExplorerBreadcrumb(
+                label = "denied".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission/denied"))
+            ),
+        ),
         items = emptyList(),
         error = ReadException(
-            path = LocalPath.build("/empty/folder")
+            path = LocalPath.build("/permission/denied")
         )
     )
     PreviewWrapper {
