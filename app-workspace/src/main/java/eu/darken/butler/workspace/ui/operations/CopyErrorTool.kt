@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.ui.explorer
+package eu.darken.butler.workspace.ui.operations
 
 import android.content.Context
 import android.os.Build
@@ -36,19 +36,19 @@ class CopyErrorTool @Inject constructor(
             * OperationID: `${operation.id}`
             * Source: ${operation.metadata.origin}
             * CompletedAt: ${state.completedAt}
-                      
-            ## Description          
+
+            ## Description
             **${operation.metadata.title.get(context)}**
-            
+
             ${operation.metadata.description.get(context)}
-            
+
             ## Error
             ${state.summary.get(context)}
-            
+
             ```java
             ${state.error?.asLog()}
             ```
-            
+
             ## Command
             ```
             ${operation.operation}
@@ -57,6 +57,6 @@ class CopyErrorTool @Inject constructor(
     }
 
     companion object {
-        private val TAG = logTag("Explorer", "CopyErrorTool")
+        private val TAG = logTag("Workspace", "CopyErrorTool")
     }
 }
