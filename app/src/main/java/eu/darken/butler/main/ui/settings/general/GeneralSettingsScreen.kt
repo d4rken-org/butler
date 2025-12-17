@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material.icons.twotone.Palette
 import androidx.compose.material.icons.twotone.Translate
@@ -36,6 +37,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.EnumSelectorDialog
 import eu.darken.butler.common.settings.ThemeColorSelectorDialog
+import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
@@ -60,6 +62,7 @@ fun GeneralSettingsScreen(
     onMotdEnabledChange: (Boolean) -> Unit,
     onConfirmExitEnabledChange: (Boolean) -> Unit,
     onDocumentsProviderEnabledChange: (Boolean) -> Unit,
+    onNavigateToPreviews: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -234,6 +237,16 @@ fun GeneralSettingsScreen(
             }
 
             item {
+                SettingsBaseItem(
+                    icon = Icons.TwoTone.Image,
+                    title = stringResource(R.string.previews_settings_title),
+                    subtitle = stringResource(R.string.previews_settings_subtitle),
+                    onClick = onNavigateToPreviews,
+                )
+                SettingsDivider()
+            }
+
+            item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.Update,
                     title = stringResource(R.string.updater_check_enabled_setting_title),
@@ -244,7 +257,7 @@ fun GeneralSettingsScreen(
                 )
                 SettingsDivider()
             }
-
+            
             item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.Notifications,
@@ -254,6 +267,7 @@ fun GeneralSettingsScreen(
                     onCheckedChange = onMotdEnabledChange
                 )
             }
+
         }
     }
 
@@ -311,6 +325,7 @@ private fun GeneralSettingsScreenPreview() {
             onMotdEnabledChange = {},
             onConfirmExitEnabledChange = {},
             onDocumentsProviderEnabledChange = {},
+            onNavigateToPreviews = {},
             onUpgradeButler = {},
         )
     }
@@ -335,6 +350,7 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onMotdEnabledChange = { vm.updateMotdEnabled(it) },
             onConfirmExitEnabledChange = { vm.updateConfirmExitEnabled(it) },
             onDocumentsProviderEnabledChange = { vm.updateDocumentsProviderEnabled(it) },
+            onNavigateToPreviews = { vm.navigateToPreviews() },
             onUpgradeButler = { vm.upgradeButler() },
         )
     }

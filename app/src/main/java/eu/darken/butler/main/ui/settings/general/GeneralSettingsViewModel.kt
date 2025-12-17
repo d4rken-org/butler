@@ -11,6 +11,7 @@ import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.locale.LocaleManager
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.upgrade
+import eu.darken.butler.main.ui.settings.previews
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeState
@@ -105,6 +106,11 @@ constructor(
     fun upgradeButler() = launch {
         log(tag) { "upgradeButler()" }
         navTo(Nav.Main.upgrade())
+    }
+
+    fun navigateToPreviews() = launch {
+        log(tag) { "navigateToPreviews()" }
+        navTo(Nav.Settings.previews())
     }
 
     data class State(
