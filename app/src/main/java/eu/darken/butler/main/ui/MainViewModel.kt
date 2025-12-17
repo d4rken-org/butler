@@ -9,6 +9,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.pkgs.toPkgId
+import eu.darken.butler.common.storage.DocumentUriResolver
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.arguments.EditorArguments
@@ -34,6 +35,7 @@ class MainViewModel @Inject constructor(
     private val generalSettings: GeneralSettings,
     private val workspaceRemote: WorkspaceRemote,
     private val json: Json,
+    private val documentUriResolver: DocumentUriResolver,
 ) : ViewModel4(dispatcherProvider, logTag("Main", "Screen", "VM")) {
 
     val themeState = generalSettings.themeState.asStateFlow()
@@ -124,6 +126,32 @@ class MainViewModel @Inject constructor(
             )
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to create Editor workspace with text: ${e.asLog()}" }
+        }
+    }
+
+    /**
+     * Opens an Explorer workspace from an external storage document URI.
+     * Handles URIs like: content://com.android.externalstorage.documents/root/FD76-F8FE
+     */
+    fun openFromDocumentUri(uri: Uri) = launch {
+        log(tag) { "openFromDocumentUri($uri)" }
+        try {
+            val path = documentUriResolver.resolve(uri)
+            if (path != null) {
+                log(tag) { "Resolved document URI to path: $path" }
+                workspaceRemote.createAndFocus(
+                    type = Workspace.Type.EXPLORER,
+                    arguments = ExplorerArguments.Default(startPath = path)
+                )
+            } else {
+                log(tag, WARN) { "Could not resolve document URI to path: $uri" }
+                workspaceRemote.createAndFocus(
+                    type = Workspace.Type.EXPLORER,
+                    arguments = ExplorerArguments.Default()
+                )
+            }
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to open from document URI: ${e.asLog()}" }
         }
     }
 }
