@@ -1,6 +1,7 @@
 package eu.darken.butler.searcher.ui.search.util
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
@@ -9,7 +10,6 @@ import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Link
-import androidx.compose.material.icons.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -100,7 +100,7 @@ sealed interface SearcherAction : WorkspaceAction {
     data class OpenInNewTabs(
         val results: List<SearchItem>,
     ) : SearcherAction {
-        override val icon = Icons.TwoTone.OpenInNew
+        override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
         override val label = R.string.searcher_action_open_in_new_tabs.toCaString()
         override val group = WorkspaceAction.Group.PRIMARY
     }

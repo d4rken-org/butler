@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Description
-import androidx.compose.material.icons.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -169,7 +169,7 @@ fun SearchToolbarCard(
                                 onQueryChange = onUpdateFilenameQuery,
                                 onSearch = onExplicitSearch,
                                 placeholder = stringResource(R.string.searcher_placeholder_filename),
-                                leadingIcon = Icons.TwoTone.InsertDriveFile,
+                                leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
                                 caseSensitive = state.filenameOptions.caseSensitive,
                                 wholeWord = state.filenameOptions.wholeWord,
                                 useRegex = state.filenameOptions.useRegex,
@@ -239,7 +239,7 @@ fun SearchToolbarCard(
                     enter = expandVertically(),
                     exit = shrinkVertically(),
                 ) {
-                    Column() {
+                    Column {
                         HorizontalDivider(
                             modifier = Modifier.padding(top = 4.dp),
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),

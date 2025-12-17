@@ -14,9 +14,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Clear
 import androidx.compose.material.icons.twotone.Description
-import androidx.compose.material.icons.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -60,7 +60,6 @@ fun PatternField(
     val keyboardController = LocalSoftwareKeyboardController.current
     val colors = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
     var menuExpanded by remember { mutableStateOf(false) }
 
     // Check if any options are enabled
@@ -188,7 +187,7 @@ private fun PatternFieldFilenamePreview() {
                 onQueryChange = {},
                 onSearch = {},
                 placeholder = "Filename pattern…",
-                leadingIcon = Icons.TwoTone.InsertDriveFile,
+                leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
                 caseSensitive = false,
                 wholeWord = false,
                 useRegex = true,
@@ -222,7 +221,7 @@ private fun PatternFieldEmptyPreview() {
             onQueryChange = {},
             onSearch = {},
             placeholder = "Filename pattern…",
-            leadingIcon = Icons.TwoTone.InsertDriveFile,
+            leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
             caseSensitive = false,
             wholeWord = false,
             useRegex = false,
