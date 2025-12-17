@@ -55,8 +55,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
-import eu.darken.butler.common.keyboard.KeyboardShortcut
-import eu.darken.butler.common.keyboard.keyboardShortcuts
+import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
@@ -390,49 +389,14 @@ fun ExplorerWorkspacePage(
     Surface(
         modifier = Modifier
             .fillMaxSize()
-            .keyboardShortcuts {
-                on(KeyboardShortcut.Copy) {
-                    val copyAction = mainState.availableActions
-                        .filterIsInstance<ExplorerAction.Directory.Copy>()
-                        .firstOrNull()
-                    if (copyAction != null && copyAction.isEnabled) {
-                        vm?.executeAction(copyAction)
-                    }
-                }
-                on(KeyboardShortcut.Cut) {
-                    val cutAction = mainState.availableActions
-                        .filterIsInstance<ExplorerAction.Directory.Cut>()
-                        .firstOrNull()
-                    if (cutAction != null && cutAction.isEnabled) {
-                        vm?.executeAction(cutAction)
-                    }
-                }
-                on(KeyboardShortcut.Paste) {
-                    clipboardState.entries.firstOrNull()?.let { clip -> vm?.pasteClipboard(clip) }
-                }
-                on(KeyboardShortcut.SelectAll) { vm?.selectAll() }
-                on(KeyboardShortcut.New) {
-                    val createAction = mainState.availableActions
-                        .filterIsInstance<ExplorerAction.Directory.Create>()
-                        .firstOrNull()
-                    if (createAction != null && createAction.isEnabled) {
-                        vm?.executeAction(createAction)
-                    }
-                }
-                on(KeyboardShortcut.Delete) {
-                    val deleteAction = mainState.availableActions
-                        .filterIsInstance<ExplorerAction.Directory.Delete>()
-                        .firstOrNull()
-                    if (deleteAction != null && deleteAction.isEnabled) {
-                        vm?.executeAction(deleteAction)
-                    }
-                }
-                on(KeyboardShortcut.Escape) {
-                    if (ExplorerAction.Directory.DeselectAll in mainState.availableActions) {
-                        vm?.clearSelection()
-                    }
-                }
-            }
+            .explorerKeyboardShortcuts(
+                availableActions = mainState.availableActions,
+                clipboardEntries = clipboardState.entries,
+                onExecuteAction = { vm?.executeAction(it) },
+                onPaste = { vm?.pasteClipboard(it) },
+                onSelectAll = { vm?.selectAll() },
+                onClearSelection = { vm?.clearSelection() },
+            )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Determine if info bar should be visible
