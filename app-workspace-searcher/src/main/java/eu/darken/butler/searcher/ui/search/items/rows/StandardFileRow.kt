@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search.rows
+package eu.darken.butler.searcher.ui.search.items.rows
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,12 +15,13 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
-fun MediaFileRow(
+fun StandardFileRow(
     result: SearchItem,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    icon: @Composable () -> Unit = { StandardFileIcon(result) }
 ) {
     FileRowBase(result = result, onClick = onClick) { fileResult ->
-        MediaFileIcon(fileResult)
+        icon()
 
         Spacer(modifier = Modifier.width(12.dp))
 
@@ -32,7 +33,7 @@ fun MediaFileRow(
 }
 
 @Composable
-fun MediaFileIcon(result: SearchItem) {
+fun StandardFileIcon(result: SearchItem) {
     TintedAsyncImage(
         model = result.lookup,
         contentDescription = result.fileType.name,
@@ -40,34 +41,29 @@ fun MediaFileIcon(result: SearchItem) {
     )
 }
 
+
 @Preview2
 @Composable
-private fun MediaFileRowPreview() {
+private fun StandardFileRowPreview() {
     PreviewWrapper {
         Column {
-            MediaFileRow(
-                result = SearcherMockDataProvider.createMockImageFile(
-                    name = "vacation_photo.jpg",
-                    sizeMB = 3,
-                    hoursAgo = 2,
-                    metadata = mapOf(
-                        "Resolution" to "1920x1080",
-                        "Camera" to "Pixel 8"
-                    )
+            StandardFileRow(
+                result = SearcherMockDataProvider.createMockPdfFile(
+                    name = "document.pdf",
+                    sizeMB = 1
                 )
             )
 
-            MediaFileRow(
-                result = SearcherMockDataProvider.createMockVideoFile(
-                    name = "summer_video.mp4",
-                    sizeMB = 25,
-                    hoursAgo = 5
+            StandardFileRow(
+                result = SearcherMockDataProvider.createMockDirectory(
+                    name = "Pictures",
+                    hoursAgo = 24
                 )
             )
 
-            MediaFileRow(
-                result = SearcherMockDataProvider.createMockAudioFile(
-                    name = "favorite_song.mp3"
+            StandardFileRow(
+                result = SearcherMockDataProvider.createMockConfigFile(
+                    name = "config.json"
                 )
             )
         }

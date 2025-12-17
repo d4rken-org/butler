@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.util
 
 import androidx.compose.ui.text.input.TextFieldValue
 import eu.darken.butler.permissions.core.PathRequirements

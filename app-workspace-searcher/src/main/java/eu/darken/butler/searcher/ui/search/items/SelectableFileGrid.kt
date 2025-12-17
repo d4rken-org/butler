@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.items
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

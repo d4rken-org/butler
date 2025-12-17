@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search.rows
+package eu.darken.butler.searcher.ui.search.items.rows
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,13 +15,12 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
-fun StandardFileRow(
+fun AppFileRow(
     result: SearchItem,
-    onClick: () -> Unit = {},
-    icon: @Composable () -> Unit = { StandardFileIcon(result) }
+    onClick: () -> Unit = {}
 ) {
     FileRowBase(result = result, onClick = onClick) { fileResult ->
-        icon()
+        AppFileIcon(fileResult)
 
         Spacer(modifier = Modifier.width(12.dp))
 
@@ -33,7 +32,7 @@ fun StandardFileRow(
 }
 
 @Composable
-fun StandardFileIcon(result: SearchItem) {
+fun AppFileIcon(result: SearchItem) {
     TintedAsyncImage(
         model = result.lookup,
         contentDescription = result.fileType.name,
@@ -41,29 +40,34 @@ fun StandardFileIcon(result: SearchItem) {
     )
 }
 
-
 @Preview2
 @Composable
-private fun StandardFileRowPreview() {
+private fun AppFileRowPreview() {
     PreviewWrapper {
         Column {
-            StandardFileRow(
-                result = SearcherMockDataProvider.createMockPdfFile(
-                    name = "document.pdf",
-                    sizeMB = 1
+            AppFileRow(
+                result = SearcherMockDataProvider.createMockApkFile(
+                    name = "signal-android.apk",
+                    sizeMB = 47,
+                    hoursAgo = 1,
+                    metadata = mapOf(
+                        "Package" to "org.thoughtcrime.securesms",
+                        "Version" to "6.42.3",
+                        "Target SDK" to "34",
+                        "Min SDK" to "26"
+                    )
                 )
             )
 
-            StandardFileRow(
-                result = SearcherMockDataProvider.createMockDirectory(
-                    name = "Pictures",
-                    hoursAgo = 24
-                )
-            )
-
-            StandardFileRow(
-                result = SearcherMockDataProvider.createMockConfigFile(
-                    name = "config.json"
+            AppFileRow(
+                result = SearcherMockDataProvider.createMockApkFile(
+                    name = "butler-app.aab",
+                    sizeMB = 12,
+                    hoursAgo = 1,
+                    metadata = mapOf(
+                        "Package" to "eu.darken.butler",
+                        "Version" to "1.0.0"
+                    )
                 )
             )
         }

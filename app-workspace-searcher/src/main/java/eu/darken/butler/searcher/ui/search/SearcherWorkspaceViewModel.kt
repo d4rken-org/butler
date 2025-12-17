@@ -46,6 +46,10 @@ import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
+import eu.darken.butler.searcher.ui.search.util.SearchListItem
+import eu.darken.butler.searcher.ui.search.util.SearcherAction
+import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
+import eu.darken.butler.searcher.ui.search.util.SearcherSelectionState
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
@@ -219,14 +223,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         kotlinx.coroutines.flow.combine(filenameQuery, contentQuery) { filename, content ->
             filename.text to content.text
         }
-            .debounce(500)
+            .debounce(1000)
             .distinctUntilChanged()
             .filter { pair -> pair.first.isNotBlank() || pair.second.isNotBlank() }
             .filter { pair -> "${pair.first}|${pair.second}" != lastAutoExecutedQuery }
             .onEach { pair ->
                 log(tag, INFO) { "Auto-triggering search for filename: ${pair.first}, content: ${pair.second}" }
                 lastAutoExecutedQuery = "${pair.first}|${pair.second}"
-                performSearch(saveToHistory = true)
+                performSearch(saveToHistory = false)
             }
             .launchIn(vmScope)
 
@@ -239,7 +243,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .filter { filenameQuery.value.text.isNotBlank() || contentQuery.value.text.isNotBlank() }
             .onEach { targets ->
                 log(tag, INFO) { "Auto-triggering search due to target change: ${targets.size} targets" }
-                performSearch(saveToHistory = true)
+                performSearch(saveToHistory = false)
             }
             .launchIn(vmScope)
 

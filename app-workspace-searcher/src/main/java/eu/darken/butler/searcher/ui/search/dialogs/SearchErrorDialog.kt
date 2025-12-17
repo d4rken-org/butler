@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.dialogs
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import java.io.IOException
 
 @Composable
 fun SearchErrorDialog(
@@ -123,7 +124,7 @@ private fun SearchErrorDialogLongMessagePreview() {
     PreviewWrapper {
         SearchErrorDialog(
             path = "/data/data/com.example.app",
-            exception = java.io.IOException("I/O error occurred while trying to access the directory: Operation not permitted due to insufficient file system permissions"),
+            exception = IOException("I/O error occurred while trying to access the directory: Operation not permitted due to insufficient file system permissions"),
             onCopyError = {},
             onDismiss = {}
         )

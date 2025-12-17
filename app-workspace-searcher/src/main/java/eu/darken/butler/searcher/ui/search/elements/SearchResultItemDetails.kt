@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search
+package eu.darken.butler.searcher.ui.search.elements
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +33,9 @@ import eu.darken.butler.common.formatDate
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.searcher.ui.search.util.SearcherAction
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
+import kotlin.time.Clock
 
 @Composable
 fun SearchResultItemDetails(
@@ -349,7 +351,7 @@ private fun SearchResultItemDetailsPreview() {
         lookedUp = mockPath,
         fileType = FileType.FILE,
         size = 1024L,
-        modifiedAt = kotlin.time.Clock.System.now(),
+        modifiedAt = Clock.System.now(),
         target = null
     )
 
@@ -375,7 +377,7 @@ private fun SearchResultItemDetailsWithContextPreview() {
         lookedUp = mockPath,
         fileType = FileType.FILE,
         size = 1024L,
-        modifiedAt = kotlin.time.Clock.System.now(),
+        modifiedAt = Clock.System.now(),
         target = null
     )
 

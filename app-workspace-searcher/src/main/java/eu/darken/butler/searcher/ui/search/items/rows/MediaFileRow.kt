@@ -1,4 +1,4 @@
-package eu.darken.butler.searcher.ui.search.rows
+package eu.darken.butler.searcher.ui.search.items.rows
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,12 +15,12 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 
 @Composable
-fun AppFileRow(
+fun MediaFileRow(
     result: SearchItem,
     onClick: () -> Unit = {}
 ) {
     FileRowBase(result = result, onClick = onClick) { fileResult ->
-        AppFileIcon(fileResult)
+        MediaFileIcon(fileResult)
 
         Spacer(modifier = Modifier.width(12.dp))
 
@@ -32,7 +32,7 @@ fun AppFileRow(
 }
 
 @Composable
-fun AppFileIcon(result: SearchItem) {
+fun MediaFileIcon(result: SearchItem) {
     TintedAsyncImage(
         model = result.lookup,
         contentDescription = result.fileType.name,
@@ -42,32 +42,32 @@ fun AppFileIcon(result: SearchItem) {
 
 @Preview2
 @Composable
-private fun AppFileRowPreview() {
+private fun MediaFileRowPreview() {
     PreviewWrapper {
         Column {
-            AppFileRow(
-                result = SearcherMockDataProvider.createMockApkFile(
-                    name = "signal-android.apk",
-                    sizeMB = 47,
-                    hoursAgo = 1,
+            MediaFileRow(
+                result = SearcherMockDataProvider.createMockImageFile(
+                    name = "vacation_photo.jpg",
+                    sizeMB = 3,
+                    hoursAgo = 2,
                     metadata = mapOf(
-                        "Package" to "org.thoughtcrime.securesms",
-                        "Version" to "6.42.3",
-                        "Target SDK" to "34",
-                        "Min SDK" to "26"
+                        "Resolution" to "1920x1080",
+                        "Camera" to "Pixel 8"
                     )
                 )
             )
 
-            AppFileRow(
-                result = SearcherMockDataProvider.createMockApkFile(
-                    name = "butler-app.aab",
-                    sizeMB = 12,
-                    hoursAgo = 1,
-                    metadata = mapOf(
-                        "Package" to "eu.darken.butler",
-                        "Version" to "1.0.0"
-                    )
+            MediaFileRow(
+                result = SearcherMockDataProvider.createMockVideoFile(
+                    name = "summer_video.mp4",
+                    sizeMB = 25,
+                    hoursAgo = 5
+                )
+            )
+
+            MediaFileRow(
+                result = SearcherMockDataProvider.createMockAudioFile(
+                    name = "favorite_song.mp3"
                 )
             )
         }
