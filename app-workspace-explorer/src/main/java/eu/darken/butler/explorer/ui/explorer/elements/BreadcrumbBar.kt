@@ -359,7 +359,7 @@ fun BreadcrumbBar(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .propagateScrollAtBoundary(scrollState)
+                        .propagateScrollAtBoundary(scrollState, enabled = isWorkspaceFocused)
                         .horizontalScroll(scrollState),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
                     verticalAlignment = Alignment.CenterVertically

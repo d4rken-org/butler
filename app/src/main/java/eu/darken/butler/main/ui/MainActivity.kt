@@ -28,6 +28,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.debug.recorder.ui.banner.RecordingBannerHost
@@ -194,6 +195,10 @@ class MainActivity : Activity2() {
                     handleShareIntent(intent)
                     savedIntent = null
                 }
+                Intent.ACTION_VIEW -> {
+                    handleViewIntent(intent)
+                    savedIntent = null
+                }
             }
         }
     }
@@ -211,6 +216,16 @@ class MainActivity : Activity2() {
         log(TAG) { "Creating new Explorer workspace from shortcut" }
         vm.createNewExplorerWorkspace()
         shortcutManager.reportNewExplorerShortcutUsed()
+    }
+
+    private fun handleViewIntent(intent: Intent) {
+        val uri = intent.data
+        if (uri != null) {
+            log(TAG) { "Handling VIEW intent with URI: $uri (type: ${intent.type})" }
+            vm.openFromDocumentUri(uri)
+        } else {
+            log(TAG, WARN) { "VIEW intent received but no data URI found" }
+        }
     }
 
     @Suppress("DEPRECATION")

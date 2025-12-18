@@ -136,6 +136,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
+    private val focusedItemIndexFlow = MutableStateFlow<Int?>(null)
     private val viewStyleFlow = MutableStateFlow<ExplorerViewStyle>(explorerSettings.defaultViewStyle.valueBlocking)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(None)
     private val issueStateFlow = MutableStateFlow<Issue?>(null)
@@ -225,6 +226,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val disabledItems: Set<ExplorerItem> = emptySet(),
         val canConfirmSelection: Boolean = true,
         val highlightedItemIds: Set<String> = emptySet(),
+        val focusedItemIndex: Int? = null,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -280,7 +282,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         trashManager.isEnabled,
         saveAsFilenameFlow,
         highlightedItemIds,
-    ) { wsState, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds ->
+        focusedItemIndexFlow,
+    ) { wsState, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex ->
         // Items already filtered and sorted by processedItemsFlow
         // Selection state already computed by derivedSelectionStateFlow
 
@@ -345,6 +348,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             disabledItems = disabledItems,
             canConfirmSelection = canConfirmSelection,
             highlightedItemIds = highlightedItemIds,
+            focusedItemIndex = focusedItemIndex?.let { idx ->
+                // Adjust focus index if it's out of bounds (e.g., items were removed)
+                items?.let { if (idx < it.size) idx else it.lastIndex.takeIf { it >= 0 } }
+            },
         )
     }
         .distinctUntilChanged()
@@ -623,6 +630,63 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun selectAll() = launch {
         val stateSnap = state.first()
         selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+    }
+
+    // Focus navigation methods
+    fun moveFocusUp() = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = when (val current = focusedItemIndexFlow.value) {
+            null -> itemCount - 1
+            0 -> itemCount - 1
+            else -> current - 1
+        }
+    }
+
+    fun moveFocusDown() = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = when (val current = focusedItemIndexFlow.value) {
+            null -> 0
+            itemCount - 1 -> 0
+            else -> current + 1
+        }
+    }
+
+    fun moveFocusLeft(gridColumns: Int) = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = when {
+            focusedItemIndexFlow.value == null -> itemCount - 1
+            focusedItemIndexFlow.value!! < gridColumns -> itemCount - 1
+            else -> focusedItemIndexFlow.value!! - gridColumns
+        }
+    }
+
+    fun moveFocusRight(gridColumns: Int) = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = when {
+            focusedItemIndexFlow.value == null -> 0
+            focusedItemIndexFlow.value!! >= itemCount - gridColumns -> 0
+            else -> minOf(focusedItemIndexFlow.value!! + gridColumns, itemCount - 1)
+        }
+    }
+
+    fun moveFocusToFirst() = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = 0
+    }
+
+    fun moveFocusToLast() = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = itemCount - 1
+    }
+
+    fun clearFocus() {
+        focusedItemIndexFlow.value = null
     }
 
     fun executeAction(action: ExplorerAction) = launch {
@@ -1027,7 +1091,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.add(clip)
     }
 
-    fun renameFile(item: ExplorerItem.File) = launch {
+    fun renameFile(item: ExplorerItem.Lookup) = launch {
         log(tag) { "renameFile(${item.lookup.name})" }
         dismissDialog()
 

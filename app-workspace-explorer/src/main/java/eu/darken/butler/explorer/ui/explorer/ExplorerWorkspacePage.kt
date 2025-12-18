@@ -55,8 +55,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
-import eu.darken.butler.common.keyboard.KeyboardShortcut
-import eu.darken.butler.common.keyboard.keyboardShortcuts
+import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
@@ -73,21 +72,10 @@ import eu.darken.butler.explorer.ui.explorer.elements.EmptyState
 import eu.darken.butler.explorer.ui.explorer.elements.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
-import eu.darken.butler.explorer.ui.explorer.items.grid.LookupItemGrid
-import eu.darken.butler.explorer.ui.explorer.items.grid.PeekGrid
-import eu.darken.butler.explorer.ui.explorer.items.grid.ShortcutGrid
-import eu.darken.butler.explorer.ui.explorer.items.grid.StorageGrid
-import eu.darken.butler.explorer.ui.explorer.items.grid.TrashItemGrid
-import eu.darken.butler.explorer.ui.explorer.items.grid.TrashNestedItemGrid
-import eu.darken.butler.explorer.ui.explorer.items.row.LookupItemRow
-import eu.darken.butler.explorer.ui.explorer.items.row.PeekRow
-import eu.darken.butler.explorer.ui.explorer.items.row.ShortcutRow
-import eu.darken.butler.explorer.ui.explorer.items.row.StorageRow
-import eu.darken.butler.explorer.ui.explorer.items.row.TrashItemRow
-import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
-import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
-import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.elements.LoadingProgressBar
+import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
+import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.workspace.core.Workspace
@@ -103,6 +91,7 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
@@ -117,58 +106,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
-
-@Composable
-fun ExplorerWorkspacePageHost(
-    id: Workspace.Id,
-    design: WorkspaceDesign,
-    vm: ExplorerWorkspaceViewModel = hiltViewModel(
-        key = id.longTag,
-        creationCallback = { factory: ExplorerWorkspaceViewModel.Factory -> factory.create(id = id) }
-    ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
-) {
-    ErrorEventHandler(vm)
-    NavigationEventHandler(vm, workspaceButtonVm)
-
-    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
-
-    // SAF directory picker launcher
-    val safPickerLauncher = rememberLauncherForActivityResult(
-        OpenDocumentTreeWithIntent()
-    ) { uri ->
-        uri?.let {
-            coroutineScope.launch {
-                val grant = vm.pendingSAFPickerGrant.first()
-                if (grant != null) {
-                    // Android/data workaround flow - auto-label
-                    vm.handleAndroidDataSAFPickerResult(it, grant)
-                } else {
-                    // Manual addition flow - prompt for label
-                    vm.handleSAFPickerResult(it)
-                }
-            }
-        }
-    }
-
-    // Handle SAF picker launch events
-    LaunchedEffect(vm) {
-        vm.safPickerEvents.collect { intent ->
-            safPickerLauncher.launch(intent)
-        }
-    }
-
-    ExplorerWorkspacePage(
-        workspaceId = id,
-        design = design,
-        mainStateSource = vm.state,
-        clipboardStateSource = vm.clipboard,
-        operationsStateSource = vm.operations,
-        workspaceStateSource = workspaceButtonVm.state,
-        vm = vm,
-        workspaceActionHandler = workspaceButtonVm,
-    )
-}
 
 @Composable
 fun ExplorerWorkspacePage(
@@ -187,6 +124,7 @@ fun ExplorerWorkspacePage(
     val operationsState by operationsStateSource.collectAsState(ExplorerWorkspaceViewModel.OperationsState())
     val clipboardState by clipboardStateSource.collectAsState(ExplorerWorkspaceViewModel.ClipboardState())
     val workspaceButtonState by workspaceStateSource.collectAsState(null)
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
 
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
@@ -195,6 +133,9 @@ fun ExplorerWorkspacePage(
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Focus state comes from ViewModel (survives rotation)
+    val focusedItem = mainState.focusedItemIndex?.let { mainState.items?.getOrNull(it) }
 
     // Track actual measured height of the toolbar card
     val density = LocalDensity.current
@@ -301,6 +242,15 @@ fun ExplorerWorkspacePage(
         when (mainState.viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(0)
+        }
+    }
+
+    // Auto-scroll to keep focused item visible during keyboard navigation
+    LaunchedEffect(mainState.focusedItemIndex) {
+        val focusedIndex = mainState.focusedItemIndex ?: return@LaunchedEffect
+        when (mainState.viewStyle) {
+            is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(focusedIndex)
+            is ExplorerViewStyle.List -> listState.animateScrollToItem(focusedIndex)
         }
     }
 
@@ -450,60 +400,46 @@ fun ExplorerWorkspacePage(
         label = "clipboardScale"
     )
 
+    // Grid columns for keyboard navigation (approximate for adaptive grid)
+    val gridColumns = 3
+
     Surface(
         modifier = Modifier
             .fillMaxSize()
-            .keyboardShortcuts {
-                on(KeyboardShortcut.Copy) {
-                    val copyAction = mainState.availableActions
-                        .filterIsInstance<ExplorerAction.Directory.Copy>()
-                        .firstOrNull()
-                    if (copyAction != null && copyAction.isEnabled) {
-                        vm?.executeAction(copyAction)
-                    }
-                }
-                on(KeyboardShortcut.Cut) {
-                    val cutAction = mainState.availableActions
-                        .filterIsInstance<ExplorerAction.Directory.Cut>()
-                        .firstOrNull()
-                    if (cutAction != null && cutAction.isEnabled) {
-                        vm?.executeAction(cutAction)
-                    }
-                }
-                on(KeyboardShortcut.Paste) {
-                    clipboardState.entries.firstOrNull()?.let { clip -> vm?.pasteClipboard(clip) }
-                }
-                on(KeyboardShortcut.SelectAll) { vm?.selectAll() }
-                on(KeyboardShortcut.New) {
-                    val createAction = mainState.availableActions
-                        .filterIsInstance<ExplorerAction.Directory.Create>()
-                        .firstOrNull()
-                    if (createAction != null && createAction.isEnabled) {
-                        vm?.executeAction(createAction)
-                    }
-                }
-                on(KeyboardShortcut.Delete) {
-                    val deleteAction = mainState.availableActions
-                        .filterIsInstance<ExplorerAction.Directory.Delete>()
-                        .firstOrNull()
-                    if (deleteAction != null && deleteAction.isEnabled) {
-                        vm?.executeAction(deleteAction)
-                    }
-                }
-                on(KeyboardShortcut.Escape) {
-                    if (ExplorerAction.Directory.DeselectAll in mainState.availableActions) {
-                        vm?.clearSelection()
-                    }
-                }
-            }
+            .explorerKeyboardShortcuts(
+                availableActions = mainState.availableActions,
+                clipboardEntries = clipboardState.entries,
+                selectedItems = mainState.selectionState.selectedItems,
+                focusedItem = focusedItem,
+                viewStyle = mainState.viewStyle,
+                gridColumns = gridColumns,
+                enabled = isWorkspaceFocused,
+                onExecuteAction = { vm?.executeAction(it) },
+                onPaste = { vm?.pasteClipboard(it) },
+                onSelectAll = { vm?.selectAll() },
+                onClearSelection = { vm?.clearSelection() },
+                onClearFocus = { vm?.clearFocus() },
+                onNavigateToItem = { vm?.navigate(it) },
+                onGoBack = { vm?.goBack() },
+                onMoveFocusUp = { vm?.moveFocusUp() },
+                onMoveFocusDown = { vm?.moveFocusDown() },
+                onMoveFocusLeft = { vm?.moveFocusLeft(gridColumns) },
+                onMoveFocusRight = { vm?.moveFocusRight(gridColumns) },
+                onMoveFocusToFirst = { vm?.moveFocusToFirst() },
+                onMoveFocusToLast = { vm?.moveFocusToLast() },
+                onActivateFocusedItem = { focusedItem?.let { vm?.navigate(it) } },
+                onRenameFocusedItem = { (focusedItem as? ExplorerItem.Lookup)?.let { vm?.renameFile(it) } },
+            )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Determine if info bar should be visible
             val showInfoBar = mainState.info != null || mainState.selectionState.selectedItems.isNotEmpty()
 
             // Content padding calculation
-            val topContentPadding = 8.dp + actualToolbarHeightDp +
-                (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp)
+            val topContentPadding = 8.dp + // Distance between screen and bars
+                actualToolbarHeightDp +
+                (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp) +
+                8.dp // Padding between list and upper toolbars
 
             // Main content with PullToRefresh
             PullToRefreshBox(
@@ -574,64 +510,16 @@ fun ExplorerWorkspacePage(
                                             items = mainStateSnap.items,
                                             key = { it.id }
                                         ) { item ->
-                                            when (item) {
-                                                is ExplorerItem.Lookup -> LookupItemRow(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                    isHighlighted = item.id in mainStateSnap.highlightedItemIds,
-                                                )
-                                                is ExplorerItem.Peek -> PeekRow(item = item)
-                                                is ExplorerItem.Shortcut -> ShortcutRow(
-                                                    item = item,
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                    onClick = { vm?.navigate(item) },
-                                                )
-                                                is ExplorerItem.Storage -> StorageRow(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = {
-                                                        if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
-                                                            vm?.toggleItemSelection(item)
-                                                        } else {
-                                                            vm?.navigate(item)
-                                                        }
-                                                    },
-                                                    onLongClick = { vm?.toggleItemSelection(item) },
-                                                    showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                        item in mainStateSnap.selectionState.selectableItems,
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                )
-                                                is ExplorerItem.Trash.Root -> TrashItemRow(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                )
-                                                is ExplorerItem.Trash.Nested -> TrashNestedItemRow(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                )
-                                            }
+                                            ExplorerItemRenderer(
+                                                item = item,
+                                                viewStyle = mainStateSnap.viewStyle,
+                                                state = mainStateSnap,
+                                                isFocused = item == focusedItem,
+                                                onItemClick = { vm?.onItemClick(it) },
+                                                onItemLongClick = { vm?.onItemLongClick(it) },
+                                                onNavigate = { vm?.navigate(it) },
+                                                onToggleSelection = { vm?.toggleItemSelection(it) },
+                                            )
                                         }
                                     }
                                 }
@@ -682,64 +570,16 @@ fun ExplorerWorkspacePage(
                                             items = mainStateSnap.items,
                                             key = { it.id }
                                         ) { item ->
-                                            when (item) {
-                                                is ExplorerItem.Lookup -> LookupItemGrid(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                    isHighlighted = item.id in mainStateSnap.highlightedItemIds,
-                                                )
-                                                is ExplorerItem.Shortcut -> ShortcutGrid(
-                                                    item = item,
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                    onClick = { vm?.navigate(item) },
-                                                )
-                                                is ExplorerItem.Storage -> StorageGrid(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = {
-                                                        if (mainStateSnap.selectionState.selectedItems.isNotEmpty()) {
-                                                            vm?.toggleItemSelection(item)
-                                                        } else {
-                                                            vm?.navigate(item)
-                                                        }
-                                                    },
-                                                    onLongClick = { vm?.toggleItemSelection(item) },
-                                                    showSelection = mainStateSnap.selectionState.selectedItems.isNotEmpty() &&
-                                                        item in mainStateSnap.selectionState.selectableItems,
-                                                    isEnabled = item !in mainStateSnap.disabledItems,
-                                                )
-                                                is ExplorerItem.Peek -> PeekGrid(item = item)
-                                                is ExplorerItem.Trash.Root -> TrashItemGrid(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                )
-                                                is ExplorerItem.Trash.Nested -> TrashNestedItemGrid(
-                                                    item = item,
-                                                    isSelected = mainStateSnap.selectionState.selectedItems.contains(
-                                                        item
-                                                    ),
-                                                    onToggleSelection = { vm?.toggleItemSelection(item) },
-                                                    onClick = { vm?.onItemClick(item) },
-                                                    onLongClick = { vm?.onItemLongClick(item) },
-                                                    showSelection = mainStateSnap.shouldShowSelection(item),
-                                                )
-                                            }
+                                            ExplorerItemRenderer(
+                                                item = item,
+                                                viewStyle = mainStateSnap.viewStyle,
+                                                state = mainStateSnap,
+                                                isFocused = item == focusedItem,
+                                                onItemClick = { vm?.onItemClick(it) },
+                                                onItemLongClick = { vm?.onItemLongClick(it) },
+                                                onNavigate = { vm?.navigate(it) },
+                                                onToggleSelection = { vm?.toggleItemSelection(it) },
+                                            )
                                         }
                                     }
                                 }
@@ -961,6 +801,57 @@ fun ExplorerWorkspacePage(
     }
 }
 
+@Composable
+fun ExplorerWorkspacePageHost(
+    id: Workspace.Id,
+    design: WorkspaceDesign,
+    vm: ExplorerWorkspaceViewModel = hiltViewModel(
+        key = id.longTag,
+        creationCallback = { factory: ExplorerWorkspaceViewModel.Factory -> factory.create(id = id) }
+    ),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
+) {
+    ErrorEventHandler(vm)
+    NavigationEventHandler(vm, workspaceButtonVm)
+
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+    // SAF directory picker launcher
+    val safPickerLauncher = rememberLauncherForActivityResult(
+        OpenDocumentTreeWithIntent()
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                val grant = vm.pendingSAFPickerGrant.first()
+                if (grant != null) {
+                    // Android/data workaround flow - auto-label
+                    vm.handleAndroidDataSAFPickerResult(it, grant)
+                } else {
+                    // Manual addition flow - prompt for label
+                    vm.handleSAFPickerResult(it)
+                }
+            }
+        }
+    }
+
+    // Handle SAF picker launch events
+    LaunchedEffect(vm) {
+        vm.safPickerEvents.collect { intent ->
+            safPickerLauncher.launch(intent)
+        }
+    }
+
+    ExplorerWorkspacePage(
+        workspaceId = id,
+        design = design,
+        mainStateSource = vm.state,
+        clipboardStateSource = vm.clipboard,
+        operationsStateSource = vm.operations,
+        workspaceStateSource = workspaceButtonVm.state,
+        vm = vm,
+        workspaceActionHandler = workspaceButtonVm,
+    )
+}
 
 @Preview2
 @Composable
@@ -1025,11 +916,24 @@ fun ExplorerWorkspacePagePreview() {
 fun ExplorerWorkspacePageEmptyPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
         currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/empty/folder"),
+            path = LocalPath.build("/sdcard/EmptyFolder"),
             items = emptyList(),
             progress = null,
         ),
-        breadcrumbs = emptyList(),
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_home.toCaString(),
+                target = ExplorerNavigation.Target.Home
+            ),
+            ExplorerBreadcrumb(
+                label = "sdcard".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard"))
+            ),
+            ExplorerBreadcrumb(
+                label = "EmptyFolder".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/EmptyFolder"))
+            ),
+        ),
         items = emptyList(),
     )
     PreviewWrapper {
@@ -1050,14 +954,27 @@ fun ExplorerWorkspacePageEmptyPreview() {
 fun ExplorerWorkspacePageErrorPreview() {
     val mockState = ExplorerWorkspaceViewModel.State(
         currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/empty/folder"),
+            path = LocalPath.build("/permission/denied"),
             items = emptyList(),
             progress = null,
         ),
-        breadcrumbs = emptyList(),
+        breadcrumbs = listOf(
+            ExplorerBreadcrumb(
+                label = R.string.explorer_navigation_home.toCaString(),
+                target = ExplorerNavigation.Target.Home
+            ),
+            ExplorerBreadcrumb(
+                label = "permission".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission"))
+            ),
+            ExplorerBreadcrumb(
+                label = "denied".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission/denied"))
+            ),
+        ),
         items = emptyList(),
         error = ReadException(
-            path = LocalPath.build("/empty/folder")
+            path = LocalPath.build("/permission/denied")
         )
     )
     PreviewWrapper {

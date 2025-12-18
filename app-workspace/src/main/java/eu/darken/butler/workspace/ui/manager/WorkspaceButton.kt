@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.visible
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,7 +56,7 @@ fun WorkspaceButton(
     state: WorkspaceButtonViewModel.State?,
     containerColor: Color? = null,
     contentColor: Color? = null,
-    buttonSize: Dp = 40.dp,
+    buttonSize: Dp = WORKSPACE_BUTTON_SIZE_DEFAULT,
     currentWorkspaceId: Workspace.Id? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
@@ -81,7 +82,7 @@ fun WorkspaceButton(
 
             ButlerMascot(
                 modifier = Modifier.size(iconSize),
-                variant = ButlerMascotMode.Animated.RandomCycling()
+                variant = ButlerMascotMode.Animated.RandomCycling(),
             )
         }
 
@@ -153,8 +154,20 @@ fun WorkspaceButton(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .offset(x = (-8).dp, y = (-8).dp)
-                    .size(16.dp)
+                    .run {
+                        when {
+                            buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT -> this
+                                .offset(x = (-6).dp, y = (-6).dp)
+                                .size(14.dp)
+                                .visible(true)
+                            buttonSize >= WORKSPACE_BUTTON_SIZE_COMPACT -> this
+                                .offset(x = (-4).dp, y = (-4).dp)
+                                .size(12.dp)
+                                .visible(true)
+                            else -> this
+                                .visible(false)
+                        }
+                    }
                     .background(
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = CircleShape
@@ -164,13 +177,13 @@ fun WorkspaceButton(
                 Text(
                     text = if (state.workspaceCount > 9) "9+" else state.workspaceCount.toString(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 9.sp,
-                    lineHeight = 9.sp,
+                    fontSize = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    lineHeight = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(bottom = 1.dp)
+                        .padding(bottom = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
                 )
             }
         }
@@ -180,8 +193,20 @@ fun WorkspaceButton(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = 8.dp, y = (-8).dp)
-                    .size(16.dp)
+                    .run {
+                        when {
+                            buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT -> this
+                                .offset(x = 6.dp, y = (-6).dp)
+                                .size(14.dp)
+                                .visible(true)
+                            buttonSize >= WORKSPACE_BUTTON_SIZE_COMPACT -> this
+                                .offset(x = 4.dp, y = (-4).dp)
+                                .size(12.dp)
+                                .visible(true)
+                            else -> this
+                                .visible(false)
+                        }
+                    }
                     .background(
                         color = MaterialTheme.colorScheme.primary,
                         shape = CircleShape
@@ -191,13 +216,13 @@ fun WorkspaceButton(
                 Text(
                     text = if (state.operationsCount > 9) "9+" else state.operationsCount.toString(),
                     color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 9.sp,
-                    lineHeight = 9.sp,
+                    fontSize = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    lineHeight = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(bottom = 1.dp)
+                        .padding(bottom = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
                 )
             }
         }
@@ -207,8 +232,20 @@ fun WorkspaceButton(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .offset(x = 8.dp, y = 8.dp)
-                    .size(16.dp)
+                    .run {
+                        when {
+                            buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT -> this
+                                .offset(x = 6.dp, y = 6.dp)
+                                .size(14.dp)
+                                .visible(true)
+                            buttonSize >= WORKSPACE_BUTTON_SIZE_COMPACT -> this
+                                .offset(x = 4.dp, y = 4.dp)
+                                .size(12.dp)
+                                .visible(true)
+                            else -> this
+                                .visible(false)
+                        }
+                    }
                     .background(
                         color = MaterialTheme.colorScheme.error,
                         shape = CircleShape
@@ -218,18 +255,21 @@ fun WorkspaceButton(
                 Text(
                     text = if (state.attentionCount > 9) "9+" else state.attentionCount.toString(),
                     color = MaterialTheme.colorScheme.onError,
-                    fontSize = 9.sp,
-                    lineHeight = 9.sp,
+                    fontSize = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    lineHeight = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(bottom = 1.dp)
+                        .padding(bottom = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
                 )
             }
         }
     }
 }
+
+val WORKSPACE_BUTTON_SIZE_DEFAULT = 40.dp
+val WORKSPACE_BUTTON_SIZE_COMPACT = 32.dp
 
 @Preview2
 @Composable
@@ -262,9 +302,8 @@ private fun WorkspaceButtonPreview() {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(16.dp)
         ) {
-            // No workspaces
             WorkspaceButton(
-                modifier = Modifier.size(32.dp),
+                buttonSize = 24.dp,
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 5,
                     operationsCount = 7,
@@ -272,7 +311,15 @@ private fun WorkspaceButtonPreview() {
                 ),
             )
 
-            // Single workspace
+            WorkspaceButton(
+                buttonSize = 32.dp,
+                state = WorkspaceButtonViewModel.State(
+                    workspaceCount = 5,
+                    operationsCount = 7,
+                    attentionCount = 1,
+                ),
+            )
+
             WorkspaceButton(
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 1,
@@ -281,9 +328,8 @@ private fun WorkspaceButtonPreview() {
                 ),
             )
 
-            // Multiple workspaces with operations (with focused workspace)
             WorkspaceButton(
-                modifier = Modifier.size(72.dp),
+                buttonSize = 72.dp,
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 3,
                     operationsCount = 2,
@@ -292,7 +338,6 @@ private fun WorkspaceButtonPreview() {
                 currentWorkspaceId = Workspace.Id(),
             )
 
-            // All badges active
             WorkspaceButton(
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 5,
@@ -301,7 +346,6 @@ private fun WorkspaceButtonPreview() {
                 ),
             )
 
-            // Max badge values
             WorkspaceButton(
                 state = WorkspaceButtonViewModel.State(
                     workspaceCount = 12,

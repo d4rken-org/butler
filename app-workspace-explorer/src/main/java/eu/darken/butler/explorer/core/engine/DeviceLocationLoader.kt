@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.core.engine
 
+import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.DeveloperMode
@@ -7,13 +8,17 @@ import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.PrivacyTip
 import androidx.compose.material.icons.twotone.Public
 import androidx.compose.material.icons.twotone.SdCard
+import androidx.compose.material.icons.twotone.SdStorage
 import androidx.compose.material.icons.twotone.Storage
+import androidx.compose.material.icons.twotone.Usb
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.canUseAdbNow
+import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -39,6 +44,7 @@ import kotlinx.coroutines.flow.flow
 
 class DeviceLocationLoader @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
+    @ApplicationContext private val context: Context,
     private val storageEnvironment: StorageEnvironment,
     private val gatewaySwitch: GatewaySwitch,
     private val storageManager2: StorageManager2,
@@ -112,6 +118,9 @@ class DeviceLocationLoader @AssistedInject constructor(
             canWrite = false,
         ).run { deviceItems.add(this) }
 
+        // Get internal volume info for disk descriptions (manufacturer names)
+        val volumeInfos = storageManager2.volumes
+
         storageManager2.storageVolumes
             .mapIndexedNotNull { index, volume ->
                 log(tag) { "loadQuickList(): Adding volume: $volume" }
@@ -119,19 +128,45 @@ class DeviceLocationLoader @AssistedInject constructor(
                     ?: volume.path?.let { LocalPath.build(it) }
                     ?: return@mapIndexedNotNull null
 
+                // Find matching VolumeInfoX to get disk label (manufacturer name)
+                val volumeInfo = volumeInfos?.firstOrNull { info ->
+                    info.fsUuid == volume.uuid || info.path?.path == volume.path
+                }
+
+                val disk = volumeInfo?.disk
+
                 ExplorerItem.Storage.Local(
                     localId = "volume-${volume.uuid}",
-                    displayIcon = when (index) {
-                        0 -> Icons.TwoTone.Storage
-                        else -> Icons.TwoTone.SdCard
+                    displayIcon = when {
+                        index == 0 -> Icons.TwoTone.Storage
+                        disk?.isUsb == true -> Icons.TwoTone.Usb
+                        disk?.isSd == true -> Icons.TwoTone.SdCard
+                        else -> Icons.TwoTone.SdStorage
                     },
-                    displayName = volume.userLabel
-                        ?.takeIf { it.isNotBlank() }
-                        ?.toCaString()
-                        ?: when (index) {
-                            0 -> R.string.explorer_navigation_internal_storage.toCaString()
-                            else -> R.string.explorer_navigation_external_storage.toCaString()
-                        },
+                    displayName = caString { c ->
+                        val volumeLabel = volume.userLabel?.takeIf { it.isNotBlank() }
+                        val volumeDescription = volume.getDescription(c)?.takeIf { it.isNotBlank() }
+                        val diskLabel = volumeInfo?.disk?.label?.takeIf { it.isNotBlank() }
+                        val fallbackDesc = when (index) {
+                            0 -> R.string.explorer_navigation_internal_storage
+                            else -> R.string.explorer_navigation_external_storage
+                        }.let { c.getString(it) }
+
+                        val label = when {
+                            volumeLabel != null -> volumeLabel
+                            volumeDescription != null -> volumeDescription
+                            diskLabel != null -> diskLabel
+                            else -> fallbackDesc
+                        }
+
+                        val extra = when {
+                            label != diskLabel -> diskLabel
+                            label != fallbackDesc -> fallbackDesc
+                            else -> null
+                        }
+
+                        "$label${if (extra != null) " ($extra)" else ""}"
+                    },
                     target = ExplorerNavigation.Target.Directory(path),
                     canWrite = true, // User storage is writable
                 )

@@ -143,6 +143,6 @@ class StorageEnvironment @Inject constructor(
     }
 
     companion object {
-        val TAG = logTag("DataArea", "DeviceEnvironment")
+        val TAG = logTag("Storage",  "Environment")
     }
 }

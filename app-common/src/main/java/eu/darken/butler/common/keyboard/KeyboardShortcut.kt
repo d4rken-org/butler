@@ -49,5 +49,16 @@ data class KeyboardShortcut(
         val Delete = KeyboardShortcut(key = Key.Delete)
         val Escape = KeyboardShortcut(key = Key.Escape)
         val New = KeyboardShortcut(key = Key.N, ctrl = true)
+        val F2 = KeyboardShortcut(key = Key.F2)
+        val Enter = KeyboardShortcut(key = Key.Enter)
+        val Backspace = KeyboardShortcut(key = Key.Backspace)
+
+        // Navigation
+        val ArrowUp = KeyboardShortcut(key = Key.DirectionUp)
+        val ArrowDown = KeyboardShortcut(key = Key.DirectionDown)
+        val ArrowLeft = KeyboardShortcut(key = Key.DirectionLeft)
+        val ArrowRight = KeyboardShortcut(key = Key.DirectionRight)
+        val Home = KeyboardShortcut(key = Key.MoveHome)
+        val End = KeyboardShortcut(key = Key.MoveEnd)
     }
 }
