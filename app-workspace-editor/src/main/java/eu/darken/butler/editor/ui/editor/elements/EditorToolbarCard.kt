@@ -236,24 +236,22 @@ fun EditorToolbarCard(
                             }
                         }
 
-                        IconButton(
-                            onClick = { onAction(EditorPageAction.Edit.Undo) },
-                            enabled = canUndo
-                        ) {
-                            Icon(
-                                Icons.TwoTone.KeyboardArrowUp,
-                                contentDescription = stringResource(R.string.editor_action_undo)
-                            )
+                        if (canUndo) {
+                            IconButton(onClick = { onAction(EditorPageAction.Edit.Undo) }) {
+                                Icon(
+                                    Icons.TwoTone.KeyboardArrowUp,
+                                    contentDescription = stringResource(R.string.editor_action_undo)
+                                )
+                            }
                         }
 
-                        IconButton(
-                            onClick = { onAction(EditorPageAction.Edit.Redo) },
-                            enabled = canRedo
-                        ) {
-                            Icon(
-                                Icons.TwoTone.KeyboardArrowDown,
-                                contentDescription = stringResource(R.string.editor_action_redo)
-                            )
+                        if (canRedo) {
+                            IconButton(onClick = { onAction(EditorPageAction.Edit.Redo) }) {
+                                Icon(
+                                    Icons.TwoTone.KeyboardArrowDown,
+                                    contentDescription = stringResource(R.string.editor_action_redo)
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.weight(1f))
