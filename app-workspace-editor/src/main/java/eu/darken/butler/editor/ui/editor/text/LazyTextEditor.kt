@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -51,6 +52,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -83,6 +91,8 @@ fun LazyTextEditor(
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     onVisibleRangeChange: (IntRange) -> Unit,
+    onCursorMove: (CursorDirection, Boolean) -> Unit,
+    onForwardDelete: () -> Unit,
 ) {
     // Create a map of visible line content indexed by line number
     val visibleLineContent = remember(content, visibleRange) {
@@ -220,6 +230,8 @@ fun LazyTextEditor(
         onTextDelete = onTextDelete,
         onCursorPositionChange = onCursorPositionChange,
         onSelectionChange = onSelectionChange,
+        onCursorMove = onCursorMove,
+        onForwardDelete = onForwardDelete,
         modifier = modifier
     )
 }
@@ -243,6 +255,8 @@ private fun DualColumnEditorContent(
     onTextDelete: (Int) -> Unit,
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
+    onCursorMove: (CursorDirection, Boolean) -> Unit,
+    onForwardDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Ensure drag handlers always see latest values, not captured closures
@@ -377,6 +391,73 @@ private fun DualColumnEditorContent(
                 }
             },
             modifier = Modifier
+                .onPreviewKeyEvent { event ->
+                    // Use onPreviewKeyEvent to intercept BEFORE focus traversal consumes arrow keys
+                    if (event.type == KeyEventType.KeyDown) {
+                        val handled = when (event.key) {
+                            // Ctrl+Arrow must be checked before plain Arrow
+                            Key.DirectionLeft -> if (event.isCtrlPressed) {
+                                log(tag) { "Key: Ctrl+Left -> WORD_LEFT" }
+                                onCursorMove(CursorDirection.WORD_LEFT, event.isShiftPressed); true
+                            } else {
+                                log(tag) { "Key: Left -> LEFT" }
+                                onCursorMove(CursorDirection.LEFT, event.isShiftPressed); true
+                            }
+                            Key.DirectionRight -> if (event.isCtrlPressed) {
+                                log(tag) { "Key: Ctrl+Right -> WORD_RIGHT" }
+                                onCursorMove(CursorDirection.WORD_RIGHT, event.isShiftPressed); true
+                            } else {
+                                log(tag) { "Key: Right -> RIGHT" }
+                                onCursorMove(CursorDirection.RIGHT, event.isShiftPressed); true
+                            }
+                            Key.DirectionUp -> {
+                                // At top line without shift - move focus to toolbar
+                                if (cursorPosition.line == 0 && !event.isShiftPressed) {
+                                    log(tag) { "Key: Up at line 0 -> move focus up" }
+                                    focusManager.moveFocus(FocusDirection.Up)
+                                    true
+                                } else {
+                                    log(tag) { "Key: Up -> UP" }
+                                    onCursorMove(CursorDirection.UP, event.isShiftPressed)
+                                    true
+                                }
+                            }
+                            Key.DirectionDown -> {
+                                // At last line without shift - move focus down
+                                if (cursorPosition.line >= totalLines - 1 && !event.isShiftPressed) {
+                                    log(tag) { "Key: Down at last line -> move focus down" }
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                    true
+                                } else {
+                                    log(tag) { "Key: Down -> DOWN" }
+                                    onCursorMove(CursorDirection.DOWN, event.isShiftPressed)
+                                    true
+                                }
+                            }
+                            // Forward delete
+                            Key.Delete -> {
+                                log(tag) { "Key: Delete -> ForwardDelete" }
+                                onForwardDelete(); true
+                            }
+                            // Home/End
+                            Key.MoveHome -> {
+                                log(tag) { "Key: Home -> LINE_START" }
+                                onCursorMove(CursorDirection.LINE_START, event.isShiftPressed); true
+                            }
+                            Key.MoveEnd -> {
+                                log(tag) { "Key: End -> LINE_END" }
+                                onCursorMove(CursorDirection.LINE_END, event.isShiftPressed); true
+                            }
+                            // Tab - let it propagate for focus navigation
+                            Key.Tab -> {
+                                log(tag) { "Key: Tab -> not handled (propagate)" }
+                                false
+                            }
+                            else -> false
+                        }
+                        handled
+                    } else false
+                }
                 .size(1.dp)
                 .align(Alignment.TopStart)
                 .onFocusChanged { focusState ->
@@ -720,6 +801,8 @@ private fun LazyTextEditorPreview() {
             onCursorPositionChange = {},
             onSelectionChange = {},
             onVisibleRangeChange = {},
+            onCursorMove = { _, _ -> },
+            onForwardDelete = {},
             modifier = Modifier.fillMaxSize()
         )
     }

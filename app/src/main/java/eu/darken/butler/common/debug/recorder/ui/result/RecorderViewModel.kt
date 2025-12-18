@@ -1,4 +1,4 @@
-package eu.darken.butler.common.debug.recorder.ui
+package eu.darken.butler.common.debug.recorder.ui.result
 
 import android.content.Context
 import android.content.Intent

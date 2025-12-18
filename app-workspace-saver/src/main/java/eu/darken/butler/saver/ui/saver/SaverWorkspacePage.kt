@@ -220,7 +220,7 @@ private fun SingleFileModeContent(
             onSave = { vm?.onSave() },
             onOpenSaved = { vm?.onOpenSavedFile() },
             onSaveAgain = { vm?.onSaveAgain() },
-            onClose = { vm?.onClose() },
+            onFinishApp = { vm?.onFinishApp() },
             onRetry = { vm?.onRetry() },
             onOperationClick = onOperationClick,
         )
@@ -290,7 +290,7 @@ private fun BatchModeContent(
             onSave = { vm?.onSave() },
             onOpenSaved = { vm?.onOpenSavedFile() },
             onSaveAgain = { vm?.onSaveAgain() },
-            onClose = { vm?.onClose() },
+            onFinishApp = { vm?.onFinishApp() },
             onRetry = { vm?.onRetry() },
             onOperationClick = onOperationClick,
         )

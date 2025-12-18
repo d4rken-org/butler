@@ -19,10 +19,12 @@ fun AppsInfoBar(
     userAppsCount: Int = 0,
     systemAppsCount: Int = 0,
     selectedCount: Int = 0,
+    onClearSelection: () -> Unit = {},
 ) {
     WorkspaceInfoBar(
         modifier = modifier,
         selectedCount = selectedCount,
+        onClearSelection = onClearSelection,
         leadingContent = {
             if (selectedCount == 0 && userAppsCount > 0) {
                 InfoChip(

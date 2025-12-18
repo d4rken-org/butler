@@ -137,7 +137,7 @@
         </provider>
 
         <!-- Debug stuff-->
-        <activity android:name="eu.darken.butler.common.debug.recorder.ui.RecorderActivity" />
+        <activity android:name="eu.darken.butler.common.debug.recorder.ui.result.RecorderActivity" />
 
         <service
             android:name="eu.darken.butler.common.debug.recorder.core.RecorderService"

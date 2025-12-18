@@ -87,6 +87,7 @@ import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
+import eu.darken.butler.workspace.ui.scroll.rememberTopBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
 import eu.darken.butler.workspace.ui.scroll.setHeights
@@ -114,6 +115,7 @@ fun SearcherWorkspacePage(
     // Setup and remember blocks at top level
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
+    val topBarScrollBehavior = rememberTopBarScrollBehavior()
     val listState = rememberLazyListState()
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -180,6 +182,13 @@ fun SearcherWorkspacePage(
         collapsedHeightDp = 44.dp  // Minimal compact state (actual measured height)
     )
 
+    // Get current toolbar height for layout calculations
+    topToolbarScrollBehavior.state.getCurrentHeightDp()
+    val statusCardHeight = 60.dp // Fixed height for status card
+
+    // Set the top bar height for progress card scroll behavior
+    topBarScrollBehavior.state.setHeight(statusCardHeight)
+
     // Derived states for stable recomposition - at top level for immediate reactivity
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
@@ -193,10 +202,6 @@ fun SearcherWorkspacePage(
                 state?.listItems?.isNotEmpty() == true
         }
     }
-
-    // Get current toolbar height for layout calculations
-    topToolbarScrollBehavior.state.getCurrentHeightDp()
-    val statusCardHeight = 60.dp // Fixed height for status card
 
     // Determine if progress card should be visible
     val showProgressCard by remember {
@@ -288,11 +293,13 @@ fun SearcherWorkspacePage(
             val gridState = rememberLazyGridState()
 
             // Content padding calculation (shared between list and grid)
+            // Account for progress card visibility based on both existence AND scroll state
+            val isProgressCardVisible = showProgressCard && topBarScrollBehavior.state.collapsedFraction <= 0.1f
             val contentPaddingValues = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
                 top = 8.dp + actualToolbarHeightDp +
-                    (if (showProgressCard) statusCardHeight + 8.dp else 0.dp) +
+                    (if (isProgressCardVisible) statusCardHeight + 8.dp else 4.dp) +
                     (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp),
                 bottom = run {
                     val actionBarHeight = if (hasActions) 64.dp else 0.dp
@@ -315,6 +322,7 @@ fun SearcherWorkspacePage(
                         modifier = Modifier
                             .fillMaxSize()
                             .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                            .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
                             .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = contentPaddingValues
@@ -338,6 +346,7 @@ fun SearcherWorkspacePage(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                                    .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
                                     .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
                                 verticalArrangement = Arrangement.spacedBy(
                                     when (style.density) {
@@ -446,6 +455,7 @@ fun SearcherWorkspacePage(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                                    .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
                                     .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -555,7 +565,7 @@ fun SearcherWorkspacePage(
             // Error dialog state
             var errorDialogState by remember { mutableStateOf<Pair<String, Throwable>?>(null) }
 
-            // Pinned progress card below toolbar
+            // Pinned progress card below toolbar - hides on scroll
             if (showProgressCard) {
                 SearchProgressCard(
                     targetProgress = currentState.workspaceState.targetProgress,
@@ -570,6 +580,13 @@ fun SearcherWorkspacePage(
                         .align(Alignment.TopCenter)
                         .offset(y = 16.dp + actualToolbarHeightDp)
                         .padding(horizontal = 16.dp)
+                        .graphicsLayer {
+                            // Immediate snap behavior: fully visible or fully hidden
+                            alpha = if (topBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
+                            translationY = if (topBarScrollBehavior.state.collapsedFraction > 0.1f) {
+                                -statusCardHeight.toPx()
+                            } else 0f
+                        }
                 )
             }
 

@@ -14,6 +14,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.getQuantityString2
@@ -62,6 +63,7 @@ class SaverWorkspace @AssistedInject constructor(
     private val saveFilesOperationFactory: SaveFilesOperation.Factory,
     private val pkgOps: PkgOps,
     private val json: Json,
+    private val storageEnvironment: StorageEnvironment,
 ) : Workspace<SaverArguments> {
 
     private val tag = logTag("Saver", "Workspace", id.shortTag)
@@ -83,7 +85,9 @@ class SaverWorkspace @AssistedInject constructor(
     private val _sourceInfos = MutableStateFlow<List<ContentUriHelper.SourceInfo>>(emptyList())
     val sourceInfos: Flow<List<ContentUriHelper.SourceInfo>> = _sourceInfos
 
-    private val _destination = MutableStateFlow<APath<*>?>(creationArguments.destinationPath)
+    private val _destination = MutableStateFlow<APath<*>?>(
+        creationArguments.destinationPath ?: storageEnvironment.downloadsDirectory
+    )
     val destination: Flow<APath<*>?> = _destination
 
     // Only used for single file mode

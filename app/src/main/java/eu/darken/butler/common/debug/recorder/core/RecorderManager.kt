@@ -18,12 +18,13 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.debug.recorder.ui.RecorderActivity
+import eu.darken.butler.common.debug.recorder.ui.result.RecorderActivity
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.getPackageInfo
 import eu.darken.butler.common.startServiceCompat
 import eu.darken.butler.main.core.CurriculumVitae
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
@@ -31,6 +32,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import java.io.File
 import java.time.ZoneId
@@ -38,13 +41,14 @@ import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
 @Singleton
-class RecorderModule @Inject constructor(
+class RecorderManager @Inject constructor(
     @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
-    dispatcherProvider: DispatcherProvider,
+    private val dispatcherProvider: DispatcherProvider,
     private val butlerId: ButlerId,
     private val debugSettings: DebugSettings,
     private val curriculumVitae: CurriculumVitae,
@@ -74,7 +78,8 @@ class RecorderModule @Inject constructor(
 
                 internalState.updateBlocking {
                     if (!isRecording && shouldRecord) {
-                        val logDir = debugSettings.recorderPath.value()?.let {
+                        val existingPath = debugSettings.recorderPath.value()
+                        val logDir = existingPath?.let {
                             log(TAG) { "Continuing existing log: $it" }
                             File(it)
                         } ?: createRecordingDir().also {
@@ -90,9 +95,39 @@ class RecorderModule @Inject constructor(
 
                         context.startServiceCompat(Intent(context, RecorderService::class.java))
 
+                        // Start periodic log size updates
+                        startLogSizeUpdates(logDir)
+
+                        // Calculate initial size and estimate start time for continued recordings
+                        val initialSize = if (existingPath != null) {
+                            logDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+                        } else {
+                            0L
+                        }
+                        val startTime = if (existingPath != null) {
+                            // Use directory creation time as the recording start time
+                            try {
+                                val attrs = java.nio.file.Files.readAttributes(
+                                    logDir.toPath(),
+                                    java.nio.file.attribute.BasicFileAttributes::class.java
+                                )
+                                Instant.fromEpochMilliseconds(attrs.creationTime().toMillis())
+                            } catch (e: Exception) {
+                                log(TAG, WARN) { "Failed to get dir creation time: ${e.asLog()}" }
+                                // Fallback to lastModified (stable unless new files are added)
+                                logDir.lastModified().takeIf { it > 0 }
+                                    ?.let { Instant.fromEpochMilliseconds(it) }
+                                    ?: Clock.System.now()
+                            }
+                        } else {
+                            Clock.System.now()
+                        }
+
                         copy(
                             recorder = newRecorder,
                             currentLogDir = logDir,
+                            recordingStartTime = startTime,
+                            currentLogSize = initialSize,
                         )
                     } else if (!shouldRecord && isRecording) {
                         log(TAG) { "Stopping log recorder for: $currentLogDir" }
@@ -111,6 +146,8 @@ class RecorderModule @Inject constructor(
                         copy(
                             recorder = null,
                             lastLogDir = currentLogDir,
+                            recordingStartTime = null,
+                            currentLogSize = 0L,
                         )
                     } else {
                         this
@@ -152,6 +189,27 @@ class RecorderModule @Inject constructor(
         return currentPath
     }
 
+    private fun startLogSizeUpdates(logDir: File) {
+        appScope.launch(dispatcherProvider.IO) {
+            while (isActive) {
+                delay(LOG_SIZE_UPDATE_INTERVAL_MS)
+                val currentState = internalState.value()
+                if (!currentState.isRecording) break
+
+                val size = try {
+                    logDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+                } catch (e: Exception) {
+                    log(TAG, WARN) { "Failed to calculate log size: ${e.asLog()}" }
+                    0L
+                }
+
+                internalState.updateBlocking {
+                    if (isRecording) copy(currentLogSize = size) else this
+                }
+            }
+        }
+    }
+
     private suspend fun logInfos() {
         val pkgInfo = context.getPackageInfo()
         log(TAG, INFO) { "APILEVEL: ${BuildWrap.VERSION.SDK_INT}" }
@@ -177,13 +235,16 @@ class RecorderModule @Inject constructor(
         internal val recorder: Recorder? = null,
         val currentLogDir: File? = null,
         val lastLogDir: File? = null,
+        val recordingStartTime: Instant? = null,
+        val currentLogSize: Long = 0L,
     ) {
         val isRecording: Boolean
             get() = recorder != null
     }
 
     companion object {
-        internal val TAG = logTag("Debug", "Log", "Recorder", "Module")
+        internal val TAG = logTag("Debug", "Log", "Recorder", "Manager")
         private const val FORCE_FILE = "force_debug_run"
+        private const val LOG_SIZE_UPDATE_INTERVAL_MS = 5000L
     }
 }

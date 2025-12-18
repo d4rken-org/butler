@@ -64,6 +64,7 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
+import eu.darken.butler.workspace.ui.operations.CopyErrorTool
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
@@ -99,6 +100,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val shareIntentUseCase: ShareIntentUseCase,
     private val trashSettings: TrashSettings,
     private val errorReportTool: ErrorReportTool,
+    private val copyErrorTool: CopyErrorTool,
     itemSorterFactory: eu.darken.butler.searcher.core.sorting.SearchItemSorter.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
 
@@ -986,35 +988,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             log(TAG, ERROR) { "Operation with id $id not found" }
             return@launch
         }
-        val state = operation.state.value as? Operation.State.Completed
-        if (state == null || state.error == null) {
-            log(TAG, ERROR) { "Operation is not complete or has no error: $operation" }
-            return@launch
+        copyErrorTool.formatError(operation)?.let {
+            systemClipboardHelper.copyToClipboard(it)
         }
-        val errorText = """
-            # Operation error
-            * OperationID: `${operation.id}`
-            * Source: ${operation.metadata.origin}
-            * CompletedAt: ${state.completedAt}
-
-            ## Description
-            **${operation.metadata.title.get(appContext)}**
-
-            ${operation.metadata.description.get(appContext)}
-
-            ## Error
-            ${state.summary.get(appContext)}
-
-            ```java
-            ${state.error?.asLog()}
-            ```
-
-            ## Command
-            ```
-            ${operation.operation}
-            ```
-        """.trimIndent()
-        systemClipboardHelper.copyToClipboard(errorText)
     }
 
     fun showConflictSheet(operationId: Operation.Id) = launch {

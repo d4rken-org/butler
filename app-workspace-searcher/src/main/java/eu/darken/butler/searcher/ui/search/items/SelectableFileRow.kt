@@ -36,6 +36,7 @@ import eu.darken.butler.common.formatRelativeTime
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
+import eu.darken.butler.searcher.ui.search.util.getEllipsizedMatchLine
 
 @Composable
 fun SelectableFileRow(
@@ -107,30 +108,36 @@ fun SelectableFileRow(
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                // Line 2: Size + Date
+                // Line 2: Size (left) + Date (right)
                 val isDirectory = result.fileType == FileType.DIRECTORY
-                val combinedDetails = buildString {
-                    val size = result.size
-                    if (!isDirectory && size != null) {
-                        if (isNotEmpty()) append(" • ")
-                        append(formatFileSize(size))
-                    }
+                val size = result.size
+                val modifiedAt = result.modifiedAt
+                val hasSize = !isDirectory && size != null
+                val hasDate = modifiedAt != null
 
-                    val modifiedAt = result.modifiedAt
-                    if (modifiedAt != null) {
-                        if (isNotEmpty()) append(" • ")
-                        append(formatRelativeTime(modifiedAt))
-                    }
-                }
+                if (hasSize || hasDate) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        if (hasSize) {
+                            Text(
+                                text = formatFileSize(size!!),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        } else {
+                            Spacer(modifier = Modifier.width(0.dp))
+                        }
 
-                if (combinedDetails.isNotEmpty()) {
-                    Text(
-                        text = combinedDetails,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                        if (hasDate) {
+                            Text(
+                                text = formatRelativeTime(modifiedAt!!),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                 }
 
                 // Line 3: Parent path
@@ -148,11 +155,28 @@ fun SelectableFileRow(
                 // Line 4: Match context (if available)
                 result.matchContext?.let { context ->
                     if (context.lineNumber != null && context.matchedLine != null) {
+                        val trimmedLine = context.matchedLine.trim()
+                        // Adjust indices for trimmed whitespace
+                        val leadingWhitespace = context.matchedLine.length - context.matchedLine.trimStart().length
+                        val adjustedStartIndex = (context.startIndex ?: 0) - leadingWhitespace
+                        val adjustedEndIndex = (context.endIndex ?: 0) - leadingWhitespace
+
+                        val displayLine = if (adjustedStartIndex >= 0 && adjustedEndIndex > adjustedStartIndex) {
+                            getEllipsizedMatchLine(
+                                line = trimmedLine,
+                                startIndex = adjustedStartIndex,
+                                endIndex = adjustedEndIndex,
+                                maxLength = 60,
+                            )
+                        } else {
+                            trimmedLine
+                        }
+
                         Text(
                             text = stringResource(
                                 R.string.searcher_match_line_label,
                                 context.lineNumber,
-                                context.matchedLine.trim(),
+                                displayLine,
                             ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
@@ -221,18 +245,44 @@ private fun SelectableFileRowWithMatchPreview() {
         matchContext = SearchItem.MatchContext(
             lineNumber = 42,
             matchedLine = "  \"timeout\": 5000,",
-            startIndex = 2,
-            endIndex = 9,
+            startIndex = 3,
+            endIndex = 10,
+        ),
+    )
+
+    // Long line with match far in the middle - demonstrates ellipsization
+    val longLineResult = SearcherMockDataProvider.createMockSearchResult(
+        name = "app.config.ts",
+        sizeKB = 8,
+        hoursAgo = 2,
+        matchedQuery = "apiEndpoint",
+        matchContext = SearchItem.MatchContext(
+            lineNumber = 156,
+            matchedLine = "    const configuration = { baseUrl: 'https://example.com', apiEndpoint: '/api/v2/data', timeout: 30000, retries: 3 };",
+            startIndex = 61,
+            endIndex = 72,
         ),
     )
 
     PreviewWrapper {
-        SelectableFileRow(
-            result = searchResult,
-            isSelected = false,
-            isSelectionMode = false,
-            onClick = {},
-            onLongPress = {},
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Short match - no ellipsization needed
+            SelectableFileRow(
+                result = searchResult,
+                isSelected = false,
+                isSelectionMode = false,
+                onClick = {},
+                onLongPress = {},
+            )
+
+            // Long line with match in middle - shows ellipsization
+            SelectableFileRow(
+                result = longLineResult,
+                isSelected = false,
+                isSelectionMode = false,
+                onClick = {},
+                onLongPress = {},
+            )
+        }
     }
 }

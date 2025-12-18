@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
+import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
@@ -54,6 +55,9 @@ class EditorEngine @AssistedInject constructor(
 
     private val _selectionRange = MutableStateFlow<Pair<TextPosition, TextPosition>?>(null)
     val selectionRange: StateFlow<Pair<TextPosition, TextPosition>?> = _selectionRange.asStateFlow()
+
+    // Selection anchor for shift+arrow key selection
+    private var selectionAnchor: TextPosition? = null
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -560,8 +564,233 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun search(query: String, caseSensitive: Boolean = false): Result<List<SearchResult>> =
-        stateMutex.withLock {
+    suspend fun moveCursor(direction: CursorDirection, extendSelection: Boolean) = stateMutex.withLock {
+        log(tag) { "moveCursor(direction=$direction, extendSelection=$extendSelection)" }
+        val currentState = _state.value as? EditorState.Loaded
+        if (currentState == null) {
+            log(tag, WARN) { "moveCursor: No file loaded, ignoring" }
+            return
+        }
+        val currentPos = _cursorPosition.value
+        log(tag) { "moveCursor: currentPos=$currentPos" }
+
+        // Set anchor if starting selection
+        if (extendSelection && selectionAnchor == null) {
+            selectionAnchor = currentPos
+            log(tag) { "moveCursor: Set selection anchor to $currentPos" }
+        }
+
+        // Calculate new position based on direction
+        val newPos = when (direction) {
+            CursorDirection.LEFT -> moveCursorLeft(currentPos, currentState)
+            CursorDirection.RIGHT -> moveCursorRight(currentPos, currentState)
+            CursorDirection.UP -> moveCursorUp(currentPos, currentState)
+            CursorDirection.DOWN -> moveCursorDown(currentPos, currentState)
+            CursorDirection.WORD_LEFT -> moveCursorWordLeft(currentPos, currentState)
+            CursorDirection.WORD_RIGHT -> moveCursorWordRight(currentPos, currentState)
+            CursorDirection.LINE_START -> moveCursorToLineStart(currentPos, currentState)
+            CursorDirection.LINE_END -> moveCursorToLineEnd(currentPos, currentState)
+        }
+
+        log(tag) { "moveCursor: newPos=$newPos (was $currentPos)" }
+        _cursorPosition.value = newPos
+
+        if (extendSelection) {
+            // Update selection from anchor to cursor
+            val anchor = selectionAnchor!!
+            _selectionRange.value = if (anchor.offset <= newPos.offset) {
+                anchor to newPos
+            } else {
+                newPos to anchor
+            }
+            log(tag) { "moveCursor: Selection updated to ${_selectionRange.value}" }
+        } else {
+            // Clear selection and anchor
+            selectionAnchor = null
+            _selectionRange.value = null
+        }
+    }
+
+    private suspend fun moveCursorLeft(pos: TextPosition, state: EditorState.Loaded): TextPosition {
+        return if (pos.column > 0) {
+            // Move left within line
+            val newOffset = state.resources.textBuffer.findOffset(pos.line, pos.column - 1)
+            TextPosition(offset = newOffset, line = pos.line, column = pos.column - 1)
+        } else if (pos.line > 0) {
+            // Move to end of previous line
+            val prevLineLength = getLineLength(pos.line - 1, state)
+            val newOffset = state.resources.textBuffer.findOffset(pos.line - 1, prevLineLength)
+            TextPosition(offset = newOffset, line = pos.line - 1, column = prevLineLength)
+        } else {
+            // Already at start of document
+            pos
+        }
+    }
+
+    private suspend fun moveCursorRight(pos: TextPosition, state: EditorState.Loaded): TextPosition {
+        val lineLength = getLineLength(pos.line, state)
+        val totalLines = _totalLines.value
+
+        return if (pos.column < lineLength) {
+            // Move right within line
+            val newOffset = state.resources.textBuffer.findOffset(pos.line, pos.column + 1)
+            TextPosition(offset = newOffset, line = pos.line, column = pos.column + 1)
+        } else if (pos.line < totalLines - 1) {
+            // Move to start of next line
+            val newOffset = state.resources.textBuffer.findOffset(pos.line + 1, 0)
+            TextPosition(offset = newOffset, line = pos.line + 1, column = 0)
+        } else {
+            // Already at end of document
+            pos
+        }
+    }
+
+    private suspend fun moveCursorUp(pos: TextPosition, state: EditorState.Loaded): TextPosition {
+        return if (pos.line > 0) {
+            val newLine = pos.line - 1
+            val prevLineLength = getLineLength(newLine, state)
+            val newColumn = minOf(pos.column, prevLineLength)
+            val newOffset = state.resources.textBuffer.findOffset(newLine, newColumn)
+            TextPosition(offset = newOffset, line = newLine, column = newColumn)
+        } else {
+            // Already on first line
+            pos
+        }
+    }
+
+    private suspend fun moveCursorDown(pos: TextPosition, state: EditorState.Loaded): TextPosition {
+        val totalLines = _totalLines.value
+        return if (pos.line < totalLines - 1) {
+            val newLine = pos.line + 1
+            val nextLineLength = getLineLength(newLine, state)
+            val newColumn = minOf(pos.column, nextLineLength)
+            val newOffset = state.resources.textBuffer.findOffset(newLine, newColumn)
+            TextPosition(offset = newOffset, line = newLine, column = newColumn)
+        } else {
+            // Already on last line
+            pos
+        }
+    }
+
+    private suspend fun moveCursorWordLeft(pos: TextPosition, state: EditorState.Loaded): TextPosition {
+        val lineContent = getLineContent(pos.line, state)
+        var column = pos.column
+        var line = pos.line
+
+        // Skip whitespace backwards
+        while (column > 0 && lineContent.getOrNull(column - 1)?.isWhitespace() == true) {
+            column--
+        }
+
+        // If at start of line, move to end of previous line
+        if (column == 0 && line > 0) {
+            line--
+            val prevLineContent = getLineContent(line, state)
+            column = prevLineContent.length
+            // Skip whitespace at end of previous line
+            while (column > 0 && prevLineContent.getOrNull(column - 1)?.isWhitespace() == true) {
+                column--
+            }
+            // Skip word chars
+            while (column > 0 && prevLineContent.getOrNull(column - 1)?.isWordChar() == true) {
+                column--
+            }
+        } else {
+            // Skip word characters backwards
+            while (column > 0 && lineContent.getOrNull(column - 1)?.isWordChar() == true) {
+                column--
+            }
+        }
+
+        val newOffset = state.resources.textBuffer.findOffset(line, column)
+        return TextPosition(offset = newOffset, line = line, column = column)
+    }
+
+    private suspend fun moveCursorWordRight(pos: TextPosition, state: EditorState.Loaded): TextPosition {
+        val lineContent = getLineContent(pos.line, state)
+        var column = pos.column
+        var line = pos.line
+        val totalLines = _totalLines.value
+
+        // Skip word chars forwards
+        while (column < lineContent.length && lineContent.getOrNull(column)?.isWordChar() == true) {
+            column++
+        }
+
+        // Skip whitespace forwards
+        while (column < lineContent.length && lineContent.getOrNull(column)?.isWhitespace() == true) {
+            column++
+        }
+
+        // If at end of line, move to start of next line
+        if (column >= lineContent.length && line < totalLines - 1) {
+            line++
+            column = 0
+            val nextLineContent = getLineContent(line, state)
+            // Skip leading whitespace
+            while (column < nextLineContent.length && nextLineContent.getOrNull(column)?.isWhitespace() == true) {
+                column++
+            }
+        }
+
+        val newOffset = state.resources.textBuffer.findOffset(line, column)
+        return TextPosition(offset = newOffset, line = line, column = column)
+    }
+
+    private suspend fun moveCursorToLineStart(pos: TextPosition, state: EditorState.Loaded): TextPosition {
+        val newOffset = state.resources.textBuffer.findOffset(pos.line, 0)
+        return TextPosition(offset = newOffset, line = pos.line, column = 0)
+    }
+
+    private suspend fun moveCursorToLineEnd(pos: TextPosition, state: EditorState.Loaded): TextPosition {
+        val lineLength = getLineLength(pos.line, state)
+        val newOffset = state.resources.textBuffer.findOffset(pos.line, lineLength)
+        return TextPosition(offset = newOffset, line = pos.line, column = lineLength)
+    }
+
+    private suspend fun getLineLength(lineNumber: Int, state: EditorState.Loaded): Int {
+        val result = state.resources.textBuffer.getTextForLine(lineNumber)
+        return result.getOrNull()?.length ?: 0
+    }
+
+    private suspend fun getLineContent(lineNumber: Int, state: EditorState.Loaded): String {
+        val result = state.resources.textBuffer.getTextForLine(lineNumber)
+        return result.getOrNull() ?: ""
+    }
+
+    private fun Char.isWordChar(): Boolean {
+        return this.isLetterOrDigit() || this == '_'
+    }
+
+    suspend fun deleteForward(): Result<String> = stateMutex.withLock {
+        val currentState = _state.value as? EditorState.Loaded
+            ?: return Result.failure(IllegalStateException("Cannot delete forward - no file open"))
+
+        val cursorPos = _cursorPosition.value
+        val totalLength = currentState.resources.textBuffer.totalLength.value
+
+        if (cursorPos.offset >= totalLength) {
+            return Result.success("") // Nothing to delete at end
+        }
+
+        // Delete 1 character forward (from cursor to cursor+1)
+        val endPosition = currentState.resources.textBuffer.findPosition(cursorPos.offset + 1)
+
+        log(tag, VERBOSE) { "Forward delete at $cursorPos to $endPosition" }
+
+        val result = currentState.resources.textBuffer.deleteText(cursorPos, endPosition)
+        if (result.isSuccess) {
+            _state.value = currentState.copy(isModified = true)
+            _totalLines.value = currentState.resources.textBuffer.totalLines.value
+            invalidateSearchResults()
+            refreshVisibleContent()
+        } else {
+            _error.value = result.exceptionOrNull()
+        }
+        return result
+    }
+
+    suspend fun search(query: String, caseSensitive: Boolean = false): Result<List<SearchResult>> = stateMutex.withLock {
             _searchQuery.value = query
 
             if (query.isEmpty()) {

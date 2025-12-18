@@ -24,7 +24,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ButlerLinks
@@ -59,6 +61,7 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
             onNavigateUp = { vm.navUp() },
             onNavigateTo = { vm.navTo(it) },
             onOpenUrl = { vm.openUrl(it) },
+            onOpenSDMaidInstall = { vm.openSDMaidInstall() },
         )
     }
 }
@@ -69,6 +72,7 @@ fun SettingsIndexScreen(
     onNavigateUp: () -> Unit,
     onNavigateTo: (NavigationDestination) -> Unit,
     onOpenUrl: (String) -> Unit,
+    onOpenSDMaidInstall: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -221,6 +225,20 @@ fun SettingsIndexScreen(
                     onClick = { onOpenUrl(ButlerLinks.PRIVACY_POLICY) },
                 )
             }
+
+            if (!state.isSDMaidInstalled) {
+                item {
+                    SettingsDivider()
+                    SettingsBaseItem(
+                        iconPainter = painterResource(R.drawable.sdmaid_mascot),
+                        iconTinted = false,
+                        iconSize = 32.dp,
+                        title = stringResource(R.string.settings_sdmaid_label),
+                        subtitle = stringResource(R.string.settings_sdmaid_description),
+                        onClick = onOpenSDMaidInstall,
+                    )
+                }
+            }
         }
     }
 }
@@ -231,11 +249,13 @@ private fun SettingsScreenPreview() {
     PreviewWrapper {
         SettingsIndexScreen(
             state = SettingsViewModel.State(
-                isUpgraded = true // TODO: Preview with upgrade status
+                isUpgraded = true,
+                isSDMaidInstalled = false,
             ),
             onNavigateUp = {},
             onNavigateTo = {},
             onOpenUrl = {},
+            onOpenSDMaidInstall = {},
         )
     }
 }
