@@ -1027,7 +1027,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.add(clip)
     }
 
-    fun renameFile(item: ExplorerItem.File) = launch {
+    fun renameFile(item: ExplorerItem.Lookup) = launch {
         log(tag) { "renameFile(${item.lookup.name})" }
         dismissDialog()
 

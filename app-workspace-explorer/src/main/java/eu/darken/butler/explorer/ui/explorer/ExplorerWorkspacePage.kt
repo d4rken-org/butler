@@ -77,6 +77,7 @@ import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
+import eu.darken.butler.explorer.ui.explorer.util.FocusNavigationState
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
@@ -133,6 +134,9 @@ fun ExplorerWorkspacePage(
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // Local focus state for keyboard navigation (purely UI concern)
+    var focusState by remember { mutableStateOf(FocusNavigationState()) }
 
     // Track actual measured height of the toolbar card
     val density = LocalDensity.current
@@ -240,6 +244,21 @@ fun ExplorerWorkspacePage(
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(0)
         }
+    }
+
+    // Auto-scroll to keep focused item visible during keyboard navigation
+    LaunchedEffect(focusState.focusedIndex) {
+        val focusedIndex = focusState.focusedIndex ?: return@LaunchedEffect
+        when (mainState.viewStyle) {
+            is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(focusedIndex)
+            is ExplorerViewStyle.List -> listState.animateScrollToItem(focusedIndex)
+        }
+    }
+
+    // Update focus state when items change (reset on navigation, adjust if items removed)
+    LaunchedEffect(mainState.locationId, mainState.items?.size) {
+        val newCount = mainState.items?.size ?: 0
+        focusState = focusState.updateItemCount(newCount)
     }
 
     // Handle reveal requests (scroll to and highlight item)
@@ -388,17 +407,40 @@ fun ExplorerWorkspacePage(
         label = "clipboardScale"
     )
 
+    // Grid columns for keyboard navigation (approximate for adaptive grid)
+    val gridColumns = 3
+
+    // Calculate focused item from state
+    val focusedItem = focusState.focusedIndex?.let { index ->
+        mainState.items?.getOrNull(index)
+    }
+
     Surface(
         modifier = Modifier
             .fillMaxSize()
             .explorerKeyboardShortcuts(
                 availableActions = mainState.availableActions,
                 clipboardEntries = clipboardState.entries,
+                selectedItems = mainState.selectionState.selectedItems,
+                focusedItem = focusedItem,
+                viewStyle = mainState.viewStyle,
+                gridColumns = gridColumns,
                 enabled = isWorkspaceFocused,
                 onExecuteAction = { vm?.executeAction(it) },
                 onPaste = { vm?.pasteClipboard(it) },
                 onSelectAll = { vm?.selectAll() },
                 onClearSelection = { vm?.clearSelection() },
+                onClearFocus = { focusState = focusState.clearFocus() },
+                onNavigateToItem = { vm?.navigate(it) },
+                onGoBack = { vm?.goBack() },
+                onMoveFocusUp = { focusState = focusState.moveFocusUp() },
+                onMoveFocusDown = { focusState = focusState.moveFocusDown() },
+                onMoveFocusLeft = { focusState = focusState.moveFocusLeft(gridColumns) },
+                onMoveFocusRight = { focusState = focusState.moveFocusRight(gridColumns) },
+                onMoveFocusToFirst = { focusState = focusState.moveFocusToFirst() },
+                onMoveFocusToLast = { focusState = focusState.moveFocusToLast() },
+                onActivateFocusedItem = { focusedItem?.let { vm?.navigate(it) } },
+                onRenameFocusedItem = { (focusedItem as? ExplorerItem.Lookup)?.let { vm?.renameFile(it) } },
             )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -484,6 +526,7 @@ fun ExplorerWorkspacePage(
                                                 item = item,
                                                 viewStyle = mainStateSnap.viewStyle,
                                                 state = mainStateSnap,
+                                                isFocused = item == focusedItem,
                                                 onItemClick = { vm?.onItemClick(it) },
                                                 onItemLongClick = { vm?.onItemLongClick(it) },
                                                 onNavigate = { vm?.navigate(it) },
@@ -543,6 +586,7 @@ fun ExplorerWorkspacePage(
                                                 item = item,
                                                 viewStyle = mainStateSnap.viewStyle,
                                                 state = mainStateSnap,
+                                                isFocused = item == focusedItem,
                                                 onItemClick = { vm?.onItemClick(it) },
                                                 onItemLongClick = { vm?.onItemLongClick(it) },
                                                 onNavigate = { vm?.navigate(it) },

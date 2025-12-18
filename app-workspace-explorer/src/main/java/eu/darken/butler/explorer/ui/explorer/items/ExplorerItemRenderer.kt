@@ -1,6 +1,12 @@
 package eu.darken.butler.explorer.ui.explorer.items
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
@@ -26,6 +32,7 @@ fun ExplorerItemRenderer(
     item: ExplorerItem,
     viewStyle: ExplorerViewStyle,
     state: ExplorerWorkspaceViewModel.State,
+    isFocused: Boolean,
     onItemClick: (ExplorerItem) -> Unit,
     onItemLongClick: (ExplorerItem) -> Unit,
     onNavigate: (ExplorerItem) -> Unit,
@@ -35,6 +42,46 @@ fun ExplorerItemRenderer(
     val isEnabled = item !in state.disabledItems
     val showSelection = state.shouldShowSelection(item)
 
+    // Focus indicator wrapper
+    val focusModifier = if (isFocused) {
+        Modifier.border(
+            width = 2.dp,
+            color = MaterialTheme.colorScheme.primary,
+            shape = RoundedCornerShape(8.dp),
+        )
+    } else {
+        Modifier
+    }
+
+    Box(modifier = focusModifier) {
+        ItemContent(
+            item = item,
+            viewStyle = viewStyle,
+            state = state,
+            isSelected = isSelected,
+            isEnabled = isEnabled,
+            showSelection = showSelection,
+            onItemClick = onItemClick,
+            onItemLongClick = onItemLongClick,
+            onNavigate = onNavigate,
+            onToggleSelection = onToggleSelection,
+        )
+    }
+}
+
+@Composable
+private fun ItemContent(
+    item: ExplorerItem,
+    viewStyle: ExplorerViewStyle,
+    state: ExplorerWorkspaceViewModel.State,
+    isSelected: Boolean,
+    isEnabled: Boolean,
+    showSelection: Boolean,
+    onItemClick: (ExplorerItem) -> Unit,
+    onItemLongClick: (ExplorerItem) -> Unit,
+    onNavigate: (ExplorerItem) -> Unit,
+    onToggleSelection: (ExplorerItem) -> Unit,
+) {
     when (item) {
         is ExplorerItem.Lookup -> {
             val isHighlighted = item.id in state.highlightedItemIds
