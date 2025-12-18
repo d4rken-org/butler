@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -388,12 +389,28 @@ private fun DualColumnEditorContent(
                                 onCursorMove(CursorDirection.RIGHT, event.isShiftPressed); true
                             }
                             Key.DirectionUp -> {
-                                log(tag) { "Key: Up -> UP" }
-                                onCursorMove(CursorDirection.UP, event.isShiftPressed); true
+                                // At top line without shift - move focus to toolbar
+                                if (cursorPosition.line == 0 && !event.isShiftPressed) {
+                                    log(tag) { "Key: Up at line 0 -> move focus up" }
+                                    focusManager.moveFocus(FocusDirection.Up)
+                                    true
+                                } else {
+                                    log(tag) { "Key: Up -> UP" }
+                                    onCursorMove(CursorDirection.UP, event.isShiftPressed)
+                                    true
+                                }
                             }
                             Key.DirectionDown -> {
-                                log(tag) { "Key: Down -> DOWN" }
-                                onCursorMove(CursorDirection.DOWN, event.isShiftPressed); true
+                                // At last line without shift - move focus down
+                                if (cursorPosition.line >= totalLines - 1 && !event.isShiftPressed) {
+                                    log(tag) { "Key: Down at last line -> move focus down" }
+                                    focusManager.moveFocus(FocusDirection.Down)
+                                    true
+                                } else {
+                                    log(tag) { "Key: Down -> DOWN" }
+                                    onCursorMove(CursorDirection.DOWN, event.isShiftPressed)
+                                    true
+                                }
                             }
                             // Forward delete
                             Key.Delete -> {
