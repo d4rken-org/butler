@@ -91,6 +91,7 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
@@ -123,6 +124,7 @@ fun ExplorerWorkspacePage(
     val operationsState by operationsStateSource.collectAsState(ExplorerWorkspaceViewModel.OperationsState())
     val clipboardState by clipboardStateSource.collectAsState(ExplorerWorkspaceViewModel.ClipboardState())
     val workspaceButtonState by workspaceStateSource.collectAsState(null)
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
 
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
@@ -392,6 +394,7 @@ fun ExplorerWorkspacePage(
             .explorerKeyboardShortcuts(
                 availableActions = mainState.availableActions,
                 clipboardEntries = clipboardState.entries,
+                enabled = isWorkspaceFocused,
                 onExecuteAction = { vm?.executeAction(it) },
                 onPaste = { vm?.pasteClipboard(it) },
                 onSelectAll = { vm?.selectAll() },

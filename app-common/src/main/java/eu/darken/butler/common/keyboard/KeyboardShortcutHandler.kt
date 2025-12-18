@@ -42,21 +42,27 @@ import eu.darken.butler.common.debug.logging.logTag
  *
  * @param focusRequester Optional external FocusRequester for programmatic focus management.
  *                       If not provided, an internal one will be created.
+ * @param enabled Whether to request focus. Set to false for pages in a pager that aren't
+ *                currently focused to avoid focus competition during swipe animations.
  * @param builder DSL builder for registering keyboard shortcuts
  */
 @Composable
 fun Modifier.keyboardShortcuts(
     focusRequester: FocusRequester? = null,
+    enabled: Boolean = true,
     builder: KeyboardShortcutScope.() -> Unit,
 ): Modifier {
     val scope = KeyboardShortcutScope().apply(builder)
     val internalFocusRequester = remember { FocusRequester() }
     val actualFocusRequester = focusRequester ?: internalFocusRequester
 
-    // Request focus when composable is first shown
-    LaunchedEffect(Unit) {
-        log(TAG, INFO) { "Requesting keyboard focus for shortcuts" }
-        actualFocusRequester.requestFocus()
+    // Request focus only when enabled (e.g., when this workspace is focused)
+    // This prevents focus competition when multiple pages are in a HorizontalPager
+    LaunchedEffect(enabled) {
+        if (enabled) {
+            log(TAG, INFO) { "Requesting keyboard focus for shortcuts" }
+            actualFocusRequester.requestFocus()
+        }
     }
 
     return this

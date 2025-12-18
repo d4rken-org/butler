@@ -22,12 +22,13 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 fun Modifier.explorerKeyboardShortcuts(
     availableActions: List<ExplorerAction>,
     clipboardEntries: List<ClipboardClip>,
+    enabled: Boolean = true,
     onExecuteAction: (ExplorerAction) -> Unit,
     onPaste: (ClipboardClip) -> Unit,
     onSelectAll: () -> Unit,
     onClearSelection: () -> Unit,
 ): Modifier = composed {
-    keyboardShortcuts {
+    keyboardShortcuts(enabled = enabled) {
     on(KeyboardShortcut.Copy) {
         val copyAction = availableActions
             .filterIsInstance<ExplorerAction.Directory.Copy>()
