@@ -185,7 +185,7 @@ fun EditorWorkspacePage(
                         .weight(1f)
                         .fillMaxWidth()
                 ) {
-                    if (state.fileInfo == null && state.isLoading) {
+                    if (!state.hasFile && state.isLoading) {
                         // Initial file load - show centered loading overlay
                         EditorLoadingOverlay(
                             onCancel = { onPageAction(EditorPageAction.File.CancelOpen) }
@@ -268,6 +268,7 @@ fun EditorWorkspacePage(
                 subTitle = state.subTitle,
                 isModified = state.isModified,
                 isLoading = state.isLoading,
+                hasContent = state.hasContent,
                 canUndo = state.isModified,
                 canRedo = false,
                 workspaceButtonState = workspaceButtonState,

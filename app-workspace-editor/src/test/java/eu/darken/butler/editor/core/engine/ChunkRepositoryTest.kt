@@ -29,9 +29,9 @@ class ChunkRepositoryTest : BaseTest() {
             content.substring(startOffset, end)
         }
 
-        // Mock fileInfo
-        coEvery { mockDataSource.fileInfo } returns MutableStateFlow(
-            FileInfo(
+        // Mock contentSource
+        coEvery { mockDataSource.contentSource } returns MutableStateFlow(
+            ContentSource.File(
                 path = mockk<LocalPath>(),
                 size = content.length.toLong(),
                 lastModified = Instant.DISTANT_PAST,
@@ -465,9 +465,9 @@ class ChunkRepositoryTest : BaseTest() {
     }
 
     @Test
-    fun `getFileInfo returns DataSource fileInfo`() = runTest {
+    fun `getContentSource returns DataSource contentSource`() = runTest {
         // Given
-        val expectedFileInfo = FileInfo(
+        val expectedContentSource = ContentSource.File(
             path = mockk<LocalPath>(),
             size = 1234L,
             lastModified = Instant.DISTANT_PAST,
@@ -475,14 +475,14 @@ class ChunkRepositoryTest : BaseTest() {
         )
 
         val mockDataSource = mockk<EditorDataSource>(relaxed = true)
-        coEvery { mockDataSource.fileInfo } returns MutableStateFlow(expectedFileInfo)
+        coEvery { mockDataSource.contentSource } returns MutableStateFlow(expectedContentSource)
 
         val repository = createRepository(mockDataSource)
 
         // When
-        val fileInfo = repository.getFileInfo()
+        val contentSource = repository.getContentSource()
 
         // Then
-        fileInfo shouldBe expectedFileInfo
+        contentSource shouldBe expectedContentSource
     }
 }

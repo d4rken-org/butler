@@ -53,6 +53,7 @@ fun EditorToolbarCard(
     subTitle: CaString,
     isModified: Boolean,
     isLoading: Boolean,
+    hasContent: Boolean,
     canUndo: Boolean,
     canRedo: Boolean,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
@@ -229,8 +230,10 @@ fun EditorToolbarCard(
                             Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
                         }
 
-                        IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
-                            Icon(Icons.TwoTone.Close, contentDescription = stringResource(R.string.editor_action_close))
+                        if (hasContent) {
+                            IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
+                                Icon(Icons.TwoTone.Close, contentDescription = stringResource(R.string.editor_action_close))
+                            }
                         }
 
                         IconButton(
@@ -272,6 +275,7 @@ private fun EditorToolbarCardPreview() {
             subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = true,
             isLoading = false,
+            hasContent = true,
             canUndo = true,
             canRedo = false,
             workspaceButtonState = null,
@@ -292,6 +296,7 @@ private fun EditorToolbarCardCollapsedPreview() {
             subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = true,
             isLoading = false,
+            hasContent = true,
             canUndo = true,
             canRedo = false,
             workspaceButtonState = null,
@@ -313,6 +318,7 @@ private fun EditorToolbarCardLoadingPreview() {
             subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = false,
             isLoading = true,
+            hasContent = false,
             canUndo = false,
             canRedo = false,
             workspaceButtonState = null,

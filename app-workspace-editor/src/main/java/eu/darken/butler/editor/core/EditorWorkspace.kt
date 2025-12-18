@@ -16,8 +16,8 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.editor.core.arguments.EditorArguments
+import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
-import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
@@ -117,7 +117,7 @@ class EditorWorkspace @AssistedInject constructor(
     // Combined editor state for UI
     val editorState: Flow<EditorState> = engineHolder.flow.flatMapLatest { engine ->
         combine(
-            engine.fileInfo,
+            engine.contentSource,
             engine.totalLines,
             engine.isModified,
             engine.currentContent,
@@ -129,11 +129,11 @@ class EditorWorkspace @AssistedInject constructor(
             engine.error,
             editorSettings.showLineNumbers.flow,
             editorSettings.wordWrap.flow,
-        ) { fileInfo, totalLines, isModified, currentContent, cursorPosition,
+        ) { contentSource, totalLines, isModified, currentContent, cursorPosition,
             selectionRange, searchQuery, searchResults, visibleRange, error,
             showLineNumbers, wordWrap ->
             EditorState(
-                fileInfo = fileInfo,
+                contentSource = contentSource,
                 totalLines = totalLines,
                 isModified = isModified,
                 currentContent = currentContent,
@@ -182,12 +182,12 @@ class EditorWorkspace @AssistedInject constructor(
             }
             .launchIn(workspaceScope)
 
-        // Update title based on file info
+        // Update title based on content source
         workspaceScope.launch {
             engineHolder.flow.flatMapLatest { engine ->
-                engine.fileInfo
-            }.collect { info ->
-                updateFileInfo(info)
+                engine.contentSource
+            }.collect { source ->
+                updateContentSource(source)
             }
         }
     }
@@ -203,9 +203,10 @@ class EditorWorkspace @AssistedInject constructor(
         log(tag, DEBUG) { "Updated title to: $newTitle" }
     }
 
-    fun updateFileInfo(fileInfo: FileInfo?) {
-        fileInfo?.let { info ->
-            updateTitle(info.path.name)
+    fun updateContentSource(contentSource: ContentSource) {
+        when (contentSource) {
+            is ContentSource.File -> updateTitle(contentSource.path.name)
+            is ContentSource.Memory -> updateTitle(contentSource.name)
         }
     }
 
@@ -330,7 +331,7 @@ class EditorWorkspace @AssistedInject constructor(
     }
 
     data class EditorState(
-        val fileInfo: FileInfo? = null,
+        val contentSource: ContentSource = ContentSource.Memory(size = 0L),
         val totalLines: Int = 0,
         val isModified: Boolean = false,
         val currentContent: String = "",

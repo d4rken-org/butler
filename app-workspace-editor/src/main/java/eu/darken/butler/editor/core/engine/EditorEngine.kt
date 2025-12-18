@@ -79,10 +79,10 @@ class EditorEngine @AssistedInject constructor(
     private val isInitializing = AtomicBoolean(true)
     private var initializationJob: Job? = null
 
-    val fileInfo: Flow<FileInfo?> = state.map { s ->
+    val contentSource: Flow<ContentSource> = state.map { s ->
         when (s) {
-            is EditorState.Loaded -> s.fileInfo
-            else -> null
+            is EditorState.Loaded -> s.contentSource
+            else -> ContentSource.Memory(size = 0L)
         }
     }
 
@@ -203,12 +203,12 @@ class EditorEngine @AssistedInject constructor(
             }
 
             // Transition to Loaded state
-            val fileInfoValue = resources.textBuffer.fileInfo.value
+            val contentSourceValue = resources.textBuffer.contentSource.value
             val isModifiedValue = resources.textBuffer.isModified.value
             _state.value = EditorState.Loaded(
                 filePath = filePath,
                 resources = resources,
-                fileInfo = fileInfoValue,
+                contentSource = contentSourceValue,
                 isModified = isModifiedValue,
             )
 

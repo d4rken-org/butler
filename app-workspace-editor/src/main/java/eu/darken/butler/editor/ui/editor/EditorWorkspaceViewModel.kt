@@ -16,7 +16,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.EditorWorkspace
-import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
@@ -97,14 +97,14 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val (showGoToLineDialog, showSearchDialog, showCloseConfirmDialog) = dialogs
         val (searchQueryInput, currentSearchResultIndex, searchCaseSensitive) = search
 
-        // Use loading file path for title when loading, otherwise use fileInfo
-        val displayPath = editorState.fileInfo?.path ?: loadingFilePath
-        val title = displayPath?.userReadableName ?: "No File".toCaString()
+        // Use loading file path for title when loading, otherwise use contentSource
+        val displayPath = (editorState.contentSource as? ContentSource.File)?.path ?: loadingFilePath
+        val title = displayPath?.userReadableName ?: editorState.contentSource.name.toCaString()
         val subTitle = displayPath?.parent?.userReadablePath ?: "In-Memory-Buffer".toCaString()
 
         State(
             id = workspaceId,
-            fileInfo = editorState.fileInfo,
+            contentSource = editorState.contentSource,
             title = title,
             subTitle = subTitle,
             totalLines = editorState.totalLines,
@@ -142,7 +142,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     // All operations delegate to workspace
 
     fun launchFilePicker() = launch {
-        val currentPath = state.first().fileInfo?.path?.parent
+        val currentPath = (state.first().contentSource as? ContentSource.File)?.path?.parent
         workspaceRemote.launchPicker(id, currentPath, PickerConfig.Selection.FileSingle)
     }
 
@@ -459,7 +459,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     data class State(
         val id: Workspace.Id,
-        val fileInfo: FileInfo? = null,
+        val contentSource: ContentSource = ContentSource.Memory(size = 0L),
         val title: CaString,
         val subTitle: CaString,
         val totalLines: Int = 0,
@@ -481,8 +481,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val currentSearchResultIndex: Int = 0,
         val searchCaseSensitive: Boolean = false,
     ) {
-        val hasFile: Boolean get() = fileInfo != null
-        val isFileReady: Boolean get() = fileInfo != null && !isLoading
+        val hasFile: Boolean get() = contentSource is ContentSource.File
+        val hasContent: Boolean get() = contentSource.hasContent
+        val isFileReady: Boolean get() = contentSource is ContentSource.File && !isLoading
         val hasSelection: Boolean get() = selectionRange != null
         val hasSearchResults: Boolean get() = searchResults.isNotEmpty()
         val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
@@ -490,9 +491,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val isSearchBarVisible: Boolean get() = showSearchDialog
 
         // Info bar properties
-        val fileSize: Long? get() = fileInfo?.size
-        val totalCharacters: Int get() = fileSize?.toInt() ?: 0
-        val fileEncoding: String get() = "UTF-8" // Default encoding for now
+        val fileSize: Long get() = contentSource.size
+        val totalCharacters: Int get() = fileSize.toInt()
+        val fileEncoding: String
+            get() = (contentSource as? ContentSource.File)?.detectedCharset?.name() ?: "UTF-8"
         val selectedCharacterCount: Int
             get() {
                 if (selectionRange == null) return 0
@@ -526,23 +528,23 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     add(EditorAction.Delete)
                 }
 
-                // Paste - always visible when there's a file/content
-                if (hasFile || currentContent.isNotEmpty()) {
+                // Paste - always visible when there's content
+                if (hasContent || currentContent.isNotEmpty()) {
                     add(EditorAction.Paste)
                 }
 
-                // Select All - always visible when there's a file/content
-                if (hasFile || currentContent.isNotEmpty()) {
+                // Select All - always visible when there's content
+                if (hasContent || currentContent.isNotEmpty()) {
                     add(EditorAction.SelectAll)
                 }
 
-                // Go to Line - always visible when there's a file
-                if (hasFile) {
+                // Go to Line - always visible when there's content
+                if (hasContent) {
                     add(EditorAction.GoToLine)
                 }
 
-                // Search - visible when there's a file and search bar is not open
-                if (hasFile && !isSearchBarVisible) {
+                // Search - visible when there's content and search bar is not open
+                if (hasContent && !isSearchBarVisible) {
                     add(EditorAction.Search)
                 }
             }

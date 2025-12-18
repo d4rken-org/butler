@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.editor.core.engine.ChunkBoundary
+import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
@@ -89,11 +90,10 @@ class FileDataSourceEncodingTest : BaseTest() {
         dataSource.open()
 
         // Then: Should detect UTF-8 with BOM
-        val fileInfo = dataSource.fileInfo.value
-        fileInfo shouldNotBe null
-        fileInfo!!.detectedCharset shouldBe Charsets.UTF_8
-        fileInfo.hasBOM shouldBe true
-        fileInfo.bomBytes shouldBe byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+        val contentSource = dataSource.contentSource.value as ContentSource.File
+        contentSource.detectedCharset shouldBe Charsets.UTF_8
+        contentSource.hasBOM shouldBe true
+        contentSource.bomBytes shouldBe byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
     }
 
     @Test
@@ -112,11 +112,10 @@ class FileDataSourceEncodingTest : BaseTest() {
         dataSource.open()
 
         // Then: Should detect UTF-8 via validation (no BOM)
-        val fileInfo = dataSource.fileInfo.value
-        fileInfo shouldNotBe null
-        fileInfo!!.detectedCharset shouldBe Charsets.UTF_8
-        fileInfo.hasBOM shouldBe false
-        fileInfo.bomBytes shouldBe null
+        val contentSource = dataSource.contentSource.value as ContentSource.File
+        contentSource.detectedCharset shouldBe Charsets.UTF_8
+        contentSource.hasBOM shouldBe false
+        contentSource.bomBytes shouldBe null
     }
 
     @Test
@@ -137,11 +136,10 @@ class FileDataSourceEncodingTest : BaseTest() {
         dataSource.open()
 
         // Then: Should detect UTF-16 LE with BOM
-        val fileInfo = dataSource.fileInfo.value
-        fileInfo shouldNotBe null
-        fileInfo!!.detectedCharset shouldBe Charsets.UTF_16LE
-        fileInfo.hasBOM shouldBe true
-        fileInfo.bomBytes shouldBe bomBytes
+        val contentSource = dataSource.contentSource.value as ContentSource.File
+        contentSource.detectedCharset shouldBe Charsets.UTF_16LE
+        contentSource.hasBOM shouldBe true
+        contentSource.bomBytes shouldBe bomBytes
     }
 
     @Test
@@ -162,11 +160,10 @@ class FileDataSourceEncodingTest : BaseTest() {
         dataSource.open()
 
         // Then: Should detect UTF-16 BE with BOM
-        val fileInfo = dataSource.fileInfo.value
-        fileInfo shouldNotBe null
-        fileInfo!!.detectedCharset shouldBe Charsets.UTF_16BE
-        fileInfo.hasBOM shouldBe true
-        fileInfo.bomBytes shouldBe bomBytes
+        val contentSource = dataSource.contentSource.value as ContentSource.File
+        contentSource.detectedCharset shouldBe Charsets.UTF_16BE
+        contentSource.hasBOM shouldBe true
+        contentSource.bomBytes shouldBe bomBytes
     }
 
     @Test
@@ -185,10 +182,9 @@ class FileDataSourceEncodingTest : BaseTest() {
         dataSource.open()
 
         // Then: Should default to UTF-8
-        val fileInfo = dataSource.fileInfo.value
-        fileInfo shouldNotBe null
-        fileInfo!!.detectedCharset shouldBe Charsets.UTF_8
-        fileInfo.hasBOM shouldBe false
+        val contentSource = dataSource.contentSource.value as ContentSource.File
+        contentSource.detectedCharset shouldBe Charsets.UTF_8
+        contentSource.hasBOM shouldBe false
     }
 
     // ==================== BOM Stripping Tests ====================
@@ -445,7 +441,7 @@ class FileDataSourceEncodingTest : BaseTest() {
         dataSource.open()
 
         // Verify detection
-        dataSource.fileInfo.value!!.detectedCharset shouldBe Charsets.UTF_16LE
+        (dataSource.contentSource.value as ContentSource.File).detectedCharset shouldBe Charsets.UTF_16LE
 
         // When: Modify and save
         val chunk = TextChunk(

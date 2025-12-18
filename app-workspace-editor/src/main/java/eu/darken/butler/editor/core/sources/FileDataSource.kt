@@ -16,7 +16,7 @@ import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.ChunkManager
-import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.LineEnding
 import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
@@ -46,8 +46,8 @@ class FileDataSource @AssistedInject constructor(
     @Assisted private val gatewaySwitch: GatewaySwitch
 ) : EditorDataSource {
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "DataSource", "File")
-    private val _fileInfo = MutableStateFlow<FileInfo?>(null)
-    override val fileInfo: StateFlow<FileInfo?> = _fileInfo.asStateFlow()
+    private val _contentSource = MutableStateFlow<ContentSource>(ContentSource.Memory(size = 0L))
+    override val contentSource: StateFlow<ContentSource> = _contentSource.asStateFlow()
 
     private val _isModified = MutableStateFlow(false)
     override val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
@@ -161,7 +161,7 @@ class FileDataSource @AssistedInject constructor(
             // Detect charset from file content
             val (detectedCharset, hasBOM, bomBytes) = detectCharset(filePath)
 
-            _fileInfo.value = FileInfo(
+            _contentSource.value = ContentSource.File(
                 path = filePath,
                 size = lookup.size!!,
                 lastModified = lookup.modifiedAt!!,
@@ -184,7 +184,8 @@ class FileDataSource @AssistedInject constructor(
     override suspend fun readChunk(startOffset: Long, size: Long): String = accessMutex.withLock {
         withContext(Dispatchers.IO) {
             // Check if offset is beyond file size
-            val fileSize = _fileInfo.value?.size ?: 0L
+            val source = _contentSource.value as? ContentSource.File
+            val fileSize = source?.size ?: 0L
             if (startOffset >= fileSize) {
                 return@withContext ""
             }
@@ -226,13 +227,13 @@ class FileDataSource @AssistedInject constructor(
 
                         val bytes = buffer.readByteArray()
 
-                        // Get detected charset from FileInfo
-                        val fileInfo = _fileInfo.value
-                        val charset = fileInfo?.detectedCharset ?: Charsets.UTF_8
+                        // Get detected charset from ContentSource.File
+                        val fileSource = _contentSource.value as? ContentSource.File
+                        val charset = fileSource?.detectedCharset ?: Charsets.UTF_8
 
                         // If this is the first chunk (offset 0) and file has BOM, skip BOM bytes
-                        val (contentBytes, skippedBOM) = if (startOffset == 0L && fileInfo?.hasBOM == true && fileInfo.bomBytes != null) {
-                            val bomSize = fileInfo.bomBytes.size
+                        val (contentBytes, skippedBOM) = if (startOffset == 0L && fileSource?.hasBOM == true && fileSource.bomBytes != null) {
+                            val bomSize = fileSource.bomBytes.size
                             if (bytes.size > bomSize) {
                                 bytes.copyOfRange(bomSize, bytes.size) to true
                             } else {
@@ -244,7 +245,7 @@ class FileDataSource @AssistedInject constructor(
                         }
 
                         if (skippedBOM) {
-                            log(tag) { "Skipped ${fileInfo?.bomBytes?.size} byte BOM in first chunk" }
+                            log(tag) { "Skipped ${fileSource?.bomBytes?.size} byte BOM in first chunk" }
                         }
 
                         // Decode bytes using detected charset
@@ -266,7 +267,7 @@ class FileDataSource @AssistedInject constructor(
         }
     }
 
-    override suspend fun getSize(): Long = _fileInfo.value?.size ?: 0L
+    override suspend fun getSize(): Long = _contentSource.value.size
 
     /**
      * Saves dirty chunks to file using atomic write pattern.
@@ -286,7 +287,8 @@ class FileDataSource @AssistedInject constructor(
                 log(tag) { "Saving ${dirtyChunks.size} modified chunks using atomic write" }
 
                 // Get current file info for charset and BOM preservation
-                val fileInfo = _fileInfo.value ?: error("FileInfo not initialized")
+                val fileSource = _contentSource.value as? ContentSource.File
+                    ?: error("ContentSource.File not initialized")
 
                 // Read original file into memory
                 val originalBytes = gatewaySwitch.file(filePath, readWrite = false).use { handle ->
@@ -296,8 +298,8 @@ class FileDataSource @AssistedInject constructor(
                 }
 
                 // Strip BOM from original content before merging (we'll restore it separately)
-                val originalContent = if (fileInfo.hasBOM && fileInfo.bomBytes != null) {
-                    originalBytes.drop(fileInfo.bomBytes.size).toByteArray()
+                val originalContent = if (fileSource.hasBOM && fileSource.bomBytes != null) {
+                    originalBytes.drop(fileSource.bomBytes.size).toByteArray()
                 } else {
                     originalBytes
                 }
@@ -307,7 +309,7 @@ class FileDataSource @AssistedInject constructor(
                     originalContent,
                     dirtyChunks,
                     boundaries,
-                    charset = fileInfo.detectedCharset
+                    charset = fileSource.detectedCharset
                 )
 
                 // Atomic save: write to temp file, then rename
@@ -319,9 +321,9 @@ class FileDataSource @AssistedInject constructor(
                     gatewaySwitch.file(tempPath, readWrite = true).use { handle ->
                         handle.sink().buffer().use { sink ->
                             // Restore BOM if original file had one
-                            if (fileInfo.hasBOM && fileInfo.bomBytes != null) {
-                                sink.write(fileInfo.bomBytes)
-                                log(tag) { "Restored ${fileInfo.bomBytes.size} byte BOM to saved file" }
+                            if (fileSource.hasBOM && fileSource.bomBytes != null) {
+                                sink.write(fileSource.bomBytes)
+                                log(tag) { "Restored ${fileSource.bomBytes.size} byte BOM to saved file" }
                             }
                             sink.write(mergedContent)
                         }
@@ -350,17 +352,17 @@ class FileDataSource @AssistedInject constructor(
                 // Update state
                 _isModified.value = false
 
-                // Update file info with new size (preserve charset and BOM)
+                // Update content source with new size (preserve charset and BOM)
                 val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
-                _fileInfo.value = FileInfo(
+                _contentSource.value = ContentSource.File(
                     path = filePath,
                     size = lookup.size!!,
                     lastModified = lookup.modifiedAt!!,
                     canWrite = true,
-                    lineEnding = fileInfo.lineEnding, // Preserve line ending
-                    detectedCharset = fileInfo.detectedCharset, // Preserve charset
-                    hasBOM = fileInfo.hasBOM, // Preserve BOM flag
-                    bomBytes = fileInfo.bomBytes // Preserve BOM bytes
+                    lineEnding = fileSource.lineEnding, // Preserve line ending
+                    detectedCharset = fileSource.detectedCharset, // Preserve charset
+                    hasBOM = fileSource.hasBOM, // Preserve BOM flag
+                    bomBytes = fileSource.bomBytes // Preserve BOM bytes
                 )
 
             } catch (e: Exception) {
@@ -371,7 +373,7 @@ class FileDataSource @AssistedInject constructor(
     }
 
     override suspend fun close() = accessMutex.withLock {
-        _fileInfo.value = null
+        _contentSource.value = ContentSource.Memory(size = 0L)
         _isModified.value = false
 
         log(tag) { "Closed FileDataSource and released resources" }
