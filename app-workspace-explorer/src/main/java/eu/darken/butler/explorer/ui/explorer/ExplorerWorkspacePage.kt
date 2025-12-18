@@ -413,6 +413,7 @@ fun ExplorerWorkspacePage(
                 focusedItem = focusedItem,
                 viewStyle = mainState.viewStyle,
                 gridColumns = gridColumns,
+                trashEnabled = mainState.trashEnabled,
                 enabled = isWorkspaceFocused,
                 onExecuteAction = { vm?.executeAction(it) },
                 onPaste = { vm?.pasteClipboard(it) },
@@ -429,6 +430,15 @@ fun ExplorerWorkspacePage(
                 onMoveFocusToLast = { vm?.moveFocusToLast() },
                 onActivateFocusedItem = { focusedItem?.let { vm?.navigate(it) } },
                 onRenameFocusedItem = { (focusedItem as? ExplorerItem.Lookup)?.let { vm?.renameFile(it) } },
+                onDeleteFocusedItem = { vm?.deleteFocusedItem() },
+                onPermanentDeleteFocusedItem = {
+                    // If items are selected, permanently delete them; otherwise delete focused item
+                    if (mainState.selectionState.selectedItems.isNotEmpty()) {
+                        vm?.permanentDeleteSelectedItems()
+                    } else {
+                        vm?.deleteFocusedItem(forcePermDelete = true)
+                    }
+                },
             )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
