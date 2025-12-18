@@ -44,6 +44,7 @@
     <string name="workspace_apps_label">Apps</string>
     <string name="workspace_appdetails_label">App details</string>
     <string name="workspace_saver_label">Save as</string>
+    <string name="workspace_sdmaid_label">SD Maid</string>
     <string name="workspace_debug_label">Debug</string>
 
     <!-- Workspace UI Actions -->
