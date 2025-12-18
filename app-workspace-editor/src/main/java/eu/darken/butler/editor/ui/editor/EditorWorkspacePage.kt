@@ -50,6 +50,8 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
+import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
+import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
@@ -477,103 +479,6 @@ private fun EditorLoadingOverlay(
             }
         }
     }
-}
-
-@Composable
-private fun GoToLineDialog(
-    totalLines: Int,
-    onGoToLine: (Int) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var lineNumber by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.editor_dialog_go_to_line_title)) },
-        text = {
-            OutlinedTextField(
-                value = lineNumber,
-                onValueChange = { lineNumber = it.filter { char -> char.isDigit() } },
-                label = { Text(stringResource(R.string.editor_dialog_go_to_line_label, totalLines)) },
-                singleLine = true
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    lineNumber.toIntOrNull()?.let { line ->
-                        if (line in 1..totalLines) {
-                            onGoToLine(line - 1) // Convert to 0-based index
-                        }
-                    }
-                },
-                enabled = lineNumber.toIntOrNull()?.let { it in 1..totalLines } == true
-            ) {
-                Text(stringResource(R.string.editor_dialog_action_go))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.editor_dialog_action_cancel))
-            }
-        }
-    )
-}
-
-@Composable
-private fun SearchDialog(
-    onSearch: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var searchQuery by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.editor_dialog_search_title)) },
-        text = {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text(stringResource(R.string.editor_dialog_search_label)) },
-                singleLine = true
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onSearch(searchQuery) },
-                enabled = searchQuery.isNotEmpty()
-            ) {
-                Text(stringResource(R.string.editor_action_search))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.editor_dialog_action_cancel))
-            }
-        }
-    )
-}
-
-@Composable
-private fun CloseConfirmDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.editor_dialog_close_confirm_title)) },
-        text = { Text(stringResource(R.string.editor_dialog_close_confirm_message)) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.editor_dialog_close_confirm_discard))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.editor_dialog_action_cancel))
-            }
-        }
-    )
 }
 
 @Preview2
