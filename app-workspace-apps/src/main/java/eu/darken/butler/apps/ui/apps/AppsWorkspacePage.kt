@@ -266,6 +266,7 @@ private fun AppsWorkspacePage(
                 userAppsCount = state.userAppsCount,
                 systemAppsCount = state.systemAppsCount,
                 selectedCount = state.selectionCount,
+                onClearSelection = { vm?.onClearSelection() },
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
             )
