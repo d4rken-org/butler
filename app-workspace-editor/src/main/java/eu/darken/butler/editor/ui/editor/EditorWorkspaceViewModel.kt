@@ -19,6 +19,7 @@ import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -213,6 +214,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().deleteAtCursor(count)
     }
 
+    fun deleteForward() = launch {
+        log(tag) { "deleteForward() called" }
+        getWorkspace().deleteForward()
+    }
+
+    fun moveCursor(direction: CursorDirection, extendSelection: Boolean) = launch {
+        log(tag) { "moveCursor(direction=$direction, extendSelection=$extendSelection) called" }
+        getWorkspace().moveCursor(direction, extendSelection)
+    }
+
     fun copyToClipboard() = launch {
         val result = getWorkspace()?.copySelection()
         result?.fold(
@@ -405,8 +416,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Edit.SelectAll -> selectAll()
             is EditorPageAction.Edit.Undo -> undo()
             is EditorPageAction.Edit.Redo -> redo()
+            is EditorPageAction.Edit.ForwardDelete -> deleteForward()
 
             // Navigation actions
+            is EditorPageAction.Navigation.MoveCursor -> moveCursor(action.direction, action.extendSelection)
             is EditorPageAction.Navigation.SetCursor -> setCursorPosition(action.position)
             is EditorPageAction.Navigation.SetSelection -> setSelection(action.start, action.end)
             is EditorPageAction.Navigation.ClearSelection -> setCursorPosition(action.cursorPosition)

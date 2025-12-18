@@ -20,6 +20,7 @@ import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.operations.Operation
@@ -307,6 +308,16 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun setSelection(start: TextPosition, end: TextPosition) = engineHolder.value().setSelection(start, end)
     suspend fun updateVisibleRange(startLine: Int, endLine: Int) =
         engineHolder.value().updateVisibleRange(startLine, endLine)
+
+    suspend fun moveCursor(direction: CursorDirection, extendSelection: Boolean) {
+        log(tag) { "moveCursor(direction=$direction, extendSelection=$extendSelection)" }
+        engineHolder.value().moveCursor(direction, extendSelection)
+    }
+
+    suspend fun deleteForward() {
+        log(tag) { "deleteForward()" }
+        engineHolder.value().deleteForward()
+    }
 
     fun clearError() = runBlocking { engineHolder.value().clearError() }
     fun canUndo() = runBlocking { engineHolder.value().canUndo() }

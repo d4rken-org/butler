@@ -220,6 +220,12 @@ fun EditorWorkspacePage(
                             onVisibleRangeChange = { range ->
                                 onPageAction(EditorPageAction.Navigation.UpdateVisibleRange(range.first, range.last))
                             },
+                            onCursorMove = { direction, extendSelection ->
+                                onPageAction(EditorPageAction.Navigation.MoveCursor(direction, extendSelection))
+                            },
+                            onForwardDelete = {
+                                onPageAction(EditorPageAction.Edit.ForwardDelete)
+                            },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
