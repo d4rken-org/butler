@@ -34,7 +34,8 @@ class SearcherArgumentsSerializationTest : BaseTest() {
 
         serialized.toString().toComparableJson() shouldBe """
             {
-                "type": "arguments"
+                "type": "arguments",
+                "startSearch": false
             }
         """.toComparableJson()
     }
@@ -54,6 +55,7 @@ class SearcherArgumentsSerializationTest : BaseTest() {
         serialized.toString().toComparableJson() shouldBe """
             {
                 "type": "arguments",
+                "startSearch": false,
                 "startTargets": [
                     {
                         "type": "path",

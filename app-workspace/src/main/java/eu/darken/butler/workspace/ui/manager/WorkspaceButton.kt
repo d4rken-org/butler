@@ -59,6 +59,7 @@ fun WorkspaceButton(
     buttonSize: Dp = WORKSPACE_BUTTON_SIZE_DEFAULT,
     currentWorkspaceId: Workspace.Id? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
+    mascotVariant: ButlerMascotMode = ButlerMascotMode.Animated.RandomCycling(),
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showCloseAllDialog by remember { mutableStateOf(false) }
@@ -82,7 +83,7 @@ fun WorkspaceButton(
 
             ButlerMascot(
                 modifier = Modifier.size(iconSize),
-                variant = ButlerMascotMode.Animated.RandomCycling(),
+                variant = mascotVariant,
             )
         }
 
