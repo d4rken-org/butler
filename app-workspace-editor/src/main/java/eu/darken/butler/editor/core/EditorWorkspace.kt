@@ -342,14 +342,7 @@ class EditorWorkspace @AssistedInject constructor(
         val error: Throwable? = null,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false
-    ) {
-        val hasFile: Boolean get() = fileInfo != null
-        val fileName: String get() = fileInfo?.path?.name ?: "Untitled"
-        val hasSelection: Boolean get() = selectionRange != null
-        val hasSearchResults: Boolean get() = searchResults.isNotEmpty()
-        val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
-        val hasError: Boolean get() = error != null
-    }
+    )
 
     @AssistedFactory
     interface Factory : WorkspaceFactory<EditorArguments> {
