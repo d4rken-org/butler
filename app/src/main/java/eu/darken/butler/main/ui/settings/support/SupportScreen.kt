@@ -28,7 +28,7 @@ import eu.darken.butler.common.ButlerLinks
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.Discord
-import eu.darken.butler.common.debug.recorder.ui.RecorderConsentDialog
+import eu.darken.butler.common.debug.recorder.ui.result.RecorderConsentDialog
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.SettingsCategoryHeader

@@ -1,4 +1,4 @@
-package eu.darken.butler.common.debug.recorder.ui
+package eu.darken.butler.common.debug.recorder.ui.result
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

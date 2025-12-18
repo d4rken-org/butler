@@ -107,6 +107,10 @@
     <string name="debug_log_screen_log_files_ready">Log files ready (ZIP: %1$s)</string>
     <string name="debug_log_screen_discard_action">Discard</string>
     <string name="debug_log_file_label">Recorded log file</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">Recording logfile</string>
+    <string name="debug_banner_stop_action">Stop</string>
+    <string name="debug_banner_explanation">Recording app activity. Stop when done, then share the log when reporting bugs.</string>
 
     <string name="settings_label">Settings</string>
     <string name="settings_category_tools_label">Tools</string>
