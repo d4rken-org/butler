@@ -1,5 +1,8 @@
 package eu.darken.butler.explorer.ui.explorer.util
 
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.listSaver
+
 /**
  * Immutable state holder for keyboard focus navigation.
  * Handles focus movement through list/grid items with wrap-around behavior.
@@ -8,6 +11,12 @@ data class FocusNavigationState(
     val focusedIndex: Int? = null,
     val itemCount: Int = 0,
 ) {
+    companion object {
+        val Saver: Saver<FocusNavigationState, *> = listSaver(
+            save = { listOf(it.focusedIndex, it.itemCount) },
+            restore = { FocusNavigationState(focusedIndex = it[0] as Int?, itemCount = it[1] as Int) },
+        )
+    }
     val hasFocus: Boolean get() = focusedIndex != null
 
     fun moveFocusUp(): FocusNavigationState {

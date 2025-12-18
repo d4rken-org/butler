@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -135,8 +136,10 @@ fun ExplorerWorkspacePage(
     val gridState = rememberLazyGridState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Local focus state for keyboard navigation (purely UI concern)
-    var focusState by remember { mutableStateOf(FocusNavigationState()) }
+    // Local focus state for keyboard navigation (survives rotation)
+    var focusState by rememberSaveable(stateSaver = FocusNavigationState.Saver) {
+        mutableStateOf(FocusNavigationState())
+    }
 
     // Track actual measured height of the toolbar card
     val density = LocalDensity.current
@@ -256,9 +259,10 @@ fun ExplorerWorkspacePage(
     }
 
     // Update focus state when items change (reset on navigation, adjust if items removed)
+    // Skip when items is null to avoid clearing restored focus state before data loads
     LaunchedEffect(mainState.locationId, mainState.items?.size) {
-        val newCount = mainState.items?.size ?: 0
-        focusState = focusState.updateItemCount(newCount)
+        val items = mainState.items ?: return@LaunchedEffect
+        focusState = focusState.updateItemCount(items.size)
     }
 
     // Handle reveal requests (scroll to and highlight item)
