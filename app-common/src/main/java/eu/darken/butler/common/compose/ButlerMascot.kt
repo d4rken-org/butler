@@ -15,7 +15,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.LottieComposition
 import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec.RawRes
+import com.airbnb.lottie.compose.LottieCompositionSpec.*
 import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
 import eu.darken.butler.common.R

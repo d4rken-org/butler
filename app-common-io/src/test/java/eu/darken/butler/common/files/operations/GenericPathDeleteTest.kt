@@ -6,7 +6,6 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
-import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -852,7 +851,7 @@ class GenericPathDeleteTest : BaseTest() {
             recursive = true,
             ignoreMissing = false,
             onIssue = { issue ->
-                when (issue){
+                when (issue) {
                     is PathActionIssue.InsufficientPermission -> {
                         PathActionIssue.InsufficientPermission.Resolution.Skip()
                     }
@@ -891,7 +890,7 @@ class GenericPathDeleteTest : BaseTest() {
             ignoreMissing = false,
             onIssue = { issue ->
                 issueCount++
-                when (issue){
+                when (issue) {
                     is PathActionIssue.InsufficientPermission -> {
                         PathActionIssue.InsufficientPermission.Resolution.Skip(applyToAll = true)
                     }
@@ -919,7 +918,7 @@ class GenericPathDeleteTest : BaseTest() {
             recursive = true,
             ignoreMissing = false,
             onIssue = { issue ->
-                when (issue){
+                when (issue) {
                     is PathActionIssue.UnknownError -> {
                         PathActionIssue.UnknownError.Resolution.Skip()
                     }
@@ -958,7 +957,7 @@ class GenericPathDeleteTest : BaseTest() {
             ignoreMissing = false,
             onIssue = { issue ->
                 issueCount++
-                when (issue){
+                when (issue) {
                     is PathActionIssue.UnknownError -> {
                         PathActionIssue.UnknownError.Resolution.Skip(applyToAll = true)
                     }

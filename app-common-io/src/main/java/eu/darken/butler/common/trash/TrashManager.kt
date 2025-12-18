@@ -1,5 +1,6 @@
 package eu.darken.butler.common.trash
 
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -16,9 +17,8 @@ import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.extensions.delete
 import eu.darken.butler.common.files.extensions.move
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.common.storage.StorageEnvironment
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.common.storage.StorageEnvironment
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow

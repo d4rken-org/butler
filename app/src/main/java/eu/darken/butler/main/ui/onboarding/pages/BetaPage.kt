@@ -32,12 +32,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.main.ui.onboarding.components.OnboardingContentWrapper
 import eu.darken.butler.main.ui.onboarding.components.OnboardingInfoCard
 import eu.darken.butler.main.ui.onboarding.components.OnboardingPageHeader
 
@@ -51,12 +50,13 @@ internal fun BetaPage(
     LaunchedEffect(Unit) {
         isVisible = true
     }
-    
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp)
-    ) {
+
+    OnboardingContentWrapper {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp)
+        ) {
         AnimatedVisibility(
             visible = isVisible,
             enter = fadeIn(
@@ -163,6 +163,7 @@ internal fun BetaPage(
             ) {
                 Text(text = stringResource(R.string.onboarding_beta_action))
             }
+        }
         }
     }
 }

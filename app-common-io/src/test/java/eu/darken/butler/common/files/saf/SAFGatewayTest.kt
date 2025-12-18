@@ -5,8 +5,8 @@ import io.mockk.mockk
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
-import testhelpers.EmptyApp
 import testhelpers.BaseTest
+import testhelpers.EmptyApp
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
 

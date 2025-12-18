@@ -18,8 +18,8 @@ import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.core.engine.SortSettings
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag

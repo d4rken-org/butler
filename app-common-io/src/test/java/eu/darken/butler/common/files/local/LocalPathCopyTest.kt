@@ -1552,57 +1552,58 @@ class LocalPathCopyTest : BaseTest() {
     }
 
     @Test
-    fun `directory skip with apply to all should skip all directories and their contents`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - source directories with files
-        val source1 = File(sourceFolder, "Dir1")
-        source1.mkdir()
-        File(source1, "file1.txt").writeText("new1")
+    fun `directory skip with apply to all should skip all directories and their contents`(@TempDir tempDir: File) =
+        runTest {
+            val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+            val destFolder = File(tempDir, "dest").apply { mkdirs() }
+            // Given - source directories with files
+            val source1 = File(sourceFolder, "Dir1")
+            source1.mkdir()
+            File(source1, "file1.txt").writeText("new1")
 
-        val source2 = File(sourceFolder, "Dir2")
-        source2.mkdir()
-        File(source2, "file2.txt").writeText("new2")
+            val source2 = File(sourceFolder, "Dir2")
+            source2.mkdir()
+            File(source2, "file2.txt").writeText("new2")
 
-        // Destination has these directories
-        val dest1 = File(destFolder, "Dir1")
-        dest1.mkdir()
-        File(dest1, "old1.txt").writeText("old1")
+            // Destination has these directories
+            val dest1 = File(destFolder, "Dir1")
+            dest1.mkdir()
+            File(dest1, "old1.txt").writeText("old1")
 
-        val dest2 = File(destFolder, "Dir2")
-        dest2.mkdir()
-        File(dest2, "old2.txt").writeText("old2")
+            val dest2 = File(destFolder, "Dir2")
+            dest2.mkdir()
+            File(dest2, "old2.txt").writeText("old2")
 
-        // When - copy with skip apply-to-all
-        val issuesEncountered = mutableListOf<PathActionIssue>()
-        val result = listOf(LocalPath.build(source1), LocalPath.build(source2)).copy(
-            ops,
-            LocalPath.build(destFolder),
-            onIssue = { issue ->
-                issuesEncountered.add(issue)
-                when (issue) {
-                    is PathActionIssue.PathAlreadyExists -> {
-                        PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
+            // When - copy with skip apply-to-all
+            val issuesEncountered = mutableListOf<PathActionIssue>()
+            val result = listOf(LocalPath.build(source1), LocalPath.build(source2)).copy(
+                ops,
+                LocalPath.build(destFolder),
+                onIssue = { issue ->
+                    issuesEncountered.add(issue)
+                    when (issue) {
+                        is PathActionIssue.PathAlreadyExists -> {
+                            PathActionIssue.PathAlreadyExists.Resolution.Skip(applyToAll = true)
+                        }
+
+                        else -> throw AssertionError("Unexpected issue: $issue")
                     }
-
-                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            }
-        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-        // Then - only asked once
-        issuesEncountered shouldHaveSize 1
+            // Then - only asked once
+            issuesEncountered shouldHaveSize 1
 
-        // Nothing copied, directories and their contents skipped (cascading skip)
-        result.copied.isEmpty() shouldBe true
-        result.skipped shouldHaveSize 4 // 2 directories + 2 files inside them
+            // Nothing copied, directories and their contents skipped (cascading skip)
+            result.copied.isEmpty() shouldBe true
+            result.skipped shouldHaveSize 4 // 2 directories + 2 files inside them
 
-        // Old files still exist, new files don't
-        File(destFolder, "Dir1/old1.txt").exists() shouldBe true
-        File(destFolder, "Dir1/file1.txt").exists() shouldBe false
-        File(destFolder, "Dir2/old2.txt").exists() shouldBe true
-        File(destFolder, "Dir2/file2.txt").exists() shouldBe false
-    }
+            // Old files still exist, new files don't
+            File(destFolder, "Dir1/old1.txt").exists() shouldBe true
+            File(destFolder, "Dir1/file1.txt").exists() shouldBe false
+            File(destFolder, "Dir2/old2.txt").exists() shouldBe true
+            File(destFolder, "Dir2/file2.txt").exists() shouldBe false
+        }
 
     @Test
     fun `directory overwrite should remove existing directory content`(@TempDir tempDir: File) = runTest {
@@ -1782,7 +1783,12 @@ class LocalPathCopyTest : BaseTest() {
         // Then - old file unchanged, new file copied with new name
         File(destFolder, "file.txt").readText() shouldBe "old content"
         File(destFolder, "file (1).txt").readText() shouldBe "new content"
-        result.copied shouldContainPath (LocalPath.build(sourceFile) to LocalPath.build(File(destFolder, "file (1).txt")))
+        result.copied shouldContainPath (LocalPath.build(sourceFile) to LocalPath.build(
+            File(
+                destFolder,
+                "file (1).txt"
+            )
+        ))
     }
 
     @Test
@@ -1858,74 +1864,76 @@ class LocalPathCopyTest : BaseTest() {
     }
 
     @Test
-    fun `file-directory conflict rename destination should move file and create directory`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - source directory but destination has a file with same name
-        val sourceDir = File(sourceFolder, "Item")
-        sourceDir.mkdir()
-        File(sourceDir, "content.txt").writeText("content")
+    fun `file-directory conflict rename destination should move file and create directory`(@TempDir tempDir: File) =
+        runTest {
+            val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+            val destFolder = File(tempDir, "dest").apply { mkdirs() }
+            // Given - source directory but destination has a file with same name
+            val sourceDir = File(sourceFolder, "Item")
+            sourceDir.mkdir()
+            File(sourceDir, "content.txt").writeText("content")
 
-        val destFile = File(destFolder, "Item")
-        destFile.writeText("blocking file")
+            val destFile = File(destFolder, "Item")
+            destFile.writeText("blocking file")
 
-        // When - rename destination
-        val result = LocalPath.build(sourceDir).copy(
-            ops,
-            LocalPath.build(destFolder),
-            onIssue = { issue ->
-                when (issue) {
-                    is PathActionIssue.PathAlreadyExists -> {
-                        PathActionIssue.PathAlreadyExists.Resolution.RenameDestination("Item (1)")
+            // When - rename destination
+            val result = LocalPath.build(sourceDir).copy(
+                ops,
+                LocalPath.build(destFolder),
+                onIssue = { issue ->
+                    when (issue) {
+                        is PathActionIssue.PathAlreadyExists -> {
+                            PathActionIssue.PathAlreadyExists.Resolution.RenameDestination("Item (1)")
+                        }
+
+                        else -> throw AssertionError("Unexpected issue: $issue")
                     }
-
-                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            }
-        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-        // Then - file renamed, directory created with original name
-        File(destFolder, "Item").isDirectory shouldBe true
-        File(destFolder, "Item/content.txt").exists() shouldBe true
-        File(destFolder, "Item (1)").isFile shouldBe true
-        File(destFolder, "Item (1)").readText() shouldBe "blocking file"
-        result.copied shouldHaveSize 2 // directory + file
-    }
+            // Then - file renamed, directory created with original name
+            File(destFolder, "Item").isDirectory shouldBe true
+            File(destFolder, "Item/content.txt").exists() shouldBe true
+            File(destFolder, "Item (1)").isFile shouldBe true
+            File(destFolder, "Item (1)").readText() shouldBe "blocking file"
+            result.copied shouldHaveSize 2 // directory + file
+        }
 
     @Test
-    fun `file-directory conflict rename source should create directory with new name`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - source directory but destination has a file with same name
-        val sourceDir = File(sourceFolder, "Item")
-        sourceDir.mkdir()
-        File(sourceDir, "content.txt").writeText("content")
+    fun `file-directory conflict rename source should create directory with new name`(@TempDir tempDir: File) =
+        runTest {
+            val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+            val destFolder = File(tempDir, "dest").apply { mkdirs() }
+            // Given - source directory but destination has a file with same name
+            val sourceDir = File(sourceFolder, "Item")
+            sourceDir.mkdir()
+            File(sourceDir, "content.txt").writeText("content")
 
-        val destFile = File(destFolder, "Item")
-        destFile.writeText("blocking file")
+            val destFile = File(destFolder, "Item")
+            destFile.writeText("blocking file")
 
-        // When - rename source
-        val result = LocalPath.build(sourceDir).copy(
-            ops,
-            LocalPath.build(destFolder),
-            onIssue = { issue ->
-                when (issue) {
-                    is PathActionIssue.PathAlreadyExists -> {
-                        PathActionIssue.PathAlreadyExists.Resolution.RenameSource("Item (1)")
+            // When - rename source
+            val result = LocalPath.build(sourceDir).copy(
+                ops,
+                LocalPath.build(destFolder),
+                onIssue = { issue ->
+                    when (issue) {
+                        is PathActionIssue.PathAlreadyExists -> {
+                            PathActionIssue.PathAlreadyExists.Resolution.RenameSource("Item (1)")
+                        }
+
+                        else -> throw AssertionError("Unexpected issue: $issue")
                     }
-
-                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            }
-        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-        // Then - file unchanged, directory created with new name
-        File(destFolder, "Item").isFile shouldBe true
-        File(destFolder, "Item").readText() shouldBe "blocking file"
-        File(destFolder, "Item (1)").isDirectory shouldBe true
-        File(destFolder, "Item (1)/content.txt").exists() shouldBe true
-        result.copied shouldHaveSize 2 // directory + file
-    }
+            // Then - file unchanged, directory created with new name
+            File(destFolder, "Item").isFile shouldBe true
+            File(destFolder, "Item").readText() shouldBe "blocking file"
+            File(destFolder, "Item (1)").isDirectory shouldBe true
+            File(destFolder, "Item (1)/content.txt").exists() shouldBe true
+            result.copied shouldHaveSize 2 // directory + file
+        }
 
     @Test
     fun `issue should provide suggested name for conflicts`(@TempDir tempDir: File) = runTest {
@@ -2132,49 +2140,50 @@ class LocalPathCopyTest : BaseTest() {
     }
 
     @Test
-    fun `copy symlink to directory with followSymlinks true should copy directory contents`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - symlink pointing to a directory with contents
-        val targetDir = File(sourceFolder, "targetDir")
-        targetDir.mkdir()
-        File(targetDir, "file.txt").writeText("content")
+    fun `copy symlink to directory with followSymlinks true should copy directory contents`(@TempDir tempDir: File) =
+        runTest {
+            val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+            val destFolder = File(tempDir, "dest").apply { mkdirs() }
+            // Given - symlink pointing to a directory with contents
+            val targetDir = File(sourceFolder, "targetDir")
+            targetDir.mkdir()
+            File(targetDir, "file.txt").writeText("content")
 
-        val linkDir = File(sourceFolder, "linkDir")
+            val linkDir = File(sourceFolder, "linkDir")
 
-        // Create symlink with relative path
-        Files.createSymbolicLink(
-            linkDir.toPath(),
-            java.nio.file.Paths.get("targetDir")
-        )
+            // Create symlink with relative path
+            Files.createSymbolicLink(
+                linkDir.toPath(),
+                java.nio.file.Paths.get("targetDir")
+            )
 
-        // Only proceed if symlink was actually created
-        if (!Files.isSymbolicLink(linkDir.toPath())) {
-            return@runTest
+            // Only proceed if symlink was actually created
+            if (!Files.isSymbolicLink(linkDir.toPath())) {
+                return@runTest
+            }
+
+            val sourcePath = LocalPath.build(linkDir)
+            val destPath = LocalPath.build(destFolder)
+
+            // When - copy with followSymlinks = true
+            val result = sourcePath.copy(
+                ops,
+                destPath,
+                options = CopyAction.Options(followSymlinks = true)
+            ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+            // Then - directory and its contents should be copied (not as symlink)
+            val copiedDir = File(destFolder, "linkDir")
+            copiedDir.exists() shouldBe true
+            copiedDir.isDirectory shouldBe true
+            Files.isSymbolicLink(copiedDir.toPath()) shouldBe false // Not a link
+
+            val copiedFile = File(copiedDir, "file.txt")
+            copiedFile.exists() shouldBe true
+            copiedFile.readText() shouldBe "content"
+
+            result.copied shouldHaveSize 2 // Directory + file
         }
-
-        val sourcePath = LocalPath.build(linkDir)
-        val destPath = LocalPath.build(destFolder)
-
-        // When - copy with followSymlinks = true
-        val result = sourcePath.copy(
-            ops,
-            destPath,
-            options = CopyAction.Options(followSymlinks = true)
-        ).last() as CopyAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
-
-        // Then - directory and its contents should be copied (not as symlink)
-        val copiedDir = File(destFolder, "linkDir")
-        copiedDir.exists() shouldBe true
-        copiedDir.isDirectory shouldBe true
-        Files.isSymbolicLink(copiedDir.toPath()) shouldBe false // Not a link
-
-        val copiedFile = File(copiedDir, "file.txt")
-        copiedFile.exists() shouldBe true
-        copiedFile.readText() shouldBe "content"
-
-        result.copied shouldHaveSize 2 // Directory + file
-    }
 
     @Test
     fun `copy broken symlink with followSymlinks false should preserve symlink`(@TempDir tempDir: File) = runTest {

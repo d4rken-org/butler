@@ -6,9 +6,7 @@ import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -26,9 +24,9 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement

@@ -4,7 +4,6 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.permissions.core.PathRequirements
-import kotlin.uuid.Uuid
 
 sealed interface ExplorerLocation {
     val locationId: String

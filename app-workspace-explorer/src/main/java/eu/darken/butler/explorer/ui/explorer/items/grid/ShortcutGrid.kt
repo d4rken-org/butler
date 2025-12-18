@@ -1,6 +1,5 @@
 package eu.darken.butler.explorer.ui.explorer.items.grid
 
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material3.MaterialTheme

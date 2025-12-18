@@ -1,7 +1,6 @@
 package eu.darken.butler.explorer.core.picker
 
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.core.picker.PickerConfig
 
 /**
  * Evaluates [PickerConstraint] against [ExplorerItem].

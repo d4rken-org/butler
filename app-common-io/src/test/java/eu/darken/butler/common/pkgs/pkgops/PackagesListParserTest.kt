@@ -173,7 +173,8 @@ class PackagesListParserTest : BaseTest() {
     fun `parseLine() with system UID 1073 is filtered`() {
         // Given
         val parser = PackagesListParser()
-        val line = "com.google.android.networkstack.tethering 1073 0 /data/user_de/0/com.google.android.networkstack.tethering network_stack:privapp none"
+        val line =
+            "com.google.android.networkstack.tethering 1073 0 /data/user_de/0/com.google.android.networkstack.tethering network_stack:privapp none"
 
         // When
         val result = parser.parseLine(line)

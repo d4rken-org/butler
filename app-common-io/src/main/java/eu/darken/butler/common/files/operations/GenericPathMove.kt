@@ -334,7 +334,8 @@ internal class GenericPathMove<
                         // during recursive fallback (parent CreateDirectory is queued but not yet executed)
                         val destParent = destPath.parent
                         val parentExists = if (destParent != null) {
-                            val parentLookup = destOps.lookup(destParent, LookupOptions.BASE.copy(fallbackToUnknown = true))
+                            val parentLookup =
+                                destOps.lookup(destParent, LookupOptions.BASE.copy(fallbackToUnknown = true))
                             parentLookup.fileType == FileType.DIRECTORY
                         } else true
 

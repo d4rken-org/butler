@@ -9,13 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.twotone.ListAlt
 import androidx.compose.material.icons.twotone.Favorite
-import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.PrivacyTip
-import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Stars
-import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Icon
@@ -27,7 +24,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ButlerLinks
@@ -36,8 +35,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.NavigationDestination
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
@@ -62,6 +61,7 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
             onNavigateUp = { vm.navUp() },
             onNavigateTo = { vm.navTo(it) },
             onOpenUrl = { vm.openUrl(it) },
+            onOpenSDMaidInstall = { vm.openSDMaidInstall() },
         )
     }
 }
@@ -72,6 +72,7 @@ fun SettingsIndexScreen(
     onNavigateUp: () -> Unit,
     onNavigateTo: (NavigationDestination) -> Unit,
     onOpenUrl: (String) -> Unit,
+    onOpenSDMaidInstall: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -138,36 +139,6 @@ fun SettingsIndexScreen(
                     title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_title),
                     subtitle = stringResource(R.string.workspace_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.workspaces()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.PushPin,
-                    title = stringResource(R.string.shortcuts_settings_title),
-                    subtitle = stringResource(R.string.shortcuts_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.shortcuts()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.Storage,
-                    title = stringResource(R.string.storage_settings_title),
-                    subtitle = stringResource(R.string.storage_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.storage()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.FolderOpen,
-                    title = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_settings_title),
-                    subtitle = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.providerDocuments()) },
                 )
                 SettingsDivider()
             }
@@ -254,6 +225,20 @@ fun SettingsIndexScreen(
                     onClick = { onOpenUrl(ButlerLinks.PRIVACY_POLICY) },
                 )
             }
+
+            if (!state.isSDMaidInstalled) {
+                item {
+                    SettingsDivider()
+                    SettingsBaseItem(
+                        iconPainter = painterResource(R.drawable.sdmaid_mascot),
+                        iconTinted = false,
+                        iconSize = 32.dp,
+                        title = stringResource(R.string.settings_sdmaid_label),
+                        subtitle = stringResource(R.string.settings_sdmaid_description),
+                        onClick = onOpenSDMaidInstall,
+                    )
+                }
+            }
         }
     }
 }
@@ -264,11 +249,13 @@ private fun SettingsScreenPreview() {
     PreviewWrapper {
         SettingsIndexScreen(
             state = SettingsViewModel.State(
-                isUpgraded = true // TODO: Preview with upgrade status
+                isUpgraded = true,
+                isSDMaidInstalled = false,
             ),
             onNavigateUp = {},
             onNavigateTo = {},
             onOpenUrl = {},
+            onOpenSDMaidInstall = {},
         )
     }
 }

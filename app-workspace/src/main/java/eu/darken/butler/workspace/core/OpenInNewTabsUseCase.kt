@@ -1,7 +1,5 @@
 package eu.darken.butler.workspace.core
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
-import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -100,18 +98,22 @@ class OpenInNewTabsUseCase @Inject constructor() {
         return buildList {
             // Create Explorer workspace requests for directories
             analysis.directoriesToOpen.forEach { path ->
-                add(WorkspaceAction.Create(
-                    type = Workspace.Type.EXPLORER,
-                    arguments = createExplorerArguments(path),
-                ))
+                add(
+                    WorkspaceAction.Create(
+                        type = Workspace.Type.EXPLORER,
+                        arguments = createExplorerArguments(path),
+                    )
+                )
             }
 
             // Create Editor workspace requests for text files
             analysis.textFilesToOpen.forEach { path ->
-                add(WorkspaceAction.Create(
-                    type = Workspace.Type.EDITOR,
-                    arguments = createEditorArguments(path),
-                ))
+                add(
+                    WorkspaceAction.Create(
+                        type = Workspace.Type.EDITOR,
+                        arguments = createEditorArguments(path),
+                    )
+                )
             }
         }
     }

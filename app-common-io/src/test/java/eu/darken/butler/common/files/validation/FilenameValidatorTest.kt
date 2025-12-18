@@ -1,7 +1,6 @@
 package eu.darken.butler.common.files.validation
 
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.SAFPath
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test

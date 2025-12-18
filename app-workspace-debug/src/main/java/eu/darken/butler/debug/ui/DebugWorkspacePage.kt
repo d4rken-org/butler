@@ -41,7 +41,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.debug.R
-import eu.darken.butler.debug.ui.DebugWorkspaceViewModel.DebugTab
+import eu.darken.butler.debug.ui.DebugWorkspaceViewModel.*
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
@@ -240,7 +240,8 @@ private fun OptionsSection(
                         items = listOf(
                             stringResource(R.string.debug_options_root_installed_label) to result.isInstalled.toResultString(),
                             stringResource(R.string.debug_options_root_available_label) to result.isRooted.toResultString(),
-                            stringResource(R.string.debug_options_root_base_check_label) to (result.baseCheck ?: stringResource(R.string.debug_options_result_no)),
+                            stringResource(R.string.debug_options_root_base_check_label) to (result.baseCheck
+                                ?: stringResource(R.string.debug_options_result_no)),
                         ),
                         isSuccess = result.isRooted,
                     )
@@ -406,8 +407,14 @@ private fun SystemInfoSection(systemInfo: DebugWorkspaceViewModel.SystemInfo) {
         item {
             SectionCard(title = stringResource(R.string.debug_system_device_header)) {
                 InfoRow(label = stringResource(R.string.debug_system_device_model), value = systemInfo.deviceModel)
-                InfoRow(label = stringResource(R.string.debug_system_device_manufacturer), value = systemInfo.deviceManufacturer)
-                InfoRow(label = stringResource(R.string.debug_system_device_api), value = systemInfo.apiLevel.toString())
+                InfoRow(
+                    label = stringResource(R.string.debug_system_device_manufacturer),
+                    value = systemInfo.deviceManufacturer
+                )
+                InfoRow(
+                    label = stringResource(R.string.debug_system_device_api),
+                    value = systemInfo.apiLevel.toString()
+                )
             }
         }
 
@@ -415,7 +422,10 @@ private fun SystemInfoSection(systemInfo: DebugWorkspaceViewModel.SystemInfo) {
         item {
             SectionCard(title = stringResource(R.string.debug_system_build_header)) {
                 InfoRow(label = stringResource(R.string.debug_system_build_version), value = systemInfo.versionName)
-                InfoRow(label = stringResource(R.string.debug_system_build_code), value = systemInfo.versionCode.toString())
+                InfoRow(
+                    label = stringResource(R.string.debug_system_build_code),
+                    value = systemInfo.versionCode.toString()
+                )
                 InfoRow(label = stringResource(R.string.debug_system_build_flavor), value = systemInfo.flavor)
                 InfoRow(label = stringResource(R.string.debug_system_build_type), value = systemInfo.buildType)
                 InfoRow(label = stringResource(R.string.debug_system_build_git), value = systemInfo.gitSha)
@@ -425,7 +435,10 @@ private fun SystemInfoSection(systemInfo: DebugWorkspaceViewModel.SystemInfo) {
         // Memory Section
         item {
             SectionCard(title = stringResource(R.string.debug_system_memory_header)) {
-                InfoRow(label = stringResource(R.string.debug_system_memory_available), value = systemInfo.memoryAvailable)
+                InfoRow(
+                    label = stringResource(R.string.debug_system_memory_available),
+                    value = systemInfo.memoryAvailable
+                )
                 InfoRow(label = stringResource(R.string.debug_system_memory_total), value = systemInfo.memoryTotal)
             }
         }

@@ -3,7 +3,6 @@ package eu.darken.butler.common.files.local.ipc
 import android.os.Parcel
 import android.os.Parcelable
 import eu.darken.butler.common.files.local.LocalPathLookup
-import eu.darken.butler.common.hasApiLevel
 import kotlinx.parcelize.Parcelize
 
 /**

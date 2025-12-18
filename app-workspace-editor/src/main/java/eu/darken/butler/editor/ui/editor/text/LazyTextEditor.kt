@@ -5,20 +5,34 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.foundation.rememberScrollState
-import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -26,13 +40,11 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalFocusManager
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -55,8 +67,10 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import eu.darken.butler.editor.core.engine.TextPosition
-import kotlinx.coroutines.launch
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 
 private val tag = logTag("Editor", "LazyTextEditor")
 
@@ -102,7 +116,10 @@ fun LazyTextEditor(
     // not clear focus globally (which would break focus transfer to other workspaces)
     LaunchedEffect(isWorkspaceFocused) {
         if (!isWorkspaceFocused) {
-            try { focusRequester.freeFocus() } catch (_: Exception) {}
+            try {
+                focusRequester.freeFocus()
+            } catch (_: Exception) {
+            }
         }
     }
     val horizontalScrollState = rememberScrollState()
@@ -121,7 +138,7 @@ fun LazyTextEditor(
         )
         measured.size.width.toFloat()
     }
-    
+
     // Update visible range when scroll position changes
     LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size) {
         if (totalLines > 0 && contentListState.layoutInfo.totalItemsCount > 0) {
@@ -254,7 +271,10 @@ private fun DualColumnEditorContent(
     // not clear focus globally (which would break focus transfer to other workspaces)
     LaunchedEffect(isWorkspaceFocused) {
         if (!isWorkspaceFocused) {
-            try { focusRequester.freeFocus() } catch (_: Exception) {}
+            try {
+                focusRequester.freeFocus()
+            } catch (_: Exception) {
+            }
         }
     }
 
@@ -314,7 +334,8 @@ private fun DualColumnEditorContent(
     // Synchronize vertical scrolling between line numbers and content
     LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.firstVisibleItemScrollOffset) {
         if (lineNumbersListState.firstVisibleItemIndex != contentListState.firstVisibleItemIndex ||
-            lineNumbersListState.firstVisibleItemScrollOffset != contentListState.firstVisibleItemScrollOffset) {
+            lineNumbersListState.firstVisibleItemScrollOffset != contentListState.firstVisibleItemScrollOffset
+        ) {
             try {
                 lineNumbersListState.scrollToItem(
                     contentListState.firstVisibleItemIndex,
@@ -328,7 +349,8 @@ private fun DualColumnEditorContent(
 
     LaunchedEffect(lineNumbersListState.firstVisibleItemIndex, lineNumbersListState.firstVisibleItemScrollOffset) {
         if (contentListState.firstVisibleItemIndex != lineNumbersListState.firstVisibleItemIndex ||
-            contentListState.firstVisibleItemScrollOffset != lineNumbersListState.firstVisibleItemScrollOffset) {
+            contentListState.firstVisibleItemScrollOffset != lineNumbersListState.firstVisibleItemScrollOffset
+        ) {
             try {
                 contentListState.scrollToItem(
                     lineNumbersListState.firstVisibleItemIndex,
@@ -449,7 +471,7 @@ private fun DualColumnEditorContent(
             keyboardActions = KeyboardActions(),
             decorationBox = { _ -> }
         )
-        
+
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -683,7 +705,8 @@ private fun DualColumnEditorContent(
                     if (result != null) {
                         // Update selection start, keep end fixed
                         val (newStart, newEnd) = if (result.position.line < end.line ||
-                            (result.position.line == end.line && result.position.column < end.column)) {
+                            (result.position.line == end.line && result.position.column < end.column)
+                        ) {
                             result.position to end
                         } else {
                             end to result.position
@@ -719,7 +742,8 @@ private fun DualColumnEditorContent(
                     if (result != null) {
                         // Update selection end, keep start fixed
                         val (newStart, newEnd) = if (result.position.line > start.line ||
-                            (result.position.line == start.line && result.position.column > start.column)) {
+                            (result.position.line == start.line && result.position.column > start.column)
+                        ) {
                             start to result.position
                         } else {
                             result.position to start

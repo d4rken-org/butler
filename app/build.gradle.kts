@@ -114,8 +114,8 @@ android {
 
         if (listOf("release", "beta").any { variantName.lowercase().contains(it) }) {
             val outputFileName = projectConfig.packageName +
-                    "-v${defaultConfig.versionName}-${defaultConfig.versionCode}" +
-                    "-${variantName.uppercase()}.apk"
+                "-v${defaultConfig.versionName}-${defaultConfig.versionCode}" +
+                "-${variantName.uppercase()}.apk"
 
             variantOutputImpl.outputFileName = outputFileName
         }
@@ -194,6 +194,7 @@ dependencies {
     implementation(project(":app-workspace-templates"))
     implementation(project(":app-workspace-apps"))
     implementation(project(":app-workspace-saver"))
+    implementation(project(":app-workspace-sdmaid"))
     implementation(project(":app-workspace-debug"))
     implementation(project(":app-provider-documents"))
 

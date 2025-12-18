@@ -39,6 +39,7 @@ fun MyAppTheme(state: ThemeState = ThemeState(), content: @Composable () -> Unit
 
     // Memoize color scheme to avoid recalculation on every recomposition
     val context = LocalContext.current
+
     @SuppressLint("NewApi")
     val colors = remember(state, darkTheme, dynamicColors) {
         when {

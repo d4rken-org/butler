@@ -5,16 +5,15 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.editor.R
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.combine
+import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
@@ -295,7 +294,9 @@ class EditorWorkspace @AssistedInject constructor(
         }
     }
 
-    suspend fun search(query: String, caseSensitive: Boolean = false) = engineHolder.value().search(query, caseSensitive)
+    suspend fun search(query: String, caseSensitive: Boolean = false) =
+        engineHolder.value().search(query, caseSensitive)
+
     suspend fun goToLine(lineNumber: Int) = engineHolder.value().goToLine(lineNumber)
     suspend fun undo() = engineHolder.value().undo()
     suspend fun redo() = engineHolder.value().redo()

@@ -3,7 +3,6 @@ package eu.darken.butler.explorer.core.operations
 import android.text.format.Formatter.*
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
@@ -36,7 +35,10 @@ data class MoveOperationReport(
             }
             if (skipped.isNotEmpty()) {
                 append(
-                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_skipped_items, skipped.size)
+                    it.getQuantityString2(
+                        eu.darken.butler.workspace.R.plurals.workspace_operation_report_skipped_items,
+                        skipped.size
+                    )
                 )
                 append(" ")
             }

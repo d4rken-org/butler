@@ -3,9 +3,7 @@ package eu.darken.butler.provider.documents.core.writer
 import android.content.Context
 import android.provider.DocumentsContract
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -134,7 +132,10 @@ class DocumentMover @Inject constructor(
         sourceParentDocumentId: String,
         targetParentDocumentId: String
     ): String {
-        log(TAG, INFO) { "moveDocument(source=$sourceDocumentId, sourceParent=$sourceParentDocumentId, target=$targetParentDocumentId)" }
+        log(
+            TAG,
+            INFO
+        ) { "moveDocument(source=$sourceDocumentId, sourceParent=$sourceParentDocumentId, target=$targetParentDocumentId)" }
 
         try {
             // Optimization: if source and target parent are the same, no move needed

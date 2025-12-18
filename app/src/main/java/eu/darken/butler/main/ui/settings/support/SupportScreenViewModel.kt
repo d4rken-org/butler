@@ -5,7 +5,7 @@ import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.debug.recorder.core.RecorderModule
+import eu.darken.butler.common.debug.recorder.core.RecorderManager
 import eu.darken.butler.common.ui.ViewModel4
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -16,10 +16,10 @@ import javax.inject.Inject
 class SupportScreenViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val webpageTool: WebpageTool,
-    private val recorderModule: RecorderModule,
+    private val recorderManager: RecorderManager,
 ) : ViewModel4(dispatcherProvider, logTag("Settings", "Support", "ViewModel")) {
 
-    val state = recorderModule.state.map { recState ->
+    val state = recorderManager.state.map { recState ->
         State(
             isRecording = recState.isRecording,
             logPath = recState.currentLogDir,
@@ -27,13 +27,13 @@ class SupportScreenViewModel @Inject constructor(
     }
 
     fun debugLog() = launch {
-        val currentState = recorderModule.state.map { it.isRecording }.first()
+        val currentState = recorderManager.state.map { it.isRecording }.first()
         if (currentState) {
             log(tag) { "Stopping debug log recording" }
-            recorderModule.stopRecorder()
+            recorderManager.stopRecorder()
         } else {
             log(tag) { "Starting debug log recording" }
-            recorderModule.startRecorder()
+            recorderManager.startRecorder()
         }
     }
 

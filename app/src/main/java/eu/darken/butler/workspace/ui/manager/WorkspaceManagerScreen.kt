@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Workspaces
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +37,6 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.ScrollPop
 import eu.darken.butler.workspace.core.Workspace
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkspaceManagerScreen(
     state: WorkspaceManagerViewModel.State,
@@ -58,7 +56,7 @@ fun WorkspaceManagerScreen(
     var isFabVisible by remember { mutableStateOf(true) }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    
+
     // FAB visibility scroll connection
     val fabScrollConnection = remember {
         object : NestedScrollConnection {
@@ -149,7 +147,6 @@ fun WorkspaceManagerScreen(
         }
     )
 }
-
 
 
 @Preview2

@@ -3,8 +3,8 @@ package eu.darken.butler.common.datastore
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
@@ -138,43 +138,44 @@ class DataStoreValueSerializationTest : BaseTest() {
     }
 
     @Test
-    fun `reading and writing using autocreated reader and writer without encodeDefaults flag`(@TempDir tempDir: File) = runTest {
-        val testStore = createDataStore(this, tempDir)
+    fun `reading and writing using autocreated reader and writer without encodeDefaults flag`(@TempDir tempDir: File) =
+        runTest {
+            val testStore = createDataStore(this, tempDir)
 
-        val testData1 = TestJson(
-            list = listOf("7", "8"),
-            string = "teststring",
-            boolean = false,
-            float = 3.5f,
-            int = 55,
-            long = 888L
-        )
-        val testData2 = TestJson(
-            list = listOf("9", "10"),
-            string = "update",
-            boolean = false,
-            float = 4.2f,
-            int = 77,
-            long = 999L
-        )
-        val json = Json
+            val testData1 = TestJson(
+                list = listOf("7", "8"),
+                string = "teststring",
+                boolean = false,
+                float = 3.5f,
+                int = 55,
+                long = 888L
+            )
+            val testData2 = TestJson(
+                list = listOf("9", "10"),
+                string = "update",
+                boolean = false,
+                float = 4.2f,
+                int = 77,
+                long = 999L
+            )
+            val json = Json
 
-        testStore.createValue<TestJson?>(
-            key = "testKeyAutoNoDefaults",
-            defaultValue = testData1,
-            json = json
-        ).apply {
+            testStore.createValue<TestJson?>(
+                key = "testKeyAutoNoDefaults",
+                defaultValue = testData1,
+                json = json
+            ).apply {
 
-            flow.first() shouldBe testData1
-            testStore.data.first()[stringPreferencesKey(keyName)] shouldBe null
+                flow.first() shouldBe testData1
+                testStore.data.first()[stringPreferencesKey(keyName)] shouldBe null
 
-            update {
-                it shouldBe testData1
-                testData2
-            }
+                update {
+                    it shouldBe testData1
+                    testData2
+                }
 
-            flow.first() shouldBe testData2
-            testStore.data.first()[stringPreferencesKey(keyName)]!!.toComparableJson() shouldBe """
+                flow.first() shouldBe testData2
+                testStore.data.first()[stringPreferencesKey(keyName)]!!.toComparableJson() shouldBe """
                 {
                     "list": [
                         "9",
@@ -188,15 +189,15 @@ class DataStoreValueSerializationTest : BaseTest() {
                 }
             """.toComparableJson()
 
-            update {
-                it shouldBe testData2
-                null
-            }
+                update {
+                    it shouldBe testData2
+                    null
+                }
 
-            flow.first() shouldBe testData1
-            testStore.data.first()[stringPreferencesKey(keyName)] shouldBe null
+                flow.first() shouldBe testData1
+                testStore.data.first()[stringPreferencesKey(keyName)] shouldBe null
+            }
         }
-    }
 
     @Serializable
     enum class Anum {
@@ -205,50 +206,51 @@ class DataStoreValueSerializationTest : BaseTest() {
     }
 
     @Test
-    fun `reading and writing using manual reader and writer without encodeDefaults flag`(@TempDir tempDir: File) = runTest {
-        val testStore = createDataStore(this, tempDir)
+    fun `reading and writing using manual reader and writer without encodeDefaults flag`(@TempDir tempDir: File) =
+        runTest {
+            val testStore = createDataStore(this, tempDir)
 
-        val testData1 = TestJson(
-            list = listOf("3", "4"),
-            string = "teststring",
-            boolean = false,
-            float = 2.5f,
-            int = 42,
-            long = 999L
-        )
-        val testData2 = TestJson(
-            list = listOf("5", "6"),
-            string = "update",
-            boolean = false,
-            float = 3.7f,
-            int = 123,
-            long = 777L
-        )
-        val json = Json
+            val testData1 = TestJson(
+                list = listOf("3", "4"),
+                string = "teststring",
+                boolean = false,
+                float = 2.5f,
+                int = 42,
+                long = 999L
+            )
+            val testData2 = TestJson(
+                list = listOf("5", "6"),
+                string = "update",
+                boolean = false,
+                float = 3.7f,
+                int = 123,
+                long = 777L
+            )
+            val json = Json
 
-        testStore.createValue<TestJson?>(
-            key = stringPreferencesKey("testKeyNoDefaults"),
-            reader = kotlinxSerializationReader(json, testData1),
-            writer = kotlinxSerializationWriter(json)
-        ).apply {
+            testStore.createValue<TestJson?>(
+                key = stringPreferencesKey("testKeyNoDefaults"),
+                reader = kotlinxSerializationReader(json, testData1),
+                writer = kotlinxSerializationWriter(json)
+            ).apply {
 
-            flow.first() shouldBe testData1
-            testStore.data.first()[stringPreferencesKey(keyName)] shouldBe null
+                flow.first() shouldBe testData1
+                testStore.data.first()[stringPreferencesKey(keyName)] shouldBe null
 
-            update {
-                it shouldBe testData1
-                it!!.copy(
-                    list = listOf("5", "6"),
-                    string = "update",
-                    boolean = false,
-                    float = 3.7f,
-                    int = 123,
-                    long = 777L
-                )
-            }
+                update {
+                    it shouldBe testData1
+                    it!!.copy(
+                        list = listOf("5", "6"),
+                        string = "update",
+                        boolean = false,
+                        float = 3.7f,
+                        int = 123,
+                        long = 777L
+                    )
+                }
 
-            flow.first() shouldBe testData2
-            testStore.data.first()[stringPreferencesKey(keyName)]!!.toComparableJson() shouldBe """
+                flow.first() shouldBe testData2
+                testStore.data.first()[stringPreferencesKey(keyName)]!!.toComparableJson() shouldBe """
                 {
                     "list": [
                         "5",
@@ -262,15 +264,15 @@ class DataStoreValueSerializationTest : BaseTest() {
                 }
             """.toComparableJson()
 
-            update {
-                it shouldBe testData2
-                null
-            }
+                update {
+                    it shouldBe testData2
+                    null
+                }
 
-            flow.first() shouldBe testData1
-            testStore.data.first()[stringPreferencesKey(keyName)] shouldBe null
+                flow.first() shouldBe testData1
+                testStore.data.first()[stringPreferencesKey(keyName)] shouldBe null
+            }
         }
-    }
 
     @Test
     fun `enum serialization`(@TempDir tempDir: File) = runTest {

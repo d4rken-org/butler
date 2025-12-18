@@ -6,8 +6,7 @@ import android.database.MatrixCursor
 import android.provider.DocumentsContract
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.provider.documents.core.DocumentsProviderSettings

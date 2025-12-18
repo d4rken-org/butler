@@ -26,9 +26,9 @@ data class PathRequirements(
 ) {
     val needsSetup: Boolean
         get() = combos.isNotEmpty() &&
-                combos.none { combo -> combo.all { it in complete } } &&
-                safPickerGrant == null &&
-                alternativePath == null
+            combos.none { combo -> combo.all { it in complete } } &&
+            safPickerGrant == null &&
+            alternativePath == null
 
     val needsAction: Boolean
         get() = needsSetup || safPickerGrant != null || alternativePath != null

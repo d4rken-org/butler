@@ -1,8 +1,6 @@
 package eu.darken.butler.common.files.local.operations.strategies
 
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.errors.WriteException
-import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.MockFileSystemOps

@@ -6,7 +6,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.core.spring
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
@@ -31,7 +30,6 @@ import kotlin.math.abs
  * A scroll behavior for top toolbars that collapses to a minimal state when scrolling down
  * and expands when scrolling up. Provides snap behavior on scroll direction change.
  */
-@ExperimentalMaterial3Api
 @Stable
 class TopToolbarScrollBehavior(
     val state: TopToolbarScrollState = TopToolbarScrollState(),
@@ -108,7 +106,6 @@ class TopToolbarScrollBehavior(
 /**
  * State for managing the scroll behavior of a collapsing top toolbar.
  */
-@ExperimentalMaterial3Api
 @Stable
 class TopToolbarScrollState(
     initialHeightOffsetLimit: Float = -Float.MAX_VALUE,
@@ -275,7 +272,6 @@ class TopToolbarScrollState(
 /**
  * Create and remember a [TopToolbarScrollBehavior] with the default parameters.
  */
-@ExperimentalMaterial3Api
 @Composable
 fun rememberTopToolbarScrollBehavior(
     state: TopToolbarScrollState = rememberTopToolbarScrollState(),
@@ -288,7 +284,6 @@ fun rememberTopToolbarScrollBehavior(
 /**
  * Create and remember a [TopToolbarScrollState].
  */
-@ExperimentalMaterial3Api
 @Composable
 fun rememberTopToolbarScrollState(): TopToolbarScrollState {
     return rememberSaveable(saver = Saver) {
@@ -299,7 +294,6 @@ fun rememberTopToolbarScrollState(): TopToolbarScrollState {
 /**
  * Returns the current height of the toolbar in dp.
  */
-@ExperimentalMaterial3Api
 @Composable
 fun TopToolbarScrollState.getCurrentHeightDp(): Dp {
     val density = LocalDensity.current
@@ -309,7 +303,6 @@ fun TopToolbarScrollState.getCurrentHeightDp(): Dp {
 /**
  * Sets the expanded and collapsed heights for the toolbar scroll state.
  */
-@ExperimentalMaterial3Api
 @Composable
 fun TopToolbarScrollState.setHeights(expandedHeightDp: Dp, collapsedHeightDp: Dp) {
     val density = LocalDensity.current

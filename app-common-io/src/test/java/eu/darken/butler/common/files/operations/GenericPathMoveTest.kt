@@ -10,8 +10,6 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import io.kotest.matchers.should
-import java.nio.file.AtomicMoveNotSupportedException
-import kotlin.time.Instant
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.last
@@ -25,6 +23,8 @@ import testhelpers.firstPath
 import testhelpers.shouldBePaths
 import testhelpers.shouldContainPath
 import testhelpers.toPathPairs
+import java.nio.file.AtomicMoveNotSupportedException
+import kotlin.time.Instant
 
 /**
  * Tests for GenericPathMove orchestrator using MockFileSystemOps.
@@ -44,7 +44,7 @@ class GenericPathMoveTest : BaseTest() {
     private lateinit var strategy: GenericCrossTypeMoveStrategy<
         LocalPath, LocalPathLookup,
         LocalPath, LocalPathLookup
-    >
+        >
 
     @BeforeEach
     fun setup() {
@@ -1283,7 +1283,7 @@ class GenericPathMoveTest : BaseTest() {
             if (currentBytes > fileSize) {
                 throw AssertionError(
                     "Bug detected: currentFileBytes ($currentBytes) > currentFileSize ($fileSize) " +
-                    "for file ${progress.currentSource.lookedUp.name}"
+                        "for file ${progress.currentSource.lookedUp.name}"
                 )
             }
         }
@@ -1304,8 +1304,8 @@ class GenericPathMoveTest : BaseTest() {
                 if (firstBytes > fileSize * 0.5) {
                     throw AssertionError(
                         "Bug detected: First progress update for file ${firstUpdate.currentSource.lookedUp.name} " +
-                        "shows currentFileBytes=$firstBytes which is > 50% of fileSize=$fileSize. " +
-                        "This suggests bytes are accumulating from previous file."
+                            "shows currentFileBytes=$firstBytes which is > 50% of fileSize=$fileSize. " +
+                            "This suggests bytes are accumulating from previous file."
                     )
                 }
             }
@@ -1411,18 +1411,19 @@ class GenericPathMoveTest : BaseTest() {
         // it tries atomic move which fails with NoSuchFileException because parent doesn't exist.
 
         // Given - nested directory structure, cross-device mock
-        val crossDeviceOps = CrossDeviceMockFileSystemOps<LocalPath, LocalPathLookup> { path, type, size, modifiedAt, permissions, ownership, createdAt ->
-            LocalPathLookup(
-                lookedUp = path,
-                fileType = type,
-                size = size,
-                modifiedAt = modifiedAt ?: Instant.fromEpochMilliseconds(0),
-                target = null,
-                ownership = ownership,
-                permissions = permissions,
-                createdAt = createdAt,
-            )
-        }
+        val crossDeviceOps =
+            CrossDeviceMockFileSystemOps<LocalPath, LocalPathLookup> { path, type, size, modifiedAt, permissions, ownership, createdAt ->
+                LocalPathLookup(
+                    lookedUp = path,
+                    fileType = type,
+                    size = size,
+                    modifiedAt = modifiedAt ?: Instant.fromEpochMilliseconds(0),
+                    target = null,
+                    ownership = ownership,
+                    permissions = permissions,
+                    createdAt = createdAt,
+                )
+            }
         crossDeviceOps.addMockDir("/source/parentdir")
         crossDeviceOps.addMockDir("/source/parentdir/childdir")
         crossDeviceOps.addMockFile("/source/parentdir/childdir/file.txt", "content".toByteArray())
@@ -1457,18 +1458,19 @@ class GenericPathMoveTest : BaseTest() {
     fun `deeply nested directories with cross-device atomic move fallback succeeds`() = runTest {
         // Test with deeper nesting to ensure the fix works at all levels
 
-        val crossDeviceOps = CrossDeviceMockFileSystemOps<LocalPath, LocalPathLookup> { path, type, size, modifiedAt, permissions, ownership, createdAt ->
-            LocalPathLookup(
-                lookedUp = path,
-                fileType = type,
-                size = size,
-                modifiedAt = modifiedAt ?: Instant.fromEpochMilliseconds(0),
-                target = null,
-                ownership = ownership,
-                permissions = permissions,
-                createdAt = createdAt,
-            )
-        }
+        val crossDeviceOps =
+            CrossDeviceMockFileSystemOps<LocalPath, LocalPathLookup> { path, type, size, modifiedAt, permissions, ownership, createdAt ->
+                LocalPathLookup(
+                    lookedUp = path,
+                    fileType = type,
+                    size = size,
+                    modifiedAt = modifiedAt ?: Instant.fromEpochMilliseconds(0),
+                    target = null,
+                    ownership = ownership,
+                    permissions = permissions,
+                    createdAt = createdAt,
+                )
+            }
         // 4 levels deep: /source/a/b/c/d/file.txt
         crossDeviceOps.addMockDir("/source/a")
         crossDeviceOps.addMockDir("/source/a/b")

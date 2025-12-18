@@ -3,9 +3,7 @@ package eu.darken.butler.editor.core.engine
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -21,7 +19,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +27,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okio.Source
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.coroutineContext
 
 class EditorEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -793,34 +791,38 @@ class EditorEngine @AssistedInject constructor(
     }
 
     suspend fun search(query: String, caseSensitive: Boolean = false): Result<List<SearchResult>> = stateMutex.withLock {
-        _searchQuery.value = query
+            _searchQuery.value = query
 
-        if (query.isEmpty()) {
-            _searchResults.value = emptyList()
-            return Result.success(emptyList())
-        }
+            if (query.isEmpty()) {
+                _searchResults.value = emptyList()
+                return Result.success(emptyList())
+            }
 
-        return when (val currentState = _state.value) {
-            is EditorState.Loaded -> {
-                try {
-                    coroutineContext.ensureActive()
-                    val results =
-                        currentState.resources.textBuffer.search(query, _cursorPosition.value, ignoreCase = !caseSensitive)
-                    _searchResults.value = results
-                    Result.success(results)
-                } catch (e: Exception) {
-                    log(tag, ERROR) { "Failed to search - ${e.asLog()}" }
-                    _error.value = e
-                    Result.failure(e)
+            return when (val currentState = _state.value) {
+                is EditorState.Loaded -> {
+                    try {
+                        coroutineContext.ensureActive()
+                        val results =
+                            currentState.resources.textBuffer.search(
+                                query,
+                                _cursorPosition.value,
+                                ignoreCase = !caseSensitive
+                            )
+                        _searchResults.value = results
+                        Result.success(results)
+                    } catch (e: Exception) {
+                        log(tag, ERROR) { "Failed to search - ${e.asLog()}" }
+                        _error.value = e
+                        Result.failure(e)
+                    }
+                }
+                else -> {
+                    val error = IllegalStateException("Cannot search - no file open")
+                    log(tag, WARN) { error.message ?: "Unknown error" }
+                    Result.failure(error)
                 }
             }
-            else -> {
-                val error = IllegalStateException("Cannot search - no file open")
-                log(tag, WARN) { error.message ?: "Unknown error" }
-                Result.failure(error)
-            }
         }
-    }
 
     suspend fun goToLine(lineNumber: Int): Result<Unit> {
         return try {

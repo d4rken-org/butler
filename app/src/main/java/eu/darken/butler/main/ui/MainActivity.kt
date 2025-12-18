@@ -10,6 +10,9 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -17,22 +20,25 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.BuildConfigWrap
-import eu.darken.butler.common.R as CommonR
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.debug.recorder.ui.banner.RecordingBannerHost
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.LocalNavigationController
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationController
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.NavigationDestination
 import eu.darken.butler.common.navigation.NavigationEntry
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.onboarding
 import eu.darken.butler.common.theming.MyAppTheme
 import eu.darken.butler.common.theming.ThemeState
@@ -42,6 +48,7 @@ import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
 import eu.darken.butler.workspace.ui.workspaces.workspaces
 import javax.inject.Inject
+import eu.darken.butler.common.R as CommonR
 
 @AndroidEntryPoint
 class MainActivity : Activity2() {
@@ -144,21 +151,30 @@ class MainActivity : Activity2() {
             }
         }
 
-        NavDisplay(
-            backStack = backStack,
-            onBack = {
-                // Only handle programmatic navigation
-                navCtrl.up()
-            },
-            entryProvider = entryProvider {
-                navigationEntries.forEach { entry ->
-                    entry.apply {
-                        log(TAG) { "Set up navigation entry: $this" }
-                        setup()
+        Box(modifier = Modifier.fillMaxSize()) {
+            NavDisplay(
+                backStack = backStack,
+                onBack = {
+                    // Only handle programmatic navigation
+                    navCtrl.up()
+                },
+                entryProvider = entryProvider {
+                    navigationEntries.forEach { entry ->
+                        entry.apply {
+                            log(TAG) { "Set up navigation entry: $this" }
+                            setup()
+                        }
                     }
                 }
-            }
-        )
+            )
+
+            // App-wide recording banner overlay
+            RecordingBannerHost(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .statusBarsPadding(),
+            )
+        }
     }
 
     override fun onResume() {
@@ -179,6 +195,10 @@ class MainActivity : Activity2() {
                     handleShareIntent(intent)
                     savedIntent = null
                 }
+                Intent.ACTION_VIEW -> {
+                    handleViewIntent(intent)
+                    savedIntent = null
+                }
             }
         }
     }
@@ -196,6 +216,16 @@ class MainActivity : Activity2() {
         log(TAG) { "Creating new Explorer workspace from shortcut" }
         vm.createNewExplorerWorkspace()
         shortcutManager.reportNewExplorerShortcutUsed()
+    }
+
+    private fun handleViewIntent(intent: Intent) {
+        val uri = intent.data
+        if (uri != null) {
+            log(TAG) { "Handling VIEW intent with URI: $uri (type: ${intent.type})" }
+            vm.openFromDocumentUri(uri)
+        } else {
+            log(TAG, WARN) { "VIEW intent received but no data URI found" }
+        }
     }
 
     @Suppress("DEPRECATION")

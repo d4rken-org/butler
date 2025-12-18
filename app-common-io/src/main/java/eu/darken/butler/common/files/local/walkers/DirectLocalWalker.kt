@@ -19,7 +19,7 @@ import java.util.LinkedList
 class DirectLocalWalker(
     private val fileSystemOps: LocalFileSystemOps,
     private val start: LocalPath,
-    private val lookupOptions: LookupOptions ,
+    private val lookupOptions: LookupOptions,
     private val onFilter: suspend (LocalPathLookup) -> Boolean = { true },
     private val onError: suspend (LocalPathLookup, Exception) -> Boolean = { _, _ -> true },
 ) : AbstractFlow<LocalPathLookup>() {

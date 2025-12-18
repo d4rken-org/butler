@@ -7,7 +7,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,8 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.coroutines.coroutineContext
 import java.util.LinkedList
+import kotlin.coroutines.coroutineContext
 
 class ChunkedTextBuffer @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -326,12 +325,13 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
                 // Evict oldest operations if limits exceeded
                 while ((undoStack.size > maxUndoStackSize || currentUndoMemoryBytes > maxUndoMemoryBytes)
-                       && undoStack.size > 1) {  // Keep at least one operation
+                    && undoStack.size > 1
+                ) {  // Keep at least one operation
                     val evicted = undoStack.removeFirst()
                     currentUndoMemoryBytes -= evicted.estimateMemoryBytes()
                     log(tag, VERBOSE) {
                         "Evicted old undo operation (stack: ${undoStack.size}/${maxUndoStackSize}, " +
-                        "memory: ${currentUndoMemoryBytes}/${maxUndoMemoryBytes} bytes)"
+                            "memory: ${currentUndoMemoryBytes}/${maxUndoMemoryBytes} bytes)"
                     }
                 }
 
@@ -542,12 +542,13 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
                     // Evict oldest operations if limits exceeded
                     while ((undoStack.size > maxUndoStackSize || currentUndoMemoryBytes > maxUndoMemoryBytes)
-                           && undoStack.size > 1) {  // Keep at least one operation
+                        && undoStack.size > 1
+                    ) {  // Keep at least one operation
                         val evicted = undoStack.removeFirst()
                         currentUndoMemoryBytes -= evicted.estimateMemoryBytes()
                         log(tag, DEBUG) {
                             "Evicted old undo operation (stack: ${undoStack.size}/${maxUndoStackSize}, " +
-                            "memory: ${currentUndoMemoryBytes}/${maxUndoMemoryBytes} bytes)"
+                                "memory: ${currentUndoMemoryBytes}/${maxUndoMemoryBytes} bytes)"
                         }
                     }
 
@@ -745,7 +746,10 @@ class ChunkedTextBuffer @AssistedInject constructor(
             // (insertText/deleteText/replaceText acquire their own mutex)
             when (operation) {
                 is EditOperation.Insert -> {
-                    log(tag, DEBUG) { "Undoing insert: deleting ${operation.text.length} bytes at offset ${operation.position.offset}" }
+                    log(
+                        tag,
+                        DEBUG
+                    ) { "Undoing insert: deleting ${operation.text.length} bytes at offset ${operation.position.offset}" }
                     val endPosition = TextPosition(
                         operation.position.offset + operation.text.length,
                         operation.position.line,
@@ -754,9 +758,15 @@ class ChunkedTextBuffer @AssistedInject constructor(
                     deleteText(operation.position, endPosition)
                 }
                 is EditOperation.Delete -> {
-                    log(tag, DEBUG) { "Undoing delete: inserting ${operation.deletedText.length} bytes at offset ${operation.position.offset}" }
+                    log(
+                        tag,
+                        DEBUG
+                    ) { "Undoing delete: inserting ${operation.deletedText.length} bytes at offset ${operation.position.offset}" }
                     val result = insertText(operation.position, operation.deletedText)
-                    log(tag, DEBUG) { "Undo insert result: ${if (result.isSuccess) "SUCCESS" else "FAILED - ${result.exceptionOrNull()?.message}"}" }
+                    log(
+                        tag,
+                        DEBUG
+                    ) { "Undo insert result: ${if (result.isSuccess) "SUCCESS" else "FAILED - ${result.exceptionOrNull()?.message}"}" }
                 }
                 is EditOperation.Replace -> {
                     replaceText(
@@ -814,13 +824,13 @@ class ChunkedTextBuffer @AssistedInject constructor(
                     replaceText(
                         operation.position,
                         TextPosition(
-                        operation.position.offset + operation.oldText.length,
-                        operation.position.line,
-                        operation.position.column
-                    ),
-                    operation.newText
-                )
-            }
+                            operation.position.offset + operation.oldText.length,
+                            operation.position.line,
+                            operation.position.column
+                        ),
+                        operation.newText
+                    )
+                }
             }
 
             return Result.success(operation)
@@ -1070,7 +1080,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         if (chunksToEvict.isNotEmpty()) {
             log(tag) {
                 "Evicting ${chunksToEvict.size} chunks outside range $startLine..$endLine, " +
-                        "keeping ${neededChunkIds.size} chunks in memory"
+                    "keeping ${neededChunkIds.size} chunks in memory"
             }
 
             for (chunkId in chunksToEvict) {

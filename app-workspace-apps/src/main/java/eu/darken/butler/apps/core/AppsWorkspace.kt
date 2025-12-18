@@ -8,6 +8,7 @@ import eu.darken.butler.apps.core.arguments.AppsArguments
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsEngine
 import eu.darken.butler.apps.core.engine.AppsState
+import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
@@ -15,7 +16,6 @@ import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.root.RootManager

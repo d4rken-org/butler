@@ -1,13 +1,12 @@
 package eu.darken.butler.main.ui.settings.shortcuts
 
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.ViewModel4
@@ -16,7 +15,6 @@ import eu.darken.butler.main.core.shortcuts.ShortcutRepo
 import eu.darken.butler.main.core.shortcuts.ShortcutSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel

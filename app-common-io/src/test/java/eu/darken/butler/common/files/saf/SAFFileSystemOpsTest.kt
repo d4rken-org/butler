@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.saf
 
 import android.content.ContentResolver
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.errors.ReadException
@@ -15,7 +16,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.robolectric.annotation.Config
 import testhelpers.BaseTest
 import testhelpers.EmptyApp

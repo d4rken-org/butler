@@ -7,11 +7,11 @@ import eu.darken.butler.debug.ui.DebugWorkspacePageHost
 import eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
 import eu.darken.butler.saver.ui.saver.SaverWorkspacePageHost
+import eu.darken.butler.sdmaid.ui.dashboard.SdMaidWorkspacePageHost
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
 import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.workspaces.classic.CreatingWorkspacePlaceholder
 
 @Composable
 fun WorkspaceMapper(
@@ -50,6 +50,11 @@ fun WorkspaceMapper(
         )
 
         Workspace.Type.SAVER -> SaverWorkspacePageHost(
+            id = info.id,
+            design = design,
+        )
+
+        Workspace.Type.SDMAID -> SdMaidWorkspacePageHost(
             id = info.id,
             design = design,
         )

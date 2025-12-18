@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.CheckBox
 import androidx.compose.material.icons.twotone.Close
@@ -28,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.ui.propagateScrollAtBoundary
 
 @Composable
 fun WorkspaceInfoBar(

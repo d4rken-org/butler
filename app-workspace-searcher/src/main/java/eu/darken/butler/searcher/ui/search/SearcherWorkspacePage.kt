@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -53,17 +52,28 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.keyboard.KeyboardShortcut
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.keyboard.keyboardShortcuts
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
-import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
+import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
-import eu.darken.butler.searcher.ui.search.input.SearchToolbarCard
+import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
+import eu.darken.butler.searcher.ui.search.elements.SearchProgressCard
+import eu.darken.butler.searcher.ui.search.elements.SearchResultItemDetails
+import eu.darken.butler.searcher.ui.search.elements.SearchTargetsEmptyStateCard
+import eu.darken.butler.searcher.ui.search.elements.SearchToolbarCard
+import eu.darken.butler.searcher.ui.search.elements.SearcherInfoBar
+import eu.darken.butler.searcher.ui.search.elements.searchHistorySection
+import eu.darken.butler.searcher.ui.search.items.SelectableFileGrid
+import eu.darken.butler.searcher.ui.search.items.SelectableFileRow
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
+import eu.darken.butler.searcher.ui.search.util.SearchListItem
+import eu.darken.butler.searcher.ui.search.util.SearcherAction
+import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
@@ -77,6 +87,7 @@ import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
+import eu.darken.butler.workspace.ui.scroll.rememberTopBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
 import eu.darken.butler.workspace.ui.scroll.setHeights
@@ -84,7 +95,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearcherWorkspacePage(
     workspaceId: Workspace.Id,
@@ -105,6 +115,7 @@ fun SearcherWorkspacePage(
     // Setup and remember blocks at top level
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
+    val topBarScrollBehavior = rememberTopBarScrollBehavior()
     val listState = rememberLazyListState()
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -124,25 +135,27 @@ fun SearcherWorkspacePage(
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
     // Wrapped selection callbacks that clear focus and hide keyboard
-    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
-        { result ->
-            focusManager.clearFocus()
-            keyboardController?.hide()
-            onPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
-        }
-    }
-
-    val wrappedOnToggleSelection: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
-        { result ->
-            // Only clear focus and hide keyboard when entering selection mode (first selection)
-            // Not when already in selection mode (subsequent toggles)
-            if (state?.selectionState?.isSelectionMode != true) {
+    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit =
+        remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
+            { result ->
                 focusManager.clearFocus()
                 keyboardController?.hide()
+                onPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
             }
-            onPageAction(SearcherPageAction.Results.ToggleSelection(result))
         }
-    }
+
+    val wrappedOnToggleSelection: (SearchItem) -> Unit =
+        remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
+            { result ->
+                // Only clear focus and hide keyboard when entering selection mode (first selection)
+                // Not when already in selection mode (subsequent toggles)
+                if (state?.selectionState?.isSelectionMode != true) {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                }
+                onPageAction(SearcherPageAction.Results.ToggleSelection(result))
+            }
+        }
 
     // Re-request focus for keyboard shortcuts after clearing focus
     // This ensures shortcuts continue working after selecting a result
@@ -169,6 +182,13 @@ fun SearcherWorkspacePage(
         collapsedHeightDp = 44.dp  // Minimal compact state (actual measured height)
     )
 
+    // Get current toolbar height for layout calculations
+    topToolbarScrollBehavior.state.getCurrentHeightDp()
+    val statusCardHeight = 60.dp // Fixed height for status card
+
+    // Set the top bar height for progress card scroll behavior
+    topBarScrollBehavior.state.setHeight(statusCardHeight)
+
     // Derived states for stable recomposition - at top level for immediate reactivity
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
@@ -179,13 +199,9 @@ fun SearcherWorkspacePage(
     val hasActions by remember {
         derivedStateOf {
             state?.selectionState?.selectedResultIds?.isNotEmpty() == true ||
-            state?.listItems?.isNotEmpty() == true
+                state?.listItems?.isNotEmpty() == true
         }
     }
-
-    // Get current toolbar height for layout calculations
-    topToolbarScrollBehavior.state.getCurrentHeightDp()
-    val statusCardHeight = 60.dp // Fixed height for status card
 
     // Determine if progress card should be visible
     val showProgressCard by remember {
@@ -277,11 +293,13 @@ fun SearcherWorkspacePage(
             val gridState = rememberLazyGridState()
 
             // Content padding calculation (shared between list and grid)
+            // Account for progress card visibility based on both existence AND scroll state
+            val isProgressCardVisible = showProgressCard && topBarScrollBehavior.state.collapsedFraction <= 0.1f
             val contentPaddingValues = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
                 top = 8.dp + actualToolbarHeightDp +
-                    (if (showProgressCard) statusCardHeight + 8.dp else 0.dp) +
+                    (if (isProgressCardVisible) statusCardHeight + 8.dp else 4.dp) +
                     (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp),
                 bottom = run {
                     val actionBarHeight = if (hasActions) 64.dp else 0.dp
@@ -292,7 +310,7 @@ fun SearcherWorkspacePage(
             )
 
             // Conditional rendering: History mode vs Results mode
-            val hasNoQuery = currentState.filenameQuery.text.isBlank() && currentState.contentQuery.text.isBlank()
+            val hasNoQuery = currentState.filenameQuery.isBlank() && currentState.contentQuery.isBlank()
             // Show history when no results (even if query is filled from restore)
             val showHistory = !currentState.hasResults && currentState.searchHistory.isNotEmpty()
 
@@ -304,6 +322,7 @@ fun SearcherWorkspacePage(
                         modifier = Modifier
                             .fillMaxSize()
                             .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                            .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
                             .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = contentPaddingValues
@@ -327,6 +346,7 @@ fun SearcherWorkspacePage(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                                    .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
                                     .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
                                 verticalArrangement = Arrangement.spacedBy(
                                     when (style.density) {
@@ -435,6 +455,7 @@ fun SearcherWorkspacePage(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                                    .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
                                     .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -544,7 +565,7 @@ fun SearcherWorkspacePage(
             // Error dialog state
             var errorDialogState by remember { mutableStateOf<Pair<String, Throwable>?>(null) }
 
-            // Pinned progress card below toolbar
+            // Pinned progress card below toolbar - hides on scroll
             if (showProgressCard) {
                 SearchProgressCard(
                     targetProgress = currentState.workspaceState.targetProgress,
@@ -559,6 +580,13 @@ fun SearcherWorkspacePage(
                         .align(Alignment.TopCenter)
                         .offset(y = 16.dp + actualToolbarHeightDp)
                         .padding(horizontal = 16.dp)
+                        .graphicsLayer {
+                            // Immediate snap behavior: fully visible or fully hidden
+                            alpha = if (topBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
+                            translationY = if (topBarScrollBehavior.state.collapsedFraction > 0.1f) {
+                                -statusCardHeight.toPx()
+                            } else 0f
+                        }
                 )
             }
 

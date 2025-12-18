@@ -51,15 +51,15 @@ class WorkspacePreviewCaptureService @Inject constructor(
                 viewModelStoreOwner = viewmodelStoreOwner,
             ) {
                 MyAppTheme(state = themeState) {
-                        WorkspaceMapper(
-                            info = WorkspacePaneInfo(
-                                id = workspaceId,
-                                type = workspaceType,
-                            ),
-                            design = WorkspaceDesign(
-                                layout = WorkspaceDesign.Layout.SINGLE
-                            ),
-                        )
+                    WorkspaceMapper(
+                        info = WorkspacePaneInfo(
+                            id = workspaceId,
+                            type = workspaceType,
+                        ),
+                        design = WorkspaceDesign(
+                            layout = WorkspaceDesign.Layout.SINGLE
+                        ),
+                    )
                 }
             }
         }

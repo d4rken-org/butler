@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,8 +27,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 
 /**
  * Alert dialog that is bound to its parent pane bounds rather than appearing at window level.

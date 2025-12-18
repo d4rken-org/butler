@@ -4,7 +4,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.combine

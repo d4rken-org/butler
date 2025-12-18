@@ -104,7 +104,7 @@ class SearchHistory @Inject constructor(
     }
 
     fun getSearches(limit: Int? = 50): Flow<List<SearchHistoryItem>> {
-        val searches = if(limit != null) {
+        val searches = if (limit != null) {
             searchHistoryDao.getRecentSearches(limit)
         } else {
             searchHistoryDao.getAllSearches()

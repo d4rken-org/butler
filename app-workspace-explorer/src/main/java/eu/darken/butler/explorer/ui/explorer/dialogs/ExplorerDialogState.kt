@@ -56,7 +56,10 @@ sealed interface ExplorerDialogState {
                 val directoryCount: Int,
                 val totalSize: Long?,
             ) : InfoContext
-            data class DeviceView(val location: eu.darken.butler.explorer.core.engine.ExplorerLocation.Device) : InfoContext
+
+            data class DeviceView(val location: eu.darken.butler.explorer.core.engine.ExplorerLocation.Device) :
+                InfoContext
+
             data class HomeView(val location: eu.darken.butler.explorer.core.engine.ExplorerLocation.Home) : InfoContext
         }
     }

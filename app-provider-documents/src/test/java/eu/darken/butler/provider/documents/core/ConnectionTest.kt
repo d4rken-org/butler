@@ -1,6 +1,6 @@
 package eu.darken.butler.provider.documents.core
 
-import android.provider.DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE
+import android.provider.DocumentsContract.Document.*
 import eu.darken.butler.common.ca.CaString
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

@@ -4,9 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -61,7 +59,8 @@ sealed class AppAction {
     data class EnableDisable(val isEnabled: Boolean) : AppAction() {
         override val icon = if (isEnabled) Icons.TwoTone.Block else Icons.TwoTone.CheckCircle
         override val titleRes = if (isEnabled) R.string.apps_action_disable else R.string.apps_action_enable
-        override val descriptionRes = if (isEnabled) R.string.apps_action_disable_desc else R.string.apps_action_enable_desc
+        override val descriptionRes =
+            if (isEnabled) R.string.apps_action_disable_desc else R.string.apps_action_enable_desc
     }
 
     data object ForceStop : AppAction() {

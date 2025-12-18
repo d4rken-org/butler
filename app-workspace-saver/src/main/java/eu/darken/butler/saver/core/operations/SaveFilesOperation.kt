@@ -12,10 +12,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -150,7 +147,10 @@ class SaveFilesOperation @AssistedInject constructor(
             results = results,
             performanceHistory = progressTracker.performanceHistory,
         )
-        log(tag, INFO) { "Save completed: ${report.successes.size} succeeded, ${report.skipped.size} skipped, ${report.errors.size} failed" }
+        log(
+            tag,
+            INFO
+        ) { "Save completed: ${report.successes.size} succeeded, ${report.skipped.size} skipped, ${report.errors.size} failed" }
 
         emit(
             State.Completed(

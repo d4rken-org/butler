@@ -4,8 +4,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick

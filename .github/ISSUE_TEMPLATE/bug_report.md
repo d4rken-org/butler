@@ -14,6 +14,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
@@ -23,10 +24,11 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Smartphone (please complete the following information):**
- - Device: [e.g. Pixel 9]
- - OS: [e.g. Android 17]
- - Root status [e.g. Rooted - Magisk v25.2]
- - Butler version [e.g. v0.6.6-rc6]
+
+- Device: [e.g. Pixel 9]
+- OS: [e.g. Android 17]
+- Root status [e.g. Rooted - Magisk v25.2]
+- Butler version [e.g. v0.6.6-rc6]
 
 **Debug log**
 If you can reproduce the bug, record the event in [a debug log](https://github.com/d4rken/butler/wiki/Bugs#debug-log).

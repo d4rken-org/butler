@@ -1,7 +1,6 @@
 package eu.darken.butler.common.files.core.local
 
 import android.system.Os
-import android.system.OsConstants
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import java.io.File

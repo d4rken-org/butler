@@ -1,13 +1,9 @@
 package eu.darken.butler.workspace.ui.session
 
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.room.withTransaction
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -55,9 +51,6 @@ class WorkspaceSessionManager @Inject constructor(
 
     // Track last saved workspace arguments for incremental updates
     private val lastSavedWorkspaces = mutableMapOf<Workspace.Id, Int>() // ID -> arguments hash
-
-    // DataStore key for migration
-    private val dataStoreSessionKey = stringPreferencesKey("workspace_session_v1")
 
     init {
         appScope.launch {
@@ -156,34 +149,41 @@ class WorkspaceSessionManager @Inject constructor(
             var changedCount = 0
             workspacesToSave.forEachIndexed { index, info ->
                 val workspace = workspaceRepo.retrieve(info.id).first()
-                    ?: throw IllegalStateException("Workspace ${info.id} not found during save")
+                if (workspace == null) {
+                    log(TAG, WARN) { "Workspace ${info.id} disappeared during save (likely replaced), skipping" }
+                    return@forEachIndexed
+                }
 
-                val currentArgs = workspace.createArguments()
+                try {
+                    val currentArgs = workspace.createArguments()
 
-                @Suppress("UNCHECKED_CAST")
-                val factory = factoryMap.getValue(info.type) as WorkspaceFactory<Workspace.Arguments>
-                val serializedArgs = factory.serialize(json, currentArgs)
-                val argsHash = serializedArgs.hashCode()
+                    @Suppress("UNCHECKED_CAST")
+                    val factory = factoryMap.getValue(info.type) as WorkspaceFactory<Workspace.Arguments>
+                    val serializedArgs = factory.serialize(json, currentArgs)
+                    val argsHash = serializedArgs.hashCode()
 
-                // Check if changed
-                if (lastSavedWorkspaces[info.id] != argsHash) {
-                    // Preserve original createdAt for existing workspaces
-                    val existingEntity = storage.dao.getWorkspaceById(info.id)
-                    val createdAt = existingEntity?.createdAt ?: now
+                    // Check if changed
+                    if (lastSavedWorkspaces[info.id] != argsHash) {
+                        // Preserve original createdAt for existing workspaces
+                        val existingEntity = storage.dao.getWorkspaceById(info.id)
+                        val createdAt = existingEntity?.createdAt ?: now
 
-                    storage.dao.upsertWorkspace(
-                        WorkspaceInstanceEntity(
-                            workspaceId = info.id,
-                            sessionId = defaultSession.sessionId,
-                            type = info.type,
-                            orderIndex = index,
-                            createdAt = createdAt,
-                            lastModified = now,
-                            arguments = serializedArgs.toString(),
+                        storage.dao.upsertWorkspace(
+                            WorkspaceInstanceEntity(
+                                workspaceId = info.id,
+                                sessionId = defaultSession.sessionId,
+                                type = info.type,
+                                orderIndex = index,
+                                createdAt = createdAt,
+                                lastModified = now,
+                                arguments = serializedArgs.toString(),
+                            )
                         )
-                    )
-                    lastSavedWorkspaces[info.id] = argsHash
-                    changedCount++
+                        lastSavedWorkspaces[info.id] = argsHash
+                        changedCount++
+                    }
+                } catch (e: Exception) {
+                    log(TAG, ERROR) { "Failed to save workspace ${info.id}: ${e.asLog()}" }
                 }
             }
 

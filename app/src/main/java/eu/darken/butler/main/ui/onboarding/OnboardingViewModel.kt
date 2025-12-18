@@ -22,7 +22,7 @@ class OnboardingViewModel @Inject constructor(
     private val generalSettings: GeneralSettings,
     private val motdSettings: MotdSettings,
     private val webpageTool: WebpageTool,
-) : ViewModel4(dispatchers, logTag("Onboarding","Screen","VM")) {
+) : ViewModel4(dispatchers, logTag("Onboarding", "Screen", "VM")) {
 
     val state = combine(
         generalSettings.isOnboardingCompleted.flow,

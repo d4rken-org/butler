@@ -3,9 +3,7 @@ package eu.darken.butler.editor.core.sources
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -33,7 +31,6 @@ import okio.buffer
 import okio.use
 import java.io.FileNotFoundException
 import java.nio.ByteBuffer
-import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 
@@ -62,21 +59,21 @@ class FileDataSource @AssistedInject constructor(
         return when {
             // UTF-8 BOM: EF BB BF
             bytes.size >= 3 &&
-                    bytes[0] == 0xEF.toByte() &&
-                    bytes[1] == 0xBB.toByte() &&
-                    bytes[2] == 0xBF.toByte() ->
+                bytes[0] == 0xEF.toByte() &&
+                bytes[1] == 0xBB.toByte() &&
+                bytes[2] == 0xBF.toByte() ->
                 Charsets.UTF_8 to 3
 
             // UTF-16 LE BOM: FF FE
             bytes.size >= 2 &&
-                    bytes[0] == 0xFF.toByte() &&
-                    bytes[1] == 0xFE.toByte() ->
+                bytes[0] == 0xFF.toByte() &&
+                bytes[1] == 0xFE.toByte() ->
                 Charsets.UTF_16LE to 2
 
             // UTF-16 BE BOM: FE FF
             bytes.size >= 2 &&
-                    bytes[0] == 0xFE.toByte() &&
-                    bytes[1] == 0xFF.toByte() ->
+                bytes[0] == 0xFE.toByte() &&
+                bytes[1] == 0xFF.toByte() ->
                 Charsets.UTF_16BE to 2
 
             else -> null
@@ -275,102 +272,103 @@ class FileDataSource @AssistedInject constructor(
      *
      * @param dirtyChunks List of modified chunks to save (will be merged with original content)
      */
-    override suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) = accessMutex.withLock {
-        withContext(Dispatchers.IO) {
-            if (dirtyChunks.isEmpty()) {
-                log(tag) { "No modifications to save" }
-                _isModified.value = false
-                return@withContext
-            }
+    override suspend fun save(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) =
+        accessMutex.withLock {
+            withContext(Dispatchers.IO) {
+                if (dirtyChunks.isEmpty()) {
+                    log(tag) { "No modifications to save" }
+                    _isModified.value = false
+                    return@withContext
+                }
 
-            try {
-                log(tag) { "Saving ${dirtyChunks.size} modified chunks using atomic write" }
+                try {
+                    log(tag) { "Saving ${dirtyChunks.size} modified chunks using atomic write" }
 
-                // Get current file info for charset and BOM preservation
+                    // Get current file info for charset and BOM preservation
                 val fileSource = _contentSource.value as? ContentSource.File
                     ?: error("ContentSource.File not initialized")
 
-                // Read original file into memory
-                val originalBytes = gatewaySwitch.file(filePath, readWrite = false).use { handle ->
-                    handle.source().buffer().use { source ->
-                        source.readByteArray()
+                    // Read original file into memory
+                    val originalBytes = gatewaySwitch.file(filePath, readWrite = false).use { handle ->
+                        handle.source().buffer().use { source ->
+                            source.readByteArray()
+                        }
                     }
-                }
 
-                // Strip BOM from original content before merging (we'll restore it separately)
+                    // Strip BOM from original content before merging (we'll restore it separately)
                 val originalContent = if (fileSource.hasBOM && fileSource.bomBytes != null) {
                     originalBytes.drop(fileSource.bomBytes.size).toByteArray()
-                } else {
-                    originalBytes
-                }
+                    } else {
+                        originalBytes
+                    }
 
-                // Merge modifications using ChunkManager algorithm with original charset
-                val mergedContent = ChunkManager.mergeChunks(
-                    originalContent,
-                    dirtyChunks,
-                    boundaries,
+                    // Merge modifications using ChunkManager algorithm with original charset
+                    val mergedContent = ChunkManager.mergeChunks(
+                        originalContent,
+                        dirtyChunks,
+                        boundaries,
                     charset = fileSource.detectedCharset
-                )
+                    )
 
-                // Atomic save: write to temp file, then rename
-                val tempPath = filePath.parent?.child("${filePath.name}.tmp")
-                    ?: throw IllegalStateException("Cannot create temp file - no parent directory")
+                    // Atomic save: write to temp file, then rename
+                    val tempPath = filePath.parent?.child("${filePath.name}.tmp")
+                        ?: throw IllegalStateException("Cannot create temp file - no parent directory")
 
-                try {
-                    // Write merged content to temp file
-                    gatewaySwitch.file(tempPath, readWrite = true).use { handle ->
-                        handle.sink().buffer().use { sink ->
-                            // Restore BOM if original file had one
+                    try {
+                        // Write merged content to temp file
+                        gatewaySwitch.file(tempPath, readWrite = true).use { handle ->
+                            handle.sink().buffer().use { sink ->
+                                // Restore BOM if original file had one
                             if (fileSource.hasBOM && fileSource.bomBytes != null) {
                                 sink.write(fileSource.bomBytes)
                                 log(tag) { "Restored ${fileSource.bomBytes.size} byte BOM to saved file" }
+                                }
+                                sink.write(mergedContent)
                             }
-                            sink.write(mergedContent)
                         }
+
+                        // Atomic rename: temp file -> original file
+                        // Note: This requires the gateway to support rename/move operations
+                        // For now, we'll delete original and rename temp (not fully atomic but safer than direct write)
+                        gatewaySwitch.delete(filePath)
+                        gatewaySwitch.move(tempPath, filePath)
+
+                        log(tag) { "Successfully saved ${mergedContent.size} bytes using atomic write" }
+
+                    } catch (e: Exception) {
+                        // Clean up temp file on failure
+                        try {
+                            if (tempPath.exists(gatewaySwitch)) {
+                                gatewaySwitch.delete(tempPath)
+                            }
+                        } catch (cleanupError: Exception) {
+                            log(tag, ERROR) { "Failed to cleanup temp file: ${cleanupError.asLog()}" }
+                        }
+                        throw e
                     }
 
-                    // Atomic rename: temp file -> original file
-                    // Note: This requires the gateway to support rename/move operations
-                    // For now, we'll delete original and rename temp (not fully atomic but safer than direct write)
-                    gatewaySwitch.delete(filePath)
-                    gatewaySwitch.move(tempPath, filePath)
-
-                    log(tag) { "Successfully saved ${mergedContent.size} bytes using atomic write" }
-
-                } catch (e: Exception) {
-                    // Clean up temp file on failure
-                    try {
-                        if (tempPath.exists(gatewaySwitch)) {
-                            gatewaySwitch.delete(tempPath)
-                        }
-                    } catch (cleanupError: Exception) {
-                        log(tag, ERROR) { "Failed to cleanup temp file: ${cleanupError.asLog()}" }
-                    }
-                    throw e
-                }
-
-                // Update state
-                _isModified.value = false
+                    // Update state
+                    _isModified.value = false
 
                 // Update content source with new size (preserve charset and BOM)
-                val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
+                    val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
                 _contentSource.value = ContentSource.File(
-                    path = filePath,
-                    size = lookup.size!!,
-                    lastModified = lookup.modifiedAt!!,
-                    canWrite = true,
+                        path = filePath,
+                        size = lookup.size!!,
+                        lastModified = lookup.modifiedAt!!,
+                        canWrite = true,
                     lineEnding = fileSource.lineEnding, // Preserve line ending
                     detectedCharset = fileSource.detectedCharset, // Preserve charset
                     hasBOM = fileSource.hasBOM, // Preserve BOM flag
                     bomBytes = fileSource.bomBytes // Preserve BOM bytes
-                )
+                    )
 
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to save - ${e.asLog()}" }
-                throw e
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to save - ${e.asLog()}" }
+                    throw e
+                }
             }
         }
-    }
 
     override suspend fun close() = accessMutex.withLock {
         _contentSource.value = ContentSource.Memory(size = 0L)

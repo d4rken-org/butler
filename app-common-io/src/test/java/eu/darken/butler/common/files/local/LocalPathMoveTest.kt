@@ -163,7 +163,8 @@ class LocalPathMoveTest : BaseTest() {
 
         // When/Then
         shouldThrow<WriteException> {
-            sourcePath.move(ops, destPath, onIssue = null, options = MoveAction.Options(attemptAtomicMove = false)).last()
+            sourcePath.move(ops, destPath, onIssue = null, options = MoveAction.Options(attemptAtomicMove = false))
+                .last()
         }
     }
 
@@ -670,127 +671,130 @@ class LocalPathMoveTest : BaseTest() {
     }
 
     @Test
-    fun `move symlink to file - target file remains at original location (Unix mv behavior)`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - symlink in one location, target in another
-        val targetFile = File(sourceFolder, "original/target.txt")
-        targetFile.parentFile.mkdirs()
-        targetFile.writeText("target content")
+    fun `move symlink to file - target file remains at original location (Unix mv behavior)`(@TempDir tempDir: File) =
+        runTest {
+            val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+            val destFolder = File(tempDir, "dest").apply { mkdirs() }
+            // Given - symlink in one location, target in another
+            val targetFile = File(sourceFolder, "original/target.txt")
+            targetFile.parentFile.mkdirs()
+            targetFile.writeText("target content")
 
-        val symlinkFile = File(sourceFolder, "links/link.txt")
-        symlinkFile.parentFile.mkdirs()
-        Files.createSymbolicLink(
-            symlinkFile.toPath(),
-            java.nio.file.Paths.get("../original/target.txt")
-        )
+            val symlinkFile = File(sourceFolder, "links/link.txt")
+            symlinkFile.parentFile.mkdirs()
+            Files.createSymbolicLink(
+                symlinkFile.toPath(),
+                java.nio.file.Paths.get("../original/target.txt")
+            )
 
-        if (!Files.isSymbolicLink(symlinkFile.toPath())) {
-            return@runTest
+            if (!Files.isSymbolicLink(symlinkFile.toPath())) {
+                return@runTest
+            }
+
+            val sourcePath = LocalPath.build(symlinkFile)
+            val destPath = LocalPath.build(destFolder)
+
+            // When - move ONLY the symlink (Unix mv behavior: only moves the link itself)
+            val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
+                .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+            // Then - symlink moved, target file remains at original location
+            val movedLink = File(destFolder, "link.txt")
+            Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+            symlinkFile.exists() shouldBe false // Source symlink deleted
+
+            // CRITICAL: Target file must remain at original location (Unix mv behavior)
+            targetFile.exists() shouldBe true
+            targetFile.readText() shouldBe "target content"
+
+            result.movedFiles shouldHaveSize 1 // Only the symlink
         }
-
-        val sourcePath = LocalPath.build(symlinkFile)
-        val destPath = LocalPath.build(destFolder)
-
-        // When - move ONLY the symlink (Unix mv behavior: only moves the link itself)
-        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
-            .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
-
-        // Then - symlink moved, target file remains at original location
-        val movedLink = File(destFolder, "link.txt")
-        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
-        symlinkFile.exists() shouldBe false // Source symlink deleted
-
-        // CRITICAL: Target file must remain at original location (Unix mv behavior)
-        targetFile.exists() shouldBe true
-        targetFile.readText() shouldBe "target content"
-
-        result.movedFiles shouldHaveSize 1 // Only the symlink
-    }
 
     @Test
-    fun `move symlink to directory - directory contents remain at original location (Unix mv behavior)`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - symlink pointing to a directory with contents
-        val targetDir = File(sourceFolder, "original/data")
-        targetDir.mkdirs()
-        val contentFile = File(targetDir, "important.txt")
-        contentFile.writeText("important data")
+    fun `move symlink to directory - directory contents remain at original location (Unix mv behavior)`(@TempDir tempDir: File) =
+        runTest {
+            val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+            val destFolder = File(tempDir, "dest").apply { mkdirs() }
+            // Given - symlink pointing to a directory with contents
+            val targetDir = File(sourceFolder, "original/data")
+            targetDir.mkdirs()
+            val contentFile = File(targetDir, "important.txt")
+            contentFile.writeText("important data")
 
-        val symlinkDir = File(sourceFolder, "links/shortcut")
-        symlinkDir.parentFile.mkdirs()
-        Files.createSymbolicLink(
-            symlinkDir.toPath(),
-            java.nio.file.Paths.get("../original/data")
-        )
+            val symlinkDir = File(sourceFolder, "links/shortcut")
+            symlinkDir.parentFile.mkdirs()
+            Files.createSymbolicLink(
+                symlinkDir.toPath(),
+                java.nio.file.Paths.get("../original/data")
+            )
 
-        if (!Files.isSymbolicLink(symlinkDir.toPath())) {
-            return@runTest
+            if (!Files.isSymbolicLink(symlinkDir.toPath())) {
+                return@runTest
+            }
+
+            val sourcePath = LocalPath.build(symlinkDir)
+            val destPath = LocalPath.build(destFolder)
+
+            // When - move ONLY the symlink (Unix mv behavior)
+            val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
+                .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+            // Then - symlink moved, original directory and contents remain
+            val movedLink = File(destFolder, "shortcut")
+            Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+            symlinkDir.exists() shouldBe false // Source symlink deleted
+
+            // CRITICAL: Original directory and its contents must remain (Unix mv behavior)
+            targetDir.exists() shouldBe true
+            targetDir.isDirectory shouldBe true
+            contentFile.exists() shouldBe true
+            contentFile.readText() shouldBe "important data"
+
+            result.movedFiles shouldHaveSize 1 // Only the symlink, NOT directory contents
         }
-
-        val sourcePath = LocalPath.build(symlinkDir)
-        val destPath = LocalPath.build(destFolder)
-
-        // When - move ONLY the symlink (Unix mv behavior)
-        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
-            .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
-
-        // Then - symlink moved, original directory and contents remain
-        val movedLink = File(destFolder, "shortcut")
-        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
-        symlinkDir.exists() shouldBe false // Source symlink deleted
-
-        // CRITICAL: Original directory and its contents must remain (Unix mv behavior)
-        targetDir.exists() shouldBe true
-        targetDir.isDirectory shouldBe true
-        contentFile.exists() shouldBe true
-        contentFile.readText() shouldBe "important data"
-
-        result.movedFiles shouldHaveSize 1 // Only the symlink, NOT directory contents
-    }
 
     @Test
-    fun `move symlink with relative path - link moves but target remains (Unix mv behavior)`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - symlink with relative path pointing to target in same directory
-        val targetFile = File(sourceFolder, "target.txt")
-        targetFile.writeText("target")
+    fun `move symlink with relative path - link moves but target remains (Unix mv behavior)`(@TempDir tempDir: File) =
+        runTest {
+            val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+            val destFolder = File(tempDir, "dest").apply { mkdirs() }
+            // Given - symlink with relative path pointing to target in same directory
+            val targetFile = File(sourceFolder, "target.txt")
+            targetFile.writeText("target")
 
-        val symlinkFile = File(sourceFolder, "link.txt")
-        Files.createSymbolicLink(
-            symlinkFile.toPath(),
-            java.nio.file.Paths.get("target.txt") // Relative path
-        )
+            val symlinkFile = File(sourceFolder, "link.txt")
+            Files.createSymbolicLink(
+                symlinkFile.toPath(),
+                java.nio.file.Paths.get("target.txt") // Relative path
+            )
 
-        if (!Files.isSymbolicLink(symlinkFile.toPath())) {
-            return@runTest
+            if (!Files.isSymbolicLink(symlinkFile.toPath())) {
+                return@runTest
+            }
+
+            val sourcePath = LocalPath.build(symlinkFile)
+            val destPath = LocalPath.build(destFolder)
+
+            // When - move the symlink
+            val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
+                .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+
+            // Then - symlink moved, remains a symlink
+            val movedLink = File(destFolder, "link.txt")
+            Files.isSymbolicLink(movedLink.toPath()) shouldBe true
+            symlinkFile.exists() shouldBe false
+
+            // CRITICAL: Target file must remain at original location (Unix mv behavior)
+            targetFile.exists() shouldBe true
+            targetFile.readText() shouldBe "target"
+
+            // Verify symlink still has a target path
+            // (path format may be relative or absolute depending on implementation)
+            val linkTarget = Files.readSymbolicLink(movedLink.toPath())
+            linkTarget shouldNotBe null
+
+            result.movedFiles shouldHaveSize 1
         }
-
-        val sourcePath = LocalPath.build(symlinkFile)
-        val destPath = LocalPath.build(destFolder)
-
-        // When - move the symlink
-        val result = sourcePath.move(ops, destPath, options = MoveAction.Options(attemptAtomicMove = false))
-            .last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
-
-        // Then - symlink moved, remains a symlink
-        val movedLink = File(destFolder, "link.txt")
-        Files.isSymbolicLink(movedLink.toPath()) shouldBe true
-        symlinkFile.exists() shouldBe false
-
-        // CRITICAL: Target file must remain at original location (Unix mv behavior)
-        targetFile.exists() shouldBe true
-        targetFile.readText() shouldBe "target"
-
-        // Verify symlink still has a target path
-        // (path format may be relative or absolute depending on implementation)
-        val linkTarget = Files.readSymbolicLink(movedLink.toPath())
-        linkTarget shouldNotBe null
-
-        result.movedFiles shouldHaveSize 1
-    }
 
     @Test
     fun `move symlink with absolute path preserves absolute path (Unix mv behavior)`(@TempDir tempDir: File) = runTest {
@@ -2201,80 +2205,87 @@ class LocalPathMoveTest : BaseTest() {
         File(destFolder, "file.txt").readText() shouldBe "new content"
         File(destFolder, "file (1).txt").readText() shouldBe "old content"
         sourceFile.exists() shouldBe false
-        result.movedFiles shouldContainPath (LocalPath.build(sourceFile) to LocalPath.build(File(destFolder, "file.txt")))
+        result.movedFiles shouldContainPath (LocalPath.build(sourceFile) to LocalPath.build(
+            File(
+                destFolder,
+                "file.txt"
+            )
+        ))
     }
 
     @Test
-    fun `file-directory conflict rename destination should move file and create directory`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - source directory but destination has a file with same name
-        val sourceDir = File(sourceFolder, "Item")
-        sourceDir.mkdir()
-        File(sourceDir, "content.txt").writeText("content")
+    fun `file-directory conflict rename destination should move file and create directory`(@TempDir tempDir: File) =
+        runTest {
+            val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+            val destFolder = File(tempDir, "dest").apply { mkdirs() }
+            // Given - source directory but destination has a file with same name
+            val sourceDir = File(sourceFolder, "Item")
+            sourceDir.mkdir()
+            File(sourceDir, "content.txt").writeText("content")
 
-        val destFile = File(destFolder, "Item")
-        destFile.writeText("blocking file")
+            val destFile = File(destFolder, "Item")
+            destFile.writeText("blocking file")
 
-        // When - rename destination
-        val result = LocalPath.build(sourceDir).move(
-            ops,
-            LocalPath.build(destFolder),
-            options = MoveAction.Options(attemptAtomicMove = false),
-            onIssue = { issue ->
-                when (issue) {
-                    is PathActionIssue.PathAlreadyExists -> {
-                        PathActionIssue.PathAlreadyExists.Resolution.RenameDestination("Item (1)")
+            // When - rename destination
+            val result = LocalPath.build(sourceDir).move(
+                ops,
+                LocalPath.build(destFolder),
+                options = MoveAction.Options(attemptAtomicMove = false),
+                onIssue = { issue ->
+                    when (issue) {
+                        is PathActionIssue.PathAlreadyExists -> {
+                            PathActionIssue.PathAlreadyExists.Resolution.RenameDestination("Item (1)")
+                        }
+                        else -> throw AssertionError("Unexpected issue: $issue")
                     }
-                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            }
-        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-        // Then - file renamed, directory created with original name
-        File(destFolder, "Item").isDirectory shouldBe true
-        File(destFolder, "Item/content.txt").exists() shouldBe true
-        File(destFolder, "Item (1)").isFile shouldBe true
-        File(destFolder, "Item (1)").readText() shouldBe "blocking file"
-        sourceDir.exists() shouldBe false
-        result.movedFiles shouldHaveSize 2 // directory + file
-    }
+            // Then - file renamed, directory created with original name
+            File(destFolder, "Item").isDirectory shouldBe true
+            File(destFolder, "Item/content.txt").exists() shouldBe true
+            File(destFolder, "Item (1)").isFile shouldBe true
+            File(destFolder, "Item (1)").readText() shouldBe "blocking file"
+            sourceDir.exists() shouldBe false
+            result.movedFiles shouldHaveSize 2 // directory + file
+        }
 
     @Test
-    fun `file-directory conflict rename source should create directory with new name`(@TempDir tempDir: File) = runTest {
-        val sourceFolder = File(tempDir, "source").apply { mkdirs() }
-        val destFolder = File(tempDir, "dest").apply { mkdirs() }
-        // Given - source directory but destination has a file with same name
-        val sourceDir = File(sourceFolder, "Item")
-        sourceDir.mkdir()
-        File(sourceDir, "content.txt").writeText("content")
+    fun `file-directory conflict rename source should create directory with new name`(@TempDir tempDir: File) =
+        runTest {
+            val sourceFolder = File(tempDir, "source").apply { mkdirs() }
+            val destFolder = File(tempDir, "dest").apply { mkdirs() }
+            // Given - source directory but destination has a file with same name
+            val sourceDir = File(sourceFolder, "Item")
+            sourceDir.mkdir()
+            File(sourceDir, "content.txt").writeText("content")
 
-        val destFile = File(destFolder, "Item")
-        destFile.writeText("blocking file")
+            val destFile = File(destFolder, "Item")
+            destFile.writeText("blocking file")
 
-        // When - rename source
-        val result = LocalPath.build(sourceDir).move(
-            ops,
-            LocalPath.build(destFolder),
-            options = MoveAction.Options(attemptAtomicMove = false),
-            onIssue = { issue ->
-                when (issue) {
-                    is PathActionIssue.PathAlreadyExists -> {
-                        PathActionIssue.PathAlreadyExists.Resolution.RenameSource("Item (1)")
+            // When - rename source
+            val result = LocalPath.build(sourceDir).move(
+                ops,
+                LocalPath.build(destFolder),
+                options = MoveAction.Options(attemptAtomicMove = false),
+                onIssue = { issue ->
+                    when (issue) {
+                        is PathActionIssue.PathAlreadyExists -> {
+                            PathActionIssue.PathAlreadyExists.Resolution.RenameSource("Item (1)")
+                        }
+                        else -> throw AssertionError("Unexpected issue: $issue")
                     }
-                    else -> throw AssertionError("Unexpected issue: $issue")
                 }
-            }
-        ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
+            ).last() as MoveAction.State.Completed<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>
 
-        // Then - file unchanged, directory created with new name
-        File(destFolder, "Item").isFile shouldBe true
-        File(destFolder, "Item").readText() shouldBe "blocking file"
-        File(destFolder, "Item (1)").isDirectory shouldBe true
-        File(destFolder, "Item (1)/content.txt").exists() shouldBe true
-        sourceDir.exists() shouldBe false
-        result.movedFiles shouldHaveSize 2 // directory + file
-    }
+            // Then - file unchanged, directory created with new name
+            File(destFolder, "Item").isFile shouldBe true
+            File(destFolder, "Item").readText() shouldBe "blocking file"
+            File(destFolder, "Item (1)").isDirectory shouldBe true
+            File(destFolder, "Item (1)/content.txt").exists() shouldBe true
+            sourceDir.exists() shouldBe false
+            result.movedFiles shouldHaveSize 2 // directory + file
+        }
 
     @Test
     fun `directory merge with apply to all should merge all directories`(@TempDir tempDir: File) = runTest {

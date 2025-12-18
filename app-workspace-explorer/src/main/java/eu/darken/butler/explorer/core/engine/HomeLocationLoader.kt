@@ -71,7 +71,7 @@ class HomeLocationLoader @AssistedInject constructor(
                     subtitle = caString { "${Build.MODEL} (Android ${Build.VERSION.SDK_INT})" },
                 )
             )
-            
+
             if (trashEnabled || trashCount > 0) {
                 val trashBadge = if (!trashEnabled) ExplorerItem.Shortcut.Badge.PAUSED else null
                 add(

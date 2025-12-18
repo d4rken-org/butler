@@ -29,7 +29,6 @@ import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -39,6 +38,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
 class EditorWorkspaceViewModel @AssistedInject constructor(

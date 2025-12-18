@@ -7,7 +7,6 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
 import android.content.pm.ServiceInfo
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,7 +39,7 @@ import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 
 data class ComponentsData(

@@ -6,15 +6,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ClearAll
-import androidx.compose.material.icons.twotone.History
 import androidx.compose.material.icons.twotone.ClearAll
 import androidx.compose.material.icons.twotone.Code
+import androidx.compose.material.icons.twotone.History
 import androidx.compose.material.icons.twotone.Numbers
-import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.QueryStats
+import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,20 +29,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.searcher.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
+import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.searcher.R
+import kotlinx.coroutines.launch
 
 @Composable
 fun SearcherSettingsScreen(

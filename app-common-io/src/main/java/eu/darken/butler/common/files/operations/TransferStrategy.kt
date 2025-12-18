@@ -57,7 +57,7 @@ import eu.darken.butler.common.files.FileSystemOps
 interface TransferStrategy<
     SP : APath<SP>, SPL : APathLookup<SP>,  // Source types
     DP : APath<DP>, DPL : APathLookup<DP>   // Destination types
-> {
+    > {
 
     /**
      * Transfer options that strategies may need.

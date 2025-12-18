@@ -24,7 +24,7 @@ import io.kotest.matchers.shouldBe
  * ```
  */
 infix fun <SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>, DPL : APathLookup<DP>>
-        Set<Pair<SPL, DPL>>.shouldContainPath(pair: Pair<SP, DP>) {
+    Set<Pair<SPL, DPL>>.shouldContainPath(pair: Pair<SP, DP>) {
     val paths = this.map { it.first.lookedUp to it.second.lookedUp }
     paths shouldContain pair
 }
@@ -41,7 +41,7 @@ infix fun <SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>, DPL : APathLoo
  * ```
  */
 infix fun <P : APath<P>, PL : APathLookup<P>>
-        Set<PL>.shouldContainPath(path: P) {
+    Set<PL>.shouldContainPath(path: P) {
     val paths = this.map { it.lookedUp }
     paths shouldContain path
 }
@@ -58,7 +58,7 @@ infix fun <P : APath<P>, PL : APathLookup<P>>
  * ```
  */
 infix fun <P : APath<P>, PL : APathLookup<P>>
-        Set<PL>.shouldBePaths(paths: Set<P>) {
+    Set<PL>.shouldBePaths(paths: Set<P>) {
     this.map { it.lookedUp }.toSet() shouldBe paths
 }
 
@@ -74,7 +74,7 @@ infix fun <P : APath<P>, PL : APathLookup<P>>
  * ```
  */
 infix fun <P : APath<P>, PL : APathLookup<P>>
-        Set<PL>.shouldNotBePaths(paths: Set<P>) {
+    Set<PL>.shouldNotBePaths(paths: Set<P>) {
     this.map { it.lookedUp }.toSet() shouldBe paths
 }
 
@@ -90,7 +90,7 @@ infix fun <P : APath<P>, PL : APathLookup<P>>
  * ```
  */
 fun <SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>, DPL : APathLookup<DP>>
-        Set<Pair<SPL, DPL>>.firstPath(): Pair<SP, DP> {
+    Set<Pair<SPL, DPL>>.firstPath(): Pair<SP, DP> {
     val first = this.first()
     return first.first.lookedUp to first.second.lookedUp
 }
@@ -107,7 +107,7 @@ fun <SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>, DPL : APathLookup<DP
  * ```
  */
 fun <SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>, DPL : APathLookup<DP>>
-        Set<Pair<SPL, DPL>>.toPathPairs(): Set<Pair<SP, DP>> {
+    Set<Pair<SPL, DPL>>.toPathPairs(): Set<Pair<SP, DP>> {
     return this.map { it.first.lookedUp to it.second.lookedUp }.toSet()
 }
 
@@ -123,6 +123,6 @@ fun <SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>, DPL : APathLookup<DP
  * ```
  */
 fun <P : APath<P>, PL : APathLookup<P>>
-        Set<PL>.toPaths(): Set<P> {
+    Set<PL>.toPaths(): Set<P> {
     return this.map { it.lookedUp }.toSet()
 }

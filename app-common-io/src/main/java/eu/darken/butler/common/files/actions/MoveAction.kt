@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlin.time.Instant
 
 interface MoveAction<
-        SP : APath<SP>, SPL : APathLookup<SP>, // Source types
-        DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
-        > {
+    SP : APath<SP>, SPL : APathLookup<SP>, // Source types
+    DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
+    > {
     suspend fun move(
         sources: Set<SP>,
         destination: DP,
@@ -24,13 +24,13 @@ interface MoveAction<
     )
 
     sealed interface State<
+        SP : APath<SP>, SPL : APathLookup<SP>, // Source types
+        DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
+        > {
+        data class Active<
             SP : APath<SP>, SPL : APathLookup<SP>, // Source types
             DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
-            > {
-        data class Active<
-                SP : APath<SP>, SPL : APathLookup<SP>, // Source types
-                DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
-                >(
+            >(
             val currentSource: SPL,
             val currentDestination: DP?,
             val primaryProgress: Progress.Data,
@@ -43,9 +43,9 @@ interface MoveAction<
         ) : State<SP, SPL, DP, DPL>
 
         data class Completed<
-                SP : APath<SP>, SPL : APathLookup<SP>, // Source types
-                DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
-                >(
+            SP : APath<SP>, SPL : APathLookup<SP>, // Source types
+            DP : APath<DP>, DPL : APathLookup<DP>, // Destination types
+            >(
             val movedFiles: Set<Pair<SPL, APathLookup<DP>>>,
             val skippedFiles: Set<SPL> = emptySet(),
             val bytesMoved: Long,
