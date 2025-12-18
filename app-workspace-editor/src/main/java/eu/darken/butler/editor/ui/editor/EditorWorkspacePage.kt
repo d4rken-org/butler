@@ -100,6 +100,8 @@ fun EditorWorkspacePageHost(
             onNextSearchResult = vm::nextSearchResult,
             onPreviousSearchResult = vm::previousSearchResult,
             onCloseSearch = vm::closeSearch,
+            onDismissCloseConfirmDialog = vm::dismissCloseConfirmDialog,
+            onConfirmCloseFile = vm::confirmCloseFile,
         )
     }
 }
@@ -121,6 +123,8 @@ fun EditorWorkspacePage(
     onNextSearchResult: () -> Unit = {},
     onPreviousSearchResult: () -> Unit = {},
     onCloseSearch: () -> Unit = {},
+    onDismissCloseConfirmDialog: () -> Unit = {},
+    onConfirmCloseFile: () -> Unit = {},
 ) {
     rememberCoroutineScope()
 
@@ -333,6 +337,13 @@ fun EditorWorkspacePage(
             onDismiss = onDismissGoToLineDialog,
         )
     }
+
+    if (state.showCloseConfirmDialog) {
+        CloseConfirmDialog(
+            onConfirm = onConfirmCloseFile,
+            onDismiss = onDismissCloseConfirmDialog,
+        )
+    }
 }
 
 @Composable
@@ -533,6 +544,28 @@ private fun SearchDialog(
                 enabled = searchQuery.isNotEmpty()
             ) {
                 Text(stringResource(R.string.editor_action_search))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.editor_dialog_action_cancel))
+            }
+        }
+    )
+}
+
+@Composable
+private fun CloseConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.editor_dialog_close_confirm_title)) },
+        text = { Text(stringResource(R.string.editor_dialog_close_confirm_message)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.editor_dialog_close_confirm_discard))
             }
         },
         dismissButton = {

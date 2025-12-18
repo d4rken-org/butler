@@ -57,6 +57,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val _loadingFilePath = MutableStateFlow<APath<*>?>(null)
     private val _showGoToLineDialog = MutableStateFlow(false)
     private val _showSearchDialog = MutableStateFlow(false)
+    private val _showCloseConfirmDialog = MutableStateFlow(false)
     private val _searchQueryInput = MutableStateFlow("")
     private val _currentSearchResultIndex = MutableStateFlow(0)
     private val _searchCaseSensitive = MutableStateFlow(false)
@@ -65,8 +66,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val dialogStates = combine(
         _showGoToLineDialog,
         _showSearchDialog,
-    ) { showGoToLineDialog, showSearchDialog ->
-        showGoToLineDialog to showSearchDialog
+        _showCloseConfirmDialog,
+    ) { showGoToLineDialog, showSearchDialog, showCloseConfirmDialog ->
+        Triple(showGoToLineDialog, showSearchDialog, showCloseConfirmDialog)
     }
 
     private val searchStates = combine(
@@ -92,7 +94,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         flowOf(id),
     ) { editorState, loading, dialogs, search, workspaceId ->
         val (isLoading, loadingFilePath) = loading
-        val (showGoToLineDialog, showSearchDialog) = dialogs
+        val (showGoToLineDialog, showSearchDialog, showCloseConfirmDialog) = dialogs
         val (searchQueryInput, currentSearchResultIndex, searchCaseSensitive) = search
 
         // Use loading file path for title when loading, otherwise use fileInfo
@@ -119,6 +121,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             wordWrap = editorState.wordWrap,
             showGoToLineDialog = showGoToLineDialog,
             showSearchDialog = showSearchDialog,
+            showCloseConfirmDialog = showCloseConfirmDialog,
             searchQueryInput = searchQueryInput,
             currentSearchResultIndex = currentSearchResultIndex,
             searchCaseSensitive = searchCaseSensitive,
@@ -176,6 +179,19 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun closeFile() {
         launch {
+            val currentState = state.first()
+            if (currentState.isModified) {
+                // Show confirmation dialog
+                _showCloseConfirmDialog.value = true
+            } else {
+                // Close directly if no unsaved changes
+                performCloseFile()
+            }
+        }
+    }
+
+    private fun performCloseFile() {
+        launch {
             try {
                 _isLoading.value = true
                 getWorkspace().closeFile()
@@ -185,6 +201,15 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    fun confirmCloseFile() {
+        _showCloseConfirmDialog.value = false
+        performCloseFile()
+    }
+
+    fun dismissCloseConfirmDialog() {
+        _showCloseConfirmDialog.value = false
     }
 
     fun saveFile() {
@@ -451,6 +476,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val wordWrap: Boolean = false,
         val showGoToLineDialog: Boolean = false,
         val showSearchDialog: Boolean = false,
+        val showCloseConfirmDialog: Boolean = false,
         val searchQueryInput: String = "",
         val currentSearchResultIndex: Int = 0,
         val searchCaseSensitive: Boolean = false,
