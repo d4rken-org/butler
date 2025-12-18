@@ -36,16 +36,16 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import java.io.File
-import kotlin.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
 @Singleton
-class RecorderModule @Inject constructor(
+class RecorderManager @Inject constructor(
     @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
@@ -243,7 +243,7 @@ class RecorderModule @Inject constructor(
     }
 
     companion object {
-        internal val TAG = logTag("Debug", "Log", "Recorder", "Module")
+        internal val TAG = logTag("Debug", "Log", "Recorder", "Manager")
         private const val FORCE_FILE = "force_debug_run"
         private const val LOG_SIZE_UPDATE_INTERVAL_MS = 5000L
     }
