@@ -13,7 +13,7 @@ plugins {
 apply(plugin = "dagger.hilt.android.plugin")
 
 android {
-    namespace = "${projectConfig.packageName}.templates"
+    namespace = "${projectConfig.packageName}.sdmaid"
 
     setupLibraryDefaults(projectConfig)
 
@@ -24,6 +24,7 @@ android {
     setupKotlinOptions()
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 
@@ -44,13 +45,9 @@ dependencies {
     testImplementation(project(":app-common-test"))
 
     implementation(project(":app-common"))
+    implementation(project(":app-common-io"))
+    implementation(project(":app-common-pkgs"))
     implementation(project(":app-workspace"))
-    implementation(project(":app-workspace-explorer"))
-    implementation(project(":app-workspace-searcher"))
-    implementation(project(":app-workspace-editor"))
-    implementation(project(":app-workspace-apps"))
-    implementation(project(":app-workspace-sdmaid"))
-    implementation(project(":app-workspace-debug"))
 
     addAndroidCore()
     addAndroidUI()
@@ -60,7 +57,9 @@ dependencies {
     addSerialization()
     addIO()
     addTesting()
-
-    addNavigation3()
     addCoil()
+
+    // Compose UI testing with Robolectric
+    testImplementation(platform("androidx.compose:compose-bom:2025.06.01"))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
 }

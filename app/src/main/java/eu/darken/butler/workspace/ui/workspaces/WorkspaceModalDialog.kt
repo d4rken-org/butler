@@ -19,6 +19,7 @@ import eu.darken.butler.debug.ui.DebugWorkspacePageHost
 import eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
 import eu.darken.butler.saver.ui.saver.SaverWorkspacePageHost
+import eu.darken.butler.sdmaid.ui.dashboard.SdMaidWorkspacePageHost
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
 import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
@@ -117,6 +118,12 @@ fun WorkspaceModalContent(
         }
         Workspace.Type.SAVER -> {
             SaverWorkspacePageHost(
+                id = workspace.id,
+                design = design,
+            )
+        }
+        Workspace.Type.SDMAID -> {
+            SdMaidWorkspacePageHost(
                 id = workspace.id,
                 design = design,
             )
