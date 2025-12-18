@@ -340,4 +340,13 @@
     <!-- Editor Share Target -->
     <string name="editor_share_label">Edit text</string>
 
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Enable Developer Mode?</string>
+    <string name="settings_developer_mode_unlock_message">This unlocks advanced diagnostic tools for troubleshooting and testing.</string>
+    <string name="settings_developer_mode_unlock_action">Enable</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">%d step away from Developer Mode</item>
+        <item quantity="other">%d steps away from Developer Mode</item>
+    </plurals>
+
 </resources>

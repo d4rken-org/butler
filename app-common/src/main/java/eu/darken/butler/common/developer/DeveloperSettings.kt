@@ -1,4 +1,4 @@
-package eu.darken.butler.common.debug
+package eu.darken.butler.common.developer
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -11,24 +11,16 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DebugSettings @Inject constructor(
+class DeveloperSettings @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    private val Context.dataStore by preferencesDataStore(name = "debug_settings")
+    private val Context.dataStore by preferencesDataStore(name = "developer_settings")
 
     private val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    val isDebugMode = dataStore.createValue(
-        "debug.enabled",
-        BuildConfigWrap.DEBUG
-    )
-    val isTraceMode = dataStore.createValue(
-        "debug.trace.enabled",
-        false,
-    )
-    val recorderPath = dataStore.createValue<String?>(
-        "recorder.log.path",
-        null
+    val isDeveloperModeUnlocked = dataStore.createValue(
+        "developer.mode.unlocked",
+        BuildConfigWrap.DEBUG,
     )
 }

@@ -13,7 +13,7 @@ plugins {
 apply(plugin = "dagger.hilt.android.plugin")
 
 android {
-    namespace = "${projectConfig.packageName}.templates"
+    namespace = "${projectConfig.packageName}.developer"
 
     setupLibraryDefaults(projectConfig)
 
@@ -44,13 +44,8 @@ dependencies {
     testImplementation(project(":app-common-test"))
 
     implementation(project(":app-common"))
+    implementation(project(":app-common-io"))
     implementation(project(":app-workspace"))
-    implementation(project(":app-workspace-explorer"))
-    implementation(project(":app-workspace-searcher"))
-    implementation(project(":app-workspace-editor"))
-    implementation(project(":app-workspace-apps"))
-    implementation(project(":app-workspace-sdmaid"))
-    implementation(project(":app-workspace-developer"))
 
     addAndroidCore()
     addAndroidUI()

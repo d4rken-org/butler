@@ -78,7 +78,7 @@ fun WorkspacePreview(
                                     Workspace.Type.APP_DETAILS -> AppsMockPreview()
                                     Workspace.Type.SAVER -> EditorMockPreview()
                                     Workspace.Type.SDMAID -> TemplatesMockPreview()
-                                    Workspace.Type.DEBUG -> DebugMockPreview()
+                                    Workspace.Type.DEVELOPER -> DeveloperMockPreview()
                                 }
                             }
                         }
@@ -93,7 +93,7 @@ fun WorkspacePreview(
                         Workspace.Type.APP_DETAILS -> AppsMockPreview()
                         Workspace.Type.SAVER -> EditorMockPreview()
                         Workspace.Type.SDMAID -> TemplatesMockPreview()
-                        Workspace.Type.DEBUG -> TemplatesMockPreview()
+                        Workspace.Type.DEVELOPER -> DeveloperMockPreview()
                     }
                 }
             }

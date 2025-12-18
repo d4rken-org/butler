@@ -33,7 +33,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
         APP_DETAILS,
         SAVER,
         SDMAID,
-        DEBUG,
+        DEVELOPER,
         ;
     }
 

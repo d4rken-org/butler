@@ -1,6 +1,7 @@
 package eu.darken.butler.common.settings
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SettingsBaseItem(
     title: String,
@@ -34,12 +36,17 @@ fun SettingsBaseItem(
     iconSize: Dp = 24.dp,
     subtitle: String? = null,
     enabled: Boolean = true,
+    onLongClick: (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(enabled = enabled) { onClick() }
+            .combinedClickable(
+                enabled = enabled,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
