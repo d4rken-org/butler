@@ -28,6 +28,8 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -55,7 +57,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
-import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
@@ -78,8 +79,10 @@ import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
+import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
@@ -91,7 +94,6 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
 import eu.darken.butler.workspace.ui.scroll.setHeight
@@ -154,6 +156,7 @@ fun ExplorerWorkspacePage(
 
     // Pull-to-refresh indicator state - shows briefly then hides to let progress banner take over
     var showPullToRefreshIndicator by remember { mutableStateOf(false) }
+    val pullToRefreshState = rememberPullToRefreshState()
 
     // Observe conflict state
     val issueState by (vm?.issueState?.collectAsState() ?: remember { mutableStateOf(null) })
@@ -451,11 +454,25 @@ fun ExplorerWorkspacePage(
                 (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp) +
                 8.dp // Padding between list and upper toolbars
 
+            // Offset for pull-to-refresh indicator to appear below toolbar/info bar
+            val indicatorOffset = 8.dp + actualToolbarHeightDp +
+                (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp)
+
             // Main content with PullToRefresh
             PullToRefreshBox(
                 isRefreshing = showPullToRefreshIndicator,
                 onRefresh = handleRefresh,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                state = pullToRefreshState,
+                indicator = {
+                    PullToRefreshDefaults.Indicator(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = indicatorOffset),
+                        state = pullToRefreshState,
+                        isRefreshing = showPullToRefreshIndicator,
+                    )
+                },
             ) {
                 val mainStateSnap = mainState
                 when {
