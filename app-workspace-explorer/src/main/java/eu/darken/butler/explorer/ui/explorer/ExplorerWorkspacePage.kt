@@ -37,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,7 +77,6 @@ import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
-import eu.darken.butler.explorer.ui.explorer.util.FocusNavigationState
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
@@ -136,10 +134,8 @@ fun ExplorerWorkspacePage(
     val gridState = rememberLazyGridState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Local focus state for keyboard navigation (survives rotation)
-    var focusState by rememberSaveable(stateSaver = FocusNavigationState.Saver) {
-        mutableStateOf(FocusNavigationState())
-    }
+    // Focus state comes from ViewModel (survives rotation)
+    val focusedItem = mainState.focusedItemIndex?.let { mainState.items?.getOrNull(it) }
 
     // Track actual measured height of the toolbar card
     val density = LocalDensity.current
@@ -250,19 +246,12 @@ fun ExplorerWorkspacePage(
     }
 
     // Auto-scroll to keep focused item visible during keyboard navigation
-    LaunchedEffect(focusState.focusedIndex) {
-        val focusedIndex = focusState.focusedIndex ?: return@LaunchedEffect
+    LaunchedEffect(mainState.focusedItemIndex) {
+        val focusedIndex = mainState.focusedItemIndex ?: return@LaunchedEffect
         when (mainState.viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(focusedIndex)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(focusedIndex)
         }
-    }
-
-    // Update focus state when items change (reset on navigation, adjust if items removed)
-    // Skip when items is null to avoid clearing restored focus state before data loads
-    LaunchedEffect(mainState.locationId, mainState.items?.size) {
-        val items = mainState.items ?: return@LaunchedEffect
-        focusState = focusState.updateItemCount(items.size)
     }
 
     // Handle reveal requests (scroll to and highlight item)
@@ -414,11 +403,6 @@ fun ExplorerWorkspacePage(
     // Grid columns for keyboard navigation (approximate for adaptive grid)
     val gridColumns = 3
 
-    // Calculate focused item from state
-    val focusedItem = focusState.focusedIndex?.let { index ->
-        mainState.items?.getOrNull(index)
-    }
-
     Surface(
         modifier = Modifier
             .fillMaxSize()
@@ -434,15 +418,15 @@ fun ExplorerWorkspacePage(
                 onPaste = { vm?.pasteClipboard(it) },
                 onSelectAll = { vm?.selectAll() },
                 onClearSelection = { vm?.clearSelection() },
-                onClearFocus = { focusState = focusState.clearFocus() },
+                onClearFocus = { vm?.clearFocus() },
                 onNavigateToItem = { vm?.navigate(it) },
                 onGoBack = { vm?.goBack() },
-                onMoveFocusUp = { focusState = focusState.moveFocusUp() },
-                onMoveFocusDown = { focusState = focusState.moveFocusDown() },
-                onMoveFocusLeft = { focusState = focusState.moveFocusLeft(gridColumns) },
-                onMoveFocusRight = { focusState = focusState.moveFocusRight(gridColumns) },
-                onMoveFocusToFirst = { focusState = focusState.moveFocusToFirst() },
-                onMoveFocusToLast = { focusState = focusState.moveFocusToLast() },
+                onMoveFocusUp = { vm?.moveFocusUp() },
+                onMoveFocusDown = { vm?.moveFocusDown() },
+                onMoveFocusLeft = { vm?.moveFocusLeft(gridColumns) },
+                onMoveFocusRight = { vm?.moveFocusRight(gridColumns) },
+                onMoveFocusToFirst = { vm?.moveFocusToFirst() },
+                onMoveFocusToLast = { vm?.moveFocusToLast() },
                 onActivateFocusedItem = { focusedItem?.let { vm?.navigate(it) } },
                 onRenameFocusedItem = { (focusedItem as? ExplorerItem.Lookup)?.let { vm?.renameFile(it) } },
             )
