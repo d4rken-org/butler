@@ -1,6 +1,5 @@
 package eu.darken.butler.searcher.ui.search.util
 
-import androidx.compose.ui.text.input.TextFieldValue
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTarget
@@ -25,12 +24,12 @@ sealed interface SearcherPageAction {
         /**
          * Update the filename pattern query text
          */
-        data class UpdateFilenameQuery(val query: TextFieldValue) : Search
+        data class UpdateFilenameQuery(val text: String) : Search
 
         /**
          * Update the content pattern query text
          */
-        data class UpdateContentQuery(val query: TextFieldValue) : Search
+        data class UpdateContentQuery(val text: String) : Search
 
         /**
          * Perform search with current query (auto-triggered)

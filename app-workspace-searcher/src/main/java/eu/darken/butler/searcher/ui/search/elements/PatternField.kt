@@ -2,7 +2,6 @@ package eu.darken.butler.searcher.ui.search.elements
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -44,8 +45,8 @@ import eu.darken.butler.searcher.R
 @Composable
 fun PatternField(
     modifier: Modifier = Modifier,
-    query: TextFieldValue,
-    onQueryChange: (TextFieldValue) -> Unit,
+    text: String,
+    onTextChange: (String) -> Unit,
     onSearch: () -> Unit,
     placeholder: String,
     leadingIcon: ImageVector,
@@ -61,6 +62,16 @@ fun PatternField(
     val colors = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
     var menuExpanded by remember { mutableStateOf(false) }
+
+    // Local TextFieldValue state to manage cursor position independently
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(text, TextRange(text.length))) }
+
+    // Sync external text changes (e.g., from history restore)
+    LaunchedEffect(text) {
+        if (text != textFieldValue.text) {
+            textFieldValue = TextFieldValue(text = text, selection = TextRange(text.length))
+        }
+    }
 
     // Check if any options are enabled
     val hasActiveOptions = caseSensitive || wholeWord || useRegex
@@ -82,8 +93,11 @@ fun PatternField(
 
         // Text field
         BasicTextField(
-            value = query,
-            onValueChange = onQueryChange,
+            value = textFieldValue,
+            onValueChange = { newValue ->
+                textFieldValue = newValue
+                onTextChange(newValue.text)
+            },
             modifier = Modifier.weight(1f),
             textStyle = MaterialTheme.typography.bodyMedium.copy(
                 color = colors.onSurface,
@@ -97,7 +111,7 @@ fun PatternField(
             interactionSource = interactionSource,
             decorationBox = { innerTextField ->
                 Box {
-                    if (query.text.isEmpty()) {
+                    if (textFieldValue.text.isEmpty()) {
                         Text(
                             text = placeholder,
                             style = MaterialTheme.typography.bodyMedium,
@@ -110,12 +124,15 @@ fun PatternField(
         )
 
         // Clear button
-        if (query.text.isNotEmpty()) {
+        if (textFieldValue.text.isNotEmpty()) {
             Icon(
                 imageVector = Icons.TwoTone.Clear,
                 contentDescription = stringResource(eu.darken.butler.common.R.string.general_clear_action),
                 modifier = Modifier
-                    .clickable { onQueryChange(TextFieldValue("")) }
+                    .clickable {
+                        textFieldValue = TextFieldValue("")
+                        onTextChange("")
+                    }
                     .size(20.dp),
                 tint = colors.onSurfaceVariant,
             )
@@ -183,8 +200,8 @@ private fun PatternFieldFilenamePreview() {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             PatternField(
-                query = TextFieldValue("*.kt"),
-                onQueryChange = {},
+                text = "*.kt",
+                onTextChange = {},
                 onSearch = {},
                 placeholder = "Filename pattern…",
                 leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
@@ -196,8 +213,8 @@ private fun PatternFieldFilenamePreview() {
                 onToggleRegex = {},
             )
             PatternField(
-                query = TextFieldValue("TODO"),
-                onQueryChange = {},
+                text = "TODO",
+                onTextChange = {},
                 onSearch = {},
                 placeholder = "Content pattern…",
                 leadingIcon = Icons.TwoTone.Description,
@@ -217,8 +234,8 @@ private fun PatternFieldFilenamePreview() {
 private fun PatternFieldEmptyPreview() {
     PreviewWrapper {
         PatternField(
-            query = TextFieldValue(""),
-            onQueryChange = {},
+            text = "",
+            onTextChange = {},
             onSearch = {},
             placeholder = "Filename pattern…",
             leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
