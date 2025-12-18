@@ -239,6 +239,9 @@
     <string name="settings_privacy_policy_label">Privacy policy</string>
     <string name="settings_privacy_policy_desc">Handling data responsibly.</string>
 
+    <string name="settings_sdmaid_label">SD Maid 2/SE</string>
+    <string name="settings_sdmaid_description">Butler\'s colleague for freeing space and cleaning up.</string>
+
     <string name="changelog_label">Changelog</string>
 
     <!-- Upgrade Status -->

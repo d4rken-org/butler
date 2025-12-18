@@ -14,8 +14,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -26,6 +29,9 @@ fun SettingsBaseItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
+    iconPainter: Painter? = null,
+    iconTinted: Boolean = true,
+    iconSize: Dp = 24.dp,
     subtitle: String? = null,
     enabled: Boolean = true,
     trailingContent: @Composable (() -> Unit)? = null,
@@ -38,20 +44,33 @@ fun SettingsBaseItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val contentAlpha = if (enabled) 1f else 0.5f
+        val hasIcon = icon != null || iconPainter != null
+        val tint = if (iconTinted) {
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f * contentAlpha)
+        } else {
+            Color.Unspecified
+        }
 
         if (icon != null) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f * contentAlpha)
+                modifier = Modifier.size(iconSize),
+                tint = tint,
+            )
+        } else if (iconPainter != null) {
+            Icon(
+                painter = iconPainter,
+                contentDescription = null,
+                modifier = Modifier.size(iconSize),
+                tint = tint,
             )
         }
 
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(start = if (icon != null) 16.dp else 0.dp)
+                .padding(start = if (hasIcon) 16.dp else 0.dp)
         ) {
             Text(
                 text = title,
