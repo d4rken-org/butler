@@ -147,10 +147,16 @@ fun FloatingBarStack(
                     is BarScrollBehavior.VanishOnScroll -> 0f
                 }
 
-                // Calculate alpha for VanishOnScroll bars
-                val alpha = when (barState.scrollBehavior) {
-                    is BarScrollBehavior.VanishOnScroll -> 1f - barState.scrollCollapsedFraction
-                    else -> 1f
+                // Calculate alpha and scale for VanishOnScroll bars (pop effect)
+                val (alpha, scale) = when (barState.scrollBehavior) {
+                    is BarScrollBehavior.VanishOnScroll -> {
+                        val fraction = barState.scrollCollapsedFraction
+                        val popAlpha = 1f - fraction
+                        // Scale from 1.0 down to 0.85 for a subtle pop effect
+                        val popScale = 1f - (fraction * 0.15f)
+                        popAlpha to popScale
+                    }
+                    else -> 1f to 1f
                 }
 
                 val y = when (position) {
@@ -164,6 +170,8 @@ fun FloatingBarStack(
                     zIndex = (state.barStates.size - index).toFloat(), // Edge bars on top
                 ) {
                     this.alpha = alpha
+                    this.scaleX = scale
+                    this.scaleY = scale
                 }
             }
         }
