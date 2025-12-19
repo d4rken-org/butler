@@ -177,6 +177,13 @@ fun SearcherWorkspacePage(
         }
     }
 
+    // Auto-scroll to top when a new search starts
+    LaunchedEffect(state?.workspaceState?.searchStatus) {
+        if (state?.workspaceState?.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
+            listState.scrollToItem(0)
+        }
+    }
+
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
 
@@ -295,6 +302,13 @@ fun SearcherWorkspacePage(
                 }
         ) {
             val gridState = rememberLazyGridState()
+
+            // Auto-scroll grid to top when a new search starts
+            LaunchedEffect(currentState.workspaceState.searchStatus) {
+                if (currentState.workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
+                    gridState.scrollToItem(0)
+                }
+            }
 
             // Content padding calculation (shared between list and grid)
             // Account for progress card visibility based on both existence AND scroll state
