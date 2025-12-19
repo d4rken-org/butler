@@ -49,5 +49,11 @@ fun SearcherDialogHost(
                 onConfirm = onSortOptionsConfirmed,
             )
         }
+        is SearcherDialogState.EditSizeCondition -> {
+            // Handled separately via SizeConditionEditSheet in SearcherWorkspacePage
+        }
+        is SearcherDialogState.EditDateCondition -> {
+            // Handled separately via DateConditionEditSheet in SearcherWorkspacePage
+        }
     }
 }

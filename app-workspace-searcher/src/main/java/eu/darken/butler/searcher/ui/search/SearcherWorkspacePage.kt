@@ -62,12 +62,16 @@ import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
+import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
+import eu.darken.butler.searcher.ui.search.dialogs.DateConditionEditSheet
+import eu.darken.butler.searcher.ui.search.dialogs.SizeConditionEditSheet
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
 import eu.darken.butler.searcher.ui.search.elements.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.elements.SearchResultItemDetails
 import eu.darken.butler.searcher.ui.search.elements.SearchTargetsEmptyStateCard
 import eu.darken.butler.searcher.ui.search.elements.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.elements.SearcherInfoBar
+import eu.darken.butler.searcher.ui.search.elements.TemplatesCard
 import eu.darken.butler.searcher.ui.search.elements.searchHistorySection
 import eu.darken.butler.searcher.ui.search.items.SelectableFileGrid
 import eu.darken.butler.searcher.ui.search.items.SelectableFileRow
@@ -327,6 +331,16 @@ fun SearcherWorkspacePage(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = contentPaddingValues
                     ) {
+                        // Show templates card when idle and have search targets
+                        if (!currentState.isSearching && currentState.searchTargets.isNotEmpty()) {
+                            item {
+                                TemplatesCard(
+                                    onTemplateClick = { onPageAction(SearcherPageAction.Templates.Apply(it)) },
+                                    modifier = Modifier.padding(top = 8.dp),
+                                )
+                            }
+                        }
+
                         // Show search history (LazyListScope extension)
                         searchHistorySection(
                             searchHistory = currentState.searchHistory,
@@ -552,6 +566,10 @@ fun SearcherWorkspacePage(
                 onToggleContentRegex = { onPageAction(SearcherPageAction.Options.ToggleContentRegex) },
                 onToggleContentSearch = { onPageAction(SearcherPageAction.Options.ToggleContentSearch) },
                 onOpenPathPicker = { onPageAction(SearcherPageAction.Targets.OpenPicker) },
+                onConditionClick = { onPageAction(SearcherPageAction.Filter.EditCondition(it)) },
+                onAddSizeCondition = { onPageAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
+                onAddDateCondition = { onPageAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
+                onRemoveCondition = { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) },
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,
                 modifier = Modifier
@@ -778,6 +796,36 @@ fun SearcherWorkspacePage(
             onNavigateToClipboardSource = { clip -> vm?.navigateToClipboardSource(clip) },
             onRemoveClipboardEntry = { clip -> vm?.removeClipboardEntry(clip) },
             onSortOptionsConfirmed = { vm?.onSortOptions(it) },
+        )
+
+        // Size condition edit bottom sheet
+        val sizeConditionState = currentState.dialogState as? SearcherDialogState.EditSizeCondition
+        SizeConditionEditSheet(
+            visible = sizeConditionState != null,
+            existingCondition = sizeConditionState?.existing,
+            onDismiss = { vm?.dismissDialog() },
+            onApply = { newCondition ->
+                // Remove existing condition if editing, then add new one
+                sizeConditionState?.existing?.let {
+                    onPageAction(SearcherPageAction.Filter.RemoveCondition(it))
+                }
+                onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
+            },
+        )
+
+        // Date condition edit bottom sheet
+        val dateConditionState = currentState.dialogState as? SearcherDialogState.EditDateCondition
+        DateConditionEditSheet(
+            visible = dateConditionState != null,
+            existingCondition = dateConditionState?.existing,
+            onDismiss = { vm?.dismissDialog() },
+            onApply = { newCondition ->
+                // Remove existing condition if editing, then add new one
+                dateConditionState?.existing?.let {
+                    onPageAction(SearcherPageAction.Filter.RemoveCondition(it))
+                }
+                onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
+            },
         )
 
         // Operation dialog host

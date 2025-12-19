@@ -1,8 +1,11 @@
 package eu.darken.butler.searcher.ui.search.util
 
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.core.SearchTemplate
 import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
@@ -113,6 +116,46 @@ sealed interface SearcherPageAction {
          * Restore search from history item
          */
         data class Click(val item: SearchHistory.SearchHistoryItem) : History
+    }
+
+    /**
+     * Search template actions
+     */
+    sealed interface Templates : SearcherPageAction {
+        /**
+         * Apply a search template and execute search
+         */
+        data class Apply(val template: SearchTemplate) : Templates
+    }
+
+    /**
+     * Search filter actions - condition-based editors and management
+     */
+    sealed interface Filter : SearcherPageAction {
+        /**
+         * Open size condition editor (for adding new)
+         */
+        data object OpenSizeConditionEditor : Filter
+
+        /**
+         * Open date condition editor (for adding new)
+         */
+        data object OpenDateConditionEditor : Filter
+
+        /**
+         * Add a new filter condition
+         */
+        data class AddCondition(val condition: FilterCondition) : Filter
+
+        /**
+         * Remove a filter condition
+         */
+        data class RemoveCondition(val condition: FilterCondition) : Filter
+
+        /**
+         * Edit an existing filter condition (opens editor with current values)
+         */
+        data class EditCondition(val condition: FilterCondition) : Filter
     }
 
     /**

@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.Description
+import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.Card
@@ -38,7 +40,9 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.ContentQuery
+import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.FilenameQuery
+import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
@@ -69,6 +73,10 @@ fun SearchToolbarCard(
     onToggleContentRegex: () -> Unit,
     onToggleContentSearch: () -> Unit,
     onOpenPathPicker: (() -> Unit)? = null,
+    onConditionClick: ((FilterCondition) -> Unit)? = null,
+    onAddSizeCondition: (() -> Unit)? = null,
+    onAddDateCondition: (() -> Unit)? = null,
+    onRemoveCondition: ((FilterCondition) -> Unit)? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
@@ -233,14 +241,36 @@ fun SearchToolbarCard(
                     }
                 }
 
+                // Filter chips row (always visible when expanded)
                 AnimatedVisibility(
                     visible = !isCollapsed,
                     enter = expandVertically(),
                     exit = shrinkVertically(),
                 ) {
-                    Column() {
+                    Column {
                         HorizontalDivider(
                             modifier = Modifier.padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                        )
+
+                        FilterChipBar(
+                            filter = state.currentFilter,
+                            onConditionClick = { onConditionClick?.invoke(it) },
+                            onAddSizeCondition = { onAddSizeCondition?.invoke() },
+                            onAddDateCondition = { onAddDateCondition?.invoke() },
+                            onRemoveCondition = { onRemoveCondition?.invoke(it) },
+                        )
+                    }
+                }
+
+                // Path chips row
+                AnimatedVisibility(
+                    visible = !isCollapsed,
+                    enter = expandVertically(),
+                    exit = shrinkVertically(),
+                ) {
+                    Column {
+                        HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                         )
 

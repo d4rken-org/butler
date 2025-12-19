@@ -1,6 +1,7 @@
 package eu.darken.butler.searcher.ui.search.dialogs
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 
@@ -12,4 +13,18 @@ sealed interface SearcherDialogState {
     ) : SearcherDialogState
     data class ClipboardInfo(val clip: ClipboardClip) : SearcherDialogState
     data class EditSortOptions(val currentSortSettings: SearchSortSettings) : SearcherDialogState
+
+    /**
+     * Edit size condition - null existing means adding new
+     */
+    data class EditSizeCondition(
+        val existing: FilterCondition.Size? = null,
+    ) : SearcherDialogState
+
+    /**
+     * Edit date condition - null existing means adding new
+     */
+    data class EditDateCondition(
+        val existing: FilterCondition.ModifiedDate? = null,
+    ) : SearcherDialogState
 }

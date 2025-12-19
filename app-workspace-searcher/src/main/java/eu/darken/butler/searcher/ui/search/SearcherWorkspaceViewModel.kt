@@ -32,11 +32,13 @@ import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.ContentQuery
+import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.core.SearchTemplate
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.arguments.SearcherArguments
 import eu.darken.butler.searcher.core.SearcherViewStyle
@@ -447,6 +449,58 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    private fun applyTemplate(template: SearchTemplate) {
+        log(TAG, INFO) { "Applying template: ${template.id}" }
+
+        vmScope.launch {
+            val workspace = getWorkspace()
+            val targets = workspace.state.first().searchTargets
+
+            if (targets.isEmpty()) {
+                log(TAG, WARN) { "Cannot apply template: no search targets configured" }
+                return@launch
+            }
+
+            // Create query from template
+            val query = template.createQuery(targets)
+
+            // Update query fields
+            filenameQuery.value = query.filenameQuery.pattern
+            contentQuery.value = query.contentQuery.pattern
+
+            // Update per-field options
+            filenameOptions.value = query.filenameQuery.copy(pattern = "")
+            contentOptions.value = query.contentQuery.copy(pattern = "")
+
+            // Enable content search if the template has content query
+            if (query.contentQuery.isNotEmpty) {
+                contentSearchEnabled.value = true
+            }
+
+            // Update filter
+            currentFilter.value = query.filter
+
+            // Clear selection state
+            selectionState.value = SearcherSelectionState()
+
+            // Prevent auto-search from double-triggering
+            lastAutoExecutedQuery = "${query.filenameQuery.pattern}|${query.contentQuery.pattern}"
+
+            // Execute search via workspace command (bypass performSearch to use template's query directly)
+            val searchCommand = SearcherCommand.Search(
+                filenameQuery = query.filenameQuery,
+                contentQuery = query.contentQuery,
+                targets = targets,
+                filter = query.filter,
+                options = SearchQuery.Options(
+                    maxResults = searcherSettings.maxSearchResults.value(),
+                ),
+                saveToHistory = true,
+            )
+            workspace.execute(searchCommand)
+        }
+    }
+
     fun performSearch(saveToHistory: Boolean = false) {
         val filenameText = filenameQuery.value
         val contentText = contentQuery.value
@@ -846,6 +900,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val hasResults: Boolean
             get() = workspaceState.results.isNotEmpty()
 
+        val hasActiveFilter: Boolean
+            get() = currentFilter.hasConditions()
+
         val needsSetup: Boolean
             get() = setupRequirements.needsSetup
 
@@ -1096,6 +1153,45 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 }
             }
             is SearcherPageAction.History.Click -> restoreFromHistory(action.item)
+
+            // Templates
+            is SearcherPageAction.Templates.Apply -> applyTemplate(action.template)
+
+            // Filter - Condition-based actions
+            is SearcherPageAction.Filter.OpenSizeConditionEditor -> {
+                dialogStateFlow.value = SearcherDialogState.EditSizeCondition(existing = null)
+            }
+            is SearcherPageAction.Filter.OpenDateConditionEditor -> {
+                dialogStateFlow.value = SearcherDialogState.EditDateCondition(existing = null)
+            }
+            is SearcherPageAction.Filter.AddCondition -> {
+                currentFilter.value = currentFilter.value.copy(
+                    conditions = currentFilter.value.conditions + action.condition
+                )
+                selectionState.value = SearcherSelectionState()
+                dismissDialog()
+                performSearch(saveToHistory = false)
+            }
+            is SearcherPageAction.Filter.RemoveCondition -> {
+                currentFilter.value = currentFilter.value.copy(
+                    conditions = currentFilter.value.conditions - action.condition
+                )
+                performSearch(saveToHistory = false)
+            }
+            is SearcherPageAction.Filter.EditCondition -> {
+                when (action.condition) {
+                    is FilterCondition.Size -> {
+                        dialogStateFlow.value = SearcherDialogState.EditSizeCondition(
+                            existing = action.condition
+                        )
+                    }
+                    is FilterCondition.ModifiedDate -> {
+                        dialogStateFlow.value = SearcherDialogState.EditDateCondition(
+                            existing = action.condition
+                        )
+                    }
+                }
+            }
 
             // Results
             is SearcherPageAction.Results.Click -> {

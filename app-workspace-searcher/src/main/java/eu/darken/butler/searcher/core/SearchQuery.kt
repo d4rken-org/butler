@@ -2,11 +2,42 @@ package eu.darken.butler.searcher.core
 
 import android.os.Parcelable
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.metadata.FileType
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
+
+/**
+ * Comparator for filter conditions.
+ */
+@Serializable
+enum class FilterComparator(val symbol: String) {
+    GT(">"),    // Greater than
+    GTE("≥"),   // Greater than or equal
+    LT("<"),    // Less than
+    LTE("≤"),   // Less than or equal
+    EQ("="),    // Equal
+}
+
+/**
+ * A single filter condition with type, comparator, and value.
+ */
+@Serializable
+sealed interface FilterCondition : Parcelable {
+    @Serializable
+    @Parcelize
+    data class Size(
+        val comparator: FilterComparator,
+        val bytes: Long,
+    ) : FilterCondition
+
+    @Serializable
+    @Parcelize
+    data class ModifiedDate(
+        val comparator: FilterComparator,
+        @Contextual val instant: Instant,
+    ) : FilterCondition
+}
 
 @Serializable
 @Parcelize
@@ -32,20 +63,16 @@ data class SearchQuery(
     @Serializable
     @Parcelize
     data class Filter(
-        // File type and size filters
-        val fileTypes: Set<FileType>? = null,
-        val minSize: Long? = null,
-        val maxSize: Long? = null,
+        val conditions: List<FilterCondition> = emptyList(),
+    ) : Parcelable {
+        val sizeConditions: List<FilterCondition.Size>
+            get() = conditions.filterIsInstance<FilterCondition.Size>()
 
-        // Date filters
-        @Contextual val modifiedAfter: Instant? = null,
-        @Contextual val modifiedBefore: Instant? = null,
+        val dateConditions: List<FilterCondition.ModifiedDate>
+            get() = conditions.filterIsInstance<FilterCondition.ModifiedDate>()
 
-        // Path filters
-        val includePaths: Set<String>? = null,
-        val excludePaths: Set<String>? = null,
-        val searchHidden: Boolean = false,
-    ) : Parcelable
+        fun hasConditions(): Boolean = conditions.isNotEmpty()
+    }
 
     companion object {
         fun create(
