@@ -209,8 +209,11 @@ fun SearcherWorkspacePage(
     }
     val hasActions by remember {
         derivedStateOf {
-            state?.selectionState?.selectedResultIds?.isNotEmpty() == true ||
-            state?.listItems?.isNotEmpty() == true
+            val currentState = state ?: return@derivedStateOf false
+            val showingHistory = !currentState.hasResults && currentState.searchHistory.isNotEmpty()
+
+            currentState.selectionState.selectedResultIds.isNotEmpty() ||
+                (!showingHistory && currentState.listItems.isNotEmpty())
         }
     }
 
