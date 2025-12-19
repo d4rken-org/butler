@@ -47,6 +47,7 @@ class FloatingBarStackState(
 
     /**
      * Total content padding in pixels, calculated from all visible bars.
+     * Clamped to non-negative to handle bounce animation overshoot.
      */
     val contentPaddingPx: Float by derivedStateOf {
         if (barStates.isEmpty()) return@derivedStateOf edgePaddingPx
@@ -60,7 +61,7 @@ class FloatingBarStackState(
                 }
             }
         }
-        totalHeight
+        totalHeight.coerceAtLeast(0f)
     }
 
     /**

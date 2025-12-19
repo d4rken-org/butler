@@ -70,8 +70,8 @@ fun FloatingBarStack(
             scope.bars()
         }
 
-        // Phase 2: Calculate content padding
-        val contentPaddingPx = state.contentPaddingPx
+        // Phase 2: Calculate content padding (clamp to non-negative for bounce animations)
+        val contentPaddingPx = state.contentPaddingPx.coerceAtLeast(0f)
         val contentPadding = when (position) {
             BarPosition.TOP -> PaddingValues(top = with(density) { contentPaddingPx.toDp() })
             BarPosition.BOTTOM -> PaddingValues(bottom = with(density) { contentPaddingPx.toDp() })
