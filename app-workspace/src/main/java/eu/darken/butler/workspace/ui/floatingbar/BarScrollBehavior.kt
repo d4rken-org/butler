@@ -26,4 +26,11 @@ sealed interface BarScrollBehavior {
      * Bar completely hides when scrolling down, shows when scrolling up.
      */
     data object HideOnScroll : BarScrollBehavior
+
+    /**
+     * Bar fades out and shrinks in place when scrolling.
+     * Unlike [HideOnScroll], the bar does not slide off screen - it vanishes where it is.
+     * Other bars animate to fill the gap.
+     */
+    data object VanishOnScroll : BarScrollBehavior
 }

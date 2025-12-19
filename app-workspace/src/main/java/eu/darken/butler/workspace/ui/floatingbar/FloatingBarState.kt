@@ -110,7 +110,8 @@ class FloatingBarState(
                     val collapsible = measuredHeight - collapsedHeightPx
                     measuredHeight - (collapsible * scrollCollapsedFraction)
                 }
-                is BarScrollBehavior.HideOnScroll -> {
+                is BarScrollBehavior.HideOnScroll,
+                is BarScrollBehavior.VanishOnScroll -> {
                     measuredHeight * (1f - scrollCollapsedFraction)
                 }
             }

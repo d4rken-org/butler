@@ -28,15 +28,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -92,8 +89,6 @@ import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
-import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.setHeights
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -126,7 +121,11 @@ fun ExplorerWorkspacePage(
 
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
-    val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
+    val topBarStackState = rememberFloatingBarStackState(
+        position = BarPosition.TOP,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+    )
     val bottomBarStackState = rememberFloatingBarStackState(
         position = BarPosition.BOTTOM,
         defaultSpacing = 8.dp,
@@ -138,21 +137,6 @@ fun ExplorerWorkspacePage(
 
     // Focus state comes from ViewModel (survives rotation)
     val focusedItem = mainState.focusedItemIndex?.let { mainState.items?.getOrNull(it) }
-
-    // Track actual measured height of the toolbar card
-    val density = LocalDensity.current
-    var actualToolbarHeightPx by remember { mutableIntStateOf(0) }
-    val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
-
-    // Track actual measured height of the info bar
-    var actualInfoBarHeightPx by remember { mutableIntStateOf(0) }
-    val actualInfoBarHeightDp = with(density) { actualInfoBarHeightPx.toDp() }
-
-    // Set the top toolbar heights (expanded and collapsed)
-    topToolbarScrollBehavior.state.setHeights(
-        expandedHeightDp = 56.dp,
-        collapsedHeightDp = 44.dp
-    )
 
     // Pull-to-refresh indicator state - shows briefly then hides to let progress banner take over
     var showPullToRefreshIndicator by remember { mutableStateOf(false) }
@@ -217,9 +201,6 @@ fun ExplorerWorkspacePage(
                 is ExplorerViewStyle.List -> listState.scrollToItem(0)
             }
         }
-
-        // Always reset toolbar visibility on navigation for proper orientation
-        topToolbarScrollBehavior.state.heightOffset = 0f
     }
 
     // Synchronize scroll position when view mode changes
@@ -410,15 +391,8 @@ fun ExplorerWorkspacePage(
             // Determine if info bar should be visible
             val showInfoBar = mainState.info != null || mainState.selectionState.selectedItems.isNotEmpty()
 
-            // Content padding calculation
-            val topContentPadding = 8.dp + // Distance between screen and bars
-                actualToolbarHeightDp +
-                (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp) +
-                8.dp // Padding between list and upper toolbars
-
-            // Offset for pull-to-refresh indicator to appear below toolbar/info bar
-            val indicatorOffset = 8.dp + actualToolbarHeightDp +
-                (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp)
+            // Content padding from floating bar stacks
+            val topContentPadding = topBarStackState.contentPaddingDp()
 
             // Main content with PullToRefresh
             PullToRefreshBox(
@@ -430,7 +404,7 @@ fun ExplorerWorkspacePage(
                     PullToRefreshDefaults.Indicator(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .offset(y = indicatorOffset),
+                            .offset(y = topContentPadding),
                         state = pullToRefreshState,
                         isRefreshing = showPullToRefreshIndicator,
                     )
@@ -461,7 +435,7 @@ fun ExplorerWorkspacePage(
                                     state = listState,
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                                        .nestedScroll(topBarStackState.nestedScrollConnection)
                                         .nestedScroll(bottomBarStackState.nestedScrollConnection),
                                     verticalArrangement = Arrangement.spacedBy(4.dp),
                                     contentPadding = PaddingValues(
@@ -515,7 +489,7 @@ fun ExplorerWorkspacePage(
                                     columns = GridCells.Adaptive(minSize = 120.dp),
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
+                                        .nestedScroll(topBarStackState.nestedScrollConnection)
                                         .nestedScroll(bottomBarStackState.nestedScrollConnection),
                                     verticalArrangement = Arrangement.spacedBy(2.dp),
                                     horizontalArrangement = Arrangement.spacedBy(2.dp),
@@ -568,12 +542,12 @@ fun ExplorerWorkspacePage(
                 }
             }
 
-            // Error card (floating)
+            // Error card (floating below top bar stack)
             mainState.error?.let { error ->
                 WorkspaceErrorCard(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = 8.dp + actualToolbarHeightDp)
+                        .offset(y = topContentPadding)
                         .padding(horizontal = 16.dp),
                     title = stringResource(R.string.explorer_navigation_error_title),
                     error = error,
@@ -583,62 +557,74 @@ fun ExplorerWorkspacePage(
                 )
             }
 
-            // Loading progress bar (floating)
+            // Loading progress bar (floating below top bar stack)
             mainState.progress?.let {
                 LoadingProgressBar(
                     progress = it,
                     onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = 8.dp + actualToolbarHeightDp + (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp))
+                        .offset(y = topContentPadding)
                         .padding(horizontal = 16.dp)
                 )
             }
 
-            // Floating toolbar card at top
-            ExplorerToolbarCard(
-                workspaceId = workspaceId,
-                breadcrumbs = mainState.breadcrumbs,
-                design = design,
-                collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
-                onBreadcrumbClick = { target -> vm?.navigate(target) },
-                onNavigateToPath = { path -> vm?.navigateToPath(path) },
-                onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
-                onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
-                workspaceButtonState = workspaceButtonState,
-                workspaceActionHandler = workspaceActionHandler,
-                safLocationManager = vm?.safLocationManager,
-                pickerSelection = mainState.pickerConfig?.selection,
-                selectionCount = mainState.selectionState.selectedItems.size,
-                saveAsFilename = mainState.saveAsFilename,
-                canConfirmSelection = mainState.canConfirmSelection,
-                onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
-                onCancel = { vm?.cancelPicker() },
-                onConfirm = { vm?.confirmPickerSelection() },
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .onGloballyPositioned { layoutCoordinates ->
-                        actualToolbarHeightPx = layoutCoordinates.size.height
+            // Floating Top Bars using FloatingBarStack
+            // Edge-first ordering: toolbar (closest to top), then info bar
+            FloatingBarStack(
+                state = topBarStackState,
+                position = BarPosition.TOP,
+                modifier = Modifier.align(Alignment.TopCenter),
+                bars = {
+                    // Toolbar - closest to top edge, collapses on scroll
+                    FloatingBar(
+                        visible = true,
+                        scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
+                        animation = BarAnimation.Slide(),
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    ) {
+                        ExplorerToolbarCard(
+                            workspaceId = workspaceId,
+                            breadcrumbs = mainState.breadcrumbs,
+                            design = design,
+                            collapsedFraction = collapsedFraction,
+                            onBreadcrumbClick = { target -> vm?.navigate(target) },
+                            onNavigateToPath = { path -> vm?.navigateToPath(path) },
+                            onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
+                            onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
+                            workspaceButtonState = workspaceButtonState,
+                            workspaceActionHandler = workspaceActionHandler,
+                            safLocationManager = vm?.safLocationManager,
+                            pickerSelection = mainState.pickerConfig?.selection,
+                            selectionCount = mainState.selectionState.selectedItems.size,
+                            saveAsFilename = mainState.saveAsFilename,
+                            canConfirmSelection = mainState.canConfirmSelection,
+                            onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
+                            onCancel = { vm?.cancelPicker() },
+                            onConfirm = { vm?.confirmPickerSelection() },
+                        )
                     }
-            )
 
-            // Floating info bar below toolbar
-            if (showInfoBar) {
-                ExplorerInfoBar(
-                    info = mainState.info,
-                    selectedCount = mainState.selectionState.selectedItems.size,
-                    onClearSelection = { vm?.clearSelection() },
-                    isTrashDisabled = !mainState.trashEnabled,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = 16.dp + actualToolbarHeightDp)
-                        .padding(horizontal = 16.dp)
-                        .onGloballyPositioned { layoutCoordinates ->
-                            actualInfoBarHeightPx = layoutCoordinates.size.height
-                        }
-                )
-            }
+                    // Info bar - vanishes on scroll
+                    FloatingBar(
+                        visible = showInfoBar,
+                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                        animation = BarAnimation.Slide(),
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    ) {
+                        ExplorerInfoBar(
+                            info = mainState.info,
+                            selectedCount = mainState.selectionState.selectedItems.size,
+                            onClearSelection = { vm?.clearSelection() },
+                            isTrashDisabled = !mainState.trashEnabled,
+                        )
+                    }
+                },
+                content = { _ ->
+                    // Content padding is applied to LazyColumn/LazyVerticalGrid above
+                    // This content slot is empty as we manage content outside FloatingBarStack
+                },
+            )
 
             // Snackbar host
             SnackbarHost(
@@ -649,45 +635,13 @@ fun ExplorerWorkspacePage(
             }
 
             // Floating Bottom Bars using FloatingBarStack
-            // Edge-first ordering: action bar (closest to bottom), then clipboard, then operations
+            // Visual order (top to bottom on screen): operations, clipboard, action bar
             FloatingBarStack(
                 state = bottomBarStackState,
                 position = BarPosition.BOTTOM,
                 modifier = Modifier.align(Alignment.BottomCenter),
                 bars = {
-                    // Action bar - closest to bottom edge, hides on scroll
-                    FloatingBar(
-                        visible = hasActions,
-                        scrollBehavior = BarScrollBehavior.HideOnScroll,
-                        animation = BarAnimation.Slide(),
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    ) {
-                        WorkspaceActionBar(
-                            actions = mainState.availableActions,
-                            onActionClick = { action -> vm?.executeAction(action as ExplorerAction) },
-                            onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerAction) },
-                        )
-                    }
-
-                    // Clipboard bar - bouncy animation for playful feel
-                    FloatingBar(
-                        visible = hasClipboard,
-                        scrollBehavior = BarScrollBehavior.Static,
-                        animation = BarAnimation.Bouncy,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    ) {
-                        ClipboardBar(
-                            workspaceType = Workspace.Type.EXPLORER,
-                            clipboardEntries = clipboardState.entries,
-                            onPasteClick = { clip -> vm?.pasteClipboard(clip) },
-                            onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },
-                            onEntryClick = { clip -> vm?.showClipboardInfo(clip) },
-                            onClearAll = { vm?.clearAllClipboard() },
-                            initialExpanded = initialClipboardExpanded,
-                        )
-                    }
-
-                    // Operations bar - furthest from bottom edge
+                    // Operations bar - furthest from bottom edge (top of stack)
                     FloatingBar(
                         visible = hasOperations,
                         scrollBehavior = BarScrollBehavior.Static,
@@ -710,6 +664,38 @@ fun ExplorerWorkspacePage(
                             },
                             onClearCompleted = { vm?.clearCompletedOperations() },
                             initialExpanded = initialOperationsExpanded,
+                        )
+                    }
+
+                    // Clipboard bar - middle, bouncy animation for playful feel
+                    FloatingBar(
+                        visible = hasClipboard,
+                        scrollBehavior = BarScrollBehavior.Static,
+                        animation = BarAnimation.Bouncy,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        ClipboardBar(
+                            workspaceType = Workspace.Type.EXPLORER,
+                            clipboardEntries = clipboardState.entries,
+                            onPasteClick = { clip -> vm?.pasteClipboard(clip) },
+                            onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },
+                            onEntryClick = { clip -> vm?.showClipboardInfo(clip) },
+                            onClearAll = { vm?.clearAllClipboard() },
+                            initialExpanded = initialClipboardExpanded,
+                        )
+                    }
+
+                    // Action bar - closest to bottom edge, hides on scroll
+                    FloatingBar(
+                        visible = hasActions,
+                        scrollBehavior = BarScrollBehavior.HideOnScroll,
+                        animation = BarAnimation.Slide(),
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        WorkspaceActionBar(
+                            actions = mainState.availableActions,
+                            onActionClick = { action -> vm?.executeAction(action as ExplorerAction) },
+                            onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerAction) },
                         )
                     }
                 },

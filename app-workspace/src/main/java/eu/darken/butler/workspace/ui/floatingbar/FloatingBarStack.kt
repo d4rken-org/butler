@@ -116,10 +116,13 @@ fun FloatingBarStack(
 
                 val offset = state.getBarOffset(index)
 
-                // Only clamp edge bars to prevent peek past screen edge
+                // Edge bar is the one closest to screen edge (prevents peek during hide bounce-back)
+                // Bars are declared in visual top-to-bottom order:
+                // - TOP: index 0 is at top edge
+                // - BOTTOM: lastIndex is at bottom edge
                 val isEdgeBar = when (position) {
-                    BarPosition.BOTTOM -> index == 0
-                    BarPosition.TOP -> index == state.barStates.lastIndex
+                    BarPosition.TOP -> index == 0
+                    BarPosition.BOTTOM -> index == state.barStates.lastIndex
                 }
 
                 // Calculate scroll-based translation for HideOnScroll bars
@@ -137,11 +140,17 @@ fun FloatingBarStack(
                         }
                         (offset + placeable.height) * fraction
                     }
-                    is BarScrollBehavior.CollapseOnScroll -> {
-                        val collapsible = placeable.height - barState.collapsedHeightPx
-                        collapsible * barState.scrollCollapsedFraction
-                    }
-                    is BarScrollBehavior.Static -> 0f
+                    // CollapseOnScroll: bar stays in place, content collapses via scrollCollapsedFraction
+                    // Static/VanishOnScroll: no translation
+                    is BarScrollBehavior.CollapseOnScroll,
+                    is BarScrollBehavior.Static,
+                    is BarScrollBehavior.VanishOnScroll -> 0f
+                }
+
+                // Calculate alpha for VanishOnScroll bars
+                val alpha = when (barState.scrollBehavior) {
+                    is BarScrollBehavior.VanishOnScroll -> 1f - barState.scrollCollapsedFraction
+                    else -> 1f
                 }
 
                 val y = when (position) {
@@ -149,11 +158,13 @@ fun FloatingBarStack(
                     BarPosition.BOTTOM -> constraints.maxHeight - offset - placeable.height + scrollTranslation
                 }
 
-                placeable.placeRelative(
+                placeable.placeRelativeWithLayer(
                     x = 0,
                     y = y.roundToInt(),
                     zIndex = (state.barStates.size - index).toFloat(), // Edge bars on top
-                )
+                ) {
+                    this.alpha = alpha
+                }
             }
         }
     }
@@ -184,7 +195,7 @@ internal class FloatingBarScopeImpl(
         scrollBehavior: BarScrollBehavior,
         animation: BarAnimation,
         collapsedHeight: Dp,
-        content: @Composable () -> Unit,
+        content: @Composable FloatingBarContentScope.() -> Unit,
     ) {
         val density = LocalDensity.current
         val collapsedHeightPx = with(density) { collapsedHeight.toPx() }
@@ -231,6 +242,11 @@ internal class FloatingBarScopeImpl(
             barState.collapsedHeightPx = collapsedHeightPx
         }
 
+        // Create content scope with current collapsed fraction
+        val contentScope = FloatingBarContentScope(
+            collapsedFraction = barState.scrollCollapsedFraction,
+        )
+
         // Render bar content wrapped in measurement container
         Box(
             modifier = modifier.onGloballyPositioned { coords ->
@@ -241,7 +257,7 @@ internal class FloatingBarScopeImpl(
                 BarPosition.BOTTOM -> Alignment.BottomCenter
             },
         ) {
-            content()
+            contentScope.content()
         }
     }
 }

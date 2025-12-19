@@ -83,7 +83,8 @@ class FloatingBarStackState(
                 if (targetFraction != null) {
                     when (barState.scrollBehavior) {
                         is BarScrollBehavior.HideOnScroll,
-                        is BarScrollBehavior.CollapseOnScroll -> {
+                        is BarScrollBehavior.CollapseOnScroll,
+                        is BarScrollBehavior.VanishOnScroll -> {
                             barState.triggerScrollCollapse(scope, targetFraction)
                         }
                         is BarScrollBehavior.Static -> {
@@ -115,7 +116,8 @@ class FloatingBarStackState(
                 if (targetFraction != null) {
                     when (barState.scrollBehavior) {
                         is BarScrollBehavior.HideOnScroll,
-                        is BarScrollBehavior.CollapseOnScroll -> {
+                        is BarScrollBehavior.CollapseOnScroll,
+                        is BarScrollBehavior.VanishOnScroll -> {
                             barState.triggerScrollCollapse(scope, targetFraction)
                         }
                         is BarScrollBehavior.Static -> {}
@@ -156,12 +158,24 @@ class FloatingBarStackState(
 
     /**
      * Calculates the offset for a bar at the given index.
-     * For TOP position: offset from top edge.
-     * For BOTTOM position: offset from bottom edge.
+     * For TOP position: offset from top edge (sum heights of bars BEFORE this one).
+     * For BOTTOM position: offset from bottom edge (sum heights of bars AFTER this one).
+     *
+     * Bars are declared in visual top-to-bottom order for both positions:
+     * - TOP: first bar is at top edge, subsequent bars stack downward
+     * - BOTTOM: first bar is furthest from edge, last bar is at bottom edge
      */
     internal fun getBarOffset(index: Int): Float {
         var offset = edgePaddingPx
-        for (i in 0 until index) {
+
+        // For TOP: sum bars BEFORE this one (closer to edge = lower index)
+        // For BOTTOM: sum bars AFTER this one (closer to edge = higher index)
+        val range = when (position) {
+            BarPosition.TOP -> 0 until index
+            BarPosition.BOTTOM -> (index + 1) until barStates.size
+        }
+
+        for (i in range) {
             val bar = barStates.getOrNull(i) ?: continue
             if (bar.visibilityFraction > 0f || bar.visible) {
                 offset += bar.effectiveHeight + (defaultSpacingPx * bar.visibilityFraction)
