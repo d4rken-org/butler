@@ -148,9 +148,10 @@ fun FloatingBarStack(
                 }
 
                 // Calculate alpha and scale for VanishOnScroll bars (pop effect)
+                // Use edgeClampedFraction to prevent ghostly peek during bounce-back
                 val (alpha, scale) = when (barState.scrollBehavior) {
                     is BarScrollBehavior.VanishOnScroll -> {
-                        val fraction = barState.scrollCollapsedFraction
+                        val fraction = barState.edgeClampedFraction
                         val popAlpha = 1f - fraction
                         // Scale from 1.0 down to 0.85 for a subtle pop effect
                         val popScale = 1f - (fraction * 0.15f)
@@ -248,6 +249,11 @@ internal class FloatingBarScopeImpl(
         // Update collapsed height if changed
         LaunchedEffect(collapsedHeightPx) {
             barState.collapsedHeightPx = collapsedHeightPx
+        }
+
+        // Update scroll behavior if changed (e.g., operations bar switching from VanishOnScroll to Static)
+        LaunchedEffect(scrollBehavior) {
+            barState.scrollBehavior = scrollBehavior
         }
 
         // Create content scope with current collapsed fraction

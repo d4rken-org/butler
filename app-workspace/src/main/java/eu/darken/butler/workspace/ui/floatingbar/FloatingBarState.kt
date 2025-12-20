@@ -22,10 +22,15 @@ import kotlin.uuid.Uuid
 @Stable
 class FloatingBarState(
     val id: String = Uuid.random().toString(),
-    val scrollBehavior: BarScrollBehavior = BarScrollBehavior.Static,
+    scrollBehavior: BarScrollBehavior = BarScrollBehavior.Static,
     val animation: BarAnimation = BarAnimation.Slide(),
     initialVisible: Boolean = true,
 ) {
+    /**
+     * How the bar responds to scroll events. Can be updated dynamically.
+     */
+    var scrollBehavior: BarScrollBehavior by mutableStateOf(scrollBehavior)
+
     /**
      * The bar's natural/measured height in pixels.
      */

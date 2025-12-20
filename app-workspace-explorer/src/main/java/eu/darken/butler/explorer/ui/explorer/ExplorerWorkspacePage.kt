@@ -329,6 +329,16 @@ fun ExplorerWorkspacePage(
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
     }
+    // Operations that require the bar to stay visible (in-progress or needing attention)
+    val hasActiveOperations by remember {
+        derivedStateOf {
+            operationsState.operations.any { op ->
+                op.state is OperationDisplay.State.Queued ||
+                    op.state is OperationDisplay.State.Running ||
+                    op.state is OperationDisplay.State.Waiting
+            }
+        }
+    }
     val hasClipboard by remember {
         derivedStateOf { clipboardState.entries.isNotEmpty() }
     }
@@ -642,9 +652,10 @@ fun ExplorerWorkspacePage(
                 modifier = Modifier.align(Alignment.BottomCenter),
                 bars = {
                     // Operations bar - furthest from bottom edge (top of stack)
+                    // Stays visible when active (in-progress/waiting), vanishes when only completed
                     FloatingBar(
                         visible = hasOperations,
-                        scrollBehavior = BarScrollBehavior.Static,
+                        scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
                         animation = BarAnimation.Slide(),
                         modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
@@ -667,10 +678,10 @@ fun ExplorerWorkspacePage(
                         )
                     }
 
-                    // Clipboard bar - middle, bouncy animation for playful feel
+                    // Clipboard bar - middle, vanishes on scroll with pop effect
                     FloatingBar(
                         visible = hasClipboard,
-                        scrollBehavior = BarScrollBehavior.Static,
+                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
                         animation = BarAnimation.Bouncy,
                         modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
