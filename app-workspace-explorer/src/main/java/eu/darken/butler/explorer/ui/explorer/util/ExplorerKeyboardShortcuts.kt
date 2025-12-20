@@ -18,7 +18,8 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
  * - Paste (Ctrl+V): Paste from clipboard
  * - SelectAll (Ctrl+A): Select all items
  * - New (Ctrl+N): Create new file/directory
- * - Delete (Delete): Delete selected items
+ * - Delete (Delete): Delete selected/focused items (to trash if enabled)
+ * - Shift+Delete: Permanently delete selected/focused items (bypass trash)
  * - Escape: Clear focus and selection
  * - F2: Rename focused/selected item
  * - Enter: Open/navigate to focused/selected item
@@ -35,6 +36,7 @@ fun Modifier.explorerKeyboardShortcuts(
     focusedItem: ExplorerItem?,
     viewStyle: ExplorerViewStyle,
     gridColumns: Int,
+    trashEnabled: Boolean,
     enabled: Boolean = true,
     onExecuteAction: (ExplorerAction) -> Unit,
     onPaste: (ClipboardClip) -> Unit,
@@ -51,6 +53,8 @@ fun Modifier.explorerKeyboardShortcuts(
     onMoveFocusToLast: () -> Unit,
     onActivateFocusedItem: () -> Unit,
     onRenameFocusedItem: () -> Unit,
+    onDeleteFocusedItem: () -> Unit,
+    onPermanentDeleteFocusedItem: () -> Unit,
 ): Modifier = composed {
     keyboardShortcuts(enabled = enabled) {
         on(KeyboardShortcut.Copy) {
@@ -87,8 +91,23 @@ fun Modifier.explorerKeyboardShortcuts(
             val deleteAction = availableActions
                 .filterIsInstance<ExplorerAction.Directory.Delete>()
                 .firstOrNull()
-            if (deleteAction != null && deleteAction.isEnabled) {
-                onExecuteAction(deleteAction)
+            when {
+                // If Delete action is available (selection mode), use it
+                deleteAction != null && deleteAction.isEnabled -> onExecuteAction(deleteAction)
+                // If there's a focused item, delete it directly
+                focusedItem != null -> onDeleteFocusedItem()
+            }
+        }
+        // Shift+Delete: Permanently delete (bypass trash)
+        on(KeyboardShortcut.ShiftDelete) {
+            val deleteAction = availableActions
+                .filterIsInstance<ExplorerAction.Directory.Delete>()
+                .firstOrNull()
+            when {
+                // If Delete action is available (selection mode), force permanent delete
+                deleteAction != null && deleteAction.isEnabled -> onPermanentDeleteFocusedItem()
+                // If there's a focused item, permanently delete it
+                focusedItem != null -> onPermanentDeleteFocusedItem()
             }
         }
         on(KeyboardShortcut.Escape) {

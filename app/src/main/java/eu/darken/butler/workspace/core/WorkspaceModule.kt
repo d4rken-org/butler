@@ -7,8 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.details.AppDetailsWorkspace
-import eu.darken.butler.common.BuildConfigWrap
-import eu.darken.butler.debug.core.DebugWorkspace
+import eu.darken.butler.developer.core.DeveloperWorkspace
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.saver.core.SaverWorkspace
@@ -41,7 +40,7 @@ abstract class WorkspaceModule {
             appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
             saverWorkspaceFactory: SaverWorkspace.Factory,
             sdMaidWorkspaceFactory: SdMaidWorkspace.Factory,
-            debugWorkspaceFactory: DebugWorkspace.Factory,
+            developerWorkspaceFactory: DeveloperWorkspace.Factory,
         ): Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>> {
             return buildMap {
                 put(Workspace.Type.TEMPLATES, templatesWorkspaceFactory)
@@ -52,9 +51,7 @@ abstract class WorkspaceModule {
                 put(Workspace.Type.APP_DETAILS, appDetailsWorkspaceFactory)
                 put(Workspace.Type.SAVER, saverWorkspaceFactory)
                 put(Workspace.Type.SDMAID, sdMaidWorkspaceFactory)
-                if (BuildConfigWrap.DEBUG) {
-                    put(Workspace.Type.DEBUG, debugWorkspaceFactory)
-                }
+                put(Workspace.Type.DEVELOPER, developerWorkspaceFactory)
             }
         }
     }

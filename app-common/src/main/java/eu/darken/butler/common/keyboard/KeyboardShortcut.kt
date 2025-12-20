@@ -47,6 +47,7 @@ data class KeyboardShortcut(
         val Paste = KeyboardShortcut(key = Key.V, ctrl = true)
         val SelectAll = KeyboardShortcut(key = Key.A, ctrl = true)
         val Delete = KeyboardShortcut(key = Key.Delete)
+        val ShiftDelete = KeyboardShortcut(key = Key.Delete, shift = true)
         val Escape = KeyboardShortcut(key = Key.Escape)
         val New = KeyboardShortcut(key = Key.N, ctrl = true)
         val F2 = KeyboardShortcut(key = Key.F2)

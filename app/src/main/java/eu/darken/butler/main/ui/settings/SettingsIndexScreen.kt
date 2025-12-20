@@ -15,15 +15,23 @@ import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Stars
 import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.Workspaces
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -48,6 +56,9 @@ import eu.darken.butler.searcher.ui.searcher
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 
+private const val TAPS_TO_UNLOCK = 7
+private const val TAPS_TO_START_COUNTDOWN = 3
+
 @Composable
 fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
@@ -62,6 +73,7 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
             onNavigateTo = { vm.navTo(it) },
             onOpenUrl = { vm.openUrl(it) },
             onOpenSDMaidInstall = { vm.openSDMaidInstall() },
+            onUnlockDeveloperMode = { vm.unlockDeveloperMode() },
         )
     }
 }
@@ -73,7 +85,43 @@ fun SettingsIndexScreen(
     onNavigateTo: (NavigationDestination) -> Unit,
     onOpenUrl: (String) -> Unit,
     onOpenSDMaidInstall: () -> Unit,
+    onUnlockDeveloperMode: () -> Unit,
 ) {
+    val context = LocalContext.current
+    var tapCount by remember { mutableIntStateOf(0) }
+    var showUnlockDialog by remember { mutableStateOf(false) }
+
+    if (showUnlockDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showUnlockDialog = false
+                tapCount = 0
+            },
+            title = { Text(stringResource(R.string.settings_developer_mode_unlock_title)) },
+            text = { Text(stringResource(R.string.settings_developer_mode_unlock_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onUnlockDeveloperMode()
+                        showUnlockDialog = false
+                        tapCount = 0
+                    }
+                ) {
+                    Text(stringResource(R.string.settings_developer_mode_unlock_action))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showUnlockDialog = false
+                        tapCount = 0
+                    }
+                ) {
+                    Text(stringResource(eu.darken.butler.common.R.string.general_cancel_action))
+                }
+            },
+        )
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -203,6 +251,26 @@ fun SettingsIndexScreen(
                     title = stringResource(R.string.changelog_label),
                     subtitle = state.versionText,
                     onClick = { onOpenUrl(ButlerLinks.CHANGELOG) },
+                    onLongClick = if (state.canUnlockDeveloperMode) {
+                        {
+                            tapCount++
+                            when {
+                                tapCount >= TAPS_TO_UNLOCK -> showUnlockDialog = true
+                                tapCount >= TAPS_TO_START_COUNTDOWN -> {
+                                    val remaining = TAPS_TO_UNLOCK - tapCount
+                                    Toast.makeText(
+                                        context,
+                                        context.resources.getQuantityString(
+                                            R.plurals.settings_developer_mode_countdown,
+                                            remaining,
+                                            remaining,
+                                        ),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                        }
+                    } else null,
                 )
                 SettingsDivider()
             }
@@ -256,6 +324,7 @@ private fun SettingsScreenPreview() {
             onNavigateTo = {},
             onOpenUrl = {},
             onOpenSDMaidInstall = {},
+            onUnlockDeveloperMode = {},
         )
     }
 }
