@@ -689,6 +689,43 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         focusedItemIndexFlow.value = null
     }
 
+    fun deleteFocusedItem(forcePermDelete: Boolean = false) = launch {
+        val stateSnap = state.first()
+        val focusedIndex = stateSnap.focusedItemIndex ?: return@launch
+        val focusedItem = stateSnap.items?.getOrNull(focusedIndex) as? ExplorerItem.Lookup ?: return@launch
+        val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory ?: return@launch
+
+        log(tag) { "deleteFocusedItem(forcePermDelete=$forcePermDelete): ${focusedItem.lookup.name}" }
+        dialogEvents.emit(
+            ExplorerDialogEvent.ShowDeleteConfirmation(
+                items = setOf(focusedItem.lookup.lookedUp),
+                forcePermDelete = forcePermDelete,
+            )
+        )
+    }
+
+    fun permanentDeleteSelectedItems() = launch {
+        val stateSnap = state.first()
+        val selectedItems = selectedItemsFlow.value
+        if (selectedItems.isEmpty()) return@launch
+        val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory ?: return@launch
+
+        val pathsToDelete = selectedItems
+            .filterIsInstance<ExplorerItem.Lookup>()
+            .map { it.lookup.lookedUp }
+            .toSet()
+
+        if (pathsToDelete.isNotEmpty()) {
+            log(tag) { "permanentDeleteSelectedItems(): ${pathsToDelete.size} items" }
+            dialogEvents.emit(
+                ExplorerDialogEvent.ShowDeleteConfirmation(
+                    items = pathsToDelete,
+                    forcePermDelete = true,
+                )
+            )
+        }
+    }
+
     fun executeAction(action: ExplorerAction) = launch {
         log(tag) { "executeAction(${action::class.simpleName})" }
         val stateSnap = state.first()
