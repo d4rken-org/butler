@@ -1,9 +1,16 @@
 package eu.darken.butler.workspace.ui.floatingbar
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -14,17 +21,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
 import kotlinx.coroutines.launch
-import kotlin.uuid.Uuid
 import kotlin.math.roundToInt
+import kotlin.uuid.Uuid
 
 /**
  * A scaffold-like composable that manages floating bars at the top or bottom of the screen.
@@ -275,3 +286,147 @@ internal class FloatingBarScopeImpl(
         }
     }
 }
+
+// region Previews
+
+@Composable
+private fun PreviewBar(
+    label: String,
+    color: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(color)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun FloatingBarStackBottomPreview() {
+    PreviewWrapper {
+        FloatingBarStack(
+            position = BarPosition.BOTTOM,
+            bars = {
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.tertiaryContainer)
+                }
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.secondaryContainer)
+                }
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.HideOnScroll,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("HideOnScroll (edge)", MaterialTheme.colorScheme.primaryContainer)
+                }
+            },
+        ) { contentPadding ->
+            LazyColumn(contentPadding = contentPadding) {
+                items(20) { index ->
+                    Text(
+                        text = "Item $index",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun FloatingBarStackTopPreview() {
+    PreviewWrapper {
+        FloatingBarStack(
+            position = BarPosition.TOP,
+            bars = {
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("Toolbar (edge)", MaterialTheme.colorScheme.primaryContainer)
+                }
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.Static,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("Static bar", MaterialTheme.colorScheme.surfaceVariant)
+                }
+            },
+        ) { contentPadding ->
+            LazyColumn(contentPadding = contentPadding) {
+                items(20) { index ->
+                    Text(
+                        text = "Item $index",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun FloatingBarStackMixedVisibilityPreview() {
+    PreviewWrapper {
+        FloatingBarStack(
+            position = BarPosition.BOTTOM,
+            bars = {
+                FloatingBar(
+                    visible = true,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("Visible bar 1", MaterialTheme.colorScheme.tertiaryContainer)
+                }
+                FloatingBar(
+                    visible = false, // Hidden - gap should be filled
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("Hidden bar", MaterialTheme.colorScheme.errorContainer)
+                }
+                FloatingBar(
+                    visible = true,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("Visible bar 2", MaterialTheme.colorScheme.primaryContainer)
+                }
+            },
+        ) { contentPadding ->
+            LazyColumn(contentPadding = contentPadding) {
+                items(20) { index ->
+                    Text(
+                        text = "Item $index",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+// endregion
