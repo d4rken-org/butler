@@ -71,8 +71,10 @@ import eu.darken.butler.searcher.ui.search.elements.SearchResultItemDetails
 import eu.darken.butler.searcher.ui.search.elements.SearchTargetsEmptyStateCard
 import eu.darken.butler.searcher.ui.search.elements.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.elements.SearcherInfoBar
+import eu.darken.butler.searcher.ui.search.elements.TemplatesBottomSheetContent
 import eu.darken.butler.searcher.ui.search.elements.TemplatesCard
 import eu.darken.butler.searcher.ui.search.elements.searchHistorySection
+import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.searcher.ui.search.items.SelectableFileGrid
 import eu.darken.butler.searcher.ui.search.items.SelectableFileRow
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
@@ -124,6 +126,7 @@ fun SearcherWorkspacePage(
     val topBarScrollBehavior = rememberTopBarScrollBehavior()
     val listState = rememberLazyListState()
     var showClearHistoryDialog by remember { mutableStateOf(false) }
+    var showTemplatesSheet by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val shortcutsFocusRequester = remember { FocusRequester() }
@@ -352,7 +355,7 @@ fun SearcherWorkspacePage(
                         if (!currentState.isSearching && currentState.searchTargets.isNotEmpty()) {
                             item {
                                 TemplatesCard(
-                                    onTemplateClick = { onPageAction(SearcherPageAction.Templates.Apply(it)) },
+                                    onClick = { showTemplatesSheet = true },
                                     modifier = Modifier.padding(top = 8.dp),
                                 )
                             }
@@ -739,6 +742,19 @@ fun SearcherWorkspacePage(
                         errorDialogState = null
                     },
                     onDismiss = { errorDialogState = null }
+                )
+            }
+
+            // Templates bottom sheet
+            PaneScopedBottomSheet(
+                visible = showTemplatesSheet,
+                onDismiss = { showTemplatesSheet = false },
+            ) {
+                TemplatesBottomSheetContent(
+                    onTemplateClick = { template ->
+                        showTemplatesSheet = false
+                        onPageAction(SearcherPageAction.Templates.Apply(template))
+                    },
                 )
             }
         }

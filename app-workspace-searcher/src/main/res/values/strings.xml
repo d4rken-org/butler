@@ -66,6 +66,11 @@
     <string name="searcher_template_apks">APKs</string>
     <string name="searcher_template_apks_desc">Android application packages</string>
 
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d template</item>
+        <item quantity="other">%d templates</item>
+    </plurals>
+
     <!-- Search Filters -->
     <string name="searcher_filter_action">Filter</string>
     <string name="searcher_filter_add_action">Add filter</string>
