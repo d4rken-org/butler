@@ -17,6 +17,7 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.ContentSource
+import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
@@ -27,6 +28,7 @@ import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
+import androidx.compose.ui.text.input.TextFieldValue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -58,9 +60,11 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val _showGoToLineDialog = MutableStateFlow(false)
     private val _showSearchDialog = MutableStateFlow(false)
     private val _showCloseConfirmDialog = MutableStateFlow(false)
-    private val _searchQueryInput = MutableStateFlow("")
+    private val _searchQueryInput = MutableStateFlow(TextFieldValue(""))
     private val _currentSearchResultIndex = MutableStateFlow(0)
     private val _searchCaseSensitive = MutableStateFlow(false)
+    private val _searchRegexEnabled = MutableStateFlow(false)
+    private val _searchWholeWord = MutableStateFlow(false)
     private var openFileJob: Job? = null
 
     private val dialogStates = combine(
@@ -71,12 +75,22 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         Triple(showGoToLineDialog, showSearchDialog, showCloseConfirmDialog)
     }
 
+    private data class SearchStates(
+        val queryInput: TextFieldValue,
+        val currentResultIndex: Int,
+        val caseSensitive: Boolean,
+        val regexEnabled: Boolean,
+        val wholeWord: Boolean,
+    )
+
     private val searchStates = combine(
         _searchQueryInput,
         _currentSearchResultIndex,
         _searchCaseSensitive,
-    ) { searchQueryInput, currentSearchResultIndex, searchCaseSensitive ->
-        Triple(searchQueryInput, currentSearchResultIndex, searchCaseSensitive)
+        _searchRegexEnabled,
+        _searchWholeWord,
+    ) { searchQueryInput, currentSearchResultIndex, searchCaseSensitive, searchRegexEnabled, searchWholeWord ->
+        SearchStates(searchQueryInput, currentSearchResultIndex, searchCaseSensitive, searchRegexEnabled, searchWholeWord)
     }
 
     private val loadingStates = combine(
@@ -95,7 +109,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     ) { editorState, loading, dialogs, search, workspaceId ->
         val (isLoading, loadingFilePath) = loading
         val (showGoToLineDialog, showSearchDialog, showCloseConfirmDialog) = dialogs
-        val (searchQueryInput, currentSearchResultIndex, searchCaseSensitive) = search
 
         // Use loading file path for title when loading, otherwise use contentSource
         val displayPath = (editorState.contentSource as? ContentSource.File)?.path ?: loadingFilePath
@@ -122,9 +135,11 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             showGoToLineDialog = showGoToLineDialog,
             showSearchDialog = showSearchDialog,
             showCloseConfirmDialog = showCloseConfirmDialog,
-            searchQueryInput = searchQueryInput,
-            currentSearchResultIndex = currentSearchResultIndex,
-            searchCaseSensitive = searchCaseSensitive,
+            searchQueryInput = search.queryInput,
+            currentSearchResultIndex = search.currentResultIndex,
+            searchCaseSensitive = search.caseSensitive,
+            searchRegexEnabled = search.regexEnabled,
+            searchWholeWord = search.wholeWord,
         )
     }
         .asStateFlow()
@@ -302,8 +317,15 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().setSelection(start, end)
     }
 
-    private fun search(query: String, caseSensitive: Boolean) = launch {
-        val result = getWorkspace().search(query, caseSensitive)
+    private fun buildSearchOptions() = SearchOptions(
+        caseSensitive = _searchCaseSensitive.value,
+        useRegex = _searchRegexEnabled.value,
+        wholeWord = _searchWholeWord.value,
+    )
+
+    private fun search(query: String) = launch {
+        val options = buildSearchOptions()
+        val result = getWorkspace().search(query, options)
         result.onSuccess { searchResults ->
             // Auto-navigate to first result if available
             if (searchResults.isNotEmpty()) {
@@ -315,15 +337,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateSearchQuery(query: String) {
-        _searchQueryInput.value = query
+    fun updateSearchQuery(textFieldValue: TextFieldValue) {
+        _searchQueryInput.value = textFieldValue
+        val query = textFieldValue.text
         // Trigger search immediately (debouncing can be added later if needed)
         if (query.isNotEmpty()) {
-            search(query, _searchCaseSensitive.value)
+            search(query)
         } else {
             // Clear results when query is empty
             launch {
-                getWorkspace().search("", false)
+                getWorkspace().search("")
                 _currentSearchResultIndex.value = 0
             }
         }
@@ -354,19 +377,37 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     fun toggleCaseSensitivity() {
         _searchCaseSensitive.value = !_searchCaseSensitive.value
         // Re-run search with new case sensitivity if there's a query
-        val query = _searchQueryInput.value
+        val query = _searchQueryInput.value.text
         if (query.isNotEmpty()) {
-            search(query, _searchCaseSensitive.value)
+            search(query)
+        }
+    }
+
+    fun toggleRegexMode() {
+        _searchRegexEnabled.value = !_searchRegexEnabled.value
+        // Re-run search with new regex mode if there's a query
+        val query = _searchQueryInput.value.text
+        if (query.isNotEmpty()) {
+            search(query)
+        }
+    }
+
+    fun toggleWholeWord() {
+        _searchWholeWord.value = !_searchWholeWord.value
+        // Re-run search with new whole word mode if there's a query
+        val query = _searchQueryInput.value.text
+        if (query.isNotEmpty()) {
+            search(query)
         }
     }
 
     fun closeSearch() {
-        _searchQueryInput.value = ""
+        _searchQueryInput.value = TextFieldValue("")
         _currentSearchResultIndex.value = 0
         _showSearchDialog.value = false
         // Clear search results in workspace
         launch {
-            getWorkspace().search("", false)
+            getWorkspace().search("")
         }
     }
 
@@ -448,7 +489,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Navigation.SetCursor -> setCursorPosition(action.position)
             is EditorPageAction.Navigation.SetSelection -> setSelection(action.start, action.end)
             is EditorPageAction.Navigation.ClearSelection -> setCursorPosition(action.cursorPosition)
-            is EditorPageAction.Navigation.Search -> search(action.query, false)
+            is EditorPageAction.Navigation.Search -> search(action.query)
             is EditorPageAction.Navigation.GoToLine -> goToLine(action.lineNumber)
             is EditorPageAction.Navigation.UpdateVisibleRange -> updateVisibleRange(action.startLine, action.endLine)
 
@@ -477,9 +518,11 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val showGoToLineDialog: Boolean = false,
         val showSearchDialog: Boolean = false,
         val showCloseConfirmDialog: Boolean = false,
-        val searchQueryInput: String = "",
+        val searchQueryInput: TextFieldValue = TextFieldValue(""),
         val currentSearchResultIndex: Int = 0,
         val searchCaseSensitive: Boolean = false,
+        val searchRegexEnabled: Boolean = false,
+        val searchWholeWord: Boolean = false,
     ) {
         val hasFile: Boolean get() = contentSource is ContentSource.File
         val hasContent: Boolean get() = contentSource.hasContent

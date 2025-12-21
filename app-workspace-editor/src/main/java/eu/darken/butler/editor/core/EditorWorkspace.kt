@@ -17,6 +17,7 @@ import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
+import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
@@ -294,8 +295,8 @@ class EditorWorkspace @AssistedInject constructor(
         }
     }
 
-    suspend fun search(query: String, caseSensitive: Boolean = false) =
-        engineHolder.value().search(query, caseSensitive)
+    suspend fun search(query: String, options: SearchOptions = SearchOptions()) =
+        engineHolder.value().search(query, options)
 
     suspend fun goToLine(lineNumber: Int) = engineHolder.value().goToLine(lineNumber)
     suspend fun undo() = engineHolder.value().undo()

@@ -26,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.caString
@@ -97,6 +98,8 @@ fun EditorWorkspacePageHost(
             onDismissSearchDialog = vm::dismissSearchDialog,
             onSearchQueryChange = vm::updateSearchQuery,
             onCaseSensitiveToggle = vm::toggleCaseSensitivity,
+            onRegexToggle = vm::toggleRegexMode,
+            onWholeWordToggle = vm::toggleWholeWord,
             onNextSearchResult = vm::nextSearchResult,
             onPreviousSearchResult = vm::previousSearchResult,
             onCloseSearch = vm::closeSearch,
@@ -117,8 +120,10 @@ fun EditorWorkspacePage(
     onActionExecute: (EditorAction) -> Unit = {},
     onDismissGoToLineDialog: () -> Unit = {},
     onDismissSearchDialog: () -> Unit = {},
-    onSearchQueryChange: (String) -> Unit = {},
+    onSearchQueryChange: (TextFieldValue) -> Unit = {},
     onCaseSensitiveToggle: () -> Unit = {},
+    onRegexToggle: () -> Unit = {},
+    onWholeWordToggle: () -> Unit = {},
     onNextSearchResult: () -> Unit = {},
     onPreviousSearchResult: () -> Unit = {},
     onCloseSearch: () -> Unit = {},
@@ -127,9 +132,7 @@ fun EditorWorkspacePage(
 ) {
     rememberCoroutineScope()
 
-    val hasActions by remember {
-        derivedStateOf { state.availableActions.isNotEmpty() }
-    }
+    val hasActions = state.availableActions.isNotEmpty()
 
     // Setup scroll behavior for collapsing header
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
@@ -307,8 +310,12 @@ fun EditorWorkspacePage(
                 searchResults = state.searchResults,
                 currentIndex = state.currentSearchResultIndex,
                 caseSensitive = state.searchCaseSensitive,
+                regexEnabled = state.searchRegexEnabled,
+                wholeWord = state.searchWholeWord,
                 onSearchQueryChange = onSearchQueryChange,
                 onCaseSensitiveToggle = onCaseSensitiveToggle,
+                onRegexToggle = onRegexToggle,
+                onWholeWordToggle = onWholeWordToggle,
                 onPrevious = onPreviousSearchResult,
                 onNext = onNextSearchResult,
                 onClose = onCloseSearch,
@@ -404,7 +411,12 @@ private fun SearchResultsBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = stringResource(R.string.editor_search_results_format, currentIndex + 1, searchResults.size),
+                text = pluralStringResource(
+                    R.plurals.editor_search_results_x_of_y,
+                    searchResults.size,
+                    currentIndex + 1,
+                    searchResults.size
+                ),
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier.weight(1f)
             )

@@ -178,12 +178,18 @@ class ChunkRepository @AssistedInject constructor(
      *
      * Note: Line numbers in results are chunk-relative (0-based within the chunk).
      * The caller (ChunkedTextBuffer) is responsible for converting to file-relative line numbers.
+     *
+     * @param chunk The chunk to search in
+     * @param boundary The chunk's position in the file
+     * @param query The search query (plain text or regex pattern)
+     * @param options Search options controlling case sensitivity, regex mode, and whole word matching
+     * @return List of search results, or empty list on regex syntax error
      */
     suspend fun searchInChunk(
         chunk: TextChunk,
         boundary: ChunkBoundary,
         query: String,
-        ignoreCase: Boolean = false
+        options: SearchOptions = SearchOptions(),
     ): List<SearchResult> {
         try {
             // Empty query returns no results
@@ -193,13 +199,26 @@ class ChunkRepository @AssistedInject constructor(
 
             val results = mutableListOf<SearchResult>()
 
-            val searchText = if (ignoreCase) chunk.content.lowercase() else chunk.content
-            val searchQuery = if (ignoreCase) query.lowercase() else query
+            // Build the effective pattern based on options
+            val pattern = buildSearchPattern(query, options)
+            val regexOptions = buildSet {
+                if (!options.caseSensitive) add(RegexOption.IGNORE_CASE)
+            }
 
-            var searchIndex = 0
-            while (searchIndex < searchText.length) {
-                val foundIndex = searchText.indexOf(searchQuery, searchIndex)
-                if (foundIndex == -1) break
+            val regex = try {
+                Regex(pattern, regexOptions)
+            } catch (e: Exception) {
+                log(tag, WARN) { "Invalid regex pattern: $query - ${e.message}" }
+                return emptyList()
+            }
+
+            // Find all matches
+            regex.findAll(chunk.content).forEach { matchResult ->
+                val foundIndex = matchResult.range.first
+                val matchText = matchResult.value
+
+                // Skip zero-length matches (can happen with some regex patterns)
+                if (matchText.isEmpty()) return@forEach
 
                 val absoluteOffset = boundary.startOffset + foundIndex
                 // Line number is chunk-relative (0-based within chunk)
@@ -210,12 +229,10 @@ class ChunkRepository @AssistedInject constructor(
                 results.add(
                     SearchResult(
                         position = TextPosition(absoluteOffset, lineNumber, columnNumber),
-                        matchText = chunk.content.substring(foundIndex, foundIndex + query.length),
+                        matchText = matchText,
                         chunkId = chunk.id
                     )
                 )
-
-                searchIndex = foundIndex + 1
             }
 
             return results
@@ -223,6 +240,30 @@ class ChunkRepository @AssistedInject constructor(
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to search in chunk: ${chunk.id} - ${e.asLog()}" }
             return emptyList()
+        }
+    }
+
+    /**
+     * Builds the regex pattern based on search options.
+     *
+     * - Plain search: escapes the query for literal matching
+     * - Regex search: uses the query as-is
+     * - Whole word: wraps with word boundaries (only for plain search)
+     */
+    private fun buildSearchPattern(query: String, options: SearchOptions): String {
+        return when {
+            options.useRegex -> {
+                // User provides their own regex pattern
+                query
+            }
+            options.wholeWord -> {
+                // Wrap escaped query with word boundaries
+                "\\b${Regex.escape(query)}\\b"
+            }
+            else -> {
+                // Plain text search - escape for literal matching
+                Regex.escape(query)
+            }
         }
     }
 

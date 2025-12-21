@@ -661,7 +661,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return chunkMeta.startOffset + offsetInChunk
     }
 
-    suspend fun search(query: String, startFrom: TextPosition?, ignoreCase: Boolean): List<SearchResult> {
+    suspend fun search(query: String, startFrom: TextPosition?, options: SearchOptions): List<SearchResult> {
         // Handle empty query early
         if (query.isEmpty()) {
             return emptyList()
@@ -687,7 +687,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 continue
             }
 
-            val chunkResults = chunkRepository.searchInChunk(chunk, boundary, query, ignoreCase)
+            val chunkResults = chunkRepository.searchInChunk(chunk, boundary, query, options)
 
             // Correct line numbers from chunk-relative to file-relative
             val metadata = metadataMap[chunkId]

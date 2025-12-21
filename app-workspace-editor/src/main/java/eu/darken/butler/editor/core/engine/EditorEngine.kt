@@ -790,7 +790,7 @@ class EditorEngine @AssistedInject constructor(
         return result
     }
 
-    suspend fun search(query: String, caseSensitive: Boolean = false): Result<List<SearchResult>> = stateMutex.withLock {
+    suspend fun search(query: String, options: SearchOptions = SearchOptions()): Result<List<SearchResult>> = stateMutex.withLock {
             _searchQuery.value = query
 
             if (query.isEmpty()) {
@@ -806,7 +806,7 @@ class EditorEngine @AssistedInject constructor(
                             currentState.resources.textBuffer.search(
                                 query,
                                 _cursorPosition.value,
-                                ignoreCase = !caseSensitive
+                                options
                             )
                         _searchResults.value = results
                         Result.success(results)

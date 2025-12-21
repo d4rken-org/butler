@@ -45,11 +45,17 @@
     <!-- Editor UI elements -->
     <string name="editor_modified_indicator">•</string>
     <string name="editor_error_unknown">Unknown error</string>
-    <string name="editor_search_results_format">%1$d of %2$d results</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d of %2$d result</item>
+        <item quantity="other">%1$d of %2$d results</item>
+    </plurals>
     <string name="editor_search_placeholder">Search…</string>
     <string name="editor_search_previous">Previous result</string>
     <string name="editor_search_next">Next result</string>
     <string name="editor_search_case_sensitive_label">Case sensitive</string>
+    <string name="editor_search_regex_label">Regular expression</string>
+    <string name="editor_search_whole_word_label">Whole word</string>
+    <string name="editor_search_options_label">Search options</string>
 
     <!-- Editor dialogs -->
     <string name="editor_dialog_go_to_line_title">Go to line</string>
