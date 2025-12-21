@@ -65,6 +65,7 @@ import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.searcher.ui.search.dialogs.DateConditionEditSheet
 import eu.darken.butler.searcher.ui.search.dialogs.SizeConditionEditSheet
+import eu.darken.butler.searcher.ui.search.dialogs.TypeConditionEditSheet
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
 import eu.darken.butler.searcher.ui.search.elements.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.elements.SearchResultItemDetails
@@ -589,6 +590,7 @@ fun SearcherWorkspacePage(
                 onConditionClick = { onPageAction(SearcherPageAction.Filter.EditCondition(it)) },
                 onAddSizeCondition = { onPageAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
                 onAddDateCondition = { onPageAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
+                onAddTypeCondition = { onPageAction(SearcherPageAction.Filter.OpenTypeConditionEditor) },
                 onRemoveCondition = { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) },
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,
@@ -855,6 +857,21 @@ fun SearcherWorkspacePage(
             onApply = { newCondition ->
                 // Remove existing condition if editing, then add new one
                 dateConditionState?.existing?.let {
+                    onPageAction(SearcherPageAction.Filter.RemoveCondition(it))
+                }
+                onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
+            },
+        )
+
+        // Type condition edit bottom sheet
+        val typeConditionState = currentState.dialogState as? SearcherDialogState.EditTypeCondition
+        TypeConditionEditSheet(
+            visible = typeConditionState != null,
+            existingCondition = typeConditionState?.existing,
+            onDismiss = { vm?.dismissDialog() },
+            onApply = { newCondition ->
+                // Remove existing condition if editing, then add new one
+                typeConditionState?.existing?.let {
                     onPageAction(SearcherPageAction.Filter.RemoveCondition(it))
                 }
                 onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))

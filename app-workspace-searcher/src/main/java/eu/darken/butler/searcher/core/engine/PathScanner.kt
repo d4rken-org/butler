@@ -163,6 +163,9 @@ class PathScanner @AssistedInject constructor(
                     FilterComparator.EQ -> modifiedAt == condition.instant
                 }
             }
+            is FilterCondition.Type -> {
+                lookup.fileType == condition.fileType
+            }
         }
     }
 

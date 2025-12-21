@@ -2,6 +2,7 @@ package eu.darken.butler.searcher.core
 
 import android.os.Parcelable
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.metadata.FileType
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
@@ -37,6 +38,12 @@ sealed interface FilterCondition : Parcelable {
         val comparator: FilterComparator,
         @Contextual val instant: Instant,
     ) : FilterCondition
+
+    @Serializable
+    @Parcelize
+    data class Type(
+        val fileType: FileType,
+    ) : FilterCondition
 }
 
 @Serializable
@@ -70,6 +77,9 @@ data class SearchQuery(
 
         val dateConditions: List<FilterCondition.ModifiedDate>
             get() = conditions.filterIsInstance<FilterCondition.ModifiedDate>()
+
+        val typeConditions: List<FilterCondition.Type>
+            get() = conditions.filterIsInstance<FilterCondition.Type>()
 
         fun hasConditions(): Boolean = conditions.isNotEmpty()
     }

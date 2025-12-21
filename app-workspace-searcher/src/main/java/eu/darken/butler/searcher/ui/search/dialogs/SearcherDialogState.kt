@@ -27,4 +27,11 @@ sealed interface SearcherDialogState {
     data class EditDateCondition(
         val existing: FilterCondition.ModifiedDate? = null,
     ) : SearcherDialogState
+
+    /**
+     * Edit file type condition - null existing means adding new
+     */
+    data class EditTypeCondition(
+        val existing: FilterCondition.Type? = null,
+    ) : SearcherDialogState
 }

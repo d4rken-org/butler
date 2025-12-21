@@ -1164,6 +1164,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Filter.OpenDateConditionEditor -> {
                 dialogStateFlow.value = SearcherDialogState.EditDateCondition(existing = null)
             }
+            is SearcherPageAction.Filter.OpenTypeConditionEditor -> {
+                dialogStateFlow.value = SearcherDialogState.EditTypeCondition(existing = null)
+            }
             is SearcherPageAction.Filter.AddCondition -> {
                 currentFilter.value = currentFilter.value.copy(
                     conditions = currentFilter.value.conditions + action.condition
@@ -1187,6 +1190,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     }
                     is FilterCondition.ModifiedDate -> {
                         dialogStateFlow.value = SearcherDialogState.EditDateCondition(
+                            existing = action.condition
+                        )
+                    }
+                    is FilterCondition.Type -> {
+                        dialogStateFlow.value = SearcherDialogState.EditTypeCondition(
                             existing = action.condition
                         )
                     }

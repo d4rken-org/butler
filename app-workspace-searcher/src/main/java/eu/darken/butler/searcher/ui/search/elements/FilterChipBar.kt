@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.FilterComparator
 import eu.darken.butler.searcher.core.FilterCondition
@@ -65,6 +66,7 @@ fun FilterChipBar(
     onConditionClick: (FilterCondition) -> Unit,
     onAddSizeCondition: () -> Unit,
     onAddDateCondition: () -> Unit,
+    onAddTypeCondition: () -> Unit,
     onRemoveCondition: (FilterCondition) -> Unit,
 ) {
     val context = LocalContext.current
@@ -127,6 +129,13 @@ fun FilterChipBar(
                         onAddDateCondition()
                     },
                 )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.searcher_filter_type_label)) },
+                    onClick = {
+                        showAddMenu = false
+                        onAddTypeCondition()
+                    },
+                )
             }
         }
     }
@@ -154,6 +163,11 @@ private fun formatConditionLabel(condition: FilterCondition, context: android.co
                 stringResource(R.string.searcher_filter_date_value_label)
             }
             "$direction $dateStr"
+        }
+        is FilterCondition.Type -> when (condition.fileType) {
+            FileType.FILE -> stringResource(R.string.searcher_filter_type_files)
+            FileType.DIRECTORY -> stringResource(R.string.searcher_filter_type_directories)
+            else -> condition.fileType.name
         }
     }
 }
@@ -217,6 +231,7 @@ private fun FilterChipBarEmptyPreview() {
             onConditionClick = {},
             onAddSizeCondition = {},
             onAddDateCondition = {},
+            onAddTypeCondition = {},
             onRemoveCondition = {},
             modifier = Modifier.padding(16.dp),
         )
@@ -236,6 +251,7 @@ private fun FilterChipBarSingleConditionPreview() {
             onConditionClick = {},
             onAddSizeCondition = {},
             onAddDateCondition = {},
+            onAddTypeCondition = {},
             onRemoveCondition = {},
             modifier = Modifier.padding(16.dp),
         )
@@ -257,6 +273,7 @@ private fun FilterChipBarMultipleConditionsPreview() {
             onConditionClick = {},
             onAddSizeCondition = {},
             onAddDateCondition = {},
+            onAddTypeCondition = {},
             onRemoveCondition = {},
             modifier = Modifier.padding(16.dp),
         )
@@ -273,12 +290,13 @@ private fun FilterChipBarAllTypesPreview() {
                     FilterCondition.Size(FilterComparator.GT, 50L * 1024 * 1024),
                     FilterCondition.Size(FilterComparator.LT, 1024L * 1024 * 1024),
                     FilterCondition.ModifiedDate(FilterComparator.GT, Clock.System.now() - 30.days),
-                    FilterCondition.ModifiedDate(FilterComparator.LT, Clock.System.now() - 7.days),
+                    FilterCondition.Type(FileType.FILE),
                 ),
             ),
             onConditionClick = {},
             onAddSizeCondition = {},
             onAddDateCondition = {},
+            onAddTypeCondition = {},
             onRemoveCondition = {},
             modifier = Modifier.padding(16.dp),
         )

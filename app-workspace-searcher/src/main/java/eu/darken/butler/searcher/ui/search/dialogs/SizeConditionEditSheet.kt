@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
@@ -33,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
@@ -111,6 +113,13 @@ private fun SizeConditionEditContent(
         sizeError = sizeText.isNotBlank() && parseSize(sizeText) == null
     }
 
+    val handleApply = {
+        val bytes = parseSize(sizeText)
+        if (!sizeError && bytes != null) {
+            onApply(FilterCondition.Size(selectedDirection.comparator, bytes))
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -171,7 +180,11 @@ private fun SizeConditionEditContent(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = sizeError,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(onDone = { handleApply() }),
             )
         }
 
@@ -190,17 +203,7 @@ private fun SizeConditionEditContent(
             }
 
             Button(
-                onClick = {
-                    val bytes = parseSize(sizeText)
-                    if (bytes != null) {
-                        onApply(
-                            FilterCondition.Size(
-                                comparator = selectedDirection.comparator,
-                                bytes = bytes,
-                            )
-                        )
-                    }
-                },
+                onClick = handleApply,
                 modifier = Modifier.weight(1f),
                 enabled = !sizeError && sizeText.isNotBlank() && parseSize(sizeText) != null,
             ) {

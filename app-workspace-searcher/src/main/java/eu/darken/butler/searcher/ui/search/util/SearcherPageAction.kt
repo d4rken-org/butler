@@ -143,6 +143,11 @@ sealed interface SearcherPageAction {
         data object OpenDateConditionEditor : Filter
 
         /**
+         * Open type condition editor (for adding new)
+         */
+        data object OpenTypeConditionEditor : Filter
+
+        /**
          * Add a new filter condition
          */
         data class AddCondition(val condition: FilterCondition) : Filter

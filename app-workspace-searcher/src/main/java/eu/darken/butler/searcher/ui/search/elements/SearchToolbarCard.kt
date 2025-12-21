@@ -76,6 +76,7 @@ fun SearchToolbarCard(
     onConditionClick: ((FilterCondition) -> Unit)? = null,
     onAddSizeCondition: (() -> Unit)? = null,
     onAddDateCondition: (() -> Unit)? = null,
+    onAddTypeCondition: (() -> Unit)? = null,
     onRemoveCondition: ((FilterCondition) -> Unit)? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
@@ -258,6 +259,7 @@ fun SearchToolbarCard(
                             onConditionClick = { onConditionClick?.invoke(it) },
                             onAddSizeCondition = { onAddSizeCondition?.invoke() },
                             onAddDateCondition = { onAddDateCondition?.invoke() },
+                            onAddTypeCondition = { onAddTypeCondition?.invoke() },
                             onRemoveCondition = { onRemoveCondition?.invoke(it) },
                         )
                     }

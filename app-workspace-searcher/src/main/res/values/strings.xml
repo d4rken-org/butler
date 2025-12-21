@@ -100,6 +100,9 @@
     <string name="searcher_filter_date_value_label">Date</string>
     <string name="searcher_filter_date_direction_after">After</string>
     <string name="searcher_filter_date_direction_before">Before</string>
+    <string name="searcher_filter_type_label">Type</string>
+    <string name="searcher_filter_type_files">Files</string>
+    <string name="searcher_filter_type_directories">Directories</string>
 
     <!-- Search history actions -->
     <string name="searcher_history_remove_action">Remove from history</string>
