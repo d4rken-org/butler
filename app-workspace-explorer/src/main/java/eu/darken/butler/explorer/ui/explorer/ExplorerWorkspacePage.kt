@@ -125,11 +125,13 @@ fun ExplorerWorkspacePage(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
+        contentPadding = 8.dp,
     )
     val bottomBarStackState = rememberFloatingBarStackState(
         position = BarPosition.BOTTOM,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
+        contentPadding = 16.dp,
     )
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()

@@ -31,12 +31,14 @@ import kotlin.math.abs
  * @param position Whether this stack is at TOP or BOTTOM of the screen.
  * @param defaultSpacing Default spacing between bars in pixels.
  * @param edgePadding Padding from screen edge in pixels.
+ * @param contentPadding Padding between the last bar and content in pixels.
  */
 @Stable
 class FloatingBarStackState(
     val position: BarPosition,
     private var defaultSpacingPx: Float = 0f,
     private var edgePaddingPx: Float = 0f,
+    private var contentGapPx: Float = 0f,
 ) {
     internal val barStates = mutableStateListOf<FloatingBarState>()
 
@@ -53,13 +55,19 @@ class FloatingBarStackState(
         if (barStates.isEmpty()) return@derivedStateOf edgePaddingPx
 
         var totalHeight = edgePaddingPx
+        var hasVisibleBars = false
         barStates.forEachIndexed { index, bar ->
             if (bar.visibilityFraction > 0f || bar.visible) {
+                hasVisibleBars = true
                 totalHeight += bar.effectiveHeight
                 if (index < barStates.lastIndex) {
                     totalHeight += defaultSpacingPx * bar.visibilityFraction
                 }
             }
+        }
+        // Add content gap after the last visible bar
+        if (hasVisibleBars) {
+            totalHeight += contentGapPx
         }
         totalHeight.coerceAtLeast(0f)
     }
@@ -152,9 +160,10 @@ class FloatingBarStackState(
     /**
      * Updates spacing configuration.
      */
-    internal fun updateConfig(defaultSpacingPx: Float, edgePaddingPx: Float) {
+    internal fun updateConfig(defaultSpacingPx: Float, edgePaddingPx: Float, contentGapPx: Float) {
         this.defaultSpacingPx = defaultSpacingPx
         this.edgePaddingPx = edgePaddingPx
+        this.contentGapPx = contentGapPx
     }
 
     /**
@@ -194,6 +203,7 @@ class FloatingBarStackState(
                     state.position.ordinal,
                     state.defaultSpacingPx,
                     state.edgePaddingPx,
+                    state.contentGapPx,
                     state.barStates.map { bar ->
                         listOf(
                             bar.id,
@@ -209,7 +219,8 @@ class FloatingBarStackState(
                 val position = BarPosition.entries[saved[0] as Int]
                 val spacingPx = saved[1] as Float
                 val edgePx = saved[2] as Float
-                FloatingBarStackState(position, spacingPx, edgePx).also { state ->
+                val contentGapPx = saved[3] as Float
+                FloatingBarStackState(position, spacingPx, edgePx, contentGapPx).also { state ->
                     // Bar states are restored when bars re-register during recomposition
                 }
             },
@@ -225,16 +236,18 @@ fun rememberFloatingBarStackState(
     position: BarPosition,
     defaultSpacing: Dp = 8.dp,
     edgePadding: Dp = 8.dp,
+    contentPadding: Dp = 0.dp,
 ): FloatingBarStackState {
     val density = LocalDensity.current
     val defaultSpacingPx = with(density) { defaultSpacing.toPx() }
     val edgePaddingPx = with(density) { edgePadding.toPx() }
+    val contentGapPx = with(density) { contentPadding.toPx() }
     val scope = rememberCoroutineScope()
 
     return rememberSaveable(saver = FloatingBarStackState.Saver) {
-        FloatingBarStackState(position, defaultSpacingPx, edgePaddingPx)
+        FloatingBarStackState(position, defaultSpacingPx, edgePaddingPx, contentGapPx)
     }.also {
-        it.updateConfig(defaultSpacingPx, edgePaddingPx)
+        it.updateConfig(defaultSpacingPx, edgePaddingPx, contentGapPx)
         it.animationScope = scope
     }
 }
