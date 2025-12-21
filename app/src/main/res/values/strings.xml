@@ -190,6 +190,8 @@
     <string name="settings_acks_thanks_header">Thanks</string>
     <string name="settings_acks_crowdin_title">crowdin.com</string>
     <string name="settings_acks_crowdin_desc">For supporting translation of open-source projects.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Thanks for the icon, mascot designs, and animations.</string>
     <string name="settings_licenses_label">Licenses</string>
 
     <!-- Workspace Status Card -->
