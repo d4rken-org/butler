@@ -13,6 +13,7 @@ import androidx.compose.material.icons.twotone.Videocam
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.searcher.R
 import kotlin.time.Duration.Companion.days
 
@@ -37,6 +38,7 @@ sealed class SearchTemplate(
             filenameQuery = MATCH_ALL_QUERY,
             filter = SearchQuery.Filter(
                 conditions = listOf(
+                    FilterCondition.Type(FileType.FILE),
                     FilterCondition.Size(FilterComparator.GTE, SIZE_100_MB),
                 ),
             ),

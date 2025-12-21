@@ -143,6 +143,8 @@ class PathScanner @AssistedInject constructor(
     private fun evaluateCondition(condition: FilterCondition, lookup: APathLookup<*>): Boolean {
         return when (condition) {
             is FilterCondition.Size -> {
+                // Size filters only apply to files, not directories (needed for recursion)
+                if (lookup.fileType == FileType.DIRECTORY) return true
                 val size = lookup.size ?: return true // Skip if size unknown
                 val bytes = condition.bytes.coerceAtLeast(0L)
                 when (condition.comparator) {
@@ -164,6 +166,8 @@ class PathScanner @AssistedInject constructor(
                 }
             }
             is FilterCondition.Type -> {
+                // Type filters don't apply to directories (needed for recursion)
+                if (lookup.fileType == FileType.DIRECTORY) return true
                 lookup.fileType == condition.fileType
             }
         }
