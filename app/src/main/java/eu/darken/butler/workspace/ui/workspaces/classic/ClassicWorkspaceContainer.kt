@@ -141,6 +141,15 @@ internal fun ClassicWorkspaceContainer(
     ) {
         if (isScrolling || isAnimatingProgrammatically) return@LaunchedEffect
 
+        // Don't run placeholder creation logic when EmptyClassicWorkspaceContent is shown
+        // (it has its own explicit creation actions)
+        if (workspaceCount == 0) {
+            if (creationState != PlaceholderCreationState.Idle) {
+                creationState = PlaceholderCreationState.Idle
+            }
+            return@LaunchedEffect
+        }
+
         val isOnPlaceholder = settledPage >= workspaceCount
 
         val newState = when (creationState) {

@@ -278,16 +278,8 @@
     <string name="workspace_empty_create_hint">Work in parallel: Create a tab and turn it into a tool of your choice.</string>
     <string name="workspace_empty_settings_action">Open settings</string>
     <string name="workspace_empty_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
+    <string name="workspace_classic_empty_tabs_closed">No open tabs. Ready when you are.</string>
 
-    <!-- Classic Workspace Tips -->
-    <string name="workspace_classic_tip_create_multiple">You can create multiple tabs to work with folders simultaneously.</string>
-    <string name="workspace_classic_tip_search_workspace">Use the search to quickly find files across your device.</string>
-    <string name="workspace_classic_tip_editor_workspace">The editor lets you view and edit text files.</string>
-    <string name="workspace_classic_tip_customize_settings">Customize Butler\'s behavior in the settings.</string>
-    <string name="workspace_classic_tip_root_access">Butler supports root access for advanced file operations.</string>
-    <string name="workspace_classic_tip_swipe_between">Swipe to change tabs, like in a browser.</string>
-    <string name="workspace_classic_tip_bookmark_folders">Bookmark frequently used folders for quick access.</string>
-    <string name="workspace_classic_tip_keyboard_shortcuts">Use keyboard shortcuts for faster navigation.</string>
     <string name="workspace_creating_placeholder">Creating tab…</string>
     <string name="workspace_ondemand_swipe_title">Swipe to create new tab</string>
 
