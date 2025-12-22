@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.Description
-import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material.icons.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.Card
@@ -40,9 +38,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.ContentQuery
-import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.FilenameQuery
-import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
@@ -98,12 +95,7 @@ fun SearchToolbarCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    start = cardPadding,
-                    end = cardPadding,
-                    top = cardPadding,
-                    bottom = if (isCollapsed) cardPadding else 8.dp // to deal with FlowRow too much build in padding
-                ),
+                .padding(cardPadding),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             if (isCollapsed) {
@@ -242,15 +234,10 @@ fun SearchToolbarCard(
                     }
                 }
 
-                // Filter chips row (always visible when expanded)
-                AnimatedVisibility(
-                    visible = !isCollapsed,
-                    enter = expandVertically(),
-                    exit = shrinkVertically(),
-                ) {
+  
                     Column {
                         HorizontalDivider(
-                            modifier = Modifier.padding(top = 4.dp),
+                            modifier = Modifier.padding(vertical = 8.dp),
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                         )
 
@@ -263,16 +250,12 @@ fun SearchToolbarCard(
                             onRemoveCondition = { onRemoveCondition?.invoke(it) },
                         )
                     }
-                }
 
-                // Path chips row
-                AnimatedVisibility(
-                    visible = !isCollapsed,
-                    enter = expandVertically(),
-                    exit = shrinkVertically(),
-                ) {
+
+
                     Column {
                         HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 8.dp),
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                         )
 
@@ -284,7 +267,7 @@ fun SearchToolbarCard(
                             isSearching = state.isSearching,
                         )
                     }
-                }
+
             }
         }
     }
