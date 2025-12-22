@@ -173,13 +173,14 @@ internal fun EmptyClassicWorkspaceContent(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (isUpgraded) {
                     ColoredTitleText(
+                        style = MaterialTheme.typography.titleSmall,
                         fullTitle = stringResource(R.string.app_name_upgraded),
                         postfix = stringResource(R.string.app_name_upgrade_postfix),
                     )
                 } else {
                     Text(
                         text = stringResource(eu.darken.butler.common.R.string.app_name),
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
