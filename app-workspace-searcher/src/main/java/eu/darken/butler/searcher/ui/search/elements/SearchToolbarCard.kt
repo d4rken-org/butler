@@ -39,6 +39,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.ContentQuery
 import eu.darken.butler.searcher.core.FilenameQuery
+import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.workspace.core.Workspace
@@ -69,6 +70,11 @@ fun SearchToolbarCard(
     onToggleContentRegex: () -> Unit,
     onToggleContentSearch: () -> Unit,
     onOpenPathPicker: (() -> Unit)? = null,
+    onConditionClick: ((FilterCondition) -> Unit)? = null,
+    onAddSizeCondition: (() -> Unit)? = null,
+    onAddDateCondition: (() -> Unit)? = null,
+    onAddTypeCondition: (() -> Unit)? = null,
+    onRemoveCondition: ((FilterCondition) -> Unit)? = null,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
@@ -89,12 +95,7 @@ fun SearchToolbarCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    start = cardPadding,
-                    end = cardPadding,
-                    top = cardPadding,
-                    bottom = if (isCollapsed) cardPadding else 8.dp // to deal with FlowRow too much build in padding
-                ),
+                .padding(cardPadding),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             if (isCollapsed) {
@@ -233,14 +234,28 @@ fun SearchToolbarCard(
                     }
                 }
 
-                AnimatedVisibility(
-                    visible = !isCollapsed,
-                    enter = expandVertically(),
-                    exit = shrinkVertically(),
-                ) {
+
                     Column {
                         HorizontalDivider(
-                            modifier = Modifier.padding(top = 4.dp),
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                        )
+
+                        FilterChipBar(
+                            filter = state.currentFilter,
+                            onConditionClick = { onConditionClick?.invoke(it) },
+                            onAddSizeCondition = { onAddSizeCondition?.invoke() },
+                            onAddDateCondition = { onAddDateCondition?.invoke() },
+                            onAddTypeCondition = { onAddTypeCondition?.invoke() },
+                            onRemoveCondition = { onRemoveCondition?.invoke(it) },
+                        )
+                    }
+
+
+
+                    Column {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = 8.dp),
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                         )
 
@@ -252,7 +267,7 @@ fun SearchToolbarCard(
                             isSearching = state.isSearching,
                         )
                     }
-                }
+
             }
         }
     }
