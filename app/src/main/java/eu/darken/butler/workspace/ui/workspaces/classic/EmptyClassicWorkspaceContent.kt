@@ -167,6 +167,8 @@ internal fun EmptyClassicWorkspaceContent(
                 }
             }
 
+            Spacer(modifier = Modifier.size(16.dp))
+
             // Branding + version at bottom
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (isUpgraded) {
@@ -177,7 +179,7 @@ internal fun EmptyClassicWorkspaceContent(
                 } else {
                     Text(
                         text = stringResource(eu.darken.butler.common.R.string.app_name),
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
