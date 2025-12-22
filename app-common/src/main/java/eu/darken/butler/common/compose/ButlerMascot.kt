@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -21,33 +20,25 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec.*
 import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
+import eu.darken.butler.common.Occasions
 import eu.darken.butler.common.R
 import eu.darken.butler.common.compose.ButlerMascotMode.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
-import java.time.LocalDate
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-@Composable
 private fun resolveHat(hat: ButlerMascotMode.Hat): Int? {
     return when (hat) {
         Hat.NO_HAT -> null
         Hat.PARTY -> R.drawable.mascot_hat_party
         Hat.XMAS -> R.drawable.mascot_hat_xmas
-        Hat.AUTO -> {
-            val today = remember { LocalDate.now() }
-            val month = today.monthValue
-            val day = today.dayOfMonth
-            when {
-                // Christmas: Dec 21-27
-                month == 12 && day in 21..27 -> R.drawable.mascot_hat_xmas
-                // New Year: Dec 28 - Jan 1
-                (month == 12 && day >= 28) || (month == 1 && day == 1) -> R.drawable.mascot_hat_party
-                else -> null
-            }
+        Hat.AUTO -> when (Occasions.current()) {
+            Occasions.Period.XMAS -> R.drawable.mascot_hat_xmas
+            Occasions.Period.NEW_YEAR -> R.drawable.mascot_hat_party
+            Occasions.Period.NONE -> null
         }
     }
 }
