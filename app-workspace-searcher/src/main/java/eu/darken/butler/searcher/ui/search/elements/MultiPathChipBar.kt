@@ -1,19 +1,13 @@
 package eu.darken.butler.searcher.ui.search.elements
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
-import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,7 +44,7 @@ fun MultiPathChipBar(
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy((-10).dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (paths.isEmpty()) {
             Text(
@@ -66,32 +60,12 @@ fun MultiPathChipBar(
         visiblePaths.forEach { target ->
             when (target) {
                 is SearchTarget.Path -> {
-                    FilterChip(
+                    CompactFilterChip(
+                        label = target.displayText.asComposable(),
                         selected = target.enabled,
+                        enabled = !isSearching,
                         onClick = { if (!isSearching) onPathToggle(target) },
-                        label = {
-                            Text(
-                                text = target.displayText.asComposable(),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (target.enabled) {
-                                    MaterialTheme.colorScheme.onSecondaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                }
-                            )
-                        },
-                        trailingIcon = {
-                            Icon(
-                                imageVector = Icons.TwoTone.Close,
-                                contentDescription = "Remove path",
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .clickable(enabled = !isSearching) {
-                                        onPathRemove(target)
-                                    }
-                            )
-                        },
-                        enabled = !isSearching
+                        onRemove = { onPathRemove(target) },
                     )
                 }
             }
@@ -100,49 +74,27 @@ fun MultiPathChipBar(
         // Show more/fewer button
         if (hasMore) {
             val remainingCount = paths.size - visibleSize
-            AssistChip(
-                onClick = { isExpanded = !isExpanded },
-                label = {
-                    Text(
-                        text = if (isExpanded) {
-                            stringResource(R.string.searcher_multipath_show_fewer_action)
-                        } else {
-                            pluralStringResource(
-                                R.plurals.searcher_multipath_show_more_action,
-                                remainingCount,
-                                remainingCount
-                            )
-                        },
-                        style = MaterialTheme.typography.bodySmall
+            CompactAssistChip(
+                label = if (isExpanded) {
+                    stringResource(R.string.searcher_multipath_show_fewer_action)
+                } else {
+                    pluralStringResource(
+                        R.plurals.searcher_multipath_show_more_action,
+                        remainingCount,
+                        remainingCount
                     )
                 },
-                leadingIcon = {
-                    Icon(
-                        imageVector = if (isExpanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
+                leadingIcon = if (isExpanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
+                onClick = { isExpanded = !isExpanded },
             )
         }
 
         // Add button
-        AssistChip(
+        CompactAssistChip(
+            label = stringResource(R.string.searcher_add_path_action),
+            leadingIcon = Icons.TwoTone.Add,
+            enabled = !isSearching,
             onClick = onAddPathClick,
-            label = {
-                Text(
-                    text = stringResource(R.string.searcher_add_path_action),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.TwoTone.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-            },
-            enabled = !isSearching
         )
     }
 }

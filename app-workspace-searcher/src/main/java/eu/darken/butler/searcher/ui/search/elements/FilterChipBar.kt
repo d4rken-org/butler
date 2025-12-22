@@ -1,24 +1,15 @@
 package eu.darken.butler.searcher.ui.search.elements
 
 import android.text.format.Formatter
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
-import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,18 +33,6 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
-enum class DateFilterPreset(
-    val labelResId: Int,
-    val duration: Duration?,
-) {
-    ANY(R.string.searcher_filter_date_any, null),
-    LAST_24_HOURS(R.string.searcher_filter_date_24h, 24.hours),
-    LAST_7_DAYS(R.string.searcher_filter_date_7d, 7.days),
-    LAST_30_DAYS(R.string.searcher_filter_date_30d, 30.days),
-    LAST_90_DAYS(R.string.searcher_filter_date_90d, 90.days),
-    LAST_YEAR(R.string.searcher_filter_date_1y, 365.days),
-}
-
 /**
  * Displays active filter conditions as chips with individual remove capability.
  * Each condition is displayed as one chip. Click chip to edit that condition,
@@ -73,16 +52,13 @@ fun FilterChipBar(
     var showAddMenu by remember { mutableStateOf(false) }
 
     FlowRow(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         // Display each condition as its own chip
         filter.conditions.forEach { condition ->
             val label = formatConditionLabel(condition, context)
-            FilterChipWithRemove(
+            CompactFilterChip(
                 label = label,
                 onClick = { onConditionClick(condition) },
                 onRemove = { onRemoveCondition(condition) },
@@ -91,24 +67,10 @@ fun FilterChipBar(
 
         // Add filter button with dropdown
         Box {
-            AssistChip(
+            CompactAssistChip(
+                label = stringResource(R.string.searcher_filter_add_action),
+                leadingIcon = Icons.TwoTone.Add,
                 onClick = { showAddMenu = true },
-                label = {
-                    Text(
-                        text = stringResource(R.string.searcher_filter_add_action),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                },
-                colors = AssistChipDefaults.assistChipColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                ),
             )
 
             DropdownMenu(
@@ -172,38 +134,6 @@ private fun formatConditionLabel(condition: FilterCondition, context: android.co
     }
 }
 
-@Composable
-private fun FilterChipWithRemove(
-    label: String,
-    onClick: () -> Unit,
-    onRemove: () -> Unit,
-) {
-    FilterChip(
-        selected = true,
-        onClick = onClick,
-        label = {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        },
-        trailingIcon = {
-            Icon(
-                imageVector = Icons.TwoTone.Close,
-                contentDescription = stringResource(eu.darken.butler.common.R.string.general_close_action),
-                modifier = Modifier
-                    .size(18.dp)
-                    .clickable(onClick = onRemove),
-            )
-        },
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            selectedTrailingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        ),
-    )
-}
-
 fun findPresetForInstant(instant: Instant?): DateFilterPreset {
     if (instant == null) return DateFilterPreset.ANY
 
@@ -221,6 +151,19 @@ fun findPresetForInstant(instant: Instant?): DateFilterPreset {
         }
         ?: DateFilterPreset.ANY
 }
+
+enum class DateFilterPreset(
+    val labelResId: Int,
+    val duration: Duration?,
+) {
+    ANY(R.string.searcher_filter_date_any, null),
+    LAST_24_HOURS(R.string.searcher_filter_date_24h, 24.hours),
+    LAST_7_DAYS(R.string.searcher_filter_date_7d, 7.days),
+    LAST_30_DAYS(R.string.searcher_filter_date_30d, 30.days),
+    LAST_90_DAYS(R.string.searcher_filter_date_90d, 90.days),
+    LAST_YEAR(R.string.searcher_filter_date_1y, 365.days),
+}
+
 
 @Preview2
 @Composable
