@@ -31,11 +31,7 @@
     <string name="path_action_trash_move_failed_title">Failed to move to Trash</string>
     <string name="path_action_trash_move_failed_description">%1$d items could not be moved to trash.</string>
 
-    <!-- Storage disconnection errors -->
-    <string name="storage_disconnected_error_title">Operation interrupted</string>
-    <string name="storage_disconnected_error_message">Storage may have been disconnected</string>
-
     <!-- Service connection errors -->
-    <string name="service_connection_lost_error_title">Service connection lost</string>
-    <string name="service_connection_lost_error_message">The connection to the file service was interrupted</string>
+    <string name="service_connection_lost_error_title">File operation interrupted</string>
+    <string name="service_connection_lost_error_message">The file operation service stopped unexpectedly. Please try again.</string>
 </resources>

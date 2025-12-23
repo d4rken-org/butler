@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,12 +39,12 @@ class LocalServiceClient @Inject constructor(
     source = callbackFlow {
         log(TAG) { "Binding to LocalService..." }
 
-        var currentBinder: IBinder? = null
+        val currentBinder = AtomicReference<IBinder?>(null)
 
         val deathRecipient = object : IBinder.DeathRecipient {
             override fun binderDied() {
                 log(TAG, ERROR) { "binderDied() - Service process killed (storage disconnected?)" }
-                currentBinder?.unlinkToDeath(this, 0)
+                currentBinder.getAndSet(null)?.unlinkToDeath(this, 0)
                 close(ServiceProcessDiedException("Local service process was killed"))
             }
         }
@@ -52,7 +53,7 @@ class LocalServiceClient @Inject constructor(
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                 log(TAG) { "onServiceConnected($name)" }
                 try {
-                    currentBinder = service
+                    currentBinder.set(service)
                     service?.linkToDeath(deathRecipient, 0)
 
                     val serviceConnection = LocalServiceConnection.Stub.asInterface(service)
@@ -67,13 +68,12 @@ class LocalServiceClient @Inject constructor(
 
             override fun onServiceDisconnected(name: ComponentName?) {
                 log(TAG, WARN) { "onServiceDisconnected($name)" }
-                currentBinder?.unlinkToDeath(deathRecipient, 0)
-                currentBinder = null
+                currentBinder.getAndSet(null)?.unlinkToDeath(deathRecipient, 0)
             }
 
             override fun onBindingDied(name: ComponentName?) {
                 log(TAG, ERROR) { "onBindingDied($name) - Service process died" }
-                currentBinder?.unlinkToDeath(deathRecipient, 0)
+                currentBinder.getAndSet(null)?.unlinkToDeath(deathRecipient, 0)
                 close(ServiceProcessDiedException("Local service binding died"))
             }
 
@@ -99,7 +99,7 @@ class LocalServiceClient @Inject constructor(
 
         awaitClose {
             log(TAG) { "Unbinding from LocalService" }
-            currentBinder?.unlinkToDeath(deathRecipient, 0)
+            currentBinder.getAndSet(null)?.unlinkToDeath(deathRecipient, 0)
             try {
                 context.unbindService(serviceConnection)
             } catch (e: Exception) {
