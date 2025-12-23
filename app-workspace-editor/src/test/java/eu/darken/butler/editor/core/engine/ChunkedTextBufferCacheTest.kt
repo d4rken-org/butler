@@ -93,7 +93,7 @@ class ChunkedTextBufferCacheTest : ChunkedTextBufferTestBase() {
         }
 
         // Search for pattern (may span evicted chunks)
-        val results = buffer.search("Line", startFrom = null, ignoreCase = false)
+        val results = buffer.search("Line", startFrom = null, options = SearchOptions(caseSensitive = true))
 
         results.size shouldBe 10
         for (i in 0 until 10) {

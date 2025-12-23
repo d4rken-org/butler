@@ -393,7 +393,7 @@ class ChunkRepositoryTest : BaseTest() {
         val boundary = ChunkBoundary(0L, content.length.toLong(), 1)
 
         // When: Case insensitive search
-        val results = repository.searchInChunk(chunk, boundary, "hello", ignoreCase = true)
+        val results = repository.searchInChunk(chunk, boundary, "hello", options = SearchOptions(caseSensitive = false))
 
         // Then: Should find both "Hello" and "hello"
         results.size shouldBe 2

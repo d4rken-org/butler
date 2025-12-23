@@ -34,6 +34,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -59,9 +60,13 @@ class EditorWorkspace @AssistedInject constructor(
     private val tag = logTag("Editor", "Workspace", id.shortTag)
 
     override suspend fun createArguments(): EditorArguments {
+        val currentState = editorState.first()
+        val currentFilePath = (currentState.contentSource as? ContentSource.File)?.path
         return EditorArguments.Default(
-            filePath = filePath, // Current file being edited
-            goToLine = null
+            filePath = currentFilePath,
+            cursorLine = currentState.cursorPosition.line,
+            cursorColumn = currentState.cursorPosition.column,
+            scrollToLine = currentState.visibleRange.first,
         )
     }
 
@@ -100,6 +105,24 @@ class EditorWorkspace @AssistedInject constructor(
             log(tag, INFO) { "Creating initial engine with: ${initialPath?.name ?: "scratch buffer"}" }
             editorEngineFactory.create(id, initialPath, initialContent).apply {
                 initialize().getOrThrow()
+
+                // Restore cursor and scroll position from saved arguments
+                // Only if file was loaded AND positions are within bounds
+                if (initialPath != null) {
+                    val lines = totalLines.value
+                    val cursorLine = args?.cursorLine
+                    val cursorColumn = args?.cursorColumn
+                    if (cursorLine != null && cursorColumn != null && cursorLine < lines) {
+                        log(tag, INFO) { "Restoring cursor position: line=$cursorLine, column=$cursorColumn" }
+                        setCursorPosition(TextPosition(offset = 0, line = cursorLine, column = cursorColumn))
+                    }
+                    val scrollLine = args?.scrollToLine
+                    if (scrollLine != null && scrollLine < lines) {
+                        val windowSize = 50
+                        log(tag, INFO) { "Restoring scroll position: line=$scrollLine" }
+                        updateVisibleRange(scrollLine, scrollLine + windowSize)
+                    }
+                }
             }
         },
         onRelease = { engine ->
