@@ -43,6 +43,7 @@ fun OperationDetailsSheet(
     modifier: Modifier = Modifier,
     onCancel: (() -> Unit)? = null,
     onCopyError: (() -> Unit)? = null,
+    onHandleIssue: (() -> Unit)? = null,
 ) {
     val isInPreview = LocalInspectionMode.current
 
@@ -55,6 +56,7 @@ fun OperationDetailsSheet(
                 operation = operation,
                 onCancel = onCancel,
                 onCopyError = onCopyError,
+                onHandleIssue = onHandleIssue,
             )
         }
     } else {
@@ -67,6 +69,7 @@ fun OperationDetailsSheet(
                 operation = operation,
                 onCancel = onCancel,
                 onCopyError = onCopyError,
+                onHandleIssue = onHandleIssue,
             )
         }
     }
@@ -77,6 +80,7 @@ private fun OperationDetailsContent(
     operation: OperationDisplay,
     onCancel: (() -> Unit)? = null,
     onCopyError: (() -> Unit)? = null,
+    onHandleIssue: (() -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
@@ -136,6 +140,7 @@ private fun OperationDetailsContent(
         val hasActions = when (operation.state) {
             is OperationDisplay.State.Running -> onCancel != null
             is OperationDisplay.State.Failed -> onCopyError != null
+            is OperationDisplay.State.Waiting -> onHandleIssue != null
             else -> false
         }
 
@@ -144,6 +149,7 @@ private fun OperationDetailsContent(
                 operation = operation,
                 onCancel = onCancel,
                 onCopyError = onCopyError,
+                onHandleIssue = onHandleIssue,
             )
         }
     }
@@ -248,6 +254,27 @@ private fun OperationDetailsSheetFailedPreview() {
             ),
             onDismiss = {},
             onCopyError = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun OperationDetailsSheetWaitingPreview() {
+    PreviewWrapper {
+        OperationDetailsSheet(
+            operation = OperationDisplay(
+                id = Operation.Id(),
+                title = "Copy operation".toCaString(),
+                description = "Copying files to destination".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Waiting(
+                    reason = "File already exists".toCaString(),
+                ),
+                startedAt = Clock.System.now() - 1.minutes,
+            ),
+            onDismiss = {},
+            onHandleIssue = {},
         )
     }
 }

@@ -887,7 +887,10 @@ fun SearcherWorkspacePage(
                 operationDialogState = OperationDialogState.None
                 vm?.cancelOperation(operationId)
             },
-            onCopyError = { vm?.copyError(it) }
+            onCopyError = { vm?.copyError(it) },
+            onHandleIssue = { operationId ->
+                vm?.showConflictSheet(operationId)
+            },
         )
     }  // End of state?.let
 }

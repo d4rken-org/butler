@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -31,6 +32,7 @@ internal fun OperationActionsSection(
     operation: OperationDisplay,
     onCancel: (() -> Unit)? = null,
     onCopyError: (() -> Unit)? = null,
+    onHandleIssue: (() -> Unit)? = null,
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -90,6 +92,22 @@ internal fun OperationActionsSection(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(stringResource(R.string.operations_details_copy_error))
+                            }
+                        }
+                    }
+                    is OperationDisplay.State.Waiting -> {
+                        if (onHandleIssue != null) {
+                            OutlinedButton(
+                                onClick = onHandleIssue,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.Warning,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(stringResource(R.string.operations_details_handle_issue))
                             }
                         }
                     }

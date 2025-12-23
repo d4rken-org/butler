@@ -732,7 +732,10 @@ fun ExplorerWorkspacePage(
                     operationDialogState = OperationDialogState.None
                     showCancelConfirmation = operationId
                 },
-                onCopyError = { vm?.copyError(it) }
+                onCopyError = { vm?.copyError(it) },
+                onHandleIssue = { operationId ->
+                    vm?.showConflictSheet(operationId)
+                },
             )
 
             // Show conflict bottom sheet when needed

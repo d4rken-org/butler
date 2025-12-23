@@ -45,6 +45,7 @@ import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.arguments.SearcherArguments
 import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.operations.SearcherCommand
+import eu.darken.butler.searcher.core.sorting.SearchItemSorter
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.searcher.ui.search.util.SearchListItem
@@ -103,7 +104,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val trashSettings: TrashSettings,
     private val errorReportTool: ErrorReportTool,
     private val copyErrorTool: CopyErrorTool,
-    itemSorterFactory: eu.darken.butler.searcher.core.sorting.SearchItemSorter.Factory,
+    itemSorterFactory: SearchItemSorter.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
 
     private val itemSorter = itemSorterFactory.create(id)
