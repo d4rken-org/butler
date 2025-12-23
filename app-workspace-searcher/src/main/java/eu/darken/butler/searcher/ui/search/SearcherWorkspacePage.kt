@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.ui.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -274,6 +275,11 @@ fun SearcherWorkspacePage(
     )
 
     state?.let { currentState ->
+        // Handle back button for selection mode - clear selection first
+        BackHandler(enabled = currentState.selectionState.isSelectionMode) {
+            onPageAction(SearcherPageAction.Results.ExitSelectionMode)
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()

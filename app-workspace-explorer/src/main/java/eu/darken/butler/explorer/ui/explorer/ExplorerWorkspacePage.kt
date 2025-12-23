@@ -327,6 +327,11 @@ fun ExplorerWorkspacePage(
         }
     }
 
+    // Handle back button for selection mode - clear selection first
+    BackHandler(enabled = mainState.selectionState.isSelectionMode) {
+        vm?.clearSelection()
+    }
+
     // Derived states for stable recomposition
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
