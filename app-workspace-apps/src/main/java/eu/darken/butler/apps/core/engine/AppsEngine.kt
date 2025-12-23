@@ -12,6 +12,8 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.pkgs
+import eu.darken.butler.common.user.UserManager2
+import eu.darken.butler.common.user.UserProfile2
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +32,7 @@ class AppsEngine @AssistedInject constructor(
     @Assisted private val workspaceScope: CoroutineScope,
     @ApplicationContext private val context: Context,
     private val pkgRepo: PkgRepo,
+    private val userManager: UserManager2,
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
@@ -43,15 +46,21 @@ class AppsEngine @AssistedInject constructor(
 
         combine(
             pkgRepo.pkgs(),
+            userManager.users,
             _state.map { it.filterConfig },
             _state.map { it.sortSettings },
             _state.map { it.searchQuery },
-        ) { packages, filterConfig, sortSettings, searchQuery ->
+        ) { packages, userProfiles, filterConfig, sortSettings, searchQuery ->
             log(tag, DEBUG) { "Processing ${packages.size} packages" }
+
+            // Build a map of user handles to profiles for efficient lookup
+            val userProfileMap = userProfiles.associateBy { it.handle }
 
             val appItems = packages.map { pkg ->
                 try {
-                    AppItem.from(pkg, appSize = null)
+                    val profile = userProfileMap[pkg.userHandle]
+                        ?: UserProfile2(handle = pkg.userHandle)
+                    AppItem.from(pkg, userProfile = profile, appSize = null)
                 } catch (e: Exception) {
                     log(tag, WARN) { "Failed to create AppItem for ${pkg.id.name}: ${e.asLog()}" }
                     null
@@ -90,7 +99,7 @@ class AppsEngine @AssistedInject constructor(
             .launchIn(workspaceScope)
     }
 
-    suspend fun updateFilterConfig(config: AppsState.FilterConfig) = withContext(dispatcherProvider.Default) {
+    suspend fun updateFilterConfig(config: TagFilterConfig) = withContext(dispatcherProvider.Default) {
         log(tag) { "Updating filter config: $config" }
         _state.value = _state.value.copy(filterConfig = config)
     }

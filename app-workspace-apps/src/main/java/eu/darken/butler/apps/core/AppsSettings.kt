@@ -5,13 +5,12 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.core.engine.SortSettings
+import eu.darken.butler.apps.core.engine.TagFilterConfig
 import eu.darken.butler.common.datastore.PreferenceScreenData
 import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.logging.logTag
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,9 +27,10 @@ class AppsSettings @Inject constructor(
         get() = context.dataStore
 
     val defaultFilterConfig = dataStore.createValue(
-        "apps.filter.default",
-        AppsState.FilterConfig(),
+        "apps.filter.tags.default",
+        TagFilterConfig(),
         json,
+        onErrorFallbackToDefault = true,
     )
 
     val defaultSortSettings = dataStore.createValue(

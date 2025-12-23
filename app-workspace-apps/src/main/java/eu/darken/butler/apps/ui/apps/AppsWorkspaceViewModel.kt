@@ -14,8 +14,10 @@ import eu.darken.butler.apps.core.AppsViewStyle
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.arguments.AppDetailsArguments
 import eu.darken.butler.apps.core.engine.AppItem
+import eu.darken.butler.apps.core.engine.AppTag
 import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.core.engine.SortSettings
+import eu.darken.butler.apps.core.engine.TagFilterConfig
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.valueBlocking
@@ -71,7 +73,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         val apps: List<AppItem>
             get() = appsState.filteredApps
 
-        val filterConfig: AppsState.FilterConfig
+        val filterConfig: TagFilterConfig
             get() = appsState.filterConfig
 
         val sortSettings: SortSettings
@@ -199,7 +201,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().appsEngine.updateSearchQuery(query.text)
     }
 
-    fun onFilterChanged(filterConfig: AppsState.FilterConfig) = launch {
+    fun onFilterChanged(filterConfig: TagFilterConfig) = launch {
         log(tag) { "Filter changed: $filterConfig" }
         getWorkspace().appsEngine.updateFilterConfig(filterConfig)
         appsSettings.defaultFilterConfig.value(filterConfig)
@@ -279,7 +281,22 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     fun showFilterDialog() = launch {
         log(tag) { "Showing filter dialog" }
         val currentState = state.first()
-        dialogStateFlow.value = AppsDialogState.FilterOptions(currentState.filterConfig)
+
+        // Build available tags from standard tags + user profile tags from the app list
+        val userProfileTags = currentState.apps
+            .filter { it.userProfile.handle.handleId != 0 }
+            .map { AppTag.User(it.userProfile.handle.handleId, it.userProfile.label) }
+            .distinctBy { it.handleId }
+
+        // Defensive: filter out any potential nulls that might sneak in through R8/reflection
+        @Suppress("USELESS_CAST")
+        val availableTags = (AppTag.standardTags + userProfileTags)
+            .filterNotNull()
+
+        dialogStateFlow.value = AppsDialogState.FilterOptions(
+            currentFilter = currentState.filterConfig,
+            availableTags = availableTags,
+        )
     }
 
     fun showSortDialog() = launch {

@@ -96,6 +96,20 @@ fun AppGridItem(
                 }
             }
 
+            // Tag chips in top-right
+            if (item.tags.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp),
+                ) {
+                    AppTagRow(
+                        tags = item.tags,
+                        compact = true,
+                    )
+                }
+            }
+
             // Checkbox in top-left when in selection mode
             if (showSelection) {
                 Box(
@@ -182,6 +196,34 @@ private fun AppGridItemDisabledPreview() {
     PreviewWrapper {
         AppGridItem(
             item = AppsMockDataProvider.Presets.disabledAppItem,
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = false,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppGridItemWithTagsPreview() {
+    PreviewWrapper {
+        AppGridItem(
+            item = AppsMockDataProvider.Presets.multiTagAppItem,
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = false,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppGridItemSplitApkPreview() {
+    PreviewWrapper {
+        AppGridItem(
+            item = AppsMockDataProvider.Presets.splitApkItem,
             isSelected = false,
             onClick = {},
             onLongClick = {},

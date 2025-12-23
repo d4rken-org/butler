@@ -12,6 +12,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.features.Installed
 import eu.darken.butler.common.user.UserHandle2
+import eu.darken.butler.common.user.UserProfile2
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
@@ -137,6 +138,10 @@ object AppsMockDataProvider {
         targetSdk: Int? = 34,
         minSdk: Int? = 24,
         uid: Int? = 10234,
+        isUpdatedSystemApp: Boolean = false,
+        isSplitApk: Boolean = false,
+        isDebuggable: Boolean = false,
+        userProfile: UserProfile2 = UserProfile2(handle = UserHandle2(0)),
     ): AppItem {
         val installedAt = MockTimes.hoursAgo(hoursAgo)
         val updatedAt = MockTimes.hoursAgo(hoursAgo / 2)
@@ -165,10 +170,13 @@ object AppsMockDataProvider {
             appSize = appSize,
             isSystemApp = isSystem,
             isEnabled = isEnabled,
-            isUpdatedSystemApp = false,
+            isUpdatedSystemApp = isUpdatedSystemApp,
             installedAt = installedAt,
             updatedAt = updatedAt,
             installerInfo = null,
+            isSplitApk = isSplitApk,
+            isDebuggable = isDebuggable,
+            userProfile = userProfile,
         )
     }
 
@@ -181,7 +189,7 @@ object AppsMockDataProvider {
             filteredApps = apps,
             selectedAppIds = selectedIds,
             isLoading = false,
-            filterConfig = AppsState.FilterConfig(),
+            filterConfig = eu.darken.butler.apps.core.engine.TagFilterConfig(),
             sortSettings = eu.darken.butler.apps.core.engine.SortSettings(),
         )
     }
@@ -289,6 +297,50 @@ object AppsMockDataProvider {
             label = "Spotify",
             isSystem = false,
             isEnabled = false,
+        )
+
+        val splitApkItem = createMockAppItem(
+            packageName = "com.google.android.youtube",
+            label = "YouTube",
+            isSystem = false,
+            isEnabled = true,
+            isSplitApk = true,
+        )
+
+        val debugAppItem = createMockAppItem(
+            packageName = "com.developer.debug",
+            label = "Debug App",
+            isSystem = false,
+            isEnabled = true,
+            isDebuggable = true,
+        )
+
+        val multiTagAppItem = createMockAppItem(
+            packageName = "com.android.phone",
+            label = "Phone",
+            isSystem = true,
+            isEnabled = false,
+            isUpdatedSystemApp = true,
+        )
+
+        val updatedSystemItem = createMockAppItem(
+            packageName = "com.android.webview",
+            label = "WebView",
+            isSystem = true,
+            isEnabled = true,
+            isUpdatedSystemApp = true,
+            isSplitApk = true,
+        )
+
+        val workProfileAppItem = createMockAppItem(
+            packageName = "com.slack",
+            label = "Slack",
+            isSystem = false,
+            isEnabled = true,
+            userProfile = UserProfile2(
+                handle = UserHandle2(10),
+                label = "Work",
+            ),
         )
     }
 }

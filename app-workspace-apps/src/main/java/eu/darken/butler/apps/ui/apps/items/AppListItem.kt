@@ -110,6 +110,9 @@ fun AppListItem(
                     )
                 }
             }
+            if (item.tags.isNotEmpty()) {
+                AppTagRow(tags = item.tags)
+            }
         }
     }
 }
@@ -148,6 +151,34 @@ private fun AppListItemDisabledPreview() {
     PreviewWrapper {
         AppListItem(
             item = AppsMockDataProvider.Presets.disabledAppItem,
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = false,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppListItemWithTagsPreview() {
+    PreviewWrapper {
+        AppListItem(
+            item = AppsMockDataProvider.Presets.multiTagAppItem,
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = false,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppListItemSplitApkPreview() {
+    PreviewWrapper {
+        AppListItem(
+            item = AppsMockDataProvider.Presets.updatedSystemItem,
             isSelected = false,
             onClick = {},
             onLongClick = {},

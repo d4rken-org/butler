@@ -36,7 +36,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppsViewStyle
 import eu.darken.butler.apps.core.engine.AppItem
-import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogHost
 import eu.darken.butler.apps.ui.apps.items.AppGridItem
 import eu.darken.butler.apps.ui.apps.items.AppListItem

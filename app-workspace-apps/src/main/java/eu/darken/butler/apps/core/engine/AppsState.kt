@@ -1,12 +1,11 @@
 package eu.darken.butler.apps.core.engine
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 data class AppsState(
     val apps: List<AppItem> = emptyList(),
     val filteredApps: List<AppItem> = emptyList(),
-    val filterConfig: FilterConfig = FilterConfig(),
+    val filterConfig: TagFilterConfig = TagFilterConfig(),
     val sortSettings: SortSettings = SortSettings(),
     val searchQuery: String = "",
     val selectedAppIds: Set<String> = emptySet(),
@@ -15,42 +14,43 @@ data class AppsState(
 ) {
     val isMultiSelectMode: Boolean
         get() = selectedAppIds.isNotEmpty()
+}
 
-    @Serializable
-    data class FilterConfig(
-        val appType: AppType = AppType.ALL,
-        val status: Status = Status.ALL,
-    ) {
-        @Serializable
-        enum class AppType {
-            @SerialName("ALL") ALL,
-            @SerialName("USER") USER,
-            @SerialName("SYSTEM") SYSTEM,
-        }
+/**
+ * Tag-based filter configuration.
+ *
+ * @property includeTags Apps must have ALL of these tags (AND logic)
+ * @property excludeTags Apps are excluded if they have ANY of these tags (OR logic)
+ */
+@Serializable
+data class TagFilterConfig(
+    val includeTags: Set<AppTag> = emptySet(),
+    val excludeTags: Set<AppTag> = emptySet(),
+) {
+    fun matches(item: AppItem): Boolean {
+        val itemTags = item.toTagSet()
 
-        @Serializable
-        enum class Status {
-            @SerialName("ALL") ALL,
-            @SerialName("ENABLED") ENABLED,
-            @SerialName("DISABLED") DISABLED,
-        }
+        // Exclude: reject if item has ANY excluded tag
+        if (excludeTags.any { it in itemTags }) return false
 
-        fun matches(item: AppItem): Boolean {
-            // Check app type
-            when (appType) {
-                AppType.USER -> if (item.isSystemApp) return false
-                AppType.SYSTEM -> if (!item.isSystemApp) return false
-                AppType.ALL -> {} // No filter
-            }
-
-            // Check status
-            when (status) {
-                Status.ENABLED -> if (!item.isEnabled) return false
-                Status.DISABLED -> if (item.isEnabled) return false
-                Status.ALL -> {} // No filter
-            }
-
-            return true
-        }
+        // Include: must have ALL selected tags (AND)
+        if (includeTags.isEmpty()) return true
+        return includeTags.all { it in itemTags }
     }
+
+    val isEmpty: Boolean
+        get() = includeTags.isEmpty() && excludeTags.isEmpty()
+}
+
+/**
+ * Converts an [AppItem] to a set of [AppTag]s for filter matching.
+ * Includes both direct tags and virtual tags (Enabled, UserApp).
+ */
+fun AppItem.toTagSet(): Set<AppTag> = buildSet {
+    // Direct tags from the item
+    addAll(tags)
+
+    // Virtual tags (inverse properties)
+    if (isEnabled) add(AppTag.Enabled)
+    if (!isSystemApp) add(AppTag.UserApp)
 }
