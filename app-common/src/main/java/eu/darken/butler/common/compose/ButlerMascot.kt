@@ -35,7 +35,15 @@ private fun resolveHat(hat: ButlerMascotMode.Hat): Int? {
         Hat.NO_HAT -> null
         Hat.PARTY -> R.drawable.mascot_hat_party
         Hat.XMAS -> R.drawable.mascot_hat_xmas
+        Hat.HALLOWEEN -> R.drawable.mascot_hat_halloween
+        Hat.ST_PATRICKS -> R.drawable.mascot_hat_stpatricks
+        Hat.APRIL_FOOLS -> R.drawable.mascot_hat_aprilfools
+        Hat.OKTOBERFEST -> R.drawable.mascot_hat_oktoberfest
         Hat.AUTO -> when (Occasions.current()) {
+            Occasions.Period.HALLOWEEN -> R.drawable.mascot_hat_halloween
+            Occasions.Period.ST_PATRICKS -> R.drawable.mascot_hat_stpatricks
+            Occasions.Period.APRIL_FOOLS -> R.drawable.mascot_hat_aprilfools
+            Occasions.Period.OKTOBERFEST -> R.drawable.mascot_hat_oktoberfest
             Occasions.Period.XMAS -> R.drawable.mascot_hat_xmas
             Occasions.Period.NEW_YEAR -> R.drawable.mascot_hat_party
             Occasions.Period.NONE -> null
@@ -237,7 +245,11 @@ sealed interface ButlerMascotMode {
         AUTO,
         PARTY,
         XMAS,
-        NO_HAT
+        HALLOWEEN,
+        ST_PATRICKS,
+        APRIL_FOOLS,
+        OKTOBERFEST,
+        NO_HAT,
     }
 
     val hat: Hat
@@ -369,5 +381,30 @@ private fun ButlerMascotAnimatedPreview() {
         ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.EyesClose())
         ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.Snoring())
         ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.WakeUp())
+    }
+}
+
+@Preview2
+@Composable
+private fun ButlerMascotOccasionHatsPreview() {
+    PreviewWrapper {
+        Column {
+            ButlerMascot(
+                Modifier.size(96.dp),
+                variant = Static.Normal(hat = Hat.HALLOWEEN),
+            )
+            ButlerMascot(
+                Modifier.size(96.dp),
+                variant = Static.Normal(hat = Hat.ST_PATRICKS),
+            )
+            ButlerMascot(
+                Modifier.size(96.dp),
+                variant = Static.Normal(hat = Hat.APRIL_FOOLS),
+            )
+            ButlerMascot(
+                Modifier.size(96.dp),
+                variant = Static.Normal(hat = Hat.OKTOBERFEST),
+            )
+        }
     }
 }

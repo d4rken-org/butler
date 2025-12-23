@@ -27,6 +27,14 @@
     <string name="slogan_newyear_message_0">Same procedure as every year.</string>
     <string name="slogan_xmas_message_0">Checking files twice.</string>
     <string name="slogan_xmas_message_1">On the nice list.</string>
+    <string name="slogan_halloween_message_0">Boo-tler at your service.</string>
+    <string name="slogan_halloween_message_1">No tricks, just files.</string>
+    <string name="slogan_stpatricks_message_0">Feeling lucky?</string>
+    <string name="slogan_stpatricks_message_1">Finding your pot of gold.</string>
+    <string name="slogan_aprilfools_message_0">No fooling around.</string>
+    <string name="slogan_aprilfools_message_1">Seriously organized.</string>
+    <string name="slogan_oktoberfest_message_0">Prost to your files!</string>
+    <string name="slogan_oktoberfest_message_1">Files on tap.</string>
 
     <string name="general_share_action">Share</string>
     <string name="general_share_single_title">Share %s</string>
