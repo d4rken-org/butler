@@ -82,6 +82,7 @@ class SearcherWorkspace @AssistedInject constructor(
             startTargets = targets.ifEmpty { null },
             filenameQuery = currentState.currentSearchQuery?.filenameQuery,
             contentQuery = currentState.currentSearchQuery?.contentQuery,
+            filter = currentState.currentSearchQuery?.filter,
             startSearch = false,
         )
     }
@@ -156,26 +157,36 @@ class SearcherWorkspace @AssistedInject constructor(
     init {
         log(tag, INFO) { "Initialized" }
 
-        // Initialize search targets and query from arguments if provided
+        // Initialize search state from arguments
         scope.launch {
             val args = creationArguments as? SearcherArguments.Default
+
+            // Initialize targets from args
             if (args?.startTargets != null) {
                 log(tag, INFO) { "Using targets from arguments: ${args.startTargets}" }
                 searchEngine.updateTargets { args.startTargets!! }
             }
 
-            // Initialize search query from arguments (for restore persistence)
-            if (args?.filenameQuery?.isNotEmpty == true || args?.contentQuery?.isNotEmpty == true) {
-                log(tag, INFO) { "Restoring query from arguments: filename=${args.filenameQuery?.pattern}, content=${args.contentQuery?.pattern}" }
-                _searchState.update { state ->
-                    state.copy(
-                        currentSearchQuery = SearchQuery(
-                            filenameQuery = args.filenameQuery ?: FilenameQuery(),
-                            contentQuery = args.contentQuery ?: ContentQuery(),
-                            targets = args.startTargets ?: emptyList(),
-                        )
+            // Build query from args (no settings defaults - start fresh)
+            val filenameQuery = args?.filenameQuery ?: FilenameQuery()
+            val contentQuery = args?.contentQuery ?: ContentQuery()
+            val filter = args?.filter ?: SearchFilter()
+
+            log(
+                tag,
+                INFO
+            ) { "Initializing query state: filename=${filenameQuery.pattern}, content=${contentQuery.pattern}, filter=$filter" }
+
+            // Always initialize currentSearchQuery with complete data
+            _searchState.update { state ->
+                state.copy(
+                    currentSearchQuery = SearchQuery(
+                        filenameQuery = filenameQuery,
+                        contentQuery = contentQuery,
+                        targets = args?.startTargets ?: emptyList(),
+                        filter = filter,
                     )
-                }
+                )
             }
         }
 

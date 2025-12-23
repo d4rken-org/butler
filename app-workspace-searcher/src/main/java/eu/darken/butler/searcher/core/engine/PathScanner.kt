@@ -1,8 +1,11 @@
 package eu.darken.butler.searcher.core.engine
 
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -12,11 +15,13 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.MetadataRepo
+import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.FilterComparator
 import eu.darken.butler.searcher.core.FilterCondition
-import eu.darken.butler.searcher.core.FilenameQuery
+import eu.darken.butler.searcher.core.SearchFilter
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -26,11 +31,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import eu.darken.butler.workspace.core.Workspace
 
 class PathScanner @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -90,7 +90,7 @@ class PathScanner @AssistedInject constructor(
                             filterLookup(lookup, query.filter)
                         },
                         onError = { lookup, error ->
-                            log(tag, Logging.Priority.VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
+                            log(tag, VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
                             true // Continue walking
                         }
                     )
@@ -130,7 +130,7 @@ class PathScanner @AssistedInject constructor(
         }
     }.flowOn(dispatcherProvider.IO)
 
-    private fun filterLookup(lookup: APathLookup<*>, filter: SearchQuery.Filter): Boolean {
+    private fun filterLookup(lookup: APathLookup<*>, filter: SearchFilter): Boolean {
         // Evaluate all conditions - ALL must pass
         for (condition in filter.conditions) {
             if (!evaluateCondition(condition, lookup)) {
@@ -235,7 +235,7 @@ class PathScanner @AssistedInject constructor(
                     }
                     regex.containsMatchIn(name)
                 } catch (e: Exception) {
-                    log(tag, Logging.Priority.VERBOSE) { "Invalid regex: $query" }
+                    log(tag, VERBOSE) { "Invalid regex: $query" }
                     false
                 }
             }
