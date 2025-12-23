@@ -146,6 +146,13 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="This service is part of a bug reporting mechanism. It is explicitly launched by the user to create debug logs and troubleshoot issues within Butler itself. It shows an on-going foreground notification that allows the user to control the debug log functionality while the debug log is being created and the user is reproducing the issue." />
         </service>
+
+        <!-- Bound service in separate process for file operations on removable storage.
+             Process isolation protects main app from vold's SIGINT on storage disconnect. -->
+        <service
+            android:name="eu.darken.butler.common.files.local.service.LocalService"
+            android:exported="false"
+            android:process=":local" />
     </application>
 
 </manifest>

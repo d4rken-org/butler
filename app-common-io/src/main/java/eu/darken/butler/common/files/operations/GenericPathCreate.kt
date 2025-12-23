@@ -16,7 +16,7 @@ import eu.darken.butler.common.progress.Progress
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.isActive
 
@@ -55,7 +55,8 @@ internal class GenericPathCreate<P : APath<P>, PL : APathLookup<P>>(
     private val tag = logTag("FileOps", "Generic", "Create")
     private val issueResolver = PathOperationIssueResolver(onIssue)
 
-    fun execute(): Flow<CreateAction.State<P, PL>> = flow {
+    // Use channelFlow to support emissions after IPC callbacks (which use runBlocking on client side)
+    fun execute(): Flow<CreateAction.State<P, PL>> = channelFlow {
         log(tag, DEBUG) { "execute(): target=$target, type=$type" }
 
         var currentTarget = target
@@ -123,8 +124,8 @@ internal class GenericPathCreate<P : APath<P>, PL : APathLookup<P>>(
             }
         }
 
-        // Emit active state
-        emit(
+        // Send active state
+        send(
             CreateAction.State.Active(
                 target = currentTarget,
                 type = type,
@@ -159,10 +160,7 @@ internal class GenericPathCreate<P : APath<P>, PL : APathLookup<P>>(
                 val issue = PathActionIssue.UnknownError(
                     exception = e,
                     errorMessage = (e.message ?: e.toString()).toCaString(),
-                    destination = fileSystemOps.lookup(
-                        currentTarget,
-                        LookupOptions(fallbackToUnknown = true)
-                    ),
+                    destinationPath = currentTarget,
                     canRetry = true,
                     canSkip = false,
                 )
@@ -188,7 +186,7 @@ internal class GenericPathCreate<P : APath<P>, PL : APathLookup<P>>(
         val created = fileSystemOps.lookup(currentTarget, LookupOptions.BASE)
         log(tag, INFO) { "Created: $created" }
 
-        emit(CreateAction.State.Completed(created))
+        send(CreateAction.State.Completed(created))
     }
 }
 

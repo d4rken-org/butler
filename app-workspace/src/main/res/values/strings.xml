@@ -201,8 +201,8 @@
     <!-- Issue Resolution (conflict handling) -->
     <string name="workspace_issue_collision_existing_file_label">Existing file</string>
     <string name="workspace_issue_collision_existing_folder_label">Existing folder</string>
-    <string name="workspace_issue_collision_new_file">New file</string>
-    <string name="workspace_issue_collision_new_folder">New folder</string>
+    <string name="workspace_issue_collision_new_file">Incoming file</string>
+    <string name="workspace_issue_collision_new_folder">Incoming folder</string>
     <string name="workspace_issue_collision_overwrite">Replace</string>
     <string name="workspace_issue_collision_merge">Merge</string>
     <string name="workspace_issue_common_source_file">Source file</string>

@@ -20,9 +20,13 @@ import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.PathException
+import eu.darken.butler.common.files.errors.StorageDisconnectedException
 import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
+import eu.darken.butler.common.files.local.service.LocalServiceClient
+import eu.darken.butler.common.files.local.service.LocalServiceClient.*
+import eu.darken.butler.common.files.local.service.runModuleAction
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
 import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
 import eu.darken.butler.common.files.metadata.FileSystem
@@ -35,6 +39,7 @@ import eu.darken.butler.common.root.canUseRootNow
 import eu.darken.butler.common.root.service.runModuleAction
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.keepResourcesAlive
+import eu.darken.butler.common.storage.StorageManager2
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -58,16 +63,21 @@ class LocalGateway @Inject constructor(
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
     private val accessChecker: LocalPathAccessChecker,
+    private val localServiceClient: LocalServiceClient,
+    private val storageManager: StorageManager2,
 ) : APathGateway<LocalPath, LocalPathLookup> {
 
     // Represents the resource that keeps the gateway resources alive
     // Internal resources should add themselfes as child to this
     override val sharedResource = SharedResource.createKeepAlive(TAG, appScope + dispatcherProvider.IO)
 
-    private suspend fun <T> rootOps(action: suspend (FileOpsClient) -> T): T {
-        if (!rootManager.canUseRootNow()) throw RootUnavailableException()
-        return keepResourcesAlive(rootManager.serviceClient) {
-            rootManager.serviceClient.runModuleAction(FileOpsClient::class.java) { action(it) }
+    private suspend fun <T> localOps(action: suspend (FileOpsClient) -> T): T {
+        return try {
+            keepResourcesAlive(localServiceClient) {
+                localServiceClient.runModuleAction(FileOpsClient::class.java) { action(it) }
+            }
+        } catch (e: ServiceProcessDiedException) {
+            throw StorageDisconnectedException(cause = e)
         }
     }
 
@@ -78,15 +88,27 @@ class LocalGateway @Inject constructor(
         }
     }
 
+    private suspend fun <T> rootOps(action: suspend (FileOpsClient) -> T): T {
+        if (!rootManager.canUseRootNow()) throw RootUnavailableException()
+        return keepResourcesAlive(rootManager.serviceClient) {
+            rootManager.serviceClient.runModuleAction(FileOpsClient::class.java) { action(it) }
+        }
+    }
+
+    private fun isOnRemovableStorage(path: LocalPath): Boolean {
+        val volume = storageManager.storageVolumes.firstOrNull { volume ->
+            volume.directory?.let { path.path.startsWith(it.path) } == true
+        }
+        return volume?.isRemovable == true
+    }
+
     suspend fun hasRoot(): Boolean = rootManager.canUseRootNow()
 
     suspend fun hasAdb(): Boolean = adbManager.canUseAdbNow()
 
     private suspend fun <T> runIO(
         block: suspend CoroutineScope.() -> T
-    ): T = withContext(dispatcherProvider.IO) {
-        block()
-    }
+    ): T = withContext(dispatcherProvider.IO) { block() }
 
     /**
      * Executes a file operation with automatic mode selection and escalation.
@@ -108,21 +130,26 @@ class LocalGateway @Inject constructor(
         path: LocalPath,
         forWriting: Boolean,
         normalOp: suspend () -> T,
+        localOp: suspend (FileOpsClient) -> T,
         rootOp: suspend (FileOpsClient) -> T,
         adbOp: suspend (FileOpsClient) -> T
     ): T = runIO {
         when (mode) {
-            Mode.NORMAL -> {
-                log(TAG, VERBOSE) { "$operation(NORMAL) -> $path" }
+            Mode.DIRECT -> {
+                log(TAG, VERBOSE) { "$operation(DIRECT) -> $path" }
                 normalOp()
             }
-            Mode.ROOT -> {
-                log(TAG, VERBOSE) { "$operation(ROOT) -> $path" }
-                rootOps { rootOp(it) }
+            Mode.LOCAL -> {
+                log(TAG, VERBOSE) { "$operation(LOCAL) -> $path" }
+                localOps { localOp(it) }
             }
             Mode.ADB -> {
                 log(TAG, VERBOSE) { "$operation(ADB) -> $path" }
                 adbOps { adbOp(it) }
+            }
+            Mode.ROOT -> {
+                log(TAG, VERBOSE) { "$operation(ROOT) -> $path" }
+                rootOps { rootOp(it) }
             }
             Mode.AUTO -> {
                 suspend fun escalation(): T = when {
@@ -138,7 +165,7 @@ class LocalGateway @Inject constructor(
                 }
                 if (accessChecker.shouldTryNormalAccess(path, forWriting)) {
                     try {
-                        normalOp().also { log(TAG, VERBOSE) { "$operation(AUTO:NORMAL) -> $path" } }
+                        normalOp().also { log(TAG, VERBOSE) { "$operation(AUTO:DIRECT) -> $path" } }
                     } catch (e: IOException) {
                         log(TAG, VERBOSE) { "$operation(AUTO) failed: ${e.message}" }
                         try {
@@ -154,35 +181,42 @@ class LocalGateway @Inject constructor(
         }
     }
 
-
     override suspend fun createDir(path: LocalPath, createParents: Boolean): Unit =
         createDir(path, createParents, Mode.AUTO)
 
-    suspend fun createDir(path: LocalPath, createParents: Boolean = false, mode: Mode = Mode.AUTO): Unit =
-        executeWithModeSelection(
-            mode = mode,
-            operation = "createDir",
-            path = path,
-            forWriting = true,
-            normalOp = { fileSystemOps.createDir(path, createParents) },
-            rootOp = { it.createDir(path, createParents) },
-            adbOp = { it.createDir(path, createParents) }
-        )
+    suspend fun createDir(
+        path: LocalPath,
+        createParents: Boolean = false,
+        mode: Mode = Mode.AUTO
+    ): Unit = executeWithModeSelection(
+        mode = mode,
+        operation = "createDir",
+        path = path,
+        forWriting = true,
+        normalOp = { fileSystemOps.createDir(path, createParents) },
+        localOp = { it.createDir(path, createParents) },
+        rootOp = { it.createDir(path, createParents) },
+        adbOp = { it.createDir(path, createParents) },
+    )
 
 
     override suspend fun createFile(path: LocalPath, createParents: Boolean): Unit =
         createFile(path, createParents, Mode.AUTO)
 
-    suspend fun createFile(path: LocalPath, createParents: Boolean = false, mode: Mode = Mode.AUTO): Unit =
-        executeWithModeSelection(
-            mode = mode,
-            operation = "createFile",
-            path = path,
-            forWriting = true,
-            normalOp = { fileSystemOps.createFile(path, createParents) },
-            rootOp = { it.createFile(path, createParents) },
-            adbOp = { it.createFile(path, createParents) }
-        )
+    suspend fun createFile(
+        path: LocalPath,
+        createParents: Boolean = false,
+        mode: Mode = Mode.AUTO
+    ): Unit = executeWithModeSelection(
+        mode = mode,
+        operation = "createFile",
+        path = path,
+        forWriting = true,
+        normalOp = { fileSystemOps.createFile(path, createParents) },
+        localOp = { it.createFile(path, createParents) },
+        rootOp = { it.createFile(path, createParents) },
+        adbOp = { it.createFile(path, createParents) },
+    )
 
     override suspend fun createSymlink(linkPath: LocalPath, targetPath: LocalPath): Boolean =
         createSymlink(linkPath, targetPath, Mode.AUTO)
@@ -197,8 +231,9 @@ class LocalGateway @Inject constructor(
         path = linkPath,
         forWriting = true,
         normalOp = { fileSystemOps.createSymlink(linkPath, targetPath) },
+        localOp = { it.createSymlink(linkPath, targetPath) },
+        adbOp = { it.createSymlink(linkPath, targetPath) },
         rootOp = { it.createSymlink(linkPath, targetPath) },
-        adbOp = { it.createSymlink(linkPath, targetPath) }
     )
 
     override suspend fun readSymbolicLink(linkPath: LocalPath): LocalPath =
@@ -213,8 +248,9 @@ class LocalGateway @Inject constructor(
         path = linkPath,
         forWriting = false,
         normalOp = { fileSystemOps.readSymbolicLink(linkPath) },
+        localOp = { it.readSymbolicLink(linkPath) },
+        adbOp = { it.readSymbolicLink(linkPath) },
         rootOp = { it.readSymbolicLink(linkPath) },
-        adbOp = { it.readSymbolicLink(linkPath) }
     )
 
     override suspend fun move(source: LocalPath, destination: LocalPath): Boolean =
@@ -230,51 +266,64 @@ class LocalGateway @Inject constructor(
         path = source,
         forWriting = true,
         normalOp = { fileSystemOps.move(source, destination) },
+        localOp = { it.move(source, destination) },
+        adbOp = { it.move(source, destination) },
         rootOp = { it.move(source, destination) },
-        adbOp = { it.move(source, destination) }
     )
 
     override suspend fun lookup(path: LocalPath, options: LookupOptions): LocalPathLookup =
         lookup(path, options, Mode.AUTO)
 
-    suspend fun lookup(path: LocalPath, options: LookupOptions, mode: Mode = Mode.AUTO): LocalPathLookup =
-        executeWithModeSelection(
-            mode = mode,
-            operation = "lookup",
-            path = path,
-            forWriting = false,
-            normalOp = { fileSystemOps.lookup(path, options) },
-            rootOp = { it.lookup(path, options) },
-            adbOp = { it.lookup(path, options) }
-        )
+    suspend fun lookup(
+        path: LocalPath,
+        options: LookupOptions,
+        mode: Mode = Mode.AUTO
+    ): LocalPathLookup = executeWithModeSelection(
+        mode = mode,
+        operation = "lookup",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.lookup(path, options) },
+        localOp = { it.lookup(path, options) },
+        adbOp = { it.lookup(path, options) },
+        rootOp = { it.lookup(path, options) },
+    )
 
 
     override suspend fun listFiles(path: LocalPath): List<LocalPath> = listFiles(path, Mode.AUTO)
 
-    suspend fun listFiles(path: LocalPath, mode: Mode = Mode.AUTO): List<LocalPath> = executeWithModeSelection(
+    suspend fun listFiles(
+        path: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): List<LocalPath> = executeWithModeSelection(
         mode = mode,
         operation = "listFiles",
         path = path,
         forWriting = false,
         normalOp = { fileSystemOps.listFiles(path) },
+        localOp = { it.listFiles(path) },
+        adbOp = { it.listFiles(path) },
         rootOp = { it.listFiles(path) },
-        adbOp = { it.listFiles(path) }
     )
 
 
     override suspend fun lookupFiles(path: LocalPath, options: LookupOptions): List<LocalPathLookup> =
         lookupFiles(path, options, Mode.AUTO)
 
-    suspend fun lookupFiles(path: LocalPath, options: LookupOptions, mode: Mode = Mode.AUTO): List<LocalPathLookup> =
-        executeWithModeSelection(
-            mode = mode,
-            operation = "lookupFiles",
-            path = path,
-            forWriting = false,
-            normalOp = { fileSystemOps.lookupFiles(path, options) },
-            rootOp = { rootOps { it.lookupFiles(path, options) } },
-            adbOp = { adbOps { it.lookupFiles(path, options) } }
-        )
+    suspend fun lookupFiles(
+        path: LocalPath,
+        options: LookupOptions,
+        mode: Mode = Mode.AUTO
+    ): List<LocalPathLookup> = executeWithModeSelection(
+        mode = mode,
+        operation = "lookupFiles",
+        path = path,
+        forWriting = false,
+        normalOp = { fileSystemOps.lookupFiles(path, options) },
+        localOp = { it.lookupFiles(path, options) },
+        adbOp = { it.lookupFiles(path, options) },
+        rootOp = { it.lookupFiles(path, options) },
+    )
 
 
     override suspend fun walk(
@@ -288,60 +337,78 @@ class LocalGateway @Inject constructor(
         lookupOptions: LookupOptions,
         walkOptions: APathGateway.WalkOptions<LocalPath, LocalPathLookup>,
         mode: Mode = Mode.AUTO,
-    ): Flow<LocalPathLookup> =
-        executeWithModeSelection(
-            mode = mode,
-            operation = "walk",
-            path = path,
-            forWriting = false,
-            normalOp = {
-                DirectLocalWalker(
-                    fileSystemOps = fileSystemOps,
-                    lookupOptions = lookupOptions,
+    ): Flow<LocalPathLookup> = executeWithModeSelection(
+        mode = mode,
+        operation = "walk",
+        path = path,
+        forWriting = false,
+        normalOp = {
+            DirectLocalWalker(
+                fileSystemOps = fileSystemOps,
+                lookupOptions = lookupOptions,
+                start = path,
+                onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
+                onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
+            )
+        },
+        localOp = {
+            if (walkOptions.isDirect) {
+                log(TAG, VERBOSE) { "walk(${mode}->LOCAL, direct): $path" }
+                // We need to keep the resource alive until the caller is done with the Flow
+                val resource = localServiceClient.get()
+                it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
+            } else {
+                log(TAG, VERBOSE) { "walk(${mode}->LOCAL, indirect): $path" }
+                // Can't pass functions via IPC
+                IndirectLocalWalker(
+                    gateway = this@LocalGateway,
+                    mode = Mode.LOCAL,
                     start = path,
+                    lookupOptions = lookupOptions,
                     onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
                     onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
                 )
-            },
-            rootOp = {
-                if (walkOptions.isDirect) {
-                    log(TAG, VERBOSE) { "walk(${mode}->ROOT, direct): ${path}" }
-                    // We need to keep the resource alive until the caller is done with the Flow
-                    val resource = rootManager.serviceClient.get()
-                    rootOps { it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() } }
-                } else {
-                    log(TAG, VERBOSE) { "walk(${mode}->ROOT, indirect): ${path}" }
-                    // Can't pass functions via IPC
-                    IndirectLocalWalker(
-                        gateway = this@LocalGateway,
-                        mode = Mode.ROOT,
-                        start = path,
-                        lookupOptions = lookupOptions,
-                        onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                        onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                    )
-                }
-            },
-            adbOp = {
-                if (walkOptions.isDirect) {
-                    log(TAG, VERBOSE) { "walk(${mode}->ADB, direct): ${path}" }
-                    // We need to keep the resource alive until the caller is done with the Flow
-                    val resource = adbManager.serviceClient.get()
-                    adbOps { it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() } }
-                } else {
-                    log(TAG, VERBOSE) { "walk(${mode}->ADB, indirect): ${path}" }
-                    // Can't pass functions via IPC
-                    IndirectLocalWalker(
-                        gateway = this@LocalGateway,
-                        mode = Mode.ADB,
-                        start = path,
-                        lookupOptions = lookupOptions,
-                        onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                        onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                    )
-                }
             }
-        )
+        },
+        adbOp = {
+            if (walkOptions.isDirect) {
+                log(TAG, VERBOSE) { "walk(${mode}->ADB, direct): $path" }
+                // We need to keep the resource alive until the caller is done with the Flow
+                val resource = adbManager.serviceClient.get()
+                 it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
+            } else {
+                log(TAG, VERBOSE) { "walk(${mode}->ADB, indirect): $path" }
+                // Can't pass functions via IPC
+                IndirectLocalWalker(
+                    gateway = this@LocalGateway,
+                    mode = Mode.ADB,
+                    start = path,
+                    lookupOptions = lookupOptions,
+                    onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
+                    onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
+                )
+            }
+        },
+        rootOp = {
+            if (walkOptions.isDirect) {
+                log(TAG, VERBOSE) { "walk(${mode}->ROOT, direct): $path" }
+                // We need to keep the resource alive until the caller is done with the Flow
+                val resource = rootManager.serviceClient.get()
+                 it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
+            } else {
+                log(TAG, VERBOSE) { "walk(${mode}->ROOT, indirect): $path" }
+                // Can't pass functions via IPC
+                IndirectLocalWalker(
+                    gateway = this@LocalGateway,
+                    mode = Mode.ROOT,
+                    start = path,
+                    lookupOptions = lookupOptions,
+                    onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
+                    onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
+                )
+            }
+        },
+    )
 
     override suspend fun du(
         path: LocalPath,
@@ -358,8 +425,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = false,
         normalOp = { fileSystemOps.du(path) },
+        localOp = { it.du(path) },
+        adbOp = { it.du(path) },
         rootOp = { it.du(path) },
-        adbOp = { it.du(path) }
     )
 
 
@@ -374,8 +442,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = false,
         normalOp = { fileSystemOps.exists(path) },
-        rootOp = { rootOps { it.exists(path) } },
-        adbOp = { adbOps { it.exists(path) } }
+        localOp = { it.exists(path) },
+        adbOp = { it.exists(path) },
+        rootOp = { it.exists(path) },
     )
 
     override suspend fun canWrite(path: LocalPath): Boolean = canWrite(path, Mode.AUTO)
@@ -389,8 +458,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = false,
         normalOp = { fileSystemOps.canWrite(path) },
-        rootOp = { rootOps { it.canWrite(path) } },
-        adbOp = { adbOps { it.canWrite(path) } }
+        localOp = { it.canWrite(path) },
+        adbOp = { it.canWrite(path) },
+        rootOp = { it.canWrite(path) },
     )
 
     override suspend fun canRead(path: LocalPath): Boolean = canRead(path, Mode.AUTO)
@@ -404,8 +474,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = false,
         normalOp = { fileSystemOps.canRead(path) },
-        rootOp = { rootOps { it.canRead(path) } },
-        adbOp = { adbOps { it.canRead(path) } }
+        localOp = { it.canRead(path) },
+        adbOp = { it.canRead(path) },
+        rootOp = { it.canRead(path) },
     )
 
     override suspend fun file(path: LocalPath, readWrite: Boolean): FileHandle = file(path, readWrite, Mode.AUTO)
@@ -420,24 +491,30 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = readWrite,
         normalOp = { fileSystemOps.file(path, readWrite) },
-        rootOp = {
-            val resource = rootManager.serviceClient.get()
-            rootOps {
-                it.file(path, readWrite).callbacks {
-                    resource.close()
-                    log(TAG, VERBOSE) { "file(ROOT, RW=$readWrite): Closing resource for $path" }
-                }
+        localOp = {
+            val resource = localServiceClient.get()
+
+            it.file(path, readWrite).callbacks {
+                resource.close()
+                log(TAG, VERBOSE) { "file(LOCAL, RW=$readWrite): Closing resource for $path" }
             }
         },
         adbOp = {
             val resource = adbManager.serviceClient.get()
-            adbOps {
-                it.file(path, readWrite).callbacks {
-                    resource.close()
-                    log(TAG, VERBOSE) { "file(ADB, RW=$readWrite): Closing resource for $path" }
-                }
+
+            it.file(path, readWrite).callbacks {
+                resource.close()
+                log(TAG, VERBOSE) { "file(ADB, RW=$readWrite): Closing resource for $path" }
             }
-        }
+        },
+        rootOp = {
+            val resource = rootManager.serviceClient.get()
+
+            it.file(path, readWrite).callbacks {
+                resource.close()
+                log(TAG, VERBOSE) { "file(ROOT, RW=$readWrite): Closing resource for $path" }
+            }
+        },
     )
 
     override suspend fun openInputStream(path: LocalPath): InputStream = openInputStream(path, Mode.AUTO)
@@ -451,8 +528,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = false,
         normalOp = { fileSystemOps.openInputStream(path) },
-        rootOp = { rootOps { it.openInputStream(path) } },
-        adbOp = { adbOps { it.openInputStream(path) } },
+        localOp = { it.openInputStream(path) },
+        adbOp = { it.openInputStream(path) },
+        rootOp = { it.openInputStream(path) },
     )
 
     override suspend fun openOutputStream(path: LocalPath, append: Boolean): OutputStream =
@@ -468,8 +546,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = true,
         normalOp = { fileSystemOps.openOutputStream(path, append) },
+        localOp = { it.openOutputStream(path, append) },
+        adbOp = { it.openOutputStream(path, append) },
         rootOp = { it.openOutputStream(path, append) },
-        adbOp = { it.openOutputStream(path, append) }
     )
 
     override suspend fun setModifiedAt(path: LocalPath, modifiedAt: Instant): Boolean = setModifiedAt(
@@ -488,8 +567,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = true,
         normalOp = { fileSystemOps.setModifiedAt(path, modifiedAt) },
-        rootOp = { rootOps { it.setModifiedAt(path, modifiedAt) } },
-        adbOp = { adbOps { it.setModifiedAt(path, modifiedAt) } }
+        localOp = { it.setModifiedAt(path, modifiedAt) },
+        adbOp = { it.setModifiedAt(path, modifiedAt) },
+        rootOp = { it.setModifiedAt(path, modifiedAt) },
     )
 
     override suspend fun setPermissions(path: LocalPath, permissions: Permissions): Boolean =
@@ -505,8 +585,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = true,
         normalOp = { fileSystemOps.setPermissions(path, permissions) },
-        rootOp = { rootOps { it.setPermissions(path, permissions) } },
-        adbOp = { adbOps { it.setPermissions(path, permissions) } }
+        localOp = { it.setPermissions(path, permissions) },
+        adbOp = { it.setPermissions(path, permissions) },
+        rootOp = { it.setPermissions(path, permissions) },
     )
 
     override suspend fun setOwnership(
@@ -524,8 +605,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = true,
         normalOp = { fileSystemOps.setOwnership(path, ownership) },
-        rootOp = { rootOps { it.setOwnership(path, ownership) } },
-        adbOp = { adbOps { it.setOwnership(path, ownership) } }
+        localOp = { it.setOwnership(path, ownership) },
+        adbOp = { it.setOwnership(path, ownership) },
+        rootOp = { it.setOwnership(path, ownership) },
     )
 
     override suspend fun getFileSystem(path: LocalPath): FileSystem = getFileSystem(path, Mode.AUTO)
@@ -539,8 +621,9 @@ class LocalGateway @Inject constructor(
         path = path,
         forWriting = false,
         normalOp = { fileSystemOps.getFileSystem(path) },
-        rootOp = { rootOps { it.getFileSystem(path) } },
-        adbOp = { adbOps { it.getFileSystem(path) } },
+        localOp = { it.getFileSystem(path) },
+        adbOp = { it.getFileSystem(path) },
+        rootOp = { it.getFileSystem(path) },
     )
 
     /**
@@ -573,8 +656,9 @@ class LocalGateway @Inject constructor(
             fileSystemOps.delete(path, recursive)
             true
         },
-        rootOp = { rootOps { it.delete(path, recursive) } },
-        adbOp = { adbOps { it.delete(path, recursive) } }
+        localOp = { it.delete(path, recursive) },
+        adbOp = { it.delete(path, recursive) },
+        rootOp = { it.delete(path, recursive) },
     )
 
     /**
@@ -607,8 +691,8 @@ class LocalGateway @Inject constructor(
     ): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
         when (mode) {
-            Mode.NORMAL -> {
-                log(TAG, VERBOSE) { "delete(NORMAL): ${targets.size} targets" }
+            Mode.DIRECT -> {
+                log(TAG, VERBOSE) { "delete(DIRECT): ${targets.size} targets" }
                 targets.delete(
                     fileSystemOps,
                     recursive = options.recursive,
@@ -652,7 +736,32 @@ class LocalGateway @Inject constructor(
                 }
             }
 
+            Mode.LOCAL -> {
+                log(TAG, VERBOSE) { "delete(LOCAL): ${targets.size} targets" }
+                localOps { client ->
+                    client.delete(
+                        targets = targets,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is DeleteAction.State.Completed) {
+                            log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+                        }
+                    }
+                }
+            }
+
             Mode.AUTO -> {
+                // Use isolated process for removable storage to survive sudden disconnection
+                val useIsolatedProcess = targets.any { isOnRemovableStorage(it) }
+                if (useIsolatedProcess && !hasRoot() && !hasAdb()) {
+                    log(TAG, VERBOSE) { "delete(AUTO->LOCAL_SERVICE): Removable storage detected" }
+                    localOps { client ->
+                        client.delete(targets, options).collect { emit(it) }
+                    }
+                    return@flow
+                }
+
                 val shouldTry = accessChecker.shouldTryNormalAccess(targets.first(), forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
@@ -742,8 +851,8 @@ class LocalGateway @Inject constructor(
         log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
 
         when (mode) {
-            Mode.NORMAL -> {
-                log(TAG, VERBOSE) { "copy(NORMAL): To $destination" }
+            Mode.DIRECT -> {
+                log(TAG, VERBOSE) { "copy(DIRECT): To $destination" }
                 sources.copy(
                     fileSystemOps = fileSystemOps,
                     destination = destination,
@@ -791,7 +900,35 @@ class LocalGateway @Inject constructor(
                 }
             }
 
+            Mode.LOCAL -> {
+                log(TAG, VERBOSE) { "copy(LOCAL): To $destination" }
+                localOps { client ->
+                    client.copy(
+                        sources = sources,
+                        destination = destination,
+                        onIssue = onIssue,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CopyAction.State.Completed) {
+                            log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+                        }
+                    }
+                }
+            }
+
             Mode.AUTO -> {
+                // Use isolated process for removable storage to survive sudden disconnection
+                val useIsolatedProcess = isOnRemovableStorage(destination) ||
+                    sources.any { isOnRemovableStorage(it) }
+                if (useIsolatedProcess && !hasRoot() && !hasAdb()) {
+                    log(TAG, VERBOSE) { "copy(AUTO->LOCAL_SERVICE): Removable storage detected" }
+                    localOps { client ->
+                        client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                    }
+                    return@flow
+                }
+
                 val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
@@ -876,8 +1013,8 @@ class LocalGateway @Inject constructor(
     ): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
         when (mode) {
-            Mode.NORMAL -> {
-                log(TAG, VERBOSE) { "move(NORMAL): To $destination" }
+            Mode.DIRECT -> {
+                log(TAG, VERBOSE) { "move(DIRECT): To $destination" }
                 sources.move(
                     fileSystemOps,
                     destination,
@@ -925,7 +1062,35 @@ class LocalGateway @Inject constructor(
                 }
             }
 
+            Mode.LOCAL -> {
+                log(TAG, VERBOSE) { "move(LOCAL): To $destination" }
+                localOps { client ->
+                    client.move(
+                        sources = sources,
+                        destination = destination,
+                        onIssue = onIssue,
+                        options = options
+                    ).collect { state ->
+                        emit(state)
+                        if (state is MoveAction.State.Completed<*, *, *, *>) {
+                            log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+                        }
+                    }
+                }
+            }
+
             Mode.AUTO -> {
+                // Use isolated process for removable storage to survive sudden disconnection
+                val useIsolatedProcess = isOnRemovableStorage(destination) ||
+                    sources.any { isOnRemovableStorage(it) }
+                if (useIsolatedProcess && !hasRoot() && !hasAdb()) {
+                    log(TAG, VERBOSE) { "move(AUTO->LOCAL_SERVICE): Removable storage detected" }
+                    localOps { client ->
+                        client.move(sources, destination, onIssue, options).collect { emit(it) }
+                    }
+                    return@flow
+                }
+
                 val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
                 when {
                     shouldTry || (!hasAdb() && !hasRoot()) -> {
@@ -1007,8 +1172,8 @@ class LocalGateway @Inject constructor(
     ): Flow<CreateAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "create(): $target (type=$type)" }
         when (mode) {
-            Mode.NORMAL -> {
-                log(TAG, VERBOSE) { "create(NORMAL): $target" }
+            Mode.DIRECT -> {
+                log(TAG, VERBOSE) { "create(DIRECT): $target" }
                 target.createGeneric(
                     fileSystemOps = fileSystemOps,
                     type = type,
@@ -1040,6 +1205,22 @@ class LocalGateway @Inject constructor(
             Mode.ADB -> {
                 log(TAG, VERBOSE) { "create(ADB): $target (type=$type)" }
                 adbOps { client ->
+                    target.createGeneric(
+                        fileSystemOps = client,
+                        type = type,
+                        onIssue = options.onIssue,
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CreateAction.State.Completed<*, *>) {
+                            log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                        }
+                    }
+                }
+            }
+
+            Mode.LOCAL -> {
+                log(TAG, VERBOSE) { "create(LOCAL): $target (type=$type)" }
+                localOps { client ->
                     target.createGeneric(
                         fileSystemOps = client,
                         type = type,
@@ -1201,7 +1382,7 @@ class LocalGateway @Inject constructor(
                 throw when (issue) {
                     is PathActionIssue.UnknownError -> issue.exception
                     is PathActionIssue.InsufficientPermission ->
-                        issue.exception ?: SecurityException("Permission denied: ${issue.destination.lookedUp}")
+                        issue.exception ?: SecurityException("Permission denied: ${issue.destinationPath}")
                     else -> IllegalStateException("Unexpected permission issue type")
                 }
             }
@@ -1215,7 +1396,7 @@ class LocalGateway @Inject constructor(
     }
 
     enum class Mode {
-        AUTO, NORMAL, ROOT, ADB
+        AUTO, DIRECT, ROOT, ADB, LOCAL
     }
 
     companion object {

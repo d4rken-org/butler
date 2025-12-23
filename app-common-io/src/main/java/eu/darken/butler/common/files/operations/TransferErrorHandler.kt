@@ -120,10 +120,11 @@ class TransferErrorHandler {
      * @param P Path type
      * @param PL Path lookup type
      * @param error The exception that occurred
-     * @param lookup Lookup information for the path that failed
+     * @param sourceLookup Source path lookup (what we're copying/moving from, or deleting)
+     * @param destinationPath Destination path (for copy/move operations, null for delete)
      * @param issueResolver Resolver for user decisions and "apply to all" flags
      * @param progressTracker Progress tracker to update on skip/complete
-     * @param onSkip Callback when error is skipped (receives the lookup)
+     * @param onSkip Callback when error is skipped (receives the source lookup)
      * @param onRetry Callback when error should be retried (null if retry not supported)
      * @param canRetry Whether retry is supported for this operation
      * @param onIssue User callback for resolving issues (null if no handler)
@@ -133,7 +134,8 @@ class TransferErrorHandler {
      */
     suspend fun <P : APath<P>, PL : APathLookup<P>> handleError(
         error: Exception,
-        lookup: PL,
+        sourceLookup: PL,
+        destinationPath: APath<*>? = null,
         issueResolver: PathOperationIssueResolver,
         progressTracker: PathOperationProgressTracker,
         onSkip: (PL) -> Unit,
@@ -142,10 +144,11 @@ class TransferErrorHandler {
         onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
         tag: String
     ) {
-        log(tag, ERROR) { "Operation failed: ${lookup.lookedUp} - $error" }
+        val errorPath = destinationPath ?: sourceLookup.lookedUp
+        log(tag, ERROR) { "Operation failed: $errorPath - $error" }
 
         // Fast path: Check "apply to all" flags
-        if (checkApplyToAllErrorFlags(error, lookup, issueResolver, onSkip, progressTracker::completeItem, tag)) {
+        if (checkApplyToAllErrorFlags(error, sourceLookup, issueResolver, onSkip, progressTracker::completeItem, tag)) {
             return
         }
 
@@ -156,18 +159,20 @@ class TransferErrorHandler {
         val isPermissionError = error.isPermissionError()
         val issue = if (isPermissionError) {
             PathActionIssue.InsufficientPermission(
-                destination = lookup,
+                source = sourceLookup,
+                destinationPath = errorPath,
                 exception = eu.darken.butler.common.files.errors.WriteException(
-                    path = lookup.lookedUp,
+                    path = errorPath,
                     cause = error
                 ),
                 canSkip = true
             )
         } else {
             PathActionIssue.UnknownError(
-                destination = lookup,
+                source = sourceLookup,
+                destinationPath = errorPath,
                 exception = eu.darken.butler.common.files.errors.WriteException(
-                    path = lookup.lookedUp,
+                    path = errorPath,
                     cause = error
                 ),
                 canRetry = canRetry,
@@ -182,18 +187,18 @@ class TransferErrorHandler {
         when (resolution) {
             is PathActionIssue.InsufficientPermission.Resolution.Skip,
             is PathActionIssue.UnknownError.Resolution.Skip -> {
-                log(tag, INFO) { "User chose to skip: ${lookup.lookedUp}" }
-                onSkip(lookup)
+                log(tag, INFO) { "User chose to skip: ${sourceLookup.lookedUp}" }
+                onSkip(sourceLookup)
                 progressTracker.completeItem()
             }
 
             is PathActionIssue.UnknownError.Resolution.Retry -> {
                 if (onRetry != null) {
-                    log(tag, INFO) { "Retrying operation: ${lookup.lookedUp}" }
+                    log(tag, INFO) { "Retrying operation: ${sourceLookup.lookedUp}" }
                     onRetry()
                 } else {
-                    log(tag, WARN) { "Retry requested but not supported, skipping: ${lookup.lookedUp}" }
-                    onSkip(lookup)
+                    log(tag, WARN) { "Retry requested but not supported, skipping: ${sourceLookup.lookedUp}" }
+                    onSkip(sourceLookup)
                     progressTracker.completeItem()
                 }
             }
@@ -255,7 +260,7 @@ class TransferErrorHandler {
         // because InsufficientPermission doesn't support Retry, but scan errors
         // can potentially be retried if permissions are fixed externally
         val issue = PathActionIssue.UnknownError(
-            destination = lookup,
+            destinationPath = lookup.lookedUp,
             exception = error,
             canRetry = true,
             canSkip = true

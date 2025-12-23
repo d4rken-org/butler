@@ -1,7 +1,9 @@
 package eu.darken.butler.common.files.local.ipc
 
+import android.content.Context
 import android.os.DeadObjectException
 import android.os.RemoteException
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
@@ -28,9 +30,7 @@ import eu.darken.butler.common.ipc.RemoteFileHandle
 import eu.darken.butler.common.ipc.RemoteInputStream
 import eu.darken.butler.common.ipc.remoteFileHandle
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
@@ -38,9 +38,10 @@ import javax.inject.Inject
 import kotlin.time.Instant
 
 /**
- * ROOT-side
+ * Resides in extra process.
  */
 class FileOpsHost @Inject constructor(
+    @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val fileSystemOps: LocalFileSystemOps,
@@ -228,10 +229,13 @@ class FileOpsHost @Inject constructor(
         ) { "deleteStream(): ${targets.size} targets (recursive=$recursive, ignoreMissing=$ignoreMissing)" }
 
         // Create flow of DeleteOperationEvent by wrapping the delete operation
-        val eventFlow = flow<DeleteOperationEvent> {
+        // Use channelFlow instead of flow to support emissions from IPC callback coroutine
+        // IMPORTANT: Do NOT use .catch{} or .onCompletion{} operators - they wrap channelFlow
+        // in a SafeFlow which has invariant checks that fail when emitting from IPC callbacks
+        val eventFlow = channelFlow {
             // Convert callback to issue handler (explicit suspend function)
             suspend fun handleIssue(issue: PathActionIssue): PathActionIssue.Resolution {
-                val ipcIssue = issue.toFileOperationIssue()
+                val ipcIssue = issue.toFileOperationIssue(context)
                 try {
                     val ipcResolution = callback!!.onIssue(ipcIssue)
                     return ipcResolution.toPathActionIssueResolution(issue)
@@ -247,35 +251,30 @@ class FileOpsHost @Inject constructor(
             val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? =
                 if (callback != null) ::handleIssue else null
 
-            // Execute delete and collect flow
-            targets.delete(
-                fileSystemOps = fileSystemOps,
-                recursive = recursive,
-                ignoreMissing = ignoreMissing,
-                onIssue = onIssue,
-            ).collect { state ->
-                // Convert and emit each state as event
-                val event = state.toDeleteOperationEvent()
-                emit(event)
-            }
-        }
-            .catch { e ->
+            try {
+                // Execute delete and collect flow
+                targets.delete(
+                    fileSystemOps = fileSystemOps,
+                    recursive = recursive,
+                    ignoreMissing = ignoreMissing,
+                    onIssue = onIssue,
+                ).collect { state ->
+                    // Convert and send each state as event
+                    val event = state.toDeleteOperationEvent()
+                    send(event)
+                }
+                log(TAG, VERBOSE) { "deleteStream() completed successfully" }
+            } catch (e: Exception) {
                 log(TAG, ERROR) { "deleteStream() operation failed: ${e.asLog()}" }
-                // Emit error event instead of throwing
-                emit(
+                // Send error event instead of throwing
+                send(
                     DeleteOperationEvent.Error(
                         error = e.message ?: "Unknown error",
                         cancelled = false
                     )
                 )
             }
-            .onCompletion { error ->
-                if (error != null) {
-                    log(TAG, ERROR) { "deleteStream() stream completion with error: ${error.asLog()}" }
-                } else {
-                    log(TAG, VERBOSE) { "deleteStream() completed successfully" }
-                }
-            }
+        }
 
         // Convert flow to RemoteInputStream using generic streaming
         eventFlow.toRemoteInputStream(appScope + dispatcherProvider.IO)
@@ -295,10 +294,13 @@ class FileOpsHost @Inject constructor(
         log(TAG, VERBOSE) { "copyStream(): ${sources.size} sources → $destination" }
 
         // Create flow of CopyOperationEvent by wrapping the copy operation
-        val eventFlow = flow<CopyOperationEvent> {
+        // Use channelFlow instead of flow to support emissions from IPC callback coroutine
+        // IMPORTANT: Do NOT use .catch{} or .onCompletion{} operators - they wrap channelFlow
+        // in a SafeFlow which has invariant checks that fail when emitting from IPC callbacks
+        val eventFlow = channelFlow {
             // Convert callback to issue handler (explicit suspend function)
             suspend fun handleIssue(issue: PathActionIssue): PathActionIssue.Resolution {
-                val ipcIssue = issue.toFileOperationIssue()
+                val ipcIssue = issue.toFileOperationIssue(context)
                 try {
                     val ipcResolution = callback!!.onIssue(ipcIssue)
                     return ipcResolution.toPathActionIssueResolution(issue)
@@ -314,39 +316,34 @@ class FileOpsHost @Inject constructor(
             val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? =
                 if (callback != null) ::handleIssue else null
 
-            // Execute copy and collect flow
-            sources.toSet().copy(
-                fileSystemOps = fileSystemOps,
-                destination = destination,
-                options = CopyAction.Options(
-                    overwrite = overwrite,
-                    preserveAttributes = preserveAttributes,
-                    followSymlinks = followSymlinks
-                ),
-                onIssue = onIssue
-            ).collect { state ->
-                // Convert and emit each state as event
-                val event = state.toCopyOperationEvent()
-                emit(event)
-            }
-        }
-            .catch { e ->
+            try {
+                // Execute copy and collect flow
+                sources.toSet().copy(
+                    fileSystemOps = fileSystemOps,
+                    destination = destination,
+                    options = CopyAction.Options(
+                        overwrite = overwrite,
+                        preserveAttributes = preserveAttributes,
+                        followSymlinks = followSymlinks
+                    ),
+                    onIssue = onIssue
+                ).collect { state ->
+                    // Convert and send each state as event
+                    val event = state.toCopyOperationEvent()
+                    send(event)
+                }
+                log(TAG, VERBOSE) { "copyStream() completed successfully" }
+            } catch (e: Exception) {
                 log(TAG, ERROR) { "copyStream() operation failed: ${e.asLog()}" }
-                // Emit error event instead of throwing
-                emit(
+                // Send error event instead of throwing
+                send(
                     CopyOperationEvent.Error(
                         error = e.message ?: "Unknown error",
                         cancelled = false
                     )
                 )
             }
-            .onCompletion { error ->
-                if (error != null) {
-                    log(TAG, ERROR) { "copyStream() stream completion with error: ${error.asLog()}" }
-                } else {
-                    log(TAG, VERBOSE) { "copyStream() completed successfully" }
-                }
-            }
+        }
 
         // Convert flow to RemoteInputStream using generic streaming
         eventFlow.toRemoteInputStream(appScope + dispatcherProvider.IO)
@@ -366,10 +363,13 @@ class FileOpsHost @Inject constructor(
         log(TAG, VERBOSE) { "moveStream(): ${sources.size} sources → $destination" }
 
         // Create flow of MoveOperationEvent by wrapping the move operation
-        val eventFlow = flow {
+        // Use channelFlow instead of flow to support emissions from IPC callback coroutine
+        // IMPORTANT: Do NOT use .catch{} or .onCompletion{} operators - they wrap channelFlow
+        // in a SafeFlow which has invariant checks that fail when emitting from IPC callbacks
+        val eventFlow = channelFlow {
             // Convert callback to issue handler (explicit suspend function)
             suspend fun handleIssue(issue: PathActionIssue): PathActionIssue.Resolution {
-                val ipcIssue = issue.toFileOperationIssue()
+                val ipcIssue = issue.toFileOperationIssue(context)
                 try {
                     val ipcResolution = callback!!.onIssue(ipcIssue)
                     return ipcResolution.toPathActionIssueResolution(issue)
@@ -385,39 +385,34 @@ class FileOpsHost @Inject constructor(
             val onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? =
                 if (callback != null) ::handleIssue else null
 
-            // Execute move and collect flow
-            sources.toSet().move(
-                fileSystemOps = fileSystemOps,
-                destination = destination,
-                options = MoveAction.Options(
-                    overwrite = overwrite,
-                    preserveAttributes = preserveAttributes,
-                    attemptAtomicMove = true
-                ),
-                onIssue = onIssue
-            ).collect { state ->
-                // Convert and emit each state as event
-                val event = state.toMoveOperationEvent()
-                emit(event)
-            }
-        }
-            .catch { e ->
+            try {
+                // Execute move and collect flow
+                sources.toSet().move(
+                    fileSystemOps = fileSystemOps,
+                    destination = destination,
+                    options = MoveAction.Options(
+                        overwrite = overwrite,
+                        preserveAttributes = preserveAttributes,
+                        attemptAtomicMove = true
+                    ),
+                    onIssue = onIssue
+                ).collect { state ->
+                    // Convert and send each state as event
+                    val event = state.toMoveOperationEvent()
+                    send(event)
+                }
+                log(TAG, VERBOSE) { "moveStream() completed successfully" }
+            } catch (e: Exception) {
                 log(TAG, ERROR) { "moveStream() operation failed: ${e.asLog()}" }
-                // Emit error event instead of throwing
-                emit(
+                // Send error event instead of throwing
+                send(
                     MoveOperationEvent.Error(
                         error = e.message ?: "Unknown error",
                         cancelled = false
                     )
                 )
             }
-            .onCompletion { error ->
-                if (error != null) {
-                    log(TAG, ERROR) { "moveStream() stream completion with error: ${error.asLog()}" }
-                } else {
-                    log(TAG, VERBOSE) { "moveStream() completed successfully" }
-                }
-            }
+        }
 
         // Convert flow to RemoteInputStream using generic streaming
         eventFlow.toRemoteInputStream(appScope + dispatcherProvider.IO)
