@@ -28,12 +28,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.pluralStringResource
@@ -70,6 +73,12 @@ fun EditorSearchBar(
     val hasNext = hasResults && currentIndex < searchResults.size - 1
     val hasActiveOptions = caseSensitive || regexEnabled || wholeWord
     var showOptionsMenu by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+
+    // Auto-focus the search input when the search bar appears
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 
     Card(
         modifier = modifier
@@ -123,7 +132,9 @@ fun EditorSearchBar(
                 BasicTextField(
                     value = searchQuery,
                     onValueChange = onSearchQueryChange,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .focusRequester(focusRequester),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.onSurface
                     ),
