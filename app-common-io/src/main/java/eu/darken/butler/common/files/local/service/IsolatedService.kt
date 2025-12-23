@@ -10,7 +10,7 @@ import eu.darken.butler.common.ui.Service2
 import javax.inject.Inject
 
 /**
- * Bound service running in a separate process (`:local`) for file operations.
+ * Bound service running in a separate process (`:isolated`) for file operations.
  *
  * This process isolation protects the main app from Android's `vold` daemon,
  * which sends SIGINT to kill any process with open file handles when storage
@@ -21,9 +21,9 @@ import javax.inject.Inject
  * regardless of foreground status. Bound services inherit priority from their client.
  */
 @AndroidEntryPoint
-class LocalService : Service2() {
+class IsolatedService : Service2() {
 
-    @Inject lateinit var serviceHost: Lazy<LocalServiceHost>
+    @Inject lateinit var serviceHost: Lazy<IsolatedServiceHost>
 
     override fun onBind(intent: Intent?): IBinder {
         log(TAG) { "onBind(intent=$intent)" }
@@ -41,6 +41,6 @@ class LocalService : Service2() {
     }
 
     companion object {
-        private val TAG = logTag("Local", "Service")
+        private val TAG = logTag("Isolated", "Service")
     }
 }

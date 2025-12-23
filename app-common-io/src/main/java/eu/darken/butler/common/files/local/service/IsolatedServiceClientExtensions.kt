@@ -6,12 +6,12 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.sharedresource.runSessionAction
 
 @Suppress("UNCHECKED_CAST")
-suspend fun <R, T> LocalServiceClient.runModuleAction(
+suspend fun <R, T> IsolatedServiceClient.runModuleAction(
     moduleClass: Class<out R>,
     action: suspend (R) -> T,
 ): T = runSessionAction { session ->
     if (Bugs.isTrace) {
-        log(LocalServiceClient.TAG, VERBOSE) { "runModuleAction(moduleClass=$moduleClass)" }
+        log(IsolatedServiceClient.TAG, VERBOSE) { "runModuleAction(moduleClass=$moduleClass)" }
     }
     val module = session.clientModules.single { moduleClass.isInstance(it) } as R
     return@runSessionAction action(module)

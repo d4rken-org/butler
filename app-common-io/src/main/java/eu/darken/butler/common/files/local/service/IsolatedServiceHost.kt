@@ -11,9 +11,9 @@ import javax.inject.Singleton
 
 @Singleton
 @Keep
-class LocalServiceHost @Inject constructor(
+class IsolatedServiceHost @Inject constructor(
     private val fileOpsHost: Lazy<FileOpsHost>,
-) : LocalServiceConnection.Stub() {
+) : IsolatedServiceConnection.Stub() {
 
     override fun getFileOps(): FileOpsConnection {
         log(TAG) { "getFileOps()" }
@@ -21,6 +21,6 @@ class LocalServiceHost @Inject constructor(
     }
 
     companion object {
-        private val TAG = logTag("Local", "Service", "Host")
+        private val TAG = logTag("Isolated", "Service", "Host")
     }
 }

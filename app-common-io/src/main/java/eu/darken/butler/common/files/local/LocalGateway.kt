@@ -24,8 +24,8 @@ import eu.darken.butler.common.files.errors.ServiceConnectionLostException
 import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
-import eu.darken.butler.common.files.local.service.LocalServiceClient
-import eu.darken.butler.common.files.local.service.LocalServiceClient.*
+import eu.darken.butler.common.files.local.service.IsolatedServiceClient
+import eu.darken.butler.common.files.local.service.IsolatedServiceClient.*
 import eu.darken.butler.common.files.local.service.runModuleAction
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
 import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
@@ -63,7 +63,7 @@ class LocalGateway @Inject constructor(
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
     private val accessChecker: LocalPathAccessChecker,
-    private val localServiceClient: LocalServiceClient,
+    private val isolatedServiceClient: IsolatedServiceClient,
     private val storageManager: StorageManager2,
 ) : APathGateway<LocalPath, LocalPathLookup> {
 
@@ -71,10 +71,10 @@ class LocalGateway @Inject constructor(
     // Internal resources should add themselfes as child to this
     override val sharedResource = SharedResource.createKeepAlive(TAG, appScope + dispatcherProvider.IO)
 
-    private suspend fun <T> localOps(action: suspend (FileOpsClient) -> T): T {
+    private suspend fun <T> isolatedOps(action: suspend (FileOpsClient) -> T): T {
         return try {
-            keepResourcesAlive(localServiceClient) {
-                localServiceClient.runModuleAction(FileOpsClient::class.java) { action(it) }
+            keepResourcesAlive(isolatedServiceClient) {
+                isolatedServiceClient.runModuleAction(FileOpsClient::class.java) { action(it) }
             }
         } catch (e: ServiceProcessDiedException) {
             throw ServiceConnectionLostException(cause = e)
@@ -120,7 +120,7 @@ class LocalGateway @Inject constructor(
      * @param operation Operation name for logging (e.g., "createDir")
      * @param path Optional path for logging
      * @param directOp Direct mode operation (no IPC)
-     * @param clientOp Client mode operation (receives FileOpsClient for LOCAL/ROOT/ADB)
+     * @param clientOp Client mode operation (receives FileOpsClient for ISOLATED/ROOT/ADB)
      * @return Result of the operation
      */
     private suspend fun <T> executeWithModeSelection(
@@ -136,14 +136,9 @@ class LocalGateway @Inject constructor(
                 log(TAG, VERBOSE) { "$operation(DIRECT) -> $path" }
                 directOp()
             }
-            Mode.LOCAL -> {
-                log(TAG, VERBOSE) { "$operation(LOCAL) -> $path" }
-                try {
-                    localOps { clientOp(it) }
-                } catch (e: ServiceBindException) {
-                    log(TAG, WARN) { "$operation(LOCAL) failed to bind, falling back to DIRECT" }
-                    directOp()
-                }
+            Mode.ISOLATED -> {
+                log(TAG, VERBOSE) { "$operation(ISOLATED) -> $path" }
+                isolatedOps { clientOp(it) }
             }
             Mode.ROOT -> {
                 log(TAG, VERBOSE) { "$operation(ROOT) -> $path" }
@@ -154,16 +149,16 @@ class LocalGateway @Inject constructor(
                 adbOps { clientOp(it) }
             }
             Mode.AUTO -> {
-                // For removable storage, prefer LOCAL mode to protect against sudden disconnect
+                // For removable storage, prefer ISOLATED mode to protect against sudden disconnect
                 if (isOnRemovableStorage(path)) {
                     try {
-                        log(TAG, VERBOSE) { "$operation(AUTO:LOCAL) -> $path [removable storage]" }
-                        return@runIO localOps { clientOp(it) }
+                        log(TAG, VERBOSE) { "$operation(AUTO:ISOLATED) -> $path [removable storage]" }
+                        return@runIO isolatedOps { clientOp(it) }
                     } catch (e: ServiceBindException) {
-                        // LOCAL failed - fall back to DIRECT (same privilege level, no crash isolation)
-                        log(TAG, WARN) { "$operation: LocalService unavailable for removable storage, falling back to DIRECT" }
+                        // ISOLATED failed - fall back to DIRECT (same privilege level, no crash isolation)
+                        log(TAG, WARN) { "$operation: IsolatedService unavailable for removable storage, falling back to DIRECT" }
                         return@runIO directOp().also {
-                            log(TAG, VERBOSE) { "$operation(AUTO:DIRECT) -> $path [LOCAL fallback]" }
+                            log(TAG, VERBOSE) { "$operation(AUTO:DIRECT) -> $path [ISOLATED fallback]" }
                         }
                     }
                 }
@@ -337,7 +332,7 @@ class LocalGateway @Inject constructor(
      * Recursively walks the directory tree starting at [path].
      *
      * **Important:** The returned Flow MUST be collected (or cancelled) to ensure proper resource cleanup.
-     * For IPC-based modes (LOCAL, ROOT, ADB), service connections are held open until the flow completes.
+     * For IPC-based modes (ISOLATED, ROOT, ADB), service connections are held open until the flow completes.
      * Failure to collect the flow will leak service resources.
      */
     suspend fun walk(
@@ -358,21 +353,21 @@ class LocalGateway @Inject constructor(
                     onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
                 )
             }
-            Mode.LOCAL -> {
-                log(TAG, VERBOSE) { "walk(LOCAL) -> $path" }
+            Mode.ISOLATED -> {
+                log(TAG, VERBOSE) { "walk(ISOLATED) -> $path" }
                 if (walkOptions.isDirect) {
-                    log(TAG, VERBOSE) { "walk(LOCAL, direct): $path" }
+                    log(TAG, VERBOSE) { "walk(ISOLATED, direct): $path" }
                     // We need to keep the resource alive until the caller is done with the Flow
-                    val resource = localServiceClient.get()
-                    localServiceClient.runModuleAction(FileOpsClient::class.java) {
+                    val resource = isolatedServiceClient.get()
+                    isolatedServiceClient.runModuleAction(FileOpsClient::class.java) {
                         it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
                     }
                 } else {
-                    log(TAG, VERBOSE) { "walk(LOCAL, indirect): $path" }
+                    log(TAG, VERBOSE) { "walk(ISOLATED, indirect): $path" }
                     // Can't pass functions via IPC
                     IndirectLocalWalker(
                         gateway = this@LocalGateway,
-                        mode = Mode.LOCAL,
+                        mode = Mode.ISOLATED,
                         start = path,
                         lookupOptions = lookupOptions,
                         onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
@@ -425,19 +420,19 @@ class LocalGateway @Inject constructor(
                 }
             }
             Mode.AUTO -> {
-                // For removable storage, prefer LOCAL mode to protect against sudden disconnect
+                // For removable storage, prefer ISOLATED mode to protect against sudden disconnect
                 if (isOnRemovableStorage(path)) {
                     try {
-                        log(TAG, VERBOSE) { "walk(AUTO:LOCAL) -> $path [removable storage]" }
+                        log(TAG, VERBOSE) { "walk(AUTO:ISOLATED) -> $path [removable storage]" }
                         if (walkOptions.isDirect) {
-                            val resource = localServiceClient.get()
-                            return@runIO localServiceClient.runModuleAction(FileOpsClient::class.java) {
+                            val resource = isolatedServiceClient.get()
+                            return@runIO isolatedServiceClient.runModuleAction(FileOpsClient::class.java) {
                                 it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
                             }
                         } else {
                             return@runIO IndirectLocalWalker(
                                 gateway = this@LocalGateway,
-                                mode = Mode.LOCAL,
+                                mode = Mode.ISOLATED,
                                 start = path,
                                 lookupOptions = lookupOptions,
                                 onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
@@ -445,12 +440,18 @@ class LocalGateway @Inject constructor(
                             )
                         }
                     } catch (e: ServiceBindException) {
-                        log(TAG, WARN) { "walk: LocalService unavailable for removable storage, proceeding without protection" }
-                        // Fall through to normal handling below
+                        log(TAG, WARN) { "walk: IsolatedService unavailable for removable storage, falling back to DIRECT" }
+                        return@runIO DirectLocalWalker(
+                            fileSystemOps = fileSystemOps,
+                            lookupOptions = lookupOptions,
+                            start = path,
+                            onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
+                            onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
+                        ).also { log(TAG, VERBOSE) { "walk(AUTO:DIRECT) -> $path [ISOLATED fallback]" } }
                     }
                 }
 
-                // Standard handling for internal storage or fallback from LOCAL failure
+                // Standard handling for internal storage
                 suspend fun escalation(): Flow<LocalPathLookup> {
                     return when {
                         hasRoot() -> {
@@ -590,13 +591,13 @@ class LocalGateway @Inject constructor(
                 log(TAG, VERBOSE) { "file(DIRECT) -> $path" }
                 fileSystemOps.file(path, readWrite)
             }
-            Mode.LOCAL -> {
-                log(TAG, VERBOSE) { "file(LOCAL) -> $path" }
-                localOps { client ->
-                    val resource = localServiceClient.get()
+            Mode.ISOLATED -> {
+                log(TAG, VERBOSE) { "file(ISOLATED) -> $path" }
+                isolatedOps { client ->
+                    val resource = isolatedServiceClient.get()
                     client.file(path, readWrite).callbacks {
                         resource.close()
-                        log(TAG, VERBOSE) { "file(LOCAL, RW=$readWrite): Closing resource for $path" }
+                        log(TAG, VERBOSE) { "file(ISOLATED, RW=$readWrite): Closing resource for $path" }
                     }
                 }
             }
@@ -621,24 +622,26 @@ class LocalGateway @Inject constructor(
                 }
             }
             Mode.AUTO -> {
-                // For removable storage, prefer LOCAL mode to protect against sudden disconnect
+                // For removable storage, prefer ISOLATED mode to protect against sudden disconnect
                 if (isOnRemovableStorage(path)) {
                     try {
-                        log(TAG, VERBOSE) { "file(AUTO:LOCAL) -> $path [removable storage]" }
-                        return@runIO localOps { client ->
-                            val resource = localServiceClient.get()
+                        log(TAG, VERBOSE) { "file(AUTO:ISOLATED) -> $path [removable storage]" }
+                        return@runIO isolatedOps { client ->
+                            val resource = isolatedServiceClient.get()
                             client.file(path, readWrite).callbacks {
                                 resource.close()
-                                log(TAG, VERBOSE) { "file(LOCAL, RW=$readWrite): Closing resource for $path" }
+                                log(TAG, VERBOSE) { "file(ISOLATED, RW=$readWrite): Closing resource for $path" }
                             }
                         }
                     } catch (e: ServiceBindException) {
-                        log(TAG, WARN) { "file: LocalService unavailable for removable storage, proceeding without protection" }
-                        // Fall through to normal handling below
+                        log(TAG, WARN) { "file: IsolatedService unavailable for removable storage, falling back to DIRECT" }
+                        return@runIO fileSystemOps.file(path, readWrite).also {
+                            log(TAG, VERBOSE) { "file(AUTO:DIRECT) -> $path [ISOLATED fallback]" }
+                        }
                     }
                 }
 
-                // Standard handling for internal storage or fallback from LOCAL failure
+                // Standard handling for internal storage
                 suspend fun escalation(): FileHandle = when {
                     hasRoot() -> {
                         log(TAG, VERBOSE) { "file(AUTO:ROOT) -> $path" }
@@ -855,9 +858,9 @@ class LocalGateway @Inject constructor(
                 }
             }
 
-            Mode.LOCAL -> {
-                log(TAG, VERBOSE) { "delete(LOCAL): ${targets.size} targets" }
-                localOps { client ->
+            Mode.ISOLATED -> {
+                log(TAG, VERBOSE) { "delete(ISOLATED): ${targets.size} targets" }
+                isolatedOps { client ->
                     client.delete(
                         targets = targets,
                         options = options
@@ -903,12 +906,29 @@ class LocalGateway @Inject constructor(
             Mode.AUTO -> {
                 // Use isolated process for removable storage to survive sudden disconnection
                 val useIsolatedProcess = targets.any { isOnRemovableStorage(it) }
-                if (useIsolatedProcess && !hasRoot() && !hasAdb()) {
-                    log(TAG, VERBOSE) { "delete(AUTO->LOCAL_SERVICE): Removable storage detected" }
-                    localOps { client ->
-                        client.delete(targets, options).collect { emit(it) }
+                if (useIsolatedProcess) {
+                    try {
+                        log(TAG, VERBOSE) { "delete(AUTO:ISOLATED): Removable storage detected" }
+                        isolatedOps { client ->
+                            client.delete(targets, options).collect { emit(it) }
+                        }
+                        return@flow
+                    } catch (e: ServiceBindException) {
+                        log(TAG, WARN) { "delete: IsolatedService unavailable for removable storage, falling back to DIRECT" }
+                        targets.delete(
+                            fileSystemOps,
+                            recursive = options.recursive,
+                            ignoreMissing = options.ignoreMissing,
+                            onIssue = options.onIssue,
+                        ).collect { state ->
+                            emit(state)
+                            if (state is DeleteAction.State.Completed) {
+                                log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+                            }
+                        }
+                        log(TAG, VERBOSE) { "delete(AUTO:DIRECT) [ISOLATED fallback]" }
+                        return@flow
                     }
-                    return@flow
                 }
 
                 val shouldTry = accessChecker.shouldTryNormalAccess(targets.first(), forWriting = true)
@@ -1015,9 +1035,9 @@ class LocalGateway @Inject constructor(
                 }
             }
 
-            Mode.LOCAL -> {
-                log(TAG, VERBOSE) { "copy(LOCAL): To $destination" }
-                localOps { client ->
+            Mode.ISOLATED -> {
+                log(TAG, VERBOSE) { "copy(ISOLATED): To $destination" }
+                isolatedOps { client ->
                     client.copy(
                         sources = sources,
                         destination = destination,
@@ -1070,12 +1090,29 @@ class LocalGateway @Inject constructor(
                 // Use isolated process for removable storage to survive sudden disconnection
                 val useIsolatedProcess = isOnRemovableStorage(destination) ||
                     sources.any { isOnRemovableStorage(it) }
-                if (useIsolatedProcess && !hasRoot() && !hasAdb()) {
-                    log(TAG, VERBOSE) { "copy(AUTO->LOCAL_SERVICE): Removable storage detected" }
-                    localOps { client ->
-                        client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                if (useIsolatedProcess) {
+                    try {
+                        log(TAG, VERBOSE) { "copy(AUTO:ISOLATED): Removable storage detected" }
+                        isolatedOps { client ->
+                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
+                        }
+                        return@flow
+                    } catch (e: ServiceBindException) {
+                        log(TAG, WARN) { "copy: IsolatedService unavailable for removable storage, falling back to DIRECT" }
+                        sources.copy(
+                            fileSystemOps = fileSystemOps,
+                            destination = destination,
+                            options = options,
+                            onIssue = onIssue,
+                        ).collect { state ->
+                            emit(state)
+                            if (state is CopyAction.State.Completed) {
+                                log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+                            }
+                        }
+                        log(TAG, VERBOSE) { "copy(AUTO:DIRECT) [ISOLATED fallback]" }
+                        return@flow
                     }
-                    return@flow
                 }
 
                 val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
@@ -1177,9 +1214,9 @@ class LocalGateway @Inject constructor(
                 }
             }
 
-            Mode.LOCAL -> {
-                log(TAG, VERBOSE) { "move(LOCAL): To $destination" }
-                localOps { client ->
+            Mode.ISOLATED -> {
+                log(TAG, VERBOSE) { "move(ISOLATED): To $destination" }
+                isolatedOps { client ->
                     client.move(
                         sources = sources,
                         destination = destination,
@@ -1232,12 +1269,29 @@ class LocalGateway @Inject constructor(
                 // Use isolated process for removable storage to survive sudden disconnection
                 val useIsolatedProcess = isOnRemovableStorage(destination) ||
                     sources.any { isOnRemovableStorage(it) }
-                if (useIsolatedProcess && !hasRoot() && !hasAdb()) {
-                    log(TAG, VERBOSE) { "move(AUTO->LOCAL_SERVICE): Removable storage detected" }
-                    localOps { client ->
-                        client.move(sources, destination, onIssue, options).collect { emit(it) }
+                if (useIsolatedProcess) {
+                    try {
+                        log(TAG, VERBOSE) { "move(AUTO:ISOLATED): Removable storage detected" }
+                        isolatedOps { client ->
+                            client.move(sources, destination, onIssue, options).collect { emit(it) }
+                        }
+                        return@flow
+                    } catch (e: ServiceBindException) {
+                        log(TAG, WARN) { "move: IsolatedService unavailable for removable storage, falling back to DIRECT" }
+                        sources.move(
+                            fileSystemOps,
+                            destination,
+                            options,
+                            onIssue = onIssue,
+                        ).collect { state ->
+                            emit(state)
+                            if (state is MoveAction.State.Completed<*, *, *, *>) {
+                                log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+                            }
+                        }
+                        log(TAG, VERBOSE) { "move(AUTO:DIRECT) [ISOLATED fallback]" }
+                        return@flow
                     }
-                    return@flow
                 }
 
                 val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
@@ -1367,9 +1421,9 @@ class LocalGateway @Inject constructor(
                 }
             }
 
-            Mode.LOCAL -> {
-                log(TAG, VERBOSE) { "create(LOCAL): $target (type=$type)" }
-                localOps { client ->
+            Mode.ISOLATED -> {
+                log(TAG, VERBOSE) { "create(ISOLATED): $target (type=$type)" }
+                isolatedOps { client ->
                     target.createGeneric(
                         fileSystemOps = client,
                         type = type,
@@ -1384,6 +1438,40 @@ class LocalGateway @Inject constructor(
             }
 
             Mode.AUTO -> {
+                // Use isolated process for removable storage to survive sudden disconnection
+                if (isOnRemovableStorage(target)) {
+                    try {
+                        log(TAG, VERBOSE) { "create(AUTO:ISOLATED): $target [removable storage]" }
+                        isolatedOps { client ->
+                            target.createGeneric(
+                                fileSystemOps = client,
+                                type = type,
+                                onIssue = options.onIssue,
+                            ).collect { state ->
+                                emit(state)
+                                if (state is CreateAction.State.Completed<*, *>) {
+                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                                }
+                            }
+                        }
+                        return@flow
+                    } catch (e: ServiceBindException) {
+                        log(TAG, WARN) { "create: IsolatedService unavailable for removable storage, falling back to DIRECT" }
+                        target.createGeneric(
+                            fileSystemOps = fileSystemOps,
+                            type = type,
+                            onIssue = options.onIssue,
+                        ).collect { state ->
+                            emit(state)
+                            if (state is CreateAction.State.Completed<*, *>) {
+                                log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+                            }
+                        }
+                        log(TAG, VERBOSE) { "create(AUTO:DIRECT) [ISOLATED fallback]" }
+                        return@flow
+                    }
+                }
+
                 val parent = target.parent
                 val shouldTry = if (parent != null) {
                     accessChecker.shouldTryNormalAccess(parent, forWriting = true)
@@ -1545,7 +1633,7 @@ class LocalGateway @Inject constructor(
     }
 
     enum class Mode {
-        AUTO, DIRECT, LOCAL, ROOT, ADB
+        AUTO, DIRECT, ISOLATED, ROOT, ADB
     }
 
     companion object {

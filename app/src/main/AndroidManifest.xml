@@ -150,9 +150,9 @@
         <!-- Bound service in separate process for file operations on removable storage.
              Process isolation protects main app from vold's SIGINT on storage disconnect. -->
         <service
-            android:name="eu.darken.butler.common.files.local.service.LocalService"
+            android:name="eu.darken.butler.common.files.local.service.IsolatedService"
             android:exported="false"
-            android:process=":local" />
+            android:process=":isolated" />
     </application>
 
 </manifest>

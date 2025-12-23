@@ -29,15 +29,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class LocalServiceClient @Inject constructor(
+class IsolatedServiceClient @Inject constructor(
     @AppScope coroutineScope: CoroutineScope,
     @ApplicationContext private val context: Context,
     private val fileOpsClientFactory: FileOpsClient.Factory,
-) : SharedResource<LocalServiceClient.Connection>(
+) : SharedResource<IsolatedServiceClient.Connection>(
     tag = TAG,
     parentScope = coroutineScope,
     source = callbackFlow {
-        log(TAG) { "Binding to LocalService..." }
+        log(TAG) { "Binding to IsolatedService..." }
 
         val currentBinder = AtomicReference<IBinder?>(null)
 
@@ -45,7 +45,7 @@ class LocalServiceClient @Inject constructor(
             override fun binderDied() {
                 log(TAG, ERROR) { "binderDied() - Service process killed (storage disconnected?)" }
                 currentBinder.getAndSet(null)?.unlinkToDeath(this, 0)
-                close(ServiceProcessDiedException("Local service process was killed"))
+                close(ServiceProcessDiedException("Isolated service process was killed"))
             }
         }
 
@@ -56,7 +56,7 @@ class LocalServiceClient @Inject constructor(
                     currentBinder.set(service)
                     service?.linkToDeath(deathRecipient, 0)
 
-                    val serviceConnection = LocalServiceConnection.Stub.asInterface(service)
+                    val serviceConnection = IsolatedServiceConnection.Stub.asInterface(service)
                     val fileOpsConnection = serviceConnection.fileOps
 
                     trySend(fileOpsConnection)
@@ -74,16 +74,16 @@ class LocalServiceClient @Inject constructor(
             override fun onBindingDied(name: ComponentName?) {
                 log(TAG, ERROR) { "onBindingDied($name) - Service process died" }
                 currentBinder.getAndSet(null)?.unlinkToDeath(deathRecipient, 0)
-                close(ServiceProcessDiedException("Local service binding died"))
+                close(ServiceProcessDiedException("Isolated service binding died"))
             }
 
             override fun onNullBinding(name: ComponentName?) {
                 log(TAG, ERROR) { "onNullBinding($name)" }
-                close(IllegalStateException("LocalService returned null binding"))
+                close(IllegalStateException("IsolatedService returned null binding"))
             }
         }
 
-        val intent = Intent(context, LocalService::class.java)
+        val intent = Intent(context, IsolatedService::class.java)
         val bound = context.bindService(
             intent,
             serviceConnection,
@@ -91,14 +91,14 @@ class LocalServiceClient @Inject constructor(
         )
 
         if (!bound) {
-            log(TAG, ERROR) { "Failed to bind to LocalService" }
-            close(ServiceBindException("Failed to bind to LocalService"))
+            log(TAG, ERROR) { "Failed to bind to IsolatedService" }
+            close(ServiceBindException("Failed to bind to IsolatedService"))
         } else {
             log(TAG) { "Bind request sent successfully" }
         }
 
         awaitClose {
-            log(TAG) { "Unbinding from LocalService" }
+            log(TAG) { "Unbinding from IsolatedService" }
             currentBinder.getAndSet(null)?.unlinkToDeath(deathRecipient, 0)
             try {
                 context.unbindService(serviceConnection)
@@ -142,6 +142,6 @@ class LocalServiceClient @Inject constructor(
     ) : IOException(message, cause)
 
     companion object {
-        internal val TAG = logTag("Local", "Service", "Client")
+        internal val TAG = logTag("Isolated", "Service", "Client")
     }
 }
