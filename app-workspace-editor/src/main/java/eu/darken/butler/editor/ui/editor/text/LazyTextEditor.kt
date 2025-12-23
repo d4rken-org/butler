@@ -33,6 +33,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -68,6 +71,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.propagateScrollAtBoundary
+import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
@@ -86,6 +90,8 @@ fun LazyTextEditor(
     wordWrap: Boolean = false,
     fontSize: Int = 14,
     tabSize: Int = 4,
+    searchResults: List<SearchResult> = emptyList(),
+    currentSearchResultIndex: Int = 0,
     onTextChange: (String) -> Unit,
     onTextDelete: (Int) -> Unit,
     onCursorPositionChange: (TextPosition) -> Unit,
@@ -123,6 +129,7 @@ fun LazyTextEditor(
         }
     }
     val horizontalScrollState = rememberScrollState()
+    var pendingHorizontalScroll by remember { mutableStateOf<Int?>(null) }
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
 
@@ -169,9 +176,11 @@ fun LazyTextEditor(
 
         if (needsVerticalScroll) {
             try {
-                // Use instant scroll for responsiveness during typing
-                contentListState.scrollToItem(targetLine)
-                lineNumbersListState.scrollToItem(targetLine)
+                // Center the target line in viewport (not at top edge)
+                val centerOffset = (visibleCount / 2).coerceAtLeast(0)
+                val scrollTarget = (targetLine - centerOffset).coerceAtLeast(0)
+                contentListState.scrollToItem(scrollTarget)
+                lineNumbersListState.scrollToItem(scrollTarget)
             } catch (e: Exception) {
                 // Ignore scroll errors - layout might not be ready yet
             }
@@ -179,7 +188,7 @@ fun LazyTextEditor(
 
         // HORIZONTAL: Only when word wrap is disabled
         if (!wordWrap) {
-            val viewportWidth = contentListState.layoutInfo.viewportSize.width.toFloat()
+            val viewportWidth = horizontalScrollState.viewportSize.toFloat()
             if (viewportWidth <= 0) return@LaunchedEffect
 
             val contentPadding = with(density) { 8.dp.toPx() } // Match TextLineItem padding
@@ -192,23 +201,41 @@ fun LazyTextEditor(
             val visibleLeft = currentScrollX
             val visibleRight = currentScrollX + viewportWidth
 
-            try {
-                when {
-                    cursorX < visibleLeft + margin -> {
-                        // Cursor left of viewport - scroll left
-                        val targetScroll = (cursorX - margin).coerceAtLeast(0f)
-                        horizontalScrollState.scrollTo(targetScroll.toInt())
-                    }
-                    cursorX > visibleRight - margin -> {
-                        // Cursor right of viewport - scroll right
-                        val targetScroll = (cursorX - viewportWidth + margin).coerceAtLeast(0f)
-                        horizontalScrollState.scrollTo(targetScroll.toInt())
-                    }
+            // Center cursor horizontally in viewport when scrolling
+            val centerOffset = viewportWidth / 2
+            val targetScroll: Int? = when {
+                cursorX < visibleLeft + margin -> (cursorX - centerOffset).coerceAtLeast(0f).toInt()
+                cursorX > visibleRight - margin -> (cursorX - centerOffset).coerceAtLeast(0f).toInt()
+                else -> null
+            }
+
+            if (targetScroll != null) {
+                // If maxValue > 0, we can scroll immediately; otherwise defer
+                if (horizontalScrollState.maxValue > 0) {
+                    horizontalScrollState.scrollTo(targetScroll)
+                } else {
+                    // Layout not ready yet - defer scroll until maxValue > 0
+                    pendingHorizontalScroll = targetScroll
                 }
-            } catch (e: Exception) {
-                // Ignore scroll errors
             }
         }
+    }
+
+    // Apply deferred horizontal scroll when layout becomes ready
+    LaunchedEffect(pendingHorizontalScroll) {
+        val target = pendingHorizontalScroll ?: return@LaunchedEffect
+        // Wait for maxValue to become > 0 (layout ready)
+        snapshotFlow { horizontalScrollState.maxValue }
+            .filter { it > 0 }
+            .first()
+        horizontalScrollState.scrollTo(target.coerceAtMost(horizontalScrollState.maxValue))
+        pendingHorizontalScroll = null
+    }
+
+    // Group search results by line for efficient lookup
+    val searchResultsByLine = remember(searchResults) {
+        searchResults.mapIndexed { index, result -> index to result }
+            .groupBy { it.second.position.line }
     }
 
     // Synchronized dual-column content
@@ -226,6 +253,8 @@ fun LazyTextEditor(
         wordWrap = wordWrap,
         fontSize = fontSize,
         tabSize = tabSize,
+        searchResultsByLine = searchResultsByLine,
+        currentSearchResultIndex = currentSearchResultIndex,
         onTextChange = onTextChange,
         onTextDelete = onTextDelete,
         onCursorPositionChange = onCursorPositionChange,
@@ -251,6 +280,8 @@ private fun DualColumnEditorContent(
     wordWrap: Boolean,
     fontSize: Int,
     tabSize: Int,
+    searchResultsByLine: Map<Int, List<Pair<Int, SearchResult>>>,
+    currentSearchResultIndex: Int,
     onTextChange: (String) -> Unit,
     onTextDelete: (Int) -> Unit,
     onCursorPositionChange: (TextPosition) -> Unit,
@@ -667,6 +698,8 @@ private fun DualColumnEditorContent(
                         wordWrap = wordWrap,
                         fontSize = fontSize,
                         tabSize = tabSize,
+                        searchHighlights = searchResultsByLine[lineIndex] ?: emptyList(),
+                        currentSearchResultIndex = currentSearchResultIndex,
                         modifier = Modifier.fillMaxWidth(),
                         onHeightMeasured = if (wordWrap) { height ->
                             lineHeights[lineIndex] = height

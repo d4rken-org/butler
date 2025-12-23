@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 
 private data class SelectionBounds(
@@ -56,6 +57,8 @@ internal fun TextLineItem(
     wordWrap: Boolean,
     fontSize: Int,
     tabSize: Int,
+    searchHighlights: List<Pair<Int, SearchResult>> = emptyList(),
+    currentSearchResultIndex: Int = 0,
     modifier: Modifier = Modifier,
     onHeightMeasured: ((Int) -> Unit)? = null,
     onTextLayoutResult: ((TextLayoutResult) -> Unit)? = null,
@@ -236,8 +239,11 @@ internal fun TextLineItem(
             lineIndex = lineIndex,
             cursorPosition = cursorPosition,
             selection = selection,
+            searchHighlights = searchHighlights,
+            currentSearchResultIndex = currentSearchResultIndex,
             wordWrap = wordWrap,
             fontSize = fontSize,
+            tabSize = tabSize,
             onTextLayout = { layoutResult ->
                 textLayoutResult = layoutResult
                 onTextLayoutResult?.invoke(layoutResult)
@@ -253,18 +259,111 @@ internal fun SelectableText(
     lineIndex: Int,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
+    searchHighlights: List<Pair<Int, SearchResult>> = emptyList(),
+    currentSearchResultIndex: Int = 0,
     wordWrap: Boolean,
     fontSize: Int,
+    tabSize: Int = 4,
     onTextLayout: (TextLayoutResult) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
     val textColor = MaterialTheme.colorScheme.onSurface
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val searchHighlightColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
+    val currentSearchHighlightColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.6f)
 
     Box(
         modifier = modifier
     ) {
+        // Search highlights (rendered first, so selection appears on top)
+        searchHighlights.forEach { (resultIndex, result) ->
+            val isCurrentResult = resultIndex == currentSearchResultIndex
+            val highlightColor = if (isCurrentResult) currentSearchHighlightColor else searchHighlightColor
+
+            // Convert original column to expanded column (account for tab expansion)
+            val originalColumn = result.position.column
+            val matchLength = result.matchText.length
+
+            // Calculate expanded column position by counting characters up to the original column
+            // For simplicity, we use the original column since expandTabs preserves character count
+            // (tabs are replaced with spaces, maintaining relative positions)
+            val highlightStart = originalColumn
+            val highlightEnd = originalColumn + matchLength
+
+            if (highlightStart < text.length && highlightEnd > 0) {
+                val adjustedStart = highlightStart.coerceIn(0, text.length)
+                val adjustedEnd = highlightEnd.coerceIn(0, text.length)
+
+                if (adjustedStart < adjustedEnd) {
+                    val layout = layoutResult
+
+                    if (layout != null && wordWrap && layout.lineCount > 1) {
+                        // Multi-line wrapped text
+                        val startVisualLine = layout.getLineForOffset(adjustedStart.coerceIn(0, text.length.coerceAtLeast(1) - 1))
+                        val endVisualLine = layout.getLineForOffset((adjustedEnd - 1).coerceIn(0, text.length.coerceAtLeast(1) - 1))
+
+                        for (visualLine in startVisualLine..endVisualLine) {
+                            val lineStartOffset = layout.getLineStart(visualLine)
+                            val lineEndOffset = layout.getLineEnd(visualLine)
+
+                            val hlStart = adjustedStart.coerceIn(lineStartOffset, lineEndOffset)
+                            val hlEnd = adjustedEnd.coerceIn(lineStartOffset, lineEndOffset)
+
+                            if (hlStart < hlEnd && text.isNotEmpty()) {
+                                val bounds = runCatching {
+                                    val startBounds = layout.getBoundingBox(hlStart.coerceIn(0, text.length - 1))
+                                    val endBounds = layout.getBoundingBox((hlEnd - 1).coerceIn(0, text.length - 1))
+                                    SelectionBounds(
+                                        startBounds.left,
+                                        layout.getLineTop(visualLine),
+                                        endBounds.right - startBounds.left,
+                                        layout.getLineBottom(visualLine) - layout.getLineTop(visualLine)
+                                    )
+                                }.getOrNull()
+
+                                bounds?.let { b ->
+                                    Box(
+                                        modifier = Modifier
+                                            .offset(
+                                                x = with(density) { b.left.toDp() },
+                                                y = with(density) { b.top.toDp() }
+                                            )
+                                            .width(with(density) { b.width.toDp() })
+                                            .height(with(density) { b.height.toDp() })
+                                            .background(highlightColor)
+                                    )
+                                }
+                            }
+                        }
+                    } else if (layout != null && adjustedStart < text.length) {
+                        // Single line
+                        val bounds = runCatching {
+                            val startBounds = layout.getBoundingBox(adjustedStart)
+                            val endBounds = layout.getBoundingBox((adjustedEnd - 1).coerceAtLeast(0).coerceAtMost(text.length - 1))
+                            SelectionBounds(
+                                startBounds.left,
+                                0f,
+                                endBounds.right - startBounds.left,
+                                layout.size.height.toFloat()
+                            )
+                        }.getOrNull()
+
+                        bounds?.let { b ->
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = with(density) { b.left.toDp() })
+                                    .width(with(density) { b.width.toDp() })
+                                    .height(with(density) { b.height.toDp() })
+                                    .background(highlightColor)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Selection highlighting (rendered after search highlights)
         selection?.let { (start, end) ->
             if (lineIndex >= start.line && lineIndex <= end.line) {
                 val selectionStart = if (lineIndex == start.line) start.column else 0

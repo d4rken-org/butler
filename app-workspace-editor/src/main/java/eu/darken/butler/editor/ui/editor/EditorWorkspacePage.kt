@@ -202,6 +202,8 @@ fun EditorWorkspacePage(
                             wordWrap = state.wordWrap,
                             fontSize = 14,
                             tabSize = 4,
+                            searchResults = state.searchResults,
+                            currentSearchResultIndex = state.currentSearchResultIndex,
                             onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
                             onTextDelete = { count -> onPageAction(EditorPageAction.Edit.DeleteAtCursor(count)) },
                             onCursorPositionChange = { position ->
@@ -237,17 +239,6 @@ fun EditorWorkspacePage(
                     }
                 }
 
-                // Search results
-                if (state.hasSearchResults) {
-                    SearchResultsBar(
-                        searchResults = state.searchResults,
-                        currentIndex = 0,
-                        onNavigateToResult = { result ->
-                            onPageAction(EditorPageAction.Navigation.SetCursor(result.position))
-                        },
-                        onClose = { onPageAction(EditorPageAction.Navigation.Search("")) }
-                    )
-                }
             }
         }
 
@@ -387,75 +378,6 @@ private fun ErrorBanner(
                     Icons.TwoTone.Close,
                     contentDescription = stringResource(R.string.editor_action_dismiss),
                     tint = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SearchResultsBar(
-    searchResults: List<SearchResult>,
-    currentIndex: Int,
-    onNavigateToResult: (SearchResult) -> Unit,
-    onClose: () -> Unit
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = pluralStringResource(
-                    R.plurals.editor_search_results_x_of_y,
-                    searchResults.size,
-                    currentIndex + 1,
-                    searchResults.size
-                ),
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.weight(1f)
-            )
-
-            IconButton(
-                onClick = {
-                    if (currentIndex > 0) {
-                        onNavigateToResult(searchResults[currentIndex - 1])
-                    }
-                },
-                enabled = currentIndex > 0
-            ) {
-                Icon(
-                    Icons.TwoTone.KeyboardArrowUp,
-                    contentDescription = stringResource(R.string.editor_action_previous),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-
-            IconButton(
-                onClick = {
-                    if (currentIndex < searchResults.size - 1) {
-                        onNavigateToResult(searchResults[currentIndex + 1])
-                    }
-                },
-                enabled = currentIndex < searchResults.size - 1
-            ) {
-                Icon(
-                    Icons.TwoTone.KeyboardArrowDown,
-                    contentDescription = stringResource(R.string.editor_action_next),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-
-            IconButton(onClick = onClose) {
-                Icon(
-                    Icons.TwoTone.Close,
-                    contentDescription = stringResource(R.string.editor_action_close),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
         }
