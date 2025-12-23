@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -244,7 +245,7 @@ private fun OperationDetailsSheetFailedPreview() {
                 id = Operation.Id(),
                 title = "Copy operation".toCaString(),
                 description = "Failed to copy files".toCaString(),
-                icon = Icons.TwoTone.Delete,
+                icon = Icons.TwoTone.ContentCopy,
                 state = OperationDisplay.State.Failed(
                     summary = "Insufficient space".toCaString(),
                     completedAt = Clock.System.now(),
@@ -267,7 +268,7 @@ private fun OperationDetailsSheetWaitingPreview() {
                 id = Operation.Id(),
                 title = "Copy operation".toCaString(),
                 description = "Copying files to destination".toCaString(),
-                icon = Icons.TwoTone.Delete,
+                icon = Icons.TwoTone.ContentCopy,
                 state = OperationDisplay.State.Waiting(
                     reason = "File already exists".toCaString(),
                 ),
