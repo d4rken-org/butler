@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.ContentCopy
-import androidx.compose.material.icons.twotone.Warning
+import androidx.compose.material.icons.twotone.Handyman
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -102,7 +102,7 @@ internal fun OperationActionsSection(
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(
-                                    imageVector = Icons.TwoTone.Warning,
+                                    imageVector = Icons.TwoTone.Handyman,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp)
                                 )
