@@ -1,7 +1,8 @@
 <resources>
     <string name="onboarding_welcome_title">Welcome to Butler</string>
-    <string name="onboarding_welcome_message">Open source. Ad-free. Private. The Android file explorer you deserve.</string>
-    <string name="onboarding_welcome_action">Let\'s go</string>
+    <string name="onboarding_welcome_message">Open source. Ad-free. No tracking.\nThe file explorer you deserve.</string>
+    <string name="onboarding_welcome_subtitle">Tabs for files. Browse, search, and edit — all at once.</string>
+    <string name="onboarding_welcome_action">Start exploring</string>
     <string name="onboarding_beta_title">Shape the future</string>
     <string name="onboarding_beta_message">This is a beta (testing) build. Proceed with a sense of humor and a backup plan. Please report issues you encounter.</string>
     <string name="onboarding_beta_action">I fear nothing</string>
