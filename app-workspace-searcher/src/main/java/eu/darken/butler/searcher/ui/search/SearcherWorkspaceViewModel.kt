@@ -903,6 +903,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val isSearching: Boolean
             get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
 
+        val isIdle: Boolean
+            get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.IDLE
+
         val hasResults: Boolean
             get() = workspaceState.results.isNotEmpty()
 

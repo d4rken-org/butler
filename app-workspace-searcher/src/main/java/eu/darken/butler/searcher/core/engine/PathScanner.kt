@@ -87,7 +87,7 @@ class PathScanner @AssistedInject constructor(
                                 )
                             }
 
-                            filterLookup(lookup, query.filter)
+                            filterForTraversal(lookup, query.filter)
                         },
                         onError = { lookup, error ->
                             log(tag, VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
@@ -98,6 +98,9 @@ class PathScanner @AssistedInject constructor(
                     typedGateway.walk(path, LookupOptions.MAX, walkOptions)
                         .cancellable()
                         .mapNotNull { lookup ->
+                            // Apply filters to directories at result stage (they passed traversal filter for recursion)
+                            if (!filterForResults(lookup, query.filter)) return@mapNotNull null
+
                             // Check cancellation before expensive content matching
                             if (!currentCoroutineContext().isActive) throw CancellationException()
 
@@ -130,22 +133,26 @@ class PathScanner @AssistedInject constructor(
         }
     }.flowOn(dispatcherProvider.IO)
 
-    private fun filterLookup(lookup: APathLookup<*>, filter: SearchFilter): Boolean {
-        // Evaluate all conditions - ALL must pass
-        for (condition in filter.conditions) {
-            if (!evaluateCondition(condition, lookup)) {
-                return false
-            }
-        }
-        return true
+    private fun filterForTraversal(lookup: APathLookup<*>, filter: SearchFilter): Boolean {
+        // Directories always pass to allow recursion into them
+        if (lookup.fileType == FileType.DIRECTORY) return true
+
+        // Files: evaluate all conditions (early exit optimization before expensive content matching)
+        return filter.conditions.all { evaluateCondition(it, lookup) }
+    }
+
+    private fun filterForResults(lookup: APathLookup<*>, filter: SearchFilter): Boolean {
+        // Files already filtered during traversal
+        if (lookup.fileType != FileType.DIRECTORY) return true
+
+        // Directories: now evaluate all conditions for result inclusion
+        return filter.conditions.all { evaluateCondition(it, lookup) }
     }
 
     private fun evaluateCondition(condition: FilterCondition, lookup: APathLookup<*>): Boolean {
         return when (condition) {
             is FilterCondition.Size -> {
-                // Size filters only apply to files, not directories (needed for recursion)
-                if (lookup.fileType == FileType.DIRECTORY) return true
-                val size = lookup.size ?: return true // Skip if size unknown
+                val size = lookup.size ?: return true
                 val bytes = condition.bytes.coerceAtLeast(0L)
                 when (condition.comparator) {
                     FilterComparator.GT -> size > bytes
@@ -156,7 +163,7 @@ class PathScanner @AssistedInject constructor(
                 }
             }
             is FilterCondition.ModifiedDate -> {
-                val modifiedAt = lookup.modifiedAt ?: return true // Skip if date unknown
+                val modifiedAt = lookup.modifiedAt ?: return true
                 when (condition.comparator) {
                     FilterComparator.GT -> modifiedAt > condition.instant
                     FilterComparator.GTE -> modifiedAt >= condition.instant
@@ -166,8 +173,6 @@ class PathScanner @AssistedInject constructor(
                 }
             }
             is FilterCondition.Type -> {
-                // Type filters don't apply to directories (needed for recursion)
-                if (lookup.fileType == FileType.DIRECTORY) return true
                 lookup.fileType == condition.fileType
             }
         }
