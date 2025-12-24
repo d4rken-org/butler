@@ -11,6 +11,7 @@ fun OperationDialogHost(
     onDismissDialog: () -> Unit,
     onCancelOperation: ((Operation.Id) -> Unit)? = null,
     onCopyError: ((Operation.Id) -> Unit)? = null,
+    onHandleIssue: ((Operation.Id) -> Unit)? = null,
 ) {
     when (dialogState) {
         is OperationDialogState.None -> {
@@ -33,6 +34,12 @@ fun OperationDialogHost(
                     onCopyError = if (currentOperation.state is OperationDisplay.State.Failed) {
                         {
                             onCopyError?.invoke(currentOperation.id)
+                            onDismissDialog()
+                        }
+                    } else null,
+                    onHandleIssue = if (currentOperation.state is OperationDisplay.State.Waiting) {
+                        {
+                            onHandleIssue?.invoke(currentOperation.id)
                             onDismissDialog()
                         }
                     } else null,

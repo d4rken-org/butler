@@ -17,7 +17,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.isActive
 
 /**
@@ -91,7 +91,8 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         }
     }
 
-    fun execute(): Flow<DeleteAction.State<P, PL>> = flow {
+    // Use channelFlow to support emissions after IPC callbacks (which use runBlocking on client side)
+    fun execute(): Flow<DeleteAction.State<P, PL>> = channelFlow {
         log(TAG, DEBUG) {
             "execute(): Deleting ${targets.size} targets (recursive=$recursive, ignoreMissing=$ignoreMissing)"
         }
@@ -107,7 +108,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
             when (val item = workQueue.removeFirst()) {
                 is WorkItem.ScanPath<*> -> {
                     scanItemsRemaining--
-                    val childrenAdded = processScan(item as WorkItem.ScanPath<P>, ::emit)
+                    val childrenAdded = processScan(item as WorkItem.ScanPath<P>) { send(it) }
                     scanItemsRemaining += childrenAdded
 
                     // When scan completes, add all deferred deletions to queue
@@ -119,14 +120,14 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
                     }
                 }
 
-                is WorkItem.DeletePath<*, *> -> processDeletePath(item as WorkItem.DeletePath<P, PL>, ::emit)
+                is WorkItem.DeletePath<*, *> -> processDeletePath(item as WorkItem.DeletePath<P, PL>) { send(it) }
             }
         }
 
         // Record final 100% sample before completing
         progressTracker.shouldReportProgress(force = true)
 
-        emit(
+        send(
             DeleteAction.State.Completed(
                 deleted = deleted,
                 skipped = skipped,
@@ -270,7 +271,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
     private suspend fun handleDeleteError(error: Exception, originalItem: WorkItem.DeletePath<P, PL>) {
         errorHandler.handleError(
             error = error,
-            lookup = originalItem.lookup,
+            sourceLookup = originalItem.lookup,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skipped.add(it) },

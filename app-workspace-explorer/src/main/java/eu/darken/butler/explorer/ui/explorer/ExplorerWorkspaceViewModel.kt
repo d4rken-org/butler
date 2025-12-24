@@ -829,19 +829,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Directory.OpenInNewTabs -> {
                 log(tag) { "openInNewTabs(): ${selectedItemsFlow.value.size} items" }
-                val selected = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Lookup>()
-                if (selected.isEmpty()) return@launch
+                val selectedLookups = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Lookup>()
+                val selectedStorages = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Storage>()
+                if (selectedLookups.isEmpty() && selectedStorages.isEmpty()) return@launch
 
                 // Convert Explorer items to use case items
-                val items = selected.map { item ->
-                    if (item.lookup.isDirectory) {
-                        OpenInNewTabsUseCase.Item.Directory(item.lookup.lookedUp)
-                    } else {
-                        val isText = when (item) {
-                            is ExplorerItem.File -> TextFileDetector.isTextFile(item.mimeType)
-                            else -> TextFileDetector.isTextFile(item.lookup.lookedUp)
-                        }
-                        OpenInNewTabsUseCase.Item.File(item.lookup.lookedUp, isText)
+                val items = buildList {
+                    // Lookup items (files and directories inside a folder)
+                    selectedLookups.forEach { item ->
+                        add(
+                            if (item.lookup.isDirectory) {
+                                OpenInNewTabsUseCase.Item.Directory(item.lookup.lookedUp)
+                            } else {
+                                val isText = when (item) {
+                                    is ExplorerItem.File -> TextFileDetector.isTextFile(item.mimeType)
+                                    else -> TextFileDetector.isTextFile(item.lookup.lookedUp)
+                                }
+                                OpenInNewTabsUseCase.Item.File(item.lookup.lookedUp, isText)
+                            }
+                        )
+                    }
+                    // Storage items (USB sticks, SAF locations, etc.) - always directories
+                    selectedStorages.forEach { storage ->
+                        add(OpenInNewTabsUseCase.Item.Directory(storage.target.path))
                     }
                 }
 

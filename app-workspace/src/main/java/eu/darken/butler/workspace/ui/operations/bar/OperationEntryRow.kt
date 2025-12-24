@@ -18,7 +18,7 @@ import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.HourglassEmpty
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Schedule
-import androidx.compose.material.icons.twotone.TouchApp
+import androidx.compose.material.icons.twotone.Handyman
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -112,7 +112,7 @@ fun OperationEntryRow(
                                 alpha = 0.7f
                             )
                             is OperationDisplay.State.Running -> Icons.TwoTone.Info to MaterialTheme.colorScheme.onSecondaryContainer
-                            is OperationDisplay.State.Waiting -> Icons.TwoTone.TouchApp to MaterialTheme.colorScheme.tertiary
+                            is OperationDisplay.State.Waiting -> Icons.TwoTone.Handyman to MaterialTheme.colorScheme.tertiary
                             else -> Icons.TwoTone.Info to MaterialTheme.colorScheme.onSecondaryContainer
                         }
 

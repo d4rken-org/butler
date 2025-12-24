@@ -19,17 +19,14 @@ class LocalPathAccessChecker @Inject constructor(
     private val storageEnvironment: StorageEnvironment,
 ) {
 
-    private val publicAccessible: Set<LocalPath> by lazy {
-        buildSet {
+    private val publicAccessible: Set<LocalPath>
+        get() = buildSet {
             storageEnvironment.publicStorages.forEach { add(it) }
             add(LocalPath.build("/sdcard"))
         }
-    }
 
-    private val publicBlocked: Set<LocalPath> by lazy {
-        if (!hasApiLevel(30)) return@lazy emptySet()
-        storageEnvironment.publicDataDirs.toSet()
-    }
+    private val publicBlocked: Set<LocalPath>
+        get() = if (!hasApiLevel(30)) emptySet() else storageEnvironment.publicDataDirs.toSet()
 
     private val systemBlocked by lazy {
         buildSet {
@@ -52,8 +49,8 @@ class LocalPathAccessChecker @Inject constructor(
         }
     }
 
-    private val ourDirs by lazy {
-        buildSet {
+    private val ourDirs: Set<LocalPath>
+        get() = buildSet {
             addAll(storageEnvironment.ourPublicDirs)
             addAll(storageEnvironment.ourPrivateDirs)
             addAll(
@@ -62,7 +59,6 @@ class LocalPathAccessChecker @Inject constructor(
                     .map { LocalPath.build(it) }
             )
         }
-    }
 
     /**
      * Returns true if normal Java File API access should be attempted for this path.

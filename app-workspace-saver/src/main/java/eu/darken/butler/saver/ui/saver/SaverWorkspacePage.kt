@@ -137,6 +137,9 @@ private fun SaverWorkspacePage(
             onDismissDialog = { operationDialogState = OperationDialogState.None },
             onCancelOperation = { operationDialogState = OperationDialogState.None },
             onCopyError = { /* TODO: implement if needed */ },
+            onHandleIssue = { operationId ->
+                vm?.showConflictSheet(operationId)
+            },
         )
 
         // Show issue bottom sheet when needed

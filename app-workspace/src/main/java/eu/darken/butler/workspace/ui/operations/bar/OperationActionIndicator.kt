@@ -8,7 +8,7 @@ import androidx.compose.material.icons.twotone.Cancel
 import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.PauseCircle
-import androidx.compose.material.icons.twotone.TouchApp
+import androidx.compose.material.icons.twotone.Handyman
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,7 +59,7 @@ fun OperationActionIndicator(
                 )
             }
             is OperationDisplay.State.Waiting -> Triple(
-                Icons.TwoTone.TouchApp,
+                Icons.TwoTone.Handyman,
                 R.string.operations_state_waiting,
                 MaterialTheme.colorScheme.tertiary
             )

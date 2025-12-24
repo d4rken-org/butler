@@ -21,6 +21,12 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
             val selectedSAFItems = selectionState.selectedItems
                 .filterIsInstance<ExplorerItem.Storage.SAF>()
 
+            // Check if any storage items are selected (for opening in new tabs)
+            val hasStorageItems = selectionState.selectedItems.any { it is ExplorerItem.Storage }
+            if (hasStorageItems) {
+                actions.add(ExplorerAction.Directory.OpenInNewTabs())
+            }
+
             actions.add(ExplorerAction.Common.Info())
 
             if (selectedSAFItems.size == 1) {

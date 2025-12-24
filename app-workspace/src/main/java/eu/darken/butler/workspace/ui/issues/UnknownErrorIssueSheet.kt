@@ -106,13 +106,13 @@ fun UnknownErrorIssueSheet(
         }
 
         // Show destination file if available
-        issue.destination?.let { destination ->
+        issue.destinationPath?.let { destinationPath ->
             Text(
                 text = stringResource(R.string.workspace_issue_common_destination_file),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            PathIssueFileComparisonCard(lookup = destination)
+            PathIssueFileComparisonCard(path = destinationPath)
         }
 
         // Technical details section
@@ -307,13 +307,7 @@ private fun UnknownErrorIssueSheetIOErrorPreview() {
                     modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
                     target = null,
                 ),
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Backup/corrupted_file.pdf"),
-                    fileType = FileType.FILE,
-                    size = 0,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-                    target = null,
-                ),
+                destinationPath = LocalPath.build("/storage/emulated/0/Backup/corrupted_file.pdf"),
                 canRetry = true,
                 canSkip = true,
             ),
@@ -336,7 +330,7 @@ private fun UnknownErrorIssueSheetSecurityErrorPreview() {
                     modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
                     target = null,
                 ),
-                destination = null,
+                destinationPath = null,
                 canRetry = false,
                 canSkip = true,
             ),
@@ -353,7 +347,7 @@ private fun UnknownErrorIssueSheetUnknownErrorPreview() {
             issue = PathActionIssue.UnknownError(
                 exception = RuntimeException("Unknown error occurred during operation"),
                 source = null,
-                destination = null,
+                destinationPath = null,
                 canRetry = true,
                 canSkip = true,
             ),

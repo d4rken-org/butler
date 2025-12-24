@@ -73,7 +73,7 @@ fun InsufficientSpaceIssueSheet(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        PathIssueFileComparisonCard(lookup = issue.destination)
+        PathIssueFileComparisonCard(path = issue.destinationPath)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -141,13 +141,7 @@ private fun InsufficientSpaceIssueSheetPreview() {
                     modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
                     target = null,
                 ),
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/sdcard/large_file.mp4"),
-                    fileType = FileType.FILE,
-                    size = 0,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-                    target = null,
-                ),
+                destinationPath = LocalPath.build("/storage/sdcard/large_file.mp4"),
             ),
             onResolution = {},
         )

@@ -327,6 +327,11 @@ fun ExplorerWorkspacePage(
         }
     }
 
+    // Handle back button for selection mode - clear selection first
+    BackHandler(enabled = mainState.selectionState.isSelectionMode) {
+        vm?.clearSelection()
+    }
+
     // Derived states for stable recomposition
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
@@ -732,7 +737,10 @@ fun ExplorerWorkspacePage(
                     operationDialogState = OperationDialogState.None
                     showCancelConfirmation = operationId
                 },
-                onCopyError = { vm?.copyError(it) }
+                onCopyError = { vm?.copyError(it) },
+                onHandleIssue = { operationId ->
+                    vm?.showConflictSheet(operationId)
+                },
             )
 
             // Show conflict bottom sheet when needed
