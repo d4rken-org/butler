@@ -65,6 +65,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val _searchCaseSensitive = MutableStateFlow(false)
     private val _searchRegexEnabled = MutableStateFlow(false)
     private val _searchWholeWord = MutableStateFlow(false)
+    private val _scrollTrigger = MutableStateFlow(0)
     private var openFileJob: Job? = null
 
     private val dialogStates = combine(
@@ -81,6 +82,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val caseSensitive: Boolean,
         val regexEnabled: Boolean,
         val wholeWord: Boolean,
+        val scrollTrigger: Int,
     )
 
     private val searchStates = combine(
@@ -89,8 +91,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         _searchCaseSensitive,
         _searchRegexEnabled,
         _searchWholeWord,
-    ) { searchQueryInput, currentSearchResultIndex, searchCaseSensitive, searchRegexEnabled, searchWholeWord ->
-        SearchStates(searchQueryInput, currentSearchResultIndex, searchCaseSensitive, searchRegexEnabled, searchWholeWord)
+        _scrollTrigger,
+    ) { values ->
+        SearchStates(
+            queryInput = values[0] as TextFieldValue,
+            currentResultIndex = values[1] as Int,
+            caseSensitive = values[2] as Boolean,
+            regexEnabled = values[3] as Boolean,
+            wholeWord = values[4] as Boolean,
+            scrollTrigger = values[5] as Int,
+        )
     }
 
     private val loadingStates = combine(
@@ -140,6 +150,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             searchCaseSensitive = search.caseSensitive,
             searchRegexEnabled = search.regexEnabled,
             searchWholeWord = search.wholeWord,
+            scrollTrigger = search.scrollTrigger,
         )
     }
         .asStateFlow()
@@ -357,6 +368,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         if (currentState.searchResults.isNotEmpty()) {
             val newIndex = (_currentSearchResultIndex.value + 1) % currentState.searchResults.size
             _currentSearchResultIndex.value = newIndex
+            _scrollTrigger.value++
             getWorkspace().setCursorPosition(currentState.searchResults[newIndex].position)
         }
     }
@@ -370,6 +382,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 _currentSearchResultIndex.value - 1
             }
             _currentSearchResultIndex.value = newIndex
+            _scrollTrigger.value++
             getWorkspace().setCursorPosition(currentState.searchResults[newIndex].position)
         }
     }
@@ -523,6 +536,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val searchCaseSensitive: Boolean = false,
         val searchRegexEnabled: Boolean = false,
         val searchWholeWord: Boolean = false,
+        val scrollTrigger: Int = 0,
     ) {
         val hasFile: Boolean get() = contentSource is ContentSource.File
         val hasContent: Boolean get() = contentSource.hasContent

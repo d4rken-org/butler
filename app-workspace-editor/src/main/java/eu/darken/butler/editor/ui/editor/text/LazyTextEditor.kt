@@ -92,6 +92,7 @@ fun LazyTextEditor(
     tabSize: Int = 4,
     searchResults: List<SearchResult> = emptyList(),
     currentSearchResultIndex: Int = 0,
+    scrollTrigger: Int = 0,
     onTextChange: (String) -> Unit,
     onTextDelete: (Int) -> Unit,
     onCursorPositionChange: (TextPosition) -> Unit,
@@ -162,7 +163,8 @@ fun LazyTextEditor(
 
     // Scroll to cursor position when it changes (line, column, or offset)
     // Triggers on any cursor change to ensure cursor is always visible during typing
-    LaunchedEffect(cursorPosition) {
+    // Also triggers on scrollTrigger to force scroll when navigating search results
+    LaunchedEffect(cursorPosition, scrollTrigger) {
         if (totalLines <= 0 || contentListState.layoutInfo.totalItemsCount <= 0) return@LaunchedEffect
 
         val targetLine = cursorPosition.line.coerceIn(0, totalLines - 1)
@@ -173,8 +175,9 @@ fun LazyTextEditor(
         val lastVisibleLine = firstVisibleLine + visibleCount - 1
 
         val needsVerticalScroll = targetLine < firstVisibleLine || targetLine > lastVisibleLine
+        val forceScroll = scrollTrigger > 0
 
-        if (needsVerticalScroll) {
+        if (needsVerticalScroll || forceScroll) {
             try {
                 // Center the target line in viewport (not at top edge)
                 val centerOffset = (visibleCount / 2).coerceAtLeast(0)

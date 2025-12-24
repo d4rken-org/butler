@@ -69,8 +69,7 @@ fun EditorSearchBar(
     onClose: () -> Unit,
 ) {
     val hasResults = searchResults.isNotEmpty()
-    val hasPrevious = hasResults && currentIndex > 0
-    val hasNext = hasResults && currentIndex < searchResults.size - 1
+    val canNavigate = hasResults
     val hasActiveOptions = caseSensitive || regexEnabled || wholeWord
     var showOptionsMenu by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
@@ -145,7 +144,7 @@ fun EditorSearchBar(
                     ),
                     keyboardActions = KeyboardActions(
                         onSearch = {
-                            if (hasNext) {
+                            if (hasResults) {
                                 onNext()
                             }
                         }
@@ -227,13 +226,13 @@ fun EditorSearchBar(
             // Previous result button
             IconButton(
                 onClick = onPrevious,
-                enabled = hasPrevious,
+                enabled = canNavigate,
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.KeyboardArrowUp,
                     contentDescription = stringResource(R.string.editor_search_previous),
-                    tint = if (hasPrevious) {
+                    tint = if (canNavigate) {
                         MaterialTheme.colorScheme.onSurface
                     } else {
                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
@@ -244,13 +243,13 @@ fun EditorSearchBar(
             // Next result button
             IconButton(
                 onClick = onNext,
-                enabled = hasNext,
+                enabled = canNavigate,
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(
                     imageVector = Icons.TwoTone.KeyboardArrowDown,
                     contentDescription = stringResource(R.string.editor_search_next),
-                    tint = if (hasNext) {
+                    tint = if (canNavigate) {
                         MaterialTheme.colorScheme.onSurface
                     } else {
                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)

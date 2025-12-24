@@ -204,6 +204,7 @@ fun EditorWorkspacePage(
                             tabSize = 4,
                             searchResults = state.searchResults,
                             currentSearchResultIndex = state.currentSearchResultIndex,
+                            scrollTrigger = state.scrollTrigger,
                             onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
                             onTextDelete = { count -> onPageAction(EditorPageAction.Edit.DeleteAtCursor(count)) },
                             onCursorPositionChange = { position ->
