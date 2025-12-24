@@ -18,7 +18,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.isActive
 
 /**
@@ -172,7 +172,8 @@ internal class GenericPathCopy<
         ) : WorkItem()
     }
 
-    fun execute(): Flow<CopyAction.State<SP, SPL, DP, DPL>> = flow {
+    // Use channelFlow to support emissions after IPC callbacks (which use runBlocking on client side)
+    fun execute(): Flow<CopyAction.State<SP, SPL, DP, DPL>> = channelFlow {
         log(TAG, DEBUG) { "execute(): Copying ${sources.size} sources to $destination" }
 
         // Check if destination exists and is a directory (for path calculation logic)
@@ -191,7 +192,7 @@ internal class GenericPathCopy<
                 is WorkItem.ScanSource<*> -> {
                     scanItemsRemaining--
                     @Suppress("UNCHECKED_CAST")
-                    val childrenAdded = processScan(item as WorkItem.ScanSource<SP>, ::emit)
+                    val childrenAdded = processScan(item as WorkItem.ScanSource<SP>) { send(it) }
                     scanItemsRemaining += childrenAdded
 
                     if (scanItemsRemaining == 0) {
@@ -202,7 +203,7 @@ internal class GenericPathCopy<
 
                 is WorkItem.CopyFile<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processCopyFile(item as WorkItem.CopyFile<SP, SPL, DP>, ::emit)
+                    processCopyFile(item as WorkItem.CopyFile<SP, SPL, DP>) { send(it) }
                 }
 
                 is WorkItem.CreateDirectory<*, *, *> -> {
@@ -223,7 +224,7 @@ internal class GenericPathCopy<
         // For same-type operations (SP=DP), copied is Set<Pair<SP, DP>> which equals Set<Pair<SP, SP>>
         // For cross-type, this won't compile - cross-type operations should use their own result type
         @Suppress("UNCHECKED_CAST")
-        emit(
+        send(
             CopyAction.State.Completed(
                 copied = copied,
                 skipped = skipped,
@@ -629,7 +630,8 @@ internal class GenericPathCopy<
     private suspend fun handleCopyError(error: Exception, originalItem: WorkItem.CopyFile<SP, SPL, DP>) {
         errorHandler.handleError(
             error = error,
-            lookup = originalItem.sourceLookup,
+            sourceLookup = originalItem.sourceLookup,
+            destinationPath = originalItem.destination,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skipped.add(it) },
@@ -643,7 +645,8 @@ internal class GenericPathCopy<
     private suspend fun handleDirectoryError(error: Exception, originalItem: WorkItem.CreateDirectory<SP, SPL, DP>) {
         errorHandler.handleError(
             error = error,
-            lookup = originalItem.sourceLookup,
+            sourceLookup = originalItem.sourceLookup,
+            destinationPath = originalItem.destination,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = {

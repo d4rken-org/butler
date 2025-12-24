@@ -4,6 +4,8 @@ import eu.darken.butler.common.R
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.error.HasLocalizedError
+import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -79,8 +81,11 @@ class ManagedOperation(
                     object : Operation.State.Completed {
                         override val startedAt: Instant = startTime
                         override val completedAt: Instant = Clock.System.now()
-                        override val summary: CaString = caString {
-                            it.getString(R.string.general_error_label) + " (${error.toString()})"
+                        override val summary: CaString = when (error) {
+                            is HasLocalizedError -> error.getLocalizedError(LocalizedErrorContext()).asText()
+                            else -> caString {
+                                it.getString(R.string.general_error_label) + " (${error.toString()})"
+                            }
                         }
                         override val report: Operation.Report? = null
                         override val error: Throwable = error

@@ -34,7 +34,7 @@ import eu.darken.butler.workspace.core.operations.Operation
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock
@@ -75,7 +75,7 @@ class SaveFilesOperation @AssistedInject constructor(
         }
     }
 
-    override fun perform(operationContext: Operation.Context): Flow<Operation.State> = flow {
+    override fun perform(operationContext: Operation.Context): Flow<Operation.State> = channelFlow {
         log(tag, INFO) { "perform(): Starting save of ${command.sources.size} files to ${command.targetDirectory}" }
 
         val progressTracker = PathOperationProgressTracker()
@@ -83,7 +83,7 @@ class SaveFilesOperation @AssistedInject constructor(
         progressTracker.totalBytes = command.sources.sumOf { it.size ?: 0L }
 
         val issueResolver = PathOperationIssueResolver { issue ->
-            emit(
+            send(
                 State.Waiting(
                     startedAt = operationContext.startedAt,
                     waitingSince = Clock.System.now(),
@@ -94,7 +94,7 @@ class SaveFilesOperation @AssistedInject constructor(
         }
 
         var stateActive = State.Active(startedAt = operationContext.startedAt)
-        emit(stateActive)
+        send(stateActive)
 
         val results = mutableListOf<SaveFilesReport.FileResult>()
 
@@ -113,7 +113,7 @@ class SaveFilesOperation @AssistedInject constructor(
                 issueResolver = issueResolver,
                 emitState = { newState ->
                     stateActive = newState
-                    emit(newState)
+                    send(newState)
                 },
             )
 
@@ -136,7 +136,7 @@ class SaveFilesOperation @AssistedInject constructor(
             // Emit final progress for this file
             if (progressTracker.shouldReportProgress(force = true)) {
                 stateActive = buildActiveState(operationContext, source, progressTracker)
-                emit(stateActive)
+                send(stateActive)
             }
         }
 
@@ -152,7 +152,7 @@ class SaveFilesOperation @AssistedInject constructor(
             INFO
         ) { "Save completed: ${report.successes.size} succeeded, ${report.skipped.size} skipped, ${report.errors.size} failed" }
 
-        emit(
+        send(
             State.Completed(
                 startedAt = operationContext.startedAt,
                 report = report,
@@ -328,19 +328,14 @@ class SaveFilesOperation @AssistedInject constructor(
         val issue = if (isPermissionError) {
             PathActionIssue.InsufficientPermission(
                 source = null,
-                destination = try {
-                    gatewaySwitch.lookup(command.targetDirectory, LookupOptions.BASE)
-                } catch (e: Exception) {
-                    log(tag, WARN) { "Could not lookup target directory for issue: ${e.asLog()}" }
-                    null
-                } ?: return SaveFilesReport.FileResult.Error(filename = source.filename, error = error),
+                destinationPath = command.targetDirectory,
                 exception = error,
                 canSkip = true,
             )
         } else {
             PathActionIssue.UnknownError(
                 source = null,
-                destination = null,
+                destinationPath = null,
                 exception = error,
                 canSkip = true,
                 canRetry = false,

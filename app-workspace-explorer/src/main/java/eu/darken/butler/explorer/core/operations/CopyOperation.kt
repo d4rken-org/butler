@@ -26,7 +26,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlin.time.Clock
@@ -67,11 +67,11 @@ class CopyOperation @AssistedInject constructor(
 
     override fun perform(
         operationContext: Operation.Context
-    ): Flow<State> = flow {
+    ): Flow<State> = channelFlow {
         log(tag) { "perform(): $command" }
 
         var stateActive = State.Active(startedAt = operationContext.startedAt)
-        emit(stateActive)
+        send(stateActive)
 
         val reportBuilder = CopyOperationReport.Builder()
         var lastPerformanceHistory: PerformanceHistory? = null
@@ -85,7 +85,7 @@ class CopyOperation @AssistedInject constructor(
                     followSymlinks = command.options.followSymlinks,
                 ),
                 onIssue = { issue ->
-                    emit(
+                    send(
                         State.Waiting(
                             startedAt = operationContext.startedAt,
                             waitingSince = Clock.System.now(),
@@ -93,7 +93,7 @@ class CopyOperation @AssistedInject constructor(
                         )
                     )
                     val resolution = issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
-                    emit(stateActive)
+                    send(stateActive)
                     resolution
                 },
             )
@@ -195,7 +195,7 @@ class CopyOperation @AssistedInject constructor(
                     secondaryProgress = enhancedSecondary,
                     performanceHistory = perfHistory,
                 )
-                emit(stateActive)
+                send(stateActive)
             }
             .last()
 
@@ -209,7 +209,7 @@ class CopyOperation @AssistedInject constructor(
         reportBuilder.setCopiedBytes(result.copiedBytes)
         reportBuilder.setPerformanceHistory(lastPerformanceHistory)
 
-        emit(
+        send(
             State.Completed(
                 startedAt = operationContext.startedAt,
                 report = reportBuilder.build()

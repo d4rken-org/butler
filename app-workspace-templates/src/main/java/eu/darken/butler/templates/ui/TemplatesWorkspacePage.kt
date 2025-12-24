@@ -163,7 +163,7 @@ fun TemplatesWorkspacePage(
                     ) {
                         ButlerMascot(
                             modifier = Modifier.size(64.dp),
-                            variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy else ButlerMascotMode.Static.Normal
+                            variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy() else ButlerMascotMode.Static.Normal()
                         )
 
                         Column(modifier = Modifier.weight(1f)) {

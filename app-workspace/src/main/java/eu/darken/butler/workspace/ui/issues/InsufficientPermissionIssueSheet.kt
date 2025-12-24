@@ -68,19 +68,21 @@ fun InsufficientPermissionIssueSheet(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
-        Text(
-            text = stringResource(R.string.workspace_issue_common_source_file),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        PathIssueFileComparisonCard(lookup = issue.destination)
+        issue.source?.let { source ->
+            Text(
+                text = stringResource(R.string.workspace_issue_common_source_file),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            PathIssueFileComparisonCard(lookup = source)
+        }
 
         Text(
             text = stringResource(R.string.workspace_issue_common_destination_file),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        PathIssueFileComparisonCard(lookup = issue.destination)
+        PathIssueFileComparisonCard(path = issue.destinationPath)
 
         if (issue.canSkip) {
             Row(
@@ -173,13 +175,7 @@ private fun InsufficientPermissionConflictSheetPreview() {
                     modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
                     target = null,
                 ),
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/system/protected/document.pdf"),
-                    fileType = FileType.FILE,
-                    size = 0,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-                    target = null,
-                ),
+                destinationPath = LocalPath.build("/system/protected/document.pdf"),
                 canSkip = true,
             ),
             onResolution = {},

@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.local.ipc
 
 import android.os.Parcelable
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import kotlinx.parcelize.Parcelize
 
@@ -18,7 +19,8 @@ data class FileOperationIssue(
 
     // Paths involved
     val sourcePath: LocalPathLookup? = null,        // For copy/move operations
-    val destinationPath: LocalPathLookup,           // Always present
+    val destinationPath: LocalPath,                 // Always present (just the path)
+    val destinationLookup: LocalPathLookup? = null, // For PathAlreadyExists/InsufficientSpace (with metadata)
     val errorMessage: String? = null,
 
     // Resolution capability flags

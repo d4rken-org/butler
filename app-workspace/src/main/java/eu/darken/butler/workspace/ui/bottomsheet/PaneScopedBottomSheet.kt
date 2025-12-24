@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.bottomsheet
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -10,25 +11,40 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /**
  * A bottom sheet that is scoped to a specific workspace pane instead of being a global window-level overlay.
@@ -38,9 +54,11 @@ import eu.darken.butler.common.compose.PreviewWrapper
  * - Only applies scrim/overlay within the pane (not full-screen)
  * - Allows interaction with other panes in multi-pane layouts
  * - Allows swiping between workspaces while the sheet remains in its pane
+ * - Supports drag-to-dismiss gesture
  *
  * @param visible Whether the bottom sheet should be shown
- * @param onDismiss Callback when the user dismisses the sheet (by clicking the scrim)
+ * @param onDismiss Callback when the user dismisses the sheet (by clicking the scrim or dragging down)
+ * @param dragHandle Optional drag handle composable. Pass null to hide the handle.
  * @param modifier Modifier for the sheet content
  * @param content The content to display in the bottom sheet
  */
@@ -49,6 +67,7 @@ fun PaneScopedBottomSheet(
     modifier: Modifier = Modifier,
     visible: Boolean,
     onDismiss: () -> Unit,
+    dragHandle: @Composable (() -> Unit)? = { DefaultDragHandle() },
     content: @Composable () -> Unit,
 ) {
     // In preview mode, just show the content as a card
@@ -57,9 +76,26 @@ fun PaneScopedBottomSheet(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
-            content()
+            Column {
+                dragHandle?.invoke()
+                content()
+            }
         }
         return
+    }
+
+    val density = LocalDensity.current
+    val dismissThreshold = with(density) { 100.dp.toPx() }
+    val velocityThreshold = 1000f
+
+    val scope = rememberCoroutineScope()
+    val dragOffset = remember { Animatable(0f) }
+
+    // Reset offset when becoming visible
+    LaunchedEffect(visible) {
+        if (visible) {
+            dragOffset.snapTo(0f)
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -101,13 +137,58 @@ fun PaneScopedBottomSheet(
                 )
             ) {
                 Card(
-                    modifier = modifier.fillMaxWidth(),
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .offset { IntOffset(0, dragOffset.value.roundToInt()) }
+                        .draggable(
+                            state = rememberDraggableState { delta ->
+                                scope.launch {
+                                    val newOffset = (dragOffset.value + delta).coerceAtLeast(0f)
+                                    dragOffset.snapTo(newOffset)
+                                }
+                            },
+                            orientation = Orientation.Vertical,
+                            onDragStopped = { velocity ->
+                                scope.launch {
+                                    if (dragOffset.value > dismissThreshold || velocity > velocityThreshold) {
+                                        onDismiss()
+                                    } else {
+                                        dragOffset.animateTo(
+                                            targetValue = 0f,
+                                            animationSpec = spring(
+                                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                stiffness = Spring.StiffnessMedium
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        ),
                     shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                 ) {
-                    content()
+                    Column {
+                        dragHandle?.invoke()
+                        content()
+                    }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun DefaultDragHandle() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            modifier = Modifier.size(width = 32.dp, height = 4.dp),
+            shape = RoundedCornerShape(2.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+        ) {}
     }
 }
 
@@ -130,6 +211,34 @@ private fun PaneScopedBottomSheetPreview() {
                 )
                 Text(
                     text = "This is sample content for the pane-scoped bottom sheet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun PaneScopedBottomSheetNoDragHandlePreview() {
+    PreviewWrapper {
+        PaneScopedBottomSheet(
+            visible = true,
+            onDismiss = {},
+            dragHandle = null,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "No Drag Handle",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                Text(
+                    text = "This sheet has no drag handle but can still be dragged.",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 8.dp),
                 )

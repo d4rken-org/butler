@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.ui.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -61,13 +62,20 @@ import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
+import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
+import eu.darken.butler.searcher.ui.search.dialogs.DateConditionEditSheet
+import eu.darken.butler.searcher.ui.search.dialogs.SizeConditionEditSheet
+import eu.darken.butler.searcher.ui.search.dialogs.TypeConditionEditSheet
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
 import eu.darken.butler.searcher.ui.search.elements.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.elements.SearchResultItemDetails
 import eu.darken.butler.searcher.ui.search.elements.SearchTargetsEmptyStateCard
 import eu.darken.butler.searcher.ui.search.elements.SearchToolbarCard
 import eu.darken.butler.searcher.ui.search.elements.SearcherInfoBar
+import eu.darken.butler.searcher.ui.search.elements.TemplatesBottomSheetContent
+import eu.darken.butler.searcher.ui.search.elements.TemplatesCard
 import eu.darken.butler.searcher.ui.search.elements.searchHistorySection
+import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import eu.darken.butler.searcher.ui.search.items.SelectableFileGrid
 import eu.darken.butler.searcher.ui.search.items.SelectableFileRow
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
@@ -118,6 +126,7 @@ fun SearcherWorkspacePage(
     val topBarScrollBehavior = rememberTopBarScrollBehavior()
     val listState = rememberLazyListState()
     var showClearHistoryDialog by remember { mutableStateOf(false) }
+    var showTemplatesSheet by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val shortcutsFocusRequester = remember { FocusRequester() }
@@ -173,6 +182,13 @@ fun SearcherWorkspacePage(
         }
     }
 
+    // Auto-scroll to top when a new search starts
+    LaunchedEffect(state?.workspaceState?.searchStatus) {
+        if (state?.workspaceState?.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
+            listState.scrollToItem(0)
+        }
+    }
+
     // Set the bottom bar height for scroll behavior
     bottomBarScrollBehavior.state.setHeight(64.dp)
 
@@ -198,8 +214,11 @@ fun SearcherWorkspacePage(
     }
     val hasActions by remember {
         derivedStateOf {
-            state?.selectionState?.selectedResultIds?.isNotEmpty() == true ||
-                state?.listItems?.isNotEmpty() == true
+            val currentState = state ?: return@derivedStateOf false
+            val showingHistory = !currentState.hasResults && currentState.searchHistory.isNotEmpty()
+
+            currentState.selectionState.selectedResultIds.isNotEmpty() ||
+                (!showingHistory && currentState.listItems.isNotEmpty())
         }
     }
 
@@ -256,6 +275,11 @@ fun SearcherWorkspacePage(
     )
 
     state?.let { currentState ->
+        // Handle back button for selection mode - clear selection first
+        BackHandler(enabled = currentState.selectionState.isSelectionMode) {
+            onPageAction(SearcherPageAction.Results.ExitSelectionMode)
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -292,6 +316,13 @@ fun SearcherWorkspacePage(
         ) {
             val gridState = rememberLazyGridState()
 
+            // Auto-scroll grid to top when a new search starts
+            LaunchedEffect(currentState.workspaceState.searchStatus) {
+                if (currentState.workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
+                    gridState.scrollToItem(0)
+                }
+            }
+
             // Content padding calculation (shared between list and grid)
             // Account for progress card visibility based on both existence AND scroll state
             val isProgressCardVisible = showProgressCard && topBarScrollBehavior.state.collapsedFraction <= 0.1f
@@ -327,6 +358,16 @@ fun SearcherWorkspacePage(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = contentPaddingValues
                     ) {
+                        // Show templates card when idle and have search targets
+                        if (!currentState.isSearching && currentState.searchTargets.isNotEmpty()) {
+                            item {
+                                TemplatesCard(
+                                    onClick = { showTemplatesSheet = true },
+                                    modifier = Modifier.padding(top = 8.dp),
+                                )
+                            }
+                        }
+
                         // Show search history (LazyListScope extension)
                         searchHistorySection(
                             searchHistory = currentState.searchHistory,
@@ -552,6 +593,11 @@ fun SearcherWorkspacePage(
                 onToggleContentRegex = { onPageAction(SearcherPageAction.Options.ToggleContentRegex) },
                 onToggleContentSearch = { onPageAction(SearcherPageAction.Options.ToggleContentSearch) },
                 onOpenPathPicker = { onPageAction(SearcherPageAction.Targets.OpenPicker) },
+                onConditionClick = { onPageAction(SearcherPageAction.Filter.EditCondition(it)) },
+                onAddSizeCondition = { onPageAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
+                onAddDateCondition = { onPageAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
+                onAddTypeCondition = { onPageAction(SearcherPageAction.Filter.OpenTypeConditionEditor) },
+                onRemoveCondition = { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) },
                 workspaceButtonState = workspaceButtonState,
                 workspaceActionHandler = workspaceActionHandler,
                 modifier = Modifier
@@ -706,6 +752,19 @@ fun SearcherWorkspacePage(
                     onDismiss = { errorDialogState = null }
                 )
             }
+
+            // Templates bottom sheet
+            PaneScopedBottomSheet(
+                visible = showTemplatesSheet,
+                onDismiss = { showTemplatesSheet = false },
+            ) {
+                TemplatesBottomSheetContent(
+                    onTemplateClick = { template ->
+                        showTemplatesSheet = false
+                        onPageAction(SearcherPageAction.Templates.Apply(template))
+                    },
+                )
+            }
         }
 
         // Item details bottom sheet
@@ -780,6 +839,51 @@ fun SearcherWorkspacePage(
             onSortOptionsConfirmed = { vm?.onSortOptions(it) },
         )
 
+        // Size condition edit bottom sheet
+        val sizeConditionState = currentState.dialogState as? SearcherDialogState.EditSizeCondition
+        SizeConditionEditSheet(
+            visible = sizeConditionState != null,
+            existingCondition = sizeConditionState?.existing,
+            onDismiss = { vm?.dismissDialog() },
+            onApply = { newCondition ->
+                // Remove existing condition if editing, then add new one
+                sizeConditionState?.existing?.let {
+                    onPageAction(SearcherPageAction.Filter.RemoveCondition(it))
+                }
+                onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
+            },
+        )
+
+        // Date condition edit bottom sheet
+        val dateConditionState = currentState.dialogState as? SearcherDialogState.EditDateCondition
+        DateConditionEditSheet(
+            visible = dateConditionState != null,
+            existingCondition = dateConditionState?.existing,
+            onDismiss = { vm?.dismissDialog() },
+            onApply = { newCondition ->
+                // Remove existing condition if editing, then add new one
+                dateConditionState?.existing?.let {
+                    onPageAction(SearcherPageAction.Filter.RemoveCondition(it))
+                }
+                onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
+            },
+        )
+
+        // Type condition edit bottom sheet
+        val typeConditionState = currentState.dialogState as? SearcherDialogState.EditTypeCondition
+        TypeConditionEditSheet(
+            visible = typeConditionState != null,
+            existingCondition = typeConditionState?.existing,
+            onDismiss = { vm?.dismissDialog() },
+            onApply = { newCondition ->
+                // Remove existing condition if editing, then add new one
+                typeConditionState?.existing?.let {
+                    onPageAction(SearcherPageAction.Filter.RemoveCondition(it))
+                }
+                onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
+            },
+        )
+
         // Operation dialog host
         OperationDialogHost(
             dialogState = operationDialogState,
@@ -789,7 +893,10 @@ fun SearcherWorkspacePage(
                 operationDialogState = OperationDialogState.None
                 vm?.cancelOperation(operationId)
             },
-            onCopyError = { vm?.copyError(it) }
+            onCopyError = { vm?.copyError(it) },
+            onHandleIssue = { operationId ->
+                vm?.showConflictSheet(operationId)
+            },
         )
     }  // End of state?.let
 }

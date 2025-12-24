@@ -252,7 +252,7 @@ object MockDataProvider {
 
         return PathActionIssue.UnknownError(
             source = source,
-            destination = destination,
+            destinationPath = destination?.lookedUp,
             exception = exception,
             errorMessage = message.toCaString(),
             canSkip = canSkip,
@@ -280,7 +280,7 @@ object MockDataProvider {
     ): PathActionIssue.InsufficientPermission {
         return PathActionIssue.InsufficientPermission(
             source = source,
-            destination = destination,
+            destinationPath = destination.lookedUp,
             canSkip = true,
         )
     }
@@ -291,7 +291,7 @@ object MockDataProvider {
     ): PathActionIssue.InsufficientSpace {
         return PathActionIssue.InsufficientSpace(
             source = source,
-            destination = destination,
+            destinationPath = destination.lookedUp,
         )
     }
 

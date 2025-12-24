@@ -125,11 +125,13 @@ fun ExplorerWorkspacePage(
         position = BarPosition.TOP,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
+        contentPadding = 8.dp,
     )
     val bottomBarStackState = rememberFloatingBarStackState(
         position = BarPosition.BOTTOM,
         defaultSpacing = 8.dp,
         edgePadding = 8.dp,
+        contentPadding = 16.dp,
     )
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
@@ -323,6 +325,11 @@ fun ExplorerWorkspacePage(
         BackHandler(enabled = mainState.canGoBack) {
             vm?.goBack()
         }
+    }
+
+    // Handle back button for selection mode - clear selection first
+    BackHandler(enabled = mainState.selectionState.isSelectionMode) {
+        vm?.clearSelection()
     }
 
     // Derived states for stable recomposition
@@ -730,7 +737,10 @@ fun ExplorerWorkspacePage(
                     operationDialogState = OperationDialogState.None
                     showCancelConfirmation = operationId
                 },
-                onCopyError = { vm?.copyError(it) }
+                onCopyError = { vm?.copyError(it) },
+                onHandleIssue = { operationId ->
+                    vm?.showConflictSheet(operationId)
+                },
             )
 
             // Show conflict bottom sheet when needed

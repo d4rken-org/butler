@@ -44,6 +44,66 @@
     <string name="searcher_option_search_content_label">Search content</string>
     <string name="searcher_option_search_content_desc">Search file contents</string>
 
+    <!-- Search Templates -->
+    <string name="searcher_templates_action">Templates</string>
+    <string name="searcher_templates_card_title">Quick search templates</string>
+    <string name="searcher_template_large_files">Large files</string>
+    <string name="searcher_template_large_files_desc">Files over 100 MB</string>
+    <string name="searcher_template_recent_files">Recent files</string>
+    <string name="searcher_template_recent_files_desc">Modified in last 7 days</string>
+    <string name="searcher_template_old_files">Old files</string>
+    <string name="searcher_template_old_files_desc">Not modified in over a year</string>
+    <string name="searcher_template_images">Images</string>
+    <string name="searcher_template_images_desc">JPG, PNG, GIF, WebP, HEIC</string>
+    <string name="searcher_template_videos">Videos</string>
+    <string name="searcher_template_videos_desc">MP4, MKV, AVI, MOV, WebM</string>
+    <string name="searcher_template_audio">Audio</string>
+    <string name="searcher_template_audio_desc">MP3, WAV, FLAC, OGG, M4A</string>
+    <string name="searcher_template_documents">Documents</string>
+    <string name="searcher_template_documents_desc">PDF, Word, Excel, PowerPoint, TXT</string>
+    <string name="searcher_template_archives">Archives</string>
+    <string name="searcher_template_archives_desc">ZIP, RAR, 7z, TAR, GZ</string>
+    <string name="searcher_template_apks">APKs</string>
+    <string name="searcher_template_apks_desc">Android application packages</string>
+
+    <plurals name="searcher_templates_count">
+        <item quantity="one">%d template</item>
+        <item quantity="other">%d templates</item>
+    </plurals>
+
+    <!-- Search Filters -->
+    <string name="searcher_filter_action">Filter</string>
+    <string name="searcher_filter_add_action">Add filter</string>
+    <string name="searcher_filter_title">Search Filters</string>
+    <string name="searcher_filter_size_section">File Size</string>
+    <string name="searcher_filter_size_min">Minimum size</string>
+    <string name="searcher_filter_size_max">Maximum size</string>
+    <string name="searcher_filter_date_section">Modified Date</string>
+    <string name="searcher_filter_date_after">Modified after</string>
+    <string name="searcher_filter_date_before">Modified before</string>
+    <string name="searcher_filter_date_any">Any time</string>
+    <string name="searcher_filter_date_24h">Last 24 hours</string>
+    <string name="searcher_filter_date_7d">Last 7 days</string>
+    <string name="searcher_filter_date_30d">Last 30 days</string>
+    <string name="searcher_filter_date_90d">Last 90 days</string>
+    <string name="searcher_filter_date_1y">Last year</string>
+
+    <!-- Comparator labels -->
+    <string name="searcher_filter_comparator_greater_than">greater than</string>
+    <string name="searcher_filter_comparator_greater_or_equal">greater or equal</string>
+    <string name="searcher_filter_comparator_less_than">less than</string>
+    <string name="searcher_filter_comparator_less_or_equal">less or equal</string>
+    <string name="searcher_filter_comparator_equal">equal to</string>
+    <string name="searcher_filter_size_value_label">Size</string>
+    <string name="searcher_filter_size_at_least">At least</string>
+    <string name="searcher_filter_size_at_most">At most</string>
+    <string name="searcher_filter_date_value_label">Date</string>
+    <string name="searcher_filter_date_direction_after">After</string>
+    <string name="searcher_filter_date_direction_before">Before</string>
+    <string name="searcher_filter_type_label">Type</string>
+    <string name="searcher_filter_type_files">Files</string>
+    <string name="searcher_filter_type_directories">Directories</string>
+
     <!-- Search history actions -->
     <string name="searcher_history_remove_action">Remove from history</string>
     <string name="searcher_history_clear_all_action">Clear all</string>

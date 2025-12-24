@@ -13,7 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -83,12 +83,15 @@ fun <T : Parcelable> Flow<T>.toRemoteInputStream(
  *
  * Reads line-by-line, decodes Base64, unmarshalls Parcel, creates event.
  *
+ * Uses channelFlow instead of flow to support emissions when the IPC callback
+ * is invoked on a different coroutine (binder thread uses runBlocking).
+ *
  * @param creator Parcelable.Creator for deserializing events
  * @return Flow of deserialized events
  */
 fun <T : Parcelable> RemoteInputStream.toEventFlow(
     creator: Parcelable.Creator<T>
-): Flow<T> = flow {
+): Flow<T> = channelFlow {
     val buffer = this@toEventFlow.inputStream().reader().buffered(EVENT_BUFFER_SIZE)
 
     while (currentCoroutineContext().isActive) {
@@ -104,7 +107,7 @@ fun <T : Parcelable> RemoteInputStream.toEventFlow(
         val event = creator.createFromParcel(parcel)
         parcel.recycle()
 
-        emit(event)
+        send(event)
     }
 
     close()

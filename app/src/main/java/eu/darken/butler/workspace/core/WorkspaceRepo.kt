@@ -166,14 +166,44 @@ class WorkspaceRepo @Inject constructor(
             is WorkspaceAction.CreateBatch -> {
                 log(TAG, INFO) { "Creating batch of ${action.requests.size} workspaces" }
 
+                // Check workspace limit for free users
+                val isPro = upgradeRepo.isPro()
+                val allowedRequests = if (isPro) {
+                    action.requests
+                } else {
+                    // Count current tab workspaces (exclude sub-workspaces)
+                    val currentTabCount = _workspaces.value.count { ws ->
+                        val info = ws.info.first()
+                        !info.isSubWorkspace
+                    }
+                    val remainingSlots = (FREE_TIER_WORKSPACE_LIMIT - currentTabCount).coerceAtLeast(0)
+
+                    if (remainingSlots == 0) {
+                        log(TAG, INFO) { "Workspace limit reached, no slots available for batch creation" }
+                        showWorkspaceLimitDialog()
+                        return@withLock WorkspaceAction.CreateBatch.Result.Success(
+                            results = emptyMap(),
+                            skippedCount = action.requests.size,
+                        )
+                    }
+
+                    action.requests.take(remainingSlots)
+                }
+
+                val limitSkipped = action.requests.size - allowedRequests.size
+                if (limitSkipped > 0) {
+                    log(TAG, INFO) { "Workspace limit: allowing ${allowedRequests.size}, skipping $limitSkipped" }
+                    showWorkspaceLimitDialog()
+                }
+
                 // Check if confirmation is needed
-                val needsConfirmation = action.requests.size >= CONFIRMATION_THRESHOLD
+                val needsConfirmation = allowedRequests.size >= CONFIRMATION_THRESHOLD
 
                 if (needsConfirmation) {
                     log(
                         TAG,
                         INFO
-                    ) { "Batch size (${action.requests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation" }
+                    ) { "Batch size (${allowedRequests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation" }
                     val confirmationId = kotlin.uuid.Uuid.random().toString()
 
                     val confirmed = suspendCancellableCoroutine { continuation ->
@@ -183,8 +213,8 @@ class WorkspaceRepo @Inject constructor(
                                 id = confirmationId,
                                 sourceWorkspaceId = action.sourceWorkspaceId,
                                 data = PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation(
-                                    totalCount = action.requests.size,
-                                    skippedCount = 0, // Could be passed in action if needed
+                                    totalCount = allowedRequests.size,
+                                    skippedCount = limitSkipped,
                                 ),
                             ))
                         }
@@ -200,7 +230,7 @@ class WorkspaceRepo @Inject constructor(
                 // Execute batch creation
                 val results = mutableMapOf<WorkspaceAction.Create, WorkspaceAction.CreateBatch.CreationResult>()
 
-                action.requests.forEach { createRequest ->
+                allowedRequests.forEach { createRequest ->
                     try {
                         log(TAG) { "Creating workspace: ${createRequest.type}" }
                         val newId = create(
@@ -232,14 +262,14 @@ class WorkspaceRepo @Inject constructor(
                     WorkspaceEvent.BatchCreationCompleted(
                         successCount = successCount,
                         failureCount = failureCount,
-                        skippedCount = 0,
+                        skippedCount = limitSkipped,
                         sourceWorkspaceId = action.sourceWorkspaceId,
                     )
                 )
 
                 WorkspaceAction.CreateBatch.Result.Success(
                     results = results,
-                    skippedCount = 0,
+                    skippedCount = limitSkipped,
                 )
             }
 

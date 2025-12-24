@@ -85,7 +85,7 @@ internal fun PrivacyPage(
                     icon = {
                         ButlerMascot(
                             modifier = Modifier.size(96.dp),
-                            variant = ButlerMascotMode.Animated.HatOff(loopDelay = 4.seconds, loop = false),
+                            variant = ButlerMascotMode.Animated.HatOff(loopDelay = 3.seconds, loop = true),
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
