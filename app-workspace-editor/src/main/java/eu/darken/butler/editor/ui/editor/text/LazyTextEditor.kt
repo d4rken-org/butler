@@ -81,6 +81,7 @@ private val tag = logTag("Editor", "LazyTextEditor")
 @Composable
 fun LazyTextEditor(
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
     content: String,
     totalLines: Int,
     cursorPosition: TextPosition,
@@ -194,11 +195,11 @@ fun LazyTextEditor(
             val viewportWidth = horizontalScrollState.viewportSize.toFloat()
             if (viewportWidth <= 0) return@LaunchedEffect
 
-            val contentPadding = with(density) { 8.dp.toPx() } // Match TextLineItem padding
+            val textPaddingPx = with(density) { 8.dp.toPx() } // Match TextLineItem padding
             val margin = charWidth * 3 // 3 character margin from edge
 
             // Cursor X position
-            val cursorX = contentPadding + (cursorPosition.column * charWidth)
+            val cursorX = textPaddingPx + (cursorPosition.column * charWidth)
 
             val currentScrollX = horizontalScrollState.value.toFloat()
             val visibleLeft = currentScrollX
@@ -243,6 +244,7 @@ fun LazyTextEditor(
 
     // Synchronized dual-column content
     DualColumnEditorContent(
+        contentPadding = contentPadding,
         totalLines = totalLines,
         visibleLineContent = visibleLineContent,
         visibleRange = visibleRange,
@@ -270,6 +272,7 @@ fun LazyTextEditor(
 
 @Composable
 private fun DualColumnEditorContent(
+    contentPadding: PaddingValues,
     totalLines: Int,
     visibleLineContent: Map<Int, String>,
     visibleRange: IntRange,
@@ -512,7 +515,7 @@ private fun DualColumnEditorContent(
             if (showLineNumbers) {
                 LazyColumn(
                     state = lineNumbersListState,
-                    contentPadding = PaddingValues(bottom = 52.dp),
+                    contentPadding = contentPadding,
                     modifier = Modifier
                         .width(lineNumberWidth)
                         .fillMaxHeight()
@@ -574,7 +577,7 @@ private fun DualColumnEditorContent(
 
             LazyColumn(
                 state = contentListState,
-                contentPadding = PaddingValues(bottom = 52.dp),
+                contentPadding = contentPadding,
                 modifier = contentModifier
                     .then(focusBorderModifier)
                     .pointerInput(isWorkspaceFocused, requestWorkspaceFocus) {

@@ -3,6 +3,7 @@ package eu.darken.butler.editor.ui.editor
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,30 +14,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Error
-import androidx.compose.material.icons.twotone.KeyboardArrowDown
-import androidx.compose.material.icons.twotone.KeyboardArrowUp
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -48,7 +38,6 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
-import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
@@ -57,13 +46,15 @@ import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
 import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
 import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
+import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.setHeight
-import eu.darken.butler.workspace.ui.scroll.setHeights
 
 
 @Composable
@@ -130,43 +121,21 @@ fun EditorWorkspacePage(
     onDismissCloseConfirmDialog: () -> Unit = {},
     onConfirmCloseFile: () -> Unit = {},
 ) {
-    rememberCoroutineScope()
-
     val hasActions = state.availableActions.isNotEmpty()
 
-    // Setup scroll behavior for collapsing header
-    val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
-    val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
-    val density = LocalDensity.current
-    var actualToolbarHeightPx by remember { mutableStateOf(0) }
-    val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
-
-    // Set the top toolbar heights (expanded and collapsed)
-    topToolbarScrollBehavior.state.setHeights(
-        expandedHeightDp = 104.dp,  // Full card with title + actions
-        collapsedHeightDp = 48.dp   // Compact single row
-    )
-
-    // Memory info card height
-    val memoryCardHeight = 36.dp
-
-    // Set the bottom bar height for scroll behavior
-    bottomBarScrollBehavior.state.setHeight(memoryCardHeight)
+    val topBarStackState = rememberFloatingBarStackState(position = BarPosition.TOP)
+    val bottomBarStackState = rememberFloatingBarStackState(position = BarPosition.BOTTOM)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        // Main content with padding for floating header and memory card
+        // Main content - contentPadding allows scrolling under bars
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(
-                    top = 16.dp + actualToolbarHeightDp,
-                    bottom = 0.dp
-                )
-                .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
-                .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection)
+                .nestedScroll(topBarStackState.nestedScrollConnection)
+                .nestedScroll(bottomBarStackState.nestedScrollConnection)
         ) {
             Column(
                 modifier = Modifier.weight(1f)
@@ -193,6 +162,10 @@ fun EditorWorkspacePage(
                     } else {
                         // Show editor (with file content or empty in-memory buffer)
                         LazyTextEditor(
+                            contentPadding = PaddingValues(
+                                top = topBarStackState.contentPaddingDp() + 8.dp,
+                                bottom = bottomBarStackState.contentPaddingDp(),
+                            ),
                             content = state.currentContent,
                             totalLines = state.totalLines,
                             cursorPosition = state.cursorPosition,
@@ -243,86 +216,96 @@ fun EditorWorkspacePage(
             }
         }
 
-        // Floating toolbar card and info bar at top
-        Column(
+        // Top floating bars
+        FloatingBarStack(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .onGloballyPositioned { layoutCoordinates ->
-                    actualToolbarHeightPx = layoutCoordinates.size.height
+                .padding(horizontal = 8.dp),
+            position = BarPosition.TOP,
+            state = topBarStackState,
+            bars = {
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 48.dp),
+                    animation = BarAnimation.Slide(),
+                ) {
+                    EditorToolbarCard(
+                        workspaceId = workspaceId,
+                        design = design,
+                        title = state.title,
+                        subTitle = state.subTitle,
+                        isModified = state.isModified,
+                        isLoading = state.isLoading,
+                        hasContent = state.hasContent,
+                        canUndo = state.isModified,
+                        canRedo = false,
+                        workspaceButtonState = workspaceButtonState,
+                        workspaceActionHandler = workspaceActionHandler,
+                        onAction = onPageAction,
+                        collapsedFraction = collapsedFraction,
+                    )
                 }
-        ) {
-            EditorToolbarCard(
-                workspaceId = workspaceId,
-                design = design,
-                title = state.title,
-                subTitle = state.subTitle,
-                isModified = state.isModified,
-                isLoading = state.isLoading,
-                hasContent = state.hasContent,
-                canUndo = state.isModified,
-                canRedo = false,
-                workspaceButtonState = workspaceButtonState,
-                workspaceActionHandler = workspaceActionHandler,
-                onAction = onPageAction,
-                collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
-            )
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    animation = BarAnimation.Slide(),
+                ) {
+                    EditorInfoBar(
+                        fileSize = state.fileSize,
+                        totalLines = state.totalLines,
+                        cursorLine = state.cursorPosition.line,
+                        cursorColumn = state.cursorPosition.column,
+                        selectedLineCount = state.selectedLineCount,
+                        selectedCharacterCount = state.selectedCharacterCount,
+                        onClearSelection = {
+                            onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
+                        },
+                    )
+                }
+            },
+        ) { _ -> }
 
-            // Info bar below toolbar
-            EditorInfoBar(
-                modifier = Modifier.padding(top = 8.dp),
-                fileSize = state.fileSize,
-                totalLines = state.totalLines,
-                cursorLine = state.cursorPosition.line,
-                cursorColumn = state.cursorPosition.column,
-                selectedLineCount = state.selectedLineCount,
-                selectedCharacterCount = state.selectedCharacterCount,
-                onClearSelection = {
-                    onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
-                },
-            )
-        }
-
-        // Floating Search Bar (above action bar)
-        if (state.isSearchBarVisible) {
-            EditorSearchBar(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 8.dp, vertical = 8.dp)
-                    .padding(
-                        bottom = if (hasActions && bottomBarScrollBehavior.state.collapsedFraction <= 0.1f) {
-                            64.dp  // Action bar visible - offset above it
-                        } else {
-                            0.dp   // Action bar hidden or no actions - sit at bottom
-                        }
-                    ),
-                scrollState = bottomBarScrollBehavior.state,
-                searchQuery = state.searchQueryInput,
-                searchResults = state.searchResults,
-                currentIndex = state.currentSearchResultIndex,
-                caseSensitive = state.searchCaseSensitive,
-                regexEnabled = state.searchRegexEnabled,
-                wholeWord = state.searchWholeWord,
-                onSearchQueryChange = onSearchQueryChange,
-                onCaseSensitiveToggle = onCaseSensitiveToggle,
-                onRegexToggle = onRegexToggle,
-                onWholeWordToggle = onWholeWordToggle,
-                onPrevious = onPreviousSearchResult,
-                onNext = onNextSearchResult,
-                onClose = onCloseSearch,
-            )
-        }
-
-        // Floating Bottom ActionBar
-        if (hasActions) {
-            EditorActionBar(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                actions = state.availableActions,
-                scrollState = bottomBarScrollBehavior.state,
-                onActionClick = onActionExecute,
-            )
-        }
+        // Bottom floating bars
+        FloatingBarStack(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            position = BarPosition.BOTTOM,
+            state = bottomBarStackState,
+            bars = {
+                FloatingBar(
+                    visible = state.isSearchBarVisible,
+                    scrollBehavior = BarScrollBehavior.HideOnScroll,
+                    animation = BarAnimation.Slide(),
+                ) {
+                    EditorSearchBar(
+                        searchQuery = state.searchQueryInput,
+                        searchResults = state.searchResults,
+                        currentIndex = state.currentSearchResultIndex,
+                        caseSensitive = state.searchCaseSensitive,
+                        regexEnabled = state.searchRegexEnabled,
+                        wholeWord = state.searchWholeWord,
+                        onSearchQueryChange = onSearchQueryChange,
+                        onCaseSensitiveToggle = onCaseSensitiveToggle,
+                        onRegexToggle = onRegexToggle,
+                        onWholeWordToggle = onWholeWordToggle,
+                        onPrevious = onPreviousSearchResult,
+                        onNext = onNextSearchResult,
+                        onClose = onCloseSearch,
+                    )
+                }
+                FloatingBar(
+                    visible = hasActions,
+                    scrollBehavior = BarScrollBehavior.HideOnScroll,
+                    animation = BarAnimation.Slide(),
+                ) {
+                    EditorActionBar(
+                        actions = state.availableActions,
+                        onActionClick = onActionExecute,
+                    )
+                }
+            },
+        ) { _ -> }
     }
 
     // Dialogs

@@ -38,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -48,12 +47,10 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
-import eu.darken.butler.workspace.ui.scroll.BottomBarScrollState
 
 @Composable
 fun EditorSearchBar(
     modifier: Modifier = Modifier,
-    scrollState: BottomBarScrollState,
     searchQuery: TextFieldValue,
     searchResults: List<SearchResult>,
     currentIndex: Int,
@@ -80,13 +77,7 @@ fun EditorSearchBar(
     }
 
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                // Binary snap behavior: fully visible or fully hidden
-                alpha = if (scrollState.collapsedFraction > 0.1f) 0f else 1f
-                translationY = if (scrollState.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
-            },
+        modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
@@ -277,7 +268,6 @@ fun EditorSearchBar(
 private fun EditorSearchBarEmptyPreview() {
     PreviewWrapper {
         EditorSearchBar(
-            scrollState = BottomBarScrollState(),
             searchQuery = TextFieldValue(""),
             searchResults = emptyList(),
             currentIndex = 0,
@@ -300,7 +290,6 @@ private fun EditorSearchBarEmptyPreview() {
 private fun EditorSearchBarWithQueryPreview() {
     PreviewWrapper {
         EditorSearchBar(
-            scrollState = BottomBarScrollState(),
             searchQuery = TextFieldValue("test"),
             searchResults = emptyList(),
             currentIndex = 0,
@@ -323,7 +312,6 @@ private fun EditorSearchBarWithQueryPreview() {
 private fun EditorSearchBarWithResultsPreview() {
     PreviewWrapper {
         EditorSearchBar(
-            scrollState = BottomBarScrollState(),
             searchQuery = TextFieldValue("test"),
             searchResults = List(10) {
                 SearchResult(
@@ -352,7 +340,6 @@ private fun EditorSearchBarWithResultsPreview() {
 private fun EditorSearchBarWithOptionsPreview() {
     PreviewWrapper {
         EditorSearchBar(
-            scrollState = BottomBarScrollState(),
             searchQuery = TextFieldValue("Test"),
             searchResults = List(5) {
                 SearchResult(
