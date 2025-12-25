@@ -152,8 +152,14 @@ fun EditorWorkspacePage(
     }
     val hasActions = state.availableActions.isNotEmpty()
 
-    val topBarStackState = rememberFloatingBarStackState(position = BarPosition.TOP)
-    val bottomBarStackState = rememberFloatingBarStackState(position = BarPosition.BOTTOM)
+    val topBarStackState = rememberFloatingBarStackState(
+        position = BarPosition.TOP,
+        includeSystemBarInset = design.paneEdges.touchesTop,
+    )
+    val bottomBarStackState = rememberFloatingBarStackState(
+        position = BarPosition.BOTTOM,
+        includeSystemBarInset = design.paneEdges.touchesBottom,
+    )
 
     Box(
         modifier = Modifier
