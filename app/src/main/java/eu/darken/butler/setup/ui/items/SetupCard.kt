@@ -36,7 +36,6 @@ fun SetupCard(
     val isComplete = (item.state as? SetupModule.State.Current)?.isComplete == true
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isComplete) 2.dp else 4.dp
         ),
