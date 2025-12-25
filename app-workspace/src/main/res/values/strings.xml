@@ -233,7 +233,7 @@
 
     <!-- Open in New Tabs Confirmation Dialog -->
     <string name="workspace_open_tabs_confirmation_title">Open multiple tabs?</string>
-    <string name="workspace_open_tabs_confirmation_message">This will open %1$d workspaces.</string>
+    <string name="workspace_open_tabs_confirmation_message">This will open %1$d tabs.</string>
 
     <!-- Workspace Banner Feedback -->
     <plurals name="workspace_banner_opened_tabs">
@@ -249,16 +249,17 @@
     <string name="workspace_settings_ondemand_creation_title">Auto-create tabs</string>
     <string name="workspace_settings_ondemand_creation_desc">Automatically create new tab when swiping past the last tab.</string>
     <string name="workspace_settings_live_preview_title">Live previews</string>
-    <string name="workspace_settings_live_preview_desc">Show live workspace content in tab manager.</string>
+    <string name="workspace_settings_live_preview_desc">Show live tab content in tab manager.</string>
+    <string name="workspace_settings_other">Other</string>
     <string name="workspace_settings_layout_title">Layout</string>
     <string name="workspace_settings_layout_mode_portrait_title">Portrait layout mode</string>
-    <string name="workspace_settings_layout_mode_portrait_desc">Choose workspace layout in portrait orientation.</string>
+    <string name="workspace_settings_layout_mode_portrait_desc">Choose tab layout in portrait orientation.</string>
     <string name="workspace_settings_layout_mode_landscape_title">Landscape layout mode</string>
-    <string name="workspace_settings_layout_mode_landscape_desc">Choose workspace layout in landscape orientation.</string>
+    <string name="workspace_settings_layout_mode_landscape_desc">Choose tab layout in landscape orientation.</string>
     <string name="workspace_settings_layout_mode_auto">Auto</string>
     <string name="workspace_settings_layout_mode_auto_desc">Automatically adapt layout based on screen size.</string>
     <string name="workspace_settings_layout_mode_single">Single</string>
-    <string name="workspace_settings_layout_mode_single_desc">One workspace pane takes the full screen.</string>
+    <string name="workspace_settings_layout_mode_single_desc">One tab pane takes the full screen.</string>
     <string name="workspace_settings_layout_mode_dual_vertical">Dual vertical</string>
     <string name="workspace_settings_layout_mode_dual_vertical_desc">Two panes side-by-side (left/right).</string>
     <string name="workspace_settings_layout_mode_dual_horizontal">Dual horizontal</string>
@@ -272,21 +273,21 @@
 
     <!-- Session Restoration -->
     <string name="workspace_settings_session_title">Session restoration</string>
-    <string name="workspace_settings_session_restore_title">Restore workspaces on startup</string>
-    <string name="workspace_settings_session_restore_desc">Automatically restore previously open workspaces when the app starts.</string>
+    <string name="workspace_settings_session_restore_title">Restore tabs on startup</string>
+    <string name="workspace_settings_session_restore_desc">Automatically restore previously open tabs when the app starts.</string>
     <string name="workspace_settings_session_data_title">Session data</string>
     <plurals name="workspace_settings_session_data_desc">
-        <item quantity="one">%1$d workspace • %2$s</item>
-        <item quantity="other">%1$d workspaces • %2$s</item>
+        <item quantity="one">%1$d tab • %2$s</item>
+        <item quantity="other">%1$d tabs • %2$s</item>
     </plurals>
 
     <!-- Session Restoration Error -->
     <string name="workspace_session_restoration_error_title">Session Restoration Failed</string>
-    <string name="workspace_session_restoration_error_description">Your previous workspace session could not be restored. This may be due to a bug that will be fixed in a future update.\n\nYou can clear the saved session to continue using Butler, or wait for an update.</string>
+    <string name="workspace_session_restoration_error_description">Your previous tab session could not be restored. This may be due to a bug that will be fixed in a future update.\n\nYou can clear the saved session to continue using Butler, or wait for an update.</string>
     <string name="workspace_session_restoration_error_clear_action">Clear Session</string>
     <string name="workspace_session_restoration_error_report_action">Report Issue</string>
     <string name="workspace_session_restoration_error_confirm_title">Clear Session?</string>
-    <string name="workspace_session_restoration_error_confirm_description">This will permanently delete your saved workspace session. This action cannot be undone.</string>
+    <string name="workspace_session_restoration_error_confirm_description">This will permanently delete your saved tab session. This action cannot be undone.</string>
 
     <!-- Workspace Limit -->
     <string name="workspace_limit_reached_title">Tab Limit Reached</string>

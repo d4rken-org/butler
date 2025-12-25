@@ -36,7 +36,7 @@ sealed class SearchTemplate(
         override fun createQuery(currentTargets: List<SearchTarget>) = SearchQuery(
             targets = currentTargets,
             filenameQuery = MATCH_ALL_QUERY,
-            filter = SearchQuery.Filter(
+            filter = SearchFilter(
                 conditions = listOf(
                     FilterCondition.Type(FileType.FILE),
                     FilterCondition.Size(FilterComparator.GTE, SIZE_100_MB),
@@ -56,7 +56,7 @@ sealed class SearchTemplate(
             return SearchQuery(
                 targets = currentTargets,
                 filenameQuery = MATCH_ALL_QUERY,
-                filter = SearchQuery.Filter(
+                filter = SearchFilter(
                     conditions = listOf(
                         FilterCondition.ModifiedDate(FilterComparator.GT, sevenDaysAgo),
                     ),
@@ -76,7 +76,7 @@ sealed class SearchTemplate(
             return SearchQuery(
                 targets = currentTargets,
                 filenameQuery = MATCH_ALL_QUERY,
-                filter = SearchQuery.Filter(
+                filter = SearchFilter(
                     conditions = listOf(
                         FilterCondition.ModifiedDate(FilterComparator.LT, oneYearAgo),
                     ),

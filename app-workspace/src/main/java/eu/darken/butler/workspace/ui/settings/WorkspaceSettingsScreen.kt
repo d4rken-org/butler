@@ -113,16 +113,6 @@ fun WorkspaceSettingsScreen(
             }
 
             item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.Visibility,
-                    title = stringResource(R.string.workspace_settings_live_preview_title),
-                    subtitle = stringResource(R.string.workspace_settings_live_preview_desc),
-                    checked = state.livePreview,
-                    onCheckedChange = { onToggleLivePreview() }
-                )
-            }
-
-            item {
                 SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_layout_title))
             }
 
@@ -175,6 +165,20 @@ fun WorkspaceSettingsScreen(
                         onClick = {},
                     )
                 }
+            }
+
+            item {
+                SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_other))
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.Visibility,
+                    title = stringResource(R.string.workspace_settings_live_preview_title),
+                    subtitle = stringResource(R.string.workspace_settings_live_preview_desc),
+                    checked = state.livePreview,
+                    onCheckedChange = { onToggleLivePreview() },
+                )
             }
         }
     }

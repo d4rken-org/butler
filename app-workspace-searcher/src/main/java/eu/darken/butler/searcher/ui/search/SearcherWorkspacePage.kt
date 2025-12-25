@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -133,6 +136,15 @@ fun SearcherWorkspacePage(
 
     // Track actual measured height of the toolbar card
     val density = LocalDensity.current
+
+    // System bar insets for edge-to-edge (based on pane edges)
+    val statusBarInset = if (design.paneEdges.touchesTop) {
+        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    } else 0.dp
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
+
     var actualToolbarHeightPx by remember { mutableIntStateOf(0) }
     val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
 
@@ -329,10 +341,10 @@ fun SearcherWorkspacePage(
             val contentPaddingValues = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
-                top = 8.dp + actualToolbarHeightDp +
+                top = statusBarInset + 8.dp + actualToolbarHeightDp +
                     (if (isProgressCardVisible) statusCardHeight + 8.dp else 4.dp) +
                     (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp),
-                bottom = run {
+                bottom = navBarInset + run {
                     val actionBarHeight = if (hasActions) 64.dp else 0.dp
                     val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
                     val operationsHeight = if (hasOperations) 80.dp else 0.dp
@@ -342,8 +354,8 @@ fun SearcherWorkspacePage(
 
             // Conditional rendering: History mode vs Results mode
             val hasNoQuery = currentState.filenameQuery.isBlank() && currentState.contentQuery.isBlank()
-            // Show history when no results (even if query is filled from restore)
-            val showHistory = !currentState.hasResults && currentState.searchHistory.isNotEmpty()
+            // Show history only when truly idle (cleared state) - hide during/after search
+            val showHistory = currentState.isIdle && currentState.searchHistory.isNotEmpty()
 
             when {
                 showHistory -> {
@@ -602,7 +614,8 @@ fun SearcherWorkspacePage(
                 workspaceActionHandler = workspaceActionHandler,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp)
+                    .padding(top = statusBarInset + 8.dp, bottom = 8.dp)
                     .onGloballyPositioned { layoutCoordinates ->
                         actualToolbarHeightPx = layoutCoordinates.size.height
                     }
@@ -624,7 +637,7 @@ fun SearcherWorkspacePage(
                     },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = 16.dp + actualToolbarHeightDp)
+                        .offset(y = statusBarInset + 16.dp + actualToolbarHeightDp)
                         .padding(horizontal = 16.dp)
                         .graphicsLayer {
                             // Immediate snap behavior: fully visible or fully hidden
@@ -644,7 +657,7 @@ fun SearcherWorkspacePage(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(
-                            y = 8.dp + actualToolbarHeightDp +
+                            y = statusBarInset + 8.dp + actualToolbarHeightDp +
                                 (if (showProgressCard) statusCardHeight + 8.dp else 0.dp)
                         )
                         .padding(horizontal = 16.dp)
@@ -662,7 +675,7 @@ fun SearcherWorkspacePage(
                     .padding(
                         start = 8.dp,
                         end = 8.dp,
-                        bottom = clipboardVerticalOffset.coerceAtLeast(0f).dp
+                        bottom = navBarInset + clipboardVerticalOffset.coerceAtLeast(0f).dp
                     )
                     .graphicsLayer {
                         scaleY = clipboardScale
@@ -720,7 +733,8 @@ fun SearcherWorkspacePage(
                 WorkspaceActionBar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                        .padding(horizontal = 8.dp)
+                        .padding(bottom = navBarInset + 8.dp, top = 8.dp)
                         .graphicsLayer {
                             // Immediate snap behavior: fully visible or fully hidden
                             alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f

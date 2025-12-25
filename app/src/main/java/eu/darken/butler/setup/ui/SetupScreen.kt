@@ -5,12 +5,17 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.twotone.Refresh
@@ -79,27 +84,35 @@ fun SetupScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 360.dp),
+                modifier = Modifier
+                    .widthIn(max = 1080.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
-            items(state.items) { item ->
-                SetupCard(
-                    item = item,
-                    onExecuteAction = { action -> onExecuteAction(item.type, action) },
-                    onOpenHelp = { onOpenHelp(item.type) }
-                )
-            }
+                items(state.items) { item ->
+                    SetupCard(
+                        item = item,
+                        onExecuteAction = { action -> onExecuteAction(item.type, action) },
+                        onOpenHelp = { onOpenHelp(item.type) },
+                    )
+                }
 
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }

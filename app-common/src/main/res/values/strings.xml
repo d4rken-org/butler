@@ -222,13 +222,13 @@
 
     <!-- Open in new tabs feature -->
     <string name="common_open_tabs_confirmation_title">Open multiple tabs?</string>
-    <string name="common_open_tabs_confirmation_message">This will open %1$d workspaces.</string>
+    <string name="common_open_tabs_confirmation_message">This will open %1$d tabs.</string>
     <string name="common_open_tabs_success">Opened %1$d tabs</string>
     <string name="common_open_tabs_success_with_skipped">Opened %1$d tabs (%2$d items skipped)</string>
 
-    <!-- Workspace close confirmation -->
-    <string name="general_workspace_close_confirmation_title">Close workspace?</string>
-    <string name="general_workspace_close_confirmation_message">Are you sure you want to close \"%1$s\"?</string>
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">Close tab?</string>
+    <string name="general_tab_close_confirmation_message">Are you sure you want to close \"%1$s\"?</string>
 
     <!-- Exit app -->
     <string name="general_press_back_again_to_exit">Press back again to exit</string>

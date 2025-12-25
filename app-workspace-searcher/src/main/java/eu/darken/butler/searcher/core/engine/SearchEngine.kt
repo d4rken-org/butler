@@ -176,9 +176,11 @@ class SearchEngine @AssistedInject constructor(
             INFO
         ) { "search(): filename=${command.filenameQuery.pattern}, content=${command.contentQuery.pattern}" }
 
-        // Validate patterns - at least one must be non-empty
-        if (command.filenameQuery.isEmpty && command.contentQuery.isEmpty) {
-            log(tag, WARN) { "Skipping search - both patterns are empty" }
+        // Validate query - at least one pattern OR active filters required
+        val hasPattern = command.filenameQuery.isNotEmpty || command.contentQuery.isNotEmpty
+        val hasFilters = command.filter.hasConditions()
+        if (!hasPattern && !hasFilters) {
+            log(tag, WARN) { "Skipping search - no patterns and no filters" }
             return Result.InvalidQuery
         }
 
