@@ -5,10 +5,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
@@ -135,6 +138,15 @@ fun EditorWorkspacePage(
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val density = LocalDensity.current
+
+    // System bar insets for edge-to-edge (based on pane edges)
+    val statusBarInset = if (design.paneEdges.touchesTop) {
+        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    } else 0.dp
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
+
     var actualToolbarHeightPx by remember { mutableStateOf(0) }
     val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
 
@@ -159,8 +171,8 @@ fun EditorWorkspacePage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    top = 16.dp + actualToolbarHeightDp,
-                    bottom = 0.dp
+                    top = statusBarInset + 16.dp + actualToolbarHeightDp,
+                    bottom = navBarInset
                 )
                 .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
                 .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection)
@@ -253,7 +265,8 @@ fun EditorWorkspacePage(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp)
+                .padding(top = statusBarInset + 8.dp, bottom = 8.dp)
                 .onGloballyPositioned { layoutCoordinates ->
                     actualToolbarHeightPx = layoutCoordinates.size.height
                 }
@@ -293,9 +306,10 @@ fun EditorWorkspacePage(
             EditorSearchBar(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .padding(horizontal = 8.dp)
                     .padding(
-                        bottom = if (hasActions && bottomBarScrollBehavior.state.collapsedFraction <= 0.1f) {
+                        top = 8.dp,
+                        bottom = navBarInset + 8.dp + if (hasActions && bottomBarScrollBehavior.state.collapsedFraction <= 0.1f) {
                             64.dp  // Action bar visible - offset above it
                         } else {
                             0.dp   // Action bar hidden or no actions - sit at bottom
@@ -317,7 +331,9 @@ fun EditorWorkspacePage(
         // Floating Bottom ActionBar
         if (hasActions) {
             EditorActionBar(
-                modifier = Modifier.align(Alignment.BottomCenter),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = navBarInset),
                 actions = state.availableActions,
                 scrollState = bottomBarScrollBehavior.state,
                 onActionClick = onActionExecute,
