@@ -27,35 +27,22 @@ class EditorSettings @Inject constructor(
     val wordWrap = dataStore.createValue("editor.word_wrap.enabled", false)
     val fontSize = dataStore.createValue("editor.font_size", 14)
     val tabSize = dataStore.createValue("editor.tab_size", 4)
-    val showWhitespace = dataStore.createValue("editor.whitespace.show", false)
 
     val autoSaveInterval = dataStore.createValue("editor.auto_save.interval_ms", 30000L) // 30 seconds
     val autoSaveEnabled = dataStore.createValue("editor.auto_save.enabled", false)
 
-    // Editor Behavior
-    val autoIndent = dataStore.createValue("editor.auto_indent", true)
-    val highlightCurrentLine = dataStore.createValue("editor.highlight.current_line", true)
-    val showMatchingBrackets = dataStore.createValue("editor.brackets.show_matching", true)
     val undoStackSize = dataStore.createValue("editor.undo.stack_size", 100)
     val undoMaxMemoryMB = dataStore.createValue("editor.undo.max_memory_mb", 10)
 
-
     override val mapper = PreferenceStoreMapper(
-        // Display Settings
         showLineNumbers,
         wordWrap,
         fontSize,
         tabSize,
-        showWhitespace,
 
-        // File Handling Settings
         autoSaveInterval,
         autoSaveEnabled,
 
-        // Editor Behavior
-        autoIndent,
-        highlightCurrentLine,
-        showMatchingBrackets,
         undoStackSize,
         undoMaxMemoryMB,
     )
