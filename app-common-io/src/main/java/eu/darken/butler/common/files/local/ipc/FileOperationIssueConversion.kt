@@ -1,7 +1,9 @@
 package eu.darken.butler.common.files.local.ipc
 
+import android.content.Context
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.WriteException
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.issue.Issue
 import java.io.IOException
@@ -16,14 +18,14 @@ import kotlin.uuid.Uuid
  * Convert from domain PathActionIssue to IPC FileOperationIssue.
  * Used on host side before calling callback.
  */
-fun PathActionIssue.toFileOperationIssue(): FileOperationIssue {
+fun PathActionIssue.toFileOperationIssue(context: Context): FileOperationIssue {
     return when (this) {
         is PathActionIssue.InsufficientPermission -> FileOperationIssue(
             issueId = id.id.toString(),
             issueType = FileOperationIssue.IssueType.PERMISSION_DENIED,
             sourcePath = source as? LocalPathLookup,
-            destinationPath = destination as LocalPathLookup,
-            errorMessage = exception.toString(),
+            destinationPath = destinationPath as LocalPath,
+            errorMessage = exception?.toString(),
             canSkip = canSkip,
         )
 
@@ -31,7 +33,8 @@ fun PathActionIssue.toFileOperationIssue(): FileOperationIssue {
             issueId = id.id.toString(),
             issueType = FileOperationIssue.IssueType.PATH_ALREADY_EXISTS,
             sourcePath = source as? LocalPathLookup,
-            destinationPath = destination as LocalPathLookup,
+            destinationPath = destination.lookedUp as LocalPath,
+            destinationLookup = destination as LocalPathLookup,
             canSkip = canSkip,
             canOverwrite = canOverwrite,
             canMerge = canMerge,
@@ -44,7 +47,7 @@ fun PathActionIssue.toFileOperationIssue(): FileOperationIssue {
             issueId = id.id.toString(),
             issueType = FileOperationIssue.IssueType.INSUFFICIENT_SPACE,
             sourcePath = source as LocalPathLookup,
-            destinationPath = destination as LocalPathLookup,
+            destinationPath = destinationPath as LocalPath,
             canRetry = true,
         )
 
@@ -52,9 +55,9 @@ fun PathActionIssue.toFileOperationIssue(): FileOperationIssue {
             issueId = id.id.toString(),
             issueType = FileOperationIssue.IssueType.UNKNOWN_ERROR,
             sourcePath = source as? LocalPathLookup,
-            destinationPath = (destination as? LocalPathLookup) ?: (source as? LocalPathLookup)
-            ?: throw IllegalArgumentException("UnknownError must have at least source or destination"),
-            errorMessage = errorMessage.toString(),
+            destinationPath = (destinationPath as? LocalPath) ?: (source?.lookedUp as? LocalPath)
+                ?: throw IllegalArgumentException("UnknownError must have at least source or destinationPath"),
+            errorMessage = errorMessage.get(context),
             canSkip = canSkip,
             canRetry = canRetry,
         )
@@ -80,15 +83,16 @@ fun FileOperationIssue.toPathActionIssue(): PathActionIssue {
         FileOperationIssue.IssueType.PERMISSION_DENIED -> PathActionIssue.InsufficientPermission(
             id = issueId,
             source = sourcePath,
-            destination = destinationPath,
+            destinationPath = destinationPath,
             canSkip = canSkip,
-            exception = errorMessage?.let { WriteException(path = destinationPath.lookedUp, cause = IOException(it)) },
+            exception = errorMessage?.let { WriteException(path = destinationPath, cause = IOException(it)) },
         )
 
         FileOperationIssue.IssueType.PATH_ALREADY_EXISTS -> PathActionIssue.PathAlreadyExists(
             id = issueId,
             source = sourcePath,
-            destination = destinationPath,
+            destination = destinationLookup
+                ?: throw IllegalArgumentException("PathAlreadyExists must have destinationLookup"),
             canSkip = canSkip,
             canOverwrite = canOverwrite,
             canMerge = canMerge,
@@ -100,13 +104,13 @@ fun FileOperationIssue.toPathActionIssue(): PathActionIssue {
         FileOperationIssue.IssueType.INSUFFICIENT_SPACE -> PathActionIssue.InsufficientSpace(
             id = issueId,
             source = sourcePath!!,  // Source must be present for this issue type
-            destination = destinationPath,
+            destinationPath = destinationPath,
         )
 
         FileOperationIssue.IssueType.UNKNOWN_ERROR -> PathActionIssue.UnknownError(
             id = issueId,
             source = sourcePath,
-            destination = destinationPath,
+            destinationPath = destinationPath,
             exception = IOException(errorMessage ?: "Unknown error"),
             canSkip = canSkip,
             canRetry = canRetry,

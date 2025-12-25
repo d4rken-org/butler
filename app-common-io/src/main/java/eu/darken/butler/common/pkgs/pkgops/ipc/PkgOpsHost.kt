@@ -93,7 +93,7 @@ class PkgOpsHost @Inject constructor(
 
     override fun clearCacheAsUser(packageName: String, handleId: Int): Boolean = try {
         log(TAG, VERBOSE) { "clearCache(packageName=$packageName, handleId=$handleId)..." }
-            runBlocking { pm.deleteApplicationCacheFilesAsUser(packageName, handleId) }
+        runBlocking { pm.deleteApplicationCacheFilesAsUser(packageName, handleId) }
     } catch (e: Exception) {
         log(TAG, ERROR) { "clearCache(packageName=$packageName, handleId=$handleId) failed: ${e.asLog()}" }
         throw e.wrapToPropagate()
@@ -101,7 +101,7 @@ class PkgOpsHost @Inject constructor(
 
     override fun clearCache(packageName: String): Boolean = try {
         log(TAG, VERBOSE) { "clearCache(packageName=$packageName)..." }
-            runBlocking { pm.deleteApplicationCacheFiles(packageName) }
+        runBlocking { pm.deleteApplicationCacheFiles(packageName) }
     } catch (e: Exception) {
         log(TAG, ERROR) { "clearCache(packageName=$packageName) failed: ${e.asLog()}" }
         throw e.wrapToPropagate()

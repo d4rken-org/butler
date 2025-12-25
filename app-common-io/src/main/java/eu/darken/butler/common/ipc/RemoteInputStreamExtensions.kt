@@ -5,6 +5,7 @@ import android.os.RemoteException
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.files.errors.ServiceConnectionLostException
 import okio.Source
 import okio.source
 import java.io.IOException
@@ -76,7 +77,7 @@ internal fun RemoteInputStream.inputStream(): InputStream = object : InputStream
 
     @Throws(IOException::class)
     private fun throwIO(r: Int): Int {
-        if (r == -2) throw IOException("Remote Exception")
+        if (r == -2) throw ServiceConnectionLostException()
         return r
     }
 
@@ -84,14 +85,14 @@ internal fun RemoteInputStream.inputStream(): InputStream = object : InputStream
     override fun available(): Int = try {
         throwIO(this@inputStream.available())
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception", e)
+        throw ServiceConnectionLostException(e)
     }
 
     @Throws(IOException::class)
     override fun read(): Int = try {
         throwIO(this@inputStream.read())
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception", e)
+        throw ServiceConnectionLostException(e)
     }
 
     @Throws(IOException::class)
@@ -101,14 +102,14 @@ internal fun RemoteInputStream.inputStream(): InputStream = object : InputStream
     override fun read(b: ByteArray, off: Int, len: Int): Int = try {
         throwIO(this@inputStream.readBuffer(b, off, len))
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception", e)
+        throw ServiceConnectionLostException(e)
     }
 
     @Throws(IOException::class)
     override fun close() = try {
         this@inputStream.close()
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception", e)
+        throw ServiceConnectionLostException(e)
     }
 }
 

@@ -1,5 +1,6 @@
 package eu.darken.butler.common
 
+import androidx.core.net.toUri
 import kotlinx.serialization.Serializable
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -47,7 +48,7 @@ import java.net.URLEncoder
  * @property rawUri The complete URI string
  */
 @Serializable
-data class SafUri internal constructor(
+data class SafUri(
     val rawUri: String,
 ) {
     /**
@@ -105,7 +106,7 @@ data class SafUri internal constructor(
     /**
      * Convert to Android Uri for framework API boundaries.
      */
-    fun toAndroidUri(): android.net.Uri = android.net.Uri.parse(rawUri)
+    fun toAndroidUri(): android.net.Uri = rawUri.toUri()
 
     override fun toString(): String = rawUri
 

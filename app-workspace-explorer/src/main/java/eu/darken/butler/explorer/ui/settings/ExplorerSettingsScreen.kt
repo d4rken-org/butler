@@ -76,20 +76,6 @@ fun ExplorerSettingsScreen(
             verticalArrangement = Arrangement.Top
         ) {
             item {
-                SettingsCategoryHeader(text = stringResource(R.string.explorer_settings_file_display))
-            }
-
-            item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.FilterList,
-                    title = stringResource(R.string.explorer_settings_filter_regex_title),
-                    subtitle = stringResource(R.string.explorer_settings_filter_regex_desc),
-                    checked = state.useRegexPatterns,
-                    onCheckedChange = onToggleRegexPatterns,
-                )
-            }
-
-            item {
                 SettingsCategoryHeader(text = stringResource(R.string.explorer_settings_navigation))
             }
 
@@ -100,6 +86,20 @@ fun ExplorerSettingsScreen(
                     subtitle = stringResource(R.string.explorer_settings_back_button_desc),
                     checked = state.useBackButtonForNavigation,
                     onCheckedChange = onToggleBackButtonNavigation,
+                )
+            }
+
+            item {
+                SettingsCategoryHeader(text = stringResource(R.string.explorer_settings_file_display))
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.FilterList,
+                    title = stringResource(R.string.explorer_settings_filter_regex_title),
+                    subtitle = stringResource(R.string.explorer_settings_filter_regex_desc),
+                    checked = state.useRegexPatterns,
+                    onCheckedChange = onToggleRegexPatterns,
                 )
             }
 

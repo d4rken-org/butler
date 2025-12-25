@@ -1,11 +1,17 @@
 package eu.darken.butler.common.navigation
 
+import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 
 @Composable
 fun NavigationEventHandler(vararg sources: NavigationEventSource) {
     val navController = LocalNavigationController.current ?: return
+    val context = LocalContext.current
+    val activity = context as? Activity
 
     sources.forEach { source ->
         val navEvents = source.navEvents
@@ -18,8 +24,14 @@ fun NavigationEventHandler(vararg sources: NavigationEventSource) {
                         inclusive = event.inclusive,
                     )
                     NavEvent.Up -> navController.up()
+                    NavEvent.Finish -> {
+                        log(TAG) { "Finish event received, closing activity" }
+                        activity?.finish()
+                    }
                 }
             }
         }
     }
 }
+
+private val TAG = logTag("NavigationEventHandler")

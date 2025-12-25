@@ -155,9 +155,12 @@ fun DependencyHandlerScope.addAndroidUI() {
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("com.google.android.material:material:1.13.0-alpha12")
 
-    val composeBom = platform("androidx.compose:compose-bom:2025.06.01")
+    val composeBom = platform("androidx.compose:compose-bom:2025.12.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
+
+    // Override foundation to get Modifier.visible()
+    implementation("androidx.compose.foundation:foundation:1.11.0-alpha01")
 
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui-tooling-preview")

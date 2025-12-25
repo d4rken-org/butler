@@ -30,7 +30,7 @@ class GenericCrossTypeMoveStrategyTest : BaseTest() {
     private lateinit var strategy: GenericCrossTypeMoveStrategy<
         LocalPath, LocalPathLookup,
         LocalPath, LocalPathLookup
-    >
+        >
 
     @BeforeEach
     fun setup() {

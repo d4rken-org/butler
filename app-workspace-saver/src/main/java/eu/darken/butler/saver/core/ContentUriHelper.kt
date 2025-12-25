@@ -5,8 +5,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag

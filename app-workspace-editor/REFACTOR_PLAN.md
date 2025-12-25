@@ -1,7 +1,9 @@
 # Comprehensive Refactoring Plan: Text + Binary Editor Support
 
 ## Overview
-Refactor the editor to support both text and binary (hex) modes using a hybrid architecture: **Sealed Classes (data layer) + Strategy Pattern (behavior layer)**. Use TDD for all new components and ensure existing tests continue to pass.
+
+Refactor the editor to support both text and binary (hex) modes using a hybrid architecture: **Sealed Classes (data
+layer) + Strategy Pattern (behavior layer)**. Use TDD for all new components and ensure existing tests continue to pass.
 
 ---
 
@@ -10,10 +12,12 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ### 1.1 Create Sealed Class Hierarchy **[TDD]**
 
 **New Files:**
+
 - `EditorChunk.kt` - Sealed class replacing TextChunk
 - `EditorChunkTest.kt` - Unit tests for chunk variants
 
 **Test First (EditorChunkTest.kt):**
+
 ```kotlin
 - Test EditorChunk.Text creation with line metadata
 - Test EditorChunk.Binary creation without line metadata
@@ -23,11 +27,13 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ```
 
 **Implementation:**
+
 - Create `sealed class EditorChunk` with Text and Binary variants
 - Text variant: content (String), lineCount, lineEnding
 - Binary variant: content (ByteArray), custom equals/hashCode
 
 **Refactor Existing:**
+
 - Update `TextChunk.kt` → migrate to `EditorChunk.Text`
 - Keep all existing fields and methods
 - **Run all existing tests** - they should still pass with type alias
@@ -37,12 +43,14 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ### 1.2 Create EditorMode Interface **[TDD]**
 
 **New Files:**
+
 - `EditorMode.kt` - Strategy interface
 - `EditorModeType.kt` - Enum (TEXT, HEX)
 - `EditorCapabilities.kt` - Capabilities data class
 - `EditorModeTest.kt` - Interface contract tests
 
 **Test First (EditorModeTest.kt):**
+
 ```kotlin
 - Test mode type identification
 - Test capabilities declaration
@@ -51,23 +59,26 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ```
 
 **Implementation:**
+
 - Define EditorMode interface with:
-  - val type: EditorModeType
-  - val capabilities: EditorCapabilities
-  - suspend fun loadChunk(...): EditorChunk
-  - suspend fun saveChunk(...)
-  - fun createBuffer(...): EditorBuffer
-  - @Composable fun RenderEditor(...)
+    - val type: EditorModeType
+    - val capabilities: EditorCapabilities
+    - suspend fun loadChunk(...): EditorChunk
+    - suspend fun saveChunk(...)
+    - fun createBuffer(...): EditorBuffer
+    - @Composable fun RenderEditor(...)
 
 ---
 
 ### 1.3 Create TextMode (Wrap Existing Logic) **[TDD]**
 
 **New Files:**
+
 - `TextMode.kt` - Text mode strategy implementation
 - `TextModeTest.kt` - Text mode specific tests
 
 **Test First (TextModeTest.kt):**
+
 ```kotlin
 - Test loadChunk returns EditorChunk.Text
 - Test loadChunk decodes UTF-8 correctly
@@ -79,12 +90,14 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ```
 
 **Implementation:**
+
 - Move UTF-8 decode logic from FileDataSource to TextMode
 - Move line counting logic to TextMode
 - Move line ending detection to TextMode
 - Keep ChunkedTextBuffer creation
 
 **Verification:**
+
 - Run all existing TextBuffer tests - should pass
 - Run TextModeTest - new tests pass
 
@@ -93,22 +106,26 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ### 1.4 Update ChunkManager for Sealed Classes **[Refactor + Test]**
 
 **Modified Files:**
+
 - `ChunkManager.kt` - Accept EditorChunk sealed class
 - `ChunkManagerTest.kt` - Update tests for sealed class
 
 **Test Updates:**
+
 - Update all tests to use `EditorChunk.Text` instead of `TextChunk`
 - Add tests for type-safe getters (getTextChunk, getBinaryChunk)
 - Test LRU eviction works with both chunk types
 - Test dirty tracking works with both chunk types
 
 **Implementation Changes:**
+
 - Change cache type: `Map<ChunkId, EditorChunk>`
 - Update `addChunk`, `updateChunk`, `getChunk` signatures
 - Add type-safe getters: `getTextChunk()`, `getBinaryChunk()`
 - Keep mergeChunks algorithm (works with sealed class)
 
 **Verification:**
+
 - All existing ChunkManagerTest tests pass
 - New type-safety tests pass
 
@@ -119,10 +136,12 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ### 2.1 Create BinaryChunkRepository **[TDD]**
 
 **New Files:**
+
 - `BinaryChunkRepository.kt` - Loads binary chunks
 - `BinaryChunkRepositoryTest.kt` - Binary loading tests
 
 **Test First (BinaryChunkRepositoryTest.kt):**
+
 ```kotlin
 - Test loadChunk reads raw bytes
 - Test loadChunk preserves binary nulls (0x00)
@@ -134,6 +153,7 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ```
 
 **Implementation:**
+
 - Similar to ChunkRepository but returns EditorChunk.Binary
 - No UTF-8 conversion - keep as ByteArray
 - Search operates on byte patterns
@@ -143,10 +163,12 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ### 2.2 Create ChunkedBinaryBuffer **[TDD]**
 
 **New Files:**
+
 - `ChunkedBinaryBuffer.kt` - Binary buffer operations
 - `ChunkedBinaryBufferTest.kt` - Binary buffer tests (mirror text tests)
 
 **Test First (ChunkedBinaryBufferTest.kt):** *(Mirror ChunkedTextBuffer test structure)*
+
 ```kotlin
 // Basic Operations
 - Test insertBytes at start/middle/end
@@ -183,6 +205,7 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ```
 
 **Implementation:**
+
 - Byte-level cursor (not text position)
 - Operations: insert/delete/replace bytes
 - Undo/redo for byte operations
@@ -190,6 +213,7 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 - No line concepts - offset-based only
 
 **Verification:**
+
 - All ChunkedBinaryBufferTest tests pass
 - Performance test with 100MB binary file
 
@@ -198,10 +222,12 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ### 2.3 Create HexMode **[TDD]**
 
 **New Files:**
+
 - `HexMode.kt` - Hex mode strategy
 - `HexModeTest.kt` - Hex mode tests
 
 **Test First (HexModeTest.kt):**
+
 ```kotlin
 - Test loadChunk returns EditorChunk.Binary
 - Test loadChunk preserves all bytes
@@ -212,6 +238,7 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ```
 
 **Implementation:**
+
 - loadChunk: read raw bytes, no conversion
 - saveChunk: write raw bytes
 - createBuffer: return ChunkedBinaryBuffer
@@ -222,10 +249,12 @@ Refactor the editor to support both text and binary (hex) modes using a hybrid a
 ### 2.4 Create EditorBuffer Interface **[Refactor]**
 
 **New Files:**
+
 - `EditorBuffer.kt` - Common buffer interface
 - Extract common operations from ChunkedTextBuffer
 
 **Interface:**
+
 ```kotlin
 interface EditorBuffer {
     val isModified: StateFlow<Boolean>
@@ -238,6 +267,7 @@ interface EditorBuffer {
 ```
 
 **Refactor:**
+
 - ChunkedTextBuffer implements EditorBuffer
 - ChunkedBinaryBuffer implements EditorBuffer
 - Common operations extracted to interface
@@ -249,17 +279,20 @@ interface EditorBuffer {
 ### 3.1 Update EditorDataSource for Modes **[Refactor]**
 
 **Modified Files:**
+
 - `EditorDataSource.kt` - Interface unchanged
 - `FileDataSource.kt` - Remove UTF-8 conversion (delegate to mode)
 - `FileDataSourceTest.kt` - Update tests
 - `InMemoryDataSource.kt` - Support both text and binary
 
 **Changes:**
+
 - FileDataSource.readChunk() returns ByteArray (not String)
 - Mode converts bytes → String or keeps as ByteArray
 - InMemoryDataSource stores ByteArray, mode interprets
 
 **Test Updates:**
+
 ```kotlin
 - Test readChunk returns raw bytes
 - Test save merges bytes correctly
@@ -271,10 +304,12 @@ interface EditorBuffer {
 ### 3.2 Update EditorEngine for Modes **[TDD]**
 
 **Modified Files:**
+
 - `EditorEngine.kt` - Add mode support
 - `EditorEngineTest.kt` - Add mode switching tests
 
 **New Tests:**
+
 ```kotlin
 - Test initialize with TextMode
 - Test initialize with HexMode
@@ -286,16 +321,18 @@ interface EditorBuffer {
 ```
 
 **Implementation:**
+
 - Add `mode: EditorMode` parameter
 - Use mode.createBuffer() for buffer creation
 - Use mode.loadChunk() via ChunkManager
 - Add switchMode() function:
-  - Save current position
-  - Dispose old buffer
-  - Create new buffer with new mode
-  - Restore position (as byte offset)
+    - Save current position
+    - Dispose old buffer
+    - Create new buffer with new mode
+    - Restore position (as byte offset)
 
 **Verification:**
+
 - All existing EditorEngine tests pass
 - New mode switching tests pass
 
@@ -304,10 +341,12 @@ interface EditorBuffer {
 ### 3.3 Create File Type Detection **[TDD]**
 
 **New Files:**
+
 - `FileAnalyzer.kt` - Detects binary vs text
 - `FileAnalyzerTest.kt` - Detection tests
 
 **Test First:**
+
 ```kotlin
 - Test detect text files (UTF-8, ASCII)
 - Test detect binary files (null bytes, high entropy)
@@ -318,6 +357,7 @@ interface EditorBuffer {
 ```
 
 **Detection Logic:**
+
 - Check first 8KB for null bytes (binary indicator)
 - Validate UTF-8 decoding (text indicator)
 - Check byte distribution (high entropy = binary)
@@ -329,10 +369,12 @@ interface EditorBuffer {
 ### 3.4 Update EditorWorkspace for Mode Selection **[TDD]**
 
 **Modified Files:**
+
 - `EditorWorkspace.kt` - Add mode selection
 - `EditorWorkspaceTest.kt` - Add mode tests (create if needed)
 
 **New Tests:**
+
 ```kotlin
 - Test openFile with text file → TextMode
 - Test openFile with binary file → HexMode
@@ -342,11 +384,12 @@ interface EditorBuffer {
 ```
 
 **Implementation:**
+
 - Inject FileAnalyzer
 - openFile():
-  - Analyze file type
-  - Choose mode (TEXT or HEX)
-  - Create engine with mode
+    - Analyze file type
+    - Choose mode (TEXT or HEX)
+    - Create engine with mode
 - Add switchMode(EditorModeType)
 - Expose mode in EditorState
 
@@ -357,9 +400,11 @@ interface EditorBuffer {
 ### 4.1 Update EditorState for Modes **[Refactor]**
 
 **Modified Files:**
+
 - `EditorState.kt` - Add mode fields
 
 **New Fields:**
+
 ```kotlin
 val mode: EditorModeType?
 val capabilities: EditorCapabilities?
@@ -371,10 +416,12 @@ val binaryState: BinaryEditorState? // For hex view
 ### 4.2 Create LazyHexEditor Composable **[TDD with Previews]**
 
 **New Files:**
+
 - `LazyHexEditor.kt` - Hex editor UI
 - Previews for hex editor states
 
 **UI Components:**
+
 ```kotlin
 @Composable
 fun LazyHexEditor(
@@ -389,6 +436,7 @@ fun LazyHexEditor(
 ```
 
 **Features:**
+
 - Three-column layout: Address | Hex | ASCII
 - Virtualized scrolling (LazyColumn)
 - Address column (8-digit hex)
@@ -399,6 +447,7 @@ fun LazyHexEditor(
 - Byte editing (click to edit hex value)
 
 **Previews:**
+
 ```kotlin
 @Preview2 fun LazyHexEditorPreview()
 @Preview2 fun LazyHexEditorWithSelectionPreview()
@@ -410,6 +459,7 @@ fun LazyHexEditor(
 ### 4.3 Create Hex Editor Toolbar **[Composable]**
 
 **New Composables:**
+
 - `HexEditorToolbar.kt` - Hex-specific toolbar
 - Go to offset dialog
 - Bytes per row selector
@@ -420,13 +470,15 @@ fun LazyHexEditor(
 ### 4.4 Update EditorWorkspacePage for Modes **[Refactor]**
 
 **Modified Files:**
+
 - `EditorWorkspacePage.kt` - Render based on mode
 
 **Changes:**
+
 - Add mode selector dropdown (TEXT / HEX)
 - Conditional rendering:
-  - When TEXT → LazyTextEditor
-  - When HEX → LazyHexEditor
+    - When TEXT → LazyTextEditor
+    - When HEX → LazyHexEditor
 - Show mode-appropriate toolbar
 - Disable incompatible actions (e.g., "Go to Line" in hex mode)
 
@@ -435,9 +487,11 @@ fun LazyHexEditor(
 ### 4.5 Update EditorWorkspaceViewModel **[Refactor]**
 
 **Modified Files:**
+
 - `EditorWorkspaceViewModel.kt` - Add mode actions
 
 **New Actions:**
+
 ```kotlin
 fun onModeSwitch(newMode: EditorModeType)
 fun onGoToOffset(offset: Long) // For hex mode
@@ -451,12 +505,14 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 ### 5.1 Hex Editor Search **[TDD]**
 
 **Implementation:**
+
 - Search for hex patterns (e.g., "DEADBEEF")
 - Search for ASCII strings in binary data
 - Find all occurrences
 - Navigate between results
 
 **Tests:**
+
 ```kotlin
 - Test search hex pattern
 - Test search ASCII in binary
@@ -469,11 +525,13 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 ### 5.2 Hex Editor Bookmarks **[Feature]**
 
 **New Files:**
+
 - `HexBookmark.kt` - Bookmark data class
 - `HexBookmarkManager.kt` - Manage bookmarks
 - `HexBookmarksPanel.kt` - UI for bookmarks
 
 **Features:**
+
 - Add bookmark at offset
 - Name bookmarks
 - Jump to bookmark
@@ -485,9 +543,11 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 ### 5.3 Data Inspector **[Feature]**
 
 **New Composable:**
+
 - `DataInspectorPanel.kt` - Show selected bytes as various types
 
 **Display:**
+
 - Hex value
 - Decimal (uint8, int8, uint16, int16, uint32, int32)
 - Float (float32, float64)
@@ -502,11 +562,13 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 ### 6.1 Integration Tests
 
 **New Test Files:**
+
 - `EditorModeSwitchingIntegrationTest.kt`
 - `TextToBinaryRoundTripTest.kt`
 - `LargeFilePerformanceTest.kt`
 
 **Test Scenarios:**
+
 ```kotlin
 - Open text file, switch to hex, switch back → data preserved
 - Edit in text mode, switch to hex → edits visible as bytes
@@ -520,6 +582,7 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 ### 6.2 Edge Case Tests
 
 **New Tests:**
+
 - Binary files with all byte values (0x00-0xFF)
 - Files with mixed UTF-8 and binary data
 - Zero-byte files
@@ -532,6 +595,7 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 ### 6.3 Existing Test Migration
 
 **Process:**
+
 - Ensure all existing tests still pass
 - Update test names if needed (TextChunk → EditorChunk.Text)
 - Add type assertions where helpful
@@ -544,9 +608,11 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 ### 7.1 String Extraction
 
 **Files to Update:**
+
 - `app-workspace-editor/src/main/res/values/strings.xml`
 
 **New Strings:**
+
 ```xml
 <string name="editor_mode_text">Text</string>
 <string name="editor_mode_hex">Hex</string>
@@ -563,24 +629,27 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 ### 7.2 Composable Previews
 
 **Requirement:**
+
 - All new composables must have `@Preview2` functions
 - Multiple preview scenarios:
-  - Empty state
-  - With data
-  - With selection
-  - Error states
+    - Empty state
+    - With data
+    - With selection
+    - Error states
 
 ---
 
 ## Test Execution Strategy
 
 ### TDD Workflow (Red-Green-Refactor):
+
 1. **Red**: Write failing test for new functionality
 2. **Green**: Implement minimum code to pass test
 3. **Refactor**: Clean up implementation
 4. **Verify**: Run all tests (new + existing)
 
 ### Test Execution Order:
+
 ```bash
 # After each phase, run:
 ./gradlew :app-workspace-editor:testDebugUnitTest
@@ -597,6 +666,7 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 ## File Structure Summary
 
 ### New Files (~25):
+
 - EditorChunk.kt + Test
 - EditorMode.kt + related types
 - TextMode.kt + Test
@@ -612,6 +682,7 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 - Integration tests (3-4 files)
 
 ### Modified Files (~10):
+
 - TextChunk.kt → EditorChunk.kt
 - ChunkManager.kt
 - EditorEngine.kt
@@ -669,6 +740,7 @@ fun onInsertBytes(offset: Long, bytes: ByteArray)
 ## Architecture Diagrams
 
 ### Current Architecture (Text Only)
+
 ```
 User opens file
     ↓
@@ -686,6 +758,7 @@ LazyTextEditor renders text
 ```
 
 ### New Architecture (Text + Binary)
+
 ```
 User opens file
     ↓
@@ -714,6 +787,7 @@ UI calls mode.RenderEditor()
 ```
 
 ### Sealed Class Structure
+
 ```kotlin
 sealed class EditorChunk {
     abstract val offset: Long
@@ -742,6 +816,7 @@ sealed class EditorChunk {
 ```
 
 ### Strategy Pattern Structure
+
 ```kotlin
 interface EditorMode {
     val type: EditorModeType
@@ -777,32 +852,33 @@ interface EditorMode {
 ### Key Design Decisions
 
 1. **Why Sealed Classes for Chunks?**
-   - Type-safe data storage
-   - Compiler-enforced exhaustive checking
-   - Each variant has exactly the fields it needs
-   - Easy serialization
+    - Type-safe data storage
+    - Compiler-enforced exhaustive checking
+    - Each variant has exactly the fields it needs
+    - Easy serialization
 
 2. **Why Strategy Pattern for Modes?**
-   - Clean separation of text vs hex behavior
-   - Easy to add new modes later (image viewer, log viewer, etc.)
-   - Mode-specific logic isolated
-   - UI delegates rendering to mode
+    - Clean separation of text vs hex behavior
+    - Easy to add new modes later (image viewer, log viewer, etc.)
+    - Mode-specific logic isolated
+    - UI delegates rendering to mode
 
 3. **Why Keep Line Metadata in Text Chunks?**
-   - Performance optimization for line-based operations
-   - Avoids scanning content for every "go to line" operation
-   - Cached once, used many times
-   - Only relevant for text mode
+    - Performance optimization for line-based operations
+    - Avoids scanning content for every "go to line" operation
+    - Cached once, used many times
+    - Only relevant for text mode
 
 4. **Why DataSource Returns ByteArray?**
-   - Mode interprets bytes (text vs binary)
-   - No assumptions at I/O layer
-   - Supports both UTF-8 and binary data
-   - Clean separation of concerns
+    - Mode interprets bytes (text vs binary)
+    - No assumptions at I/O layer
+    - Supports both UTF-8 and binary data
+    - Clean separation of concerns
 
 ### Future Extensibility
 
 This architecture makes it easy to add:
+
 - **Image Viewer Mode**: Display images inline with metadata
 - **JSON/XML Mode**: Tree view with syntax highlighting
 - **Log Viewer Mode**: Structured log parsing with filtering
@@ -810,6 +886,7 @@ This architecture makes it easy to add:
 - **CSV Mode**: Tabular view with column operations
 
 Each new mode:
+
 1. Implements `EditorMode` interface
 2. Defines its own chunk type (or reuses existing)
 3. Creates mode-specific buffer and UI

@@ -48,7 +48,10 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one permission issue
         issueResolver.resolveIssue(
-            PathActionIssue.InsufficientPermission(destination = testLookup, exception = AccessDeniedException(testPath.path))
+            PathActionIssue.InsufficientPermission(
+                destinationPath = testPath,
+                exception = AccessDeniedException(testPath.path)
+            )
         )
 
         var skippedCalled = false
@@ -57,7 +60,7 @@ class TransferErrorHandlerTest : BaseTest() {
         // When
         errorHandler.handleError(
             error = AccessDeniedException(testPath.path),
-            lookup = testLookup,
+            sourceLookup = testLookup,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skippedCalled = true },
@@ -85,7 +88,7 @@ class TransferErrorHandlerTest : BaseTest() {
         shouldThrow<AccessDeniedException> {
             errorHandler.handleError(
                 error = originalError,
-                lookup = testLookup,
+                sourceLookup = testLookup,
                 issueResolver = issueResolver,
                 progressTracker = progressTracker,
                 onSkip = { },
@@ -114,7 +117,7 @@ class TransferErrorHandlerTest : BaseTest() {
         // When
         errorHandler.handleError(
             error = SecurityException("Access denied"),
-            lookup = testLookup,
+            sourceLookup = testLookup,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skippedCalled = true },
@@ -142,7 +145,7 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one unknown error issue
         issueResolver.resolveIssue(
-            PathActionIssue.UnknownError(destination = testLookup, exception = RuntimeException("Error"))
+            PathActionIssue.UnknownError(destinationPath = testPath, exception = RuntimeException("Error"))
         )
 
         var skippedCalled = false
@@ -150,7 +153,7 @@ class TransferErrorHandlerTest : BaseTest() {
         // When
         errorHandler.handleError(
             error = RuntimeException("Unknown error"),
-            lookup = testLookup,
+            sourceLookup = testLookup,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skippedCalled = true },
@@ -180,7 +183,7 @@ class TransferErrorHandlerTest : BaseTest() {
         // When
         errorHandler.handleError(
             error = RuntimeException("Temp error"),
-            lookup = testLookup,
+            sourceLookup = testLookup,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skippedCalled = true },
@@ -210,7 +213,7 @@ class TransferErrorHandlerTest : BaseTest() {
         // When - onRetry is null
         errorHandler.handleError(
             error = RuntimeException("Error"),
-            lookup = testLookup,
+            sourceLookup = testLookup,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skippedCalled = true },
@@ -237,7 +240,10 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one permission issue
         issueResolver.resolveIssue(
-            PathActionIssue.InsufficientPermission(destination = testLookup, exception = AccessDeniedException(testPath.path))
+            PathActionIssue.InsufficientPermission(
+                destinationPath = testPath,
+                exception = AccessDeniedException(testPath.path)
+            )
         )
 
         var skippedCalled = false
@@ -269,7 +275,7 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one unknown error issue
         issueResolver.resolveIssue(
-            PathActionIssue.UnknownError(destination = testLookup, exception = RuntimeException("Error"))
+            PathActionIssue.UnknownError(destinationPath = testPath, exception = RuntimeException("Error"))
         )
 
         var skippedCalled = false
@@ -374,7 +380,10 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one permission issue
         issueResolver.resolveIssue(
-            PathActionIssue.InsufficientPermission(destination = testLookup, exception = SecurityException("Access denied"))
+            PathActionIssue.InsufficientPermission(
+                destinationPath = testPath,
+                exception = SecurityException("Access denied")
+            )
         )
 
         var skippedCalled = false
@@ -382,7 +391,7 @@ class TransferErrorHandlerTest : BaseTest() {
         // When - SecurityException
         errorHandler.handleError(
             error = SecurityException("Access denied"),
-            lookup = testLookup,
+            sourceLookup = testLookup,
             issueResolver = issueResolver,
             progressTracker = PathOperationProgressTracker(),
             onSkip = { skippedCalled = true },
@@ -406,7 +415,10 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one permission issue
         issueResolver.resolveIssue(
-            PathActionIssue.InsufficientPermission(destination = testLookup, exception = AccessDeniedException(testPath.path))
+            PathActionIssue.InsufficientPermission(
+                destinationPath = testPath,
+                exception = AccessDeniedException(testPath.path)
+            )
         )
 
         var skippedCalled = false
@@ -414,7 +426,7 @@ class TransferErrorHandlerTest : BaseTest() {
         // When - AccessDeniedException
         errorHandler.handleError(
             error = AccessDeniedException(testPath.path),
-            lookup = testLookup,
+            sourceLookup = testLookup,
             issueResolver = issueResolver,
             progressTracker = PathOperationProgressTracker(),
             onSkip = { skippedCalled = true },
@@ -438,7 +450,7 @@ class TransferErrorHandlerTest : BaseTest() {
         }
         // Trigger the flag by resolving one unknown error issue
         issueResolver.resolveIssue(
-            PathActionIssue.UnknownError(destination = testLookup, exception = RuntimeException("Error"))
+            PathActionIssue.UnknownError(destinationPath = testPath, exception = RuntimeException("Error"))
         )
 
         var skippedCalled = false
@@ -446,7 +458,7 @@ class TransferErrorHandlerTest : BaseTest() {
         // When - RuntimeException
         errorHandler.handleError(
             error = RuntimeException("Something went wrong"),
-            lookup = testLookup,
+            sourceLookup = testLookup,
             issueResolver = issueResolver,
             progressTracker = PathOperationProgressTracker(),
             onSkip = { skippedCalled = true },

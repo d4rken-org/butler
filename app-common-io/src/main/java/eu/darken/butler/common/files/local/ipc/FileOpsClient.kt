@@ -26,8 +26,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import okio.FileHandle
 import okio.buffer
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Instant
 
 class FileOpsClient @AssistedInject constructor(
@@ -194,6 +196,14 @@ class FileOpsClient @AssistedInject constructor(
         // Convert RemoteInputStream to Flow<DeleteOperationEvent>
         remoteInputStream.toEventFlow(DeleteOperationEvent.CREATOR)
             .map { event ->
+                // Handle Error events by throwing appropriate exception
+                if (event is DeleteOperationEvent.Error) {
+                    if (event.cancelled) {
+                        throw CancellationException(event.error)
+                    } else {
+                        throw IOException(event.error)
+                    }
+                }
                 // Convert each event to DeleteAction.State
                 event.toDeleteActionState()
             }
@@ -249,6 +259,14 @@ class FileOpsClient @AssistedInject constructor(
         // Convert RemoteInputStream to Flow<CopyOperationEvent>
         remoteInputStream.toEventFlow(CopyOperationEvent.CREATOR)
             .map { event ->
+                // Handle Error events by throwing appropriate exception
+                if (event is CopyOperationEvent.Error) {
+                    if (event.cancelled) {
+                        throw CancellationException(event.error)
+                    } else {
+                        throw IOException(event.error)
+                    }
+                }
                 // Convert each event to CopyAction.State
                 event.toCopyActionState()
             }
@@ -304,6 +322,14 @@ class FileOpsClient @AssistedInject constructor(
         // Convert RemoteInputStream to Flow<MoveOperationEvent>
         remoteInputStream.toEventFlow(MoveOperationEvent.CREATOR)
             .map { event ->
+                // Handle Error events by throwing appropriate exception
+                if (event is MoveOperationEvent.Error) {
+                    if (event.cancelled) {
+                        throw CancellationException(event.error)
+                    } else {
+                        throw IOException(event.error)
+                    }
+                }
                 // Convert each event to MoveAction.State
                 event.toMoveActionState()
             }

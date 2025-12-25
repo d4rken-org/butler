@@ -13,7 +13,7 @@ data class Ownership(
 ) : Parcelable {
 
     constructor(userId: Int, groupId: Int, userName: String? = null, groupName: String? = null)
-            : this(userId.toLong(), groupId.toLong(), userName, groupName)
+        : this(userId.toLong(), groupId.toLong(), userName, groupName)
 
     constructor(parcel: Parcel) : this(
         parcel.readLong(),

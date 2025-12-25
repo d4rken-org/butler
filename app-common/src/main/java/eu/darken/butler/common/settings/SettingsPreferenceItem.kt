@@ -2,7 +2,6 @@ package eu.darken.butler.common.settings
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,7 +23,7 @@ fun SettingsPreferenceItem(
     enabled: Boolean = true,
 ) {
     val contentAlpha = if (enabled) 1f else 0.5f
-    
+
     SettingsBaseItem(
         icon = icon,
         title = title,

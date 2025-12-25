@@ -7,11 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.WrapText
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.TextFormat
 import androidx.compose.material.icons.twotone.FormatListNumbered
-import androidx.compose.material.icons.twotone.TextFormat
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -23,15 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.common.BuildConfigWrap
-import eu.darken.butler.editor.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsSwitchItem
+import eu.darken.butler.common.ui.waitForState
+import eu.darken.butler.editor.R
 
 @Composable
 fun EditorSettingsScreen(
@@ -75,7 +70,7 @@ fun EditorSettingsScreen(
                 )
                 SettingsDivider()
             }
-            
+
             item {
                 SettingsSwitchItem(
                     icon = Icons.AutoMirrored.Filled.WrapText,

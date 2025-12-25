@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="developer_workspace_tab_title">Developer</string>
+    <string name="developer_title">Developer Tools</string>
+    <string name="developer_subtitle">Development utilities</string>
+
+    <!-- Tabs -->
+    <string name="developer_tab_system">System</string>
+    <string name="developer_tab_options">Options</string>
+    <string name="developer_tab_workspaces">Workspaces</string>
+    <string name="developer_tab_logs">Logs</string>
+    <string name="developer_tab_testdata">Test Data</string>
+
+    <!-- Options Section -->
+    <string name="developer_options_debug_header">Debug Options</string>
+    <string name="developer_options_debug_mode">Debug mode</string>
+    <string name="developer_options_debug_mode_desc">Enable verbose logging</string>
+    <string name="developer_options_trace_mode">Trace mode</string>
+    <string name="developer_options_trace_mode_desc">Enable trace-level logging</string>
+    <string name="developer_options_services_header">Service Tests</string>
+    <string name="developer_options_root_test_action">Test Root</string>
+    <string name="developer_options_root_installed_label">Installed</string>
+    <string name="developer_options_root_available_label">Available</string>
+    <string name="developer_options_root_base_check_label">Base check</string>
+    <string name="developer_options_shizuku_test_action">Test Shizuku</string>
+    <string name="developer_options_shizuku_installed_label">Installed</string>
+    <string name="developer_options_shizuku_granted_label">Permission</string>
+    <string name="developer_options_shizuku_compatible_label">Compatible</string>
+    <string name="developer_options_shizuku_service_label">Service</string>
+    <string name="developer_options_test_running">Testing…</string>
+    <string name="developer_options_result_yes">Yes</string>
+    <string name="developer_options_result_no">No</string>
+    <string name="developer_options_result_unknown">Unknown</string>
+    <string name="developer_options_visibility_header">Visibility</string>
+    <string name="developer_options_hide_mode">Hide Developer Mode</string>
+    <string name="developer_options_hide_mode_desc">Tap version 7 times in Settings to re-enable.</string>
+    <string name="developer_options_hide_action">Hide</string>
+
+    <!-- System Info Section -->
+    <string name="developer_system_device_header">Device</string>
+    <string name="developer_system_device_model">Model</string>
+    <string name="developer_system_device_manufacturer">Manufacturer</string>
+    <string name="developer_system_device_api">API Level</string>
+    <string name="developer_system_build_header">Build</string>
+    <string name="developer_system_build_version">Version</string>
+    <string name="developer_system_build_code">Version Code</string>
+    <string name="developer_system_build_flavor">Flavor</string>
+    <string name="developer_system_build_type">Build Type</string>
+    <string name="developer_system_build_git">Git SHA</string>
+    <string name="developer_system_memory_header">Memory</string>
+    <string name="developer_system_memory_available">Available</string>
+    <string name="developer_system_memory_total">Total</string>
+    <string name="developer_system_storage_header">Storage</string>
+
+    <!-- Workspaces Section -->
+    <string name="developer_workspaces_count">%d workspaces</string>
+    <string name="developer_workspaces_empty">No workspaces</string>
+
+    <!-- Logs Section -->
+    <string name="developer_logs_clear">Clear</string>
+    <string name="developer_logs_pause">Pause</string>
+    <string name="developer_logs_resume">Resume</string>
+    <string name="developer_logs_empty">No logs</string>
+
+    <!-- Test Data Section -->
+    <string name="developer_testdata_volume_label">Storage Volume</string>
+    <string name="developer_testdata_no_storage">No storage available</string>
+    <string name="developer_testdata_options_header">Generation Options</string>
+    <string name="developer_testdata_large_files">Large files</string>
+    <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
+    <string name="developer_testdata_nested_structure">Nested structure</string>
+    <string name="developer_testdata_nested_structure_desc">~1500 folders, ~3500 files</string>
+    <string name="developer_testdata_text_files">Text files for Editor</string>
+    <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
+    <string name="developer_testdata_generate">Generate</string>
+    <string name="developer_testdata_generating">Generating…</string>
+    <string name="developer_testdata_progress">%1$s of %2$s</string>
+    <string name="developer_testdata_complete">Test data generated at:</string>
+</resources>

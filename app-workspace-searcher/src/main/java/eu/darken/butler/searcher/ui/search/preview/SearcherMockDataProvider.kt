@@ -1,18 +1,18 @@
 package eu.darken.butler.searcher.ui.search.preview
 
-import androidx.compose.ui.text.input.TextFieldValue
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.core.engine.SearchEngine
-import eu.darken.butler.searcher.ui.search.SearcherAction
+import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
+import eu.darken.butler.searcher.ui.search.util.SearcherAction
+import eu.darken.butler.searcher.ui.search.util.SearcherSelectionState
 import eu.darken.butler.workspace.core.Workspace
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
@@ -317,7 +317,7 @@ object SearcherMockDataProvider {
 
         return SearcherWorkspaceViewModel.State(
             id = workspaceId,
-            filenameQuery = TextFieldValue("config"),
+            filenameQuery = "config",
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
             ),
@@ -345,7 +345,7 @@ object SearcherMockDataProvider {
                     )
                 ),
             ),
-            selectionState = eu.darken.butler.searcher.ui.search.SearcherSelectionState(
+            selectionState = SearcherSelectionState(
                 selectableResults = results,
                 selectedResultIds = selectedResults.map { it.path.path }.toSet()
             ),
@@ -367,7 +367,7 @@ object SearcherMockDataProvider {
     fun createMockSearchingWithProgressState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State =
         SearcherWorkspaceViewModel.State(
             id = workspaceId,
-            filenameQuery = TextFieldValue("log"),
+            filenameQuery = "log",
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Android")),
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),

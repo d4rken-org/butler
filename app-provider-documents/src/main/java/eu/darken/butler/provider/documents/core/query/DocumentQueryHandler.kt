@@ -7,9 +7,7 @@ import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document.*
 import android.webkit.MimeTypeMap
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -22,8 +20,8 @@ import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
-import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.R
+import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.ProviderLocation
 import eu.darken.butler.setup.core.SetupModule
@@ -275,9 +273,9 @@ class DocumentQueryHandler @Inject constructor(
 
         val flags = when (lookup.fileType) {
             FileType.DIRECTORY -> FLAG_DIR_SUPPORTS_CREATE or FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME or
-                    FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
+                FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
             FileType.FILE -> FLAG_SUPPORTS_WRITE or FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME or
-                    FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
+                FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
             FileType.SYMBOLIC_LINK -> 0
             FileType.UNKNOWN -> 0
         }

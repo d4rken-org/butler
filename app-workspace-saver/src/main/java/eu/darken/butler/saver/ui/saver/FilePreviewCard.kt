@@ -37,7 +37,9 @@ internal fun FilePreviewCard(
     sourceInfo: ContentUriHelper.SourceInfo?,
 ) {
     OutlinedCard(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp)) {
             Text(
                 text = stringResource(R.string.saver_preview_label),
                 style = MaterialTheme.typography.labelMedium,

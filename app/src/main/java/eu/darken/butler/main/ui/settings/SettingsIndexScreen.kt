@@ -9,25 +9,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.twotone.ListAlt
 import androidx.compose.material.icons.twotone.Favorite
-import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.PrivacyTip
-import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Stars
-import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.Workspaces
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ButlerLinks
@@ -36,8 +43,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.NavigationDestination
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
@@ -48,6 +55,9 @@ import eu.darken.butler.explorer.ui.explorer
 import eu.darken.butler.searcher.ui.searcher
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
+
+private const val TAPS_TO_UNLOCK = 7
+private const val TAPS_TO_START_COUNTDOWN = 3
 
 @Composable
 fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
@@ -62,6 +72,8 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
             onNavigateUp = { vm.navUp() },
             onNavigateTo = { vm.navTo(it) },
             onOpenUrl = { vm.openUrl(it) },
+            onOpenSDMaidInstall = { vm.openSDMaidInstall() },
+            onUnlockDeveloperMode = { vm.unlockDeveloperMode() },
         )
     }
 }
@@ -72,7 +84,44 @@ fun SettingsIndexScreen(
     onNavigateUp: () -> Unit,
     onNavigateTo: (NavigationDestination) -> Unit,
     onOpenUrl: (String) -> Unit,
+    onOpenSDMaidInstall: () -> Unit,
+    onUnlockDeveloperMode: () -> Unit,
 ) {
+    val context = LocalContext.current
+    var tapCount by remember { mutableIntStateOf(0) }
+    var showUnlockDialog by remember { mutableStateOf(false) }
+
+    if (showUnlockDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showUnlockDialog = false
+                tapCount = 0
+            },
+            title = { Text(stringResource(R.string.settings_developer_mode_unlock_title)) },
+            text = { Text(stringResource(R.string.settings_developer_mode_unlock_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onUnlockDeveloperMode()
+                        showUnlockDialog = false
+                        tapCount = 0
+                    }
+                ) {
+                    Text(stringResource(R.string.settings_developer_mode_unlock_action))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showUnlockDialog = false
+                        tapCount = 0
+                    }
+                ) {
+                    Text(stringResource(eu.darken.butler.common.R.string.general_cancel_action))
+                }
+            },
+        )
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -142,36 +191,6 @@ fun SettingsIndexScreen(
                 SettingsDivider()
             }
 
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.PushPin,
-                    title = stringResource(R.string.shortcuts_settings_title),
-                    subtitle = stringResource(R.string.shortcuts_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.shortcuts()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.Storage,
-                    title = stringResource(R.string.storage_settings_title),
-                    subtitle = stringResource(R.string.storage_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.storage()) },
-                )
-                SettingsDivider()
-            }
-
-            item {
-                SettingsBaseItem(
-                    icon = Icons.TwoTone.FolderOpen,
-                    title = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_settings_title),
-                    subtitle = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_settings_subtitle),
-                    onClick = { onNavigateTo(Nav.Settings.providerDocuments()) },
-                )
-                SettingsDivider()
-            }
-
             item { SettingsCategoryHeader(stringResource(R.string.settings_category_tools_label)) }
 
             item {
@@ -232,6 +251,26 @@ fun SettingsIndexScreen(
                     title = stringResource(R.string.changelog_label),
                     subtitle = state.versionText,
                     onClick = { onOpenUrl(ButlerLinks.CHANGELOG) },
+                    onLongClick = if (state.canUnlockDeveloperMode) {
+                        {
+                            tapCount++
+                            when {
+                                tapCount >= TAPS_TO_UNLOCK -> showUnlockDialog = true
+                                tapCount >= TAPS_TO_START_COUNTDOWN -> {
+                                    val remaining = TAPS_TO_UNLOCK - tapCount
+                                    Toast.makeText(
+                                        context,
+                                        context.resources.getQuantityString(
+                                            R.plurals.settings_developer_mode_countdown,
+                                            remaining,
+                                            remaining,
+                                        ),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                        }
+                    } else null,
                 )
                 SettingsDivider()
             }
@@ -254,6 +293,20 @@ fun SettingsIndexScreen(
                     onClick = { onOpenUrl(ButlerLinks.PRIVACY_POLICY) },
                 )
             }
+
+            if (!state.isSDMaidInstalled) {
+                item {
+                    SettingsDivider()
+                    SettingsBaseItem(
+                        iconPainter = painterResource(R.drawable.sdmaid_mascot),
+                        iconTinted = false,
+                        iconSize = 32.dp,
+                        title = stringResource(R.string.settings_sdmaid_label),
+                        subtitle = stringResource(R.string.settings_sdmaid_description),
+                        onClick = onOpenSDMaidInstall,
+                    )
+                }
+            }
         }
     }
 }
@@ -264,11 +317,14 @@ private fun SettingsScreenPreview() {
     PreviewWrapper {
         SettingsIndexScreen(
             state = SettingsViewModel.State(
-                isUpgraded = true // TODO: Preview with upgrade status
+                isUpgraded = true,
+                isSDMaidInstalled = false,
             ),
             onNavigateUp = {},
             onNavigateTo = {},
             onOpenUrl = {},
+            onOpenSDMaidInstall = {},
+            onUnlockDeveloperMode = {},
         )
     }
 }

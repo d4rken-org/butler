@@ -93,8 +93,8 @@ class DeviceDetective @Inject constructor(
         manufactor("vivo") -> when {
             // FUNTOUCH: vivo/V2413_EEA/V2413:15/AP3A.240905.015.A2_V000L1/compiler03201816:user/release-keys
             !hasApiLevel(30) // First origin version was with API30/Android11
-                    || apps(FUNTOUCH_PKGS)
-                    || product("EEA") -> RomType.FUNTOUCHOS
+                || apps(FUNTOUCH_PKGS)
+                || product("EEA") -> RomType.FUNTOUCHOS
 
             // ORIGIN: vivo/PD2366/PD2366:14/UP1A.231005.007_MOD1/compiler07161632:user/release-keys
             // ORIGIN: vivo/PD2454/PD2454:15/AP3A.240905.015.A2_V000L1/compiler250517195248:user/release-keys

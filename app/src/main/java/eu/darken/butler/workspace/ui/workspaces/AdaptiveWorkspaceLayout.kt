@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -12,13 +11,13 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
+import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
-import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
-import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DragDropState
@@ -107,8 +106,7 @@ fun AdaptiveWorkspaceLayout(
 
             AdaptiveWorkspaceContainer(
                 modifier = Modifier
-                    .weight(1f)
-                    .systemBarsPadding(),
+                    .weight(1f),
                 design = design,
                 selected = selected,
                 focusedTabId = focusedId,
@@ -120,6 +118,7 @@ fun AdaptiveWorkspaceLayout(
                 showPaneNumbers = showPaneNumbers,
                 showPaneOverlay = showPaneOverlay,
                 paneContent = { info, paneNumber ->
+                    val paneDesign = design.forPane(paneNumber)
                     if (info != null) {
                         key(info.id) {
                             // Check if this workspace has a pane-local modal child
@@ -129,7 +128,13 @@ fun AdaptiveWorkspaceLayout(
                                 // Background: Parent workspace
                                 CompositionLocalProvider(
                                     LocalWorkspaceFocused provides (focusedId == info.id),
-                                    LocalWorkspaceFocusRequest provides { onScreenAction(WorkspaceScreenAction.Focus(info.id)) },
+                                    LocalWorkspaceFocusRequest provides {
+                                        onScreenAction(
+                                            WorkspaceScreenAction.Focus(
+                                                info.id
+                                            )
+                                        )
+                                    },
                                 ) {
                                     WorkspaceOverlayContainer(
                                         workspaceId = info.id,
@@ -141,7 +146,7 @@ fun AdaptiveWorkspaceLayout(
                                     ) {
                                         WorkspaceMapper(
                                             info = info,
-                                            design = design,
+                                            design = paneDesign,
                                         )
                                     }
                                 }
@@ -151,7 +156,13 @@ fun AdaptiveWorkspaceLayout(
                                     key(modal.id) {
                                         CompositionLocalProvider(
                                             LocalWorkspaceFocused provides (focusedId == modal.id),
-                                            LocalWorkspaceFocusRequest provides { onScreenAction(WorkspaceScreenAction.Focus(modal.id)) },
+                                            LocalWorkspaceFocusRequest provides {
+                                                onScreenAction(
+                                                    WorkspaceScreenAction.Focus(
+                                                        modal.id
+                                                    )
+                                                )
+                                            },
                                         ) {
                                             WorkspaceOverlayContainer(
                                                 workspaceId = modal.id,
@@ -163,7 +174,7 @@ fun AdaptiveWorkspaceLayout(
                                             ) {
                                                 WorkspaceMapper(
                                                     info = modal.asPaneInfo(),
-                                                    design = design,
+                                                    design = paneDesign,
                                                 )
                                             }
                                         }
@@ -175,6 +186,7 @@ fun AdaptiveWorkspaceLayout(
                         EmptyAdaptiveWorkspaceContent(
                             modifier = Modifier.weight(1f),
                             paneNumber = paneNumber,
+                            paneEdges = paneDesign.paneEdges,
                         )
                     }
                 }

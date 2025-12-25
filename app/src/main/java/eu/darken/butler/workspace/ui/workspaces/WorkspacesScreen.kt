@@ -48,8 +48,8 @@ import eu.darken.butler.workspace.ui.manager.rememberWindowSizeInfo
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
 import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContainer
 import kotlin.uuid.Uuid
-import eu.darken.butler.workspace.R as WorkspaceR
 import eu.darken.butler.common.R as CommonR
+import eu.darken.butler.workspace.R as WorkspaceR
 
 private val TAG = logTag("Workspace", "Screen")
 

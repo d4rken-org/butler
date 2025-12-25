@@ -8,7 +8,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorSettings
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 @HiltViewModel

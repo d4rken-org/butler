@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 interface WorkspaceRemote {
 
     val state: Flow<State>
-    
+
     val events: Flow<WorkspaceEvent>
 
     /**

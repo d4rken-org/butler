@@ -5,13 +5,13 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.navigation.NavEvent
+import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.ui.ViewModel4
@@ -31,12 +31,10 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
-import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -45,6 +43,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlin.time.Instant
 
 @HiltViewModel(assistedFactory = SaverWorkspaceViewModel.Factory::class)
 class SaverWorkspaceViewModel @AssistedInject constructor(
@@ -52,6 +51,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
+    private val storageEnvironment: StorageEnvironment,
 ) : ViewModel4(dispatchers, logTag("Saver", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<SaverWorkspace?> =
@@ -174,7 +174,9 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "onPickDestination()" }
         val workspace = getWorkspace()
         val wsState = workspace.state.first()
-        val currentDestination = wsState.destination
+
+        // Use current destination, or fall back to Downloads folder
+        val startPath = wsState.destination ?: storageEnvironment.downloadsDirectory
 
         val selection = if (wsState.sourceInfos.size > 1) {
             // Batch mode: just pick directory
@@ -188,7 +190,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
 
         workspaceRemote.launchPicker(
             callerWorkspaceId = id,
-            startPath = currentDestination,
+            startPath = startPath,
             selection = selection,
         )
     }
@@ -238,6 +240,12 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     fun onClose() = launch {
         log(tag) { "onClose()" }
         workspaceRemote.execute(WorkspaceAction.Close(id))
+    }
+
+    fun onFinishApp() = launch {
+        log(tag) { "onFinishApp() - closing workspace and finishing app" }
+        workspaceRemote.execute(WorkspaceAction.Close(id))
+        navEvents.tryEmit(NavEvent.Finish)
     }
 
     fun resolveConflict(resolution: PathActionIssue.Resolution) = launch {

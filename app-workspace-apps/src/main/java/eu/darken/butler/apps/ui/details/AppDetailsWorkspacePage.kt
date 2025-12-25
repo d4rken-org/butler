@@ -38,11 +38,11 @@ import eu.darken.butler.apps.core.details.AppDetailsWorkspaceViewModel
 import eu.darken.butler.apps.core.details.AppInfo
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace

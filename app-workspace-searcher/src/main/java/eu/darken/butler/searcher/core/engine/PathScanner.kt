@@ -1,8 +1,11 @@
 package eu.darken.butler.searcher.core.engine
 
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
@@ -12,9 +15,12 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.MetadataRepo
+import eu.darken.butler.searcher.core.FilterComparator
+import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -24,11 +30,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import eu.darken.butler.workspace.core.Workspace
 
 class PathScanner @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -129,40 +130,46 @@ class PathScanner @AssistedInject constructor(
     }.flowOn(dispatcherProvider.IO)
 
     private fun filterLookup(lookup: APathLookup<*>, filter: SearchQuery.Filter): Boolean {
-        // File type filter
-        if (filter.fileTypes != null && lookup.fileType !in filter.fileTypes) {
-            return false
+        // Evaluate all conditions - ALL must pass
+        for (condition in filter.conditions) {
+            if (!evaluateCondition(condition, lookup)) {
+                return false
+            }
         }
-
-        // Size filter - coerce to non-negative for safety
-        val minSize = filter.minSize?.coerceAtLeast(0L)
-        val maxSize = filter.maxSize?.coerceAtLeast(0L)
-        if (minSize != null && lookup.size?.let { it < minSize } == true) return false
-        if (maxSize != null && lookup.size?.let { it > maxSize } == true) return false
-
-        // Modified date filter
-        if (filter.modifiedAfter != null && lookup.modifiedAt?.let { it < filter.modifiedAfter } == true) {
-            return false
-        }
-        if (filter.modifiedBefore != null && lookup.modifiedAt?.let { it > filter.modifiedBefore } == true) return false
-
-        // Path filters
-        val pathStr = lookup.path
-
-        if (filter.excludePaths != null) {
-            if (filter.excludePaths.any { pathStr.contains(it) }) return false
-        }
-
-        if (filter.includePaths != null) {
-            if (filter.includePaths.none { pathStr.contains(it) }) return false
-        }
-
-        // Hidden files filter
-        if (!filter.searchHidden && lookup.name.startsWith(".")) {
-            return false
-        }
-
         return true
+    }
+
+    private fun evaluateCondition(condition: FilterCondition, lookup: APathLookup<*>): Boolean {
+        return when (condition) {
+            is FilterCondition.Size -> {
+                // Size filters only apply to files, not directories (needed for recursion)
+                if (lookup.fileType == FileType.DIRECTORY) return true
+                val size = lookup.size ?: return true // Skip if size unknown
+                val bytes = condition.bytes.coerceAtLeast(0L)
+                when (condition.comparator) {
+                    FilterComparator.GT -> size > bytes
+                    FilterComparator.GTE -> size >= bytes
+                    FilterComparator.LT -> size < bytes
+                    FilterComparator.LTE -> size <= bytes
+                    FilterComparator.EQ -> size == bytes
+                }
+            }
+            is FilterCondition.ModifiedDate -> {
+                val modifiedAt = lookup.modifiedAt ?: return true // Skip if date unknown
+                when (condition.comparator) {
+                    FilterComparator.GT -> modifiedAt > condition.instant
+                    FilterComparator.GTE -> modifiedAt >= condition.instant
+                    FilterComparator.LT -> modifiedAt < condition.instant
+                    FilterComparator.LTE -> modifiedAt <= condition.instant
+                    FilterComparator.EQ -> modifiedAt == condition.instant
+                }
+            }
+            is FilterCondition.Type -> {
+                // Type filters don't apply to directories (needed for recursion)
+                if (lookup.fileType == FileType.DIRECTORY) return true
+                lookup.fileType == condition.fileType
+            }
+        }
     }
 
     private suspend fun matchesSearch(

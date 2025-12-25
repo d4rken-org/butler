@@ -57,6 +57,8 @@ sealed class AKnownPkg(override val id: Pkg.Id) : Pkg {
 
     data object XiaomiAppStore : AKnownPkg("com.xiaomi.mipicks"), AppStore
 
+    data object SDMaidSE : AKnownPkg("eu.darken.sdmse")
+
     companion object {
         val values: List<AKnownPkg> = listOf(
             AndroidSystem,
@@ -65,7 +67,8 @@ sealed class AKnownPkg(override val id: Pkg.Id) : Pkg {
             OppoMarket,
             HuaweiAppGallery,
             SamsungAppStore,
-            XiaomiAppStore
+            XiaomiAppStore,
+            SDMaidSE,
         )
 
         val APP_STORES by lazy { values.filterIsInstance<AppStore>() }

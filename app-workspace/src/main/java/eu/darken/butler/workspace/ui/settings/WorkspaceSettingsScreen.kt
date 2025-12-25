@@ -39,8 +39,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.formatAsFileSize
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
@@ -113,16 +113,6 @@ fun WorkspaceSettingsScreen(
             }
 
             item {
-                SettingsSwitchItem(
-                    icon = Icons.TwoTone.Visibility,
-                    title = stringResource(R.string.workspace_settings_live_preview_title),
-                    subtitle = stringResource(R.string.workspace_settings_live_preview_desc),
-                    checked = state.livePreview,
-                    onCheckedChange = { onToggleLivePreview() }
-                )
-            }
-
-            item {
                 SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_layout_title))
             }
 
@@ -175,6 +165,20 @@ fun WorkspaceSettingsScreen(
                         onClick = {},
                     )
                 }
+            }
+
+            item {
+                SettingsCategoryHeader(text = stringResource(R.string.workspace_settings_other))
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.Visibility,
+                    title = stringResource(R.string.workspace_settings_live_preview_title),
+                    subtitle = stringResource(R.string.workspace_settings_live_preview_desc),
+                    checked = state.livePreview,
+                    onCheckedChange = { onToggleLivePreview() },
+                )
             }
         }
     }

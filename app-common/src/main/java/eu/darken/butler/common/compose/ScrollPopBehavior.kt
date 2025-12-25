@@ -4,7 +4,6 @@ import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -18,10 +17,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 
 /**
  * Configuration for scroll-reactive pop animation behavior
@@ -57,13 +52,13 @@ fun Modifier.scrollPopBehavior(
 ): Modifier {
     var scrollOffset by remember { mutableFloatStateOf(0f) }
     var isVisible by remember { mutableFloatStateOf(1f) }
-    
+
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val delta = available.y
                 scrollOffset += delta
-                
+
                 // Only trigger changes if scroll exceeds threshold
                 if (kotlin.math.abs(delta) > config.scrollThreshold) {
                     when {
@@ -77,12 +72,12 @@ fun Modifier.scrollPopBehavior(
                         }
                     }
                 }
-                
+
                 return Offset.Zero
             }
         }
     }
-    
+
     return this.nestedScroll(nestedScrollConnection)
 }
 
@@ -101,39 +96,39 @@ fun ScrollPopWrapper(
     content: @Composable () -> Unit
 ) {
     val targetVisibility = if (isVisible) 1f else 0f
-    
+
     // Animated values for smooth transitions
     val animatedScale by animateFloatAsState(
         targetValue = if (isVisible) config.scaleWhenVisible else config.scaleWhenHidden,
         animationSpec = if (isVisible) config.showAnimationSpec else config.hideAnimationSpec,
         label = "scale"
     )
-    
+
     val animatedAlpha by animateFloatAsState(
         targetValue = if (isVisible) 1f else config.alphaWhenHidden,
         animationSpec = if (isVisible) config.showAnimationSpec else config.hideAnimationSpec,
         label = "alpha"
     )
-    
+
     val animatedRotation by animateFloatAsState(
         targetValue = if (isVisible) 0f else config.rotationWhenHidden,
         animationSpec = if (isVisible) config.showAnimationSpec else config.hideAnimationSpec,
         label = "rotation"
     )
-    
+
     // Pop effect: briefly scale beyond target when showing
     val popScale = if (isVisible && animatedScale > config.scaleWhenVisible * 0.8f) {
         config.scalePopEffect
     } else {
         animatedScale
     }
-    
+
     val finalScale by animateFloatAsState(
         targetValue = popScale,
         animationSpec = spring(dampingRatio = 0.7f, stiffness = 1200f),
         label = "popScale"
     )
-    
+
     Box(
         modifier = Modifier
             .scale(finalScale)

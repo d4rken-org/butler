@@ -32,9 +32,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath

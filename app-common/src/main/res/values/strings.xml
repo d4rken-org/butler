@@ -14,15 +14,27 @@
     <string name="butler_mascot_animation_sleep_snoring_description">Butler mascot snoring</string>
     <string name="butler_mascot_animation_sleep_waking_description">Butler mascot waking up</string>
 
-    <string name="slogan_message_0">At your service.</string>
-    <string name="slogan_message_1">Everything in its place.</string>
-    <string name="slogan_message_2">Order, not chaos.</string>
-    <string name="slogan_message_3">Fetching your files.</string>
-    <string name="slogan_message_4">All your files in a row.</string>
-    <string name="slogan_message_5">Organized, always.</string>
-    <string name="slogan_message_6">Files, found fast!</string>
-    <string name="slogan_message_7">Access made easy.</string>
-    <string name="slogan_message_8">Never gonna lose your files.</string>
+    <string name="slogan_general_message_0">At your service.</string>
+    <string name="slogan_general_message_1">Everything in its place.</string>
+    <string name="slogan_general_message_2">Order, not chaos.</string>
+    <string name="slogan_general_message_3">Fetching your files.</string>
+    <string name="slogan_general_message_4">All your files in a row.</string>
+    <string name="slogan_general_message_5">Organized, always.</string>
+    <string name="slogan_general_message_6">Files, found fast!</string>
+    <string name="slogan_general_message_7">Access made easy.</string>
+    <string name="slogan_general_message_8">Never gonna lose your files.</string>
+    <string name="slogan_general_message_9">Wearing many hats.</string>
+    <string name="slogan_newyear_message_0">Same procedure as every year.</string>
+    <string name="slogan_xmas_message_0">Checking files twice.</string>
+    <string name="slogan_xmas_message_1">On the nice list.</string>
+    <string name="slogan_halloween_message_0">Boo-tler at your service.</string>
+    <string name="slogan_halloween_message_1">No tricks, just files.</string>
+    <string name="slogan_stpatricks_message_0">Feeling lucky?</string>
+    <string name="slogan_stpatricks_message_1">Finding your pot of gold.</string>
+    <string name="slogan_aprilfools_message_0">No fooling around.</string>
+    <string name="slogan_aprilfools_message_1">Seriously organized.</string>
+    <string name="slogan_oktoberfest_message_0">Prost to your files!</string>
+    <string name="slogan_oktoberfest_message_1">Files on tap.</string>
 
     <string name="general_share_action">Share</string>
     <string name="general_share_single_title">Share %s</string>
@@ -210,13 +222,13 @@
 
     <!-- Open in new tabs feature -->
     <string name="common_open_tabs_confirmation_title">Open multiple tabs?</string>
-    <string name="common_open_tabs_confirmation_message">This will open %1$d workspaces.</string>
+    <string name="common_open_tabs_confirmation_message">This will open %1$d tabs.</string>
     <string name="common_open_tabs_success">Opened %1$d tabs</string>
     <string name="common_open_tabs_success_with_skipped">Opened %1$d tabs (%2$d items skipped)</string>
 
-    <!-- Workspace close confirmation -->
-    <string name="general_workspace_close_confirmation_title">Close workspace?</string>
-    <string name="general_workspace_close_confirmation_message">Are you sure you want to close \"%1$s\"?</string>
+    <!-- Tab close confirmation -->
+    <string name="general_tab_close_confirmation_title">Close tab?</string>
+    <string name="general_tab_close_confirmation_message">Are you sure you want to close \"%1$s\"?</string>
 
     <!-- Exit app -->
     <string name="general_press_back_again_to_exit">Press back again to exit</string>

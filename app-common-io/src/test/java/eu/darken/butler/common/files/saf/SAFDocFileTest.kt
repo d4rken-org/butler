@@ -98,10 +98,23 @@ class SAFDocFileTest : BaseTest() {
         val uri = Uri.parse("content://authority/document/123")
 
         // Mock permission check - direct URI has permission
-        every { context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } returns PackageManager.PERMISSION_GRANTED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_GRANTED
 
         // Mock MIME type query
-        every { contentResolver.query(uri, arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null) } returns createMimeCursor("text/plain")
+        every {
+            contentResolver.query(
+                uri,
+                arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                null,
+                null,
+                null
+            )
+        } returns createMimeCursor("text/plain")
 
         val docFile = SAFDocFile(context, contentResolver, uri)
 
@@ -113,10 +126,23 @@ class SAFDocFileTest : BaseTest() {
         val uri = Uri.parse("content://authority/document/123")
 
         // Mock permission check
-        every { context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } returns PackageManager.PERMISSION_GRANTED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_GRANTED
 
         // Mock MIME type query - returns null
-        every { contentResolver.query(uri, arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null) } returns createMimeCursor(null)
+        every {
+            contentResolver.query(
+                uri,
+                arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                null,
+                null,
+                null
+            )
+        } returns createMimeCursor(null)
 
         val docFile = SAFDocFile(context, contentResolver, uri)
 
@@ -128,10 +154,23 @@ class SAFDocFileTest : BaseTest() {
         val uri = Uri.parse("content://authority/document/123")
 
         // Mock permission check - no permission
-        every { context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } returns PackageManager.PERMISSION_DENIED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_DENIED
 
         // Mock MIME type query
-        every { contentResolver.query(uri, arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null) } returns createMimeCursor("text/plain")
+        every {
+            contentResolver.query(
+                uri,
+                arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                null,
+                null,
+                null
+            )
+        } returns createMimeCursor("text/plain")
 
         val docFile = SAFDocFile(context, contentResolver, uri)
 
@@ -144,11 +183,29 @@ class SAFDocFileTest : BaseTest() {
         val treeRootUri = Uri.parse("content://authority/tree/primary%3AFolder")
 
         // Mock permission check - child has no direct permission, but tree root does
-        every { context.checkCallingOrSelfUriPermission(childUri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } returns PackageManager.PERMISSION_DENIED
-        every { context.checkCallingOrSelfUriPermission(treeRootUri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } returns PackageManager.PERMISSION_GRANTED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                childUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_DENIED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                treeRootUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_GRANTED
 
         // Mock MIME type query
-        every { contentResolver.query(childUri, arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null) } returns createMimeCursor("text/plain")
+        every {
+            contentResolver.query(
+                childUri,
+                arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                null,
+                null,
+                null
+            )
+        } returns createMimeCursor("text/plain")
 
         val docFile = SAFDocFile(context, contentResolver, childUri)
 
@@ -161,11 +218,29 @@ class SAFDocFileTest : BaseTest() {
         val treeRootUri = Uri.parse("content://authority/tree/primary%3AFolder")
 
         // Mock permission check - neither child nor tree root have permission
-        every { context.checkCallingOrSelfUriPermission(childUri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } returns PackageManager.PERMISSION_DENIED
-        every { context.checkCallingOrSelfUriPermission(treeRootUri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } returns PackageManager.PERMISSION_DENIED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                childUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_DENIED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                treeRootUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_DENIED
 
         // Mock MIME type query
-        every { contentResolver.query(childUri, arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null) } returns createMimeCursor("text/plain")
+        every {
+            contentResolver.query(
+                childUri,
+                arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                null,
+                null,
+                null
+            )
+        } returns createMimeCursor("text/plain")
 
         val docFile = SAFDocFile(context, contentResolver, childUri)
 
@@ -174,15 +249,34 @@ class SAFDocFileTest : BaseTest() {
 
     @Test
     fun `readable returns true for nested tree child with tree root permission`() {
-        val childUri = Uri.parse("content://authority/tree/primary%3AFolder/document/primary%3AFolder%2Fsubfolder%2Ffile.txt")
+        val childUri =
+            Uri.parse("content://authority/tree/primary%3AFolder/document/primary%3AFolder%2Fsubfolder%2Ffile.txt")
         val treeRootUri = Uri.parse("content://authority/tree/primary%3AFolder")
 
         // Mock permission check - tree root has permission
-        every { context.checkCallingOrSelfUriPermission(childUri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } returns PackageManager.PERMISSION_DENIED
-        every { context.checkCallingOrSelfUriPermission(treeRootUri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } returns PackageManager.PERMISSION_GRANTED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                childUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_DENIED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                treeRootUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_GRANTED
 
         // Mock MIME type query
-        every { contentResolver.query(childUri, arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null) } returns createMimeCursor("text/plain")
+        every {
+            contentResolver.query(
+                childUri,
+                arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                null,
+                null,
+                null
+            )
+        } returns createMimeCursor("text/plain")
 
         val docFile = SAFDocFile(context, contentResolver, childUri)
 
@@ -195,14 +289,40 @@ class SAFDocFileTest : BaseTest() {
         val treeRootUri = Uri.parse("content://authority/tree/primary%3AFolder")
 
         // Mock permission check - tree root has write permission
-        every { context.checkCallingOrSelfUriPermission(childUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) } returns PackageManager.PERMISSION_DENIED
-        every { context.checkCallingOrSelfUriPermission(treeRootUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) } returns PackageManager.PERMISSION_GRANTED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                childUri,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_DENIED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                treeRootUri,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_GRANTED
 
         // Mock MIME type query
-        every { contentResolver.query(childUri, arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null) } returns createMimeCursor("text/plain")
+        every {
+            contentResolver.query(
+                childUri,
+                arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                null,
+                null,
+                null
+            )
+        } returns createMimeCursor("text/plain")
 
         // Mock flags query - supports write
-        every { contentResolver.query(childUri, arrayOf(DocumentsContract.Document.COLUMN_FLAGS), null, null, null) } returns createFlagsCursor(DocumentsContract.Document.FLAG_SUPPORTS_WRITE)
+        every {
+            contentResolver.query(
+                childUri,
+                arrayOf(DocumentsContract.Document.COLUMN_FLAGS),
+                null,
+                null,
+                null
+            )
+        } returns createFlagsCursor(DocumentsContract.Document.FLAG_SUPPORTS_WRITE)
 
         val docFile = SAFDocFile(context, contentResolver, childUri)
 
@@ -215,11 +335,29 @@ class SAFDocFileTest : BaseTest() {
         val treeRootUri = Uri.parse("content://authority/tree/primary%3AFolder")
 
         // Mock permission check - no write permission
-        every { context.checkCallingOrSelfUriPermission(childUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) } returns PackageManager.PERMISSION_DENIED
-        every { context.checkCallingOrSelfUriPermission(treeRootUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) } returns PackageManager.PERMISSION_DENIED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                childUri,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_DENIED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                treeRootUri,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_DENIED
 
         // Mock MIME type query
-        every { contentResolver.query(childUri, arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null) } returns createMimeCursor("text/plain")
+        every {
+            contentResolver.query(
+                childUri,
+                arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                null,
+                null,
+                null
+            )
+        } returns createMimeCursor("text/plain")
 
         val docFile = SAFDocFile(context, contentResolver, childUri)
 
@@ -232,14 +370,40 @@ class SAFDocFileTest : BaseTest() {
         val treeRootUri = Uri.parse("content://authority/tree/primary%3AFolder")
 
         // Mock permission check - tree root has write permission
-        every { context.checkCallingOrSelfUriPermission(childUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) } returns PackageManager.PERMISSION_DENIED
-        every { context.checkCallingOrSelfUriPermission(treeRootUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION) } returns PackageManager.PERMISSION_GRANTED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                childUri,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_DENIED
+        every {
+            context.checkCallingOrSelfUriPermission(
+                treeRootUri,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+        } returns PackageManager.PERMISSION_GRANTED
 
         // Mock MIME type query - directory
-        every { contentResolver.query(childUri, arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null) } returns createMimeCursor(DocumentsContract.Document.MIME_TYPE_DIR)
+        every {
+            contentResolver.query(
+                childUri,
+                arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE),
+                null,
+                null,
+                null
+            )
+        } returns createMimeCursor(DocumentsContract.Document.MIME_TYPE_DIR)
 
         // Mock flags query - supports create
-        every { contentResolver.query(childUri, arrayOf(DocumentsContract.Document.COLUMN_FLAGS), null, null, null) } returns createFlagsCursor(DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE)
+        every {
+            contentResolver.query(
+                childUri,
+                arrayOf(DocumentsContract.Document.COLUMN_FLAGS),
+                null,
+                null,
+                null
+            )
+        } returns createFlagsCursor(DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE)
 
         val docFile = SAFDocFile(context, contentResolver, childUri)
 

@@ -20,6 +20,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -51,29 +56,48 @@ fun WorkspaceGridItem(
     currentPaneCount: Int = 1,
 ) {
     val haptic = LocalHapticFeedback.current
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onSelect() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = when {
-                isFocused -> MaterialTheme.colorScheme.primaryContainer
-                isSelected -> MaterialTheme.colorScheme.surfaceContainerHighest
-                else -> MaterialTheme.colorScheme.surfaceVariant
-            }
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isDragging) 16.dp else 2.dp,
-            pressedElevation = 8.dp
-        )
-    ) {
-        Column(
+    val needsAttention = workspace.attentionCount > 0
+    val attentionColor = MaterialTheme.colorScheme.error
+
+    val glowModifier = if (needsAttention) {
+        Modifier.drawBehind {
+            val glowSize = 3.dp.toPx()
+            drawRoundRect(
+                color = attentionColor.copy(alpha = 0.4f),
+                cornerRadius = CornerRadius(20.dp.toPx()),
+                size = Size(size.width + glowSize * 2, size.height + glowSize * 2),
+                topLeft = Offset(-glowSize, -glowSize),
+                style = Fill,
+            )
+        }
+    } else {
+        Modifier
+    }
+
+    Box(modifier = modifier.then(glowModifier)) {
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(6.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+                .clickable { onSelect() },
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = when {
+                    isFocused -> MaterialTheme.colorScheme.primaryContainer
+                    isSelected -> MaterialTheme.colorScheme.surfaceContainerHighest
+                    else -> MaterialTheme.colorScheme.surfaceVariant
+                }
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = if (isDragging) 16.dp else 2.dp,
+                pressedElevation = 8.dp
+            )
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(6.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Row(
                     modifier = with(reorderableScope) {
                         Modifier
@@ -131,7 +155,7 @@ fun WorkspaceGridItem(
                     shouldShowBadge = workspace.paneNumber != null && currentPaneCount > 1,
                 )
             }
-
+        }
     }
 }
 
@@ -299,6 +323,47 @@ private fun WorkspaceGridItemFocusStatesPreview() {
                 isFocused = false,
                 isSelected = false,
                 currentPaneCount = 2,
+            )
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceGridItemAttentionPreview() {
+    PreviewWrapper {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Workspace needs attention
+            WorkspaceGridItem(
+                reorderableScope = createMockReorderableScope(),
+                workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.EXPLORER,
+                    title = "Needs Attention".toCaString(),
+                    subtitle = "3 errors occurred".toCaString(),
+                    attentionCount = 3,
+                ),
+                onClose = {},
+                onSelect = {},
+                livePreview = false,
+            )
+
+            // Normal workspace for comparison
+            WorkspaceGridItem(
+                reorderableScope = createMockReorderableScope(),
+                workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.EXPLORER,
+                    title = "Normal Workspace".toCaString(),
+                    subtitle = "No issues".toCaString(),
+                    attentionCount = 0,
+                ),
+                onClose = {},
+                onSelect = {},
+                livePreview = false,
             )
         }
     }

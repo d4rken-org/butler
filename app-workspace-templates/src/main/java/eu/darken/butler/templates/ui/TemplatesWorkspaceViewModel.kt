@@ -7,21 +7,23 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.apps.ui.AppsWorkspaceTemplate
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.developer.DeveloperSettings
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.debug.ui.DebugWorkspaceTemplate
+import eu.darken.butler.developer.ui.DeveloperWorkspaceTemplate
 import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
 import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
+import eu.darken.butler.sdmaid.ui.SdMaidWorkspaceTemplate
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 
 @HiltViewModel(assistedFactory = TemplatesWorkspaceViewModel.Factory::class)
 class TemplatesWorkspaceViewModel @AssistedInject constructor(
@@ -29,19 +31,25 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val upgradeRepo: UpgradeRepo,
-) : ViewModel4(dispatchers, logTag( "Templates","Workspace", id.shortTag)) {
+    private val developerSettings: DeveloperSettings,
+) : ViewModel4(dispatchers, logTag("Templates", "Workspace", id.shortTag)) {
 
-    private val templates = MutableStateFlow(
+    private val baseTemplates = listOf(
+        ExplorerWorkspaceTemplate(),
+        SearcherWorkspaceTemplate(),
+        EditorWorkspaceTemplate(),
+        AppsWorkspaceTemplate(),
+        SdMaidWorkspaceTemplate(),
+    )
+
+    private val templates = developerSettings.isDeveloperModeUnlocked.flow.map { isUnlocked ->
         buildList {
-            add(ExplorerWorkspaceTemplate())
-            add(SearcherWorkspaceTemplate())
-            add(EditorWorkspaceTemplate())
-            add(AppsWorkspaceTemplate())
-            if (BuildConfigWrap.DEBUG) {
-                add(DebugWorkspaceTemplate())
+            addAll(baseTemplates)
+            if (isUnlocked) {
+                add(DeveloperWorkspaceTemplate())
             }
         }
-    )
+    }
 
     val state = combine(
         templates,

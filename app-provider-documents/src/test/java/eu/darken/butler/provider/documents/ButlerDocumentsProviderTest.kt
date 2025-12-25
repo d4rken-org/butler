@@ -162,7 +162,11 @@ class ButlerDocumentsProviderTest {
         val childId = "saf|child"
         // SAFPath with same treeRoot but child has additional segments
         val parentPath = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments")
-        val childPath = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments", "subfolder", "file.txt")
+        val childPath = SAFPath.build(
+            "content://com.android.externalstorage.documents/tree/primary%3ADocuments",
+            "subfolder",
+            "file.txt"
+        )
 
         every { codec.isVirtualDocument(parentId) } returns false
         every { codec.isVirtualDocument(childId) } returns false
@@ -183,7 +187,8 @@ class ButlerDocumentsProviderTest {
         val childId = "saf|child"
         // Different tree roots - Documents vs Downloads
         val parentPath = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments")
-        val childPath = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADownloads", "file.txt")
+        val childPath =
+            SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADownloads", "file.txt")
 
         every { codec.isVirtualDocument(parentId) } returns false
         every { codec.isVirtualDocument(childId) } returns false

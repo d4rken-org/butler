@@ -119,8 +119,8 @@ fun OperationsBar(
                     operationCount = operations.size,
                     completedCount = operations.count {
                         it.state is OperationDisplay.State.Completed ||
-                                it.state is OperationDisplay.State.Failed ||
-                                it.state is OperationDisplay.State.Cancelled
+                            it.state is OperationDisplay.State.Failed ||
+                            it.state is OperationDisplay.State.Cancelled
                     },
                     runningCount = operations.count { it.state is OperationDisplay.State.Running },
                     isExpanded = isExpanded,

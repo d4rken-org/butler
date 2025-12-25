@@ -5,7 +5,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 
 object ThemeColorProvider {
-    
+
     fun getLightColorScheme(color: ThemeColor, style: ThemeStyle): ColorScheme {
         return when (color) {
             ThemeColor.GREEN -> when (style) {
@@ -25,7 +25,7 @@ object ThemeColorProvider {
             }
         }
     }
-    
+
     fun getDarkColorScheme(color: ThemeColor, style: ThemeStyle): ColorScheme {
         return when (color) {
             ThemeColor.GREEN -> when (style) {
@@ -77,7 +77,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsGreen.inverseOnSurfaceLight,
         inversePrimary = ButlerColorsGreen.inversePrimaryLight,
     )
-    
+
     private fun getGreenDarkScheme() = darkColorScheme(
         primary = ButlerColorsGreen.primaryDark,
         onPrimary = ButlerColorsGreen.onPrimaryDark,
@@ -108,7 +108,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsGreen.inverseOnSurfaceDark,
         inversePrimary = ButlerColorsGreen.inversePrimaryDark,
     )
-    
+
     private fun getGreenMediumContrastLightScheme() = lightColorScheme(
         primary = ButlerColorsGreen.primaryLightMediumContrast,
         onPrimary = ButlerColorsGreen.onPrimaryLightMediumContrast,
@@ -139,7 +139,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsGreen.inverseOnSurfaceLightMediumContrast,
         inversePrimary = ButlerColorsGreen.inversePrimaryLightMediumContrast,
     )
-    
+
     private fun getGreenMediumContrastDarkScheme() = darkColorScheme(
         primary = ButlerColorsGreen.primaryDarkMediumContrast,
         onPrimary = ButlerColorsGreen.onPrimaryDarkMediumContrast,
@@ -170,7 +170,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsGreen.inverseOnSurfaceDarkMediumContrast,
         inversePrimary = ButlerColorsGreen.inversePrimaryDarkMediumContrast,
     )
-    
+
     private fun getGreenHighContrastLightScheme() = lightColorScheme(
         primary = ButlerColorsGreen.primaryLightHighContrast,
         onPrimary = ButlerColorsGreen.onPrimaryLightHighContrast,
@@ -201,7 +201,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsGreen.inverseOnSurfaceLightHighContrast,
         inversePrimary = ButlerColorsGreen.inversePrimaryLightHighContrast,
     )
-    
+
     private fun getGreenHighContrastDarkScheme() = darkColorScheme(
         primary = ButlerColorsGreen.primaryDarkHighContrast,
         onPrimary = ButlerColorsGreen.onPrimaryDarkHighContrast,
@@ -232,7 +232,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsGreen.inverseOnSurfaceDarkHighContrast,
         inversePrimary = ButlerColorsGreen.inversePrimaryDarkHighContrast,
     )
-    
+
     // Blue color schemes
     private fun getBlueLightScheme() = lightColorScheme(
         primary = ButlerColorsBlue.primaryLight,
@@ -264,7 +264,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsBlue.inverseOnSurfaceLight,
         inversePrimary = ButlerColorsBlue.inversePrimaryLight,
     )
-    
+
     private fun getBlueDarkScheme() = darkColorScheme(
         primary = ButlerColorsBlue.primaryDark,
         onPrimary = ButlerColorsBlue.onPrimaryDark,
@@ -295,7 +295,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsBlue.inverseOnSurfaceDark,
         inversePrimary = ButlerColorsBlue.inversePrimaryDark,
     )
-    
+
     private fun getBlueMediumContrastLightScheme() = lightColorScheme(
         primary = ButlerColorsBlue.primaryLightMediumContrast,
         onPrimary = ButlerColorsBlue.onPrimaryLightMediumContrast,
@@ -326,7 +326,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsBlue.inverseOnSurfaceLightMediumContrast,
         inversePrimary = ButlerColorsBlue.inversePrimaryLightMediumContrast,
     )
-    
+
     private fun getBlueMediumContrastDarkScheme() = darkColorScheme(
         primary = ButlerColorsBlue.primaryDarkMediumContrast,
         onPrimary = ButlerColorsBlue.onPrimaryDarkMediumContrast,
@@ -357,7 +357,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsBlue.inverseOnSurfaceDarkMediumContrast,
         inversePrimary = ButlerColorsBlue.inversePrimaryDarkMediumContrast,
     )
-    
+
     private fun getBlueHighContrastLightScheme() = lightColorScheme(
         primary = ButlerColorsBlue.primaryLightHighContrast,
         onPrimary = ButlerColorsBlue.onPrimaryLightHighContrast,
@@ -388,7 +388,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsBlue.inverseOnSurfaceLightHighContrast,
         inversePrimary = ButlerColorsBlue.inversePrimaryLightHighContrast,
     )
-    
+
     private fun getBlueHighContrastDarkScheme() = darkColorScheme(
         primary = ButlerColorsBlue.primaryDarkHighContrast,
         onPrimary = ButlerColorsBlue.onPrimaryDarkHighContrast,
@@ -419,7 +419,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsBlue.inverseOnSurfaceDarkHighContrast,
         inversePrimary = ButlerColorsBlue.inversePrimaryDarkHighContrast,
     )
-    
+
     // AMOLED color schemes
     private fun getAmoledLightScheme() = lightColorScheme(
         primary = ButlerColorsAmoled.primaryLight,
@@ -451,7 +451,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceLight,
         inversePrimary = ButlerColorsAmoled.inversePrimaryLight,
     )
-    
+
     private fun getAmoledDarkScheme() = darkColorScheme(
         primary = ButlerColorsAmoled.primaryDark,
         onPrimary = ButlerColorsAmoled.onPrimaryDark,
@@ -482,7 +482,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceDark,
         inversePrimary = ButlerColorsAmoled.inversePrimaryDark,
     )
-    
+
     private fun getAmoledMediumContrastLightScheme() = lightColorScheme(
         primary = ButlerColorsAmoled.primaryLightMediumContrast,
         onPrimary = ButlerColorsAmoled.onPrimaryLightMediumContrast,
@@ -513,7 +513,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceLightMediumContrast,
         inversePrimary = ButlerColorsAmoled.inversePrimaryLightMediumContrast,
     )
-    
+
     private fun getAmoledMediumContrastDarkScheme() = darkColorScheme(
         primary = ButlerColorsAmoled.primaryDarkMediumContrast,
         onPrimary = ButlerColorsAmoled.onPrimaryDarkMediumContrast,
@@ -544,7 +544,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceDarkMediumContrast,
         inversePrimary = ButlerColorsAmoled.inversePrimaryDarkMediumContrast,
     )
-    
+
     private fun getAmoledHighContrastLightScheme() = lightColorScheme(
         primary = ButlerColorsAmoled.primaryLightHighContrast,
         onPrimary = ButlerColorsAmoled.onPrimaryLightHighContrast,
@@ -575,7 +575,7 @@ object ThemeColorProvider {
         inverseOnSurface = ButlerColorsAmoled.inverseOnSurfaceLightHighContrast,
         inversePrimary = ButlerColorsAmoled.inversePrimaryLightHighContrast,
     )
-    
+
     private fun getAmoledHighContrastDarkScheme() = darkColorScheme(
         primary = ButlerColorsAmoled.primaryDarkHighContrast,
         onPrimary = ButlerColorsAmoled.onPrimaryDarkHighContrast,

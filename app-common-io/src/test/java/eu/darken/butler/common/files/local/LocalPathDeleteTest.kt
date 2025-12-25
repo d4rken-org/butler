@@ -688,26 +688,27 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `ignoreMissing false with mixed existing and non-existing files should throw on first missing`(@TempDir tempDir: File) = runTest {
-        // Given
-        val existingFile = File(tempDir, "exists.txt")
-        val nonExistentFile1 = File(tempDir, "missing1.txt")
-        val nonExistentFile2 = File(tempDir, "missing2.txt")
+    fun `ignoreMissing false with mixed existing and non-existing files should throw on first missing`(@TempDir tempDir: File) =
+        runTest {
+            // Given
+            val existingFile = File(tempDir, "exists.txt")
+            val nonExistentFile1 = File(tempDir, "missing1.txt")
+            val nonExistentFile2 = File(tempDir, "missing2.txt")
 
-        existingFile.writeText("content")
+            existingFile.writeText("content")
 
-        // When & Then
-        shouldThrow<ReadException> {
-            listOf(
-                LocalPath.build(nonExistentFile1),
-                LocalPath.build(existingFile),
-                LocalPath.build(nonExistentFile2)
-            ).delete(ops, ignoreMissing = false).last()
+            // When & Then
+            shouldThrow<ReadException> {
+                listOf(
+                    LocalPath.build(nonExistentFile1),
+                    LocalPath.build(existingFile),
+                    LocalPath.build(nonExistentFile2)
+                ).delete(ops, ignoreMissing = false).last()
+            }
+
+            // Then - operation should have stopped on first missing file
+            existingFile.exists() shouldBe true // Should not have been deleted
         }
-
-        // Then - operation should have stopped on first missing file
-        existingFile.exists() shouldBe true // Should not have been deleted
-    }
 
     @Test
     fun `ignoreMissing true with collection of all non-existent files`(@TempDir tempDir: File) = runTest {
@@ -756,29 +757,30 @@ class LocalPathDeleteTest : BaseTest() {
     }
 
     @Test
-    fun `verify ignoreMissing flag consistency between single and collection operations`(@TempDir tempDir: File) = runTest {
-        // Given
-        val nonExistent1 = File(tempDir, "missing1.txt")
-        val nonExistent2 = File(tempDir, "missing2.txt")
+    fun `verify ignoreMissing flag consistency between single and collection operations`(@TempDir tempDir: File) =
+        runTest {
+            // Given
+            val nonExistent1 = File(tempDir, "missing1.txt")
+            val nonExistent2 = File(tempDir, "missing2.txt")
 
-        // When & Then - both single and collection should behave the same with ignoreMissing=false
-        shouldThrow<ReadException> {
-            LocalPath.build(nonExistent1).delete(ops, ignoreMissing = false).last()
+            // When & Then - both single and collection should behave the same with ignoreMissing=false
+            shouldThrow<ReadException> {
+                LocalPath.build(nonExistent1).delete(ops, ignoreMissing = false).last()
+            }
+
+            shouldThrow<ReadException> {
+                listOf(LocalPath.build(nonExistent2)).delete(ops, ignoreMissing = false).last()
+            }
+
+            // And both should succeed with ignoreMissing=true
+            val singleResult =
+                LocalPath.build(nonExistent1).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Completed
+            val collectionResult = listOf(LocalPath.build(nonExistent2)).delete(ops, ignoreMissing = true)
+                .last() as DeleteAction.State.Completed
+
+            singleResult.deleted.shouldBeEmpty()
+            collectionResult.deleted.shouldBeEmpty()
         }
-
-        shouldThrow<ReadException> {
-            listOf(LocalPath.build(nonExistent2)).delete(ops, ignoreMissing = false).last()
-        }
-
-        // And both should succeed with ignoreMissing=true
-        val singleResult =
-            LocalPath.build(nonExistent1).delete(ops, ignoreMissing = true).last() as DeleteAction.State.Completed
-        val collectionResult = listOf(LocalPath.build(nonExistent2)).delete(ops, ignoreMissing = true)
-            .last() as DeleteAction.State.Completed
-
-        singleResult.deleted.shouldBeEmpty()
-        collectionResult.deleted.shouldBeEmpty()
-    }
 
     // ============ COMBINED FLAG TESTS ============
 
@@ -1411,7 +1413,7 @@ class LocalPathDeleteTest : BaseTest() {
         }
 
         // Then
-        result!! .deleted shouldHaveSize 4 // file1, file2, childDir, parentDir
+        result!!.deleted shouldHaveSize 4 // file1, file2, childDir, parentDir
 
         // With throttling, we can't guarantee exact call count
         // But progress tracking must be accurate

@@ -31,5 +31,4 @@ class DebugSettings @Inject constructor(
         "recorder.log.path",
         null
     )
-
 }

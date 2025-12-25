@@ -5,6 +5,7 @@ import android.os.RemoteException
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.files.errors.ServiceConnectionLostException
 import okio.Sink
 import okio.sink
 import java.io.IOException
@@ -49,7 +50,7 @@ internal fun RemoteOutputStream.outputStream(): OutputStream = object : OutputSt
     override fun write(b: Int) = try {
         this@outputStream.write(b)
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception during write($b)", e)
+        throw ServiceConnectionLostException(e)
     }
 
     override fun write(b: ByteArray) = writeBuffer(b, 0, b.size)
@@ -57,19 +58,19 @@ internal fun RemoteOutputStream.outputStream(): OutputStream = object : OutputSt
     override fun write(b: ByteArray, off: Int, len: Int) = try {
         this@outputStream.writeBuffer(b, 0, len)
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception during write(size=${b.size}, off=$off, len=$len)", e)
+        throw ServiceConnectionLostException(e)
     }
 
     override fun close() = try {
         this@outputStream.close()
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception during close() ", e)
+        throw ServiceConnectionLostException(e)
     }
 
     override fun flush() = try {
         this@outputStream.flush()
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception during flush()", e)
+        throw ServiceConnectionLostException(e)
     }
 }
 

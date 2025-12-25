@@ -1,0 +1,261 @@
+package eu.darken.butler.searcher.ui.search.util
+
+import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.searcher.core.FilterCondition
+import eu.darken.butler.searcher.core.SearchItem
+import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.searcher.core.SearchTemplate
+import eu.darken.butler.searcher.core.history.SearchHistory
+import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.core.operations.Operation
+
+/**
+ * Sealed interface representing all page-level actions in the Searcher workspace.
+ * This consolidates the various callbacks from SearcherWorkspacePage into a single type-safe hierarchy.
+ *
+ * Note: This is distinct from [SearcherAction] which represents workspace-level domain operations
+ * (Copy, Cut, Delete, etc.). [SearcherPageAction] encompasses all UI interactions including search,
+ * state management, and delegation to workspace actions.
+ */
+sealed interface SearcherPageAction {
+
+    /**
+     * Search query and execution actions
+     */
+    sealed interface Search : SearcherPageAction {
+        /**
+         * Update the filename pattern query text
+         */
+        data class UpdateFilenameQuery(val text: String) : Search
+
+        /**
+         * Update the content pattern query text
+         */
+        data class UpdateContentQuery(val text: String) : Search
+
+        /**
+         * Perform search with current query (auto-triggered)
+         */
+        data object Perform : Search
+
+        /**
+         * Perform explicit search with history save
+         */
+        data object Explicit : Search
+
+        /**
+         * Cancel the current search operation
+         */
+        data object Cancel : Search
+
+        /**
+         * Clear search results and reset query
+         */
+        data object ClearResults : Search
+    }
+
+    /**
+     * Search option toggles - per-field options for filename and content patterns
+     */
+    sealed interface Options : SearcherPageAction {
+        // Filename pattern options
+        data object ToggleFilenameCaseSensitive : Options
+        data object ToggleFilenameWholeWord : Options
+        data object ToggleFilenameRegex : Options
+
+        // Content pattern options
+        data object ToggleContentCaseSensitive : Options
+        data object ToggleContentWholeWord : Options
+        data object ToggleContentRegex : Options
+
+        // Content search toggle (shows/hides content field)
+        data object ToggleContentSearch : Options
+    }
+
+    /**
+     * Search target/path management
+     */
+    sealed interface Targets : SearcherPageAction {
+        /**
+         * Remove a search target
+         */
+        data class Remove(val target: SearchTarget) : Targets
+
+        /**
+         * Toggle enabled state of a search target
+         */
+        data class ToggleEnabled(val target: SearchTarget) : Targets
+
+        /**
+         * Open path picker to add search targets
+         */
+        data object OpenPicker : Targets
+
+        /**
+         * Add default search paths (all public storage volumes)
+         */
+        data object AddDefaultPaths : Targets
+    }
+
+    /**
+     * Search history actions
+     */
+    sealed interface History : SearcherPageAction {
+        /**
+         * Clear all search history
+         */
+        data object Clear : History
+
+        /**
+         * Remove a specific history item
+         */
+        data class Remove(val item: SearchHistory.SearchHistoryItem) : History
+
+        /**
+         * Restore search from history item
+         */
+        data class Click(val item: SearchHistory.SearchHistoryItem) : History
+    }
+
+    /**
+     * Search template actions
+     */
+    sealed interface Templates : SearcherPageAction {
+        /**
+         * Apply a search template and execute search
+         */
+        data class Apply(val template: SearchTemplate) : Templates
+    }
+
+    /**
+     * Search filter actions - condition-based editors and management
+     */
+    sealed interface Filter : SearcherPageAction {
+        /**
+         * Open size condition editor (for adding new)
+         */
+        data object OpenSizeConditionEditor : Filter
+
+        /**
+         * Open date condition editor (for adding new)
+         */
+        data object OpenDateConditionEditor : Filter
+
+        /**
+         * Open type condition editor (for adding new)
+         */
+        data object OpenTypeConditionEditor : Filter
+
+        /**
+         * Add a new filter condition
+         */
+        data class AddCondition(val condition: FilterCondition) : Filter
+
+        /**
+         * Remove a filter condition
+         */
+        data class RemoveCondition(val condition: FilterCondition) : Filter
+
+        /**
+         * Edit an existing filter condition (opens editor with current values)
+         */
+        data class EditCondition(val condition: FilterCondition) : Filter
+    }
+
+    /**
+     * Search result and selection actions
+     */
+    sealed interface Results : SearcherPageAction {
+        /**
+         * Click on a search result
+         */
+        data class Click(val item: SearchItem) : Results
+
+        /**
+         * Enter selection mode with initial item
+         */
+        data class EnterSelectionMode(val item: SearchItem) : Results
+
+        /**
+         * Toggle selection state of an item
+         */
+        data class ToggleSelection(val item: SearchItem) : Results
+
+        /**
+         * Exit selection mode
+         */
+        data object ExitSelectionMode : Results
+
+        /**
+         * Hide quick actions sheet
+         */
+        data object HideQuickActions : Results
+    }
+
+    /**
+     * Clipboard management actions
+     */
+    sealed interface Clipboard : SearcherPageAction {
+        /**
+         * Click on a clipboard entry
+         */
+        data class ClickEntry(val clip: ClipboardClip) : Clipboard
+
+        /**
+         * Remove a clipboard entry
+         */
+        data class RemoveEntry(val clip: ClipboardClip) : Clipboard
+
+        /**
+         * Clear all clipboard entries
+         */
+        data object ClearAll : Clipboard
+    }
+
+    /**
+     * Operation management actions
+     */
+    sealed interface Operations : SearcherPageAction {
+        /**
+         * Cancel a running operation
+         */
+        data class Cancel(val id: Operation.Id) : Operations
+
+        /**
+         * Dismiss an operation from the list
+         */
+        data class Dismiss(val id: Operation.Id) : Operations
+
+        /**
+         * Clear all completed operations
+         */
+        data object ClearCompleted : Operations
+    }
+
+    /**
+     * Setup and permissions
+     */
+    sealed interface Setup : SearcherPageAction {
+        /**
+         * Open setup screen for permissions
+         */
+        data class Open(val requirements: PathRequirements) : Setup
+    }
+
+    /**
+     * Error handling
+     */
+    sealed interface Error : SearcherPageAction {
+        /**
+         * Copy error details to clipboard
+         */
+        data class Copy(val error: Throwable) : Error
+    }
+
+    /**
+     * Wrapper for workspace-level actions
+     * Delegates to existing [SearcherAction] for domain operations
+     */
+    data class WorkspaceAction(val action: SearcherAction) : SearcherPageAction
+}

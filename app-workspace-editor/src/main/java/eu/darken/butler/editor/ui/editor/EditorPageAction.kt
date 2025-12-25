@@ -2,6 +2,7 @@ package eu.darken.butler.editor.ui.editor
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.ui.editor.text.CursorDirection
 
 /**
  * Sealed interface representing all page-level actions in the Editor workspace.
@@ -62,6 +63,11 @@ sealed interface EditorPageAction {
         data class DeleteAtCursor(val count: Int) : Edit
 
         /**
+         * Delete character after cursor position (forward delete)
+         */
+        data object ForwardDelete : Edit
+
+        /**
          * Copy selected text to clipboard
          */
         data object Copy : Edit
@@ -96,6 +102,11 @@ sealed interface EditorPageAction {
      * Navigation and cursor operations
      */
     sealed interface Navigation : EditorPageAction {
+        /**
+         * Move cursor in a direction, optionally extending selection
+         */
+        data class MoveCursor(val direction: CursorDirection, val extendSelection: Boolean) : Navigation
+
         /**
          * Set cursor position
          */

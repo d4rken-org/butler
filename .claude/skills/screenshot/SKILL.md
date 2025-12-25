@@ -10,6 +10,7 @@ This skill captures screenshots from Android devices connected via ADB and autom
 ## When to Use
 
 Invoke this skill ONLY when the user explicitly requests:
+
 - "take a screenshot"
 - "capture the screen"
 - "screencap"
@@ -25,13 +26,15 @@ Do NOT invoke automatically or proactively. Wait for explicit user request.
 Analyze the conversation context to create a descriptive filename:
 
 **Good examples:**
+
 - If discussing UI layout issues → `ui-layout-issue`
 - If debugging navigation → `navigation-bug`
 - If reviewing settings screen → `settings-screen`
 - If checking badge positioning → `badge-position`
 - If verifying after a fix → `fix-verification`
 
-**Fallback:** If no clear context, use a generic descriptive name like `debug-screen` or let the script use its timestamp default (omit filename parameter).
+**Fallback:** If no clear context, use a generic descriptive name like
+`debug-screen` or let the script use its timestamp default (omit filename parameter).
 
 ### 2. Check for Multiple Devices
 
@@ -42,13 +45,14 @@ adb devices
 ```
 
 **If multiple devices are detected:**
+
 1. Get device information for each device:
    ```bash
    adb -s <device-serial> shell getprop ro.product.model
    ```
 2. Use the AskUserQuestion tool to ask which device to use, presenting:
-   - Device model name
-   - Device serial number
+    - Device model name
+    - Device serial number
 3. When executing the screenshot script, pass the selected device serial using the `-d` flag:
    ```bash
    ./screenshot.sh -d <device-serial> [generated-filename]
@@ -68,6 +72,7 @@ Run the screenshot script from this skill directory:
 ```
 
 The script will:
+
 - Detect connected Android devices via ADB
 - Handle device selection interactively if multiple devices are connected (fallback if -d not provided)
 - Automatically find the project root directory
@@ -82,6 +87,7 @@ After successful capture, immediately use the Read tool to display the screensho
 ### 5. Provide Confirmation
 
 Report back with:
+
 - Device information (model and serial)
 - Screenshot file path
 - Brief confirmation that the screenshot is being displayed

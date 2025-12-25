@@ -1,8 +1,6 @@
 package eu.darken.butler.provider.documents.core
 
-import android.provider.DocumentsContract.Root.FLAG_LOCAL_ONLY
-import android.provider.DocumentsContract.Root.FLAG_SUPPORTS_CREATE
-import android.provider.DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD
+import android.provider.DocumentsContract.Root.*
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.provider.documents.R
 import io.kotest.matchers.shouldBe

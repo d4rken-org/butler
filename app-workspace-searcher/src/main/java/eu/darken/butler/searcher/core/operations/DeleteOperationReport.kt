@@ -3,7 +3,6 @@ package eu.darken.butler.searcher.core.operations
 import android.text.format.Formatter
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
@@ -25,31 +24,46 @@ data class DeleteOperationReport(
         buildString {
             if (trashedFiles > 0) {
                 append(
-                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_files_trashed, trashedFiles)
+                    it.getQuantityString2(
+                        eu.darken.butler.workspace.R.plurals.workspace_operation_report_files_trashed,
+                        trashedFiles
+                    )
                 )
                 append(" ")
             }
             if (trashedDirectories > 0) {
                 append(
-                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_directories_trashed, trashedDirectories)
+                    it.getQuantityString2(
+                        eu.darken.butler.workspace.R.plurals.workspace_operation_report_directories_trashed,
+                        trashedDirectories
+                    )
                 )
                 append(" ")
             }
             if (deletedFiles > 0) {
                 append(
-                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_files_deleted, deletedFiles)
+                    it.getQuantityString2(
+                        eu.darken.butler.workspace.R.plurals.workspace_operation_report_files_deleted,
+                        deletedFiles
+                    )
                 )
                 append(" ")
             }
             if (deletedDirectories > 0) {
                 append(
-                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_directories_deleted, deletedDirectories)
+                    it.getQuantityString2(
+                        eu.darken.butler.workspace.R.plurals.workspace_operation_report_directories_deleted,
+                        deletedDirectories
+                    )
                 )
                 append(" ")
             }
             if (skipped.isNotEmpty()) {
                 append(
-                    it.getQuantityString2(eu.darken.butler.workspace.R.plurals.workspace_operation_report_skipped_items, skipped.size)
+                    it.getQuantityString2(
+                        eu.darken.butler.workspace.R.plurals.workspace_operation_report_skipped_items,
+                        skipped.size
+                    )
                 )
                 append(" ")
             }

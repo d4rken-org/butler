@@ -38,7 +38,7 @@ class GenericPathCopyTest : BaseTest() {
     private lateinit var strategy: GenericCrossTypeCopyStrategy<
         LocalPath, LocalPathLookup,
         LocalPath, LocalPathLookup
-    >
+        >
 
     @BeforeEach
     fun setup() {
@@ -1073,7 +1073,7 @@ class GenericPathCopyTest : BaseTest() {
             if (currentBytes > fileSize) {
                 throw AssertionError(
                     "Bug detected: currentFileBytes ($currentBytes) > currentFileSize ($fileSize) " +
-                    "for file ${progress.currentSource.lookedUp.name}"
+                        "for file ${progress.currentSource.lookedUp.name}"
                 )
             }
         }
@@ -1094,8 +1094,8 @@ class GenericPathCopyTest : BaseTest() {
                 if (firstBytes > fileSize * 0.5) {
                     throw AssertionError(
                         "Bug detected: First progress update for file ${firstUpdate.currentSource.lookedUp.name} " +
-                        "shows currentFileBytes=$firstBytes which is > 50% of fileSize=$fileSize. " +
-                        "This suggests bytes are accumulating from previous file."
+                            "shows currentFileBytes=$firstBytes which is > 50% of fileSize=$fileSize. " +
+                            "This suggests bytes are accumulating from previous file."
                     )
                 }
             }

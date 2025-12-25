@@ -1,7 +1,6 @@
 package eu.darken.butler.common.files.operations
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
@@ -56,7 +55,7 @@ import eu.darken.butler.common.files.metadata.FileType
 class TransferConflictResolver<
     SP : APath<SP>, SPL : APathLookup<SP>,
     DP : APath<DP>, DPL : APathLookup<DP>
->(
+    >(
     private val destOps: FileSystemOps<DP, DPL>,
     private val issueResolver: PathOperationIssueResolver,
     private val progressTracker: PathOperationProgressTracker,
@@ -71,6 +70,7 @@ class TransferConflictResolver<
     private sealed class ApplyToAllResult {
         /** Conflict was auto-resolved, no further action needed */
         data object Resolved : ApplyToAllResult()
+
         /** No "apply to all" flag matched, need to resolve conflict with user */
         data object NeedUserInput : ApplyToAllResult()
     }

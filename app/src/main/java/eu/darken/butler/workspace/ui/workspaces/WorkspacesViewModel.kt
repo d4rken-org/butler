@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import android.content.Intent
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.WebpageTool
@@ -7,7 +8,11 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorReportTool
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
+import eu.darken.butler.common.navigation.Nav
+import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
@@ -20,16 +25,11 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
+import eu.darken.butler.workspace.core.session.SessionRestorationException
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
 import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
-import eu.darken.butler.workspace.core.session.SessionRestorationException
-import eu.darken.butler.common.error.ErrorReportTool
-import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.common.navigation.Nav
-import eu.darken.butler.common.navigation.upgrade
-import android.content.Intent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

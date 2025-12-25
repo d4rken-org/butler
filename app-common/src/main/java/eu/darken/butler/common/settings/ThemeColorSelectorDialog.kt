@@ -56,11 +56,11 @@ fun ThemeColorSelectorDialog(
                             onClick = { onOptionSelected(option) }
                         )
                         Spacer(modifier = Modifier.width(16.dp))
-                        
+
                         ColorPreviewIcon(themeColor = option)
-                        
+
                         Spacer(modifier = Modifier.width(12.dp))
-                        
+
                         Text(
                             text = option.label.get(context),
                             style = MaterialTheme.typography.bodyLarge
@@ -101,7 +101,7 @@ private fun ColorPreviewIcon(themeColor: ThemeColor) {
                     shape = CircleShape
                 )
         )
-        
+
         // Dark mode color circle
         Box(
             modifier = Modifier

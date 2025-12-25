@@ -4,8 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Inventory
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material.icons.twotone.Security
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material3.MaterialTheme

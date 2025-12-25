@@ -17,7 +17,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.isActive
 import java.nio.file.AtomicMoveNotSupportedException
 
@@ -217,7 +217,8 @@ internal class GenericPathMove<
         }
     }
 
-    fun execute(): Flow<MoveAction.State<SP, SPL, DP, DPL>> = flow {
+    // Use channelFlow to support emissions after IPC callbacks (which use runBlocking on client side)
+    fun execute(): Flow<MoveAction.State<SP, SPL, DP, DPL>> = channelFlow {
         log(TAG, DEBUG) { "execute(): Moving ${sources.size} sources to $destination" }
 
         // Check if destination exists and is a directory (for path calculation logic)
@@ -236,7 +237,7 @@ internal class GenericPathMove<
                 is WorkItem.ScanSource<*> -> {
                     scanItemsRemaining--
                     @Suppress("UNCHECKED_CAST")
-                    val childrenAdded = processScan(item as WorkItem.ScanSource<SP>, ::emit)
+                    val childrenAdded = processScan(item as WorkItem.ScanSource<SP>) { send(it) }
                     scanItemsRemaining += childrenAdded
 
                     if (scanItemsRemaining == 0) {
@@ -247,7 +248,7 @@ internal class GenericPathMove<
 
                 is WorkItem.MoveFile<*, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
-                    processMoveFile(item as WorkItem.MoveFile<SP, SPL, DP>, ::emit)
+                    processMoveFile(item as WorkItem.MoveFile<SP, SPL, DP>) { send(it) }
                 }
 
                 is WorkItem.CreateDirectory<*, *, *> -> {
@@ -268,7 +269,7 @@ internal class GenericPathMove<
         // Record final 100% sample before completing
         progressTracker.shouldReportProgress(force = true)
 
-        emit(
+        send(
             MoveAction.State.Completed(
                 movedFiles = moved,
                 skippedFiles = skipped,
@@ -334,7 +335,8 @@ internal class GenericPathMove<
                         // during recursive fallback (parent CreateDirectory is queued but not yet executed)
                         val destParent = destPath.parent
                         val parentExists = if (destParent != null) {
-                            val parentLookup = destOps.lookup(destParent, LookupOptions.BASE.copy(fallbackToUnknown = true))
+                            val parentLookup =
+                                destOps.lookup(destParent, LookupOptions.BASE.copy(fallbackToUnknown = true))
                             parentLookup.fileType == FileType.DIRECTORY
                         } else true
 
@@ -725,7 +727,8 @@ internal class GenericPathMove<
     private suspend fun handleMoveError(error: Exception, originalItem: WorkItem.MoveFile<SP, SPL, DP>) {
         errorHandler.handleError(
             error = error,
-            lookup = originalItem.sourceLookup,
+            sourceLookup = originalItem.sourceLookup,
+            destinationPath = originalItem.destination,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = { skipped.add(it) },
@@ -739,7 +742,8 @@ internal class GenericPathMove<
     private suspend fun handleDirectoryError(error: Exception, originalItem: WorkItem.CreateDirectory<SP, SPL, DP>) {
         errorHandler.handleError(
             error = error,
-            lookup = originalItem.sourceLookup,
+            sourceLookup = originalItem.sourceLookup,
+            destinationPath = originalItem.destination,
             issueResolver = issueResolver,
             progressTracker = progressTracker,
             onSkip = {

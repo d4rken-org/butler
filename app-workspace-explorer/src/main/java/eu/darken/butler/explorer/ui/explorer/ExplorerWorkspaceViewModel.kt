@@ -12,10 +12,7 @@ import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -41,10 +38,9 @@ import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.DefaultStartLocation
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory
-import eu.darken.butler.explorer.core.ExplorerNavigation.Target.Trash
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.ExplorerWorkspace
@@ -67,23 +63,12 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.ClipboardInfo
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.CreateItem
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.DeleteConfirmation
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.EditSortOptions
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.EmptyTrashConfirmation
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.FileOptions
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.FilterOptions
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.ItemInfo
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.LocationStorageName
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.None
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.RemoveLocationConfirmation
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.Rename
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.TrashItemOptions
-import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.TrashNestedItemOptions
+import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogState.*
 import eu.darken.butler.explorer.ui.explorer.dialogs.FilterOptionsResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.RenameResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.SortOptionsResult
+import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
+import eu.darken.butler.explorer.ui.explorer.util.ItemInfoCalculator
 import eu.darken.butler.explorer.ui.picker.ExplorerPickerHelper
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.permissions.core.SAFPickerGrant
@@ -103,6 +88,7 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.returnResult
+import eu.darken.butler.workspace.ui.operations.CopyErrorTool
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.delay
@@ -150,6 +136,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
+    private val focusedItemIndexFlow = MutableStateFlow<Int?>(null)
     private val viewStyleFlow = MutableStateFlow<ExplorerViewStyle>(explorerSettings.defaultViewStyle.valueBlocking)
     private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(None)
     private val issueStateFlow = MutableStateFlow<Issue?>(null)
@@ -239,6 +226,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val disabledItems: Set<ExplorerItem> = emptySet(),
         val canConfirmSelection: Boolean = true,
         val highlightedItemIds: Set<String> = emptySet(),
+        val focusedItemIndex: Int? = null,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -294,7 +282,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         trashManager.isEnabled,
         saveAsFilenameFlow,
         highlightedItemIds,
-    ) { wsState, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds ->
+        focusedItemIndexFlow,
+    ) { wsState, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex ->
         // Items already filtered and sorted by processedItemsFlow
         // Selection state already computed by derivedSelectionStateFlow
 
@@ -359,6 +348,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             disabledItems = disabledItems,
             canConfirmSelection = canConfirmSelection,
             highlightedItemIds = highlightedItemIds,
+            focusedItemIndex = focusedItemIndex?.let { idx ->
+                // Adjust focus index if it's out of bounds (e.g., items were removed)
+                items?.let { if (idx < it.size) idx else it.lastIndex.takeIf { it >= 0 } }
+            },
         )
     }
         .distinctUntilChanged()
@@ -455,7 +448,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         when (item) {
             is ExplorerItem.Path -> when (item) {
                 is ExplorerItem.Directory -> {
-                    getWorkspace().navigate(Directory(item.lookup.lookedUp))
+                    getWorkspace().navigate(ExplorerNavigation.Target.Directory(item.lookup.lookedUp))
                     clearSelection()
                 }
                 is ExplorerItem.File -> {
@@ -471,7 +464,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
                             if (targetLookup.isDirectory) {
                                 log(tag, INFO) { "Following symlink to directory: ${item.targetPath}" }
-                                getWorkspace().navigate(Directory(target))
+                                getWorkspace().navigate(ExplorerNavigation.Target.Directory(target))
                                 clearSelection()
                                 return@launch
                             } else {
@@ -517,7 +510,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 } else if (item.trashLookup?.fileType == FileType.DIRECTORY && item.isAvailable) {
                     // Navigate into trashed folder
                     val ref = TrashItemReference.from(item)
-                    getWorkspace().navigate(Trash.Nested(ref, ""))
+                    getWorkspace().navigate(ExplorerNavigation.Target.Trash.Nested(ref, ""))
                     clearSelection()
                 } else {
                     dialogStateFlow.value = TrashItemOptions(item)
@@ -528,7 +521,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     toggleItemSelection(item)
                 } else if (item.isDirectory) {
                     // Navigate deeper into nested trash
-                    getWorkspace().navigate(Trash.Nested(item.parentRef, item.relativePath))
+                    getWorkspace().navigate(ExplorerNavigation.Target.Trash.Nested(item.parentRef, item.relativePath))
                     clearSelection()
                 } else {
                     // Show options for nested files
@@ -540,7 +533,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun navigateToPath(path: APath<*>) = launch {
         log(tag) { "navigateToPath($path)" }
-        getWorkspace().navigate(Directory(path))
+        getWorkspace().navigate(ExplorerNavigation.Target.Directory(path))
         clearSelection()
     }
 
@@ -637,6 +630,100 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun selectAll() = launch {
         val stateSnap = state.first()
         selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+    }
+
+    // Focus navigation methods
+    fun moveFocusUp() = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = when (val current = focusedItemIndexFlow.value) {
+            null -> itemCount - 1
+            0 -> itemCount - 1
+            else -> current - 1
+        }
+    }
+
+    fun moveFocusDown() = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = when (val current = focusedItemIndexFlow.value) {
+            null -> 0
+            itemCount - 1 -> 0
+            else -> current + 1
+        }
+    }
+
+    fun moveFocusLeft(gridColumns: Int) = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = when {
+            focusedItemIndexFlow.value == null -> itemCount - 1
+            focusedItemIndexFlow.value!! < gridColumns -> itemCount - 1
+            else -> focusedItemIndexFlow.value!! - gridColumns
+        }
+    }
+
+    fun moveFocusRight(gridColumns: Int) = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = when {
+            focusedItemIndexFlow.value == null -> 0
+            focusedItemIndexFlow.value!! >= itemCount - gridColumns -> 0
+            else -> minOf(focusedItemIndexFlow.value!! + gridColumns, itemCount - 1)
+        }
+    }
+
+    fun moveFocusToFirst() = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = 0
+    }
+
+    fun moveFocusToLast() = launch {
+        val itemCount = state.first().items?.size ?: return@launch
+        if (itemCount == 0) return@launch
+        focusedItemIndexFlow.value = itemCount - 1
+    }
+
+    fun clearFocus() {
+        focusedItemIndexFlow.value = null
+    }
+
+    fun deleteFocusedItem(forcePermDelete: Boolean = false) = launch {
+        val stateSnap = state.first()
+        val focusedIndex = stateSnap.focusedItemIndex ?: return@launch
+        val focusedItem = stateSnap.items?.getOrNull(focusedIndex) as? ExplorerItem.Lookup ?: return@launch
+        val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory ?: return@launch
+
+        log(tag) { "deleteFocusedItem(forcePermDelete=$forcePermDelete): ${focusedItem.lookup.name}" }
+        dialogEvents.emit(
+            ExplorerDialogEvent.ShowDeleteConfirmation(
+                items = setOf(focusedItem.lookup.lookedUp),
+                forcePermDelete = forcePermDelete,
+            )
+        )
+    }
+
+    fun permanentDeleteSelectedItems() = launch {
+        val stateSnap = state.first()
+        val selectedItems = selectedItemsFlow.value
+        if (selectedItems.isEmpty()) return@launch
+        val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory ?: return@launch
+
+        val pathsToDelete = selectedItems
+            .filterIsInstance<ExplorerItem.Lookup>()
+            .map { it.lookup.lookedUp }
+            .toSet()
+
+        if (pathsToDelete.isNotEmpty()) {
+            log(tag) { "permanentDeleteSelectedItems(): ${pathsToDelete.size} items" }
+            dialogEvents.emit(
+                ExplorerDialogEvent.ShowDeleteConfirmation(
+                    items = pathsToDelete,
+                    forcePermDelete = true,
+                )
+            )
+        }
     }
 
     fun executeAction(action: ExplorerAction) = launch {
@@ -742,19 +829,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerAction.Directory.OpenInNewTabs -> {
                 log(tag) { "openInNewTabs(): ${selectedItemsFlow.value.size} items" }
-                val selected = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Lookup>()
-                if (selected.isEmpty()) return@launch
+                val selectedLookups = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Lookup>()
+                val selectedStorages = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Storage>()
+                if (selectedLookups.isEmpty() && selectedStorages.isEmpty()) return@launch
 
                 // Convert Explorer items to use case items
-                val items = selected.map { item ->
-                    if (item.lookup.isDirectory) {
-                        OpenInNewTabsUseCase.Item.Directory(item.lookup.lookedUp)
-                    } else {
-                        val isText = when (item) {
-                            is ExplorerItem.File -> TextFileDetector.isTextFile(item.mimeType)
-                            else -> TextFileDetector.isTextFile(item.lookup.lookedUp)
-                        }
-                        OpenInNewTabsUseCase.Item.File(item.lookup.lookedUp, isText)
+                val items = buildList {
+                    // Lookup items (files and directories inside a folder)
+                    selectedLookups.forEach { item ->
+                        add(
+                            if (item.lookup.isDirectory) {
+                                OpenInNewTabsUseCase.Item.Directory(item.lookup.lookedUp)
+                            } else {
+                                val isText = when (item) {
+                                    is ExplorerItem.File -> TextFileDetector.isTextFile(item.mimeType)
+                                    else -> TextFileDetector.isTextFile(item.lookup.lookedUp)
+                                }
+                                OpenInNewTabsUseCase.Item.File(item.lookup.lookedUp, isText)
+                            }
+                        )
+                    }
+                    // Storage items (USB sticks, SAF locations, etc.) - always directories
+                    selectedStorages.forEach { storage ->
+                        add(OpenInNewTabsUseCase.Item.Directory(storage.target.path))
                     }
                 }
 
@@ -1041,7 +1138,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clipboardRepo.add(clip)
     }
 
-    fun renameFile(item: ExplorerItem.File) = launch {
+    fun renameFile(item: ExplorerItem.Lookup) = launch {
         log(tag) { "renameFile(${item.lookup.name})" }
         dismissDialog()
 
@@ -1523,7 +1620,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
             if (safPath != null) {
                 log(tag) { "Navigating to SAF path: $safPath" }
-                getWorkspace().navigate(Directory(safPath))
+                getWorkspace().navigate(ExplorerNavigation.Target.Directory(safPath))
             } else {
                 log(tag, WARN) { "Failed to convert ${grant.targetPath} to SAFPath after permission grant" }
                 // Fallback: just refresh current location
@@ -1579,7 +1676,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     val firstPath = clip.paths.first()
                     val parentPath = firstPath.parent
                     if (parentPath != null) {
-                        getWorkspace().navigate(Directory(parentPath))
+                        getWorkspace().navigate(ExplorerNavigation.Target.Directory(parentPath))
                     }
                 }
             }
@@ -1589,6 +1686,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun copyPathToSystemClipboard(path: String) = launch {
         log(tag) { "copyPathToSystemClipboard($path)" }
         systemClipboardHelper.copyToClipboard(path)
+    }
+
+    fun setAsDefaultStartLocation(target: ExplorerNavigation.Target) = launch {
+        log(tag) { "setAsDefaultStartLocation($target)" }
+        val location = when (target) {
+            is ExplorerNavigation.Target.Home -> DefaultStartLocation.Home
+            is ExplorerNavigation.Target.Device -> DefaultStartLocation.Device
+            is ExplorerNavigation.Target.Directory -> DefaultStartLocation.Directory(target.path)
+            else -> return@launch // Ignore Trash targets
+        }
+        explorerSettings.defaultStartLocation.value(location)
     }
 
     fun onButlerIconClick() = launch {

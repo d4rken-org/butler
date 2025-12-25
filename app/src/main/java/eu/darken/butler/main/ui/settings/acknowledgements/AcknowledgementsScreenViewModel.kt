@@ -14,7 +14,7 @@ import javax.inject.Inject
 class AcknowledgementsScreenViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val webpageTool: WebpageTool,
-) : ViewModel4(dispatcherProvider, logTag("Settings", "Acknowledgements","Screen","VM")) {
+) : ViewModel4(dispatcherProvider, logTag("Settings", "Acknowledgements", "Screen", "VM")) {
 
     val state = combine(
         flowOf(Unit)

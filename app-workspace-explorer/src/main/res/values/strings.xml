@@ -9,7 +9,7 @@
     <string name="explorer_settings_filter_regex_desc">Use regex patterns in filters in include/exclude filters.</string>
     <string name="explorer_settings_navigation">Navigation</string>
     <string name="explorer_settings_back_button_title">Back button navigation</string>
-    <string name="explorer_settings_back_button_desc">Navigate through history with back button/gesture. At top-level the workspace closes.</string>
+    <string name="explorer_settings_back_button_desc">Navigate through history with back button/gesture. At top-level the tab closes.</string>
     <string name="explorer_settings_trash_category">Trash</string>
     <string name="explorer_settings_trash_enabled_title">Enable trash</string>
     <string name="explorer_settings_trash_enabled_desc">Move deleted files to trash instead of permanently deleting them</string>
@@ -135,6 +135,8 @@
 
     <!-- Navigation -->
     <string name="explorer_navigation_home">Home</string>
+    <string name="explorer_breadcrumb_set_as_home_action">Set as home</string>
+    <string name="explorer_breadcrumb_copy_path_action">Copy path</string>
     <string name="explorer_navigation_device">Device</string>
     <string name="explorer_navigation_trash">Trash</string>
     <string name="explorer_navigation_trash_desc">Recover deleted files</string>

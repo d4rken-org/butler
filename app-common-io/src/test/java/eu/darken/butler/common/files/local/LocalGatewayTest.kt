@@ -5,8 +5,10 @@ import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
+import eu.darken.butler.common.files.local.service.IsolatedServiceClient
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.storage.StorageEnvironment
+import eu.darken.butler.common.storage.StorageManager2
 import io.kotest.matchers.shouldBe
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -48,6 +50,8 @@ class LocalGatewayTest : BaseTest() {
     private lateinit var mockRootManager: RootManager
     private lateinit var mockAdbManager: AdbManager
     private lateinit var mockAccessibilityChecker: LocalPathAccessChecker
+    private lateinit var mockIsolatedServiceClient: IsolatedServiceClient
+    private lateinit var mockStorageManager: StorageManager2
     private lateinit var dispatcherProvider: TestDispatcherProvider
     private lateinit var testScope: TestScope
     private lateinit var gateway: LocalGateway
@@ -59,6 +63,8 @@ class LocalGatewayTest : BaseTest() {
         mockRootManager = mockk()
         mockAdbManager = mockk()
         mockAccessibilityChecker = mockk(relaxed = true)
+        mockIsolatedServiceClient = mockk(relaxed = true)
+        mockStorageManager = mockk(relaxed = true)
         dispatcherProvider = TestDispatcherProvider()
         testScope = TestScope()
 
@@ -76,7 +82,9 @@ class LocalGatewayTest : BaseTest() {
             fileSystemOps = mockFileSystemOps,
             rootManager = mockRootManager,
             adbManager = mockAdbManager,
-            accessChecker = mockAccessibilityChecker
+            accessChecker = mockAccessibilityChecker,
+            isolatedServiceClient = mockIsolatedServiceClient,
+            storageManager = mockStorageManager,
         )
     }
 
@@ -189,7 +197,7 @@ class LocalGatewayTest : BaseTest() {
 
         coEvery { mockFileSystemOps.createFile(path) } just Runs
 
-        gateway.createFile(path, mode = LocalGateway.Mode.NORMAL)
+        gateway.createFile(path, mode = LocalGateway.Mode.DIRECT)
 
         coVerify(exactly = 1) { mockFileSystemOps.createFile(path) }
     }
@@ -204,7 +212,7 @@ class LocalGatewayTest : BaseTest() {
         // Should throw the IOException even though root might be available
         var exceptionThrown = false
         try {
-            gateway.createFile(path, mode = LocalGateway.Mode.NORMAL)
+            gateway.createFile(path, mode = LocalGateway.Mode.DIRECT)
         } catch (e: IOException) {
             exceptionThrown = true
             e.message shouldBe "Permission denied"
@@ -225,7 +233,7 @@ class LocalGatewayTest : BaseTest() {
         // Mock normal success
         coEvery { mockFileSystemOps.createSymlink(linkPath, targetPath) } returns true
 
-        val result = gateway.createSymlink(linkPath, targetPath, mode = LocalGateway.Mode.NORMAL)
+        val result = gateway.createSymlink(linkPath, targetPath, mode = LocalGateway.Mode.DIRECT)
 
         result shouldBe true
         coVerify(exactly = 1) { mockFileSystemOps.createSymlink(linkPath, targetPath) }
@@ -240,7 +248,7 @@ class LocalGatewayTest : BaseTest() {
 
         coEvery { mockFileSystemOps.openOutputStream(path, false) } returns mockOutputStream
 
-        val result = gateway.openOutputStream(path, append = false, mode = LocalGateway.Mode.NORMAL)
+        val result = gateway.openOutputStream(path, append = false, mode = LocalGateway.Mode.DIRECT)
 
         result shouldBe mockOutputStream
         coVerify(exactly = 1) { mockFileSystemOps.openOutputStream(path, false) }

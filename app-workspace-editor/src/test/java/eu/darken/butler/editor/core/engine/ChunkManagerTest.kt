@@ -32,7 +32,8 @@ class ChunkManagerTest : BaseTest() {
     private fun boundaries(vararg entries: Pair<TextChunk, Pair<Long, Long>>): Map<TextChunk.ChunkId, ChunkBoundary> {
         return entries.associate { (chunk, offsets) ->
             // Calculate line count from chunk content
-            val lineCount = chunk.content.count { it == '\n' } + if (chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) 1 else 0
+            val lineCount =
+                chunk.content.count { it == '\n' } + if (chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) 1 else 0
             chunk.id to ChunkBoundary(offsets.first, offsets.second, lineCount)
         }
     }
@@ -45,11 +46,17 @@ class ChunkManagerTest : BaseTest() {
         @Suppress("UNCHECKED_CAST")
         val boundariesMap = boundariesField.get(this) as MutableMap<TextChunk.ChunkId, ChunkBoundary>
         // Calculate line count from chunk content
-        val lineCount = chunk.content.count { it == '\n' } + if (chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) 1 else 0
+        val lineCount =
+            chunk.content.count { it == '\n' } + if (chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) 1 else 0
         boundariesMap[chunk.id] = ChunkBoundary(startOffset, endOffset, lineCount)
     }
 
-    private suspend fun ChunkManager.addBoundaryOnly(chunkId: TextChunk.ChunkId, startOffset: Long, endOffset: Long, lineCount: Int = 1) {
+    private suspend fun ChunkManager.addBoundaryOnly(
+        chunkId: TextChunk.ChunkId,
+        startOffset: Long,
+        endOffset: Long,
+        lineCount: Int = 1
+    ) {
         // Access boundaries via reflection to set boundary without adding chunk to cache
         val boundariesField = ChunkManager::class.java.getDeclaredField("boundaries")
         boundariesField.isAccessible = true

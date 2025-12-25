@@ -26,15 +26,18 @@ class ExplorerSettings @Inject constructor(
 
     val sortSettings = dataStore.createValue("explorer.sort.default", SortSettings(), json)
     val useRegexPatterns = dataStore.createValue("explorer.filter.regex.enabled", false)
-    val useBackButtonForNavigation = dataStore.createValue("explorer.navigation.use_back_button", false)
+    val useBackButtonForNavigation = dataStore.createValue("explorer.navigation.use_back_button", true)
 
     val defaultViewStyle = dataStore.createValue("explorer.view.style.default", ExplorerViewStyle.default(), json)
+
+    val defaultStartLocation = dataStore.createValue<DefaultStartLocation?>("explorer.navigation.start_location_default", null, json)
 
     override val mapper = PreferenceStoreMapper(
         sortSettings,
         useRegexPatterns,
         useBackButtonForNavigation,
         defaultViewStyle,
+        defaultStartLocation,
     )
 
     companion object {

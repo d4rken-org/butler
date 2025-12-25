@@ -217,7 +217,12 @@ fun PathAlreadyExistsIssueSheet(
                         OutlinedButton(
                             onClick = {
                                 if (applyToAll) {
-                                    onResolution(PathActionIssue.PathAlreadyExists.Resolution.RenameSource(issue.suggestedName!!, applyToAll = true))
+                                    onResolution(
+                                        PathActionIssue.PathAlreadyExists.Resolution.RenameSource(
+                                            issue.suggestedName!!,
+                                            applyToAll = true
+                                        )
+                                    )
                                 } else {
                                     showRenameNewDialog = true
                                 }
@@ -246,7 +251,12 @@ fun PathAlreadyExistsIssueSheet(
                         OutlinedButton(
                             onClick = {
                                 if (applyToAll) {
-                                    onResolution(PathActionIssue.PathAlreadyExists.Resolution.RenameDestination(issue.suggestedName!!, applyToAll = true))
+                                    onResolution(
+                                        PathActionIssue.PathAlreadyExists.Resolution.RenameDestination(
+                                            issue.suggestedName!!,
+                                            applyToAll = true
+                                        )
+                                    )
                                 } else {
                                     showRenameExistingDialog = true
                                 }
@@ -320,7 +330,12 @@ fun PathAlreadyExistsIssueSheet(
             currentName = issue.destination.name,
             dialogTitle = stringResource(R.string.workspace_issue_rename_dialog_title_existing),
             onConfirm = { newName ->
-                onResolution(PathActionIssue.PathAlreadyExists.Resolution.RenameDestination(newName, applyToAll = false))
+                onResolution(
+                    PathActionIssue.PathAlreadyExists.Resolution.RenameDestination(
+                        newName,
+                        applyToAll = false
+                    )
+                )
                 showRenameExistingDialog = false
             },
             onDismiss = { showRenameExistingDialog = false },

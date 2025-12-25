@@ -344,7 +344,7 @@ class GenericPathNamingUtilsTest : BaseTest() {
 
         // When
         namingUtils.generateUniqueName(
-            parentPath =LocalPath.build("/parent"),
+            parentPath = LocalPath.build("/parent"),
             originalName = "file.txt"
         )
 
@@ -363,7 +363,7 @@ class GenericPathNamingUtilsTest : BaseTest() {
 
         // When
         namingUtils.generateUniqueName(
-            parentPath =LocalPath.build("/parent"),
+            parentPath = LocalPath.build("/parent"),
             originalName = "file.txt"
         )
 

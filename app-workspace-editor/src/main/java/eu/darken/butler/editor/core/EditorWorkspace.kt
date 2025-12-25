@@ -5,21 +5,21 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.editor.R
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.combine
+import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.FileInfo
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.operations.Operation
@@ -293,7 +293,9 @@ class EditorWorkspace @AssistedInject constructor(
         }
     }
 
-    suspend fun search(query: String, caseSensitive: Boolean = false) = engineHolder.value().search(query, caseSensitive)
+    suspend fun search(query: String, caseSensitive: Boolean = false) =
+        engineHolder.value().search(query, caseSensitive)
+
     suspend fun goToLine(lineNumber: Int) = engineHolder.value().goToLine(lineNumber)
     suspend fun undo() = engineHolder.value().undo()
     suspend fun redo() = engineHolder.value().redo()
@@ -307,6 +309,16 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun setSelection(start: TextPosition, end: TextPosition) = engineHolder.value().setSelection(start, end)
     suspend fun updateVisibleRange(startLine: Int, endLine: Int) =
         engineHolder.value().updateVisibleRange(startLine, endLine)
+
+    suspend fun moveCursor(direction: CursorDirection, extendSelection: Boolean) {
+        log(tag) { "moveCursor(direction=$direction, extendSelection=$extendSelection)" }
+        engineHolder.value().moveCursor(direction, extendSelection)
+    }
+
+    suspend fun deleteForward() {
+        log(tag) { "deleteForward()" }
+        engineHolder.value().deleteForward()
+    }
 
     fun clearError() = runBlocking { engineHolder.value().clearError() }
     fun canUndo() = runBlocking { engineHolder.value().canUndo() }
@@ -331,14 +343,7 @@ class EditorWorkspace @AssistedInject constructor(
         val error: Throwable? = null,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false
-    ) {
-        val hasFile: Boolean get() = fileInfo != null
-        val fileName: String get() = fileInfo?.path?.name ?: "Untitled"
-        val hasSelection: Boolean get() = selectionRange != null
-        val hasSearchResults: Boolean get() = searchResults.isNotEmpty()
-        val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
-        val hasError: Boolean get() = error != null
-    }
+    )
 
     @AssistedFactory
     interface Factory : WorkspaceFactory<EditorArguments> {

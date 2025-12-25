@@ -88,7 +88,7 @@ fun UpgradeStatusScreen(
         ) {
             ButlerMascot(
                 modifier = Modifier.size(120.dp),
-                variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy else ButlerMascotMode.Static.Sad,
+                variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy() else ButlerMascotMode.Static.Sad(),
             )
 
             // App name

@@ -45,6 +45,6 @@ class StorageManager2 @Inject constructor(@ApplicationContext context: Context) 
     }
 
     companion object {
-        val TAG: String = logTag("StorageManager2")
+        val TAG: String = logTag("Storage", "Manager2")
     }
 }
