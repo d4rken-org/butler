@@ -34,7 +34,7 @@
     <string name="apps_action_clear_data">Clear data</string>
     <string name="apps_action_export_apk">Export APK</string>
     <string name="apps_action_browse_path">Browse path</string>
-    <string name="apps_action_share">Share APK</string>
+    <string name="apps_action_share">Share info</string>
     <string name="apps_action_refresh">Refresh</string>
     <string name="apps_action_sort">Sort</string>
     <string name="apps_action_filter">Filter</string>
@@ -52,7 +52,7 @@
     <string name="apps_action_disable_desc">Disable this application</string>
     <string name="apps_action_uninstall_desc">Remove this application</string>
     <string name="apps_action_export_apk_desc">Save APK file to storage</string>
-    <string name="apps_action_share_desc">Share APK file with other apps</string>
+    <string name="apps_action_share_desc">Share app details as text</string>
     <string name="apps_action_force_stop_desc">Stop the application immediately</string>
     <string name="apps_action_clear_cache_desc">Delete temporary cached files</string>
     <string name="apps_action_clear_data_desc">Delete all app data and settings</string>

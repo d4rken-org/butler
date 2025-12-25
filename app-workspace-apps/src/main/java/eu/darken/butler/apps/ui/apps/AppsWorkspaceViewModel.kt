@@ -26,6 +26,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.features.AppStore
 import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
@@ -117,7 +118,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     add(AppsAction.SelectAll)
                 }
 
-                // Disable/Enable only if elevated access (root/Shizuku) is available
+                // Disable/Enable/ClearCache/ClearData only if elevated access (root/Shizuku) is available
                 if (workspaceState.hasElevatedAccess) {
                     // Disable (only if all selected apps are enabled)
                     val disableAction = AppsAction.Disable(selectedApps)
@@ -130,16 +131,16 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     if (enableAction.isVisible) {
                         add(enableAction)
                     }
+
+                    // Clear Cache
+                    add(AppsAction.ClearCache(selectedApps))
+
+                    // Clear Data
+                    add(AppsAction.ClearData(selectedApps))
                 }
 
                 // Uninstall
                 add(AppsAction.Uninstall(selectedApps))
-
-                // Clear Cache
-                add(AppsAction.ClearCache(selectedApps))
-
-                // Clear Data
-                add(AppsAction.ClearData(selectedApps))
 
                 // Export APK
                 add(AppsAction.ExportApk(selectedApps))
@@ -390,8 +391,36 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
             is AppsAction.Share -> launch {
                 log(tag) { "Share action for ${action.apps.size} apps" }
-                // TODO: Implement APK sharing
-                log(tag, WARN) { "Share APK not implemented yet" }
+                val shareText = action.apps.joinToString("\n\n") { app ->
+                    buildString {
+                        val version = app.versionName ?: app.versionCode.toString()
+                        append("- **${app.label.get(context)}** (${app.packageName}) v$version")
+
+                        app.installerInfo?.installer?.let { installer ->
+                            val appStore = installer as? AppStore
+                            val url = appStore?.urlGenerator?.invoke(app.pkg.id)
+                            append("\n  Source: ")
+                            if (url != null) {
+                                append("[${installer.label?.get(context) ?: installer.id.name}]($url)")
+                            } else {
+                                append(installer.label?.get(context) ?: installer.id.name)
+                            }
+                        }
+                    }
+                }
+
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, shareText)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(
+                    Intent.createChooser(intent, null).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                )
+
+                getWorkspace().appsEngine.clearSelection()
             }
 
             is AppsAction.OpenInTab -> launch {
