@@ -32,8 +32,9 @@ import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.ContentQuery
-import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.FilenameQuery
+import eu.darken.butler.searcher.core.FilterCondition
+import eu.darken.butler.searcher.core.SearchFilter
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchSortSettings
@@ -123,7 +124,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val contentOptions = MutableStateFlow(ContentQuery())
 
     private val contentSearchEnabled = MutableStateFlow(false)
-    private val currentFilter = MutableStateFlow(SearchQuery.Filter())
+    private val currentFilter = MutableStateFlow(SearchFilter())
     private val selectionState = MutableStateFlow(SearcherSelectionState())
     private val quickActionsResult = MutableStateFlow<SearchItem?>(null)
     private val dialogStateFlow = MutableStateFlow<SearcherDialogState>(SearcherDialogState.None)
@@ -145,34 +146,34 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         .flatMapLatest { it.state }
 
     init {
-        // Initialize query options and text from arguments or defaults
+        // Initialize UI state from workspace (source of truth, already has defaults applied)
         vmScope.launch {
             val workspace = getWorkspace()
             val args = workspace.creationArguments as? SearcherArguments.Default
-            val defaults = searcherSettings.searchDefaultQuery.valueBlocking
 
-            // Load query options: args > defaults
-            filenameOptions.value = args?.filenameQuery?.copy(pattern = "") ?: defaults.filename
-            contentOptions.value = args?.contentQuery?.copy(pattern = "") ?: defaults.content
+            // TODO: Investigate what UI shows if workspace init is slow (loading state?)
+            val query = workspace.state.map { it.currentSearchQuery }.filterNotNull().first()
 
-            // Content search enabled if contentQuery provided, else use defaults
-            contentSearchEnabled.value = args?.contentQuery?.isNotEmpty == true
-                || (args?.contentQuery == null && defaults.contentSearchEnabled)
+            // Initialize UI state from workspace
+            filenameOptions.value = query.filenameQuery.copy(pattern = "")
+            contentOptions.value = query.contentQuery.copy(pattern = "")
+            contentSearchEnabled.value = query.contentQuery.isNotEmpty
 
-            // Pre-fill query text if provided in args
-            args?.filenameQuery?.pattern?.takeIf { it.isNotBlank() }?.let {
+            query.filenameQuery.pattern.takeIf { it.isNotBlank() }?.let {
                 filenameQuery.value = it
             }
-            args?.contentQuery?.pattern?.takeIf { it.isNotBlank() }?.let {
+            query.contentQuery.pattern.takeIf { it.isNotBlank() }?.let {
                 contentQuery.value = it
             }
+
+            currentFilter.value = query.filter
 
             // Prevent auto-search flow from triggering on restored queries
             if (filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank()) {
                 lastAutoExecutedQuery = "${filenameQuery.value}|${contentQuery.value}"
             }
 
-            // Auto-execute search if requested
+            // Auto-execute search if requested (read from args - one-time action flag)
             if (args?.startSearch == true &&
                 (filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank())
             ) {
@@ -347,7 +348,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         currentSortSettings,
         viewStyleFlow,
         trashSettings.enabled.flow,
-    ) { filenameQ: String, contentQ: String, fnOptions: FilenameQuery, ctOptions: ContentQuery, contentSearchOn: Boolean, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchQuery.Filter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean ->
+    ) { filenameQ: String, contentQ: String, fnOptions: FilenameQuery, ctOptions: ContentQuery, contentSearchOn: Boolean, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchFilter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean ->
         val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
@@ -511,9 +512,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val filenameText = filenameQuery.value
         val contentText = contentQuery.value
 
-        // At least one pattern must be non-empty
-        if (filenameText.isBlank() && contentText.isBlank()) return
-
         log(TAG, INFO) { "Performing search: filename=$filenameText, content=$contentText" }
 
         // Clear selection state when starting new search
@@ -594,7 +592,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateFilter(filter: SearchQuery.Filter) {
+    fun updateFilter(filter: SearchFilter) {
         log(TAG) { "Updating filter: $filter" }
         currentFilter.value = filter
         // Clear selection state when filter changes
@@ -889,7 +887,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val contentSearchEnabled: Boolean = false,
         val workspaceState: SearcherWorkspace.State = SearcherWorkspace.State(),
         val searchHistory: List<SearchHistory.SearchHistoryItem> = emptyList(),
-        val currentFilter: SearchQuery.Filter = SearchQuery.Filter(),
+        val currentFilter: SearchFilter = SearchFilter(),
         val searchTargets: List<SearchTarget>,
         val setupRequirements: PathRequirements = PathRequirements(),
         val selectionState: SearcherSelectionState = SearcherSelectionState(),
@@ -902,6 +900,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     ) {
         val isSearching: Boolean
             get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
+
+        val isIdle: Boolean
+            get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.IDLE
 
         val hasResults: Boolean
             get() = workspaceState.results.isNotEmpty()
