@@ -32,7 +32,7 @@
 
     <!-- Explorer Shortcuts -->
     <string name="shortcut_explorer_new_short">New explorer</string>
-    <string name="shortcut_explorer_new_long">Create new explorer workspace</string>
+    <string name="shortcut_explorer_new_long">Create new explorer tab</string>
 
     <!-- Shortcuts Settings -->
     <string name="shortcuts_settings_title">Shortcuts</string>
@@ -200,9 +200,9 @@
     <string name="workspace_status_operation_singular">Operation</string>
     <string name="workspace_status_operation_plural">Operations</string>
     <string name="workspace_status_attention_label">Attention</string>
-    <string name="workspace_status_filter_tabs_desc">Show all workspaces</string>
-    <string name="workspace_status_filter_operations_desc">Filter by workspaces with operations</string>
-    <string name="workspace_status_filter_attention_desc">Filter by workspaces needing attention</string>
+    <string name="workspace_status_filter_tabs_desc">Show all tabs</string>
+    <string name="workspace_status_filter_operations_desc">Filter by tabs with operations</string>
+    <string name="workspace_status_filter_attention_desc">Filter by tabs needing attention</string>
 
     <!-- Acknowledgements -->
     <string name="acknowledgement_android_title">Android</string>
@@ -311,7 +311,7 @@
     <string name="workspace_fab_apps">Apps</string>
     <string name="workspace_fab_templates">Templates</string>
     <string name="workspace_fab_close_all">Close all tabs</string>
-    <string name="workspace_fab_longpress_hint">Tip: Long-press for quick access to all workspace types</string>
+    <string name="workspace_fab_longpress_hint">Tip: Long-press for quick access to all tab types</string>
 
     <!-- Workspace Navigation Rail -->
     <string name="workspace_pane_assign_action">Assign to pane %1$d</string>
