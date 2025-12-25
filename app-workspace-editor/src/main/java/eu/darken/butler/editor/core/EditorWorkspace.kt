@@ -349,6 +349,49 @@ class EditorWorkspace @AssistedInject constructor(
     fun canUndo() = runBlocking { engineHolder.value().canUndo() }
     fun canRedo() = runBlocking { engineHolder.value().canRedo() }
 
+    /**
+     * Reads file content for pasting from clipboard.
+     * @param path The file path to read
+     * @return Result containing the file content as String, or an error
+     */
+    suspend fun readFileContent(path: APath<*>): Result<String> = try {
+        gatewaySwitch.useRes {
+            val lookup = gatewaySwitch.lookup(path, eu.darken.butler.common.files.LookupOptions())
+            val size = lookup.size ?: 0L
+
+            // Size limit: 1 MB
+            if (size > MAX_PASTE_FILE_SIZE) {
+                return@useRes Result.failure(
+                    IllegalArgumentException("File too large to paste (max ${MAX_PASTE_FILE_SIZE / 1024 / 1024} MB)")
+                )
+            }
+
+            val bytes = gatewaySwitch.openInputStream(path).use { inputStream ->
+                inputStream.readBytes()
+            }
+
+            // Binary detection: check for null bytes
+            if (bytes.any { it == 0.toByte() }) {
+                return@useRes Result.failure(
+                    IllegalArgumentException("Cannot paste binary file content")
+                )
+            }
+
+            // Try UTF-8 first, fallback to ISO-8859-1
+            val content = try {
+                String(bytes, Charsets.UTF_8)
+            } catch (e: Exception) {
+                log(tag, WARN) { "UTF-8 decode failed, falling back to ISO-8859-1" }
+                String(bytes, Charsets.ISO_8859_1)
+            }
+
+            Result.success(content)
+        }
+    } catch (e: Exception) {
+        log(tag, ERROR) { "Failed to read file content: ${e.asLog()}" }
+        Result.failure(e)
+    }
+
     override suspend fun release() {
         log(tag, INFO) { "release()" }
         workspaceScope.cancel()
@@ -369,6 +412,10 @@ class EditorWorkspace @AssistedInject constructor(
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false
     )
+
+    companion object {
+        const val MAX_PASTE_FILE_SIZE = 1024 * 1024L // 1 MB
+    }
 
     @AssistedFactory
     interface Factory : WorkspaceFactory<EditorArguments> {

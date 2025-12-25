@@ -14,8 +14,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
@@ -48,8 +49,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     private val workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
-    private val editorSettings: EditorSettings,
     private val clipboardHelper: SystemClipboardHelper,
+    private val clipboardRepo: ClipboardRepo,
 ) : ViewModel4(dispatchers, logTag("Editor", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<EditorWorkspace?> = workspaceProvider.retrieve(id).map { it as EditorWorkspace? }
@@ -66,14 +67,21 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val _searchRegexEnabled = MutableStateFlow(false)
     private val _searchWholeWord = MutableStateFlow(false)
     private val _scrollTrigger = MutableStateFlow(0)
+    private val _clipboardInfoClip = MutableStateFlow<ClipboardClip?>(null)
     private var openFileJob: Job? = null
+
+    private data class DialogStates(
+        val showGoToLineDialog: Boolean,
+        val showSearchDialog: Boolean,
+        val showCloseConfirmDialog: Boolean,
+    )
 
     private val dialogStates = combine(
         _showGoToLineDialog,
         _showSearchDialog,
         _showCloseConfirmDialog,
     ) { showGoToLineDialog, showSearchDialog, showCloseConfirmDialog ->
-        Triple(showGoToLineDialog, showSearchDialog, showCloseConfirmDialog)
+        DialogStates(showGoToLineDialog, showSearchDialog, showCloseConfirmDialog)
     }
 
     private data class SearchStates(
@@ -118,7 +126,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         flowOf(id),
     ) { editorState, loading, dialogs, search, workspaceId ->
         val (isLoading, loadingFilePath) = loading
-        val (showGoToLineDialog, showSearchDialog, showCloseConfirmDialog) = dialogs
 
         // Use loading file path for title when loading, otherwise use contentSource
         val displayPath = (editorState.contentSource as? ContentSource.File)?.path ?: loadingFilePath
@@ -142,9 +149,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             visibleRange = editorState.visibleRange,
             showLineNumbers = editorState.showLineNumbers,
             wordWrap = editorState.wordWrap,
-            showGoToLineDialog = showGoToLineDialog,
-            showSearchDialog = showSearchDialog,
-            showCloseConfirmDialog = showCloseConfirmDialog,
+            showGoToLineDialog = dialogs.showGoToLineDialog,
+            showSearchDialog = dialogs.showSearchDialog,
+            showCloseConfirmDialog = dialogs.showCloseConfirmDialog,
             searchQueryInput = search.queryInput,
             currentSearchResultIndex = search.currentResultIndex,
             searchCaseSensitive = search.caseSensitive,
@@ -276,11 +283,11 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun copyToClipboard() = launch {
-        val result = getWorkspace()?.copySelection()
-        result?.fold(
+        val result = getWorkspace().copySelection()
+        result.fold(
             onSuccess = { text ->
                 clipboardHelper.copyToClipboard(text)
-                log(tag) { "Copied ${text.length} characters to clipboard" }
+                log(tag) { "Copied ${text.length} characters to system clipboard" }
             },
             onFailure = { e ->
                 log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" }
@@ -290,19 +297,67 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun cutToClipboard() = launch {
         val workspace = getWorkspace()
-        // First copy to clipboard
-        val copyResult = getWorkspace().copySelection()
+        val copyResult = workspace.copySelection()
         copyResult.fold(
             onSuccess = { text ->
                 clipboardHelper.copyToClipboard(text)
-                // Then delete the selection
                 workspace.deleteSelection()
-                log(tag) { "Cut ${text.length} characters to clipboard" }
+                log(tag) { "Cut ${text.length} characters to system clipboard" }
             },
             onFailure = { e ->
                 log(tag, ERROR) { "Failed to cut selection - ${e.asLog()}" }
             }
         )
+    }
+
+    /**
+     * Copies selection to Butler clipboard only (for long-press action).
+     */
+    fun copyToButlerClipboard() = launch {
+        val result = getWorkspace().copySelection()
+        result.fold(
+            onSuccess = { text ->
+                addToButlerClipboard(text)
+            },
+            onFailure = { e ->
+                log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" }
+            }
+        )
+    }
+
+    /**
+     * Cuts selection to Butler clipboard only (for long-press action).
+     */
+    fun cutToButlerClipboard() = launch {
+        val workspace = getWorkspace()
+        val copyResult = workspace.copySelection()
+        copyResult.fold(
+            onSuccess = { text ->
+                addToButlerClipboard(text)
+                workspace.deleteSelection()
+                log(tag) { "Cut ${text.length} characters to Butler clipboard" }
+            },
+            onFailure = { e ->
+                log(tag, ERROR) { "Failed to cut selection - ${e.asLog()}" }
+            }
+        )
+    }
+
+    private suspend fun addToButlerClipboard(text: String) {
+        // Check size limit
+        if (text.toByteArray(Charsets.UTF_8).size > ClipboardClip.Text.MAX_SIZE_BYTES) {
+            log(tag, WARN) { "Text too large for Butler clipboard: ${text.length} chars" }
+            return
+        }
+
+        val currentFilePath = (state.first().contentSource as? ContentSource.File)?.path
+        val clip = ClipboardClip.Text(
+            origin = id,
+            content = text,
+            sourcePath = currentFilePath,
+        )
+        clipboardRepo.add(clip)
+        log(tag, INFO) { "Added ${text.length} characters to Butler clipboard" }
     }
 
     fun pasteFromClipboard() = launch {
@@ -313,6 +368,39 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         } else {
             log(tag) { "No text content in clipboard to paste" }
         }
+    }
+
+    /**
+     * Clipboard entries that can be pasted into the editor (files only, not text).
+     */
+    val pasteableClipboard: Flow<List<ClipboardClip.Paths>> = clipboardRepo.state
+        .map { state ->
+            state.entries.filterIsInstance<ClipboardClip.Paths>()
+                .filter { clip ->
+                    clip.paths.any { path -> isLikelyTextFile(path) }
+                }
+        }
+
+    private fun isLikelyTextFile(path: APath<*>): Boolean {
+        val ext = path.name.substringAfterLast('.', "").lowercase()
+        return ext in TEXT_EXTENSIONS
+    }
+
+    /**
+     * Paste content from a file in the Butler clipboard into the editor.
+     */
+    fun pasteFromClipboardFile(path: APath<*>) = launch {
+        log(tag) { "pasteFromClipboardFile($path)" }
+        val result = getWorkspace().readFileContent(path)
+        result.fold(
+            onSuccess = { content ->
+                getWorkspace().insertText(content)
+                log(tag, INFO) { "Pasted ${content.length} characters from file: ${path.name}" }
+            },
+            onFailure = { e ->
+                log(tag, ERROR) { "Failed to paste from file: ${e.asLog()}" }
+            }
+        )
     }
 
     fun selectAll() = launch {
@@ -473,6 +561,18 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     /**
+     * Handles long-press on action bar buttons.
+     * Copy/Cut long press copies/cuts to Butler clipboard.
+     */
+    fun executeActionLongClick(action: EditorAction) {
+        when (action) {
+            EditorAction.Copy -> copyToButlerClipboard()
+            EditorAction.Cut -> cutToButlerClipboard()
+            else -> { /* Other actions don't have long press behavior */ }
+        }
+    }
+
+    /**
      * Unified handler for all page-level actions.
      * Dispatches to appropriate ViewModel methods based on action type.
      */
@@ -605,6 +705,62 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     add(EditorAction.Search)
                 }
             }
+    }
+
+    data class ClipboardState(
+        val entries: List<ClipboardClip> = emptyList(),
+    )
+
+    val clipboard: Flow<ClipboardState> = clipboardRepo.state.map { state ->
+        ClipboardState(entries = state.entries)
+    }
+
+    val clipboardInfoClip: Flow<ClipboardClip?> = _clipboardInfoClip
+
+    fun showClipboardInfo(clip: ClipboardClip) {
+        log(tag) { "showClipboardInfo($clip)" }
+        _clipboardInfoClip.value = clip
+    }
+
+    fun dismissClipboardInfo() {
+        _clipboardInfoClip.value = null
+    }
+
+    fun removeClipboardEntry(clip: ClipboardClip) = launch {
+        log(tag) { "removeClipboardEntry(${clip.id})" }
+        clipboardRepo.remove(clip.id)
+    }
+
+    fun clearAllClipboard() = launch {
+        log(tag) { "clearAllClipboard()" }
+        clipboardRepo.clear()
+    }
+
+    fun pasteFromClipboard(clip: ClipboardClip) = launch {
+        log(tag) { "pasteFromClipboard($clip)" }
+        when (clip) {
+            is ClipboardClip.Text -> {
+                getWorkspace().insertText(clip.content)
+                log(tag, INFO) { "Pasted ${clip.content.length} characters from Butler clipboard" }
+            }
+            is ClipboardClip.Paths -> {
+                // For file paths, read the first text file and paste its content
+                val textFile = clip.paths.firstOrNull { isLikelyTextFile(it) }
+                if (textFile != null) {
+                    pasteFromClipboardFile(textFile)
+                } else {
+                    log(tag, WARN) { "No text files found in clipboard paths" }
+                }
+            }
+        }
+    }
+
+    companion object {
+        private val TEXT_EXTENSIONS = setOf(
+            "txt", "md", "json", "xml", "html", "css", "js", "kt", "java", "py", "sh",
+            "yml", "yaml", "csv", "log", "conf", "ini", "properties", "gradle", "toml",
+            "c", "cpp", "h", "hpp", "rs", "go", "rb", "php", "sql", "ts", "tsx", "jsx",
+        )
     }
 
     @AssistedFactory

@@ -117,7 +117,7 @@ class EditorEngine @AssistedInject constructor(
 
         // Read undo settings
         val maxUndoStackSize = editorSettings.undoStackSize.value()
-        val maxUndoMemoryBytes = editorSettings.undoMaxMemoryMB.value() * 1_048_576L  // Convert MB to bytes
+        val maxUndoMemoryBytes = editorSettings.undoMaxMemory.value()
 
         val textBuffer = chunkedTextBufferFactory.create(
             workspaceId,
@@ -556,10 +556,12 @@ class EditorEngine @AssistedInject constructor(
                     column = end.column
                 )
                 _selectionRange.value = correctedStart to correctedEnd
+                _cursorPosition.value = correctedEnd
             }
             else -> {
                 // No file loaded, store as-is
                 _selectionRange.value = start to end
+                _cursorPosition.value = end
             }
         }
     }

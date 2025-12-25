@@ -14,11 +14,13 @@ fun EditorActionBar(
     modifier: Modifier = Modifier,
     actions: List<EditorAction>,
     onActionClick: (EditorAction) -> Unit,
+    onActionLongClick: (EditorAction) -> Unit = {},
 ) {
     WorkspaceActionBar(
         modifier = modifier.padding(horizontal = 8.dp, vertical = 8.dp),
         actions = actions,
         onActionClick = { action -> onActionClick(action as EditorAction) },
+        onActionLongClick = { action -> onActionLongClick(action as EditorAction) },
     )
 }
 

@@ -323,6 +323,7 @@ private fun DualColumnEditorContent(
     var tapCount by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
+    val contentPaddingTopPx = with(density) { contentPadding.calculateTopPadding().toPx() }
 
     // Track measured heights for each line when word wrap is enabled
     val lineHeights = remember { mutableStateMapOf<Int, Int>() }
@@ -353,9 +354,15 @@ private fun DualColumnEditorContent(
             .sortedBy { it.key }
             .joinToString("\n") { it.value }
         if (textFieldValue.text != currentContent) {
+            // Preserve selection if within valid range, otherwise reset to end
+            val preservedSelection = if (textFieldValue.selection.end <= currentContent.length) {
+                textFieldValue.selection
+            } else {
+                TextRange(currentContent.length)
+            }
             textFieldValue = TextFieldValue(
                 text = currentContent,
-                selection = TextRange(currentContent.length)
+                selection = preservedSelection
             )
         }
     }
@@ -619,6 +626,7 @@ private fun DualColumnEditorContent(
                                     tabSize = tabSize,
                                     wordWrap = wordWrap,
                                     textLayouts = textLayouts,
+                                    contentPaddingTop = contentPaddingTopPx,
                                 )
 
                                 if (result != null) {
@@ -673,6 +681,7 @@ private fun DualColumnEditorContent(
                                     tabSize = tabSize,
                                     wordWrap = wordWrap,
                                     textLayouts = textLayouts,
+                                    contentPaddingTop = contentPaddingTopPx,
                                 )
 
                                 if (result != null) {
@@ -739,6 +748,7 @@ private fun DualColumnEditorContent(
                         tabSize = tabSize,
                         wordWrap = wordWrap,
                         textLayouts = textLayouts,
+                        contentPaddingTop = contentPaddingTopPx,
                     )
 
                     if (result != null) {
@@ -757,6 +767,7 @@ private fun DualColumnEditorContent(
                 wordWrap = wordWrap,
                 textLayouts = textLayouts,
                 visibleLineContent = currentVisibleLineContent,
+                contentPaddingTop = contentPaddingTopPx,
             )
 
             // End handle
@@ -776,6 +787,7 @@ private fun DualColumnEditorContent(
                         tabSize = tabSize,
                         wordWrap = wordWrap,
                         textLayouts = textLayouts,
+                        contentPaddingTop = contentPaddingTopPx,
                     )
 
                     if (result != null) {
@@ -794,6 +806,7 @@ private fun DualColumnEditorContent(
                 wordWrap = wordWrap,
                 textLayouts = textLayouts,
                 visibleLineContent = currentVisibleLineContent,
+                contentPaddingTop = contentPaddingTopPx,
             )
         }
     }

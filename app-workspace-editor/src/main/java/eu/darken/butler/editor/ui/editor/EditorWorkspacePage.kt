@@ -23,7 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -40,12 +42,15 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
+import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
 import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
 import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
@@ -55,6 +60,8 @@ import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 
 @Composable
@@ -75,6 +82,7 @@ fun EditorWorkspacePageHost(
     val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
 
     val state by waitForState(vm.state)
+    val clipboardInfoClip by vm.clipboardInfoClip.collectAsState(null)
 
     state?.let { state ->
         EditorWorkspacePage(
@@ -83,8 +91,13 @@ fun EditorWorkspacePageHost(
             workspaceActionHandler = workspaceButtonVm,
             design = design,
             state = state,
+            clipboardStateSource = vm.clipboard,
             onPageAction = vm::onPageAction,
             onActionExecute = vm::executeAction,
+            onActionLongClick = vm::executeActionLongClick,
+            onClipboardPaste = vm::pasteFromClipboard,
+            onClipboardRemove = vm::removeClipboardEntry,
+            onClipboardClear = vm::clearAllClipboard,
             onDismissGoToLineDialog = vm::dismissGoToLineDialog,
             onDismissSearchDialog = vm::dismissSearchDialog,
             onSearchQueryChange = vm::updateSearchQuery,
@@ -96,6 +109,9 @@ fun EditorWorkspacePageHost(
             onCloseSearch = vm::closeSearch,
             onDismissCloseConfirmDialog = vm::dismissCloseConfirmDialog,
             onConfirmCloseFile = vm::confirmCloseFile,
+            clipboardInfoClip = clipboardInfoClip,
+            onClipboardEntryClick = vm::showClipboardInfo,
+            onDismissClipboardInfo = vm::dismissClipboardInfo,
         )
     }
 }
@@ -107,8 +123,13 @@ fun EditorWorkspacePage(
     workspaceActionHandler: WorkspaceActionHandler? = null,
     design: WorkspaceDesign,
     state: EditorWorkspaceViewModel.State,
+    clipboardStateSource: Flow<EditorWorkspaceViewModel.ClipboardState> = flowOf(EditorWorkspaceViewModel.ClipboardState()),
     onPageAction: (EditorPageAction) -> Unit,
     onActionExecute: (EditorAction) -> Unit = {},
+    onActionLongClick: (EditorAction) -> Unit = {},
+    onClipboardPaste: (ClipboardClip) -> Unit = {},
+    onClipboardRemove: (ClipboardClip) -> Unit = {},
+    onClipboardClear: () -> Unit = {},
     onDismissGoToLineDialog: () -> Unit = {},
     onDismissSearchDialog: () -> Unit = {},
     onSearchQueryChange: (TextFieldValue) -> Unit = {},
@@ -120,7 +141,15 @@ fun EditorWorkspacePage(
     onCloseSearch: () -> Unit = {},
     onDismissCloseConfirmDialog: () -> Unit = {},
     onConfirmCloseFile: () -> Unit = {},
+    clipboardInfoClip: ClipboardClip? = null,
+    onClipboardEntryClick: (ClipboardClip) -> Unit = {},
+    onDismissClipboardInfo: () -> Unit = {},
 ) {
+    val clipboardState by clipboardStateSource.collectAsState(EditorWorkspaceViewModel.ClipboardState())
+
+    val hasClipboard by remember {
+        derivedStateOf { clipboardState.entries.isNotEmpty() }
+    }
     val hasActions = state.availableActions.isNotEmpty()
 
     val topBarStackState = rememberFloatingBarStackState(position = BarPosition.TOP)
@@ -295,6 +324,21 @@ fun EditorWorkspacePage(
                     )
                 }
                 FloatingBar(
+                    visible = hasClipboard,
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    animation = BarAnimation.Bouncy,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    ClipboardBar(
+                        workspaceType = Workspace.Type.EDITOR,
+                        clipboardEntries = clipboardState.entries,
+                        onPasteClick = onClipboardPaste,
+                        onRemoveClick = onClipboardRemove,
+                        onEntryClick = onClipboardEntryClick,
+                        onClearAll = onClipboardClear,
+                    )
+                }
+                FloatingBar(
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
@@ -302,6 +346,7 @@ fun EditorWorkspacePage(
                     EditorActionBar(
                         actions = state.availableActions,
                         onActionClick = onActionExecute,
+                        onActionLongClick = onActionLongClick,
                     )
                 }
             },
@@ -324,6 +369,16 @@ fun EditorWorkspacePage(
         CloseConfirmDialog(
             onConfirm = onConfirmCloseFile,
             onDismiss = onDismissCloseConfirmDialog,
+        )
+    }
+
+    clipboardInfoClip?.let { clip ->
+        ClipboardInfoBottomSheet(
+            clip = clip,
+            onDismiss = onDismissClipboardInfo,
+            onNavigateToSource = null,
+            onPaste = { onClipboardPaste(clip) },
+            onRemove = { onClipboardRemove(clip) },
         )
     }
 }

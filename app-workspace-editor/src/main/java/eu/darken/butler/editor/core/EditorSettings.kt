@@ -9,12 +9,16 @@ import eu.darken.butler.common.datastore.PreferenceScreenData
 import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.logging.logTag
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.seconds
+import kotlin.times
 
 @Singleton
 class EditorSettings @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val json: Json,
 ) : PreferenceScreenData {
 
     private val Context.dataStore by preferencesDataStore(name = "settings_editor")
@@ -28,11 +32,11 @@ class EditorSettings @Inject constructor(
     val fontSize = dataStore.createValue("editor.font_size", 14)
     val tabSize = dataStore.createValue("editor.tab_size", 4)
 
-    val autoSaveInterval = dataStore.createValue("editor.auto_save.interval_ms", 30000L) // 30 seconds
+    val autoSaveInterval = dataStore.createValue("editor.auto_save.interval", 30.seconds, json)
     val autoSaveEnabled = dataStore.createValue("editor.auto_save.enabled", false)
 
     val undoStackSize = dataStore.createValue("editor.undo.stack_size", 100)
-    val undoMaxMemoryMB = dataStore.createValue("editor.undo.max_memory_mb", 10)
+    val undoMaxMemory = dataStore.createValue("editor.undo.memory_max", 10  * 1_048_576L )
 
     override val mapper = PreferenceStoreMapper(
         showLineNumbers,
@@ -44,9 +48,8 @@ class EditorSettings @Inject constructor(
         autoSaveEnabled,
 
         undoStackSize,
-        undoMaxMemoryMB,
+        undoMaxMemory,
     )
-
 
     companion object {
         internal val TAG = logTag("Editor", "Settings")
