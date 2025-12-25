@@ -4,7 +4,6 @@ import android.text.format.Formatter
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
@@ -26,7 +25,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.FilterComparator
 import eu.darken.butler.searcher.core.FilterCondition
-import eu.darken.butler.searcher.core.SearchQuery
+import eu.darken.butler.searcher.core.SearchFilter
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -41,7 +40,7 @@ import kotlin.time.Instant
 @Composable
 fun FilterChipBar(
     modifier: Modifier = Modifier,
-    filter: SearchQuery.Filter,
+    filter: SearchFilter,
     onConditionClick: (FilterCondition) -> Unit,
     onAddSizeCondition: () -> Unit,
     onAddDateCondition: () -> Unit,
@@ -170,7 +169,7 @@ enum class DateFilterPreset(
 private fun FilterChipBarEmptyPreview() {
     PreviewWrapper {
         FilterChipBar(
-            filter = SearchQuery.Filter(),
+            filter = SearchFilter(),
             onConditionClick = {},
             onAddSizeCondition = {},
             onAddDateCondition = {},
@@ -186,7 +185,7 @@ private fun FilterChipBarEmptyPreview() {
 private fun FilterChipBarSingleConditionPreview() {
     PreviewWrapper {
         FilterChipBar(
-            filter = SearchQuery.Filter(
+            filter = SearchFilter(
                 conditions = listOf(
                     FilterCondition.Size(FilterComparator.GTE, 100L * 1024 * 1024),
                 ),
@@ -206,7 +205,7 @@ private fun FilterChipBarSingleConditionPreview() {
 private fun FilterChipBarMultipleConditionsPreview() {
     PreviewWrapper {
         FilterChipBar(
-            filter = SearchQuery.Filter(
+            filter = SearchFilter(
                 conditions = listOf(
                     FilterCondition.Size(FilterComparator.GTE, 100L * 1024 * 1024),
                     FilterCondition.Size(FilterComparator.LTE, 500L * 1024 * 1024),
@@ -228,7 +227,7 @@ private fun FilterChipBarMultipleConditionsPreview() {
 private fun FilterChipBarAllTypesPreview() {
     PreviewWrapper {
         FilterChipBar(
-            filter = SearchQuery.Filter(
+            filter = SearchFilter(
                 conditions = listOf(
                     FilterCondition.Size(FilterComparator.GT, 50L * 1024 * 1024),
                     FilterCondition.Size(FilterComparator.LT, 1024L * 1024 * 1024),

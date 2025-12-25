@@ -52,7 +52,7 @@ sealed interface SearchItem : Parcelable {
         val contextBefore: List<String>? = null,
         val contextAfter: List<String>? = null,
     ) : Parcelable {
-        enum class MatchType { FILENAME, CONTENT, BOTH }
+        enum class MatchType { FILENAME, CONTENT, BOTH, FILTER }
     }
 
     companion object {

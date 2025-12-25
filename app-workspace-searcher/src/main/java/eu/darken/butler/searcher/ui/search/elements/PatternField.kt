@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.visible
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Clear
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.MoreVert
+import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -53,6 +55,7 @@ fun PatternField(
     caseSensitive: Boolean,
     wholeWord: Boolean,
     useRegex: Boolean,
+    isSearching: Boolean = false,
     onToggleCaseSensitive: () -> Unit,
     onToggleWholeWord: () -> Unit,
     onToggleRegex: () -> Unit,
@@ -121,6 +124,17 @@ fun PatternField(
                     innerTextField()
                 }
             },
+        )
+
+        // Refresh button (hidden while searching)
+        Icon(
+            imageVector = Icons.TwoTone.Refresh,
+            contentDescription = stringResource(eu.darken.butler.common.R.string.general_refresh_action),
+            modifier = Modifier
+                .clickable { onSearch() }
+                .size(20.dp)
+                .visible(!isSearching),
+            tint = colors.onSurfaceVariant,
         )
 
         // Clear button
