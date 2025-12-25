@@ -38,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -155,28 +156,29 @@ fun SearcherWorkspacePage(
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
+    // Use rememberUpdatedState for callback to avoid lambda recreation
+    val currentOnPageAction by rememberUpdatedState(onPageAction)
+
     // Wrapped selection callbacks that clear focus and hide keyboard
-    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit =
-        remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
-            { result ->
+    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember {
+        { result ->
+            focusManager.clearFocus()
+            keyboardController?.hide()
+            currentOnPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
+        }
+    }
+
+    val wrappedOnToggleSelection: (SearchItem) -> Unit = remember {
+        { result ->
+            // Only clear focus and hide keyboard when entering selection mode (first selection)
+            // Not when already in selection mode (subsequent toggles)
+            if (state?.selectionState?.isSelectionMode != true) {
                 focusManager.clearFocus()
                 keyboardController?.hide()
-                onPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
             }
+            currentOnPageAction(SearcherPageAction.Results.ToggleSelection(result))
         }
-
-    val wrappedOnToggleSelection: (SearchItem) -> Unit =
-        remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
-            { result ->
-                // Only clear focus and hide keyboard when entering selection mode (first selection)
-                // Not when already in selection mode (subsequent toggles)
-                if (state?.selectionState?.isSelectionMode != true) {
-                    focusManager.clearFocus()
-                    keyboardController?.hide()
-                }
-                onPageAction(SearcherPageAction.Results.ToggleSelection(result))
-            }
-        }
+    }
 
     // Re-request focus for keyboard shortcuts after clearing focus
     // This ensures shortcuts continue working after selecting a result
