@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core.clipboard
 
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.workspace.R
@@ -55,6 +56,33 @@ sealed interface ClipboardClip {
         enum class Mode {
             COPY,
             CUT,
+        }
+    }
+
+    data class Text(
+        override val id: Uuid = Uuid.random(),
+        override val clippedAt: Instant = Clock.System.now(),
+        override val origin: Workspace.Id,
+        val content: String,
+        val sourcePath: APath<*>? = null,
+    ) : ClipboardClip {
+        override val title: CaString
+            get() = R.string.clipboard_text_title.toCaString()
+
+        override val description: CaString
+            get() = caString {
+                it.getQuantityString2(
+                    R.plurals.clipboard_text_description,
+                    content.length,
+                    content.length,
+                )
+            }
+
+        val preview: String
+            get() = content.take(50).replace('\n', ' ') + if (content.length > 50) "…" else ""
+
+        companion object {
+            const val MAX_SIZE_BYTES = 256 * 1024 // 256 KB for in-memory storage
         }
     }
 }

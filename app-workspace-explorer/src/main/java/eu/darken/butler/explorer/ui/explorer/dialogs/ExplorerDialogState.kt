@@ -45,6 +45,8 @@ sealed interface ExplorerDialogState {
 
     data class ClipboardInfo(val clip: ClipboardClip) : ExplorerDialogState
 
+    data class CreateFileFromText(val clip: ClipboardClip.Text) : ExplorerDialogState
+
     data class ItemInfo(val context: InfoContext) : ExplorerDialogState {
         sealed interface InfoContext {
             data class SingleFile(val item: ExplorerItem.File) : InfoContext

@@ -1466,6 +1466,40 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
+
+            is ClipboardClip.Text -> {
+                // Show filename dialog for text snippet paste
+                dialogStateFlow.value = ExplorerDialogState.CreateFileFromText(clip)
+            }
+        }
+    }
+
+    fun onCreateFileFromText(clip: ClipboardClip.Text, filename: String) = launch {
+        log(tag) { "onCreateFileFromText(filename=$filename)" }
+        dismissDialog()
+
+        val currentLocation = state.first().currentLocation
+        if (currentLocation is ExplorerLocation.Directory) {
+            try {
+                val filePath = currentLocation.path.child(filename)
+                val workspace = getWorkspace()
+
+                // Create and write file
+                val command = ExplorerCommand.CreateTextFile(
+                    path = filePath,
+                    content = clip.content,
+                )
+                val completed = workspace.execute(command)
+
+                if (completed.error == null) {
+                    log(tag, INFO) { "Created text file: $filename with ${clip.content.length} characters" }
+                    revealItems(listOf(filePath))
+                    clipboardRepo.remove(clip.id)
+                }
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed to create text file: ${e.asLog()}" }
+                errorEvents.emit(e)
+            }
         }
     }
 
@@ -1675,6 +1709,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 if (clip.paths.isNotEmpty()) {
                     val firstPath = clip.paths.first()
                     val parentPath = firstPath.parent
+                    if (parentPath != null) {
+                        getWorkspace().navigate(ExplorerNavigation.Target.Directory(parentPath))
+                    }
+                }
+            }
+            is ClipboardClip.Text -> {
+                val sourcePath = clip.sourcePath
+                if (sourcePath != null) {
+                    val parentPath = sourcePath.parent
                     if (parentPath != null) {
                         getWorkspace().navigate(ExplorerNavigation.Target.Directory(parentPath))
                     }

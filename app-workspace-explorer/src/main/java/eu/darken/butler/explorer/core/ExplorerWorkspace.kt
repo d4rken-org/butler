@@ -22,6 +22,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
 import eu.darken.butler.explorer.core.operations.CopyOperation
 import eu.darken.butler.explorer.core.operations.CreateOperation
+import eu.darken.butler.explorer.core.operations.CreateTextFileOperation
 import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.ExplorerOperation
@@ -71,6 +72,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val operationsManager: OperationsManager,
     private val deleteOperationFactory: DeleteOperation.Factory,
     private val createOperationFactory: CreateOperation.Factory,
+    private val createTextFileOperationFactory: CreateTextFileOperation.Factory,
     private val copyOperationFactory: CopyOperation.Factory,
     private val moveOperationFactory: MoveOperation.Factory,
     private val explorerSettings: ExplorerSettings,
@@ -373,6 +375,10 @@ class ExplorerWorkspace @AssistedInject constructor(
             command = command,
         )
         is ExplorerCommand.Create -> createOperationFactory.create(
+            workspaceId = id,
+            command = command,
+        )
+        is ExplorerCommand.CreateTextFile -> createTextFileOperationFactory.create(
             workspaceId = id,
             command = command,
         )

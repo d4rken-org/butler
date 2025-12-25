@@ -24,6 +24,15 @@
         <item quantity="one">%d item from %s</item>
         <item quantity="other">%d items from %s</item>
     </plurals>
+    <string name="clipboard_text_title">Text snippet</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d characters</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Paste as file</string>
+    <string name="clipboard_text_info_characters">Characters</string>
+    <string name="clipboard_text_info_lines">Lines</string>
+    <string name="clipboard_text_info_content">Content</string>
 
     <!-- Clipboard Info Dialog -->
     <string name="clipboard_info_overview">Overview</string>

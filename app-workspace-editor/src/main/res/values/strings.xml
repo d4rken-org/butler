@@ -70,4 +70,15 @@
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Untitled</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Clipboard</string>
+    <string name="editor_settings_clipboard_behavior_title">Butler clipboard</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Control how text copies are saved to Butler\'s clipboard.</string>
+    <string name="editor_settings_clipboard_system_only">System only</string>
+    <string name="editor_settings_clipboard_system_only_desc">Only copy to system clipboard</string>
+    <string name="editor_settings_clipboard_butler_always">Always add to Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Also save to Butler\'s clipboard for cross-workspace pasting</string>
+    <string name="editor_settings_clipboard_ask">Ask each time</string>
+    <string name="editor_settings_clipboard_ask_desc">Prompt before adding to Butler\'s clipboard</string>
 </resources>
