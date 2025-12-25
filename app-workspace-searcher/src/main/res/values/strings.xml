@@ -23,7 +23,7 @@
     <!-- Searcher UI -->
     <string name="searcher_recent_searches">Recent searches</string>
     <string name="searcher_placeholder_search">Search files and folders</string>
-    <string name="searcher_placeholder_filename">Filename pattern…</string>
+    <string name="searcher_placeholder_filename">Filename (optional)…</string>
     <string name="searcher_placeholder_content">Content pattern…</string>
     <string name="searcher_search_error">Search error</string>
     <string name="searcher_no_paths_hint">Tap + to add search paths</string>

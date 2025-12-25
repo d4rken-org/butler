@@ -77,7 +77,7 @@ class PathScanner @AssistedInject constructor(
 
                             itemsScanned++
 
-                            if (itemsScanned % 100 == 0) {
+                            if (itemsScanned % SearchConfig.PROGRESS_UPDATE_INTERVAL == 0) {
                                 onProgress(
                                     PathProgress(
                                         currentPath = path,
@@ -87,7 +87,7 @@ class PathScanner @AssistedInject constructor(
                                 )
                             }
 
-                            filterForTraversal(lookup, query.filter)
+                            shouldIncludeInTraversal(lookup, query.filter)
                         },
                         onError = { lookup, error ->
                             log(tag, VERBOSE) { "Error accessing ${lookup.lookedUp}: $error" }
@@ -99,7 +99,7 @@ class PathScanner @AssistedInject constructor(
                         .cancellable()
                         .mapNotNull { lookup ->
                             // Apply filters to directories at result stage (they passed traversal filter for recursion)
-                            if (!filterForResults(lookup, query.filter)) return@mapNotNull null
+                            if (!shouldIncludeInResults(lookup, query.filter)) return@mapNotNull null
 
                             // Check cancellation before expensive content matching
                             if (!currentCoroutineContext().isActive) throw CancellationException()
@@ -112,6 +112,7 @@ class PathScanner @AssistedInject constructor(
                                     SearchItem.MatchContext.MatchType.FILENAME -> query.filenameQuery.pattern
                                     SearchItem.MatchContext.MatchType.CONTENT -> query.contentQuery.pattern
                                     SearchItem.MatchContext.MatchType.BOTH -> query.filenameQuery.pattern
+                                    SearchItem.MatchContext.MatchType.FILTER -> ""
                                 }
                                 SearchItem.fromLookup(
                                     lookup = lookup,
@@ -133,19 +134,23 @@ class PathScanner @AssistedInject constructor(
         }
     }.flowOn(dispatcherProvider.IO)
 
-    private fun filterForTraversal(lookup: APathLookup<*>, filter: SearchFilter): Boolean {
-        // Directories always pass to allow recursion into them
+    /**
+     * Determines if a path should be included during filesystem traversal.
+     * - Directories: Always included to enable recursion into them
+     * - Files: Evaluated against filter conditions (early exit optimization)
+     */
+    private fun shouldIncludeInTraversal(lookup: APathLookup<*>, filter: SearchFilter): Boolean {
         if (lookup.fileType == FileType.DIRECTORY) return true
-
-        // Files: evaluate all conditions (early exit optimization before expensive content matching)
         return filter.conditions.all { evaluateCondition(it, lookup) }
     }
 
-    private fun filterForResults(lookup: APathLookup<*>, filter: SearchFilter): Boolean {
-        // Files already filtered during traversal
+    /**
+     * Determines if a path should be included in search results.
+     * - Files: Already filtered during traversal, always included here
+     * - Directories: Evaluated against filter conditions (deferred until after recursion)
+     */
+    private fun shouldIncludeInResults(lookup: APathLookup<*>, filter: SearchFilter): Boolean {
         if (lookup.fileType != FileType.DIRECTORY) return true
-
-        // Directories: now evaluate all conditions for result inclusion
         return filter.conditions.all { evaluateCondition(it, lookup) }
     }
 
@@ -221,44 +226,18 @@ class PathScanner @AssistedInject constructor(
                 contentMatch?.copy(matchType = SearchItem.MatchContext.MatchType.BOTH)
             }
 
-            // Case 4: No patterns - shouldn't happen
+            // Case 4: Filter-only - no patterns but filters exist (already applied upstream)
+            searchQuery.filter.hasConditions() -> {
+                SearchItem.MatchContext(matchType = SearchItem.MatchContext.MatchType.FILTER)
+            }
+
+            // Case 5: No patterns and no filters - shouldn't happen (validated upstream)
             else -> null
         }
     }
 
     private fun matchesFilename(name: String, filenameQuery: FilenameQuery): Boolean {
-        val query = filenameQuery.pattern
-        if (query.isBlank()) return false
-
-        return when {
-            filenameQuery.useRegex -> {
-                try {
-                    val regex = if (filenameQuery.caseSensitive) {
-                        query.toRegex()
-                    } else {
-                        query.toRegex(RegexOption.IGNORE_CASE)
-                    }
-                    regex.containsMatchIn(name)
-                } catch (e: Exception) {
-                    log(tag, VERBOSE) { "Invalid regex: $query" }
-                    false
-                }
-            }
-
-            filenameQuery.wholeWord -> {
-                val wordPattern = "\\b${Regex.escape(query)}\\b"
-                val regex = if (filenameQuery.caseSensitive) {
-                    wordPattern.toRegex()
-                } else {
-                    wordPattern.toRegex(RegexOption.IGNORE_CASE)
-                }
-                regex.containsMatchIn(name)
-            }
-
-            else -> {
-                name.contains(query, ignoreCase = !filenameQuery.caseSensitive)
-            }
-        }
+        return PatternMatcher.matches(name, filenameQuery.pattern, filenameQuery.patternOptions).isFound
     }
 
     @AssistedFactory

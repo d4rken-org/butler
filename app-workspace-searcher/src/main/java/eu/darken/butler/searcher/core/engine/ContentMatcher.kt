@@ -40,9 +40,8 @@ class ContentMatcher @AssistedInject constructor(
         includeBinaries: Boolean,
     ): SearchItem.MatchContext? = withContext(dispatcherProvider.IO) {
         // 1. Size check - skip files that are too large
-        val maxSize = 10_485_760L // 10MB
-        if ((lookup.size ?: 0) > maxSize) {
-            log(tag, VERBOSE) { "Skipping ${lookup.name} - size ${lookup.size} exceeds max $maxSize" }
+        if ((lookup.size ?: 0) > SearchConfig.MAX_CONTENT_FILE_SIZE) {
+            log(tag, VERBOSE) { "Skipping ${lookup.name} - size ${lookup.size} exceeds max ${SearchConfig.MAX_CONTENT_FILE_SIZE}" }
             return@withContext null
         }
 
@@ -71,7 +70,7 @@ class ContentMatcher @AssistedInject constructor(
     private suspend fun readFileContent(lookup: APathLookup<*>): String {
         return gatewaySwitch.file(lookup.lookedUp, readWrite = false).use { handle ->
             handle.source().buffer().use { source ->
-                val bytes = ByteArray(131_072) // 128 KB
+                val bytes = ByteArray(SearchConfig.CONTENT_READ_BUFFER)
                 val bytesRead = source.read(bytes)
                 if (bytesRead > 0) {
                     val contentBytes = if (bytesRead == bytes.size) bytes else bytes.copyOf(bytesRead)
@@ -106,68 +105,36 @@ class ContentMatcher @AssistedInject constructor(
         content: String,
         query: ContentQuery,
     ): SearchItem.MatchContext? {
-        val searchText = query.pattern
-
-        // Guard against empty/blank patterns - prevents invalid regex patterns
-        if (searchText.isBlank()) {
+        // Guard against empty/blank patterns
+        if (query.pattern.isBlank()) {
             log(tag, WARN) { "Skipping content search - empty pattern" }
             return null
         }
 
-        val caseSensitive = query.caseSensitive
-        val useRegex = query.useRegex
-        val wholeWord = query.wholeWord
-
-        // Split into lines (content is already limited to 128KB, so this is safe)
+        // Split into lines (content is already limited, so this is safe)
         val lines = content.lines()
-        val maxContextLineLength = 500 // Limit context line length to avoid memory issues
 
         lines.forEachIndexed { index, line ->
-            // Returns (startIndex, endIndex) pair to correctly handle variable-length regex matches
-            val matchRange: Pair<Int, Int>? = when {
-                useRegex -> {
-                    val pattern = if (caseSensitive) {
-                        searchText.toRegex()
-                    } else {
-                        searchText.toRegex(RegexOption.IGNORE_CASE)
-                    }
-                    val match = pattern.find(line)
-                    match?.let { it.range.first to it.range.last + 1 }
-                }
-
-                wholeWord -> {
-                    // Escape special regex chars to match literal text with word boundaries
-                    val escapedText = Regex.escape(searchText)
-                    val pattern = if (caseSensitive) {
-                        "\\b$escapedText\\b".toRegex()
-                    } else {
-                        "\\b$escapedText\\b".toRegex(RegexOption.IGNORE_CASE)
-                    }
-                    val match = pattern.find(line)
-                    match?.let { it.range.first to it.range.last + 1 }
-                }
-
-                else -> {
-                    val idx = line.indexOf(searchText, ignoreCase = !caseSensitive)
-                    if (idx >= 0) idx to idx + searchText.length else null
-                }
-            }
+            val matchResult = PatternMatcher.find(line, query.pattern, query.patternOptions)
 
             // Return first match found (early exit optimization)
-            if (matchRange != null) {
-                // Capture context lines (2 before, 2 after)
-                val contextBefore = if (index >= 2) {
-                    lines.subList(index - 2, index).map { it.take(maxContextLineLength) }
-                } else if (index == 1) {
-                    listOf(lines[0].take(maxContextLineLength))
+            if (matchResult.isFound) {
+                val matchRange = matchResult.toRange()!!
+                // Capture context lines before and after match
+                val contextBefore = if (index >= SearchConfig.CONTEXT_LINES_BEFORE) {
+                    lines.subList(index - SearchConfig.CONTEXT_LINES_BEFORE, index)
+                        .map { it.take(SearchConfig.MAX_CONTEXT_LINE_LENGTH) }
+                } else if (index >= 1) {
+                    lines.subList(0, index).map { it.take(SearchConfig.MAX_CONTEXT_LINE_LENGTH) }
                 } else {
                     null
                 }
 
-                val contextAfter = if (index + 2 < lines.size) {
-                    lines.subList(index + 1, index + 3).map { it.take(maxContextLineLength) }
+                val contextAfter = if (index + SearchConfig.CONTEXT_LINES_AFTER < lines.size) {
+                    lines.subList(index + 1, index + 1 + SearchConfig.CONTEXT_LINES_AFTER)
+                        .map { it.take(SearchConfig.MAX_CONTEXT_LINE_LENGTH) }
                 } else if (index + 1 < lines.size) {
-                    listOf(lines[index + 1].take(maxContextLineLength))
+                    lines.subList(index + 1, lines.size).map { it.take(SearchConfig.MAX_CONTEXT_LINE_LENGTH) }
                 } else {
                     null
                 }

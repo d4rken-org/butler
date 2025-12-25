@@ -511,9 +511,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         val filenameText = filenameQuery.value
         val contentText = contentQuery.value
 
-        // At least one pattern must be non-empty
-        if (filenameText.isBlank() && contentText.isBlank()) return
-
         log(TAG, INFO) { "Performing search: filename=$filenameText, content=$contentText" }
 
         // Clear selection state when starting new search
