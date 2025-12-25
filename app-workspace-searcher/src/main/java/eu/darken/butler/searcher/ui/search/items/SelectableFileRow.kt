@@ -1,6 +1,5 @@
 package eu.darken.butler.searcher.ui.search.items
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +17,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -47,14 +46,11 @@ fun SelectableFileRow(
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        label = "background_color",
-    )
+    val backgroundColor = if (isSelected) {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
 
     Card(
         modifier = modifier
@@ -153,37 +149,42 @@ fun SelectableFileRow(
                 )
 
                 // Line 4: Match context (if available)
-                result.matchContext?.let { context ->
-                    if (context.lineNumber != null && context.matchedLine != null) {
-                        val trimmedLine = context.matchedLine.trim()
-                        // Adjust indices for trimmed whitespace
-                        val leadingWhitespace = context.matchedLine.length - context.matchedLine.trimStart().length
-                        val adjustedStartIndex = (context.startIndex ?: 0) - leadingWhitespace
-                        val adjustedEndIndex = (context.endIndex ?: 0) - leadingWhitespace
+                val matchDisplay = remember(result.matchContext) {
+                    result.matchContext?.let { context ->
+                        if (context.lineNumber != null && context.matchedLine != null) {
+                            val trimmedLine = context.matchedLine.trim()
+                            // Adjust indices for trimmed whitespace
+                            val leadingWhitespace = context.matchedLine.length - context.matchedLine.trimStart().length
+                            val adjustedStartIndex = (context.startIndex ?: 0) - leadingWhitespace
+                            val adjustedEndIndex = (context.endIndex ?: 0) - leadingWhitespace
 
-                        val displayLine = if (adjustedStartIndex >= 0 && adjustedEndIndex > adjustedStartIndex) {
-                            getEllipsizedMatchLine(
-                                line = trimmedLine,
-                                startIndex = adjustedStartIndex,
-                                endIndex = adjustedEndIndex,
-                                maxLength = 60,
-                            )
-                        } else {
-                            trimmedLine
-                        }
-
-                        Text(
-                            text = stringResource(
-                                R.string.searcher_match_line_label,
-                                context.lineNumber,
-                                displayLine,
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                            val displayLine = if (adjustedStartIndex >= 0 && adjustedEndIndex > adjustedStartIndex) {
+                                getEllipsizedMatchLine(
+                                    line = trimmedLine,
+                                    startIndex = adjustedStartIndex,
+                                    endIndex = adjustedEndIndex,
+                                    maxLength = 60,
+                                )
+                            } else {
+                                trimmedLine
+                            }
+                            context.lineNumber to displayLine
+                        } else null
                     }
+                }
+
+                matchDisplay?.let { (lineNumber, displayLine) ->
+                    Text(
+                        text = stringResource(
+                            R.string.searcher_match_line_label,
+                            lineNumber,
+                            displayLine,
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
         }
