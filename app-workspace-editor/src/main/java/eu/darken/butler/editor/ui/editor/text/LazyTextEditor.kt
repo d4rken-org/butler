@@ -151,7 +151,7 @@ fun LazyTextEditor(
     // Update visible range when scroll position changes
     LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size) {
         if (totalLines > 0 && contentListState.layoutInfo.totalItemsCount > 0) {
-            val startIndex = contentListState.firstVisibleItemIndex.coerceAtLeast(0)
+            val startIndex = (contentListState.firstVisibleItemIndex - 10).coerceAtLeast(0)
             val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
             val endIndex = minOf(
                 startIndex + visibleCount + 10, // Buffer
@@ -407,7 +407,7 @@ private fun DualColumnEditorContent(
     }
 
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .focusRequester(focusRequester)
     ) {
@@ -585,7 +585,8 @@ private fun DualColumnEditorContent(
             LazyColumn(
                 state = contentListState,
                 contentPadding = contentPadding,
-                modifier = contentModifier
+                modifier = modifier
+                    .then(contentModifier)
                     .then(focusBorderModifier)
                     .pointerInput(isWorkspaceFocused, requestWorkspaceFocus) {
                         detectTapGestures(
