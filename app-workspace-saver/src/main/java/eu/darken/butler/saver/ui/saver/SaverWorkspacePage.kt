@@ -3,9 +3,12 @@ package eu.darken.butler.saver.ui.saver
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -14,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -98,6 +102,7 @@ private fun SaverWorkspacePage(
         if (state.isBatchMode) {
             // Batch mode: use non-scrolling Column with weight for file list
             BatchModeContent(
+                design = design,
                 state = state,
                 workspaceButtonState = workspaceButtonState,
                 workspaceId = workspaceId,
@@ -115,6 +120,7 @@ private fun SaverWorkspacePage(
         } else {
             // Single file mode: scrollable Column
             SingleFileModeContent(
+                design = design,
                 state = state,
                 workspaceButtonState = workspaceButtonState,
                 workspaceId = workspaceId,
@@ -158,6 +164,7 @@ private fun SaverWorkspacePage(
 
 @Composable
 private fun SingleFileModeContent(
+    design: WorkspaceDesign,
     state: SaverWorkspaceViewModel.State,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceId: Workspace.Id,
@@ -165,10 +172,20 @@ private fun SingleFileModeContent(
     vm: SaverWorkspaceViewModel?,
     onOperationClick: (eu.darken.butler.workspace.core.operations.Operation.Id) -> Unit,
 ) {
+    // System bar insets for edge-to-edge (based on pane edges)
+    val density = LocalDensity.current
+    val statusBarInset = if (design.paneEdges.touchesTop) {
+        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    } else 0.dp
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp)
+            .padding(top = statusBarInset + 16.dp, bottom = navBarInset + 16.dp),
     ) {
         SaverHeader(
             callerLabel = state.callerLabel,
@@ -232,6 +249,7 @@ private fun SingleFileModeContent(
 
 @Composable
 private fun BatchModeContent(
+    design: WorkspaceDesign,
     state: SaverWorkspaceViewModel.State,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceId: Workspace.Id,
@@ -239,10 +257,20 @@ private fun BatchModeContent(
     vm: SaverWorkspaceViewModel?,
     onOperationClick: (eu.darken.butler.workspace.core.operations.Operation.Id) -> Unit,
 ) {
+    // System bar insets for edge-to-edge (based on pane edges)
+    val density = LocalDensity.current
+    val statusBarInset = if (design.paneEdges.touchesTop) {
+        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    } else 0.dp
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp)
+            .padding(top = statusBarInset + 16.dp, bottom = navBarInset + 16.dp),
     ) {
         SaverHeader(
             callerLabel = state.callerLabel,

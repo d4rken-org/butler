@@ -1,5 +1,8 @@
 package eu.darken.butler.workspace.ui.floatingbar
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
@@ -27,11 +30,13 @@ import kotlin.math.abs
  * - Bar registration and lifecycle
  * - Content padding calculation based on visible bars
  * - Scroll behavior coordination via [NestedScrollConnection]
+ * - System bar inset integration for edge-to-edge UI
  *
  * @param position Whether this stack is at TOP or BOTTOM of the screen.
  * @param defaultSpacing Default spacing between bars in pixels.
  * @param edgePadding Padding from screen edge in pixels.
  * @param contentPadding Padding between the last bar and content in pixels.
+ * @param systemBarInsetPx System bar inset (status bar for TOP, nav bar for BOTTOM) in pixels.
  */
 @Stable
 class FloatingBarStackState(
@@ -39,6 +44,7 @@ class FloatingBarStackState(
     private var defaultSpacingPx: Float = 0f,
     private var edgePaddingPx: Float = 0f,
     private var contentGapPx: Float = 0f,
+    private var systemBarInsetPx: Float = 0f,
 ) {
     internal val barStates = mutableStateListOf<FloatingBarState>()
 
@@ -48,13 +54,15 @@ class FloatingBarStackState(
     internal var animationScope: CoroutineScope? = null
 
     /**
-     * Total content padding in pixels, calculated from all visible bars.
+     * Total content padding in pixels, calculated from system bar inset + all visible bars.
      * Clamped to non-negative to handle bounce animation overshoot.
      */
     val contentPaddingPx: Float by derivedStateOf {
-        if (barStates.isEmpty()) return@derivedStateOf edgePaddingPx
+        // Start with system bar inset (status bar for TOP, nav bar for BOTTOM)
+        var totalHeight = systemBarInsetPx + edgePaddingPx
 
-        var totalHeight = edgePaddingPx
+        if (barStates.isEmpty()) return@derivedStateOf totalHeight
+
         var hasVisibleBars = false
         barStates.forEachIndexed { index, bar ->
             if (bar.visibilityFraction > 0f || bar.visible) {
@@ -158,12 +166,18 @@ class FloatingBarStackState(
     }
 
     /**
-     * Updates spacing configuration.
+     * Updates spacing configuration including system bar inset.
      */
-    internal fun updateConfig(defaultSpacingPx: Float, edgePaddingPx: Float, contentGapPx: Float) {
+    internal fun updateConfig(
+        defaultSpacingPx: Float,
+        edgePaddingPx: Float,
+        contentGapPx: Float,
+        systemBarInsetPx: Float,
+    ) {
         this.defaultSpacingPx = defaultSpacingPx
         this.edgePaddingPx = edgePaddingPx
         this.contentGapPx = contentGapPx
+        this.systemBarInsetPx = systemBarInsetPx
     }
 
     /**
@@ -171,12 +185,15 @@ class FloatingBarStackState(
      * For TOP position: offset from top edge (sum heights of bars BEFORE this one).
      * For BOTTOM position: offset from bottom edge (sum heights of bars AFTER this one).
      *
+     * Includes system bar inset to position bars below status bar (TOP) or above nav bar (BOTTOM).
+     *
      * Bars are declared in visual top-to-bottom order for both positions:
      * - TOP: first bar is at top edge, subsequent bars stack downward
      * - BOTTOM: first bar is furthest from edge, last bar is at bottom edge
      */
     internal fun getBarOffset(index: Int): Float {
-        var offset = edgePaddingPx
+        // Start with system bar inset + edge padding
+        var offset = systemBarInsetPx + edgePaddingPx
 
         // For TOP: sum bars BEFORE this one (closer to edge = lower index)
         // For BOTTOM: sum bars AFTER this one (closer to edge = higher index)
@@ -220,6 +237,7 @@ class FloatingBarStackState(
                 val spacingPx = saved[1] as Float
                 val edgePx = saved[2] as Float
                 val contentGapPx = saved[3] as Float
+                // systemBarInsetPx is not saved - it's recomputed from WindowInsets via updateConfig()
                 FloatingBarStackState(position, spacingPx, edgePx, contentGapPx).also { state ->
                     // Bar states are restored when bars re-register during recomposition
                 }
@@ -230,6 +248,13 @@ class FloatingBarStackState(
 
 /**
  * Creates and remembers a [FloatingBarStackState].
+ *
+ * @param position Whether this stack is at TOP or BOTTOM of the screen.
+ * @param defaultSpacing Default spacing between bars.
+ * @param edgePadding Padding from the screen edge to the first bar.
+ * @param contentPadding Padding between the last bar and content.
+ * @param includeSystemBarInset Whether to include the relevant system bar inset
+ *        (status bar for TOP position, navigation bar for BOTTOM position).
  */
 @Composable
 fun rememberFloatingBarStackState(
@@ -237,17 +262,29 @@ fun rememberFloatingBarStackState(
     defaultSpacing: Dp = 8.dp,
     edgePadding: Dp = 8.dp,
     contentPadding: Dp = 0.dp,
+    includeSystemBarInset: Boolean = true,
 ): FloatingBarStackState {
     val density = LocalDensity.current
     val defaultSpacingPx = with(density) { defaultSpacing.toPx() }
     val edgePaddingPx = with(density) { edgePadding.toPx() }
     val contentGapPx = with(density) { contentPadding.toPx() }
+
+    // Get system bar inset based on position (status bar for TOP, nav bar for BOTTOM)
+    val systemBarInsetPx = if (includeSystemBarInset) {
+        when (position) {
+            BarPosition.TOP -> WindowInsets.statusBars.getTop(density).toFloat()
+            BarPosition.BOTTOM -> WindowInsets.navigationBars.getBottom(density).toFloat()
+        }
+    } else {
+        0f
+    }
+
     val scope = rememberCoroutineScope()
 
     return rememberSaveable(saver = FloatingBarStackState.Saver) {
-        FloatingBarStackState(position, defaultSpacingPx, edgePaddingPx, contentGapPx)
+        FloatingBarStackState(position, defaultSpacingPx, edgePaddingPx, contentGapPx, systemBarInsetPx)
     }.also {
-        it.updateConfig(defaultSpacingPx, edgePaddingPx, contentGapPx)
+        it.updateConfig(defaultSpacingPx, edgePaddingPx, contentGapPx, systemBarInsetPx)
         it.animationScope = scope
     }
 }

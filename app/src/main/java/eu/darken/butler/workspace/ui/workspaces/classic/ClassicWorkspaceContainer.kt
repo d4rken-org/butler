@@ -1,8 +1,11 @@
 package eu.darken.butler.workspace.ui.workspaces.classic
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
@@ -257,14 +260,13 @@ internal fun ClassicWorkspaceContainer(
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.background
-        ) { paddingValues ->
+            containerColor = MaterialTheme.colorScheme.background,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        ) { _ ->
             if (state.tabWorkspaces.isNotEmpty()) {
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                    modifier = Modifier.fillMaxSize(),
                     flingBehavior = flingBehavior,
                     userScrollEnabled = state.swipeGesturesEnabled,
                 ) { page ->
@@ -316,7 +318,7 @@ internal fun ClassicWorkspaceContainer(
                 }
             } else {
                 EmptyClassicWorkspaceContent(
-                    modifier = Modifier.padding(paddingValues),
+                    modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
                     isUpgraded = state.isUpgraded,
                     workspaceActionHandler = workspaceActionHandler,
                 )

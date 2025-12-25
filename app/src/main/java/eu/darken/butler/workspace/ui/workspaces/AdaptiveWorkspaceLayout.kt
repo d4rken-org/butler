@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -107,8 +106,7 @@ fun AdaptiveWorkspaceLayout(
 
             AdaptiveWorkspaceContainer(
                 modifier = Modifier
-                    .weight(1f)
-                    .systemBarsPadding(),
+                    .weight(1f),
                 design = design,
                 selected = selected,
                 focusedTabId = focusedId,
@@ -120,6 +118,7 @@ fun AdaptiveWorkspaceLayout(
                 showPaneNumbers = showPaneNumbers,
                 showPaneOverlay = showPaneOverlay,
                 paneContent = { info, paneNumber ->
+                    val paneDesign = design.forPane(paneNumber)
                     if (info != null) {
                         key(info.id) {
                             // Check if this workspace has a pane-local modal child
@@ -147,7 +146,7 @@ fun AdaptiveWorkspaceLayout(
                                     ) {
                                         WorkspaceMapper(
                                             info = info,
-                                            design = design,
+                                            design = paneDesign,
                                         )
                                     }
                                 }
@@ -175,7 +174,7 @@ fun AdaptiveWorkspaceLayout(
                                             ) {
                                                 WorkspaceMapper(
                                                     info = modal.asPaneInfo(),
-                                                    design = design,
+                                                    design = paneDesign,
                                                 )
                                             }
                                         }
@@ -187,6 +186,7 @@ fun AdaptiveWorkspaceLayout(
                         EmptyAdaptiveWorkspaceContent(
                             modifier = Modifier.weight(1f),
                             paneNumber = paneNumber,
+                            paneEdges = paneDesign.paneEdges,
                         )
                     }
                 }
