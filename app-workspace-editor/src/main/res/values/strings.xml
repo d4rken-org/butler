@@ -36,6 +36,7 @@
     </plurals>
 
     <string name="editor_infobar_selected_x_y">Selected %1$s, %2$s</string>
+    <string name="editor_infobar_lines_size">%1$dL · %2$s</string>
 
     <!-- Editor loading states -->
     <string name="editor_loading_file">Loading file…</string>
@@ -43,7 +44,6 @@
     <string name="editor_action_cancel_loading">Cancel</string>
 
     <!-- Editor UI elements -->
-    <string name="editor_modified_indicator">•</string>
     <string name="editor_error_unknown">Unknown error</string>
     <plurals name="editor_search_results_x_of_y">
         <item quantity="one">%1$d of %2$d result</item>
