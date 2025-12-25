@@ -58,6 +58,9 @@
     <string name="editor_dialog_search_label">Search text</string>
     <string name="editor_dialog_action_go">Go</string>
     <string name="editor_dialog_action_cancel">Cancel</string>
+    <string name="editor_dialog_close_confirm_title">Unsaved Changes</string>
+    <string name="editor_dialog_close_confirm_message">You have unsaved changes. Discard them?</string>
+    <string name="editor_dialog_close_confirm_discard">Discard</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Untitled</string>

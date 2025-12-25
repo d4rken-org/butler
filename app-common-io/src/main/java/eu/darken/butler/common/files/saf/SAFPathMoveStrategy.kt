@@ -1,8 +1,6 @@
 package eu.darken.butler.common.files.saf
 
-import eu.darken.butler.common.debug.logging.Logging.Priority.DEBUG
-import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
@@ -35,9 +33,9 @@ import eu.darken.butler.common.files.operations.TransferStrategy
  * @see SAFPathCopyStrategy for copy implementation
  */
 class SAFPathMoveStrategy : TransferStrategy<
-        SAFPath, SAFPathLookup,      // Source types
-        SAFPath, SAFPathLookup       // Destination types
-        > {
+    SAFPath, SAFPathLookup,      // Source types
+    SAFPath, SAFPathLookup       // Destination types
+    > {
 
     private val copyStrategy = SAFPathCopyStrategy()
 

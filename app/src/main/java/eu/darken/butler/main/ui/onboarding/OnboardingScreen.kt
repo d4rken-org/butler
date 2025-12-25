@@ -63,10 +63,12 @@ private fun OnboardingScreen(
         scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
     }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)
-        .navigationBarsPadding()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .navigationBarsPadding()
+    ) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f),

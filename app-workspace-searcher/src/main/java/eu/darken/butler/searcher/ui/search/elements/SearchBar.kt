@@ -32,8 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -43,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.R
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 
 @Composable
 fun SearchBar(
@@ -77,7 +77,10 @@ fun SearchBar(
             focusRequester.requestFocus()
             hasInitialFocused = true
         } else if (!isWorkspaceFocused) {
-            try { focusRequester.freeFocus() } catch (_: Exception) {}
+            try {
+                focusRequester.freeFocus()
+            } catch (_: Exception) {
+            }
         }
     }
 

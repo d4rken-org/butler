@@ -11,6 +11,7 @@ sealed interface SearcherDialogState {
         val paths: Set<APath<*>>,
         val forcePermDelete: Boolean = false,
     ) : SearcherDialogState
+
     data class ClipboardInfo(val clip: ClipboardClip) : SearcherDialogState
     data class EditSortOptions(val currentSortSettings: SearchSortSettings) : SearcherDialogState
 

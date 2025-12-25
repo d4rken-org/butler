@@ -1,7 +1,6 @@
 package eu.darken.butler.explorer.ui.picker
 
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
@@ -56,7 +55,10 @@ class ExplorerPickerHelperTest : BaseTest() {
         }
     }
 
-    private fun mockStorage(path: String = "/storage/emulated/0", canWrite: Boolean? = true): ExplorerItem.Storage.Local {
+    private fun mockStorage(
+        path: String = "/storage/emulated/0",
+        canWrite: Boolean? = true
+    ): ExplorerItem.Storage.Local {
         val aPath = LocalPath.build(path)
         val target = mockk<ExplorerNavigation.Target.Directory> {
             every { this@mockk.path } returns aPath
@@ -68,7 +70,10 @@ class ExplorerPickerHelperTest : BaseTest() {
         }
     }
 
-    private fun mockDirectoryLocation(path: String = "/sdcard", isWritable: Boolean = true): ExplorerLocation.Directory {
+    private fun mockDirectoryLocation(
+        path: String = "/sdcard",
+        isWritable: Boolean = true
+    ): ExplorerLocation.Directory {
         val aPath = LocalPath.build(path)
         val info = mockk<ExplorerLocation.Directory.Info> {
             every { this@mockk.isWritable } returns isWritable

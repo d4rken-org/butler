@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document.*
+import android.webkit.MimeTypeMap
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
@@ -21,7 +22,6 @@ import eu.darken.butler.provider.documents.core.query.DocumentQueryHandler
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import android.webkit.MimeTypeMap
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

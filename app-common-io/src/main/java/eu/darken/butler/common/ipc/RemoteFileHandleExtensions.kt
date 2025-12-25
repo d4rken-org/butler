@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.files.errors.ServiceConnectionLostException
 import okio.FileHandle
 import okio.FileSystem
 import okio.IOException
@@ -75,45 +76,45 @@ internal fun RemoteFileHandle.fileHandle(readWrite: Boolean): FileHandle = objec
             if (Bugs.isTrace) {
                 log(VERBOSE) { "read(appside-p): $fileOffset, ${array.size}, $arrayOffset, $byteCount, read $it into ${array.toHex()}" }
             }
-            if (it == -2) throw IOException("Remote Exception")
+            if (it == -2) throw ServiceConnectionLostException()
         }
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception", e)
+        throw ServiceConnectionLostException(e)
     }
 
     @Throws(IOException::class)
     override fun protectedWrite(fileOffset: Long, array: ByteArray, arrayOffset: Int, byteCount: Int) = try {
         this@fileHandle.write(fileOffset, array, arrayOffset, byteCount)
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception", e)
+        throw ServiceConnectionLostException(e)
     }
 
     @Throws(IOException::class)
     override fun protectedFlush() = try {
         this@fileHandle.flush()
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception", e)
+        throw ServiceConnectionLostException(e)
     }
 
     @Throws(IOException::class)
     override fun protectedResize(size: Long) = try {
         this@fileHandle.resize(size)
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception", e)
+        throw ServiceConnectionLostException(e)
     }
 
     @Throws(IOException::class)
     override fun protectedSize(): Long = try {
         this@fileHandle.size()
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception", e)
+        throw ServiceConnectionLostException(e)
     }
 
     @Throws(IOException::class)
     override fun protectedClose() = try {
         this@fileHandle.close()
     } catch (e: RemoteException) {
-        throw IOException("Remote Exception", e)
+        throw ServiceConnectionLostException(e)
     }
 
 }

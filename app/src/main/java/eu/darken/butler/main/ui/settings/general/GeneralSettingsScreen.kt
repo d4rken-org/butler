@@ -6,8 +6,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material.icons.twotone.Notifications
 import androidx.compose.material.icons.twotone.Palette
+import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material.icons.twotone.Update
 import androidx.compose.material3.Icon
@@ -32,15 +35,17 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.EnumSelectorDialog
 import eu.darken.butler.common.settings.ThemeColorSelectorDialog
+import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
+import eu.darken.butler.common.settings.ThemeColorSelectorDialog
 import eu.darken.butler.common.theming.ThemeColor
-import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.common.ui.waitForState
@@ -58,6 +63,9 @@ fun GeneralSettingsScreen(
     onUpdateCheckEnabledChange: (Boolean) -> Unit,
     onMotdEnabledChange: (Boolean) -> Unit,
     onConfirmExitEnabledChange: (Boolean) -> Unit,
+    onDocumentsProviderEnabledChange: (Boolean) -> Unit,
+    onNavigateToPreviews: () -> Unit,
+    onNavigateToShortcuts: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -152,7 +160,7 @@ fun GeneralSettingsScreen(
 
             item {
                 val isMaterialYouActive = state.themeState.style == ThemeStyle.MATERIAL_YOU && hasApiLevel(31)
-                
+
                 SettingsPreferenceItem(
                     icon = Icons.TwoTone.Palette,
                     title = stringResource(R.string.ui_theme_color_setting_label),
@@ -209,11 +217,46 @@ fun GeneralSettingsScreen(
                 SettingsDivider()
             }
 
+            item {
+                SettingsCategoryHeader(
+                    text = stringResource(R.string.settings_category_integration_label)
+                )
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.FolderOpen,
+                    title = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_enabled_title),
+                    subtitle = stringResource(eu.darken.butler.provider.documents.R.string.provider_documents_enabled_desc),
+                    checked = state.isDocumentsProviderEnabled,
+                    onCheckedChange = onDocumentsProviderEnabledChange
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.TwoTone.PushPin,
+                    title = stringResource(R.string.shortcuts_settings_title),
+                    subtitle = stringResource(R.string.shortcuts_settings_subtitle),
+                    onClick = onNavigateToShortcuts,
+                )
+            }
 
             item {
                 SettingsCategoryHeader(
                     text = stringResource(R.string.settings_category_other_label)
                 )
+            }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.TwoTone.Image,
+                    title = stringResource(R.string.previews_settings_title),
+                    subtitle = stringResource(R.string.previews_settings_subtitle),
+                    onClick = onNavigateToPreviews,
+                )
+                SettingsDivider()
             }
 
             item {
@@ -237,6 +280,7 @@ fun GeneralSettingsScreen(
                     onCheckedChange = onMotdEnabledChange
                 )
             }
+
         }
     }
 
@@ -293,6 +337,9 @@ private fun GeneralSettingsScreenPreview() {
             onUpdateCheckEnabledChange = {},
             onMotdEnabledChange = {},
             onConfirmExitEnabledChange = {},
+            onDocumentsProviderEnabledChange = {},
+            onNavigateToPreviews = {},
+            onNavigateToShortcuts = {},
             onUpgradeButler = {},
         )
     }
@@ -316,6 +363,9 @@ fun GeneralSettingsScreenHost(vm: GeneralSettingsViewModel = hiltViewModel()) {
             onUpdateCheckEnabledChange = { vm.updateUpdateCheckEnabled(it) },
             onMotdEnabledChange = { vm.updateMotdEnabled(it) },
             onConfirmExitEnabledChange = { vm.updateConfirmExitEnabled(it) },
+            onDocumentsProviderEnabledChange = { vm.updateDocumentsProviderEnabled(it) },
+            onNavigateToPreviews = { vm.navigateToPreviews() },
+            onNavigateToShortcuts = { vm.navigateToShortcuts() },
             onUpgradeButler = { vm.upgradeButler() },
         )
     }

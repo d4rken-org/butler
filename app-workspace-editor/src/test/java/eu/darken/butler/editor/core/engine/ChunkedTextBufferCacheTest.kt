@@ -163,7 +163,9 @@ class ChunkedTextBufferCacheTest : ChunkedTextBufferTestBase() {
         // Verify correct content after deletion
         // Result: first 5 chars of chunk_2 + last 5 chars of chunk_4 + chunks 5, 6, 7
         val result = buffer.getTextForRange(0, 0).getOrThrow()
-        result shouldBe "0".repeat(10) + "1".repeat(10) + "22222" + "44444" + "5".repeat(10) + "6".repeat(10) + "7".repeat(10)
+        result shouldBe "0".repeat(10) + "1".repeat(10) + "22222" + "44444" + "5".repeat(10) + "6".repeat(10) + "7".repeat(
+            10
+        )
     }
 
     @Test

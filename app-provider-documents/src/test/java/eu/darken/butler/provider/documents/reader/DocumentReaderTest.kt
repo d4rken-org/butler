@@ -160,7 +160,8 @@ class DocumentReaderTest {
     @Test
     fun `openDocument handles SAFPath via pipe pattern`() = runBlocking {
         // Given: SAF path that will be opened via GatewaySwitch (pipe pattern)
-        val androidUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Ftest.txt")
+        val androidUri =
+            Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Ftest.txt")
         val safUri = mockk<SafUri> {
             every { toAndroidUri() } returns androidUri
         }
@@ -193,7 +194,8 @@ class DocumentReaderTest {
     @Test
     fun `openDocument uses pipe for SAFPath with large file`() = runBlocking {
         // Given: Larger SAF file (10KB) - tests pipe streaming with more data
-        val androidUri = Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Flarge.bin")
+        val androidUri =
+            Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Flarge.bin")
         val safUri = mockk<SafUri> {
             every { toAndroidUri() } returns androidUri
         }

@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -99,12 +102,22 @@ fun TemplatesWorkspacePage(
     val randomSlogan = remember { Slogans.random }
     val workspaceButtonState by workspaceStateSource.collectAsState(null)
 
+    // System bar insets for edge-to-edge (based on pane edges)
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val statusBarInset = if (design.paneEdges.touchesTop) {
+        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    } else 0.dp
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .padding(horizontal = 24.dp)
+                    .padding(top = statusBarInset + 16.dp, bottom = navBarInset + 16.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -163,7 +176,7 @@ fun TemplatesWorkspacePage(
                     ) {
                         ButlerMascot(
                             modifier = Modifier.size(64.dp),
-                            variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy else ButlerMascotMode.Static.Normal
+                            variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy() else ButlerMascotMode.Static.Normal()
                         )
 
                         Column(modifier = Modifier.weight(1f)) {
@@ -207,8 +220,8 @@ fun TemplatesWorkspacePage(
             WorkspaceButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 16.dp, end = 16.dp),
-                buttonSize = 40.dp,
+                    .padding(top = statusBarInset + 16.dp, end = 16.dp),
+                buttonSize = 48.dp,
                 state = workspaceButtonState,
                 currentWorkspaceId = workspaceId,
                 workspaceActionHandler = workspaceActionHandler,

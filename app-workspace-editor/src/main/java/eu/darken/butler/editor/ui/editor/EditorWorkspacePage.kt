@@ -5,20 +5,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
 import androidx.compose.material.icons.twotone.KeyboardArrowUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +51,8 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
+import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
+import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
@@ -100,11 +103,12 @@ fun EditorWorkspacePageHost(
             onNextSearchResult = vm::nextSearchResult,
             onPreviousSearchResult = vm::previousSearchResult,
             onCloseSearch = vm::closeSearch,
+            onDismissCloseConfirmDialog = vm::dismissCloseConfirmDialog,
+            onConfirmCloseFile = vm::confirmCloseFile,
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorWorkspacePage(
     workspaceId: Workspace.Id,
@@ -121,6 +125,8 @@ fun EditorWorkspacePage(
     onNextSearchResult: () -> Unit = {},
     onPreviousSearchResult: () -> Unit = {},
     onCloseSearch: () -> Unit = {},
+    onDismissCloseConfirmDialog: () -> Unit = {},
+    onConfirmCloseFile: () -> Unit = {},
 ) {
     rememberCoroutineScope()
 
@@ -132,6 +138,15 @@ fun EditorWorkspacePage(
     val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
     val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
     val density = LocalDensity.current
+
+    // System bar insets for edge-to-edge (based on pane edges)
+    val statusBarInset = if (design.paneEdges.touchesTop) {
+        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    } else 0.dp
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
+
     var actualToolbarHeightPx by remember { mutableStateOf(0) }
     val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
 
@@ -156,8 +171,8 @@ fun EditorWorkspacePage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    top = 16.dp + actualToolbarHeightDp,
-                    bottom = 0.dp
+                    top = statusBarInset + 16.dp + actualToolbarHeightDp,
+                    bottom = navBarInset
                 )
                 .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
                 .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection)
@@ -220,6 +235,12 @@ fun EditorWorkspacePage(
                             onVisibleRangeChange = { range ->
                                 onPageAction(EditorPageAction.Navigation.UpdateVisibleRange(range.first, range.last))
                             },
+                            onCursorMove = { direction, extendSelection ->
+                                onPageAction(EditorPageAction.Navigation.MoveCursor(direction, extendSelection))
+                            },
+                            onForwardDelete = {
+                                onPageAction(EditorPageAction.Edit.ForwardDelete)
+                            },
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -244,7 +265,8 @@ fun EditorWorkspacePage(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp)
+                .padding(top = statusBarInset + 8.dp, bottom = 8.dp)
                 .onGloballyPositioned { layoutCoordinates ->
                     actualToolbarHeightPx = layoutCoordinates.size.height
                 }
@@ -284,9 +306,10 @@ fun EditorWorkspacePage(
             EditorSearchBar(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .padding(horizontal = 8.dp)
                     .padding(
-                        bottom = if (hasActions && bottomBarScrollBehavior.state.collapsedFraction <= 0.1f) {
+                        top = 8.dp,
+                        bottom = navBarInset + 8.dp + if (hasActions && bottomBarScrollBehavior.state.collapsedFraction <= 0.1f) {
                             64.dp  // Action bar visible - offset above it
                         } else {
                             0.dp   // Action bar hidden or no actions - sit at bottom
@@ -308,7 +331,9 @@ fun EditorWorkspacePage(
         // Floating Bottom ActionBar
         if (hasActions) {
             EditorActionBar(
-                modifier = Modifier.align(Alignment.BottomCenter),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = navBarInset),
                 actions = state.availableActions,
                 scrollState = bottomBarScrollBehavior.state,
                 onActionClick = onActionExecute,
@@ -325,6 +350,13 @@ fun EditorWorkspacePage(
                 onDismissGoToLineDialog()
             },
             onDismiss = onDismissGoToLineDialog,
+        )
+    }
+
+    if (state.showCloseConfirmDialog) {
+        CloseConfirmDialog(
+            onConfirm = onConfirmCloseFile,
+            onDismiss = onDismissCloseConfirmDialog,
         )
     }
 }
@@ -460,81 +492,6 @@ private fun EditorLoadingOverlay(
             }
         }
     }
-}
-
-@Composable
-private fun GoToLineDialog(
-    totalLines: Int,
-    onGoToLine: (Int) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var lineNumber by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.editor_dialog_go_to_line_title)) },
-        text = {
-            OutlinedTextField(
-                value = lineNumber,
-                onValueChange = { lineNumber = it.filter { char -> char.isDigit() } },
-                label = { Text(stringResource(R.string.editor_dialog_go_to_line_label, totalLines)) },
-                singleLine = true
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    lineNumber.toIntOrNull()?.let { line ->
-                        if (line in 1..totalLines) {
-                            onGoToLine(line - 1) // Convert to 0-based index
-                        }
-                    }
-                },
-                enabled = lineNumber.toIntOrNull()?.let { it in 1..totalLines } == true
-            ) {
-                Text(stringResource(R.string.editor_dialog_action_go))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.editor_dialog_action_cancel))
-            }
-        }
-    )
-}
-
-@Composable
-private fun SearchDialog(
-    onSearch: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var searchQuery by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.editor_dialog_search_title)) },
-        text = {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text(stringResource(R.string.editor_dialog_search_label)) },
-                singleLine = true
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onSearch(searchQuery) },
-                enabled = searchQuery.isNotEmpty()
-            ) {
-                Text(stringResource(R.string.editor_action_search))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.editor_dialog_action_cancel))
-            }
-        }
-    )
 }
 
 @Preview2

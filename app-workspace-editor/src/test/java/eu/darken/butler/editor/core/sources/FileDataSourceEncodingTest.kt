@@ -77,7 +77,11 @@ class FileDataSourceEncodingTest : BaseTest() {
     fun `detect UTF-8 BOM`(@TempDir tempDir: File) = runTest {
         // Given: UTF-8 file with BOM (EF BB BF)
         val testFile = File(tempDir, "test.txt")
-        testFile.writeBytes(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "Hello UTF-8".toByteArray(Charsets.UTF_8))
+        testFile.writeBytes(
+            byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "Hello UTF-8".toByteArray(
+                Charsets.UTF_8
+            )
+        )
 
         val dataSource = FileDataSource(
             workspaceId = workspaceId,
@@ -197,7 +201,13 @@ class FileDataSourceEncodingTest : BaseTest() {
     fun `strip BOM from first chunk`(@TempDir tempDir: File) = runTest {
         // Given: UTF-8 file with BOM
         val testFile = File(tempDir, "test.txt")
-        testFile.writeBytes(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "Hello".toByteArray(Charsets.UTF_8))
+        testFile.writeBytes(
+            byteArrayOf(
+                0xEF.toByte(),
+                0xBB.toByte(),
+                0xBF.toByte()
+            ) + "Hello".toByteArray(Charsets.UTF_8)
+        )
 
         val dataSource = FileDataSource(
             workspaceId = workspaceId,
@@ -219,7 +229,13 @@ class FileDataSourceEncodingTest : BaseTest() {
     fun `do not strip BOM from non-first chunk`(@TempDir tempDir: File) = runTest {
         // Given: File with BOM at start
         val testFile = File(tempDir, "test.txt")
-        testFile.writeBytes(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "0123456789".toByteArray(Charsets.UTF_8))
+        testFile.writeBytes(
+            byteArrayOf(
+                0xEF.toByte(),
+                0xBB.toByte(),
+                0xBF.toByte()
+            ) + "0123456789".toByteArray(Charsets.UTF_8)
+        )
 
         val dataSource = FileDataSource(
             workspaceId = workspaceId,

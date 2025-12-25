@@ -44,7 +44,8 @@
     <string name="workspace_apps_label">Apps</string>
     <string name="workspace_appdetails_label">App details</string>
     <string name="workspace_saver_label">Save as</string>
-    <string name="workspace_debug_label">Debug</string>
+    <string name="workspace_sdmaid_label">SD Maid</string>
+    <string name="workspace_developer_label">Developer</string>
 
     <!-- Workspace UI Actions -->
     <string name="workspace_expand_more_action">More</string>
@@ -84,6 +85,7 @@
     <string name="operations_details_actions">Actions</string>
     <string name="operations_details_overview">Overview</string>
     <string name="operations_details_copy_error">Copy error details</string>
+    <string name="operations_details_handle_issue">Handle issue</string>
     <string name="operations_details_status">Status</string>
     <string name="operations_details_result">Result</string>
     <string name="operations_details_affected_paths_with_count">Affected paths (%d)</string>
@@ -200,8 +202,8 @@
     <!-- Issue Resolution (conflict handling) -->
     <string name="workspace_issue_collision_existing_file_label">Existing file</string>
     <string name="workspace_issue_collision_existing_folder_label">Existing folder</string>
-    <string name="workspace_issue_collision_new_file">New file</string>
-    <string name="workspace_issue_collision_new_folder">New folder</string>
+    <string name="workspace_issue_collision_new_file">Incoming file</string>
+    <string name="workspace_issue_collision_new_folder">Incoming folder</string>
     <string name="workspace_issue_collision_overwrite">Replace</string>
     <string name="workspace_issue_collision_merge">Merge</string>
     <string name="workspace_issue_common_source_file">Source file</string>

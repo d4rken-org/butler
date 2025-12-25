@@ -171,9 +171,11 @@ class DocumentMoverTest {
         // Given
         val sourceId = "saf|source"
         val targetParentId = "saf|targetParent"
-        val sourcePath = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments", "file.txt")
+        val sourcePath =
+            SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADocuments", "file.txt")
         val targetParentPath = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADownloads")
-        val copiedPath = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADownloads", "file.txt")
+        val copiedPath =
+            SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADownloads", "file.txt")
         val copiedId = "saf|copied"
 
         every { codec.isVirtualDocument(sourceId) } returns false
@@ -420,7 +422,8 @@ class DocumentMoverTest {
         val targetParentId = "saf|targetParent"
         val sourcePath = LocalPath.build("/storage/emulated/0/file.txt")
         val targetParentPath = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADownloads")
-        val movedPath = SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADownloads", "file.txt")
+        val movedPath =
+            SAFPath.build("content://com.android.externalstorage.documents/tree/primary%3ADownloads", "file.txt")
 
         every { codec.isVirtualDocument(any()) } returns false
         every { codec.decode(sourceId) } returns sourcePath

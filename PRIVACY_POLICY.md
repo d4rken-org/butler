@@ -29,7 +29,8 @@ In general, Butler only processes data locally, on your device. Two edge cases e
 ### Query installed apps
 
 Butler has multiple features that require the `QUERY_ALL_PACKAGES` permission.
-The `QUERY_ALL_PACKAGES` permission allows Butler to retrieve the inventory of installed apps, i.e. know which apps you currently have installed on your device. To display icons and extra information when browsing directories related to an app.
+The
+`QUERY_ALL_PACKAGES` permission allows Butler to retrieve the inventory of installed apps, i.e. know which apps you currently have installed on your device. To display icons and extra information when browsing directories related to an app.
 
 ## Message of the day
 
@@ -45,7 +46,8 @@ https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
 
 ## Update check
 
-The `FOSS` build flavor (i.e. not the Google Play version) of Butler includes an "update check" mechanism that can show a card on the dashboard if a newer version is available.
+The
+`FOSS` build flavor (i.e. not the Google Play version) of Butler includes an "update check" mechanism that can show a card on the dashboard if a newer version is available.
 Butler sends HTTP requests to GitHub`s servers to retrieve the [latest release](https://github.com/d4rken/butler/releases/latest) information. A GitHub account is not required.
 
 The update check is optional and can be disabled during onboarding or in the settings.
@@ -56,7 +58,7 @@ https://docs.github.com/site-policy/privacy-policies/github-privacy-statement
 ## Debug log
 
 The app has a debug log feature that can be used to assist troubleshooting efforts.
-This feature creates a log file that contains verbose output of what the app is doing. 
+This feature creates a log file that contains verbose output of what the app is doing.
 
 It is manually triggered by the user through an option in the app settings.
 The recorded log file can be shared through compatible apps (e.g. your email app) using the system's share dialog.

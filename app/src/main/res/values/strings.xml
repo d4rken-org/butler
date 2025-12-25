@@ -1,7 +1,8 @@
 <resources>
     <string name="onboarding_welcome_title">Welcome to Butler</string>
-    <string name="onboarding_welcome_message">Open source. Ad-free. Private. The Android file explorer you deserve.</string>
-    <string name="onboarding_welcome_action">Let\'s go</string>
+    <string name="onboarding_welcome_message">Open source. Ad-free. No tracking.\nThe file explorer you deserve.</string>
+    <string name="onboarding_welcome_subtitle">Tabs for files. Browse, search, and edit — all at once.</string>
+    <string name="onboarding_welcome_action">Start exploring</string>
     <string name="onboarding_beta_title">Shape the future</string>
     <string name="onboarding_beta_message">This is a beta (testing) build. Proceed with a sense of humor and a backup plan. Please report issues you encounter.</string>
     <string name="onboarding_beta_action">I fear nothing</string>
@@ -107,10 +108,15 @@
     <string name="debug_log_screen_log_files_ready">Log files ready (ZIP: %1$s)</string>
     <string name="debug_log_screen_discard_action">Discard</string>
     <string name="debug_log_file_label">Recorded log file</string>
+    <string name="debug_banner_label">REC</string>
+    <string name="debug_banner_label_expanded">Recording logfile</string>
+    <string name="debug_banner_stop_action">Stop</string>
+    <string name="debug_banner_explanation">Recording app activity. Stop when done, then share the log when reporting bugs.</string>
 
     <string name="settings_label">Settings</string>
     <string name="settings_category_tools_label">Tools</string>
     <string name="settings_category_other_label">Other</string>
+    <string name="settings_category_integration_label">Integration</string>
     <string name="general_settings_label">General</string>
     <string name="general_settings_desc">General tweaks that affect the whole app.</string>
     <string name="settings_category_ui_label">User interface</string>
@@ -124,6 +130,9 @@
     <string name="ui_theme_color_value_system">System colors</string>
     <string name="ui_language_override_label">App language</string>
     <string name="ui_language_override_desc">Select a different language for Butler, independent of your system\'s default language.</string>
+
+    <string name="previews_settings_title">Previews</string>
+    <string name="previews_settings_subtitle">Manage image preview caches.</string>
 
     <string name="storage_settings_title">Storage</string>
     <string name="storage_settings_subtitle">Manage Butler\'s caches, storage and trash.</string>
@@ -182,6 +191,8 @@
     <string name="settings_acks_thanks_header">Thanks</string>
     <string name="settings_acks_crowdin_title">crowdin.com</string>
     <string name="settings_acks_crowdin_desc">For supporting translation of open-source projects.</string>
+    <string name="settings_acks_maxpatchs_title">Max Patchs</string>
+    <string name="settings_acks_maxpatchs_desc">Thanks for the icon, mascot designs, and animations.</string>
     <string name="settings_licenses_label">Licenses</string>
 
     <!-- Workspace Status Card -->
@@ -235,6 +246,9 @@
     <string name="settings_privacy_policy_label">Privacy policy</string>
     <string name="settings_privacy_policy_desc">Handling data responsibly.</string>
 
+    <string name="settings_sdmaid_label">SD Maid 2/SE</string>
+    <string name="settings_sdmaid_description">Butler\'s colleague for freeing space and cleaning up.</string>
+
     <string name="changelog_label">Changelog</string>
 
     <!-- Upgrade Status -->
@@ -265,16 +279,8 @@
     <string name="workspace_empty_create_hint">Work in parallel: Create a tab and turn it into a tool of your choice.</string>
     <string name="workspace_empty_settings_action">Open settings</string>
     <string name="workspace_empty_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
+    <string name="workspace_classic_empty_tabs_closed">No open tabs. Ready when you are.</string>
 
-    <!-- Classic Workspace Tips -->
-    <string name="workspace_classic_tip_create_multiple">You can create multiple tabs to work with folders simultaneously.</string>
-    <string name="workspace_classic_tip_search_workspace">Use the search to quickly find files across your device.</string>
-    <string name="workspace_classic_tip_editor_workspace">The editor lets you view and edit text files.</string>
-    <string name="workspace_classic_tip_customize_settings">Customize Butler\'s behavior in the settings.</string>
-    <string name="workspace_classic_tip_root_access">Butler supports root access for advanced file operations.</string>
-    <string name="workspace_classic_tip_swipe_between">Swipe to change tabs, like in a browser.</string>
-    <string name="workspace_classic_tip_bookmark_folders">Bookmark frequently used folders for quick access.</string>
-    <string name="workspace_classic_tip_keyboard_shortcuts">Use keyboard shortcuts for faster navigation.</string>
     <string name="workspace_creating_placeholder">Creating tab…</string>
     <string name="workspace_ondemand_swipe_title">Swipe to create new tab</string>
 
@@ -328,5 +334,14 @@
 
     <!-- Editor Share Target -->
     <string name="editor_share_label">Edit text</string>
+
+    <!-- Developer Mode -->
+    <string name="settings_developer_mode_unlock_title">Enable Developer Mode?</string>
+    <string name="settings_developer_mode_unlock_message">This unlocks advanced diagnostic tools for troubleshooting and testing.</string>
+    <string name="settings_developer_mode_unlock_action">Enable</string>
+    <plurals name="settings_developer_mode_countdown">
+        <item quantity="one">%d step away from Developer Mode</item>
+        <item quantity="other">%d steps away from Developer Mode</item>
+    </plurals>
 
 </resources>

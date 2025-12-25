@@ -25,36 +25,37 @@ class ChunkRepository @AssistedInject constructor(
         return dataSource.fileInfo.value
     }
 
-    suspend fun loadChunk(chunkId: TextChunk.ChunkId, boundary: ChunkBoundary): TextChunk = withContext(Dispatchers.IO) {
-        log(tag) { "Loading chunk: $chunkId at ${boundary.startOffset}-${boundary.endOffset}" }
+    suspend fun loadChunk(chunkId: TextChunk.ChunkId, boundary: ChunkBoundary): TextChunk =
+        withContext(Dispatchers.IO) {
+            log(tag) { "Loading chunk: $chunkId at ${boundary.startOffset}-${boundary.endOffset}" }
 
-        // Read from DataSource (may contain incomplete UTF-16 surrogate pairs at boundaries)
-        val rawContent = dataSource.readChunk(boundary.startOffset, boundary.size)
+            // Read from DataSource (may contain incomplete UTF-16 surrogate pairs at boundaries)
+            val rawContent = dataSource.readChunk(boundary.startOffset, boundary.size)
 
-        // CRITICAL: Adjust for UTF-16 surrogate pairs
-        // DataSource reads byte-based chunks, which can split multi-byte UTF-8 characters
-        // This creates incomplete UTF-16 surrogate pairs in JVM Strings
-        val validContent = adjustForSurrogatePairs(rawContent)
+            // CRITICAL: Adjust for UTF-16 surrogate pairs
+            // DataSource reads byte-based chunks, which can split multi-byte UTF-8 characters
+            // This creates incomplete UTF-16 surrogate pairs in JVM Strings
+            val validContent = adjustForSurrogatePairs(rawContent)
 
-        // Detect line ending style in this chunk
-        val lineEnding = detectLineEnding(validContent)
+            // Detect line ending style in this chunk
+            val lineEnding = detectLineEnding(validContent)
 
-        // Count lines using detected style
-        // Note: isLastChunk defaults to true; ChunkManager will recalculate with proper values
-        val lineCount = countLines(validContent, lineEnding, isLastChunk = true)
+            // Count lines using detected style
+            // Note: isLastChunk defaults to true; ChunkManager will recalculate with proper values
+            val lineCount = countLines(validContent, lineEnding, isLastChunk = true)
 
-        val chunk = TextChunk(
-            id = chunkId,
-            content = validContent,  // Adjusted content with complete characters only
-            lineCount = lineCount,
-            lineEnding = lineEnding,
-            isDirty = false,
-            isLoaded = true
-        )
+            val chunk = TextChunk(
+                id = chunkId,
+                content = validContent,  // Adjusted content with complete characters only
+                lineCount = lineCount,
+                lineEnding = lineEnding,
+                isDirty = false,
+                isLoaded = true
+            )
 
-        log(tag) { "Loaded chunk: $chunkId (${validContent.length} bytes, $lineCount lines, $lineEnding)" }
-        chunk
-    }
+            log(tag) { "Loaded chunk: $chunkId (${validContent.length} bytes, $lineCount lines, $lineEnding)" }
+            chunk
+        }
 
     /**
      * Adjusts content to ensure it doesn't end mid-surrogate-pair.
@@ -167,11 +168,12 @@ class ChunkRepository @AssistedInject constructor(
      * @param dirtyChunks List of modified chunks to save
      * @param boundaries Map of chunk IDs to their file positions
      */
-    suspend fun saveFile(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) = withContext(Dispatchers.IO) {
-        log(tag) { "Saving ${dirtyChunks.size} dirty chunks to data source" }
-        dataSource.save(dirtyChunks, boundaries)
-        log(tag) { "Successfully saved chunks" }
-    }
+    suspend fun saveFile(dirtyChunks: List<TextChunk>, boundaries: Map<TextChunk.ChunkId, ChunkBoundary>) =
+        withContext(Dispatchers.IO) {
+            log(tag) { "Saving ${dirtyChunks.size} dirty chunks to data source" }
+            dataSource.save(dirtyChunks, boundaries)
+            log(tag) { "Successfully saved chunks" }
+        }
 
     /**
      * Search for a query string within a specific chunk.

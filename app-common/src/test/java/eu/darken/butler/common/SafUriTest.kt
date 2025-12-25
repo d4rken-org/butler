@@ -33,7 +33,8 @@ class SafUriTest : BaseTest() {
 
     @Test
     fun `parse SAF tree URI with complex encoded path`() {
-        val uri = SafUri.parse("content://com.android.externalstorage.documents/tree/primary%3Afolder%2Fsubfolder%2Ffile")
+        val uri =
+            SafUri.parse("content://com.android.externalstorage.documents/tree/primary%3Afolder%2Fsubfolder%2Ffile")
 
         uri.pathSegments shouldBe listOf("tree", "primary:folder", "subfolder", "file")
     }

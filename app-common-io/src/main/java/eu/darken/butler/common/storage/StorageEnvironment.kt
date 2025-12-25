@@ -44,6 +44,11 @@ class StorageEnvironment @Inject constructor(
     val dataDir: LocalPath
         get() = Environment.getDataDirectory().toLocalPath()
 
+    val downloadsDirectory: LocalPath?
+        get() = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            ?.takeIf { it.exists() }
+            ?.toLocalPath()
+
     val publicStorages: List<LocalPath>
         get() = context.getExternalFilesDirs(null)
             .filter { it != null && it.isAbsolute }
@@ -138,6 +143,6 @@ class StorageEnvironment @Inject constructor(
     }
 
     companion object {
-        val TAG = logTag("DataArea", "DeviceEnvironment")
+        val TAG = logTag("Storage",  "Environment")
     }
 }

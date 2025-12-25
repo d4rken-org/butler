@@ -2,7 +2,6 @@ package eu.darken.butler.searcher.ui.search.elements
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,9 +13,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Clear
 import androidx.compose.material.icons.twotone.Description
-import androidx.compose.material.icons.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
@@ -62,7 +61,6 @@ fun PatternField(
     val keyboardController = LocalSoftwareKeyboardController.current
     val colors = MaterialTheme.colorScheme
     val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
     var menuExpanded by remember { mutableStateOf(false) }
 
     // Local TextFieldValue state to manage cursor position independently
@@ -206,7 +204,7 @@ private fun PatternFieldFilenamePreview() {
                 onTextChange = {},
                 onSearch = {},
                 placeholder = "Filename pattern…",
-                leadingIcon = Icons.TwoTone.InsertDriveFile,
+                leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
                 caseSensitive = false,
                 wholeWord = false,
                 useRegex = true,
@@ -240,7 +238,7 @@ private fun PatternFieldEmptyPreview() {
             onTextChange = {},
             onSearch = {},
             placeholder = "Filename pattern…",
-            leadingIcon = Icons.TwoTone.InsertDriveFile,
+            leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
             caseSensitive = false,
             wholeWord = false,
             useRegex = false,

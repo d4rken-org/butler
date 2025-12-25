@@ -5,7 +5,7 @@ import android.os.Build
 import dagger.Reusable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.BuildConfigWrap
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -21,12 +21,12 @@ class CopyErrorTool @Inject constructor(
     suspend fun formatError(operation: ManagedOperation): String? {
         val state = operation.state.value as? Operation.State.Completed
         if (state == null) {
-            log(TAG, ERROR) { "Operation is not complete: $operation" }
+            log(TAG, Logging.Priority.ERROR) { "Operation is not complete: $operation" }
             return null
         }
         val error = state.error
         if (error == null) {
-            log(TAG, ERROR) { "Operation has no error: $operation" }
+            log(TAG, Logging.Priority.ERROR) { "Operation has no error: $operation" }
             return null
         }
         return """
@@ -36,19 +36,19 @@ class CopyErrorTool @Inject constructor(
             * OperationID: `${operation.id}`
             * Source: ${operation.metadata.origin}
             * CompletedAt: ${state.completedAt}
-
-            ## Description
+                      
+            ## Description          
             **${operation.metadata.title.get(context)}**
-
+            
             ${operation.metadata.description.get(context)}
-
+            
             ## Error
             ${state.summary.get(context)}
-
+            
             ```java
             ${state.error?.asLog()}
             ```
-
+            
             ## Command
             ```
             ${operation.operation}
@@ -57,6 +57,6 @@ class CopyErrorTool @Inject constructor(
     }
 
     companion object {
-        private val TAG = logTag("Workspace", "CopyErrorTool")
+        private val TAG = logTag("Operations", "CopyErrorTool")
     }
 }

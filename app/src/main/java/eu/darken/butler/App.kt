@@ -23,7 +23,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.debug.recorder.core.RecorderModule
+import eu.darken.butler.common.debug.recorder.core.RecorderManager
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.theming.Theming
 import eu.darken.butler.common.trash.TrashCleanupScheduler
@@ -51,7 +51,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var bugReporter: AutomaticBugReporter
     @Inject lateinit var generalSettings: GeneralSettings
-    @Inject lateinit var recorderModule: RecorderModule
+    @Inject lateinit var recorderManager: RecorderManager
     @Inject lateinit var debugSettings: DebugSettings
     @Inject lateinit var curriculumVitae: CurriculumVitae
     @Inject lateinit var updateService: UpdateService
@@ -84,7 +84,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         combine(
             debugSettings.isDebugMode.flow,
             debugSettings.isTraceMode.flow,
-            recorderModule.state,
+            recorderManager.state,
         ) { isDebug, isTrace, recorder ->
             log(TAG) { "isDebug=$isDebug, isTrace=$isTrace, recorder=$recorder" }
 
@@ -100,7 +100,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
 
         bugReporter.setup(this)
 
-        recorderModule.state
+        recorderManager.state
             .onEach { log(TAG) { "RecorderModule: $it" } }
             .launchIn(appScope)
 

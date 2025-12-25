@@ -1,6 +1,11 @@
 package eu.darken.butler.editor.ui.editor.text
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,15 +14,19 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
@@ -254,100 +263,92 @@ internal fun SelectableText(
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     Box(
-            modifier = modifier
-        ) {
-            selection?.let { (start, end) ->
-                if (lineIndex >= start.line && lineIndex <= end.line) {
-                    val selectionStart = if (lineIndex == start.line) start.column else 0
-                    val selectionEnd = if (lineIndex == end.line) end.column else text.length
+        modifier = modifier
+    ) {
+        selection?.let { (start, end) ->
+            if (lineIndex >= start.line && lineIndex <= end.line) {
+                val selectionStart = if (lineIndex == start.line) start.column else 0
+                val selectionEnd = if (lineIndex == end.line) end.column else text.length
 
-                    if (selectionStart < selectionEnd) {
-                        val layout = layoutResult
-                        val selectionColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                if (selectionStart < selectionEnd) {
+                    val layout = layoutResult
+                    val selectionColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
 
-                        if (layout != null && wordWrap && layout.lineCount > 1) {
-                            // Multi-line wrapped text: draw selection for each visual line
-                            val startVisualLine = layout.getLineForOffset(selectionStart.coerceIn(0, text.length.coerceAtLeast(1) - 1))
-                            val endVisualLine = layout.getLineForOffset((selectionEnd - 1).coerceIn(0, text.length.coerceAtLeast(1) - 1))
+                    if (layout != null && wordWrap && layout.lineCount > 1) {
+                        // Multi-line wrapped text: draw selection for each visual line
+                        val startVisualLine =
+                            layout.getLineForOffset(selectionStart.coerceIn(0, text.length.coerceAtLeast(1) - 1))
+                        val endVisualLine =
+                            layout.getLineForOffset((selectionEnd - 1).coerceIn(0, text.length.coerceAtLeast(1) - 1))
 
-                            for (visualLine in startVisualLine..endVisualLine) {
-                                val lineStartOffset = layout.getLineStart(visualLine)
-                                val lineEndOffset = layout.getLineEnd(visualLine)
+                        for (visualLine in startVisualLine..endVisualLine) {
+                            val lineStartOffset = layout.getLineStart(visualLine)
+                            val lineEndOffset = layout.getLineEnd(visualLine)
 
-                                // Calculate selection bounds for this visual line
-                                val selStartInLine = selectionStart.coerceIn(lineStartOffset, lineEndOffset)
-                                val selEndInLine = selectionEnd.coerceIn(lineStartOffset, lineEndOffset)
+                            // Calculate selection bounds for this visual line
+                            val selStartInLine = selectionStart.coerceIn(lineStartOffset, lineEndOffset)
+                            val selEndInLine = selectionEnd.coerceIn(lineStartOffset, lineEndOffset)
 
-                                if (selStartInLine < selEndInLine && text.isNotEmpty()) {
-                                    // Calculate bounds outside composable scope
-                                    val bounds = runCatching {
-                                        val startBounds = layout.getBoundingBox(selStartInLine.coerceIn(0, text.length - 1))
-                                        val endBounds = layout.getBoundingBox((selEndInLine - 1).coerceIn(0, text.length - 1))
-                                        val left = startBounds.left
-                                        val right = endBounds.right
-                                        val top = layout.getLineTop(visualLine)
-                                        val bottom = layout.getLineBottom(visualLine)
-                                        SelectionBounds(left, top, right - left, bottom - top)
-                                    }.getOrNull()
+                            if (selStartInLine < selEndInLine && text.isNotEmpty()) {
+                                // Calculate bounds outside composable scope
+                                val bounds = runCatching {
+                                    val startBounds = layout.getBoundingBox(selStartInLine.coerceIn(0, text.length - 1))
+                                    val endBounds =
+                                        layout.getBoundingBox((selEndInLine - 1).coerceIn(0, text.length - 1))
+                                    val left = startBounds.left
+                                    val right = endBounds.right
+                                    val top = layout.getLineTop(visualLine)
+                                    val bottom = layout.getLineBottom(visualLine)
+                                    SelectionBounds(left, top, right - left, bottom - top)
+                                }.getOrNull()
 
-                                    bounds?.let { b ->
-                                        Box(
-                                            modifier = Modifier
-                                                .offset(
-                                                    x = with(density) { b.left.toDp() },
-                                                    y = with(density) { b.top.toDp() }
-                                                )
-                                                .width(with(density) { b.width.toDp() })
-                                                .height(with(density) { b.height.toDp() })
-                                                .background(selectionColor)
-                                        )
-                                    }
+                                bounds?.let { b ->
+                                    Box(
+                                        modifier = Modifier
+                                            .offset(
+                                                x = with(density) { b.left.toDp() },
+                                                y = with(density) { b.top.toDp() }
+                                            )
+                                            .width(with(density) { b.width.toDp() })
+                                            .height(with(density) { b.height.toDp() })
+                                            .background(selectionColor)
+                                    )
                                 }
                             }
-                        } else if (layout != null && selectionStart < text.length && selectionEnd <= text.length) {
-                            // Single line or no wrap: calculate bounds first
-                            val bounds = runCatching {
-                                val startBounds = if (selectionStart < text.length) {
-                                    layout.getBoundingBox(selectionStart)
-                                } else {
-                                    layout.getBoundingBox(text.length - 1).let { box ->
-                                        box.copy(left = box.right)
-                                    }
-                                }
-
-                                val endBounds = if (selectionEnd > 0 && selectionEnd <= text.length) {
-                                    layout.getBoundingBox((selectionEnd - 1).coerceAtLeast(0))
-                                } else {
-                                    startBounds
-                                }
-
-                                SelectionBounds(
-                                    startBounds.left,
-                                    0f,
-                                    endBounds.right - startBounds.left,
-                                    layout.size.height.toFloat()
-                                )
-                            }.getOrNull()
-
-                            if (bounds != null) {
-                                Box(
-                                    modifier = Modifier
-                                        .offset(x = with(density) { bounds.left.toDp() })
-                                        .width(with(density) { bounds.width.toDp() })
-                                        .height(with(density) { bounds.height.toDp() })
-                                        .background(selectionColor)
-                                )
+                        }
+                    } else if (layout != null && selectionStart < text.length && selectionEnd <= text.length) {
+                        // Single line or no wrap: calculate bounds first
+                        val bounds = runCatching {
+                            val startBounds = if (selectionStart < text.length) {
+                                layout.getBoundingBox(selectionStart)
                             } else {
-                                // Fallback to character width estimation
-                                val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-                                Box(
-                                    modifier = Modifier
-                                        .offset(x = with(density) { (selectionStart * charWidth).toDp() })
-                                        .width(with(density) { ((selectionEnd - selectionStart) * charWidth).toDp() })
-                                        .height(with(density) { (fontSize * 1.5f).sp.toDp() })
-                                        .background(selectionColor)
-                                )
+                                layout.getBoundingBox(text.length - 1).let { box ->
+                                    box.copy(left = box.right)
+                                }
                             }
+
+                            val endBounds = if (selectionEnd > 0 && selectionEnd <= text.length) {
+                                layout.getBoundingBox((selectionEnd - 1).coerceAtLeast(0))
+                            } else {
+                                startBounds
+                            }
+
+                            SelectionBounds(
+                                startBounds.left,
+                                0f,
+                                endBounds.right - startBounds.left,
+                                layout.size.height.toFloat()
+                            )
+                        }.getOrNull()
+
+                        if (bounds != null) {
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = with(density) { bounds.left.toDp() })
+                                    .width(with(density) { bounds.width.toDp() })
+                                    .height(with(density) { bounds.height.toDp() })
+                                    .background(selectionColor)
+                            )
                         } else {
                             // Fallback to character width estimation
                             val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
@@ -355,36 +356,48 @@ internal fun SelectableText(
                                 modifier = Modifier
                                     .offset(x = with(density) { (selectionStart * charWidth).toDp() })
                                     .width(with(density) { ((selectionEnd - selectionStart) * charWidth).toDp() })
-                                    .height(with(density) {
-                                        val height: Float = layoutResult?.size?.height?.toFloat() ?: (fontSize * 1.5f).sp.toPx()
-                                        height.toDp()
-                                    })
+                                    .height(with(density) { (fontSize * 1.5f).sp.toDp() })
                                     .background(selectionColor)
                             )
                         }
+                    } else {
+                        // Fallback to character width estimation
+                        val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
+                        Box(
+                            modifier = Modifier
+                                .offset(x = with(density) { (selectionStart * charWidth).toDp() })
+                                .width(with(density) { ((selectionEnd - selectionStart) * charWidth).toDp() })
+                                .height(with(density) {
+                                    val height: Float =
+                                        layoutResult?.size?.height?.toFloat() ?: (fontSize * 1.5f).sp.toPx()
+                                    height.toDp()
+                                })
+                                .background(selectionColor)
+                        )
                     }
                 }
             }
+        }
 
-            Text(
-                text = if (text.isEmpty()) " " else text,
-                style = TextStyle(
-                    fontSize = fontSize.sp,
-                    fontFamily = FontFamily.Monospace,
-                    color = textColor
-                ),
-                softWrap = wordWrap,
-                overflow = TextOverflow.Visible,
-                onTextLayout = { result ->
-                    layoutResult = result
-                    onTextLayout(result)
-                },
-                modifier = if (wordWrap) {
-                    Modifier.fillMaxWidth()
-                } else {
-                    Modifier.wrapContentWidth()
-                }
-            )
+        Text(
+            text = if (text.isEmpty()) " " else text,
+            style = TextStyle(
+                fontSize = fontSize.sp,
+                fontFamily = FontFamily.Monospace,
+                color = textColor
+            ),
+            softWrap = wordWrap,
+            overflow = TextOverflow.Visible,
+            onTextLayout = { result ->
+                layoutResult = result
+                onTextLayout(result)
+            },
+            modifier = if (wordWrap) {
+                Modifier.fillMaxWidth()
+            } else {
+                Modifier.wrapContentWidth()
+            }
+        )
     }
 }
 
@@ -415,7 +428,11 @@ private fun SelectableTextPreview() {
             text = "fun calculateSum(a: Int, b: Int): Int {",
             lineIndex = 0,
             cursorPosition = TextPosition(offset = 15, line = 0, column = 15),
-            selection = TextPosition(offset = 4, line = 0, column = 4) to TextPosition(offset = 16, line = 0, column = 16),
+            selection = TextPosition(offset = 4, line = 0, column = 4) to TextPosition(
+                offset = 16,
+                line = 0,
+                column = 16
+            ),
             wordWrap = false,
             fontSize = 14,
             onTextLayout = {},

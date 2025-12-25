@@ -31,7 +31,7 @@ import javax.inject.Inject
 class RecorderService : Service2() {
     private lateinit var builder: NotificationCompat.Builder
 
-    @Inject lateinit var recorderModule: RecorderModule
+    @Inject lateinit var recorderManager: RecorderManager
     @Inject lateinit var notificationManager: NotificationManager
     @Inject lateinit var dispatcherProvider: DispatcherProvider
     private val recorderScope by lazy {
@@ -87,9 +87,9 @@ class RecorderService : Service2() {
             startForeground(NOTIFICATION_ID, builder.build())
         } catch (e: Exception) {
             log(TAG) { "Halt stop! Service can't go foreground: ${e.asLog()}" }
-            runBlocking { recorderModule.stopRecorder() }
+            runBlocking { recorderManager.stopRecorder() }
         }
-        recorderModule.state
+        recorderManager.state
             .onEach {
                 if (it.isRecording) {
                     builder.apply {
@@ -109,7 +109,7 @@ class RecorderService : Service2() {
         log(TAG) { "onStartCommand(intent=$intent, flags=$flags, startId=$startId" }
         if (intent?.action == STOP_ACTION) {
             recorderScope.launch {
-                recorderModule.stopRecorder()
+                recorderManager.stopRecorder()
             }
         }
         return START_STICKY

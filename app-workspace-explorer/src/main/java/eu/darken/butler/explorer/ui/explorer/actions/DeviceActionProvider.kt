@@ -3,7 +3,7 @@ package eu.darken.butler.explorer.ui.explorer.actions
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.ui.explorer.ExplorerSelectionState
+import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import javax.inject.Inject
 
 class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
@@ -20,6 +20,12 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
             // Check if selected items are SAF storage items
             val selectedSAFItems = selectionState.selectedItems
                 .filterIsInstance<ExplorerItem.Storage.SAF>()
+
+            // Check if any storage items are selected (for opening in new tabs)
+            val hasStorageItems = selectionState.selectedItems.any { it is ExplorerItem.Storage }
+            if (hasStorageItems) {
+                actions.add(ExplorerAction.Directory.OpenInNewTabs())
+            }
 
             actions.add(ExplorerAction.Common.Info())
 

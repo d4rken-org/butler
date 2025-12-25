@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.ui.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -11,10 +12,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -23,7 +27,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -53,8 +56,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.keyboard.KeyboardShortcut
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.keyboard.keyboardShortcuts
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
@@ -103,7 +106,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearcherWorkspacePage(
     workspaceId: Workspace.Id,
@@ -134,6 +136,15 @@ fun SearcherWorkspacePage(
 
     // Track actual measured height of the toolbar card
     val density = LocalDensity.current
+
+    // System bar insets for edge-to-edge (based on pane edges)
+    val statusBarInset = if (design.paneEdges.touchesTop) {
+        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    } else 0.dp
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
+
     var actualToolbarHeightPx by remember { mutableIntStateOf(0) }
     val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
 
@@ -145,25 +156,27 @@ fun SearcherWorkspacePage(
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
     // Wrapped selection callbacks that clear focus and hide keyboard
-    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
-        { result ->
-            focusManager.clearFocus()
-            keyboardController?.hide()
-            onPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
-        }
-    }
-
-    val wrappedOnToggleSelection: (SearchItem) -> Unit = remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
-        { result ->
-            // Only clear focus and hide keyboard when entering selection mode (first selection)
-            // Not when already in selection mode (subsequent toggles)
-            if (state?.selectionState?.isSelectionMode != true) {
+    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit =
+        remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
+            { result ->
                 focusManager.clearFocus()
                 keyboardController?.hide()
+                onPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
             }
-            onPageAction(SearcherPageAction.Results.ToggleSelection(result))
         }
-    }
+
+    val wrappedOnToggleSelection: (SearchItem) -> Unit =
+        remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
+            { result ->
+                // Only clear focus and hide keyboard when entering selection mode (first selection)
+                // Not when already in selection mode (subsequent toggles)
+                if (state?.selectionState?.isSelectionMode != true) {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                }
+                onPageAction(SearcherPageAction.Results.ToggleSelection(result))
+            }
+        }
 
     // Re-request focus for keyboard shortcuts after clearing focus
     // This ensures shortcuts continue working after selecting a result
@@ -274,6 +287,11 @@ fun SearcherWorkspacePage(
     )
 
     state?.let { currentState ->
+        // Handle back button for selection mode - clear selection first
+        BackHandler(enabled = currentState.selectionState.isSelectionMode) {
+            onPageAction(SearcherPageAction.Results.ExitSelectionMode)
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -323,10 +341,10 @@ fun SearcherWorkspacePage(
             val contentPaddingValues = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
-                top = 8.dp + actualToolbarHeightDp +
+                top = statusBarInset + 8.dp + actualToolbarHeightDp +
                     (if (isProgressCardVisible) statusCardHeight + 8.dp else 4.dp) +
                     (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp),
-                bottom = run {
+                bottom = navBarInset + run {
                     val actionBarHeight = if (hasActions) 64.dp else 0.dp
                     val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
                     val operationsHeight = if (hasOperations) 80.dp else 0.dp
@@ -596,7 +614,8 @@ fun SearcherWorkspacePage(
                 workspaceActionHandler = workspaceActionHandler,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp)
+                    .padding(top = statusBarInset + 8.dp, bottom = 8.dp)
                     .onGloballyPositioned { layoutCoordinates ->
                         actualToolbarHeightPx = layoutCoordinates.size.height
                     }
@@ -618,7 +637,7 @@ fun SearcherWorkspacePage(
                     },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .offset(y = 16.dp + actualToolbarHeightDp)
+                        .offset(y = statusBarInset + 16.dp + actualToolbarHeightDp)
                         .padding(horizontal = 16.dp)
                         .graphicsLayer {
                             // Immediate snap behavior: fully visible or fully hidden
@@ -638,7 +657,7 @@ fun SearcherWorkspacePage(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(
-                            y = 8.dp + actualToolbarHeightDp +
+                            y = statusBarInset + 8.dp + actualToolbarHeightDp +
                                 (if (showProgressCard) statusCardHeight + 8.dp else 0.dp)
                         )
                         .padding(horizontal = 16.dp)
@@ -656,7 +675,7 @@ fun SearcherWorkspacePage(
                     .padding(
                         start = 8.dp,
                         end = 8.dp,
-                        bottom = clipboardVerticalOffset.coerceAtLeast(0f).dp
+                        bottom = navBarInset + clipboardVerticalOffset.coerceAtLeast(0f).dp
                     )
                     .graphicsLayer {
                         scaleY = clipboardScale
@@ -714,7 +733,8 @@ fun SearcherWorkspacePage(
                 WorkspaceActionBar(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                        .padding(horizontal = 8.dp)
+                        .padding(bottom = navBarInset + 8.dp, top = 8.dp)
                         .graphicsLayer {
                             // Immediate snap behavior: fully visible or fully hidden
                             alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
@@ -887,7 +907,10 @@ fun SearcherWorkspacePage(
                 operationDialogState = OperationDialogState.None
                 vm?.cancelOperation(operationId)
             },
-            onCopyError = { vm?.copyError(it) }
+            onCopyError = { vm?.copyError(it) },
+            onHandleIssue = { operationId ->
+                vm?.showConflictSheet(operationId)
+            },
         )
     }  // End of state?.let
 }

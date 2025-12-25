@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -103,6 +104,71 @@ fun PathIssueFileComparisonCard(
                 modifier = Modifier.padding(start = 28.dp),
             )
         }
+    }
+}
+
+/**
+ * Path-only version of [PathIssueFileComparisonCard].
+ * Shows path info without metadata (no size/date) since the file may not exist.
+ */
+@Composable
+fun PathIssueFileComparisonCard(
+    path: APath<*>,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.TwoTone.Description,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Text(
+                    text = path.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            Text(
+                text = path.parent?.path ?: "/",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(start = 28.dp),
+            )
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun PathIssueFileComparisonCardPathOnlyPreview() {
+    PreviewWrapper {
+        PathIssueFileComparisonCard(
+            path = LocalPath.build("/storage/emulated/0/Backup/document.pdf"),
+        )
     }
 }
 

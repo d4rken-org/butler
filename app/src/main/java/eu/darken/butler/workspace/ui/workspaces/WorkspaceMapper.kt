@@ -3,15 +3,15 @@ package eu.darken.butler.workspace.ui.workspaces
 import androidx.compose.runtime.Composable
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePageHost
 import eu.darken.butler.apps.ui.details.AppDetailsWorkspacePageHost
-import eu.darken.butler.debug.ui.DebugWorkspacePageHost
+import eu.darken.butler.developer.ui.DeveloperWorkspacePageHost
 import eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
 import eu.darken.butler.saver.ui.saver.SaverWorkspacePageHost
+import eu.darken.butler.sdmaid.ui.dashboard.SdMaidWorkspacePageHost
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
 import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.workspaces.classic.CreatingWorkspacePlaceholder
 
 @Composable
 fun WorkspaceMapper(
@@ -54,7 +54,12 @@ fun WorkspaceMapper(
             design = design,
         )
 
-        Workspace.Type.DEBUG -> DebugWorkspacePageHost(
+        Workspace.Type.SDMAID -> SdMaidWorkspacePageHost(
+            id = info.id,
+            design = design,
+        )
+
+        Workspace.Type.DEVELOPER -> DeveloperWorkspacePageHost(
             id = info.id,
             design = design,
         )

@@ -1,6 +1,9 @@
 package eu.darken.butler.searcher.core.engine
 
 import android.os.Environment
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -17,6 +20,7 @@ import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.operations.SearcherCommand
+import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -25,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -32,13 +37,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
-import eu.darken.butler.workspace.core.Workspace
 
 class SearchEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -171,7 +171,10 @@ class SearchEngine @AssistedInject constructor(
         command: SearcherCommand.Search,
         onProgress: ((SearchProgress) -> Unit)? = null
     ): Result {
-        log(tag, INFO) { "search(): filename=${command.filenameQuery.pattern}, content=${command.contentQuery.pattern}" }
+        log(
+            tag,
+            INFO
+        ) { "search(): filename=${command.filenameQuery.pattern}, content=${command.contentQuery.pattern}" }
 
         // Validate query - at least one pattern OR active filters required
         val hasPattern = command.filenameQuery.isNotEmpty || command.contentQuery.isNotEmpty
@@ -254,7 +257,10 @@ class SearchEngine @AssistedInject constructor(
             .filterIsInstance<SearchTarget.Path>()
             .filter { it.enabled }
 
-        log(tag, INFO) { "Starting concurrent search (filename: ${searchQuery.filenameQuery.pattern}, content: ${searchQuery.contentQuery.pattern}) across ${enabledTargets.size} enabled path(s)" }
+        log(
+            tag,
+            INFO
+        ) { "Starting concurrent search (filename: ${searchQuery.filenameQuery.pattern}, content: ${searchQuery.contentQuery.pattern}) across ${enabledTargets.size} enabled path(s)" }
 
         // Initialize target progress states
         val initialProgress = enabledTargets.map { target ->

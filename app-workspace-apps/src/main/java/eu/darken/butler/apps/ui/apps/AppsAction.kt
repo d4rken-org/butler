@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Launch
 import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.automirrored.twotone.Sort
+import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.CleaningServices
@@ -12,9 +13,8 @@ import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Deselect
 import androidx.compose.material.icons.twotone.FilterAlt
 import androidx.compose.material.icons.twotone.FolderOpen
-import androidx.compose.material.icons.twotone.GridView
-import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.GetApp
+import androidx.compose.material.icons.twotone.GridView
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.SelectAll
@@ -70,13 +70,13 @@ sealed interface AppsAction : WorkspaceAction {
     ) : AppsAction {
         override val icon: ImageVector
             get() = when (viewStyle) {
-                is AppsViewStyle.List -> Icons.TwoTone.GridView // Show grid icon to switch TO grid
-                is AppsViewStyle.Grid -> Icons.AutoMirrored.TwoTone.ViewList // Show list icon to switch TO list
+                is AppsViewStyle.List -> Icons.AutoMirrored.TwoTone.ViewList
+                is AppsViewStyle.Grid -> Icons.TwoTone.GridView
             }
         override val label: CaString
             get() = when (viewStyle) {
-                is AppsViewStyle.List -> R.string.apps_action_view_grid.toCaString()
-                is AppsViewStyle.Grid -> R.string.apps_action_view_list.toCaString()
+                is AppsViewStyle.List -> R.string.apps_action_view_list.toCaString()
+                is AppsViewStyle.Grid -> R.string.apps_action_view_grid.toCaString()
             }
         override val group = WorkspaceAction.Group.SECONDARY
     }

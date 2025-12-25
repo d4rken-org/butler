@@ -7,7 +7,6 @@ import eu.darken.butler.common.error.HasLocalizedError
 import eu.darken.butler.common.error.LocalizedError
 import eu.darken.butler.common.error.LocalizedErrorContext
 import eu.darken.butler.common.error.localized
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 
 /**

@@ -573,7 +573,10 @@ class ChunkManager @AssistedInject constructor(
         // Atomic swap prevents race condition where readers see empty map during clear+putAll
         boundaries = updatedBoundaries
 
-        log(tag, VERBOSE) { "Updated $adjustedCount chunk boundaries after edit at offset $editOffset (delta=$deltaLength bytes, $deltaLines lines)" }
+        log(
+            tag,
+            VERBOSE
+        ) { "Updated $adjustedCount chunk boundaries after edit at offset $editOffset (delta=$deltaLength bytes, $deltaLines lines)" }
     }
 
     private fun evictOldChunksIfNeeded() {

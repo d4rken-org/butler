@@ -94,6 +94,15 @@ fun AcknowledgementsScreen(
                     subtitle = stringResource(R.string.settings_acks_crowdin_desc),
                     onClick = { onOpenUrl("http://crowdin.com/project/butler") }
                 )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    title = stringResource(R.string.settings_acks_maxpatchs_title),
+                    subtitle = stringResource(R.string.settings_acks_maxpatchs_desc),
+                    onClick = { onOpenUrl("https://x.com/maxpatchs") }
+                )
             }
 
             item { SettingsCategoryHeader(stringResource(R.string.settings_licenses_label)) }

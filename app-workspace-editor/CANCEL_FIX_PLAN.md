@@ -11,11 +11,15 @@ When opening a large file in the editor, pressing "Cancel" does not stop the loa
 
 ## Root Cause
 
-The issue is a **job hierarchy problem**. When `DynamicStateFlow.updateBlocking` runs, it executes within a `channelFlow`'s internal scope. The `initializationJob` captured by `EditorEngine.initialize()` is a child of this channelFlow's job.
+The issue is a **job hierarchy problem**. When `DynamicStateFlow.updateBlocking` runs, it executes within a
+`channelFlow`'s internal scope. The `initializationJob` captured by
+`EditorEngine.initialize()` is a child of this channelFlow's job.
 
 When `cancelInitialization()` calls `initializationJob.cancel()`:
+
 - The specific job reference gets cancelled
-- But `ensureActive()` calls in `ChunkedTextBuffer` and `ChunkManager` check their own `coroutineContext` which may reference different jobs in the hierarchy
+- But `ensureActive()` calls in `ChunkedTextBuffer` and `ChunkManager` check their own
+  `coroutineContext` which may reference different jobs in the hierarchy
 - The cancellation doesn't propagate correctly through the nested job hierarchy
 
 ## Solution
@@ -111,8 +115,10 @@ suspend fun getChunksInRange(
 
 ## Files to Modify
 
-1. **EditorEngine.kt** - Add `cancellationFlag` field, reset in `initialize()`, set in `cancelInitialization()`, pass to text buffer
-2. **ChunkedTextBuffer.kt** - Add `cancellationFlag` parameter to `initialize()` and `buildChunkMetadata()`, check flag in loop
+1. **EditorEngine.kt** - Add `cancellationFlag` field, reset in `initialize()`, set in
+   `cancelInitialization()`, pass to text buffer
+2. **ChunkedTextBuffer.kt** - Add `cancellationFlag` parameter to `initialize()` and
+   `buildChunkMetadata()`, check flag in loop
 3. **ChunkManager.kt** - Optionally add `cancellationFlag` parameter to `getChunksInRange()` and check in loop
 
 ## Implementation Steps
@@ -128,12 +134,14 @@ suspend fun getChunksInRange(
 ## Why This Works
 
 The `AtomicBoolean` flag is:
+
 - Shared directly between the cancellation call site and the loading loops
 - Independent of coroutine job hierarchy
 - Checked at every iteration and after every I/O operation
 - Thread-safe via atomic operations
 
-This bypasses the complex job hierarchy created by `DynamicStateFlow`'s `channelFlow` and ensures cancellation is detected immediately.
+This bypasses the complex job hierarchy created by `DynamicStateFlow`'s
+`channelFlow` and ensures cancellation is detected immediately.
 
 ## Required Import
 

@@ -23,44 +23,45 @@ import eu.darken.butler.common.preferences.EnumPreference
 
 @Composable
 fun <T> EnumSelectorDialog(
-        title: String,
-        options: List<T>,
-        selectedOption: T,
-        onOptionSelected: (T) -> Unit,
-        onDismiss: () -> Unit,
+    title: String,
+    options: List<T>,
+    selectedOption: T,
+    onOptionSelected: (T) -> Unit,
+    onDismiss: () -> Unit,
 ) where T : Enum<T>, T : EnumPreference<T> {
     val context = LocalContext.current
 
     AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text(text = title, style = MaterialTheme.typography.headlineSmall) },
-            text = {
-                Column {
-                    options.forEach { option ->
-                        Row(
-                                modifier =
-                                        Modifier.fillMaxWidth()
-                                                .clickable { onOptionSelected(option) }
-                                                .padding(vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                    selected = option == selectedOption,
-                                    onClick = { onOptionSelected(option) }
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                    text = option.label.get(context),
-                                    style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
+        onDismissRequest = onDismiss,
+        title = { Text(text = title, style = MaterialTheme.typography.headlineSmall) },
+        text = {
+            Column {
+                options.forEach { option ->
+                    Row(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable { onOptionSelected(option) }
+                                .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = option == selectedOption,
+                            onClick = { onOptionSelected(option) }
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = option.label.get(context),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.general_cancel_action))
-                }
             }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.general_cancel_action))
+            }
+        }
     )
 }

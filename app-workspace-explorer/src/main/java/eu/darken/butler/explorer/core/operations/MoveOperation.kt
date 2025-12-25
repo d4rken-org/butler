@@ -25,7 +25,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlin.time.Clock
@@ -67,11 +67,11 @@ class MoveOperation @AssistedInject constructor(
 
     override fun perform(
         operationContext: Operation.Context
-    ): Flow<State> = flow {
+    ): Flow<State> = channelFlow {
         log(tag) { "perform(): $command" }
 
         var stateActive = State.Active(startedAt = operationContext.startedAt)
-        emit(stateActive)
+        send(stateActive)
 
         val reportBuilder = MoveOperationReport.Builder()
         var lastPerformanceHistory: PerformanceHistory? = null
@@ -84,7 +84,7 @@ class MoveOperation @AssistedInject constructor(
                     preserveAttributes = command.options.preserveAttributes,
                 ),
                 onIssue = { issue ->
-                    emit(
+                    send(
                         State.Waiting(
                             startedAt = operationContext.startedAt,
                             waitingSince = Clock.System.now(),
@@ -92,7 +92,7 @@ class MoveOperation @AssistedInject constructor(
                         )
                     )
                     val resolution = issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
-                    emit(stateActive)
+                    send(stateActive)
                     resolution
                 },
             )
@@ -193,7 +193,7 @@ class MoveOperation @AssistedInject constructor(
                     secondaryProgress = enhancedSecondary,
                     performanceHistory = perfHistory,
                 )
-                emit(stateActive)
+                send(stateActive)
             }
             .last()
 
@@ -214,7 +214,7 @@ class MoveOperation @AssistedInject constructor(
         reportBuilder.setBytesMoved(result.bytesMoved)
         reportBuilder.setPerformanceHistory(lastPerformanceHistory)
 
-        emit(
+        send(
             State.Completed(
                 startedAt = operationContext.startedAt,
                 report = reportBuilder.build(),

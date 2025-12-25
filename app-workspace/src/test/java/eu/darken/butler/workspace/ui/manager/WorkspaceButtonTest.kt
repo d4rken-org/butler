@@ -2,11 +2,15 @@ package eu.darken.butler.workspace.ui.manager
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.PreviewWrapper
 import org.junit.Test
 import testhelpers.ComposeTest
 
 class WorkspaceButtonTest : ComposeTest() {
+
+    // Use static mascot to avoid infinite animation loop in Robolectric
+    private val testMascotVariant = ButlerMascotMode.Static.Normal
 
     @Test
     fun `displays workspace count badge`() {
@@ -18,6 +22,7 @@ class WorkspaceButtonTest : ComposeTest() {
                         operationsCount = 0,
                         attentionCount = 0,
                     ),
+                    mascotVariant = testMascotVariant,
                 )
             }
         }
@@ -35,6 +40,7 @@ class WorkspaceButtonTest : ComposeTest() {
                         operationsCount = 3,
                         attentionCount = 0,
                     ),
+                    mascotVariant = testMascotVariant,
                 )
             }
         }
@@ -52,6 +58,7 @@ class WorkspaceButtonTest : ComposeTest() {
                         operationsCount = 0,
                         attentionCount = 2,
                     ),
+                    mascotVariant = testMascotVariant,
                 )
             }
         }
@@ -69,6 +76,7 @@ class WorkspaceButtonTest : ComposeTest() {
                         operationsCount = 0,
                         attentionCount = 0,
                     ),
+                    mascotVariant = testMascotVariant,
                 )
             }
         }
@@ -86,6 +94,7 @@ class WorkspaceButtonTest : ComposeTest() {
                         operationsCount = 15,
                         attentionCount = 0,
                     ),
+                    mascotVariant = testMascotVariant,
                 )
             }
         }
@@ -103,6 +112,7 @@ class WorkspaceButtonTest : ComposeTest() {
                         operationsCount = 0,
                         attentionCount = 10,
                     ),
+                    mascotVariant = testMascotVariant,
                 )
             }
         }
@@ -120,6 +130,7 @@ class WorkspaceButtonTest : ComposeTest() {
                         operationsCount = 7,
                         attentionCount = 3,
                     ),
+                    mascotVariant = testMascotVariant,
                 )
             }
         }
@@ -139,6 +150,7 @@ class WorkspaceButtonTest : ComposeTest() {
                         operationsCount = 0,
                         attentionCount = 0,
                     ),
+                    mascotVariant = testMascotVariant,
                 )
             }
         }

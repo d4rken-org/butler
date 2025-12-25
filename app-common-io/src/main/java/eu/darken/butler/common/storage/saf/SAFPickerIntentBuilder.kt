@@ -100,7 +100,10 @@ class SAFPickerIntentBuilder @Inject constructor(
             // This creates: content://.../tree/primary:Android/data (not just tree/primary)
             val fullTreeUri = DocumentsContract.buildTreeDocumentUri(authority, fullDocumentId)
 
-            log(TAG, VERBOSE) { "Root tree URI: $rootTreeUri, Full tree URI: $fullTreeUri, Full document ID: $fullDocumentId" }
+            log(
+                TAG,
+                VERBOSE
+            ) { "Root tree URI: $rootTreeUri, Full tree URI: $fullTreeUri, Full document ID: $fullDocumentId" }
 
             // Build the final navigation URI using the full tree URI
             // This creates: content://.../tree/primary:Android/data/document/primary:Android/data

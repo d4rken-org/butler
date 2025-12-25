@@ -82,7 +82,6 @@ class PathPreviewFetcher @Inject constructor(
     }
 
 
-
     override suspend fun fetch(): FetchResult {
         if (isEasterEggPath()) return easterEggIcon
 

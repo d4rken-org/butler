@@ -59,10 +59,30 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Register as a file manager app -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.APP_FILES" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <!-- Handle directory viewing intents -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:mimeType="vnd.android.document/root" />
+                <data android:mimeType="vnd.android.document/directory" />
+            </intent-filter>
+
             <!-- Intent filter for handling Explorer workspace shortcuts -->
             <intent-filter>
                 <action android:name="eu.darken.butler.EXPLORER_OPEN_PATH" />
                 <action android:name="eu.darken.butler.EXPLORER_NEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
@@ -117,8 +137,7 @@
         </provider>
 
         <!-- Debug stuff-->
-        <activity
-            android:name="eu.darken.butler.common.debug.recorder.ui.RecorderActivity"/>
+        <activity android:name="eu.darken.butler.common.debug.recorder.ui.result.RecorderActivity" />
 
         <service
             android:name="eu.darken.butler.common.debug.recorder.core.RecorderService"
@@ -127,6 +146,13 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="This service is part of a bug reporting mechanism. It is explicitly launched by the user to create debug logs and troubleshoot issues within Butler itself. It shows an on-going foreground notification that allows the user to control the debug log functionality while the debug log is being created and the user is reproducing the issue." />
         </service>
+
+        <!-- Bound service in separate process for file operations on removable storage.
+             Process isolation protects main app from vold's SIGINT on storage disconnect. -->
+        <service
+            android:name="eu.darken.butler.common.files.local.service.IsolatedService"
+            android:exported="false"
+            android:process=":isolated" />
     </application>
 
 </manifest>

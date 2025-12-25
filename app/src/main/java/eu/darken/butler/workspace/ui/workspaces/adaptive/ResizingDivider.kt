@@ -55,12 +55,12 @@ internal fun ResizingDivider(
 
     // Track the current position locally to avoid stale closure issues
     var currentPosition by remember { mutableStateOf(position) }
-    
+
     // Update currentPosition when position changes AND we're not dragging
     if (!isDragging && currentPosition != position) {
         currentPosition = position
     }
-    
+
     // Use rememberUpdatedState to capture the current callback without recreating pointerInput
     val currentOnPositionChange by rememberUpdatedState(onPositionChange)
 
