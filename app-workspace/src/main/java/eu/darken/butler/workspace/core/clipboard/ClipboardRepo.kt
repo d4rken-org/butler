@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core.clipboard
 
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -13,7 +14,9 @@ import javax.inject.Singleton
 import kotlin.uuid.Uuid
 
 @Singleton
-class ClipboardRepo @Inject constructor() {
+class ClipboardRepo @Inject constructor(
+    private val clipboardSettings: ClipboardSettings,
+) {
 
     private val lock = Mutex()
     private val _state = MutableStateFlow(State())
@@ -21,8 +24,9 @@ class ClipboardRepo @Inject constructor() {
 
     suspend fun add(clip: ClipboardClip) = lock.withLock {
         log(TAG, INFO) { "Adding entry $clip" }
+        val maxItems = clipboardSettings.maxItems.value()
         _state.value = _state.value.copy(
-            entries = (listOf(clip) + _state.value.entries.toMutableList()).take(3)
+            entries = (listOf(clip) + _state.value.entries.toMutableList()).take(maxItems)
         )
     }
 
