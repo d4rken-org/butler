@@ -77,10 +77,10 @@ class EditorEngine @AssistedInject constructor(
     private val isInitializing = AtomicBoolean(true)
     private var initializationJob: Job? = null
 
-    val fileInfo: Flow<FileInfo?> = state.map { s ->
+    val contentSource: Flow<ContentSource> = state.map { s ->
         when (s) {
-            is EditorState.Loaded -> s.fileInfo
-            else -> null
+            is EditorState.Loaded -> s.contentSource
+            else -> ContentSource.Memory(size = 0L)
         }
     }
 
@@ -117,7 +117,7 @@ class EditorEngine @AssistedInject constructor(
 
         // Read undo settings
         val maxUndoStackSize = editorSettings.undoStackSize.value()
-        val maxUndoMemoryBytes = editorSettings.undoMaxMemoryMB.value() * 1_048_576L  // Convert MB to bytes
+        val maxUndoMemoryBytes = editorSettings.undoMaxMemory.value()
 
         val textBuffer = chunkedTextBufferFactory.create(
             workspaceId,
@@ -201,12 +201,12 @@ class EditorEngine @AssistedInject constructor(
             }
 
             // Transition to Loaded state
-            val fileInfoValue = resources.textBuffer.fileInfo.value
+            val contentSourceValue = resources.textBuffer.contentSource.value
             val isModifiedValue = resources.textBuffer.isModified.value
             _state.value = EditorState.Loaded(
                 filePath = filePath,
                 resources = resources,
-                fileInfo = fileInfoValue,
+                contentSource = contentSourceValue,
                 isModified = isModifiedValue,
             )
 
@@ -556,10 +556,12 @@ class EditorEngine @AssistedInject constructor(
                     column = end.column
                 )
                 _selectionRange.value = correctedStart to correctedEnd
+                _cursorPosition.value = correctedEnd
             }
             else -> {
                 // No file loaded, store as-is
                 _selectionRange.value = start to end
+                _cursorPosition.value = end
             }
         }
     }
@@ -790,7 +792,7 @@ class EditorEngine @AssistedInject constructor(
         return result
     }
 
-    suspend fun search(query: String, caseSensitive: Boolean = false): Result<List<SearchResult>> = stateMutex.withLock {
+    suspend fun search(query: String, options: SearchOptions = SearchOptions()): Result<List<SearchResult>> = stateMutex.withLock {
             _searchQuery.value = query
 
             if (query.isEmpty()) {
@@ -806,7 +808,7 @@ class EditorEngine @AssistedInject constructor(
                             currentState.resources.textBuffer.search(
                                 query,
                                 _cursorPosition.value,
-                                ignoreCase = !caseSensitive
+                                options
                             )
                         _searchResults.value = results
                         Result.success(results)

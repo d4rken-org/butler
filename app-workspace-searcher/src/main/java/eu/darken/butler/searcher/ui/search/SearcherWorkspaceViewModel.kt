@@ -996,6 +996,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
+            is ClipboardClip.Text -> {
+                val sourcePath = clip.sourcePath
+                if (sourcePath != null) {
+                    val parentPath = sourcePath.parent
+                    if (parentPath != null) {
+                        workspaceRemote.createAndFocus(
+                            type = Workspace.Type.EXPLORER,
+                            arguments = ExplorerArguments.Default(startPath = parentPath)
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -1020,6 +1032,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     type = Workspace.Type.EXPLORER,
                     arguments = ExplorerArguments.Default(startPath = commonParent)
                 )
+            }
+            is ClipboardClip.Text -> {
+                log(TAG, WARN) { "Cannot open text clip in Explorer - no file paths" }
+                return@launch
             }
         }
     }

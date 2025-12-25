@@ -27,6 +27,7 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.TextSnippet
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -142,8 +143,30 @@ private fun ClipboardInfoContent(
                 val hasActions = onNavigateToSource != null || onPaste != null || onRemove != null
                 if (hasActions) {
                     ClipboardActionsSection(
-                        clip = clip,
                         onNavigateToSource = onNavigateToSource,
+                        onPaste = onPaste,
+                        onRemove = onRemove,
+                    )
+                }
+            }
+
+            is ClipboardClip.Text -> {
+                // Header Section
+                ClipboardTextInfoHeader(clip = clip)
+
+                Spacer(modifier = Modifier.height(1.dp))
+
+                // Overview Section
+                ClipboardTextOverviewSection(clip = clip)
+
+                // Content Section
+                ClipboardTextContentSection(clip = clip)
+
+                // Actions Section
+                val hasActions = onPaste != null || onRemove != null
+                if (hasActions) {
+                    ClipboardActionsSection(
+                        onNavigateToSource = null,
                         onPaste = onPaste,
                         onRemove = onRemove,
                     )
@@ -441,8 +464,247 @@ private fun ClipboardFilesSection(
 }
 
 @Composable
+private fun ClipboardTextInfoHeader(
+    clip: ClipboardClip.Text,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.TwoTone.TextSnippet,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = clip.title.asComposable(),
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            Text(
+                modifier = Modifier.padding(top = 2.dp),
+                text = clip.description.asComposable(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClipboardTextOverviewSection(
+    clip: ClipboardClip.Text,
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.clipboard_info_overview).uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                fontFamily = FontFamily.Monospace,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            HorizontalDivider(
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // Character count
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.clipboard_text_info_characters),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = clip.content.length.toString(),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                // Line count
+                val lineCount = clip.content.count { it == '\n' } + 1
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.clipboard_text_info_lines),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = lineCount.toString(),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                // Source file (if any)
+                clip.sourcePath?.let { sourcePath ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.clipboard_info_source),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = sourcePath.userReadablePath.get(LocalContext.current),
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+
+                // Origin workspace
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.clipboard_info_workspace),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = clip.origin.shortTag,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                // Time timestamp
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = stringResource(R.string.clipboard_info_time),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = formatRelativeTime(clip.clippedAt),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClipboardTextContentSection(
+    clip: ClipboardClip.Text,
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Clickable section title with expand/collapse
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.clipboard_text_info_content).uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Icon(
+                    imageVector = if (isExpanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
+                    contentDescription = if (isExpanded) "Collapse" else "Expand",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            // Show preview when collapsed, full content when expanded
+            AnimatedVisibility(visible = !isExpanded) {
+                Text(
+                    text = clip.preview,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            AnimatedVisibility(visible = isExpanded) {
+                Column {
+                    HorizontalDivider(
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = clip.content,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 300.dp)
+                            .verticalScroll(rememberScrollState()),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun ClipboardActionsSection(
-    clip: ClipboardClip.Paths,
     onNavigateToSource: (() -> Unit)? = null,
     onPaste: (() -> Unit)? = null,
     onRemove: (() -> Unit)? = null,
@@ -575,6 +837,26 @@ private fun ClipboardInfoSingleFilePreview() {
             clip = mockClip,
             onDismiss = {},
             onNavigateToSource = {},
+            onPaste = {},
+            onRemove = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ClipboardInfoTextPreview() {
+    val mockClip = ClipboardClip.Text(
+        origin = Workspace.Id(Uuid.random()),
+        content = "Hello, this is a sample text snippet that was copied from the editor.\nIt contains multiple lines.\nAnd more text here.",
+        sourcePath = LocalPath.build("/storage/emulated/0/Documents/notes.txt"),
+        clippedAt = Clock.System.now() - 3.minutes,
+    )
+
+    PreviewWrapper {
+        ClipboardInfoBottomSheet(
+            clip = mockClip,
+            onDismiss = {},
             onPaste = {},
             onRemove = {},
         )

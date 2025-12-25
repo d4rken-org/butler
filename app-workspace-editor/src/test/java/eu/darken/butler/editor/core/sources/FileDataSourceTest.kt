@@ -101,8 +101,7 @@ class FileDataSourceTest : BaseTest() {
         dataSource.open()
 
         // Then: Success without loading into memory
-        dataSource.fileInfo.value shouldNotBe null
-        dataSource.fileInfo.value?.size shouldBe 11L
+        dataSource.contentSource.value.size shouldBe 11L
     }
 
     @Test
@@ -325,8 +324,8 @@ class FileDataSourceTest : BaseTest() {
         dataSource.close()
         dataSource.close()
 
-        // Then: No exception thrown
-        dataSource.fileInfo.value shouldBe null
+        // Then: No exception thrown, content source reset to empty Memory
+        dataSource.contentSource.value.size shouldBe 0L
         dataSource.isModified.value shouldBe false
     }
 

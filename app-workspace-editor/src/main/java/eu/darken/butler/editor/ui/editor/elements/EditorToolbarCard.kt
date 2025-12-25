@@ -53,6 +53,7 @@ fun EditorToolbarCard(
     subTitle: CaString,
     isModified: Boolean,
     isLoading: Boolean,
+    hasContent: Boolean,
     canUndo: Boolean,
     canRedo: Boolean,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
@@ -229,28 +230,28 @@ fun EditorToolbarCard(
                             Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
                         }
 
-                        IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
-                            Icon(Icons.TwoTone.Close, contentDescription = stringResource(R.string.editor_action_close))
+                        if (hasContent) {
+                            IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
+                                Icon(Icons.TwoTone.Close, contentDescription = stringResource(R.string.editor_action_close))
+                            }
                         }
 
-                        IconButton(
-                            onClick = { onAction(EditorPageAction.Edit.Undo) },
-                            enabled = canUndo
-                        ) {
-                            Icon(
-                                Icons.TwoTone.KeyboardArrowUp,
-                                contentDescription = stringResource(R.string.editor_action_undo)
-                            )
+                        if (canUndo) {
+                            IconButton(onClick = { onAction(EditorPageAction.Edit.Undo) }) {
+                                Icon(
+                                    Icons.TwoTone.KeyboardArrowUp,
+                                    contentDescription = stringResource(R.string.editor_action_undo)
+                                )
+                            }
                         }
 
-                        IconButton(
-                            onClick = { onAction(EditorPageAction.Edit.Redo) },
-                            enabled = canRedo
-                        ) {
-                            Icon(
-                                Icons.TwoTone.KeyboardArrowDown,
-                                contentDescription = stringResource(R.string.editor_action_redo)
-                            )
+                        if (canRedo) {
+                            IconButton(onClick = { onAction(EditorPageAction.Edit.Redo) }) {
+                                Icon(
+                                    Icons.TwoTone.KeyboardArrowDown,
+                                    contentDescription = stringResource(R.string.editor_action_redo)
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.weight(1f))
@@ -272,6 +273,7 @@ private fun EditorToolbarCardPreview() {
             subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = true,
             isLoading = false,
+            hasContent = true,
             canUndo = true,
             canRedo = false,
             workspaceButtonState = null,
@@ -292,6 +294,7 @@ private fun EditorToolbarCardCollapsedPreview() {
             subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = true,
             isLoading = false,
+            hasContent = true,
             canUndo = true,
             canRedo = false,
             workspaceButtonState = null,
@@ -313,6 +316,7 @@ private fun EditorToolbarCardLoadingPreview() {
             subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = false,
             isLoading = true,
+            hasContent = false,
             canUndo = false,
             canRedo = false,
             workspaceButtonState = null,

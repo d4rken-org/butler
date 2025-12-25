@@ -22,7 +22,7 @@ sealed class EditorState {
     data class Loaded(
         val filePath: APath<*>?,
         val resources: EditorResources,
-        val fileInfo: FileInfo?,
+        val contentSource: ContentSource,
         val isModified: Boolean,
     ) : EditorState()
 

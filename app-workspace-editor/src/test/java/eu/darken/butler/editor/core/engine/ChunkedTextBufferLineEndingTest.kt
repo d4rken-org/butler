@@ -400,7 +400,7 @@ class ChunkedTextBufferLineEndingTest : ChunkedTextBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for "Hello"
-        val results = buffer.search("Hello", startFrom = null, ignoreCase = false)
+        val results = buffer.search("Hello", startFrom = null, options = SearchOptions(caseSensitive = true))
 
         // Then: Found 2 results
         results.size shouldBe 2

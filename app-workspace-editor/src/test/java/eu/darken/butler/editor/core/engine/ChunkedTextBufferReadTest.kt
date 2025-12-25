@@ -391,14 +391,14 @@ class ChunkedTextBufferReadTest : ChunkedTextBufferTestBase() {
     }
 
     @Test
-    fun `fileInfo available for in-memory source`() = runTest {
+    fun `contentSource available for in-memory source`() = runTest {
         // Given: Buffer with content
         val content = "test content"
         val buffer = createBuffer(content)
 
-        // Then: File info may be null (in-memory source)
+        // Then: Content source should be available (Memory for in-memory source)
         // This is OK - just verify it doesn't crash
-        buffer.fileInfo.value // May be null for InMemoryDataSource
+        buffer.contentSource.value // Returns ContentSource.Memory for InMemoryDataSource
     }
 
     // ==================== P1 Tests: Chunk Boundary Cases (With Small Chunks) ====================

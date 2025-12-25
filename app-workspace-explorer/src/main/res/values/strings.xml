@@ -217,6 +217,9 @@
     <string name="explorer_dialog_type_label">Type</string>
     <string name="explorer_dialog_type_folder">Folder</string>
     <string name="explorer_dialog_type_file">File</string>
+    <string name="explorer_dialog_create_text_file_title">Create file from text</string>
+    <string name="explorer_dialog_create_text_file_preview_label">Preview</string>
+    <string name="explorer_dialog_create_text_file_size_label">%1$d characters</string>
 
     <!-- Add Device Storage Dialog -->
     <string name="explorer_add_device_storage_title">Add storage location</string>
@@ -369,7 +372,8 @@
     <string name="explorer_operation_create_description_directory">Create folder \"%1$s\" at \"%2$s\"</string>
     <string name="explorer_operation_create_title_file">File creation</string>
     <string name="explorer_operation_create_description_file">Create file \"%1$s\" at \"%2$s\"</string>
-
+    <string name="explorer_operation_create_text_file_title">Text file creation</string>
+    <string name="explorer_operation_create_text_file_description">Create \"%1$s\" from text snippet</string>
 
     <!-- Navigation Error Messages -->
     <string name="explorer_navigation_error_title">Navigation failed</string>

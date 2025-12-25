@@ -49,6 +49,7 @@ internal fun SelectionHandle(
     wordWrap: Boolean = false,
     textLayouts: Map<Int, TextLayoutResult> = emptyMap(),
     visibleLineContent: Map<Int, String> = emptyMap(),
+    contentPaddingTop: Float = 0f,
 ) {
     val density = LocalDensity.current
     val handleColor = MaterialTheme.colorScheme.primary
@@ -141,8 +142,8 @@ internal fun SelectionHandle(
 
                     // Use translation for GPU-accelerated positioning
                     translationX = xPosition
-                    // Add visual line offset for wrapped text positioning
-                    translationY = currentYPos + visualLineOffsetY
+                    // Add visual line offset for wrapped text positioning and content padding top
+                    translationY = currentYPos + visualLineOffsetY + contentPaddingTop
                 }
                 .pointerInput(lineNumberWidthPx) {
                     detectDragGestures { change, _ ->
@@ -163,7 +164,8 @@ internal fun SelectionHandle(
                         val horizontalScrollOffset =
                             if (currentCharOffsetX >= 0f) 0f else horizontalScrollState.value.toFloat()
                         val lazyColumnX = (change.position.x + xPosition) - lineNumberWidthPx + horizontalScrollOffset
-                        val lazyColumnY = change.position.y + currentYPosition + visualLineOffsetY
+                        // Add contentPaddingTop to match tap coordinate space (full LazyColumn area)
+                        val lazyColumnY = change.position.y + currentYPosition + visualLineOffsetY + contentPaddingTop
 
                         onDrag(Offset(lazyColumnX, lazyColumnY))
                         change.consume()
