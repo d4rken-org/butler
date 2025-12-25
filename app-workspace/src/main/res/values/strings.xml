@@ -240,6 +240,7 @@
     <string name="workspace_settings_ondemand_creation_desc">Automatically create new tab when swiping past the last tab.</string>
     <string name="workspace_settings_live_preview_title">Live previews</string>
     <string name="workspace_settings_live_preview_desc">Show live tab content in tab manager.</string>
+    <string name="workspace_settings_other">Other</string>
     <string name="workspace_settings_layout_title">Layout</string>
     <string name="workspace_settings_layout_mode_portrait_title">Portrait layout mode</string>
     <string name="workspace_settings_layout_mode_portrait_desc">Choose tab layout in portrait orientation.</string>
