@@ -354,15 +354,11 @@ private fun DualColumnEditorContent(
             .sortedBy { it.key }
             .joinToString("\n") { it.value }
         if (textFieldValue.text != currentContent) {
-            // Preserve selection if within valid range, otherwise reset to end
-            val preservedSelection = if (textFieldValue.selection.end <= currentContent.length) {
-                textFieldValue.selection
-            } else {
-                TextRange(currentContent.length)
-            }
+            // Always position cursor at end - insertion detection relies on characters
+            // being appended, which only works when cursor is at the end
             textFieldValue = TextFieldValue(
                 text = currentContent,
-                selection = preservedSelection
+                selection = TextRange(currentContent.length),
             )
         }
     }
