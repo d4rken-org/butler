@@ -118,7 +118,7 @@ fun SelectableFileRow(
                     ) {
                         if (hasSize) {
                             Text(
-                                text = formatFileSize(size!!),
+                                text = formatFileSize(size),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -128,7 +128,7 @@ fun SelectableFileRow(
 
                         if (hasDate) {
                             Text(
-                                text = formatRelativeTime(modifiedAt!!),
+                                text = formatRelativeTime(modifiedAt),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -158,7 +158,7 @@ fun SelectableFileRow(
                             val adjustedStartIndex = (context.startIndex ?: 0) - leadingWhitespace
                             val adjustedEndIndex = (context.endIndex ?: 0) - leadingWhitespace
 
-                            val displayLine = if (adjustedStartIndex >= 0 && adjustedEndIndex > adjustedStartIndex) {
+                            val displayLine = if (adjustedStartIndex in 0..<adjustedEndIndex) {
                                 getEllipsizedMatchLine(
                                     line = trimmedLine,
                                     startIndex = adjustedStartIndex,

@@ -238,9 +238,8 @@ fun SearchToolbarCard(
 
 
                     Column {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                        Spacer(
+                            modifier = Modifier.padding(vertical = 4.dp),
                         )
 
                         FilterChipBar(
@@ -256,9 +255,8 @@ fun SearchToolbarCard(
 
 
                     Column {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 8.dp),
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                        Spacer(
+                            modifier = Modifier.padding(vertical = 4.dp),
                         )
 
                         MultiPathChipBar(
