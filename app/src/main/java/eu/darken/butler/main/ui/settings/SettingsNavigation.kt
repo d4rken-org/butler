@@ -23,6 +23,7 @@ import eu.darken.butler.searcher.ui.DestinationSearcherSettings
 import eu.darken.butler.searcher.ui.settings.SearcherSettingsScreenHost
 import eu.darken.butler.upgrade.ui.UpgradeStatusScreenHost
 import eu.darken.butler.workspace.ui.settings.WorkspaceSettingsScreenHost
+import eu.darken.butler.workspace.ui.settings.clipboard.ClipboardSettingsScreenHost
 import javax.inject.Inject
 
 class SettingsNavigation @Inject constructor() : NavigationEntry {
@@ -59,6 +60,9 @@ class SettingsNavigation @Inject constructor() : NavigationEntry {
         }
         entry<DestinationUpgradeStatus> {
             UpgradeStatusScreenHost()
+        }
+        entry<DestinationSettingsClipboard> {
+            ClipboardSettingsScreenHost()
         }
     }
 

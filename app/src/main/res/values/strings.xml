@@ -328,6 +328,7 @@
     <string name="explorer_settings_subtitle">Configure file explorer behavior.</string>
     <string name="searcher_settings_subtitle">Configure search behavior.</string>
     <string name="editor_settings_subtitle">Configure text editor behavior.</string>
+    <string name="clipboard_settings_subtitle">Configure clipboard behavior.</string>
 
     <!-- Saver Share Target -->
     <string name="saver_share_label">Save as…</string>

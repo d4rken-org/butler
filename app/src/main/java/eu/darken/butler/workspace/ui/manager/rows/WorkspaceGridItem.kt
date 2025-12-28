@@ -127,10 +127,10 @@ fun WorkspaceGridItem(
                     Text(
                         modifier = Modifier.weight(1f),
                         text = workspace.title.asComposable(),
-                        style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.StartEllipsis,
                     )
 
                     IconButton(
