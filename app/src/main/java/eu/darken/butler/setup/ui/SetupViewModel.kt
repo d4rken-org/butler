@@ -41,54 +41,52 @@ class SetupViewModel @AssistedInject constructor(
     val runtimePermissionEvents = _runtimePermissionEvents.asSharedFlow()
 
     val state = setupManager.moduleStates
-        .map { moduleStates ->
-            val items = SetupModule.Type.entries.mapNotNull { type ->
-                // Filter by typeFilter if provided
-                if (options.typeFilter != null && type !in options.typeFilter) {
+        .map { moduleStates -> buildState(moduleStates) }
+        .asStateFlow()
+
+    private fun buildState(moduleStates: Map<SetupModule.Type, SetupModule.State>): State {
+        val items = SetupModule.Type.entries.mapNotNull { type ->
+            if (options.typeFilter != null && type !in options.typeFilter) {
+                return@mapNotNull null
+            }
+
+            val state = moduleStates[type]
+            if (state != null) {
+                if (!options.showCompleted && state is SetupModule.State.Current && state.isComplete) {
                     return@mapNotNull null
                 }
 
-                val state = moduleStates[type]
-                if (state != null) {
-                    // Filter by showCompleted if set to false
-                    if (!options.showCompleted && state is SetupModule.State.Current && state.isComplete) {
-                        return@mapNotNull null
-                    }
-
-                    SetupItem(
-                        type = type,
-                        state = state,
-                        isRequired = options.satisfyingCombos?.all { combo -> combo.contains(type) } ?: false,
-                        priority = type.priority,
-                    )
-                } else {
-                    log(tag) { "No state found for setup type: $type" }
-                    null
-                }
-            }.sortedWith(
-                compareBy(
-                    // First sort by completion status (incomplete first)
-                    { (it.state as? SetupModule.State.Current)?.isComplete == true },
-                    // Then by priority within each group
-                    { it.priority }
+                SetupItem(
+                    type = type,
+                    state = state,
+                    isRequired = options.satisfyingCombos?.all { combo -> combo.contains(type) } ?: false,
+                    priority = type.priority,
                 )
+            } else {
+                log(tag) { "No state found for setup type: $type" }
+                null
+            }
+        }.sortedWith(
+            compareBy(
+                { (it.state as? SetupModule.State.Current)?.isComplete == true },
+                { it.priority },
             )
+        )
 
-            val allRequiredComplete = options.satisfyingCombos?.let { combos ->
-                combos.isNotEmpty() && combos.any { combo ->
-                    combo.all { type ->
-                        val moduleState = moduleStates[type]
-                        (moduleState as? SetupModule.State.Current)?.isComplete == true
-                    }
+        val allRequiredComplete = options.satisfyingCombos?.let { combos ->
+            combos.isNotEmpty() && combos.any { combo ->
+                combo.all { type ->
+                    val moduleState = moduleStates[type]
+                    (moduleState as? SetupModule.State.Current)?.isComplete == true
                 }
-            } ?: false
+            }
+        } ?: false
 
-            State(
-                items = items,
-                allRequiredComplete = allRequiredComplete
-            )
-        }
-        .asStateFlow()
+        return State(
+            items = items,
+            allRequiredComplete = allRequiredComplete,
+        )
+    }
 
     init {
         log(tag) { "init($this) with options: $options" }
@@ -115,12 +113,6 @@ class SetupViewModel @AssistedInject constructor(
         }
     }
 
-    fun handleSAFResult(uri: android.net.Uri) = launch {
-        log(tag) { "handleSAFResult(uri=$uri) - SAF module removed, handled via just-in-time picker" }
-        // SAF module removed - permissions are now handled via just-in-time picker in PathPermissionCheck
-        // This method is kept for backward compatibility but does nothing
-    }
-
     fun openHelp(type: SetupModule.Type) = launch {
         log(tag) { "openHelp(type=$type)" }
         val helpUrl = getHelpUrl(type)
@@ -128,16 +120,11 @@ class SetupViewModel @AssistedInject constructor(
     }
 
     private fun getHelpUrl(type: SetupModule.Type): String {
-        val baseUrl = "https://github.com/d4rken-org/butler/wiki"
-        return when (type) {
-            SetupModule.Type.ROOT -> "$baseUrl/Root-Access"
-            SetupModule.Type.SHIZUKU -> "$baseUrl/Shizuku-Setup"
-            SetupModule.Type.NOTIFICATION -> "$baseUrl/Notifications"
-            SetupModule.Type.USAGE_STATS -> "$baseUrl/Usage-Stats"
-            SetupModule.Type.SAF -> "$baseUrl/Storage-Access-Framework"
-            SetupModule.Type.STORAGE -> "$baseUrl/Storage-Permissions"
-            SetupModule.Type.INVENTORY -> "$baseUrl/App-Inventory"
-        }
+        return "$WIKI_BASE_URL/${type.helpPath}"
+    }
+
+    companion object {
+        private const val WIKI_BASE_URL = "https://github.com/d4rken-org/butler/wiki"
     }
 
     data class State(
@@ -154,10 +141,9 @@ class SetupViewModel @AssistedInject constructor(
 private val SetupModule.Type.priority: Int
     get() = when (this) {
         SetupModule.Type.STORAGE -> 1
-        SetupModule.Type.SAF -> 2
-        SetupModule.Type.NOTIFICATION -> 3
-        SetupModule.Type.USAGE_STATS -> 4
-        SetupModule.Type.ROOT -> 5
-        SetupModule.Type.SHIZUKU -> 6
-        SetupModule.Type.INVENTORY -> 7
+        SetupModule.Type.NOTIFICATION -> 2
+        SetupModule.Type.USAGE_STATS -> 3
+        SetupModule.Type.ROOT -> 4
+        SetupModule.Type.SHIZUKU -> 5
+        SetupModule.Type.INVENTORY -> 6
     }

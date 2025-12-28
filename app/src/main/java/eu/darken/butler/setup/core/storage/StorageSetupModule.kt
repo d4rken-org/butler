@@ -42,6 +42,8 @@ class StorageSetupModule @Inject constructor(
     private val deviceDetective: DeviceDetective,
 ) : SetupModule {
 
+    override val type = SetupModule.Type.STORAGE
+
     private val refreshTrigger = MutableStateFlow(rngString)
     override val state: Flow<SetupModule.State> = refreshTrigger
         .mapLatest {
@@ -102,11 +104,6 @@ class StorageSetupModule @Inject constructor(
     override suspend fun refresh() {
         log(TAG) { "refresh()" }
         refreshTrigger.value = rngString
-    }
-
-    suspend fun onPermissionChanged(permission: Permission, granted: Boolean) {
-        log(TAG) { "onPermissionChanged($permission, $granted)" }
-
     }
 
     fun getPermissionIntent(): Intent? {

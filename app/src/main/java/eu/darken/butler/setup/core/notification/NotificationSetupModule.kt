@@ -32,6 +32,8 @@ class NotificationSetupModule @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : SetupModule {
 
+    override val type = SetupModule.Type.NOTIFICATION
+
     private val refreshTrigger = MutableStateFlow(rngString)
     override val state: Flow<SetupModule.State> = refreshTrigger
         .mapLatest {
