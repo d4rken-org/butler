@@ -4,8 +4,10 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -31,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -123,6 +126,10 @@ fun SearcherWorkspacePage(
         contentPadding = 16.dp,
         includeSystemBarInset = design.paneEdges.touchesBottom,
     )
+    val density = LocalDensity.current
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
     val listState = rememberLazyListState()
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     var showTemplatesSheet by remember { mutableStateOf(false) }
@@ -723,6 +730,7 @@ fun SearcherWorkspacePage(
                     onPageAction(SearcherPageAction.Results.HideQuickActions)
                 },
                 onDismiss = { onPageAction(SearcherPageAction.Results.HideQuickActions) },
+                bottomInset = navBarInset,
             )
         }
 
@@ -733,6 +741,7 @@ fun SearcherWorkspacePage(
                 issue = issueState!!,
                 onResolution = { resolution -> vm?.resolveIssue(resolution) },
                 onDismiss = { /* Issue will auto-clear when resolved or cancelled */ },
+                bottomInset = navBarInset,
             )
         }
 
@@ -794,6 +803,7 @@ fun SearcherWorkspacePage(
                 }
                 onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
             },
+            bottomInset = navBarInset,
         )
 
         // Date condition edit bottom sheet
@@ -809,6 +819,7 @@ fun SearcherWorkspacePage(
                 }
                 onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
             },
+            bottomInset = navBarInset,
         )
 
         // Type condition edit bottom sheet
@@ -824,6 +835,7 @@ fun SearcherWorkspacePage(
                 }
                 onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
             },
+            bottomInset = navBarInset,
         )
 
         // Operation dialog host

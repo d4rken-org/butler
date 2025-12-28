@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -63,11 +64,13 @@ fun SizeConditionEditSheet(
     existingCondition: FilterCondition.Size?,
     onDismiss: () -> Unit,
     onApply: (FilterCondition.Size) -> Unit,
+    bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         modifier = modifier,
         visible = visible,
         onDismiss = onDismiss,
+        bottomInset = bottomInset,
     ) {
         SizeConditionEditContent(
             existingCondition = existingCondition,

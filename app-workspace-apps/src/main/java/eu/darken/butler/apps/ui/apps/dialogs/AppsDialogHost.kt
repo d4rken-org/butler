@@ -2,6 +2,8 @@ package eu.darken.butler.apps.ui.apps.dialogs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.TagFilterConfig
 import eu.darken.butler.apps.ui.apps.AppsAction
@@ -16,6 +18,7 @@ fun AppsDialogHost(
     onSortApply: (eu.darken.butler.apps.core.engine.SortSettings) -> Unit,
     onConfirmEnable: (List<AppItem>) -> Unit,
     onConfirmDisable: (List<AppItem>) -> Unit,
+    bottomInset: Dp = 0.dp,
 ) {
     when (dialogState) {
         is AppsDialogState.None -> {
@@ -29,6 +32,7 @@ fun AppsDialogHost(
                 availablePaths = dialogState.availablePaths,
                 onDismiss = onDismiss,
                 onAction = onAction,
+                bottomInset = bottomInset,
             )
         }
 

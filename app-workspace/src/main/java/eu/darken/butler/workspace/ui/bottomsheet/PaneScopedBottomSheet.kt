@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
@@ -67,6 +68,7 @@ fun PaneScopedBottomSheet(
     modifier: Modifier = Modifier,
     visible: Boolean,
     onDismiss: () -> Unit,
+    bottomInset: Dp = 0.dp,
     dragHandle: @Composable (() -> Unit)? = { DefaultDragHandle() },
     content: @Composable () -> Unit,
 ) {
@@ -76,7 +78,9 @@ fun PaneScopedBottomSheet(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
-            Column {
+            Column(
+                modifier = Modifier.padding(bottom = bottomInset),
+            ) {
                 dragHandle?.invoke()
                 content()
             }
@@ -166,7 +170,9 @@ fun PaneScopedBottomSheet(
                         ),
                     shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                 ) {
-                    Column {
+                    Column(
+                        modifier = Modifier.padding(bottom = bottomInset),
+                    ) {
                         dragHandle?.invoke()
                         content()
                     }

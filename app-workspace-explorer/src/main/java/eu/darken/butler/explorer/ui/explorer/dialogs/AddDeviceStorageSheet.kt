@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -31,10 +32,12 @@ import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 fun AddDeviceStorageSheet(
     onDismiss: () -> Unit,
     onContinue: () -> Unit,
+    bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         visible = true,
         onDismiss = onDismiss,
+        bottomInset = bottomInset,
     ) {
         Column(
             modifier = Modifier

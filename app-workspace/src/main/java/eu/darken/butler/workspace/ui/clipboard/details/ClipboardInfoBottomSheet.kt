@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -68,6 +69,7 @@ fun ClipboardInfoBottomSheet(
     clip: ClipboardClip,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    bottomInset: Dp = 0.dp,
     onNavigateToSource: (() -> Unit)? = null,
     onPaste: (() -> Unit)? = null,
     onRemove: (() -> Unit)? = null,
@@ -92,6 +94,7 @@ fun ClipboardInfoBottomSheet(
         PaneScopedBottomSheet(
             visible = true,
             onDismiss = onDismiss,
+            bottomInset = bottomInset,
             modifier = modifier,
         ) {
             ClipboardInfoContent(

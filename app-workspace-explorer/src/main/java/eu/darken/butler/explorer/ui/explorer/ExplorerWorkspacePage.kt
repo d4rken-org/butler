@@ -5,7 +5,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -135,6 +138,10 @@ fun ExplorerWorkspacePage(
         contentPadding = 16.dp,
         includeSystemBarInset = design.paneEdges.touchesBottom,
     )
+    val density = LocalDensity.current
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -728,7 +735,8 @@ fun ExplorerWorkspacePage(
             ExplorerDialogHost(
                 dialogState = mainState.dialogState,
                 trashEnabled = mainState.trashEnabled,
-                vm = vm
+                vm = vm,
+                bottomInset = navBarInset,
             )
 
             OperationDialogHost(
@@ -751,6 +759,7 @@ fun ExplorerWorkspacePage(
                     issue = issueState!!,
                     onResolution = { resolution -> vm?.resolveConflict(resolution) },
                     onDismiss = { showIssueSheet = false },
+                    bottomInset = navBarInset,
                 )
             }
         } // Box
@@ -761,7 +770,8 @@ fun ExplorerWorkspacePage(
     if (showAddStorageSheet) {
         AddDeviceStorageSheet(
             onDismiss = { vm?.dismissAddStorageSheet() },
-            onContinue = { vm?.addSAFLocation() }
+            onContinue = { vm?.addSAFLocation() },
+            bottomInset = navBarInset,
         )
     }
 
