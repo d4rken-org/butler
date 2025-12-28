@@ -154,10 +154,16 @@ fun EditorWorkspacePage(
 
     val topBarStackState = rememberFloatingBarStackState(
         position = BarPosition.TOP,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 8.dp,
         includeSystemBarInset = design.paneEdges.touchesTop,
     )
     val bottomBarStackState = rememberFloatingBarStackState(
         position = BarPosition.BOTTOM,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 16.dp,
         includeSystemBarInset = design.paneEdges.touchesBottom,
     )
 
@@ -167,10 +173,7 @@ fun EditorWorkspacePage(
     ) {
         // Main content - contentPadding allows scrolling under bars
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(topBarStackState.nestedScrollConnection)
-                .nestedScroll(bottomBarStackState.nestedScrollConnection)
+            modifier = Modifier.fillMaxSize()
         ) {
             Column(
                 modifier = Modifier.weight(1f)
@@ -198,7 +201,7 @@ fun EditorWorkspacePage(
                         // Show editor (with file content or empty in-memory buffer)
                         LazyTextEditor(
                             contentPadding = PaddingValues(
-                                top = topBarStackState.contentPaddingDp() + 8.dp,
+                                top = topBarStackState.contentPaddingDp(),
                                 bottom = bottomBarStackState.contentPaddingDp(),
                             ),
                             content = state.currentContent,
@@ -243,7 +246,10 @@ fun EditorWorkspacePage(
                             onForwardDelete = {
                                 onPageAction(EditorPageAction.Edit.ForwardDelete)
                             },
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(topBarStackState.nestedScrollConnection)
+                                .nestedScroll(bottomBarStackState.nestedScrollConnection),
                         )
                     }
                 }

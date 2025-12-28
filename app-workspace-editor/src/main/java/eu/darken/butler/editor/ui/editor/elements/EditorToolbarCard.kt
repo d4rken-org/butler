@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Description
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
 import androidx.compose.material.icons.twotone.KeyboardArrowUp
 import androidx.compose.material.icons.twotone.Save
@@ -123,10 +124,11 @@ fun EditorToolbarCard(
                             )
                         }
                     } else if (isModified) {
-                        Text(
-                            text = stringResource(R.string.editor_modified_indicator),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium
+                        Icon(
+                            modifier = Modifier.size(14.dp),
+                            imageVector = Icons.TwoTone.Edit,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
                         )
                     }
 
@@ -167,11 +169,13 @@ fun EditorToolbarCard(
 
                     // Show modified indicator (loading is shown in actions section below)
                     if (isModified && !isLoading) {
-                        Text(
-                            text = stringResource(R.string.editor_modified_indicator),
-                            modifier = Modifier.padding(horizontal = 8.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.titleLarge
+                        Icon(
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .size(16.dp),
+                            imageVector = Icons.TwoTone.Edit,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
                         )
                     }
 

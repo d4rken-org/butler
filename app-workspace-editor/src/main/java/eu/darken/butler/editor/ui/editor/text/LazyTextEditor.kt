@@ -151,7 +151,7 @@ fun LazyTextEditor(
     // Update visible range when scroll position changes
     LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size) {
         if (totalLines > 0 && contentListState.layoutInfo.totalItemsCount > 0) {
-            val startIndex = contentListState.firstVisibleItemIndex.coerceAtLeast(0)
+            val startIndex = (contentListState.firstVisibleItemIndex - 10).coerceAtLeast(0)
             val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
             val endIndex = minOf(
                 startIndex + visibleCount + 10, // Buffer
@@ -354,15 +354,11 @@ private fun DualColumnEditorContent(
             .sortedBy { it.key }
             .joinToString("\n") { it.value }
         if (textFieldValue.text != currentContent) {
-            // Preserve selection if within valid range, otherwise reset to end
-            val preservedSelection = if (textFieldValue.selection.end <= currentContent.length) {
-                textFieldValue.selection
-            } else {
-                TextRange(currentContent.length)
-            }
+            // Always position cursor at end - insertion detection relies on characters
+            // being appended, which only works when cursor is at the end
             textFieldValue = TextFieldValue(
                 text = currentContent,
-                selection = preservedSelection
+                selection = TextRange(currentContent.length),
             )
         }
     }
@@ -407,7 +403,7 @@ private fun DualColumnEditorContent(
     }
 
     Box(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .focusRequester(focusRequester)
     ) {
@@ -585,7 +581,8 @@ private fun DualColumnEditorContent(
             LazyColumn(
                 state = contentListState,
                 contentPadding = contentPadding,
-                modifier = contentModifier
+                modifier = modifier
+                    .then(contentModifier)
                     .then(focusBorderModifier)
                     .pointerInput(isWorkspaceFocused, requestWorkspaceFocus) {
                         detectTapGestures(

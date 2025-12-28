@@ -286,6 +286,13 @@ class EditorEngine @AssistedInject constructor(
     suspend fun insertText(text: String) = stateMutex.withLock {
         when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                // If there's a selection, delete it first (standard "replace selection" behavior)
+                val (hadSelection, deleteResult) = deleteSelectionIfPresent(currentState)
+                if (hadSelection && deleteResult?.isFailure == true) {
+                    return@withLock // Selection delete failed, error already set
+                }
+
+                // Use current cursor position (will be at selection.first if selection was deleted)
                 val cursorPos = _cursorPosition.value
 
                 // Recalculate correct offset from line/column using chunk metadata
@@ -355,6 +362,30 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
+    /**
+     * Deletes the current selection if one exists.
+     * Must be called within stateMutex.withLock.
+     * @return Pair of (selection was deleted, deleted text result). If no selection, returns (false, null).
+     */
+    private suspend fun deleteSelectionIfPresent(
+        currentState: EditorState.Loaded,
+    ): Pair<Boolean, Result<String>?> {
+        val selection = _selectionRange.value ?: return false to null
+
+        val result = currentState.resources.textBuffer.deleteText(selection.first, selection.second)
+        if (result.isSuccess) {
+            _selectionRange.value = null
+            _cursorPosition.value = selection.first
+            _state.value = currentState.copy(isModified = true)
+            _totalLines.value = currentState.resources.textBuffer.totalLines.value
+            invalidateSearchResults()
+            refreshVisibleContent()
+        } else {
+            _error.value = result.exceptionOrNull()
+        }
+        return true to result
+    }
+
     suspend fun deleteSelection(): Result<String> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
@@ -393,6 +424,12 @@ class EditorEngine @AssistedInject constructor(
     suspend fun deleteAtCursor(count: Int): Result<String> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                // If there's a selection, delete it instead of backspace (standard behavior)
+                val (hadSelection, deleteResult) = deleteSelectionIfPresent(currentState)
+                if (hadSelection) {
+                    return deleteResult ?: Result.success("")
+                }
+
                 if (count <= 0) {
                     return Result.success("")
                 }
@@ -767,6 +804,12 @@ class EditorEngine @AssistedInject constructor(
     suspend fun deleteForward(): Result<String> = stateMutex.withLock {
         val currentState = _state.value as? EditorState.Loaded
             ?: return Result.failure(IllegalStateException("Cannot delete forward - no file open"))
+
+        // If there's a selection, delete it instead of forward-delete (standard behavior)
+        val (hadSelection, deleteResult) = deleteSelectionIfPresent(currentState)
+        if (hadSelection) {
+            return deleteResult ?: Result.success("")
+        }
 
         val cursorPos = _cursorPosition.value
         val totalLength = currentState.resources.textBuffer.totalLength.value

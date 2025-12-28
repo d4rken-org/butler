@@ -5,10 +5,11 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorSettings
-import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class EditorSettingsViewModel
@@ -21,10 +22,14 @@ constructor(
     val state = combine(
         editorSettings.showLineNumbers.flow,
         editorSettings.wordWrap.flow,
-    ) { showLineNumbers, wordWrap ->
+        editorSettings.autoSaveEnabled.flow,
+        editorSettings.autoSaveInterval.flow,
+    ) { showLineNumbers, wordWrap, autoSaveEnabled, autoSaveInterval ->
         State(
             showLineNumbers = showLineNumbers,
             wordWrap = wordWrap,
+            autoSaveEnabled = autoSaveEnabled,
+            autoSaveIntervalSeconds = autoSaveInterval.inWholeSeconds.toInt(),
         )
     }.asStateFlow()
 
@@ -39,8 +44,20 @@ constructor(
         editorSettings.wordWrap.value(enabled)
     }
 
+    fun updateAutoSaveEnabled(enabled: Boolean) = launch {
+        log(tag) { "updateAutoSaveEnabled($enabled)" }
+        editorSettings.autoSaveEnabled.value(enabled)
+    }
+
+    fun updateAutoSaveInterval(seconds: Int) = launch {
+        log(tag) { "updateAutoSaveInterval($seconds)" }
+        editorSettings.autoSaveInterval.value(seconds.seconds)
+    }
+
     data class State(
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
+        val autoSaveEnabled: Boolean = false,
+        val autoSaveIntervalSeconds: Int = 30,
     )
 }
