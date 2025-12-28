@@ -71,6 +71,14 @@
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Untitled</string>
 
+    <!-- Editor Settings - Auto-Save -->
+    <string name="editor_settings_autosave_category">Auto-save</string>
+    <string name="editor_settings_autosave_enabled_title">Enable auto-save</string>
+    <string name="editor_settings_autosave_enabled_subtitle">Automatically save changes after a period of inactivity.</string>
+    <string name="editor_settings_autosave_interval_title">Auto-save interval</string>
+    <string name="editor_settings_autosave_interval_subtitle">Time to wait after last edit before saving.</string>
+    <string name="editor_settings_autosave_interval_dialog_title">Auto-save interval</string>
+
     <!-- Editor Settings - Clipboard -->
     <string name="editor_settings_clipboard_category">Clipboard</string>
     <string name="editor_settings_clipboard_behavior_title">Butler clipboard</string>

@@ -32,11 +32,16 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -213,6 +218,35 @@ class EditorWorkspace @AssistedInject constructor(
                 updateContentSource(source)
             }
         }
+
+        // Auto-save logic: debounce after changes
+        combine(
+            editorState.map { it.isModified }.distinctUntilChanged(),
+            editorSettings.autoSaveEnabled.flow,
+            editorSettings.autoSaveInterval.flow,
+        ) { isModified, enabled, interval ->
+            Triple(isModified, enabled, interval)
+        }
+            .flatMapLatest { (isModified, enabled, interval) ->
+                if (isModified && enabled) {
+                    // Debounce: wait for interval after last modification
+                    flow {
+                        delay(interval)
+                        emit(Unit)
+                    }
+                } else {
+                    emptyFlow()
+                }
+            }
+            .onEach {
+                log(tag, INFO) { "Auto-save triggered" }
+                try {
+                    saveFile()
+                } catch (e: Exception) {
+                    log(tag, WARN) { "Auto-save failed: ${e.asLog()}" }
+                }
+            }
+            .launchIn(workspaceScope)
     }
 
     fun updateTitle(fileName: String? = null) {

@@ -8,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.WrapText
 import androidx.compose.material.icons.twotone.FormatListNumbered
+import androidx.compose.material.icons.twotone.Save
+import androidx.compose.material.icons.twotone.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -15,17 +17,25 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
+import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
+import eu.darken.butler.common.settings.SettingsPreferenceItem
 import eu.darken.butler.common.settings.SettingsSwitchItem
+import eu.darken.butler.common.ui.SecondsDurationInputDialog
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.editor.R
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun EditorSettingsScreen(
@@ -33,7 +43,12 @@ fun EditorSettingsScreen(
     onNavigateUp: () -> Unit,
     onShowLineNumbersChange: (Boolean) -> Unit,
     onWordWrapChange: (Boolean) -> Unit,
+    onAutoSaveEnabledChange: (Boolean) -> Unit,
+    onAutoSaveIntervalChange: (Int) -> Unit,
 ) {
+    var showIntervalDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -77,7 +92,53 @@ fun EditorSettingsScreen(
                     onCheckedChange = onWordWrapChange
                 )
             }
+
+            item {
+                SettingsCategoryHeader(text = stringResource(R.string.editor_settings_autosave_category))
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.Save,
+                    title = stringResource(R.string.editor_settings_autosave_enabled_title),
+                    subtitle = stringResource(R.string.editor_settings_autosave_enabled_subtitle),
+                    checked = state.autoSaveEnabled,
+                    onCheckedChange = onAutoSaveEnabledChange
+                )
+                SettingsDivider()
+            }
+
+            item {
+                val intervalValue = context.resources.getQuantityString(
+                    eu.darken.butler.common.R.plurals.common_duration_seconds_full,
+                    state.autoSaveIntervalSeconds,
+                    state.autoSaveIntervalSeconds,
+                )
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.Timer,
+                    title = stringResource(R.string.editor_settings_autosave_interval_title),
+                    subtitle = stringResource(R.string.editor_settings_autosave_interval_subtitle),
+                    value = intervalValue,
+                    onClick = { showIntervalDialog = true },
+                    enabled = state.autoSaveEnabled,
+                )
+            }
         }
+    }
+
+    if (showIntervalDialog) {
+        SecondsDurationInputDialog(
+            title = stringResource(R.string.editor_settings_autosave_interval_dialog_title),
+            currentDuration = state.autoSaveIntervalSeconds.seconds,
+            minimumDuration = 10.seconds,
+            maximumDuration = 300.seconds,
+            defaultDuration = 30.seconds,
+            onDismiss = { showIntervalDialog = false },
+            onConfirm = { duration ->
+                onAutoSaveIntervalChange(duration.inWholeSeconds.toInt())
+                showIntervalDialog = false
+            },
+        )
     }
 }
 
@@ -89,10 +150,14 @@ private fun EditorSettingsScreenPreview() {
             state = EditorSettingsViewModel.State(
                 showLineNumbers = true,
                 wordWrap = false,
+                autoSaveEnabled = true,
+                autoSaveIntervalSeconds = 30,
             ),
             onNavigateUp = {},
             onShowLineNumbersChange = {},
             onWordWrapChange = {},
+            onAutoSaveEnabledChange = {},
+            onAutoSaveIntervalChange = {},
         )
     }
 }
@@ -110,6 +175,8 @@ fun EditorSettingsScreenHost(vm: EditorSettingsViewModel = hiltViewModel()) {
             onNavigateUp = { vm.navUp() },
             onShowLineNumbersChange = { vm.updateShowLineNumbers(it) },
             onWordWrapChange = { vm.updateWordWrap(it) },
+            onAutoSaveEnabledChange = { vm.updateAutoSaveEnabled(it) },
+            onAutoSaveIntervalChange = { vm.updateAutoSaveInterval(it) },
         )
     }
 }
