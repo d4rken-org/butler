@@ -118,11 +118,11 @@ fun WorkspaceSwitchIndicator(
                 // Row 2: Title
                 Text(
                     text = info.title.asComposable(),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.MiddleEllipsis,
                 )
 
                 // Row 3: Subtitle (if present)
@@ -130,10 +130,10 @@ fun WorkspaceSwitchIndicator(
                 if (!subtitle.isNullOrBlank()) {
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.MiddleEllipsis,
                     )
                 }
             }
