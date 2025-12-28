@@ -16,7 +16,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
@@ -35,8 +34,6 @@ fun EditorSettingsScreen(
     onShowLineNumbersChange: (Boolean) -> Unit,
     onWordWrapChange: (Boolean) -> Unit,
 ) {
-    LocalContext.current
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -79,7 +76,6 @@ fun EditorSettingsScreen(
                     checked = state.wordWrap,
                     onCheckedChange = onWordWrapChange
                 )
-                SettingsDivider()
             }
         }
     }

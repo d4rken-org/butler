@@ -34,6 +34,8 @@ class UsageStatsSetupModule @Inject constructor(
     private val deviceDetective: DeviceDetective,
 ) : SetupModule {
 
+    override val type = SetupModule.Type.USAGE_STATS
+
     private val refreshTrigger = MutableStateFlow(rngString)
     override val state: Flow<SetupModule.State> = refreshTrigger
         .mapLatest {

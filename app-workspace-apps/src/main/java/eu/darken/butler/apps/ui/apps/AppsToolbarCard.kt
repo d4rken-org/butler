@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
@@ -23,13 +24,14 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
 fun AppsToolbarCard(
-    workspaceId: Workspace.Id,
     modifier: Modifier = Modifier,
+    workspaceId: Workspace.Id,
     searchQuery: TextFieldValue,
     onSearchQueryChange: (TextFieldValue) -> Unit,
     design: WorkspaceDesign,
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceActionHandler: WorkspaceActionHandler?,
+    collapsedFraction: Float = 0f,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -52,7 +54,9 @@ fun AppsToolbarCard(
 
             if (design.isSingle) {
                 WorkspaceButton(
-                    modifier = Modifier.padding(end = 8.dp),
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .graphicsLayer { alpha = 1f - collapsedFraction },
                     buttonSize = 32.dp,
                     state = workspaceButtonState,
                     currentWorkspaceId = workspaceId,

@@ -6,7 +6,7 @@ import dagger.assisted.AssistedInject
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.editor.core.engine.ChunkBoundary
-import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,14 +32,22 @@ class InMemoryDataSource @AssistedInject constructor(
     override suspend fun open() {
         // No-op: in-memory data source doesn't require opening
         // Line ending will be detected by ChunkRepository when chunks are loaded
+        updateContentSource()
     }
 
-    override val fileInfo: StateFlow<FileInfo?> = MutableStateFlow(null)
+    private val _contentSource = MutableStateFlow<ContentSource>(
+        ContentSource.Memory(size = initialContent.length.toLong())
+    )
+    override val contentSource: StateFlow<ContentSource> = _contentSource.asStateFlow()
 
     private val _isModified = MutableStateFlow(false)
     override val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
 
     private var content: String = initialContent
+
+    private fun updateContentSource() {
+        _contentSource.value = ContentSource.Memory(size = content.length.toLong())
+    }
 
     override suspend fun readChunk(startOffset: Long, size: Long): String {
         log(tag) { "readChunk called: startOffset=$startOffset, size=$size, content.length=${content.length}" }
@@ -79,6 +87,7 @@ class InMemoryDataSource @AssistedInject constructor(
 
         content = mergedBytes.toString(Charsets.UTF_8)
         _isModified.value = content != initialContent
+        updateContentSource()
 
         log(tag) { "Successfully merged dirty chunks (new size: ${content.length} bytes)" }
     }
@@ -86,6 +95,7 @@ class InMemoryDataSource @AssistedInject constructor(
     override suspend fun close() {
         content = ""
         _isModified.value = false
+        updateContentSource()
     }
 
     override suspend fun openSource(): Source {
@@ -102,6 +112,7 @@ class InMemoryDataSource @AssistedInject constructor(
     fun setContent(newContent: String) {
         content = newContent
         _isModified.value = content != initialContent
+        updateContentSource()
     }
 
     @AssistedFactory

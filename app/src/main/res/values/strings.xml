@@ -1,7 +1,7 @@
 <resources>
     <string name="onboarding_welcome_title">Welcome to Butler</string>
-    <string name="onboarding_welcome_message">Open source. Ad-free. No tracking.\nThe file explorer you deserve.</string>
-    <string name="onboarding_welcome_subtitle">Tabs for files. Browse, search, and edit — all at once.</string>
+    <string name="onboarding_welcome_message">Tabs for files.\nBrowse, search, and edit — all at once.</string>
+    <string name="onboarding_welcome_subtitle">Open source. Ad-free. No tracking.\nThe file explorer you deserve.</string>
     <string name="onboarding_welcome_action">Start exploring</string>
     <string name="onboarding_beta_title">Shape the future</string>
     <string name="onboarding_beta_message">This is a beta (testing) build. Proceed with a sense of humor and a backup plan. Please report issues you encounter.</string>
@@ -33,7 +33,7 @@
 
     <!-- Explorer Shortcuts -->
     <string name="shortcut_explorer_new_short">New explorer</string>
-    <string name="shortcut_explorer_new_long">Create new explorer workspace</string>
+    <string name="shortcut_explorer_new_long">Create new explorer tab</string>
 
     <!-- Shortcuts Settings -->
     <string name="shortcuts_settings_title">Shortcuts</string>
@@ -63,7 +63,6 @@
     <string name="setup_shizuku_card_title">Shizuku</string>
     <string name="setup_root_card_title">Root</string>
     <string name="setup_notification_title">Notification access</string>
-    <string name="setup_saf_card_title">Storage Access Framework</string>
     <string name="setup_manage_storage_card_title">Manage external storage</string>
     <string name="setup_inventory_card_title">App inventory</string>
 
@@ -75,7 +74,6 @@
     <string name="setup_shizuku_description">Alternative to root that provides privileged file operations through a secure API. Allows access to restricted directories without traditional root. Requires Shizuku app to be installed and running.</string>
     <string name="setup_notification_description">Shows updates for file operations, background tasks, and transfer progress. Keeps you informed when operations complete or errors occur.</string>
     <string name="setup_usagestats_description">Analyzes app storage usage to identify large files and help manage space effectively. All data stays on your device and is never transmitted.</string>
-    <string name="setup_saf_description">Secure access to external storage, SD cards, and cloud providers. Android\'s privacy-respecting approach to file access with granular folder permissions.</string>
     <string name="setup_storage_description">Full access to all device storage for fast file operations and batch processing. Enables comprehensive file management without repeated permission prompts.</string>
     <string name="setup_inventory_description">See all installed apps for features like APK extraction and storage analysis. Required on Android 11+ to view complete app list.</string>
 
@@ -201,9 +199,9 @@
     <string name="workspace_status_operation_singular">Operation</string>
     <string name="workspace_status_operation_plural">Operations</string>
     <string name="workspace_status_attention_label">Attention</string>
-    <string name="workspace_status_filter_tabs_desc">Show all workspaces</string>
-    <string name="workspace_status_filter_operations_desc">Filter by workspaces with operations</string>
-    <string name="workspace_status_filter_attention_desc">Filter by workspaces needing attention</string>
+    <string name="workspace_status_filter_tabs_desc">Show all tabs</string>
+    <string name="workspace_status_filter_operations_desc">Filter by tabs with operations</string>
+    <string name="workspace_status_filter_attention_desc">Filter by tabs needing attention</string>
 
     <!-- Acknowledgements -->
     <string name="acknowledgement_android_title">Android</string>
@@ -312,7 +310,7 @@
     <string name="workspace_fab_apps">Apps</string>
     <string name="workspace_fab_templates">Templates</string>
     <string name="workspace_fab_close_all">Close all tabs</string>
-    <string name="workspace_fab_longpress_hint">Tip: Long-press for quick access to all workspace types</string>
+    <string name="workspace_fab_longpress_hint">Tip: Long-press for quick access to all tab types</string>
 
     <!-- Workspace Navigation Rail -->
     <string name="workspace_pane_assign_action">Assign to pane %1$d</string>

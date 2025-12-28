@@ -16,19 +16,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -44,14 +38,15 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
+import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
+import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
-import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.setHeight
-import eu.darken.butler.workspace.ui.scroll.setHeights
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -96,28 +91,25 @@ private fun AppsWorkspacePage(
         derivedStateOf { state.availableActions.isNotEmpty() }
     }
 
-    // Scroll behavior for toolbar and action bar
-    val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
-    val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
-    val density = LocalDensity.current
-    var toolbarInfoBarHeightPx by remember { mutableStateOf(0) }
-    val toolbarInfoBarHeightDp = with(density) { toolbarInfoBarHeightPx.toDp() }
+    val showInfoBar by remember {
+        derivedStateOf { state.apps.isNotEmpty() || state.selectionCount > 0 }
+    }
 
-    // Set the bottom bar height for scroll behavior
-    bottomBarScrollBehavior.state.setHeight(64.dp)
-
-    // Configure top toolbar scroll heights after measurement
-    topToolbarScrollBehavior.state.setHeights(
-        expandedHeightDp = toolbarInfoBarHeightDp,
-        collapsedHeightDp = 0.dp
+    val topBarStackState = rememberFloatingBarStackState(
+        position = BarPosition.TOP,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 8.dp,
+        includeSystemBarInset = design.paneEdges.touchesTop,
     )
 
-    // Auto-show action bar when entering selection mode
-    LaunchedEffect(hasActions) {
-        if (hasActions) {
-            bottomBarScrollBehavior.state.animateToExpanded()
-        }
-    }
+    val bottomBarStackState = rememberFloatingBarStackState(
+        position = BarPosition.BOTTOM,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 16.dp,
+        includeSystemBarInset = design.paneEdges.touchesBottom,
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         PullToRefreshBox(
@@ -130,11 +122,11 @@ private fun AppsWorkspacePage(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
-                            .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                            .nestedScroll(topBarStackState.nestedScrollConnection)
+                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
                         contentPadding = PaddingValues(
-                            top = topToolbarScrollBehavior.state.getCurrentHeightDp(),
-                            bottom = if (hasActions) 72.dp else 8.dp,
+                            top = topBarStackState.contentPaddingDp(),
+                            bottom = bottomBarStackState.contentPaddingDp(),
                         ),
                     ) {
                         when {
@@ -186,11 +178,11 @@ private fun AppsWorkspacePage(
                         columns = GridCells.Adaptive(minSize = minSize),
                         modifier = Modifier
                             .fillMaxSize()
-                            .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
-                            .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                            .nestedScroll(topBarStackState.nestedScrollConnection)
+                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
                         contentPadding = PaddingValues(
-                            top = topToolbarScrollBehavior.state.getCurrentHeightDp(),
-                            bottom = if (hasActions) 72.dp else 8.dp,
+                            top = topBarStackState.contentPaddingDp(),
+                            bottom = bottomBarStackState.contentPaddingDp(),
                             start = 8.dp,
                             end = 8.dp,
                         ),
@@ -236,58 +228,77 @@ private fun AppsWorkspacePage(
             }
         }
 
-        // Pinned toolbar and info bar at top
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .graphicsLayer {
-                    translationY = topToolbarScrollBehavior.state.heightOffset
-                    alpha = 1f - topToolbarScrollBehavior.state.collapsedFraction
+        // Top floating bars
+        FloatingBarStack(
+            state = topBarStackState,
+            position = BarPosition.TOP,
+            modifier = Modifier.align(Alignment.TopCenter),
+            bars = {
+                // Toolbar - collapses on scroll
+                FloatingBar(
+                    visible = true,
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
+                    animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                ) {
+                    AppsToolbarCard(
+                        workspaceId = workspaceId,
+                        searchQuery = state.searchQuery,
+                        onSearchQueryChange = { vm?.onSearchQueryChanged(it) },
+                        design = design,
+                        workspaceButtonState = workspaceButtonState,
+                        workspaceActionHandler = workspaceActionHandler,
+                        collapsedFraction = collapsedFraction,
+                    )
                 }
-                .onGloballyPositioned { layoutCoordinates ->
-                    toolbarInfoBarHeightPx = layoutCoordinates.size.height
+
+                // Info bar - vanishes on scroll
+                FloatingBar(
+                    visible = showInfoBar,
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                ) {
+                    AppsInfoBar(
+                        userAppsCount = state.userAppsCount,
+                        systemAppsCount = state.systemAppsCount,
+                        selectedCount = state.selectionCount,
+                        onClearSelection = { vm?.onClearSelection() },
+                    )
                 }
-        ) {
-            AppsToolbarCard(
-                workspaceId = workspaceId,
-                searchQuery = state.searchQuery,
-                onSearchQueryChange = { vm?.onSearchQueryChanged(it) },
-                design = design,
-                workspaceButtonState = workspaceButtonState,
-                workspaceActionHandler = workspaceActionHandler,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+            },
+            content = { _ ->
+                // Content padding is applied to LazyColumn/LazyVerticalGrid above
+            },
+        )
 
-            AppsInfoBar(
-                userAppsCount = state.userAppsCount,
-                systemAppsCount = state.systemAppsCount,
-                selectedCount = state.selectionCount,
-                onClearSelection = { vm?.onClearSelection() },
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-            )
-        }
-
-        // Floating Bottom ActionBar - Selection mode
-        if (hasActions) {
-            WorkspaceActionBar(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 8.dp, vertical = 8.dp)
-                    .graphicsLayer {
-                        // Immediate snap behavior: fully visible or fully hidden
-                        alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
-                        translationY = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
-                    },
-                actions = state.availableActions,
-                onActionClick = { action ->
-                    when (val appsAction = action as AppsAction) {
-                        is AppsAction.DeselectAll -> vm?.onClearSelection()
-                        else -> vm?.onAction(appsAction)
-                    }
-                },
-            )
-        }
+        // Bottom floating bars
+        FloatingBarStack(
+            state = bottomBarStackState,
+            position = BarPosition.BOTTOM,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            bars = {
+                FloatingBar(
+                    visible = hasActions,
+                    scrollBehavior = BarScrollBehavior.HideOnScroll,
+                    animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    WorkspaceActionBar(
+                        actions = state.availableActions,
+                        onActionClick = { action ->
+                            when (val appsAction = action as AppsAction) {
+                                is AppsAction.DeselectAll -> vm?.onClearSelection()
+                                else -> vm?.onAction(appsAction)
+                            }
+                        },
+                    )
+                }
+            },
+            content = { _ ->
+                // Content padding is applied to LazyColumn/LazyVerticalGrid above
+            },
+        )
     }
 
     // Dialog Host

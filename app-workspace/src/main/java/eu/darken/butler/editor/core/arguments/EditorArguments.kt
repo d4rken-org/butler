@@ -19,7 +19,9 @@ sealed interface EditorArguments : Workspace.Arguments {
     @Parcelize
     data class Default(
         val filePath: APath<*>? = null,
-        val goToLine: Int? = null,
+        val cursorLine: Int? = null,
+        val cursorColumn: Int? = null,
+        val scrollToLine: Int? = null,
         val initialContent: String? = null,
         val suggestedTitle: String? = null,
     ) : EditorArguments

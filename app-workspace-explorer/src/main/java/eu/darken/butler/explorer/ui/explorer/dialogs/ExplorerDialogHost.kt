@@ -139,6 +139,15 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.CreateFileFromText -> {
+            CreateFileFromTextDialog(
+                clip = dialogState.clip,
+                onValidate = vm?.let { vm::validateFilename } ?: { FilenameValidator.ValidationResult.Valid },
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { clip, filename -> vm?.onCreateFileFromText(clip, filename) }
+            )
+        }
+
         is ExplorerDialogState.ItemInfo -> {
             when (val context = dialogState.context) {
                 is ExplorerDialogState.ItemInfo.InfoContext.SingleFile -> {

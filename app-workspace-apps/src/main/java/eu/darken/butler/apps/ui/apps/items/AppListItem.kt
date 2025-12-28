@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -71,6 +70,7 @@ fun AppListItem(
                         imageVector = Icons.TwoTone.Android,
                         contentDescription = null,
                         modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -82,13 +82,14 @@ fun AppListItem(
         ) {
             Text(
                 text = item.label.get(context),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = item.packageName,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -99,16 +100,19 @@ fun AppListItem(
                     Text(
                         text = "v${item.versionName}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 if (item.appSize != null) {
                     Text(
                         text = formatFileSize(item.appSize),
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+            if (item.tags.isNotEmpty()) {
+                AppTagRow(tags = item.tags)
             }
         }
     }
@@ -148,6 +152,34 @@ private fun AppListItemDisabledPreview() {
     PreviewWrapper {
         AppListItem(
             item = AppsMockDataProvider.Presets.disabledAppItem,
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = false,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppListItemWithTagsPreview() {
+    PreviewWrapper {
+        AppListItem(
+            item = AppsMockDataProvider.Presets.multiTagAppItem,
+            isSelected = false,
+            onClick = {},
+            onLongClick = {},
+            showSelection = false,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun AppListItemSplitApkPreview() {
+    PreviewWrapper {
+        AppListItem(
+            item = AppsMockDataProvider.Presets.updatedSystemItem,
             isSelected = false,
             onClick = {},
             onLongClick = {},

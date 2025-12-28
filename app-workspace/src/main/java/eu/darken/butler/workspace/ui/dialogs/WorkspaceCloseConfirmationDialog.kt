@@ -20,12 +20,12 @@ fun WorkspaceCloseConfirmationDialog(
     PaneBoundAlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = stringResource(CommonR.string.general_workspace_close_confirmation_title))
+            Text(text = stringResource(CommonR.string.general_tab_close_confirmation_title))
         },
         text = {
             Text(
                 text = stringResource(
-                    CommonR.string.general_workspace_close_confirmation_message,
+                    CommonR.string.general_tab_close_confirmation_message,
                     workspaceTitle.get(LocalContext.current)
                 )
             )

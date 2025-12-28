@@ -27,8 +27,8 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkedTextBuffer")
 
-    private val _fileInfo = MutableStateFlow<FileInfo?>(null)
-    val fileInfo: StateFlow<FileInfo?> = _fileInfo.asStateFlow()
+    private val _contentSource = MutableStateFlow<ContentSource>(ContentSource.Memory(size = 0L))
+    val contentSource: StateFlow<ContentSource> = _contentSource.asStateFlow()
 
     private val _lineEnding = MutableStateFlow(LineEnding.LF)
     val lineEnding: StateFlow<LineEnding> = _lineEnding.asStateFlow()
@@ -54,18 +54,19 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     suspend fun initialize(): Result<Unit> = bufferMutex.withLock {
         try {
-            // Get info from data source (may be null for in-memory sources)
-            val info = chunkRepository.getFileInfo()
-            val size = if (info != null) {
-                log(tag) { "Initializing text buffer with file: ${info.path}" }
-                _fileInfo.value = info
-                info.size
-            } else {
-                // In-memory content or uninitialized source
-                log(tag) { "Initializing text buffer with in-memory content" }
-                val contentSize = chunkRepository.dataSource.getSize()
-                _totalLength.value = contentSize
-                contentSize
+            // Get content source info from data source
+            val source = chunkRepository.getContentSource()
+            _contentSource.value = source
+
+            val size = when (source) {
+                is ContentSource.File -> {
+                    log(tag) { "Initializing text buffer with file: ${source.path}" }
+                    source.size
+                }
+                is ContentSource.Memory -> {
+                    log(tag) { "Initializing text buffer with in-memory content" }
+                    source.size
+                }
             }
 
             _totalLength.value = size
@@ -125,7 +126,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         undoStack.clear()
         redoStack.clear()
 
-        _fileInfo.value = null
+        _contentSource.value = ContentSource.Memory(size = 0L)
         _totalLines.value = 0
         _totalLength.value = 0L
         _isModified.value = false
@@ -660,7 +661,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
         return chunkMeta.startOffset + offsetInChunk
     }
 
-    suspend fun search(query: String, startFrom: TextPosition?, ignoreCase: Boolean): List<SearchResult> {
+    suspend fun search(query: String, startFrom: TextPosition?, options: SearchOptions): List<SearchResult> {
         // Handle empty query early
         if (query.isEmpty()) {
             return emptyList()
@@ -686,7 +687,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 continue
             }
 
-            val chunkResults = chunkRepository.searchInChunk(chunk, boundary, query, ignoreCase)
+            val chunkResults = chunkRepository.searchInChunk(chunk, boundary, query, options)
 
             // Correct line numbers from chunk-relative to file-relative
             val metadata = metadataMap[chunkId]
@@ -862,7 +863,10 @@ class ChunkedTextBuffer @AssistedInject constructor(
             _totalLines.value = 1
             // Set default line ending for empty files
             _lineEnding.value = LineEnding.LF
-            _fileInfo.value = _fileInfo.value?.copy(lineEnding = LineEnding.LF)
+            // Also update ContentSource.File if present (file sources)
+            (_contentSource.value as? ContentSource.File)?.let {
+                _contentSource.value = it.copy(lineEnding = LineEnding.LF)
+            }
             log(tag) { "Built metadata for empty file (1 line, default LF)" }
             return
         }
@@ -891,8 +895,10 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
         // Update line ending state (works for both file and in-memory sources)
         _lineEnding.value = documentLineEnding
-        // Also update FileInfo if present (file sources)
-        _fileInfo.value = _fileInfo.value?.copy(lineEnding = documentLineEnding)
+        // Also update ContentSource.File if present (file sources)
+        (_contentSource.value as? ContentSource.File)?.let {
+            _contentSource.value = it.copy(lineEnding = documentLineEnding)
+        }
         log(tag) { "Detected document line ending: $documentLineEnding" }
 
         // Use line counts from boundaries (incrementally maintained during edits)

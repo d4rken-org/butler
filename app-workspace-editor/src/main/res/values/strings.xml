@@ -45,11 +45,17 @@
     <!-- Editor UI elements -->
     <string name="editor_modified_indicator">•</string>
     <string name="editor_error_unknown">Unknown error</string>
-    <string name="editor_search_results_format">%1$d of %2$d results</string>
+    <plurals name="editor_search_results_x_of_y">
+        <item quantity="one">%1$d of %2$d result</item>
+        <item quantity="other">%1$d of %2$d results</item>
+    </plurals>
     <string name="editor_search_placeholder">Search…</string>
     <string name="editor_search_previous">Previous result</string>
     <string name="editor_search_next">Next result</string>
     <string name="editor_search_case_sensitive_label">Case sensitive</string>
+    <string name="editor_search_regex_label">Regular expression</string>
+    <string name="editor_search_whole_word_label">Whole word</string>
+    <string name="editor_search_options_label">Search options</string>
 
     <!-- Editor dialogs -->
     <string name="editor_dialog_go_to_line_title">Go to line</string>
@@ -64,4 +70,15 @@
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Untitled</string>
+
+    <!-- Editor Settings - Clipboard -->
+    <string name="editor_settings_clipboard_category">Clipboard</string>
+    <string name="editor_settings_clipboard_behavior_title">Butler clipboard</string>
+    <string name="editor_settings_clipboard_behavior_subtitle">Control how text copies are saved to Butler\'s clipboard.</string>
+    <string name="editor_settings_clipboard_system_only">System only</string>
+    <string name="editor_settings_clipboard_system_only_desc">Only copy to system clipboard</string>
+    <string name="editor_settings_clipboard_butler_always">Always add to Butler</string>
+    <string name="editor_settings_clipboard_butler_always_desc">Also save to Butler\'s clipboard for cross-workspace pasting</string>
+    <string name="editor_settings_clipboard_ask">Ask each time</string>
+    <string name="editor_settings_clipboard_ask_desc">Prompt before adding to Butler\'s clipboard</string>
 </resources>

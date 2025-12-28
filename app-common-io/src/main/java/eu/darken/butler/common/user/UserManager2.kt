@@ -7,6 +7,7 @@ import android.os.UserManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.canUseAdbNow
+import eu.darken.butler.common.coroutine.AppCoroutineScope
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -15,6 +16,11 @@ import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.canUseRootNow
 import eu.darken.butler.common.shell.ShellOps
 import eu.darken.butler.common.shell.ipc.ShellOpsCmd
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,7 +31,16 @@ class UserManager2 @Inject constructor(
     private val rootManager: RootManager,
     private val adbManager: AdbManager,
     private val shellOps: ShellOps,
+    appScope: AppCoroutineScope,
 ) {
+
+    val users: StateFlow<Set<UserProfile2>> = flow {
+        emit(allUsers())
+    }.stateIn(
+        scope = appScope,
+        started = SharingStarted.Lazily,
+        initialValue = emptySet(),
+    )
 
     suspend fun currentUser(): UserProfile2 = UserProfile2(
         handle = if (!hasMultiUserSupport) UserHandle2(handleId = 0) else Process.myUserHandle().toUserHandle2(),

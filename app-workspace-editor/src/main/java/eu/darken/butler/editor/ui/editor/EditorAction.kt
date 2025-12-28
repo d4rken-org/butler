@@ -31,19 +31,23 @@ sealed interface EditorAction : WorkspaceAction {
     override val badge: Boolean get() = false
 
     /**
-     * Copy selected text to clipboard
+     * Copy selected text to clipboard.
+     * Long press copies to Butler clipboard.
      */
     data object Copy : EditorAction {
         override val icon = Icons.TwoTone.ContentCopy
         override val label = eu.darken.butler.common.R.string.general_copy_action.toCaString()
+        override val supportsLongPress = true
     }
 
     /**
-     * Cut selected text to clipboard
+     * Cut selected text to clipboard.
+     * Long press cuts to Butler clipboard.
      */
     data object Cut : EditorAction {
         override val icon = Icons.TwoTone.ContentCut
         override val label = eu.darken.butler.common.R.string.general_cut_action.toCaString()
+        override val supportsLongPress = true
     }
 
     /**

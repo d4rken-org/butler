@@ -14,6 +14,8 @@ import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.ContentPaste
 import androidx.compose.material.icons.twotone.FolderOpen
+import androidx.compose.material.icons.twotone.NoteAdd
+import androidx.compose.material.icons.twotone.TextSnippet
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,9 +48,9 @@ fun ClipboardEntryRow(
     modifier: Modifier = Modifier,
     showOrigin: Boolean = false,
 ) {
-    val (pasteIcon, pasteLabel) = when (workspaceType) {
-        Workspace.Type.SEARCHER -> Icons.TwoTone.FolderOpen to R.string.clipboard_open_in_explorer
-        Workspace.Type.EXPLORER -> Icons.TwoTone.ContentPaste to R.string.clipboard_paste
+    val (pasteIcon, pasteLabel) = when {
+        workspaceType == Workspace.Type.SEARCHER -> Icons.TwoTone.FolderOpen to R.string.clipboard_open_in_explorer
+        workspaceType == Workspace.Type.EXPLORER && entry is ClipboardClip.Text -> Icons.TwoTone.NoteAdd to R.string.clipboard_text_paste_as_file
         else -> Icons.TwoTone.ContentPaste to R.string.clipboard_paste
     }
 
@@ -205,6 +207,137 @@ fun ClipboardEntryRow(
                     )
                 }
             }
+
+            is ClipboardClip.Text -> {
+                if (showOrigin) {
+                    // EXPANDED MODE: Detailed design with icons for each row
+                    Column(
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.TextSnippet,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                            )
+
+                            Spacer(modifier = Modifier.width(6.dp))
+
+                            Text(
+                                text = entry.title.asComposable(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+
+                            Text(
+                                text = formatRelativeTime(entry.clippedAt),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.padding(start = 8.dp),
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Spacer(modifier = Modifier.width(18.dp))
+
+                            Text(
+                                text = entry.preview,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Workspaces,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                            )
+
+                            Spacer(modifier = Modifier.width(6.dp))
+
+                            Text(
+                                text = stringResource(R.string.clipboard_origin, entry.origin.shortTag),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+                } else {
+                    // COLLAPSED MODE: Simple design without individual icons
+                    Icon(
+                        imageVector = Icons.TwoTone.TextSnippet,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                    )
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = entry.title.asComposable(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+
+                            Text(
+                                text = formatRelativeTime(entry.clippedAt),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                modifier = Modifier.padding(start = 8.dp),
+                            )
+                        }
+
+                        Text(
+                            text = entry.preview,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+
+                IconButton(
+                    onClick = onPasteClick
+                ) {
+                    Icon(
+                        imageVector = pasteIcon,
+                        contentDescription = stringResource(pasteLabel),
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                    )
+                }
+            }
         }
     }
 }
@@ -246,6 +379,42 @@ private fun ClipboardEntryRowExpandedPreview() {
                 clippedAt = Clock.System.now() - 2.minutes,
             ),
             workspaceType = Workspace.Type.SEARCHER,
+            onPasteClick = {},
+            onEntryClick = {},
+            showOrigin = true,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ClipboardEntryRowTextCollapsedPreview() {
+    PreviewWrapper {
+        ClipboardEntryRow(
+            entry = ClipboardClip.Text(
+                origin = Workspace.Id(Uuid.random()),
+                content = "Hello, this is a sample text snippet that was copied from the editor.",
+                clippedAt = Clock.System.now() - 3.minutes,
+            ),
+            workspaceType = Workspace.Type.EXPLORER,
+            onPasteClick = {},
+            onEntryClick = {},
+            showOrigin = false,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ClipboardEntryRowTextExpandedPreview() {
+    PreviewWrapper {
+        ClipboardEntryRow(
+            entry = ClipboardClip.Text(
+                origin = Workspace.Id(Uuid.random()),
+                content = "function greet(name) {\n  return `Hello, \${name}!`;\n}",
+                clippedAt = Clock.System.now() - 1.minutes,
+            ),
+            workspaceType = Workspace.Type.EXPLORER,
             onPasteClick = {},
             onEntryClick = {},
             showOrigin = true,

@@ -36,7 +36,7 @@ class EditorEngineSearchInvalidationTest : ChunkedTextBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for "hello"
-        val initialResults = buffer.search(query = "hello", startFrom = null, ignoreCase = false)
+        val initialResults = buffer.search(query = "hello", startFrom = null, options = SearchOptions(caseSensitive = true))
         initialResults.size shouldBe 2  // Found 2 matches
 
         // And: Insert text before first match
@@ -62,7 +62,7 @@ class EditorEngineSearchInvalidationTest : ChunkedTextBufferTestBase() {
         buffer.insertText(TextPosition(0L, 0, 0), "INSERTED ")
 
         // And: Hypothetical search finds "INSERTED"
-        val searchResults = buffer.search(query = "INSERTED", startFrom = null, ignoreCase = false)
+        val searchResults = buffer.search(query = "INSERTED", startFrom = null, options = SearchOptions(caseSensitive = true))
         searchResults.size shouldBe 1
         searchResults[0].position.offset shouldBe 0
 
@@ -87,7 +87,7 @@ class EditorEngineSearchInvalidationTest : ChunkedTextBufferTestBase() {
         buffer.undo()
 
         // When: Search in reverted state
-        val searchResults = buffer.search(query = "original", startFrom = null, ignoreCase = false)
+        val searchResults = buffer.search(query = "original", startFrom = null, options = SearchOptions(caseSensitive = true))
         searchResults.size shouldBe 1
         searchResults[0].position.offset shouldBe 0
 
@@ -109,7 +109,7 @@ class EditorEngineSearchInvalidationTest : ChunkedTextBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search finds many results
-        val results = buffer.search(query = "A", startFrom = null, ignoreCase = false)
+        val results = buffer.search(query = "A", startFrom = null, options = SearchOptions(caseSensitive = true))
         results.size shouldBe 1000
 
         // And: Delete most of the content
