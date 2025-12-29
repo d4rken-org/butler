@@ -9,4 +9,13 @@ data class ExplorerSelectionState(
     val isSelectionMode: Boolean = selectedItems.isNotEmpty()
     val selectionCount: Int = selectedItems.size
     val isAllSelected: Boolean get() = selectableItems.size == selectedItems.size
+
+    val selectedSize: Long?
+        get() {
+            val size = selectedItems
+                .filterIsInstance<ExplorerItem.Lookup>()
+                .mapNotNull { it.lookup.size }
+                .sum()
+            return if (size > 0) size else null
+        }
 }

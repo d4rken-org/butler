@@ -26,6 +26,7 @@ fun ExplorerInfoBar(
     modifier: Modifier = Modifier,
     info: ExplorerLocation.LocationInfo?,
     selectedCount: Int = 0,
+    selectedSize: Long? = null,
     onClearSelection: () -> Unit = {},
     onSelectFolders: () -> Unit = {},
     onSelectFiles: () -> Unit = {},
@@ -134,6 +135,16 @@ fun ExplorerInfoBar(
             }
         },
         trailingContent = {
+            if (selectedCount > 0 && selectedSize != null) {
+                Spacer(modifier = Modifier.weight(1f))
+                InfoChip(
+                    icon = Icons.TwoTone.Scale,
+                    label = formatFileSize(selectedSize),
+                    isAccented = true,
+                )
+                return@WorkspaceInfoBar
+            }
+
             when (info) {
                 is ExplorerLocation.Directory.Info -> {
                     Spacer(modifier = Modifier.weight(1f))
@@ -255,6 +266,7 @@ private fun ExplorerInfoBarWithSelectionPreview() {
                 isWritable = true,
             ),
             selectedCount = 3,
+            selectedSize = 1024L * 1024L * 128L,
         )
     }
 }

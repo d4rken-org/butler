@@ -640,6 +640,7 @@ fun ExplorerWorkspacePage(
                         ExplorerInfoBar(
                             info = mainState.info,
                             selectedCount = mainState.selectionState.selectedItems.size,
+                            selectedSize = mainState.selectionState.selectedSize,
                             onClearSelection = { vm?.clearSelection() },
                             onSelectFolders = { vm?.selectAllFolders() },
                             onSelectFiles = { vm?.selectAllFiles() },
