@@ -26,6 +26,8 @@ fun ExplorerInfoBar(
     info: ExplorerLocation.LocationInfo?,
     selectedCount: Int = 0,
     onClearSelection: () -> Unit = {},
+    onSelectFolders: () -> Unit = {},
+    onSelectFiles: () -> Unit = {},
     isTrashDisabled: Boolean = false,
 ) {
     WorkspaceInfoBar(
@@ -44,6 +46,7 @@ fun ExplorerInfoBar(
                                     info.directoryCount,
                                     info.directoryCount
                                 ),
+                                onClick = onSelectFolders,
                             )
                         }
                         if (info.fileCount != null && info.fileCount > 0) {
@@ -54,6 +57,7 @@ fun ExplorerInfoBar(
                                     info.fileCount,
                                     info.fileCount
                                 ),
+                                onClick = onSelectFiles,
                             )
                         }
                         if (info.directoryCount == 0 && info.fileCount == 0) {
@@ -106,6 +110,7 @@ fun ExplorerInfoBar(
                                     info.directoryCount,
                                     info.directoryCount
                                 ),
+                                onClick = onSelectFolders,
                             )
                         }
                         if (info.fileCount != null && info.fileCount > 0) {
@@ -116,6 +121,7 @@ fun ExplorerInfoBar(
                                     info.fileCount,
                                     info.fileCount
                                 ),
+                                onClick = onSelectFiles,
                             )
                         }
                     }

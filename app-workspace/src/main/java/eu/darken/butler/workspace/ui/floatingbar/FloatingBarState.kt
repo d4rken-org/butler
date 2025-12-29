@@ -106,18 +106,21 @@ class FloatingBarState(
     /**
      * The effective height considering both visibility and scroll collapse.
      * This is the height that should be used for layout and padding calculations.
+     *
+     * Note: Fraction is clamped to [0, 1] for layout stability.
+     * This allows visual bounce animations to overshoot without breaking bar positioning.
      */
     val effectiveHeight: Float
         get() {
             val baseHeight = when (scrollBehavior) {
                 is BarScrollBehavior.Static -> measuredHeight
-                is BarScrollBehavior.CollapseOnScroll -> {
-                    val collapsible = measuredHeight - collapsedHeightPx
-                    measuredHeight - (collapsible * scrollCollapsedFraction)
-                }
+                // For CollapseOnScroll, the content handles its own collapse animation
+                // via collapsedFraction. Use collapsedHeightPx as a minimum floor for safety.
+                is BarScrollBehavior.CollapseOnScroll -> measuredHeight.coerceAtLeast(collapsedHeightPx)
                 is BarScrollBehavior.HideOnScroll,
                 is BarScrollBehavior.VanishOnScroll -> {
-                    measuredHeight * (1f - scrollCollapsedFraction)
+                    val clampedFraction = scrollCollapsedFraction.coerceIn(0f, 1f)
+                    measuredHeight * (1f - clampedFraction)
                 }
             }
             return baseHeight * visibilityFraction

@@ -34,7 +34,9 @@ abstract class FloatingBarScope {
      * @param visible Whether the bar should be visible. Animated transitions when changing.
      * @param scrollBehavior How the bar responds to scroll events.
      * @param animation Animation style for visibility changes.
-     * @param collapsedHeight For [BarScrollBehavior.CollapseOnScroll], the minimum collapsed height.
+     * @param collapsedHeight Minimum layout height for [BarScrollBehavior.CollapseOnScroll].
+     *        Content can shrink below this visually, but layout calculations use this as a floor.
+     *        Use 0.dp (default) to let content fully control height.
      * @param content The bar content with access to [FloatingBarContentScope].
      */
     @Composable

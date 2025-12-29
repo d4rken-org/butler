@@ -1,8 +1,5 @@
 package eu.darken.butler.workspace.ui.floatingbar
 
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-
 /**
  * Defines how a [FloatingBar] responds to scroll events.
  */
@@ -15,12 +12,10 @@ sealed interface BarScrollBehavior {
 
     /**
      * Bar collapses to a smaller height when scrolling down, expands when scrolling up.
-     *
-     * @param collapsedHeight The minimum height when fully collapsed. Use 0.dp to fully hide.
+     * The bar content receives [FloatingBarContentScope.collapsedFraction] to animate itself.
+     * Use [FloatingBar.collapsedHeight] to set a minimum layout height floor.
      */
-    data class CollapseOnScroll(
-        val collapsedHeight: Dp = 0.dp,
-    ) : BarScrollBehavior
+    data object CollapseOnScroll : BarScrollBehavior
 
     /**
      * Bar completely hides when scrolling down, shows when scrolling up.

@@ -307,7 +307,7 @@ private fun PickerToolbarContent(
                     Text(
                         text = displayText,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.StartEllipsis,
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
