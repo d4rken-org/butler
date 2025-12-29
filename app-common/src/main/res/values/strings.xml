@@ -241,4 +241,11 @@
         <item quantity="one">%1$d file</item>
         <item quantity="other">%1$d files</item>
     </plurals>
+
+    <!-- Butler Tips -->
+    <string name="common_tip_multiple_panes">Use multiple panes to compare files side by side.</string>
+    <string name="common_tip_different_folders">Open different folders in each pane for easy file management.</string>
+    <string name="common_tip_switch_layouts">Switch between pane layouts in the tab settings manager.</string>
+    <string name="common_tip_elevated_access">Enable root or Shizuku in Setup for advanced file operations.</string>
+    <string name="common_tip_breadcrumb_home">Long-press an Explorer breadcrumb to set it as your home directory.</string>
 </resources>

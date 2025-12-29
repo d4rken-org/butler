@@ -232,6 +232,21 @@ class WorkspacesViewModel @Inject constructor(
                     }
                 }
             }
+            is WorkspaceScreenAction.CreateForPane -> {
+                log(tag) { "Creating workspace for pane ${action.paneIndex}" }
+                when (val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES))) {
+                    is WorkspaceAction.Create.Result.Success -> {
+                        log(tag) { "Workspace created: ${result.newId}, assigning to pane ${action.paneIndex}" }
+                        workspacePageManager.setFocusedWorkspace(result.newId)
+                        val currentSelections = workspacePageManager.state.value.selectedWorkspaces.toMutableMap()
+                        currentSelections[action.paneIndex] = result.newId
+                        workspacePageManager.setSelectedWorkspaces(currentSelections)
+                    }
+                    is WorkspaceAction.Create.Result.LimitReached -> {
+                        log(tag, WARN) { "Workspace creation blocked - limit reached" }
+                    }
+                }
+            }
         }
     }
 

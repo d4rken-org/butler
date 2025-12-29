@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
@@ -50,8 +49,6 @@ import eu.darken.butler.workspace.ui.workspaces.classic.ClassicWorkspaceContaine
 import kotlin.uuid.Uuid
 import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.R as WorkspaceR
-
-private val TAG = logTag("Workspace", "Screen")
 
 @Composable
 fun WorkspacesScreenHost(
@@ -239,6 +236,7 @@ fun WorkspaceScreen(
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
                 paneLocalModals = state.paneLocalModals,
+                isUpgraded = state.isUpgraded,
             )
         } else {
             ClassicWorkspaceContainer(

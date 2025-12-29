@@ -121,23 +121,24 @@ fun WorkspaceNavigationRail(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(80.dp)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             WorkspaceButton(
+                modifier = Modifier.padding(vertical = 16.dp),
                 state = workspaceButtonState,
                 currentWorkspaceId = focusedId,
                 workspaceActionHandler = workspaceActionHandler,
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider()
-            Spacer(modifier = Modifier.height(16.dp))
 
             LazyColumn(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 16.dp),
                 state = lazyListState,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(
                     items = localWorkspaces,
@@ -173,19 +174,26 @@ fun WorkspaceNavigationRail(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider()
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            AddWorkspaceButton(
+            FloatingActionButton(
                 onClick = {
                     onTabAction(
                         WorkspaceAction.Create()
                     )
-                }
-            )
+                },
+                modifier = Modifier.size(48.dp),
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+            ) {
+                Icon(
+                    imageVector = Icons.TwoTone.Add,
+                    contentDescription = stringResource(R.string.workspace_add_tab_description),
+                )
+            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
@@ -445,22 +453,6 @@ private fun WorkspaceRailItem(
                 },
             )
         }
-    }
-}
-
-@Composable
-private fun AddWorkspaceButton(
-    onClick: () -> Unit,
-) {
-    FloatingActionButton(
-        onClick = onClick,
-        modifier = Modifier.size(48.dp),
-        containerColor = MaterialTheme.colorScheme.primaryContainer,
-    ) {
-        Icon(
-            imageVector = Icons.TwoTone.Add,
-            contentDescription = stringResource(R.string.workspace_add_tab_description),
-        )
     }
 }
 

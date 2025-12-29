@@ -29,9 +29,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
+import eu.darken.butler.common.compose.ButlerAppTitle
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
-import eu.darken.butler.common.compose.ColoredTitleText
+import eu.darken.butler.common.compose.ButlerTip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -82,7 +83,9 @@ internal fun EmptyClassicWorkspaceContent(
                 )
             }
 
-            Spacer(modifier = Modifier.size(16.dp))
+            ButlerTip()
+
+            Spacer(modifier = Modifier.size(8.dp))
 
             // Action cards in order: Create, Upgrade (if not upgraded), Settings
             Column(
@@ -171,19 +174,10 @@ internal fun EmptyClassicWorkspaceContent(
 
             // Branding + version at bottom
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                if (isUpgraded) {
-                    ColoredTitleText(
-                        style = MaterialTheme.typography.titleSmall,
-                        fullTitle = stringResource(R.string.app_name_upgraded),
-                        postfix = stringResource(R.string.app_name_upgrade_postfix),
-                    )
-                } else {
-                    Text(
-                        text = stringResource(eu.darken.butler.common.R.string.app_name),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
+                ButlerAppTitle(
+                    isUpgraded = isUpgraded,
+                    style = MaterialTheme.typography.titleSmall,
+                )
                 Text(
                     text = BuildConfigWrap.VERSION_DESCRIPTION_SHORT,
                     style = MaterialTheme.typography.labelMedium,

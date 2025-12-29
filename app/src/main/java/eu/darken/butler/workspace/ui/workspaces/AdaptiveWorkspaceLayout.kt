@@ -45,6 +45,7 @@ fun AdaptiveWorkspaceLayout(
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
     paneLocalModals: Map<Workspace.Id, Workspace.Info> = emptyMap(),
+    isUpgraded: Boolean = false,
 ) {
     val dragDropState = remember { DragDropState() }
 
@@ -187,6 +188,10 @@ fun AdaptiveWorkspaceLayout(
                             modifier = Modifier.weight(1f),
                             paneNumber = paneNumber,
                             paneEdges = paneDesign.paneEdges,
+                            isUpgraded = isUpgraded,
+                            onAddWorkspace = {
+                                onScreenAction(WorkspaceScreenAction.CreateForPane(paneNumber - 1))
+                            },
                         )
                     }
                 }
