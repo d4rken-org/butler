@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import eu.darken.butler.apps.core.engine.AppTag
+import eu.darken.butler.apps.core.AppTag
 import eu.darken.butler.apps.ui.apps.items.colors
 import eu.darken.butler.apps.ui.apps.items.label
 import eu.darken.butler.common.compose.Preview2

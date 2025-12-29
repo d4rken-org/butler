@@ -1,5 +1,7 @@
 package eu.darken.butler.apps.core.engine
 
+import eu.darken.butler.apps.core.AppTag
+import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.pkgs.AKnownPkg
 import eu.darken.butler.common.pkgs.Pkg

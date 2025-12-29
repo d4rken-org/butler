@@ -1,5 +1,8 @@
 package eu.darken.butler.apps.core.arguments
 
+import eu.darken.butler.apps.core.AppsViewStyle
+import eu.darken.butler.apps.core.SortSettings
+import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.SerialName
@@ -17,6 +20,8 @@ sealed interface AppsArguments : Workspace.Arguments {
     @SerialName("arguments")
     @Parcelize
     data class Default(
-        val placeholder: String? = null,
+        val filterConfig: TagFilterConfig? = null,
+        val sortSettings: SortSettings? = null,
+        val viewStyle: AppsViewStyle? = null,
     ) : AppsArguments
 }

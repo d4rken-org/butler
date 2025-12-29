@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -129,7 +130,7 @@ fun AppGridItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f))
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                     .padding(horizontal = 6.dp, vertical = 4.dp),
             ) {
                 Column(
@@ -140,7 +141,7 @@ fun AppGridItem(
                     Text(
                         text = item.label.get(context),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.inverseOnSurface,
+                        color = MaterialTheme.colorScheme.onScrim,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
@@ -149,7 +150,7 @@ fun AppGridItem(
                         Text(
                             text = "v${item.versionName}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Center,

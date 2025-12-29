@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 
 @Composable
@@ -111,7 +112,7 @@ internal fun FileGridBase(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
-                    .background(Color.Black.copy(alpha = 0.6f))
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                     .padding(horizontal = 6.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -139,7 +140,7 @@ internal fun FileGridBase(
                     secondaryText != null -> Text(
                         text = secondaryText,
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onScrim,
                         maxLines = 1,
                         overflow = TextOverflow.MiddleEllipsis,
                         modifier = Modifier.weight(1f, fill = false)
@@ -152,7 +153,7 @@ internal fun FileGridBase(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .background(Color.Black.copy(alpha = 0.6f))
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                     .padding(horizontal = 6.dp, vertical = 4.dp)
             ) {
                 Column(
@@ -162,7 +163,7 @@ internal fun FileGridBase(
                     Text(
                         text = primaryText,
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onScrim,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
@@ -172,7 +173,7 @@ internal fun FileGridBase(
                         Text(
                             text = text,
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.fillMaxWidth()

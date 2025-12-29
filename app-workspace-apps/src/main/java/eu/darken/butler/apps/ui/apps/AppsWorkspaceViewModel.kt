@@ -9,19 +9,19 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.apps.core.AppTag
+import eu.darken.butler.apps.core.engine.standardTags
 import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsViewStyle
 import eu.darken.butler.apps.core.AppsWorkspace
+import eu.darken.butler.apps.core.SortSettings
+import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.apps.core.arguments.AppDetailsArguments
 import eu.darken.butler.apps.core.engine.AppItem
-import eu.darken.butler.apps.core.engine.AppTag
 import eu.darken.butler.apps.core.engine.AppsState
-import eu.darken.butler.apps.core.engine.SortSettings
-import eu.darken.butler.apps.core.engine.TagFilterConfig
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
-import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -60,7 +60,6 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     private suspend fun getWorkspace(): AppsWorkspace = workspaceSource.filterNotNull().first()
 
     private val searchQueryFlow = MutableStateFlow(TextFieldValue(""))
-    private val viewStyleFlow = MutableStateFlow<AppsViewStyle>(appsSettings.defaultViewStyle.valueBlocking)
     private val dialogStateFlow = MutableStateFlow<AppsDialogState>(AppsDialogState.None)
 
     data class State(
@@ -102,10 +101,10 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     val state: Flow<State> = combine(
         workspaceSource.filterNotNull().flatMapLatest { it.state },
         workspaceSource.filterNotNull().flatMapLatest { it.appsEngine.state },
+        workspaceSource.filterNotNull().flatMapLatest { it.viewStyle.filterNotNull() },
         searchQueryFlow,
-        viewStyleFlow,
         dialogStateFlow,
-    ) { workspaceState, appsState, searchQuery, viewStyle, dialogState ->
+    ) { workspaceState, appsState, viewStyle, searchQuery, dialogState ->
         // Calculate available actions based on selection state
         val actions = if (appsState.selectedAppIds.isNotEmpty()) {
             val selectedApps = appsState.filteredApps.filter { it.packageName in appsState.selectedAppIds }
@@ -440,11 +439,9 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 )
             }
 
-            is AppsAction.UpdateViewStyle -> {
-                viewStyleFlow.value = action.viewStyle
-                launch {
-                    appsSettings.defaultViewStyle.value(action.viewStyle)
-                }
+            is AppsAction.UpdateViewStyle -> launch {
+                getWorkspace().updateViewStyle(action.viewStyle)
+                appsSettings.defaultViewStyle.value(action.viewStyle)
             }
         }
     }

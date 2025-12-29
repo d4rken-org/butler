@@ -25,7 +25,11 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -51,10 +55,22 @@ class AppsWorkspace @AssistedInject constructor(
 
     val appsEngine = appsEngineFactory.create(id, scope)
 
+    private val _viewStyle = MutableStateFlow<AppsViewStyle?>(null)
+    val viewStyle: StateFlow<AppsViewStyle?> = _viewStyle.asStateFlow()
+
+    fun updateViewStyle(style: AppsViewStyle) {
+        _viewStyle.value = style
+    }
+
     override val type: Workspace.Type = Workspace.Type.APPS
 
     override suspend fun createArguments(): AppsArguments {
-        return creationArguments
+        val engineState = appsEngine.state.first()
+        return AppsArguments.Default(
+            filterConfig = engineState.filterConfig,
+            sortSettings = engineState.sortSettings,
+            viewStyle = _viewStyle.value ?: AppsViewStyle.default(),
+        )
     }
 
     private val _state = DynamicStateFlow<State>(parentScope = scope) { State() }
@@ -83,16 +99,21 @@ class AppsWorkspace @AssistedInject constructor(
     init {
         log(tag, INFO) { "AppsWorkspace initialized: $id" }
 
-        // Load initial filter/sort settings
+        // Load initial filter/sort/view settings from arguments or fall back to global defaults
         scope.launch {
             try {
-                val filterConfig = appsSettings.defaultFilterConfig.value()
-                val sortSettings = appsSettings.defaultSortSettings.value()
+                val args = creationArguments as? AppsArguments.Default
 
-                log(tag) { "Loaded settings: filterConfig=$filterConfig, sortSettings=$sortSettings" }
+                // Use arguments if provided, otherwise fall back to global defaults
+                val filterConfig = args?.filterConfig ?: appsSettings.defaultFilterConfig.value()
+                val sortSettings = args?.sortSettings ?: appsSettings.defaultSortSettings.value()
+                val viewStyle = args?.viewStyle ?: appsSettings.defaultViewStyle.value()
+
+                log(tag) { "Loaded settings: filterConfig=$filterConfig, sortSettings=$sortSettings, viewStyle=$viewStyle" }
 
                 appsEngine.updateFilterConfig(filterConfig)
                 appsEngine.updateSortSettings(sortSettings)
+                _viewStyle.value = viewStyle
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to load settings: $e" }
             }

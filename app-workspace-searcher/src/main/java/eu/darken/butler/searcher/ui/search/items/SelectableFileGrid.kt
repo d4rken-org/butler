@@ -27,10 +27,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.metadata.FileType
@@ -87,7 +87,7 @@ fun SelectableFileGrid(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.TopCenter)
-                    .background(Color.Black.copy(alpha = 0.6f))
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                     .padding(horizontal = 6.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -108,13 +108,13 @@ fun SelectableFileGrid(
                             FileType.DIRECTORY -> Icon(
                                 imageVector = Icons.TwoTone.Folder,
                                 contentDescription = "Folder",
-                                tint = Color.White,
+                                tint = MaterialTheme.colorScheme.onScrim,
                                 modifier = Modifier.size(20.dp)
                             )
                             else -> Icon(
                                 imageVector = Icons.TwoTone.Description,
                                 contentDescription = "File",
-                                tint = Color.White,
+                                tint = MaterialTheme.colorScheme.onScrim,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -128,7 +128,7 @@ fun SelectableFileGrid(
                     Text(
                         text = formatFileSize(size),
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onScrim,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
@@ -141,7 +141,7 @@ fun SelectableFileGrid(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .background(Color.Black.copy(alpha = 0.6f))
+                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                     .padding(horizontal = 6.dp, vertical = 4.dp)
             ) {
                 Column(
@@ -152,7 +152,7 @@ fun SelectableFileGrid(
                     Text(
                         text = result.name,
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onScrim,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
@@ -163,7 +163,7 @@ fun SelectableFileGrid(
                         Text(
                             text = parentPath,
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onScrim.copy(alpha = 0.7f),
                             maxLines = 1,
                             overflow = TextOverflow.MiddleEllipsis,
                             modifier = Modifier.fillMaxWidth()

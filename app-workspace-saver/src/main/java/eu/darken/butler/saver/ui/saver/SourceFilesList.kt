@@ -34,7 +34,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.getQuantityString2
@@ -233,7 +233,7 @@ private fun SourceFileGridItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .background(Color.Black.copy(alpha = 0.6f))
+                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                 .padding(horizontal = 6.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -254,7 +254,7 @@ private fun SourceFileGridItem(
                 Text(
                     text = formatFileSize(bytes = size),
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onScrim,
                     maxLines = 1,
                 )
             }
@@ -265,13 +265,13 @@ private fun SourceFileGridItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .background(Color.Black.copy(alpha = 0.6f))
+                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
                 .padding(horizontal = 6.dp, vertical = 4.dp),
         ) {
             Text(
                 text = info.displayName,
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onScrim,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
