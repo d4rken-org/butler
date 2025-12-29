@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
@@ -42,6 +43,7 @@ fun OperationDetailsSheet(
     operation: OperationDisplay,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    bottomInset: Dp = 0.dp,
     onCancel: (() -> Unit)? = null,
     onCopyError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
@@ -64,6 +66,7 @@ fun OperationDetailsSheet(
         PaneScopedBottomSheet(
             visible = true,
             onDismiss = onDismiss,
+            bottomInset = bottomInset,
             modifier = modifier,
         ) {
             OperationDetailsContent(

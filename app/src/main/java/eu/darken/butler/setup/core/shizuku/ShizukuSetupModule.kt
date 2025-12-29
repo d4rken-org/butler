@@ -44,6 +44,8 @@ class ShizukuSetupModule @Inject constructor(
     rootManager: RootManager,
 ) : SetupModule {
 
+    override val type = SetupModule.Type.SHIZUKU
+
     private val refreshTrigger = MutableStateFlow(rngString)
 
     private val permissionRequester = shizukuManager.shizukuBinder

@@ -19,7 +19,6 @@ fun getSetupIcon(type: SetupModule.Type): ImageVector = when (type) {
     SetupModule.Type.SHIZUKU -> Icons.TwoTone.Security
     SetupModule.Type.NOTIFICATION -> Icons.TwoTone.Notifications
     SetupModule.Type.USAGE_STATS -> Icons.TwoTone.Settings
-    SetupModule.Type.SAF -> Icons.TwoTone.Storage
     SetupModule.Type.STORAGE -> Icons.TwoTone.Storage
     SetupModule.Type.INVENTORY -> Icons.TwoTone.Inventory
 }
@@ -31,7 +30,6 @@ fun getSetupDescription(type: SetupModule.Type): String {
         SetupModule.Type.SHIZUKU -> stringResource(R.string.setup_shizuku_description)
         SetupModule.Type.NOTIFICATION -> stringResource(R.string.setup_notification_description)
         SetupModule.Type.USAGE_STATS -> stringResource(R.string.setup_usagestats_description)
-        SetupModule.Type.SAF -> stringResource(R.string.setup_saf_description)
         SetupModule.Type.STORAGE -> stringResource(R.string.setup_storage_description)
         SetupModule.Type.INVENTORY -> stringResource(R.string.setup_inventory_description)
     }

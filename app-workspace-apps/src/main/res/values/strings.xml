@@ -34,7 +34,7 @@
     <string name="apps_action_clear_data">Clear data</string>
     <string name="apps_action_export_apk">Export APK</string>
     <string name="apps_action_browse_path">Browse path</string>
-    <string name="apps_action_share">Share APK</string>
+    <string name="apps_action_share">Share info</string>
     <string name="apps_action_refresh">Refresh</string>
     <string name="apps_action_sort">Sort</string>
     <string name="apps_action_filter">Filter</string>
@@ -52,7 +52,7 @@
     <string name="apps_action_disable_desc">Disable this application</string>
     <string name="apps_action_uninstall_desc">Remove this application</string>
     <string name="apps_action_export_apk_desc">Save APK file to storage</string>
-    <string name="apps_action_share_desc">Share APK file with other apps</string>
+    <string name="apps_action_share_desc">Share app details as text</string>
     <string name="apps_action_force_stop_desc">Stop the application immediately</string>
     <string name="apps_action_clear_cache_desc">Delete temporary cached files</string>
     <string name="apps_action_clear_data_desc">Delete all app data and settings</string>
@@ -141,6 +141,21 @@
     <string name="apps_data_size_label">Data</string>
     <string name="apps_cache_size_label">Cache</string>
     <string name="apps_total_size_label">Total</string>
+
+    <!-- App Tags -->
+    <string name="apps_tag_system_label">System</string>
+    <string name="apps_tag_disabled_label">Disabled</string>
+    <string name="apps_tag_updated_label">Updated</string>
+    <string name="apps_tag_sideloaded_label">Sideloaded</string>
+    <string name="apps_tag_split_label">Split APK</string>
+    <string name="apps_tag_debug_label">Debug</string>
+    <string name="apps_tag_user_label">User %1$d</string>
+
+    <!-- Filter Tags (virtual tags for filtering) -->
+    <string name="apps_filter_tag_enabled_label">Enabled</string>
+    <string name="apps_filter_tag_user_app_label">User app</string>
+    <string name="apps_filter_include_label">Must match (all selected)</string>
+    <string name="apps_filter_exclude_label">Must not match</string>
 
     <!-- Components Section -->
     <string name="apps_details_section_components">Components</string>

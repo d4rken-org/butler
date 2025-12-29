@@ -36,6 +36,8 @@ class RootSetupModule @Inject constructor(
     private val rootManager: RootManager,
 ) : SetupModule {
 
+    override val type = SetupModule.Type.ROOT
+
     private val refreshTrigger = MutableStateFlow(rngString)
     override val state: Flow<SetupModule.State> = combine(refreshTrigger, rootSettings.useRoot.flow) { _, useRoot ->
         val baseState = Result(

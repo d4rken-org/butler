@@ -96,6 +96,12 @@ private fun SaverWorkspacePage(
         }
     }
 
+    // Navigation bar inset for bottom sheets
+    val density = LocalDensity.current
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -157,6 +163,7 @@ private fun SaverWorkspacePage(
                     showIssueSheet = false  // Dismiss immediately after resolution
                 },
                 onDismiss = { showIssueSheet = false },
+                bottomInset = navBarInset,
             )
         }
     }

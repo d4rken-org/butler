@@ -1,6 +1,8 @@
 package eu.darken.butler.workspace.ui.issues
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
@@ -16,10 +18,12 @@ fun IssuesBottomSheet(
     issue: Issue,
     onResolution: (PathActionIssue.Resolution) -> Unit,
     onDismiss: () -> Unit,
+    bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         visible = true,
         onDismiss = onDismiss,
+        bottomInset = bottomInset,
     ) {
         when (issue) {
             is PathActionIssue.PathAlreadyExists -> PathAlreadyExistsIssueSheet(

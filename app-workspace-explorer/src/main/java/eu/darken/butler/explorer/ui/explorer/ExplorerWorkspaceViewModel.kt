@@ -84,6 +84,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.cancelResult
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
+import eu.darken.butler.workspace.core.clipboard.ClipboardSettings
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
@@ -116,6 +117,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
+    private val clipboardSettings: ClipboardSettings,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val shareIntentUseCase: ShareIntentUseCase,
     private val fileIntentHelper: FileIntentHelper,
@@ -630,6 +632,24 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun selectAll() = launch {
         val stateSnap = state.first()
         selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+    }
+
+    fun selectAllFolders() = launch {
+        val stateSnap = state.first()
+        val folders = stateSnap.selectionState.selectableItems.filter { item ->
+            item is ExplorerItem.Directory ||
+                (item is ExplorerItem.Trash.Nested && item.isDirectory)
+        }
+        selectedItemsFlow.value = selectedItemsFlow.value + folders
+    }
+
+    fun selectAllFiles() = launch {
+        val stateSnap = state.first()
+        val files = stateSnap.selectionState.selectableItems.filter { item ->
+            item is ExplorerItem.File ||
+                (item is ExplorerItem.Trash.Nested && item.isFile)
+        }
+        selectedItemsFlow.value = selectedItemsFlow.value + files
     }
 
     // Focus navigation methods
@@ -1461,8 +1481,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         revealItems(addedPaths)
                     }
 
-                    if (clip.mode == ClipboardClip.Paths.Mode.CUT) {
-                        clipboardRepo.remove(clip.id)
+                    when (clip.mode) {
+                        ClipboardClip.Paths.Mode.CUT -> clipboardRepo.remove(clip.id)
+                        ClipboardClip.Paths.Mode.COPY -> {
+                            if (clipboardSettings.removeOnPaste.value()) {
+                                clipboardRepo.remove(clip.id)
+                            }
+                        }
                     }
                 }
             }

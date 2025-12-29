@@ -20,19 +20,27 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 
 @Singleton
 class SetupManager @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
-    private val setupModules: Set<@JvmSuppressWildcards SetupModule>,
+    setupModules: Set<@JvmSuppressWildcards SetupModule>,
 ) {
+    private val modulesByType: Map<SetupModule.Type, SetupModule> = setupModules.associateBy { it.type }
+    private val refreshMutex = Mutex()
+    private var lastRefreshTime: Instant = Instant.DISTANT_PAST
 
     val moduleStates: Flow<Map<SetupModule.Type, SetupModule.State>> = combine(
-        setupModules.map { it.state }
+        modulesByType.values.map { it.state }
     ) { states ->
-        setupModules.zip(states).associate { (module, state) ->
+        modulesByType.values.zip(states).associate { (module, state) ->
             state.type to state
         }
     }
@@ -50,9 +58,17 @@ class SetupManager @Inject constructor(
             started = SharingStarted.Eagerly
         )
 
-    suspend fun refresh() {
-        log(TAG) { "refresh() - refreshing ${setupModules.size} modules" }
-        setupModules.forEach { module ->
+    suspend fun refresh() = refreshMutex.withLock {
+        val now = Clock.System.now()
+        val elapsed = now - lastRefreshTime
+        if (elapsed < REFRESH_DEBOUNCE) {
+            log(TAG) { "refresh() - debounced (${elapsed.inWholeMilliseconds}ms since last refresh)" }
+            return@withLock
+        }
+        lastRefreshTime = now
+
+        log(TAG) { "refresh() - refreshing ${modulesByType.size} modules" }
+        modulesByType.values.forEach { module ->
             try {
                 module.refresh()
             } catch (e: Exception) {
@@ -103,13 +119,9 @@ class SetupManager @Inject constructor(
                             log(TAG, WARN) { "No permission intent available for $type" }
                         }
                     }
-                    SetupModule.Type.SAF -> {
-                        // SAF module removed - handled via just-in-time picker in PathPermissionCheck
-                        log(TAG, WARN) { "SAF RequestPermission not supported - use just-in-time picker" }
-                    }
-                    SetupModule.Type.SHIZUKU -> throw IllegalStateException("Not handled here $action")
-                    SetupModule.Type.ROOT -> throw IllegalStateException("Not handled here $action")
-                    SetupModule.Type.INVENTORY -> throw IllegalStateException("Not handled here $action")
+                    SetupModule.Type.SHIZUKU -> log(TAG, WARN) { "RequestPermission not applicable for $type" }
+                    SetupModule.Type.ROOT -> log(TAG, WARN) { "RequestPermission not applicable for $type" }
+                    SetupModule.Type.INVENTORY -> log(TAG, WARN) { "RequestPermission not applicable for $type" }
                 }
             }
             is SetupAction.ToggleRoot -> {
@@ -126,22 +138,11 @@ class SetupManager @Inject constructor(
         return null
     }
 
-    internal fun getModule(type: SetupModule.Type): SetupModule? {
-        return setupModules.find { module ->
-            when (type) {
-                SetupModule.Type.ROOT -> module is RootSetupModule
-                SetupModule.Type.NOTIFICATION -> module is NotificationSetupModule
-                SetupModule.Type.USAGE_STATS -> module is UsageStatsSetupModule
-                SetupModule.Type.SHIZUKU -> module is ShizukuSetupModule
-                SetupModule.Type.STORAGE -> module is StorageSetupModule
-                SetupModule.Type.INVENTORY -> module is InventorySetupModule
-                SetupModule.Type.SAF -> false // SAF module removed - handled via just-in-time picker
-            }
-        }
-    }
+    internal fun getModule(type: SetupModule.Type): SetupModule? = modulesByType[type]
 
     companion object {
         private val TAG = logTag("Setup", "Manager")
+        private val REFRESH_DEBOUNCE = 200.milliseconds
     }
 }
 

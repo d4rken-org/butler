@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
@@ -19,14 +21,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -46,11 +43,15 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
+import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.setHeights
 
 sealed interface AppDetailsPageAction {
     data object Close : AppDetailsPageAction
@@ -125,18 +126,20 @@ fun AppDetailsWorkspacePage(
         }
     }
 
-    // Scroll behavior for toolbar
-    val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
-    var actualToolbarHeightPx by remember { mutableIntStateOf(0) }
-    val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
+    val isModal = state.callerWorkspaceId != null
 
-    // Configure top toolbar scroll heights with fixed expected height
-    topToolbarScrollBehavior.state.setHeights(
-        expandedHeightDp = 88.dp,  // Fixed expected height to prevent negative padding
-        collapsedHeightDp = 0.dp
+    val topBarStackState = rememberFloatingBarStackState(
+        position = BarPosition.TOP,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 8.dp,
+        includeSystemBarInset = design.paneEdges.touchesTop,
     )
 
-    val isModal = state.callerWorkspaceId != null
+    // Calculate bottom inset based on pane edges
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
 
     Box(
         modifier = modifier
@@ -147,10 +150,10 @@ fun AppDetailsWorkspacePage(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection),
+                .nestedScroll(topBarStackState.nestedScrollConnection),
             contentPadding = PaddingValues(
-                top = actualToolbarHeightDp + 8.dp,
-                bottom = 16.dp,
+                top = topBarStackState.contentPaddingDp(),
+                bottom = navBarInset + 16.dp,
                 start = 12.dp,
                 end = 12.dp,
             ),
@@ -292,26 +295,34 @@ fun AppDetailsWorkspacePage(
             }
         }
 
-        // Floating toolbar card (pinned at top)
-        AppDetailsToolbarCard(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(horizontal = 8.dp, vertical = 8.dp)
-                .graphicsLayer {
-                    translationY = topToolbarScrollBehavior.state.heightOffset
-                    alpha = 1f - topToolbarScrollBehavior.state.collapsedFraction
+        // Top floating bars
+        FloatingBarStack(
+            state = topBarStackState,
+            position = BarPosition.TOP,
+            modifier = Modifier.align(Alignment.TopCenter),
+            bars = {
+                // Toolbar - collapses on scroll
+                FloatingBar(
+                    visible = true,
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 52.dp),
+                    animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    AppDetailsToolbarCard(
+                        app = state.app,
+                        design = design,
+                        isModal = isModal,
+                        collapsedFraction = collapsedFraction,
+                        onBackClick = { onPageAction(AppDetailsPageAction.Close) },
+                        currentWorkspaceId = workspaceId,
+                        workspaceButtonState = workspaceButtonState,
+                        workspaceActionHandler = workspaceActionHandler,
+                    )
                 }
-                .onGloballyPositioned { layoutCoordinates ->
-                    actualToolbarHeightPx = layoutCoordinates.size.height
-                },
-            app = state.app,
-            design = design,
-            isModal = isModal,
-            collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
-            onBackClick = { onPageAction(AppDetailsPageAction.Close) },
-            currentWorkspaceId = workspaceId,
-            workspaceButtonState = workspaceButtonState,
-            workspaceActionHandler = workspaceActionHandler,
+            },
+            content = { _ ->
+                // Content padding is applied to LazyColumn above
+            },
         )
     }
 }

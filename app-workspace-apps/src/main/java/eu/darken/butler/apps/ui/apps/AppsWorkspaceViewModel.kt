@@ -14,8 +14,10 @@ import eu.darken.butler.apps.core.AppsViewStyle
 import eu.darken.butler.apps.core.AppsWorkspace
 import eu.darken.butler.apps.core.arguments.AppDetailsArguments
 import eu.darken.butler.apps.core.engine.AppItem
+import eu.darken.butler.apps.core.engine.AppTag
 import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.apps.core.engine.SortSettings
+import eu.darken.butler.apps.core.engine.TagFilterConfig
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
@@ -24,6 +26,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.pkgs.Pkg
+import eu.darken.butler.common.pkgs.features.AppStore
 import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
@@ -71,7 +74,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         val apps: List<AppItem>
             get() = appsState.filteredApps
 
-        val filterConfig: AppsState.FilterConfig
+        val filterConfig: TagFilterConfig
             get() = appsState.filterConfig
 
         val sortSettings: SortSettings
@@ -115,7 +118,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     add(AppsAction.SelectAll)
                 }
 
-                // Disable/Enable only if elevated access (root/Shizuku) is available
+                // Disable/Enable/ClearCache/ClearData only if elevated access (root/Shizuku) is available
                 if (workspaceState.hasElevatedAccess) {
                     // Disable (only if all selected apps are enabled)
                     val disableAction = AppsAction.Disable(selectedApps)
@@ -128,16 +131,16 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     if (enableAction.isVisible) {
                         add(enableAction)
                     }
+
+                    // Clear Cache
+                    add(AppsAction.ClearCache(selectedApps))
+
+                    // Clear Data
+                    add(AppsAction.ClearData(selectedApps))
                 }
 
                 // Uninstall
                 add(AppsAction.Uninstall(selectedApps))
-
-                // Clear Cache
-                add(AppsAction.ClearCache(selectedApps))
-
-                // Clear Data
-                add(AppsAction.ClearData(selectedApps))
 
                 // Export APK
                 add(AppsAction.ExportApk(selectedApps))
@@ -199,7 +202,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().appsEngine.updateSearchQuery(query.text)
     }
 
-    fun onFilterChanged(filterConfig: AppsState.FilterConfig) = launch {
+    fun onFilterChanged(filterConfig: TagFilterConfig) = launch {
         log(tag) { "Filter changed: $filterConfig" }
         getWorkspace().appsEngine.updateFilterConfig(filterConfig)
         appsSettings.defaultFilterConfig.value(filterConfig)
@@ -279,7 +282,22 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
     fun showFilterDialog() = launch {
         log(tag) { "Showing filter dialog" }
         val currentState = state.first()
-        dialogStateFlow.value = AppsDialogState.FilterOptions(currentState.filterConfig)
+
+        // Build available tags from standard tags + user profile tags from the app list
+        val userProfileTags = currentState.apps
+            .filter { it.userProfile.handle.handleId != 0 }
+            .map { AppTag.User(it.userProfile.handle.handleId, it.userProfile.label) }
+            .distinctBy { it.handleId }
+
+        // Defensive: filter out any potential nulls that might sneak in through R8/reflection
+        @Suppress("USELESS_CAST")
+        val availableTags = (AppTag.standardTags + userProfileTags)
+            .filterNotNull()
+
+        dialogStateFlow.value = AppsDialogState.FilterOptions(
+            currentFilter = currentState.filterConfig,
+            availableTags = availableTags,
+        )
     }
 
     fun showSortDialog() = launch {
@@ -373,8 +391,36 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
             is AppsAction.Share -> launch {
                 log(tag) { "Share action for ${action.apps.size} apps" }
-                // TODO: Implement APK sharing
-                log(tag, WARN) { "Share APK not implemented yet" }
+                val shareText = action.apps.joinToString("\n\n") { app ->
+                    buildString {
+                        val version = app.versionName ?: app.versionCode.toString()
+                        append("- **${app.label.get(context)}** (${app.packageName}) v$version")
+
+                        app.installerInfo?.installer?.let { installer ->
+                            val appStore = installer as? AppStore
+                            val url = appStore?.urlGenerator?.invoke(app.pkg.id)
+                            append("\n  Source: ")
+                            if (url != null) {
+                                append("[${installer.label?.get(context) ?: installer.id.name}]($url)")
+                            } else {
+                                append(installer.label?.get(context) ?: installer.id.name)
+                            }
+                        }
+                    }
+                }
+
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, shareText)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(
+                    Intent.createChooser(intent, null).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                )
+
+                getWorkspace().appsEngine.clearSelection()
             }
 
             is AppsAction.OpenInTab -> launch {

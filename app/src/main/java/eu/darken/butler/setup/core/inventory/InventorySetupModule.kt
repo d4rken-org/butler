@@ -39,6 +39,8 @@ class InventorySetupModule @Inject constructor(
     private val pkgOps: PkgOps,
 ) : SetupModule {
 
+    override val type = SetupModule.Type.INVENTORY
+
     private val refreshTrigger = MutableStateFlow(rngString)
     override val state: Flow<SetupModule.State> = refreshTrigger
         .mapLatest {

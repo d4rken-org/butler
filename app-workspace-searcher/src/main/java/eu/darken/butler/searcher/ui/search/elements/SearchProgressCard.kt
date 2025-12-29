@@ -234,7 +234,7 @@ private fun SearchProgressHeader(
                 totalFound
             )
             Text(
-                text = "$scannedText${stringResource(R.string.searcher_progress_stats_separator)}$foundText",
+                text = "$scannedText • $foundText",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -338,7 +338,7 @@ private fun SearchPathProgressRow(
                 resultsFound
             )
             Text(
-                text = "$scannedText${stringResource(R.string.searcher_progress_stats_separator)}$foundText",
+                text = "$scannedText • $foundText",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )

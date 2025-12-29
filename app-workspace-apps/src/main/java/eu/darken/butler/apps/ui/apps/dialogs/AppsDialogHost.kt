@@ -2,19 +2,23 @@ package eu.darken.butler.apps.ui.apps.dialogs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.core.engine.AppItem
+import eu.darken.butler.apps.core.engine.TagFilterConfig
 import eu.darken.butler.apps.ui.apps.AppsAction
 
 @Composable
 fun AppsDialogHost(
+    modifier: Modifier = Modifier,
     dialogState: AppsDialogState,
     onDismiss: () -> Unit,
     onAction: (AppsAction) -> Unit,
-    onFilterApply: (eu.darken.butler.apps.core.engine.AppsState.FilterConfig) -> Unit,
+    onFilterApply: (TagFilterConfig) -> Unit,
     onSortApply: (eu.darken.butler.apps.core.engine.SortSettings) -> Unit,
     onConfirmEnable: (List<AppItem>) -> Unit,
     onConfirmDisable: (List<AppItem>) -> Unit,
-    modifier: Modifier = Modifier,
+    bottomInset: Dp = 0.dp,
 ) {
     when (dialogState) {
         is AppsDialogState.None -> {
@@ -23,20 +27,22 @@ fun AppsDialogHost(
 
         is AppsDialogState.AppDetails -> {
             AppDetailsDialog(
+                modifier = modifier,
                 app = dialogState.app,
                 availablePaths = dialogState.availablePaths,
                 onDismiss = onDismiss,
                 onAction = onAction,
-                modifier = modifier,
+                bottomInset = bottomInset,
             )
         }
 
         is AppsDialogState.FilterOptions -> {
             FilterOptionsDialog(
+                modifier = modifier,
                 currentFilter = dialogState.currentFilter,
+                availableTags = dialogState.availableTags,
                 onDismiss = onDismiss,
                 onApply = onFilterApply,
-                modifier = modifier,
             )
         }
 
