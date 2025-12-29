@@ -282,11 +282,9 @@
     <string name="workspace_creating_placeholder">Creating tab…</string>
     <string name="workspace_ondemand_swipe_title">Swipe to create new tab</string>
 
-    <!-- Adaptive Workspace Tips -->
-    <string name="workspace_adaptive_tip_multiple_panes">Use multiple panes to compare files side by side.</string>
-    <string name="workspace_adaptive_tip_different_folders">Open different folders in each pane for easy file management.</string>
-    <string name="workspace_adaptive_tip_switch_layouts">Switch between pane layouts in the tab manager.</string>
-    <string name="workspace_adaptive_tip_copy_between_panes">Copy files between panes with drag and drop.</string>
+    <!-- Adaptive Workspace -->
+    <string name="workspace_adaptive_pane_ready">Pane %1$d is ready for content</string>
+    <string name="workspace_adaptive_add_action">Add workspace</string>
 
     <string name="workspace_badge_tip_title">Tip: Tab button indicators</string>
     <string name="workspace_badge_open_workspaces">Number of open tabs</string>

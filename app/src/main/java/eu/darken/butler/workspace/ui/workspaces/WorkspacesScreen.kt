@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
@@ -51,7 +50,130 @@ import kotlin.uuid.Uuid
 import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.R as WorkspaceR
 
-private val TAG = logTag("Workspace", "Screen")
+@Composable
+fun WorkspaceScreen(
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
+    workspaceActionHandler: WorkspaceActionHandler? = null,
+    state: WorkspacesViewModel.State,
+    bannerStates: Map<Workspace.Id, BannerState> = emptyMap(),
+    managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
+    managerDialogs: List<ManagerDialog> = emptyList(),
+    onScreenAction: (WorkspaceScreenAction) -> Unit,
+    onHideMotd: (Uuid) -> Unit = {},
+    onDismissMotd: (Uuid) -> Unit = {},
+    onMotdLinkClick: (String) -> Unit = {},
+    onDismissBanner: (Workspace.Id) -> Unit = {},
+    onDismissManagerDialog: (Workspace.Id) -> Unit = {},
+    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit = {},
+) {
+    val windowSizeInfo = rememberWindowSizeInfo()
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    var showPaneNumbers by remember { mutableStateOf(false) }
+    var showPaneOverlay by remember { mutableStateOf(false) }
+
+    var dividerPositions by rememberSaveable {
+        mutableStateOf(DividerPositions())
+    }
+
+    // Select panel mode based on orientation
+    val effectivePanelMode = if (isLandscape) {
+        state.landscapePanelMode
+    } else {
+        state.portraitPanelMode
+    }
+
+    val effectivePaneLayout = when (effectivePanelMode) {
+        WorkspacePanelMode.AUTO -> windowSizeInfo.recommendedLayout
+        WorkspacePanelMode.SINGLE -> WorkspaceDesign.Layout.SINGLE
+        WorkspacePanelMode.DUAL_VERTICAL -> WorkspaceDesign.Layout.DUAL_VERTICAL
+        WorkspacePanelMode.DUAL_HORIZONTAL -> WorkspaceDesign.Layout.DUAL_HORIZONTAL
+        WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT
+        WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT -> WorkspaceDesign.Layout.TRIPLE_MAIN_RIGHT
+        WorkspacePanelMode.QUAD_GRID -> WorkspaceDesign.Layout.QUAD_GRID
+    }
+
+    val design = WorkspaceDesign(
+        layout = effectivePaneLayout,
+    )
+
+    // Update pane count when design changes
+    LaunchedEffect(design.maxPanes) {
+        onScreenAction(WorkspaceScreenAction.SetPaneCount(design.maxPanes))
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Main workspace content
+        if (!design.isSingle) {
+            AdaptiveWorkspaceLayout(
+                design = design,
+                workspaces = state.tabWorkspaces,
+                selected = state.selected,
+                focusedId = state.focused,
+                dividerPositions = dividerPositions,
+                onDividerPositionsChange = { newPositions ->
+                    dividerPositions = newPositions
+                },
+                showPaneNumbers = showPaneNumbers,
+                showPaneOverlay = showPaneOverlay,
+                onPaneMenuToggle = { isOpen ->
+                    showPaneOverlay = isOpen
+                    showPaneNumbers = isOpen
+                },
+                workspaceButtonState = workspaceButtonState,
+                workspaceActionHandler = workspaceActionHandler,
+                onScreenAction = onScreenAction,
+                managerDialogStates = managerDialogStates,
+                onDismissManagerDialog = onDismissManagerDialog,
+                onConfirmManagerDialog = onConfirmManagerDialog,
+                bannerStates = bannerStates,
+                onDismissBanner = onDismissBanner,
+                paneLocalModals = state.paneLocalModals,
+                isUpgraded = state.isUpgraded,
+            )
+        } else {
+            ClassicWorkspaceContainer(
+                state = state,
+                managerDialogs = managerDialogs,
+                onWorkspaceScreenAction = onScreenAction,
+                workspaceActionHandler = workspaceActionHandler,
+                managerDialogStates = managerDialogStates,
+                onDismissManagerDialog = onDismissManagerDialog,
+                onConfirmManagerDialog = onConfirmManagerDialog,
+                bannerStates = bannerStates,
+                onDismissBanner = onDismissBanner,
+            )
+        }
+
+        // MOTD overlay
+        state.motd?.let { motd ->
+            MotdCard(
+                motd = motd,
+                onHide = { onHideMotd(motd.id) },
+                onMarkAsRead = onDismissMotd,
+                onLinkClick = onMotdLinkClick,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
+    }
+
+    // Full-screen modal workspace overlay (pickers, settings dialogs, detail views on phones)
+    state.fullScreenModalWorkspace?.let { fullScreenModal ->
+        WorkspaceModalDialog(
+            workspace = fullScreenModal,
+            design = design,
+            onDismissRequest = {
+                // Dismiss by closing the modal workspace
+                workspaceActionHandler?.executeWorkspaceAction(
+                    WorkspaceAction.Close(fullScreenModal.id)
+                )
+            },
+        )
+    }
+}
 
 @Composable
 fun WorkspacesScreenHost(
@@ -158,130 +280,6 @@ fun WorkspacesScreenHost(
     }
 }
 
-
-@Composable
-fun WorkspaceScreen(
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
-    state: WorkspacesViewModel.State,
-    bannerStates: Map<Workspace.Id, BannerState> = emptyMap(),
-    managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
-    managerDialogs: List<ManagerDialog> = emptyList(),
-    onScreenAction: (WorkspaceScreenAction) -> Unit,
-    onHideMotd: (Uuid) -> Unit = {},
-    onDismissMotd: (Uuid) -> Unit = {},
-    onMotdLinkClick: (String) -> Unit = {},
-    onDismissBanner: (Workspace.Id) -> Unit = {},
-    onDismissManagerDialog: (Workspace.Id) -> Unit = {},
-    onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit = {},
-) {
-    val windowSizeInfo = rememberWindowSizeInfo()
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-    var showPaneNumbers by remember { mutableStateOf(false) }
-    var showPaneOverlay by remember { mutableStateOf(false) }
-
-    var dividerPositions by rememberSaveable {
-        mutableStateOf(DividerPositions())
-    }
-
-    // Select panel mode based on orientation
-    val effectivePanelMode = if (isLandscape) {
-        state.landscapePanelMode
-    } else {
-        state.portraitPanelMode
-    }
-
-    val effectivePaneLayout = when (effectivePanelMode) {
-        WorkspacePanelMode.AUTO -> windowSizeInfo.recommendedLayout
-        WorkspacePanelMode.SINGLE -> WorkspaceDesign.Layout.SINGLE
-        WorkspacePanelMode.DUAL_VERTICAL -> WorkspaceDesign.Layout.DUAL_VERTICAL
-        WorkspacePanelMode.DUAL_HORIZONTAL -> WorkspaceDesign.Layout.DUAL_HORIZONTAL
-        WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT -> WorkspaceDesign.Layout.TRIPLE_MAIN_LEFT
-        WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT -> WorkspaceDesign.Layout.TRIPLE_MAIN_RIGHT
-        WorkspacePanelMode.QUAD_GRID -> WorkspaceDesign.Layout.QUAD_GRID
-    }
-
-    val design = WorkspaceDesign(
-        layout = effectivePaneLayout,
-    )
-
-    // Update pane count when design changes
-    LaunchedEffect(design.maxPanes) {
-        onScreenAction(WorkspaceScreenAction.SetPaneCount(design.maxPanes))
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Main workspace content
-        if (!design.isSingle) {
-            AdaptiveWorkspaceLayout(
-                design = design,
-                workspaces = state.tabWorkspaces,
-                selected = state.selected,
-                focusedId = state.focused,
-                dividerPositions = dividerPositions,
-                onDividerPositionsChange = { newPositions ->
-                    dividerPositions = newPositions
-                },
-                showPaneNumbers = showPaneNumbers,
-                showPaneOverlay = showPaneOverlay,
-                onPaneMenuToggle = { isOpen ->
-                    showPaneOverlay = isOpen
-                    showPaneNumbers = isOpen
-                },
-                workspaceButtonState = workspaceButtonState,
-                workspaceActionHandler = workspaceActionHandler,
-                onScreenAction = onScreenAction,
-                managerDialogStates = managerDialogStates,
-                onDismissManagerDialog = onDismissManagerDialog,
-                onConfirmManagerDialog = onConfirmManagerDialog,
-                bannerStates = bannerStates,
-                onDismissBanner = onDismissBanner,
-                paneLocalModals = state.paneLocalModals,
-            )
-        } else {
-            ClassicWorkspaceContainer(
-                state = state,
-                managerDialogs = managerDialogs,
-                onWorkspaceScreenAction = onScreenAction,
-                workspaceActionHandler = workspaceActionHandler,
-                managerDialogStates = managerDialogStates,
-                onDismissManagerDialog = onDismissManagerDialog,
-                onConfirmManagerDialog = onConfirmManagerDialog,
-                bannerStates = bannerStates,
-                onDismissBanner = onDismissBanner,
-            )
-        }
-
-        // MOTD overlay
-        state.motd?.let { motd ->
-            MotdCard(
-                motd = motd,
-                onHide = { onHideMotd(motd.id) },
-                onMarkAsRead = onDismissMotd,
-                onLinkClick = onMotdLinkClick,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-        }
-    }
-
-    // Full-screen modal workspace overlay (pickers, settings dialogs, detail views on phones)
-    state.fullScreenModalWorkspace?.let { fullScreenModal ->
-        WorkspaceModalDialog(
-            workspace = fullScreenModal,
-            design = design,
-            onDismissRequest = {
-                // Dismiss by closing the modal workspace
-                workspaceActionHandler?.executeWorkspaceAction(
-                    WorkspaceAction.Close(fullScreenModal.id)
-                )
-            },
-        )
-    }
-}
 
 @Composable
 private fun ClearSessionConfirmationDialog(
