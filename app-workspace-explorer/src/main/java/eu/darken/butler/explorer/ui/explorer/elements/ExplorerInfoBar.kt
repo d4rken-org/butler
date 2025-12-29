@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
+import androidx.compose.material.icons.twotone.Scale
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.Storage
@@ -139,7 +140,7 @@ fun ExplorerInfoBar(
 
                     if (info.totalSize != null && selectedCount == 0) {
                         InfoChip(
-                            icon = Icons.TwoTone.Storage,
+                            icon = Icons.TwoTone.Scale,
                             label = formatFileSize(info.totalSize),
                         )
                     }
