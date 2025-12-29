@@ -1,13 +1,16 @@
 package eu.darken.butler.apps.core
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class AppsViewStyle {
+sealed class AppsViewStyle : Parcelable {
 
     @Serializable
     @SerialName("list")
+    @Parcelize
     data class List(
         @SerialName("density") val density: Density = Density.COMFORTABLE,
     ) : AppsViewStyle() {
@@ -20,6 +23,7 @@ sealed class AppsViewStyle {
 
     @Serializable
     @SerialName("grid")
+    @Parcelize
     data class Grid(
         @SerialName("size") val size: GridSize = GridSize.MEDIUM,
     ) : AppsViewStyle() {

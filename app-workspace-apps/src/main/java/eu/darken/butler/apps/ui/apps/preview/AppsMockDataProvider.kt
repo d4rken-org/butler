@@ -188,8 +188,8 @@ object AppsMockDataProvider {
             filteredApps = apps,
             selectedAppIds = selectedIds,
             isLoading = false,
-            filterConfig = eu.darken.butler.apps.core.engine.TagFilterConfig(),
-            sortSettings = eu.darken.butler.apps.core.engine.SortSettings(),
+            filterConfig = eu.darken.butler.apps.core.TagFilterConfig(),
+            sortSettings = eu.darken.butler.apps.core.SortSettings(),
         )
     }
 

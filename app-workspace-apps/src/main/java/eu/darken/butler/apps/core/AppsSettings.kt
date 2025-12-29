@@ -5,8 +5,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.apps.core.engine.SortSettings
-import eu.darken.butler.apps.core.engine.TagFilterConfig
 import eu.darken.butler.common.datastore.PreferenceScreenData
 import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
@@ -37,12 +35,14 @@ class AppsSettings @Inject constructor(
         "apps.sort.default",
         SortSettings(),
         json,
+        onErrorFallbackToDefault = true,
     )
 
     val defaultViewStyle = dataStore.createValue(
         "apps.view.style.default",
         AppsViewStyle.default(),
         json,
+        onErrorFallbackToDefault = true,
     )
 
     override val mapper = PreferenceStoreMapper(

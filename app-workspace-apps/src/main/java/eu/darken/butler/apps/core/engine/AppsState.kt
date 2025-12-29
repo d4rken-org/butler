@@ -1,6 +1,8 @@
 package eu.darken.butler.apps.core.engine
 
-import kotlinx.serialization.Serializable
+import eu.darken.butler.apps.core.AppTag
+import eu.darken.butler.apps.core.SortSettings
+import eu.darken.butler.apps.core.TagFilterConfig
 
 data class AppsState(
     val apps: List<AppItem> = emptyList(),
@@ -14,32 +16,6 @@ data class AppsState(
 ) {
     val isMultiSelectMode: Boolean
         get() = selectedAppIds.isNotEmpty()
-}
-
-/**
- * Tag-based filter configuration.
- *
- * @property includeTags Apps must have ALL of these tags (AND logic)
- * @property excludeTags Apps are excluded if they have ANY of these tags (OR logic)
- */
-@Serializable
-data class TagFilterConfig(
-    val includeTags: Set<AppTag> = emptySet(),
-    val excludeTags: Set<AppTag> = emptySet(),
-) {
-    fun matches(item: AppItem): Boolean {
-        val itemTags = item.toTagSet()
-
-        // Exclude: reject if item has ANY excluded tag
-        if (excludeTags.any { it in itemTags }) return false
-
-        // Include: must have ALL selected tags (AND)
-        if (includeTags.isEmpty()) return true
-        return includeTags.all { it in itemTags }
-    }
-
-    val isEmpty: Boolean
-        get() = includeTags.isEmpty() && excludeTags.isEmpty()
 }
 
 /**

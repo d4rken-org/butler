@@ -3,7 +3,8 @@ package eu.darken.butler.apps.ui.apps.dialogs
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import eu.darken.butler.apps.core.engine.AppItem
-import eu.darken.butler.apps.core.engine.TagFilterConfig
+import eu.darken.butler.apps.core.SortSettings
+import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.apps.ui.apps.AppsAction
 
 @Composable
@@ -13,7 +14,7 @@ fun AppsDialogHost(
     onDismiss: () -> Unit,
     onAction: (AppsAction) -> Unit,
     onFilterApply: (TagFilterConfig) -> Unit,
-    onSortApply: (eu.darken.butler.apps.core.engine.SortSettings) -> Unit,
+    onSortApply: (SortSettings) -> Unit,
     onConfirmEnable: (List<AppItem>) -> Unit,
     onConfirmDisable: (List<AppItem>) -> Unit,
 ) {

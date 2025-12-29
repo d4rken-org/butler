@@ -1,13 +1,16 @@
-package eu.darken.butler.apps.core.engine
+package eu.darken.butler.apps.core
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Parcelize
 data class SortSettings(
     @SerialName("mode") val mode: Mode = Mode.NAME,
     @SerialName("reversed") val reversed: Boolean = false,
-) {
+) : Parcelable {
     @Serializable
     enum class Mode {
         @SerialName("NAME") NAME,
