@@ -207,6 +207,7 @@ fun WorkspaceSettingsScreen(
             currentMode = state.layoutModeLandscape,
             availableModes = listOf(
                 WorkspacePanelMode.AUTO,
+                WorkspacePanelMode.SINGLE,
                 WorkspacePanelMode.DUAL_HORIZONTAL,
                 WorkspacePanelMode.TRIPLE_SIDEBAR_LEFT,
                 WorkspacePanelMode.TRIPLE_SIDEBAR_RIGHT,

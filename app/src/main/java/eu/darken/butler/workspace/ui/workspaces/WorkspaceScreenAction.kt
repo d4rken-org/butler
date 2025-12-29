@@ -25,4 +25,8 @@ sealed interface WorkspaceScreenAction {
     ) : WorkspaceScreenAction
 
     data object CreateOnDemand : WorkspaceScreenAction
+
+    data class CreateForPane(
+        val paneIndex: Int,
+    ) : WorkspaceScreenAction
 }

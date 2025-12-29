@@ -55,7 +55,6 @@ fun WorkspaceButton(
     modifier: Modifier = Modifier,
     state: WorkspaceButtonViewModel.State?,
     containerColor: Color? = null,
-    contentColor: Color? = null,
     buttonSize: Dp = WORKSPACE_BUTTON_SIZE_DEFAULT,
     currentWorkspaceId: Workspace.Id? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
@@ -269,7 +268,7 @@ fun WorkspaceButton(
     }
 }
 
-val WORKSPACE_BUTTON_SIZE_DEFAULT = 40.dp
+val WORKSPACE_BUTTON_SIZE_DEFAULT = 48.dp
 val WORKSPACE_BUTTON_SIZE_COMPACT = 32.dp
 
 @Preview2
