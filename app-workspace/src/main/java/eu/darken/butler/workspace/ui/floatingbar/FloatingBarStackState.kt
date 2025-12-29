@@ -104,9 +104,7 @@ class FloatingBarStackState(
                         is BarScrollBehavior.VanishOnScroll -> {
                             barState.triggerScrollCollapse(scope, targetFraction)
                         }
-                        is BarScrollBehavior.Static -> {
-                            // No response to scroll
-                        }
+                        is BarScrollBehavior.Static -> {}
                     }
                 }
             }

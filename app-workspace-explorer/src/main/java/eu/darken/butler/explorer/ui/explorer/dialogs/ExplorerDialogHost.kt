@@ -1,6 +1,8 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
@@ -14,6 +16,7 @@ fun ExplorerDialogHost(
     dialogState: ExplorerDialogState,
     trashEnabled: Boolean,
     vm: ExplorerWorkspaceViewModel?,
+    bottomInset: Dp = 0.dp,
 ) {
     when (dialogState) {
         is ExplorerDialogState.None -> {
@@ -90,6 +93,7 @@ fun ExplorerDialogHost(
                 onRename = { vm?.renameFile(dialogState.item) },
                 onDelete = { vm?.deleteFile(dialogState.item) },
                 onProperties = { vm?.showFileProperties(dialogState.item) },
+                bottomInset = bottomInset,
             )
         }
 
@@ -100,6 +104,7 @@ fun ExplorerDialogHost(
                 onDeletePermanently = { vm?.deleteTrashItemPermanently(dialogState.item) },
                 onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
                 onDismiss = { vm?.dismissDialog() },
+                bottomInset = bottomInset,
             )
         }
 
@@ -110,6 +115,7 @@ fun ExplorerDialogHost(
                 onDeletePermanently = { vm?.deleteNestedTrashItemPermanently(dialogState.item) },
                 onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
                 onDismiss = { vm?.dismissDialog() },
+                bottomInset = bottomInset,
             )
         }
 
@@ -127,7 +133,8 @@ fun ExplorerDialogHost(
                 onNavigateToSource = { vm?.navigateToClipboardSource(dialogState.clip) },
                 onPaste = { vm?.pasteClipboard(dialogState.clip) },
                 onRemove = { vm?.removeClipboardEntry(dialogState.clip) },
-                onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) }
+                onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
+                bottomInset = bottomInset,
             )
         }
 
@@ -139,10 +146,19 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.CreateFileFromText -> {
+            CreateFileFromTextDialog(
+                clip = dialogState.clip,
+                onValidate = vm?.let { vm::validateFilename } ?: { FilenameValidator.ValidationResult.Valid },
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { clip, filename -> vm?.onCreateFileFromText(clip, filename) }
+            )
+        }
+
         is ExplorerDialogState.ItemInfo -> {
             when (val context = dialogState.context) {
                 is ExplorerDialogState.ItemInfo.InfoContext.SingleFile -> {
-                    // Use shared component for single files
+                    // Use shared component for single files (uses ModalBottomSheet - handles insets internally)
                     FileInfoBottomSheet(
                         fileInfo = FileInfo(
                             lookup = context.item.lookup,
@@ -156,7 +172,7 @@ fun ExplorerDialogHost(
                     )
                 }
                 is ExplorerDialogState.ItemInfo.InfoContext.SingleDirectory -> {
-                    // Use shared component for single directories
+                    // Use shared component for single directories (uses ModalBottomSheet - handles insets internally)
                     FileInfoBottomSheet(
                         fileInfo = FileInfo(
                             lookup = context.item.lookup,
@@ -170,7 +186,7 @@ fun ExplorerDialogHost(
                     )
                 }
                 is ExplorerDialogState.ItemInfo.InfoContext.MultipleItems -> {
-                    // Use shared component for multiple items
+                    // Use shared component for multiple items (uses ModalBottomSheet - handles insets internally)
                     MultipleItemsInfoBottomSheet(
                         totalCount = context.selectedItems.size,
                         fileCount = context.fileCount,
@@ -186,7 +202,8 @@ fun ExplorerDialogHost(
                     ItemInfoBottomSheet(
                         context = context,
                         onDismiss = { vm?.dismissDialog() },
-                        onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) }
+                        onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
+                        bottomInset = bottomInset,
                     )
                 }
             }

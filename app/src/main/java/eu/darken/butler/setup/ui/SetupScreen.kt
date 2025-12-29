@@ -1,7 +1,5 @@
 package eu.darken.butler.setup.ui
 
-import android.app.Activity
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -145,30 +143,12 @@ fun SetupScreenHost(
         vm.refresh()
     }
 
-    // SAF result launcher
-    val safResultLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        log(TAG) { "SAF result: ${result.resultCode}, data=${result.data}" }
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.data?.let { uri ->
-                vm.handleSAFResult(uri)
-            }
-        }
-        vm.refresh()
-    }
-
     // Handle permission request intents
     LaunchedEffect(vm) {
         vm.permissionRequestEvents.collect { intent ->
-            if (intent.action == Intent.ACTION_OPEN_DOCUMENT_TREE) {
-                log(TAG) { "Launching SAF picker via result launcher" }
-                safResultLauncher.launch(intent)
-            } else {
-                log(TAG) { "Launching permission settings intent" }
-                isPermissionSettingsLaunched = true
-                context.startActivity(intent)
-            }
+            log(TAG) { "Launching permission settings intent" }
+            isPermissionSettingsLaunched = true
+            context.startActivity(intent)
         }
     }
 

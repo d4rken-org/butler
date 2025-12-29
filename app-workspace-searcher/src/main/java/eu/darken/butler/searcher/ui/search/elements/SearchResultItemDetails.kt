@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.Preview2
@@ -46,10 +47,12 @@ fun SearchResultItemDetails(
     onLongPress: (SearchItem) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         visible = true,
         onDismiss = onDismiss,
+        bottomInset = bottomInset,
         modifier = modifier,
     ) {
         Column(

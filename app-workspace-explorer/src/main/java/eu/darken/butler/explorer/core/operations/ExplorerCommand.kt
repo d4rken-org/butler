@@ -45,4 +45,9 @@ sealed interface ExplorerCommand {
             val preserveAttributes: Boolean = true,
         )
     }
+
+    data class CreateTextFile(
+        val path: APath<*>,
+        val content: String,
+    ) : ExplorerCommand
 }

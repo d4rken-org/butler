@@ -45,3 +45,10 @@ data object DestinationSettingsPreviews : NavigationDestination {
 @Suppress("UnusedReceiverParameter")
 fun Nav.Settings.previews(): NavigationDestination = DestinationSettingsPreviews
 
+@Serializable
+data object DestinationSettingsClipboard : NavigationDestination {
+    private fun readResolve(): Any = DestinationSettingsClipboard
+}
+
+@Suppress("UnusedReceiverParameter")
+fun Nav.Settings.clipboard(): NavigationDestination = DestinationSettingsClipboard

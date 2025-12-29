@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -45,10 +46,12 @@ fun TrashNestedItemDetailsBottomSheet(
     onCopyToClipboard: (String) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         visible = true,
         onDismiss = onDismiss,
+        bottomInset = bottomInset,
         modifier = modifier,
     ) {
         TrashNestedItemOptionsContent(

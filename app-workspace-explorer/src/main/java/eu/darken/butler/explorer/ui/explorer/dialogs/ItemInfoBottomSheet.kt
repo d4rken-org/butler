@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.toCaString
@@ -48,6 +49,7 @@ fun ItemInfoBottomSheet(
     onDismiss: () -> Unit,
     onCopyToClipboard: (String) -> Unit,
     modifier: Modifier = Modifier,
+    bottomInset: Dp = 0.dp,
 ) {
     val isInPreview = LocalInspectionMode.current
 
@@ -65,6 +67,7 @@ fun ItemInfoBottomSheet(
         PaneScopedBottomSheet(
             visible = true,
             onDismiss = onDismiss,
+            bottomInset = bottomInset,
             modifier = modifier,
         ) {
             ItemInfoContent(

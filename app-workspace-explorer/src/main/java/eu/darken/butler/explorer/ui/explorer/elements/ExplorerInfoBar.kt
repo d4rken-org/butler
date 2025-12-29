@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
+import androidx.compose.material.icons.twotone.Scale
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.Storage
@@ -26,6 +27,8 @@ fun ExplorerInfoBar(
     info: ExplorerLocation.LocationInfo?,
     selectedCount: Int = 0,
     onClearSelection: () -> Unit = {},
+    onSelectFolders: () -> Unit = {},
+    onSelectFiles: () -> Unit = {},
     isTrashDisabled: Boolean = false,
 ) {
     WorkspaceInfoBar(
@@ -44,6 +47,7 @@ fun ExplorerInfoBar(
                                     info.directoryCount,
                                     info.directoryCount
                                 ),
+                                onClick = onSelectFolders,
                             )
                         }
                         if (info.fileCount != null && info.fileCount > 0) {
@@ -54,6 +58,7 @@ fun ExplorerInfoBar(
                                     info.fileCount,
                                     info.fileCount
                                 ),
+                                onClick = onSelectFiles,
                             )
                         }
                         if (info.directoryCount == 0 && info.fileCount == 0) {
@@ -106,6 +111,7 @@ fun ExplorerInfoBar(
                                     info.directoryCount,
                                     info.directoryCount
                                 ),
+                                onClick = onSelectFolders,
                             )
                         }
                         if (info.fileCount != null && info.fileCount > 0) {
@@ -116,6 +122,7 @@ fun ExplorerInfoBar(
                                     info.fileCount,
                                     info.fileCount
                                 ),
+                                onClick = onSelectFiles,
                             )
                         }
                     }
@@ -133,7 +140,7 @@ fun ExplorerInfoBar(
 
                     if (info.totalSize != null && selectedCount == 0) {
                         InfoChip(
-                            icon = Icons.TwoTone.Storage,
+                            icon = Icons.TwoTone.Scale,
                             label = formatFileSize(info.totalSize),
                         )
                     }

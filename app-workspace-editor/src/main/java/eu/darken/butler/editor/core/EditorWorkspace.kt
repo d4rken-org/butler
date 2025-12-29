@@ -15,8 +15,9 @@ import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.arguments.EditorArguments
+import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
-import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
@@ -31,10 +32,16 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -58,9 +65,13 @@ class EditorWorkspace @AssistedInject constructor(
     private val tag = logTag("Editor", "Workspace", id.shortTag)
 
     override suspend fun createArguments(): EditorArguments {
+        val currentState = editorState.first()
+        val currentFilePath = (currentState.contentSource as? ContentSource.File)?.path
         return EditorArguments.Default(
-            filePath = filePath, // Current file being edited
-            goToLine = null
+            filePath = currentFilePath,
+            cursorLine = currentState.cursorPosition.line,
+            cursorColumn = currentState.cursorPosition.column,
+            scrollToLine = currentState.visibleRange.first,
         )
     }
 
@@ -99,6 +110,24 @@ class EditorWorkspace @AssistedInject constructor(
             log(tag, INFO) { "Creating initial engine with: ${initialPath?.name ?: "scratch buffer"}" }
             editorEngineFactory.create(id, initialPath, initialContent).apply {
                 initialize().getOrThrow()
+
+                // Restore cursor and scroll position from saved arguments
+                // Only if file was loaded AND positions are within bounds
+                if (initialPath != null) {
+                    val lines = totalLines.value
+                    val cursorLine = args?.cursorLine
+                    val cursorColumn = args?.cursorColumn
+                    if (cursorLine != null && cursorColumn != null && cursorLine < lines) {
+                        log(tag, INFO) { "Restoring cursor position: line=$cursorLine, column=$cursorColumn" }
+                        setCursorPosition(TextPosition(offset = 0, line = cursorLine, column = cursorColumn))
+                    }
+                    val scrollLine = args?.scrollToLine
+                    if (scrollLine != null && scrollLine < lines) {
+                        val windowSize = 50
+                        log(tag, INFO) { "Restoring scroll position: line=$scrollLine" }
+                        updateVisibleRange(scrollLine, scrollLine + windowSize)
+                    }
+                }
             }
         },
         onRelease = { engine ->
@@ -116,7 +145,7 @@ class EditorWorkspace @AssistedInject constructor(
     // Combined editor state for UI
     val editorState: Flow<EditorState> = engineHolder.flow.flatMapLatest { engine ->
         combine(
-            engine.fileInfo,
+            engine.contentSource,
             engine.totalLines,
             engine.isModified,
             engine.currentContent,
@@ -128,11 +157,11 @@ class EditorWorkspace @AssistedInject constructor(
             engine.error,
             editorSettings.showLineNumbers.flow,
             editorSettings.wordWrap.flow,
-        ) { fileInfo, totalLines, isModified, currentContent, cursorPosition,
+        ) { contentSource, totalLines, isModified, currentContent, cursorPosition,
             selectionRange, searchQuery, searchResults, visibleRange, error,
             showLineNumbers, wordWrap ->
             EditorState(
-                fileInfo = fileInfo,
+                contentSource = contentSource,
                 totalLines = totalLines,
                 isModified = isModified,
                 currentContent = currentContent,
@@ -181,14 +210,43 @@ class EditorWorkspace @AssistedInject constructor(
             }
             .launchIn(workspaceScope)
 
-        // Update title based on file info
+        // Update title based on content source
         workspaceScope.launch {
             engineHolder.flow.flatMapLatest { engine ->
-                engine.fileInfo
-            }.collect { info ->
-                updateFileInfo(info)
+                engine.contentSource
+            }.collect { source ->
+                updateContentSource(source)
             }
         }
+
+        // Auto-save logic: debounce after changes
+        combine(
+            editorState.map { it.isModified }.distinctUntilChanged(),
+            editorSettings.autoSaveEnabled.flow,
+            editorSettings.autoSaveInterval.flow,
+        ) { isModified, enabled, interval ->
+            Triple(isModified, enabled, interval)
+        }
+            .flatMapLatest { (isModified, enabled, interval) ->
+                if (isModified && enabled) {
+                    // Debounce: wait for interval after last modification
+                    flow {
+                        delay(interval)
+                        emit(Unit)
+                    }
+                } else {
+                    emptyFlow()
+                }
+            }
+            .onEach {
+                log(tag, INFO) { "Auto-save triggered" }
+                try {
+                    saveFile()
+                } catch (e: Exception) {
+                    log(tag, WARN) { "Auto-save failed: ${e.asLog()}" }
+                }
+            }
+            .launchIn(workspaceScope)
     }
 
     fun updateTitle(fileName: String? = null) {
@@ -202,9 +260,10 @@ class EditorWorkspace @AssistedInject constructor(
         log(tag, DEBUG) { "Updated title to: $newTitle" }
     }
 
-    fun updateFileInfo(fileInfo: FileInfo?) {
-        fileInfo?.let { info ->
-            updateTitle(info.path.name)
+    fun updateContentSource(contentSource: ContentSource) {
+        when (contentSource) {
+            is ContentSource.File -> updateTitle(contentSource.path.name)
+            is ContentSource.Memory -> updateTitle(contentSource.name)
         }
     }
 
@@ -293,8 +352,8 @@ class EditorWorkspace @AssistedInject constructor(
         }
     }
 
-    suspend fun search(query: String, caseSensitive: Boolean = false) =
-        engineHolder.value().search(query, caseSensitive)
+    suspend fun search(query: String, options: SearchOptions = SearchOptions()) =
+        engineHolder.value().search(query, options)
 
     suspend fun goToLine(lineNumber: Int) = engineHolder.value().goToLine(lineNumber)
     suspend fun undo() = engineHolder.value().undo()
@@ -324,6 +383,49 @@ class EditorWorkspace @AssistedInject constructor(
     fun canUndo() = runBlocking { engineHolder.value().canUndo() }
     fun canRedo() = runBlocking { engineHolder.value().canRedo() }
 
+    /**
+     * Reads file content for pasting from clipboard.
+     * @param path The file path to read
+     * @return Result containing the file content as String, or an error
+     */
+    suspend fun readFileContent(path: APath<*>): Result<String> = try {
+        gatewaySwitch.useRes {
+            val lookup = gatewaySwitch.lookup(path, eu.darken.butler.common.files.LookupOptions())
+            val size = lookup.size ?: 0L
+
+            // Size limit: 1 MB
+            if (size > MAX_PASTE_FILE_SIZE) {
+                return@useRes Result.failure(
+                    IllegalArgumentException("File too large to paste (max ${MAX_PASTE_FILE_SIZE / 1024 / 1024} MB)")
+                )
+            }
+
+            val bytes = gatewaySwitch.openInputStream(path).use { inputStream ->
+                inputStream.readBytes()
+            }
+
+            // Binary detection: check for null bytes
+            if (bytes.any { it == 0.toByte() }) {
+                return@useRes Result.failure(
+                    IllegalArgumentException("Cannot paste binary file content")
+                )
+            }
+
+            // Try UTF-8 first, fallback to ISO-8859-1
+            val content = try {
+                String(bytes, Charsets.UTF_8)
+            } catch (e: Exception) {
+                log(tag, WARN) { "UTF-8 decode failed, falling back to ISO-8859-1" }
+                String(bytes, Charsets.ISO_8859_1)
+            }
+
+            Result.success(content)
+        }
+    } catch (e: Exception) {
+        log(tag, ERROR) { "Failed to read file content: ${e.asLog()}" }
+        Result.failure(e)
+    }
+
     override suspend fun release() {
         log(tag, INFO) { "release()" }
         workspaceScope.cancel()
@@ -331,7 +433,7 @@ class EditorWorkspace @AssistedInject constructor(
     }
 
     data class EditorState(
-        val fileInfo: FileInfo? = null,
+        val contentSource: ContentSource = ContentSource.Memory(size = 0L),
         val totalLines: Int = 0,
         val isModified: Boolean = false,
         val currentContent: String = "",
@@ -344,6 +446,10 @@ class EditorWorkspace @AssistedInject constructor(
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false
     )
+
+    companion object {
+        const val MAX_PASTE_FILE_SIZE = 1024 * 1024L // 1 MB
+    }
 
     @AssistedFactory
     interface Factory : WorkspaceFactory<EditorArguments> {

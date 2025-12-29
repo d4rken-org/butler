@@ -1,7 +1,7 @@
 package eu.darken.butler.editor.core.sources
 
 import eu.darken.butler.editor.core.engine.ChunkBoundary
-import eu.darken.butler.editor.core.engine.FileInfo
+import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.TextChunk
 import kotlinx.coroutines.flow.StateFlow
 import okio.Source
@@ -35,7 +35,7 @@ import java.io.FileNotFoundException
  * Caching is handled by ChunkManager - data sources don't cache content.
  */
 interface EditorDataSource {
-    val fileInfo: StateFlow<FileInfo?>
+    val contentSource: StateFlow<ContentSource>
     val isModified: StateFlow<Boolean>
 
     /**
@@ -50,10 +50,10 @@ interface EditorDataSource {
      *
      * @param startOffset Byte offset in the file/content where reading begins
      * @param size Number of bytes to read
-     * @return String content decoded using detected charset (from FileInfo)
+     * @return String content decoded using detected charset (from ContentSource.File)
      *
      * **Encoding Behavior**:
-     * - Uses charset detected during open() (stored in FileInfo.detectedCharset)
+     * - Uses charset detected during open() (stored in ContentSource.File.detectedCharset)
      * - BOM is stripped from first chunk (offset 0) if present
      * - Falls back to UTF-8 if decoding fails
      *

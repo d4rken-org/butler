@@ -19,7 +19,7 @@ class ChunkedTextBufferSearchTest : ChunkedTextBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for "Hello"
-        val matches = buffer.search(query = "Hello", startFrom = null, ignoreCase = false)
+        val matches = buffer.search(query = "Hello", startFrom = null, options = SearchOptions(caseSensitive = true))
 
         // Then: Found 2 matches
         matches.size shouldBe 2
@@ -43,7 +43,7 @@ class ChunkedTextBufferSearchTest : ChunkedTextBufferTestBase() {
         val buffer = createBuffer(content, chunkSize = 100L)
 
         // When: Search for "SEARCH"
-        val matches = buffer.search(query = "SEARCH", startFrom = null, ignoreCase = false)
+        val matches = buffer.search(query = "SEARCH", startFrom = null, options = SearchOptions(caseSensitive = true))
 
         // Then: Found 3 matches
         matches.size shouldBe 3
@@ -61,7 +61,7 @@ class ChunkedTextBufferSearchTest : ChunkedTextBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search case-sensitive for "Hello"
-        val matches = buffer.search(query = "Hello", startFrom = null, ignoreCase = false)
+        val matches = buffer.search(query = "Hello", startFrom = null, options = SearchOptions(caseSensitive = true))
 
         // Then: Found only exact match
         matches.size shouldBe 1
@@ -75,7 +75,7 @@ class ChunkedTextBufferSearchTest : ChunkedTextBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for "apple"
-        val matches = buffer.search(query = "apple", startFrom = null, ignoreCase = false)
+        val matches = buffer.search(query = "apple", startFrom = null, options = SearchOptions(caseSensitive = true))
 
         // Then: Results are sorted by offset
         matches.size shouldBe 3
@@ -96,7 +96,7 @@ class ChunkedTextBufferSearchTest : ChunkedTextBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for non-existent term
-        val matches = buffer.search(query = "NOTFOUND", startFrom = null, ignoreCase = false)
+        val matches = buffer.search(query = "NOTFOUND", startFrom = null, options = SearchOptions(caseSensitive = true))
 
         // Then: Returns empty list (not failure)
         matches.shouldBeEmpty()
@@ -109,7 +109,7 @@ class ChunkedTextBufferSearchTest : ChunkedTextBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for empty string
-        val matches = buffer.search(query = "", startFrom = null, ignoreCase = false)
+        val matches = buffer.search(query = "", startFrom = null, options = SearchOptions(caseSensitive = true))
 
         // Then: Returns empty list
         matches.shouldBeEmpty()
@@ -122,7 +122,7 @@ class ChunkedTextBufferSearchTest : ChunkedTextBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for "TARGET"
-        val matches = buffer.search(query = "TARGET", startFrom = null, ignoreCase = false)
+        val matches = buffer.search(query = "TARGET", startFrom = null, options = SearchOptions(caseSensitive = true))
 
         // Then: Found 2 matches
         matches.size shouldBe 2

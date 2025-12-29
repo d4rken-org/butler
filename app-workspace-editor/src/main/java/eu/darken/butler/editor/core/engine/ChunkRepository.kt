@@ -7,12 +7,10 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.time.Instant
 
 class ChunkRepository @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -21,8 +19,8 @@ class ChunkRepository @AssistedInject constructor(
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "ChunkRepository")
 
-    suspend fun getFileInfo(): FileInfo? {
-        return dataSource.fileInfo.value
+    fun getContentSource(): ContentSource {
+        return dataSource.contentSource.value
     }
 
     suspend fun loadChunk(chunkId: TextChunk.ChunkId, boundary: ChunkBoundary): TextChunk =
@@ -180,12 +178,18 @@ class ChunkRepository @AssistedInject constructor(
      *
      * Note: Line numbers in results are chunk-relative (0-based within the chunk).
      * The caller (ChunkedTextBuffer) is responsible for converting to file-relative line numbers.
+     *
+     * @param chunk The chunk to search in
+     * @param boundary The chunk's position in the file
+     * @param query The search query (plain text or regex pattern)
+     * @param options Search options controlling case sensitivity, regex mode, and whole word matching
+     * @return List of search results, or empty list on regex syntax error
      */
     suspend fun searchInChunk(
         chunk: TextChunk,
         boundary: ChunkBoundary,
         query: String,
-        ignoreCase: Boolean = false
+        options: SearchOptions = SearchOptions(),
     ): List<SearchResult> {
         try {
             // Empty query returns no results
@@ -195,13 +199,26 @@ class ChunkRepository @AssistedInject constructor(
 
             val results = mutableListOf<SearchResult>()
 
-            val searchText = if (ignoreCase) chunk.content.lowercase() else chunk.content
-            val searchQuery = if (ignoreCase) query.lowercase() else query
+            // Build the effective pattern based on options
+            val pattern = buildSearchPattern(query, options)
+            val regexOptions = buildSet {
+                if (!options.caseSensitive) add(RegexOption.IGNORE_CASE)
+            }
 
-            var searchIndex = 0
-            while (searchIndex < searchText.length) {
-                val foundIndex = searchText.indexOf(searchQuery, searchIndex)
-                if (foundIndex == -1) break
+            val regex = try {
+                Regex(pattern, regexOptions)
+            } catch (e: Exception) {
+                log(tag, WARN) { "Invalid regex pattern: $query - ${e.message}" }
+                return emptyList()
+            }
+
+            // Find all matches
+            regex.findAll(chunk.content).forEach { matchResult ->
+                val foundIndex = matchResult.range.first
+                val matchText = matchResult.value
+
+                // Skip zero-length matches (can happen with some regex patterns)
+                if (matchText.isEmpty()) return@forEach
 
                 val absoluteOffset = boundary.startOffset + foundIndex
                 // Line number is chunk-relative (0-based within chunk)
@@ -212,12 +229,10 @@ class ChunkRepository @AssistedInject constructor(
                 results.add(
                     SearchResult(
                         position = TextPosition(absoluteOffset, lineNumber, columnNumber),
-                        matchText = chunk.content.substring(foundIndex, foundIndex + query.length),
+                        matchText = matchText,
                         chunkId = chunk.id
                     )
                 )
-
-                searchIndex = foundIndex + 1
             }
 
             return results
@@ -225,6 +240,30 @@ class ChunkRepository @AssistedInject constructor(
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to search in chunk: ${chunk.id} - ${e.asLog()}" }
             return emptyList()
+        }
+    }
+
+    /**
+     * Builds the regex pattern based on search options.
+     *
+     * - Plain search: escapes the query for literal matching
+     * - Regex search: uses the query as-is
+     * - Whole word: wraps with word boundaries (only for plain search)
+     */
+    private fun buildSearchPattern(query: String, options: SearchOptions): String {
+        return when {
+            options.useRegex -> {
+                // User provides their own regex pattern
+                query
+            }
+            options.wholeWord -> {
+                // Wrap escaped query with word boundaries
+                "\\b${Regex.escape(query)}\\b"
+            }
+            else -> {
+                // Plain text search - escape for literal matching
+                Regex.escape(query)
+            }
         }
     }
 
@@ -239,50 +278,6 @@ class ChunkRepository @AssistedInject constructor(
             workspaceId: Workspace.Id,
             dataSource: EditorDataSource,
         ): ChunkRepository
-    }
-}
-
-data class FileInfo(
-    val path: APath<*>,
-    val size: Long,
-    val lastModified: Instant,
-    val canWrite: Boolean,
-    val lineEnding: LineEnding = LineEnding.LF,
-    val detectedCharset: java.nio.charset.Charset = Charsets.UTF_8,
-    val hasBOM: Boolean = false,
-    val bomBytes: ByteArray? = null
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as FileInfo
-
-        if (path != other.path) return false
-        if (size != other.size) return false
-        if (lastModified != other.lastModified) return false
-        if (canWrite != other.canWrite) return false
-        if (lineEnding != other.lineEnding) return false
-        if (detectedCharset != other.detectedCharset) return false
-        if (hasBOM != other.hasBOM) return false
-        if (bomBytes != null) {
-            if (other.bomBytes == null) return false
-            if (!bomBytes.contentEquals(other.bomBytes)) return false
-        } else if (other.bomBytes != null) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = path.hashCode()
-        result = 31 * result + size.hashCode()
-        result = 31 * result + lastModified.hashCode()
-        result = 31 * result + canWrite.hashCode()
-        result = 31 * result + lineEnding.hashCode()
-        result = 31 * result + detectedCharset.hashCode()
-        result = 31 * result + hasBOM.hashCode()
-        result = 31 * result + (bomBytes?.contentHashCode() ?: 0)
-        return result
     }
 }
 

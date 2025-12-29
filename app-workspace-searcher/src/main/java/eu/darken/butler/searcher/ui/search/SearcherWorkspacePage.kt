@@ -1,24 +1,14 @@
 package eu.darken.butler.searcher.ui.search
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -35,16 +25,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -96,12 +84,12 @@ import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
-import eu.darken.butler.workspace.ui.scroll.getCurrentHeightDp
-import eu.darken.butler.workspace.ui.scroll.rememberBottomBarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.rememberTopBarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.rememberTopToolbarScrollBehavior
-import eu.darken.butler.workspace.ui.scroll.setHeight
-import eu.darken.butler.workspace.ui.scroll.setHeights
+import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
+import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -124,9 +112,24 @@ fun SearcherWorkspacePage(
     val workspaceButtonState by workspaceStateSource.collectAsState(null)
 
     // Setup and remember blocks at top level
-    val bottomBarScrollBehavior = rememberBottomBarScrollBehavior()
-    val topToolbarScrollBehavior = rememberTopToolbarScrollBehavior()
-    val topBarScrollBehavior = rememberTopBarScrollBehavior()
+    val topBarStackState = rememberFloatingBarStackState(
+        position = BarPosition.TOP,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 8.dp,
+        includeSystemBarInset = design.paneEdges.touchesTop,
+    )
+    val bottomBarStackState = rememberFloatingBarStackState(
+        position = BarPosition.BOTTOM,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 16.dp,
+        includeSystemBarInset = design.paneEdges.touchesBottom,
+    )
+    val density = LocalDensity.current
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
     val listState = rememberLazyListState()
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     var showTemplatesSheet by remember { mutableStateOf(false) }
@@ -134,49 +137,32 @@ fun SearcherWorkspacePage(
     val keyboardController = LocalSoftwareKeyboardController.current
     val shortcutsFocusRequester = remember { FocusRequester() }
 
-    // Track actual measured height of the toolbar card
-    val density = LocalDensity.current
-
-    // System bar insets for edge-to-edge (based on pane edges)
-    val statusBarInset = if (design.paneEdges.touchesTop) {
-        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
-    } else 0.dp
-    val navBarInset = if (design.paneEdges.touchesBottom) {
-        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
-
-    var actualToolbarHeightPx by remember { mutableIntStateOf(0) }
-    val actualToolbarHeightDp = with(density) { actualToolbarHeightPx.toDp() }
-
-    // Track actual measured height of the info bar
-    var actualInfoBarHeightPx by remember { mutableIntStateOf(0) }
-    val actualInfoBarHeightDp = with(density) { actualInfoBarHeightPx.toDp() }
-
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
+    // Use rememberUpdatedState for callback to avoid lambda recreation
+    val currentOnPageAction by rememberUpdatedState(onPageAction)
+
     // Wrapped selection callbacks that clear focus and hide keyboard
-    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit =
-        remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
-            { result ->
+    val wrappedOnEnterSelectionMode: (SearchItem) -> Unit = remember {
+        { result ->
+            focusManager.clearFocus()
+            keyboardController?.hide()
+            currentOnPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
+        }
+    }
+
+    val wrappedOnToggleSelection: (SearchItem) -> Unit = remember {
+        { result ->
+            // Only clear focus and hide keyboard when entering selection mode (first selection)
+            // Not when already in selection mode (subsequent toggles)
+            if (state?.selectionState?.isSelectionMode != true) {
                 focusManager.clearFocus()
                 keyboardController?.hide()
-                onPageAction(SearcherPageAction.Results.EnterSelectionMode(result))
             }
+            currentOnPageAction(SearcherPageAction.Results.ToggleSelection(result))
         }
-
-    val wrappedOnToggleSelection: (SearchItem) -> Unit =
-        remember(focusManager, keyboardController, shortcutsFocusRequester, onPageAction) {
-            { result ->
-                // Only clear focus and hide keyboard when entering selection mode (first selection)
-                // Not when already in selection mode (subsequent toggles)
-                if (state?.selectionState?.isSelectionMode != true) {
-                    focusManager.clearFocus()
-                    keyboardController?.hide()
-                }
-                onPageAction(SearcherPageAction.Results.ToggleSelection(result))
-            }
-        }
+    }
 
     // Re-request focus for keyboard shortcuts after clearing focus
     // This ensures shortcuts continue working after selecting a result
@@ -201,25 +187,18 @@ fun SearcherWorkspacePage(
         }
     }
 
-    // Set the bottom bar height for scroll behavior
-    bottomBarScrollBehavior.state.setHeight(64.dp)
-
-    // Set the top toolbar heights (expanded and collapsed)
-    topToolbarScrollBehavior.state.setHeights(
-        expandedHeightDp = 164.dp, // Full card with all options (actual measured height)
-        collapsedHeightDp = 44.dp  // Minimal compact state (actual measured height)
-    )
-
-    // Get current toolbar height for layout calculations
-    topToolbarScrollBehavior.state.getCurrentHeightDp()
-    val statusCardHeight = 60.dp // Fixed height for status card
-
-    // Set the top bar height for progress card scroll behavior
-    topBarScrollBehavior.state.setHeight(statusCardHeight)
-
     // Derived states for stable recomposition - at top level for immediate reactivity
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
+    }
+    val hasActiveOperations by remember {
+        derivedStateOf {
+            operationsState.operations.any { op ->
+                op.state is OperationDisplay.State.Queued ||
+                    op.state is OperationDisplay.State.Running ||
+                    op.state is OperationDisplay.State.Waiting
+            }
+        }
     }
     val hasClipboard by remember {
         derivedStateOf { clipboardState.entries.isNotEmpty() }
@@ -244,47 +223,29 @@ fun SearcherWorkspacePage(
         }
     }
 
-    // Determine if info bar should be visible
+    // Determine if info bar should be visible (when there are results OR selection)
     val showInfoBar by remember {
         derivedStateOf {
-            state?.selectionState?.selectionCount?.let { it > 0 } ?: false
+            val currentState = state ?: return@derivedStateOf false
+            currentState.selectionState.selectionCount > 0 || currentState.hasResults
         }
     }
 
-    // Auto-show action bar when entering selection mode
-    LaunchedEffect(hasActions) {
-        if (hasActions) {
-            // Smoothly animate action bar to visible when selection is activated
-            bottomBarScrollBehavior.state.animateToExpanded()
-        }
-    }
-
-    // Track action bar visibility for clipboard/operations animations
-    val isActionBarHidden by remember {
+    // Calculate results info for info bar
+    val resultsCount by remember {
         derivedStateOf {
-            bottomBarScrollBehavior.state.collapsedFraction > 0.1f || !hasActions
+            state?.listItems?.count { it is SearchListItem.Result } ?: 0
         }
     }
 
-    // Animate clipboard/operations bar position based on action bar state
-    val clipboardVerticalOffset by animateFloatAsState(
-        targetValue = if (isActionBarHidden) 8f else 64f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "clipboardOffset"
-    )
-
-    // Add slight scale animation for extra playfulness
-    val clipboardScale by animateFloatAsState(
-        targetValue = if (isActionBarHidden) 1.02f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "clipboardScale"
-    )
+    val totalResultsSize by remember {
+        derivedStateOf {
+            state?.listItems
+                ?.filterIsInstance<SearchListItem.Result>()
+                ?.sumOf { it.searchItem.size ?: 0L }
+                ?: 0L
+        }
+    }
 
     state?.let { currentState ->
         // Handle back button for selection mode - clear selection first
@@ -335,21 +296,12 @@ fun SearcherWorkspacePage(
                 }
             }
 
-            // Content padding calculation (shared between list and grid)
-            // Account for progress card visibility based on both existence AND scroll state
-            val isProgressCardVisible = showProgressCard && topBarScrollBehavior.state.collapsedFraction <= 0.1f
+            // Content padding - automatically calculated by FloatingBarStack
             val contentPaddingValues = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
-                top = statusBarInset + 8.dp + actualToolbarHeightDp +
-                    (if (isProgressCardVisible) statusCardHeight + 8.dp else 4.dp) +
-                    (if (showInfoBar) actualInfoBarHeightDp + 8.dp else 0.dp),
-                bottom = navBarInset + run {
-                    val actionBarHeight = if (hasActions) 64.dp else 0.dp
-                    val clipboardHeight = if (hasClipboard) 88.dp else 0.dp
-                    val operationsHeight = if (hasOperations) 80.dp else 0.dp
-                    actionBarHeight + clipboardHeight + operationsHeight + 8.dp
-                }
+                top = topBarStackState.contentPaddingDp(),
+                bottom = bottomBarStackState.contentPaddingDp(),
             )
 
             // Conditional rendering: History mode vs Results mode
@@ -364,9 +316,8 @@ fun SearcherWorkspacePage(
                         state = listState,
                         modifier = Modifier
                             .fillMaxSize()
-                            .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
-                            .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
-                            .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                            .nestedScroll(topBarStackState.nestedScrollConnection)
+                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = contentPaddingValues
                     ) {
@@ -398,9 +349,8 @@ fun SearcherWorkspacePage(
                                 state = listState,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
-                                    .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
-                                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                                    .nestedScroll(topBarStackState.nestedScrollConnection)
+                                    .nestedScroll(bottomBarStackState.nestedScrollConnection),
                                 verticalArrangement = Arrangement.spacedBy(
                                     when (style.density) {
                                         SearcherViewStyle.List.Density.COMPACT -> 4.dp
@@ -507,9 +457,8 @@ fun SearcherWorkspacePage(
                                 state = gridState,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .nestedScroll(topToolbarScrollBehavior.nestedScrollConnection)
-                                    .nestedScroll(topBarScrollBehavior.nestedScrollConnection)
-                                    .nestedScroll(bottomBarScrollBehavior.nestedScrollConnection),
+                                    .nestedScroll(topBarStackState.nestedScrollConnection)
+                                    .nestedScroll(bottomBarStackState.nestedScrollConnection),
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 contentPadding = contentPaddingValues
@@ -584,113 +533,102 @@ fun SearcherWorkspacePage(
                 }
             }
 
-            // Pinned search toolbar at top - collapses on scroll
-            SearchToolbarCard(
-                workspaceId = workspaceId,
-                state = currentState,
-                design = design,
-                collapsedFraction = topToolbarScrollBehavior.state.collapsedFraction,
-                onUpdateFilenameQuery = { onPageAction(SearcherPageAction.Search.UpdateFilenameQuery(it)) },
-                onUpdateContentQuery = { onPageAction(SearcherPageAction.Search.UpdateContentQuery(it)) },
-                onRemoveSearchPath = { onPageAction(SearcherPageAction.Targets.Remove(it)) },
-                onTogglePathEnabled = { onPageAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
-                onPerformSearch = { onPageAction(SearcherPageAction.Search.Perform) },
-                onExplicitSearch = { onPageAction(SearcherPageAction.Search.Explicit) },
-                onCancelSearch = { onPageAction(SearcherPageAction.Search.Cancel) },
-                onToggleFilenameCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleFilenameCaseSensitive) },
-                onToggleFilenameWholeWord = { onPageAction(SearcherPageAction.Options.ToggleFilenameWholeWord) },
-                onToggleFilenameRegex = { onPageAction(SearcherPageAction.Options.ToggleFilenameRegex) },
-                onToggleContentCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleContentCaseSensitive) },
-                onToggleContentWholeWord = { onPageAction(SearcherPageAction.Options.ToggleContentWholeWord) },
-                onToggleContentRegex = { onPageAction(SearcherPageAction.Options.ToggleContentRegex) },
-                onToggleContentSearch = { onPageAction(SearcherPageAction.Options.ToggleContentSearch) },
-                onOpenPathPicker = { onPageAction(SearcherPageAction.Targets.OpenPicker) },
-                onConditionClick = { onPageAction(SearcherPageAction.Filter.EditCondition(it)) },
-                onAddSizeCondition = { onPageAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
-                onAddDateCondition = { onPageAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
-                onAddTypeCondition = { onPageAction(SearcherPageAction.Filter.OpenTypeConditionEditor) },
-                onRemoveCondition = { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) },
-                workspaceButtonState = workspaceButtonState,
-                workspaceActionHandler = workspaceActionHandler,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(horizontal = 16.dp)
-                    .padding(top = statusBarInset + 8.dp, bottom = 8.dp)
-                    .onGloballyPositioned { layoutCoordinates ->
-                        actualToolbarHeightPx = layoutCoordinates.size.height
-                    }
-            )
-
-            // Error dialog state
+            // Error dialog state (declared before FloatingBarStack that uses it)
             var errorDialogState by remember { mutableStateOf<Pair<String, Throwable>?>(null) }
 
-            // Pinned progress card below toolbar - hides on scroll
-            if (showProgressCard) {
-                SearchProgressCard(
-                    targetProgress = currentState.workspaceState.targetProgress,
-                    overallProgress = currentState.workspaceState.progress,
-                    searchStatus = currentState.workspaceState.searchStatus,
-                    onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
-                    onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
-                    onErrorClick = { path, exception ->
-                        errorDialogState = path to exception
-                    },
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = statusBarInset + 16.dp + actualToolbarHeightDp)
-                        .padding(horizontal = 16.dp)
-                        .graphicsLayer {
-                            // Immediate snap behavior: fully visible or fully hidden
-                            alpha = if (topBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
-                            translationY = if (topBarScrollBehavior.state.collapsedFraction > 0.1f) {
-                                -statusCardHeight.toPx()
-                            } else 0f
-                        }
-                )
-            }
-
-            // Pinned info bar below progress card
-            if (showInfoBar) {
-                SearcherInfoBar(
-                    selectedCount = currentState.selectionState.selectionCount,
-                    onClearSelection = { onPageAction(SearcherPageAction.Results.ExitSelectionMode) },
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(
-                            y = statusBarInset + 8.dp + actualToolbarHeightDp +
-                                (if (showProgressCard) statusCardHeight + 8.dp else 0.dp)
+            // Top FloatingBarStack - toolbar, progress card, info bar
+            FloatingBarStack(
+                state = topBarStackState,
+                position = BarPosition.TOP,
+                modifier = Modifier.align(Alignment.TopCenter),
+                bars = {
+                    // Toolbar - closest to top edge, collapses on scroll
+                    FloatingBar(
+                        visible = true,
+                        scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
+                        animation = BarAnimation.Slide(),
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    ) {
+                        SearchToolbarCard(
+                            workspaceId = workspaceId,
+                            state = currentState,
+                            design = design,
+                            collapsedFraction = collapsedFraction,
+                            onUpdateFilenameQuery = { onPageAction(SearcherPageAction.Search.UpdateFilenameQuery(it)) },
+                            onUpdateContentQuery = { onPageAction(SearcherPageAction.Search.UpdateContentQuery(it)) },
+                            onRemoveSearchPath = { onPageAction(SearcherPageAction.Targets.Remove(it)) },
+                            onTogglePathEnabled = { onPageAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
+                            onPerformSearch = { onPageAction(SearcherPageAction.Search.Perform) },
+                            onExplicitSearch = { onPageAction(SearcherPageAction.Search.Explicit) },
+                            onCancelSearch = { onPageAction(SearcherPageAction.Search.Cancel) },
+                            onToggleFilenameCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleFilenameCaseSensitive) },
+                            onToggleFilenameWholeWord = { onPageAction(SearcherPageAction.Options.ToggleFilenameWholeWord) },
+                            onToggleFilenameRegex = { onPageAction(SearcherPageAction.Options.ToggleFilenameRegex) },
+                            onToggleContentCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleContentCaseSensitive) },
+                            onToggleContentWholeWord = { onPageAction(SearcherPageAction.Options.ToggleContentWholeWord) },
+                            onToggleContentRegex = { onPageAction(SearcherPageAction.Options.ToggleContentRegex) },
+                            onToggleContentSearch = { onPageAction(SearcherPageAction.Options.ToggleContentSearch) },
+                            onOpenPathPicker = { onPageAction(SearcherPageAction.Targets.OpenPicker) },
+                            onConditionClick = { onPageAction(SearcherPageAction.Filter.EditCondition(it)) },
+                            onAddSizeCondition = { onPageAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
+                            onAddDateCondition = { onPageAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
+                            onAddTypeCondition = { onPageAction(SearcherPageAction.Filter.OpenTypeConditionEditor) },
+                            onRemoveCondition = { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) },
+                            workspaceButtonState = workspaceButtonState,
+                            workspaceActionHandler = workspaceActionHandler,
                         )
-                        .padding(horizontal = 16.dp)
-                        .onGloballyPositioned { layoutCoordinates ->
-                            actualInfoBarHeightPx = layoutCoordinates.size.height
-                        }
-                )
-            }
+                    }
 
-            // Floating Operations and Clipboard Bars Container
-            AnimatedVisibility(
-                visible = hasOperations || hasClipboard,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(
-                        start = 8.dp,
-                        end = 8.dp,
-                        bottom = navBarInset + clipboardVerticalOffset.coerceAtLeast(0f).dp
-                    )
-                    .graphicsLayer {
-                        scaleY = clipboardScale
-                    },
-                enter = slideInVertically(animationSpec = tween(150)) { it },
-                exit = slideOutVertically(animationSpec = tween(150)) { it },
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Operations Bar (top)
-                    AnimatedVisibility(
+                    // Progress card - vanishes on scroll
+                    FloatingBar(
+                        visible = showProgressCard,
+                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                        animation = BarAnimation.Slide(),
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    ) {
+                        SearchProgressCard(
+                            targetProgress = currentState.workspaceState.targetProgress,
+                            overallProgress = currentState.workspaceState.progress,
+                            searchStatus = currentState.workspaceState.searchStatus,
+                            onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
+                            onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
+                            onErrorClick = { path, exception ->
+                                errorDialogState = path to exception
+                            },
+                        )
+                    }
+
+                    // Info bar - static (stays visible when results or selection)
+                    FloatingBar(
+                        visible = showInfoBar,
+                        scrollBehavior = BarScrollBehavior.Static,
+                        animation = BarAnimation.Slide(),
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    ) {
+                        SearcherInfoBar(
+                            resultsCount = resultsCount,
+                            totalSize = totalResultsSize,
+                            selectedCount = currentState.selectionState.selectionCount,
+                            onClearSelection = { onPageAction(SearcherPageAction.Results.ExitSelectionMode) },
+                        )
+                    }
+                },
+                content = {},
+            )
+
+            // Bottom FloatingBarStack - operations, clipboard, action bar
+            FloatingBarStack(
+                state = bottomBarStackState,
+                position = BarPosition.BOTTOM,
+                modifier = Modifier.align(Alignment.BottomCenter),
+                bars = {
+                    // Operations bar - furthest from bottom edge
+                    // Static when active operations, VanishOnScroll when only completed
+                    FloatingBar(
                         visible = hasOperations,
-                        enter = slideInVertically(animationSpec = tween(150)) { it },
-                        exit = slideOutVertically(animationSpec = tween(150)) { it },
+                        scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
+                        animation = BarAnimation.Slide(),
+                        modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
                         OperationsBar(
                             operations = operationsState.operations,
@@ -710,11 +648,12 @@ fun SearcherWorkspacePage(
                         )
                     }
 
-                    // Clipboard Bar (bottom)
-                    AnimatedVisibility(
+                    // Clipboard bar - middle, vanishes on scroll with bouncy animation
+                    FloatingBar(
                         visible = hasClipboard,
-                        enter = slideInVertically(animationSpec = tween(150)) { it },
-                        exit = slideOutVertically(animationSpec = tween(150)) { it },
+                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                        animation = BarAnimation.Bouncy,
+                        modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
                         ClipboardBar(
                             workspaceType = Workspace.Type.SEARCHER,
@@ -722,37 +661,33 @@ fun SearcherWorkspacePage(
                             onPasteClick = { clip -> vm?.openClipboardInExplorer(clip) },
                             onRemoveClick = { onPageAction(SearcherPageAction.Clipboard.RemoveEntry(it)) },
                             onEntryClick = { onPageAction(SearcherPageAction.Clipboard.ClickEntry(it)) },
-                            onClearAll = { onPageAction(SearcherPageAction.Clipboard.ClearAll) }
+                            onClearAll = { onPageAction(SearcherPageAction.Clipboard.ClearAll) },
                         )
                     }
-                }
-            }
 
-            // Floating Bottom ActionBar - Selection mode
-            if (hasActions) {
-                WorkspaceActionBar(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(horizontal = 8.dp)
-                        .padding(bottom = navBarInset + 8.dp, top = 8.dp)
-                        .graphicsLayer {
-                            // Immediate snap behavior: fully visible or fully hidden
-                            alpha = if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 0f else 1f
-                            translationY =
-                                if (bottomBarScrollBehavior.state.collapsedFraction > 0.1f) 64.dp.toPx() else 0f
-                        },
-                    actions = currentState.availableActions,
-                    onActionClick = { action ->
-                        when (val searcherAction = action as SearcherAction) {
-                            is SearcherAction.DeselectAll -> onPageAction(SearcherPageAction.Results.ExitSelectionMode)
-                            else -> onPageAction(SearcherPageAction.WorkspaceAction(searcherAction))
-                        }
-                    },
-                    onActionLongClick = { action ->
-                        vm?.onActionLongClick(action as SearcherAction)
-                    },
-                )
-            }
+                    // Action bar - closest to bottom edge, hides on scroll
+                    FloatingBar(
+                        visible = hasActions,
+                        scrollBehavior = BarScrollBehavior.HideOnScroll,
+                        animation = BarAnimation.Slide(),
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        WorkspaceActionBar(
+                            actions = currentState.availableActions,
+                            onActionClick = { action ->
+                                when (val searcherAction = action as SearcherAction) {
+                                    is SearcherAction.DeselectAll -> onPageAction(SearcherPageAction.Results.ExitSelectionMode)
+                                    else -> onPageAction(SearcherPageAction.WorkspaceAction(searcherAction))
+                                }
+                            },
+                            onActionLongClick = { action ->
+                                vm?.onActionLongClick(action as SearcherAction)
+                            },
+                        )
+                    }
+                },
+                content = {},
+            )
 
             // Error dialog for individual search target failures
             errorDialogState?.let { (path, exception) ->
@@ -795,6 +730,7 @@ fun SearcherWorkspacePage(
                     onPageAction(SearcherPageAction.Results.HideQuickActions)
                 },
                 onDismiss = { onPageAction(SearcherPageAction.Results.HideQuickActions) },
+                bottomInset = navBarInset,
             )
         }
 
@@ -805,6 +741,7 @@ fun SearcherWorkspacePage(
                 issue = issueState!!,
                 onResolution = { resolution -> vm?.resolveIssue(resolution) },
                 onDismiss = { /* Issue will auto-clear when resolved or cancelled */ },
+                bottomInset = navBarInset,
             )
         }
 
@@ -866,6 +803,7 @@ fun SearcherWorkspacePage(
                 }
                 onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
             },
+            bottomInset = navBarInset,
         )
 
         // Date condition edit bottom sheet
@@ -881,6 +819,7 @@ fun SearcherWorkspacePage(
                 }
                 onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
             },
+            bottomInset = navBarInset,
         )
 
         // Type condition edit bottom sheet
@@ -896,6 +835,7 @@ fun SearcherWorkspacePage(
                 }
                 onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
             },
+            bottomInset = navBarInset,
         )
 
         // Operation dialog host

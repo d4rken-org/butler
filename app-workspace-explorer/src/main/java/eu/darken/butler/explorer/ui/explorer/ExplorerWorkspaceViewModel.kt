@@ -84,6 +84,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.cancelResult
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
+import eu.darken.butler.workspace.core.clipboard.ClipboardSettings
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
@@ -116,6 +117,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val actionProvider: DefaultActionProvider,
     private val clipboardRepo: ClipboardRepo,
+    private val clipboardSettings: ClipboardSettings,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val shareIntentUseCase: ShareIntentUseCase,
     private val fileIntentHelper: FileIntentHelper,
@@ -630,6 +632,24 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun selectAll() = launch {
         val stateSnap = state.first()
         selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+    }
+
+    fun selectAllFolders() = launch {
+        val stateSnap = state.first()
+        val folders = stateSnap.selectionState.selectableItems.filter { item ->
+            item is ExplorerItem.Directory ||
+                (item is ExplorerItem.Trash.Nested && item.isDirectory)
+        }
+        selectedItemsFlow.value = selectedItemsFlow.value + folders
+    }
+
+    fun selectAllFiles() = launch {
+        val stateSnap = state.first()
+        val files = stateSnap.selectionState.selectableItems.filter { item ->
+            item is ExplorerItem.File ||
+                (item is ExplorerItem.Trash.Nested && item.isFile)
+        }
+        selectedItemsFlow.value = selectedItemsFlow.value + files
     }
 
     // Focus navigation methods
@@ -1461,10 +1481,49 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         revealItems(addedPaths)
                     }
 
-                    if (clip.mode == ClipboardClip.Paths.Mode.CUT) {
-                        clipboardRepo.remove(clip.id)
+                    when (clip.mode) {
+                        ClipboardClip.Paths.Mode.CUT -> clipboardRepo.remove(clip.id)
+                        ClipboardClip.Paths.Mode.COPY -> {
+                            if (clipboardSettings.removeOnPaste.value()) {
+                                clipboardRepo.remove(clip.id)
+                            }
+                        }
                     }
                 }
+            }
+
+            is ClipboardClip.Text -> {
+                // Show filename dialog for text snippet paste
+                dialogStateFlow.value = ExplorerDialogState.CreateFileFromText(clip)
+            }
+        }
+    }
+
+    fun onCreateFileFromText(clip: ClipboardClip.Text, filename: String) = launch {
+        log(tag) { "onCreateFileFromText(filename=$filename)" }
+        dismissDialog()
+
+        val currentLocation = state.first().currentLocation
+        if (currentLocation is ExplorerLocation.Directory) {
+            try {
+                val filePath = currentLocation.path.child(filename)
+                val workspace = getWorkspace()
+
+                // Create and write file
+                val command = ExplorerCommand.CreateTextFile(
+                    path = filePath,
+                    content = clip.content,
+                )
+                val completed = workspace.execute(command)
+
+                if (completed.error == null) {
+                    log(tag, INFO) { "Created text file: $filename with ${clip.content.length} characters" }
+                    revealItems(listOf(filePath))
+                    clipboardRepo.remove(clip.id)
+                }
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed to create text file: ${e.asLog()}" }
+                errorEvents.emit(e)
             }
         }
     }
@@ -1675,6 +1734,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 if (clip.paths.isNotEmpty()) {
                     val firstPath = clip.paths.first()
                     val parentPath = firstPath.parent
+                    if (parentPath != null) {
+                        getWorkspace().navigate(ExplorerNavigation.Target.Directory(parentPath))
+                    }
+                }
+            }
+            is ClipboardClip.Text -> {
+                val sourcePath = clip.sourcePath
+                if (sourcePath != null) {
+                    val parentPath = sourcePath.parent
                     if (parentPath != null) {
                         getWorkspace().navigate(ExplorerNavigation.Target.Directory(parentPath))
                     }

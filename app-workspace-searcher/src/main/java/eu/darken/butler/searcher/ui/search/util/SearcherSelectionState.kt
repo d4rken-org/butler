@@ -1,7 +1,9 @@
 package eu.darken.butler.searcher.ui.search.util
 
+import androidx.compose.runtime.Stable
 import eu.darken.butler.searcher.core.SearchItem
 
+@Stable
 data class SearcherSelectionState(
     val selectableResults: List<SearchItem> = emptyList(),
     val selectedResultIds: Set<String> = emptySet(),

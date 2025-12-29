@@ -126,7 +126,6 @@
     <!-- Search progress -->
     <string name="searcher_progress_action_searching">Searching</string>
     <string name="searcher_progress_action_searched">Searched</string>
-    <string name="searcher_progress_stats_separator"> • </string>
     <string name="searcher_progress_status_completed_with_errors">Completed with errors</string>
     <string name="searcher_progress_clear_action">Clear</string>
 
@@ -179,4 +178,10 @@
 
     <!-- Permission setup -->
     <string name="searcher_setup_required_body">Additional setup is required to search some locations.</string>
+
+    <!-- Info bar -->
+    <plurals name="searcher_infobar_results_count">
+        <item quantity="one">%d result</item>
+        <item quantity="other">%d results</item>
+    </plurals>
 </resources>

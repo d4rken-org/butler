@@ -43,7 +43,6 @@ class EditorArgumentsSerializationTest : BaseTest() {
     fun `serialize Default with filePath includes type discriminator`() {
         val args = EditorArguments.Default(
             filePath = LocalPath.build("/sdcard/test.txt"),
-            goToLine = 42,
         )
         val serialized = json.encodeToJsonElement<EditorArguments>(args)
 
@@ -53,8 +52,7 @@ class EditorArgumentsSerializationTest : BaseTest() {
                 "filePath": {
                     "type": "LOCAL",
                     "file": "/sdcard/test.txt"
-                },
-                "goToLine": 42
+                }
             }
         """.toComparableJson()
     }
@@ -82,12 +80,50 @@ class EditorArgumentsSerializationTest : BaseTest() {
     fun `roundtrip Default serialization`() {
         val original = EditorArguments.Default(
             filePath = LocalPath.build("/sdcard/document.md"),
-            goToLine = 100,
         )
 
         val serialized = json.encodeToJsonElement<EditorArguments>(original)
         val deserialized = json.decodeFromString<EditorArguments>(serialized.toString())
 
         deserialized shouldBe original
+    }
+
+    @Test
+    fun `roundtrip Default with cursor and scroll position`() {
+        val original = EditorArguments.Default(
+            filePath = LocalPath.build("/sdcard/document.md"),
+            cursorLine = 42,
+            cursorColumn = 10,
+            scrollToLine = 35,
+        )
+
+        val serialized = json.encodeToJsonElement<EditorArguments>(original)
+        val deserialized = json.decodeFromString<EditorArguments>(serialized.toString())
+
+        deserialized shouldBe original
+    }
+
+    @Test
+    fun `serialize Default with cursor and scroll position`() {
+        val args = EditorArguments.Default(
+            filePath = LocalPath.build("/sdcard/test.txt"),
+            cursorLine = 100,
+            cursorColumn = 25,
+            scrollToLine = 90,
+        )
+        val serialized = json.encodeToJsonElement<EditorArguments>(args)
+
+        serialized.toString().toComparableJson() shouldBe """
+            {
+                "type": "arguments",
+                "filePath": {
+                    "type": "LOCAL",
+                    "file": "/sdcard/test.txt"
+                },
+                "cursorLine": 100,
+                "cursorColumn": 25,
+                "scrollToLine": 90
+            }
+        """.toComparableJson()
     }
 }

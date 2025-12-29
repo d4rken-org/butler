@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.twotone.ListAlt
+import androidx.compose.material.icons.twotone.ContentPaste
 import androidx.compose.material.icons.twotone.Favorite
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.PrivacyTip
@@ -187,6 +188,16 @@ fun SettingsIndexScreen(
                     title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_title),
                     subtitle = stringResource(R.string.workspace_settings_subtitle),
                     onClick = { onNavigateTo(Nav.Settings.workspaces()) },
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsBaseItem(
+                    icon = Icons.TwoTone.ContentPaste,
+                    title = stringResource(eu.darken.butler.workspace.R.string.clipboard_settings_title),
+                    subtitle = stringResource(R.string.clipboard_settings_subtitle),
+                    onClick = { onNavigateTo(Nav.Settings.clipboard()) },
                 )
                 SettingsDivider()
             }

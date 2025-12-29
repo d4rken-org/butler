@@ -24,6 +24,15 @@
         <item quantity="one">%d item from %s</item>
         <item quantity="other">%d items from %s</item>
     </plurals>
+    <string name="clipboard_text_title">Text snippet</string>
+    <plurals name="clipboard_text_description">
+        <item quantity="one">%1$d character</item>
+        <item quantity="other">%1$d characters</item>
+    </plurals>
+    <string name="clipboard_text_paste_as_file">Paste as file</string>
+    <string name="clipboard_text_info_characters">Characters</string>
+    <string name="clipboard_text_info_lines">Lines</string>
+    <string name="clipboard_text_info_content">Content</string>
 
     <!-- Clipboard Info Dialog -->
     <string name="clipboard_info_overview">Overview</string>
@@ -36,6 +45,13 @@
     <string name="clipboard_info_actions">Actions</string>
     <string name="clipboard_info_go_to_source">Go to source</string>
     <string name="clipboard_info_remove">Remove from clipboard</string>
+
+    <!-- Clipboard Settings -->
+    <string name="clipboard_settings_title">Clipboard</string>
+    <string name="clipboard_settings_remove_on_paste_title">Remove on paste</string>
+    <string name="clipboard_settings_remove_on_paste_desc">Remove copied items from clipboard after pasting</string>
+    <string name="clipboard_settings_max_items_title">Maximum items</string>
+    <string name="clipboard_settings_max_items_desc">Maximum number of items in clipboard</string>
 
     <string name="workspace_explorer_label">Explorer</string>
     <string name="workspace_searcher_label">Searcher</string>

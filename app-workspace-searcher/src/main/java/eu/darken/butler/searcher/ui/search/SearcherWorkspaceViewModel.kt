@@ -2,6 +2,7 @@ package eu.darken.butler.searcher.ui.search
 
 import android.content.Context
 import android.webkit.MimeTypeMap
+import androidx.compose.runtime.Stable
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -296,6 +297,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
     }
 
+    @Stable
     data class ClipboardState(
         val entries: List<ClipboardClip> = emptyList(),
     )
@@ -304,6 +306,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         .map { repoState -> ClipboardState(entries = repoState.entries) }
         .asStateFlow()
 
+    @Stable
     data class OperationsState(
         val operations: List<OperationDisplay> = emptyList(),
     )
@@ -878,6 +881,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    @Stable
     data class State(
         val id: Workspace.Id,
         val filenameQuery: String = "",
@@ -996,6 +1000,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
+            is ClipboardClip.Text -> {
+                val sourcePath = clip.sourcePath
+                if (sourcePath != null) {
+                    val parentPath = sourcePath.parent
+                    if (parentPath != null) {
+                        workspaceRemote.createAndFocus(
+                            type = Workspace.Type.EXPLORER,
+                            arguments = ExplorerArguments.Default(startPath = parentPath)
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -1020,6 +1036,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     type = Workspace.Type.EXPLORER,
                     arguments = ExplorerArguments.Default(startPath = commonParent)
                 )
+            }
+            is ClipboardClip.Text -> {
+                log(TAG, WARN) { "Cannot open text clip in Explorer - no file paths" }
+                return@launch
             }
         }
     }

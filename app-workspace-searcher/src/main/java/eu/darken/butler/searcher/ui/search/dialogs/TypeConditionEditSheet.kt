@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -54,11 +55,13 @@ fun TypeConditionEditSheet(
     existingCondition: FilterCondition.Type?,
     onDismiss: () -> Unit,
     onApply: (FilterCondition.Type) -> Unit,
+    bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         modifier = modifier,
         visible = visible,
         onDismiss = onDismiss,
+        bottomInset = bottomInset,
     ) {
         TypeConditionEditContent(
             existingCondition = existingCondition,
