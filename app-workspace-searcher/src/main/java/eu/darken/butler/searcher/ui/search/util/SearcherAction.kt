@@ -3,6 +3,7 @@ package eu.darken.butler.searcher.ui.search.util
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.automirrored.twotone.Sort
+import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
@@ -15,13 +16,13 @@ import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.actions.WorkspaceAction
+import eu.darken.butler.common.R as CommonR
 
 sealed interface SearcherAction : WorkspaceAction {
     override val icon: ImageVector
@@ -61,7 +62,7 @@ sealed interface SearcherAction : WorkspaceAction {
         val results: List<SearchItem>,
     ) : SearcherAction {
         override val icon = Icons.TwoTone.Share
-        override val label = eu.darken.butler.common.R.string.general_share_action.toCaString()
+        override val label = CommonR.string.general_share_action.toCaString()
         override val isVisible: Boolean get() = results.size <= 10 // Reasonable limit for sharing
     }
 
@@ -131,7 +132,10 @@ sealed interface SearcherAction : WorkspaceAction {
             override val isEnabled: Boolean = true,
             override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
         ) : Common {
-            override val icon = Icons.TwoTone.GridView
+            override val icon = when (viewStyle) {
+                is SearcherViewStyle.Grid -> Icons.TwoTone.GridView
+                is SearcherViewStyle.List -> Icons.AutoMirrored.TwoTone.ViewList
+            }
             override val label = R.string.searcher_action_view.toCaString()
         }
     }
