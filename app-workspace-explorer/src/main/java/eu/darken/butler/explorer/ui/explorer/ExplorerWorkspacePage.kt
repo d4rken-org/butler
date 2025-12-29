@@ -608,9 +608,8 @@ fun ExplorerWorkspacePage(
                     // Toolbar - closest to top edge, collapses on scroll
                     FloatingBar(
                         visible = true,
-                        scrollBehavior = BarScrollBehavior.CollapseOnScroll,
+                        scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
                         animation = BarAnimation.Slide(),
-                        collapsedHeight = 44.dp,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     ) {
                         ExplorerToolbarCard(

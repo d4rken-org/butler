@@ -304,7 +304,7 @@ fun AppDetailsWorkspacePage(
                 // Toolbar - collapses on scroll
                 FloatingBar(
                     visible = true,
-                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 52.dp),
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     animation = BarAnimation.Slide(),
                     modifier = Modifier.padding(horizontal = 8.dp),
                 ) {

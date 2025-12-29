@@ -183,7 +183,7 @@ fun EditorWorkspacePage(
             state = topBarStackState,
             bars = {
                 FloatingBar(
-                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 48.dp),
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     estimatedHeight = 80.dp, // EditorToolbarCard expanded height
                     animation = BarAnimation.Slide(),
                 ) {
