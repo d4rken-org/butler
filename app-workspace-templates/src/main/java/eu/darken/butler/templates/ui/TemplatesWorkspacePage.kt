@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
@@ -31,13 +29,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.apps.ui.AppsWorkspaceTemplate
 import eu.darken.butler.common.Slogans
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
@@ -115,84 +121,83 @@ fun TemplatesWorkspacePage(
         with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     } else 0.dp
 
-    // Settings card height for content padding calculation
-    val settingsCardHeight = 96.dp
+    // Dynamically measured settings card height for content padding
+    val localDensity = LocalDensity.current
+    var settingsCardHeight by remember { mutableStateOf(96.dp) } // Initial estimate
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Scrollable content
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp)
-                .padding(top = statusBarInset + 16.dp),
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.Start,
+            contentPadding = PaddingValues(
+                top = statusBarInset + 16.dp,
+                bottom = settingsCardHeight + 16.dp,
+            ),
         ) {
-            Text(
-                text = stringResource(R.string.workspace_templates_choose_title),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-            Text(
-                text = stringResource(R.string.workspace_templates_choose_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalAlignment = Alignment.Start,
-                contentPadding = PaddingValues(bottom = settingsCardHeight + navBarInset + 32.dp),
-            ) {
-                items(state.templates.size) { index ->
-                    val template = state.templates[index]
-                    val isFirstItem = index == 0
-
-                    TemplateCard(
-                        template = template,
-                        isFirstItem = isFirstItem,
-                        onClick = {
-                            onCreateWorkspace(
-                                WorkspaceAction.Create(
-                                    type = template.type,
-                                    arguments = template.arguments,
-                                    replace = state.id,
-                                    autoFocus = true,
-                                )
-                            )
-                        },
+            item {
+                Column(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)) {
+                    Text(
+                        text = stringResource(R.string.workspace_templates_choose_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = stringResource(R.string.workspace_templates_choose_subtitle),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     )
                 }
             }
+            items(state.templates.size) { index ->
+                val template = state.templates[index]
+                val isFirstItem = index == 0
+
+                TemplateCard(
+                    template = template,
+                    isFirstItem = isFirstItem,
+                    onClick = {
+                        onCreateWorkspace(
+                            WorkspaceAction.Create(
+                                type = template.type,
+                                arguments = template.arguments,
+                                replace = state.id,
+                                autoFocus = true,
+                            )
+                        )
+                    },
+                )
+            }
         }
 
-        // Floating settings card with gradient fade above
-        Column(
+        // Floating settings card with gradient fades
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(bottom = navBarInset + 16.dp),
+                .onGloballyPositioned { coordinates ->
+                    settingsCardHeight = with(localDensity) { coordinates.size.height.toDp() }
+                },
         ) {
-            // Gradient fade effect above card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(32.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                MaterialTheme.colorScheme.surface,
-                            )
-                        )
-                    )
+            // Gradient fades behind card's rounded corners
+            GradientFade(
+                modifier = Modifier.align(Alignment.TopCenter),
+                fadeDirection = FadeDirection.DOWN,
+            )
+            GradientFade(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                height = 48.dp + navBarInset,
+                fadeDirection = FadeDirection.UP,
             )
 
             // Floating settings card
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(top = 32.dp, bottom = navBarInset + 16.dp)
                     .padding(horizontal = 24.dp),
                 colors = CardDefaults.elevatedCardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -269,7 +274,7 @@ private fun TemplateCard(
 ) {
     val cardContent = @Composable {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -354,6 +359,26 @@ private fun TemplateCard(
     }
 }
 
+private enum class FadeDirection { UP, DOWN }
+
+@Composable
+private fun GradientFade(
+    modifier: Modifier = Modifier,
+    height: Dp = 48.dp,
+    fadeDirection: FadeDirection = FadeDirection.DOWN,
+) {
+    val colors = when (fadeDirection) {
+        FadeDirection.DOWN -> listOf(Color.Transparent, MaterialTheme.colorScheme.surface)
+        FadeDirection.UP -> listOf(MaterialTheme.colorScheme.surface, Color.Transparent)
+    }
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height)
+            .background(Brush.verticalGradient(colors = colors))
+    )
+}
+
 @Preview2
 @Composable
 private fun TemplatesWorkspacePagePreview() {
@@ -367,6 +392,7 @@ private fun TemplatesWorkspacePagePreview() {
                     ExplorerWorkspaceTemplate(),
                     SearcherWorkspaceTemplate(),
                     EditorWorkspaceTemplate(),
+                    AppsWorkspaceTemplate(),
                 ),
                 isUpgraded = true,
                 versionDescription = "1.0.0-preview",
