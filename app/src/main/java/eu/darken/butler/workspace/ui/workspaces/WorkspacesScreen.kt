@@ -51,112 +51,6 @@ import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.workspace.R as WorkspaceR
 
 @Composable
-fun WorkspacesScreenHost(
-    vm: WorkspacesViewModel = hiltViewModel(),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
-    managerVm: WorkspaceManagerViewModel = hiltViewModel(),
-) {
-    ErrorEventHandler(vm)
-    ErrorEventHandler(managerVm)
-    NavigationEventHandler(vm, workspaceButtonVm, managerVm)
-
-    val context = LocalContext.current
-    val focusManager = LocalFocusManager.current
-    val workspaceButtonState by workspaceButtonVm.state.collectAsState(initial = null)
-    val bannerStates by vm.bannerStates.collectAsState(initial = emptyMap())
-    val showClearSessionConfirmation by vm.showClearSessionConfirmation.collectAsState(initial = false)
-    val managerDialogs by vm.managerDialogs.collectAsState()
-    val pageManagerState by vm.workspacePageManager.state.collectAsState()
-    val managerState by waitForState(managerVm.state)
-
-    // Derive dialog states from unified registry
-    val managerDialogStates = remember(managerDialogs) {
-        managerDialogs
-            .filterIsInstance<ManagerDialog.WorkspaceTargeted>()
-            .associateBy { it.targetWorkspaceId }
-    }
-    val workspaceLimitDialog = remember(managerDialogs) {
-        managerDialogs.filterIsInstance<ManagerDialog.Global.WorkspaceLimitReached>().firstOrNull()
-    }
-
-    LaunchedEffect(Unit) {
-        vm.shareIntentEvent.collect { intent ->
-            context.startActivity(intent)
-        }
-    }
-
-    // Clear system focus and invalidate preview cache when manager overlay becomes visible
-    LaunchedEffect(pageManagerState.isManagerOverlayVisible) {
-        if (pageManagerState.isManagerOverlayVisible) {
-            focusManager.clearFocus()
-            managerVm.onScreenAppeared()
-        }
-    }
-
-    // Handle back button when manager overlay is visible
-    BackHandler(enabled = pageManagerState.isManagerOverlayVisible) {
-        vm.workspacePageManager.hideManagerOverlay()
-    }
-
-    val state by waitForState(vm.state)
-
-    state?.let { state ->
-        WorkspaceScreen(
-            workspaceButtonState = workspaceButtonState,
-            workspaceActionHandler = workspaceButtonVm,
-            state = state,
-            bannerStates = bannerStates,
-            managerDialogStates = managerDialogStates,
-            managerDialogs = managerDialogs,
-            onScreenAction = { vm.executeScreenAction(it) },
-            onHideMotd = { vm.hideMotd(it) },
-            onDismissMotd = { vm.dismissMotd(it) },
-            onMotdLinkClick = { vm.openMotdLink(it) },
-            onDismissBanner = { vm.dismissBanner(it) },
-            onDismissManagerDialog = { vm.dismissManagerDialog(it) },
-            onConfirmManagerDialog = { vm.confirmManagerDialog(it) },
-        )
-    }
-
-    // Manager overlay
-    if (pageManagerState.isManagerOverlayVisible) {
-        managerState?.let { currentManagerState ->
-            WorkspaceManagerScreen(
-                state = currentManagerState,
-                onCloseWorkspace = managerVm::closeWorkspace,
-                onReorderWorkspaces = managerVm::reorderWorkspaces,
-                onSelectWorkspace = managerVm::selectWorkspace,
-                onCreateWorkspace = managerVm::createWorkspace,
-                onNavigateBack = managerVm::navigateBack,
-                onDismissBadgeExplanation = managerVm::dismissBadgeExplanation,
-                onDismissLongPressHint = managerVm::dismissLongPressHint,
-                onCloseAllWorkspaces = managerVm::closeAllWorkspaces,
-                onTabsClick = managerVm::clearFilters,
-                onOperationsFilterClick = managerVm::toggleOperationsFilter,
-                onAttentionFilterClick = managerVm::toggleAttentionFilter,
-            )
-        }
-    }
-
-    if (showClearSessionConfirmation) {
-        ClearSessionConfirmationDialog(
-            onDismiss = { vm.dismissClearSessionConfirmation() },
-            onConfirm = { vm.confirmClearSession() },
-        )
-    }
-
-    // WorkspaceLimitDialog renders above everything - visible over both workspace and manager
-    workspaceLimitDialog?.let { dialogState ->
-        WorkspaceLimitDialog(
-            limit = dialogState.limit,
-            onDismiss = { vm.dismissWorkspaceLimitDialog() },
-            onUpgrade = { vm.onUpgradeFromLimitDialog() },
-        )
-    }
-}
-
-
-@Composable
 fun WorkspaceScreen(
     workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceActionHandler: WorkspaceActionHandler? = null,
@@ -280,6 +174,112 @@ fun WorkspaceScreen(
         )
     }
 }
+
+@Composable
+fun WorkspacesScreenHost(
+    vm: WorkspacesViewModel = hiltViewModel(),
+    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
+    managerVm: WorkspaceManagerViewModel = hiltViewModel(),
+) {
+    ErrorEventHandler(vm)
+    ErrorEventHandler(managerVm)
+    NavigationEventHandler(vm, workspaceButtonVm, managerVm)
+
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val workspaceButtonState by workspaceButtonVm.state.collectAsState(initial = null)
+    val bannerStates by vm.bannerStates.collectAsState(initial = emptyMap())
+    val showClearSessionConfirmation by vm.showClearSessionConfirmation.collectAsState(initial = false)
+    val managerDialogs by vm.managerDialogs.collectAsState()
+    val pageManagerState by vm.workspacePageManager.state.collectAsState()
+    val managerState by waitForState(managerVm.state)
+
+    // Derive dialog states from unified registry
+    val managerDialogStates = remember(managerDialogs) {
+        managerDialogs
+            .filterIsInstance<ManagerDialog.WorkspaceTargeted>()
+            .associateBy { it.targetWorkspaceId }
+    }
+    val workspaceLimitDialog = remember(managerDialogs) {
+        managerDialogs.filterIsInstance<ManagerDialog.Global.WorkspaceLimitReached>().firstOrNull()
+    }
+
+    LaunchedEffect(Unit) {
+        vm.shareIntentEvent.collect { intent ->
+            context.startActivity(intent)
+        }
+    }
+
+    // Clear system focus and invalidate preview cache when manager overlay becomes visible
+    LaunchedEffect(pageManagerState.isManagerOverlayVisible) {
+        if (pageManagerState.isManagerOverlayVisible) {
+            focusManager.clearFocus()
+            managerVm.onScreenAppeared()
+        }
+    }
+
+    // Handle back button when manager overlay is visible
+    BackHandler(enabled = pageManagerState.isManagerOverlayVisible) {
+        vm.workspacePageManager.hideManagerOverlay()
+    }
+
+    val state by waitForState(vm.state)
+
+    state?.let { state ->
+        WorkspaceScreen(
+            workspaceButtonState = workspaceButtonState,
+            workspaceActionHandler = workspaceButtonVm,
+            state = state,
+            bannerStates = bannerStates,
+            managerDialogStates = managerDialogStates,
+            managerDialogs = managerDialogs,
+            onScreenAction = { vm.executeScreenAction(it) },
+            onHideMotd = { vm.hideMotd(it) },
+            onDismissMotd = { vm.dismissMotd(it) },
+            onMotdLinkClick = { vm.openMotdLink(it) },
+            onDismissBanner = { vm.dismissBanner(it) },
+            onDismissManagerDialog = { vm.dismissManagerDialog(it) },
+            onConfirmManagerDialog = { vm.confirmManagerDialog(it) },
+        )
+    }
+
+    // Manager overlay
+    if (pageManagerState.isManagerOverlayVisible) {
+        managerState?.let { currentManagerState ->
+            WorkspaceManagerScreen(
+                state = currentManagerState,
+                onCloseWorkspace = managerVm::closeWorkspace,
+                onReorderWorkspaces = managerVm::reorderWorkspaces,
+                onSelectWorkspace = managerVm::selectWorkspace,
+                onCreateWorkspace = managerVm::createWorkspace,
+                onNavigateBack = managerVm::navigateBack,
+                onDismissBadgeExplanation = managerVm::dismissBadgeExplanation,
+                onDismissLongPressHint = managerVm::dismissLongPressHint,
+                onCloseAllWorkspaces = managerVm::closeAllWorkspaces,
+                onTabsClick = managerVm::clearFilters,
+                onOperationsFilterClick = managerVm::toggleOperationsFilter,
+                onAttentionFilterClick = managerVm::toggleAttentionFilter,
+            )
+        }
+    }
+
+    if (showClearSessionConfirmation) {
+        ClearSessionConfirmationDialog(
+            onDismiss = { vm.dismissClearSessionConfirmation() },
+            onConfirm = { vm.confirmClearSession() },
+        )
+    }
+
+    // WorkspaceLimitDialog renders above everything - visible over both workspace and manager
+    workspaceLimitDialog?.let { dialogState ->
+        WorkspaceLimitDialog(
+            limit = dialogState.limit,
+            onDismiss = { vm.dismissWorkspaceLimitDialog() },
+            onUpgrade = { vm.onUpgradeFromLimitDialog() },
+        )
+    }
+}
+
 
 @Composable
 private fun ClearSessionConfirmationDialog(
