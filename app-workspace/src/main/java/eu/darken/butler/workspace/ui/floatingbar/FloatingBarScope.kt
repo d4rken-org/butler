@@ -35,6 +35,7 @@ abstract class FloatingBarScope {
      * @param scrollBehavior How the bar responds to scroll events.
      * @param animation Animation style for visibility changes.
      * @param collapsedHeight For [BarScrollBehavior.CollapseOnScroll], the minimum collapsed height.
+     * @param estimatedHeight Estimated height for first-frame padding calculation before measurement.
      * @param content The bar content with access to [FloatingBarContentScope].
      */
     @Composable
@@ -44,9 +45,10 @@ abstract class FloatingBarScope {
         scrollBehavior: BarScrollBehavior = BarScrollBehavior.Static,
         animation: BarAnimation = BarAnimation.Slide(),
         collapsedHeight: Dp = 0.dp,
+        estimatedHeight: Dp = 0.dp,
         content: @Composable FloatingBarContentScope.() -> Unit,
     ) {
-        FloatingBarImpl(modifier, visible, scrollBehavior, animation, collapsedHeight, content)
+        FloatingBarImpl(modifier, visible, scrollBehavior, animation, collapsedHeight, estimatedHeight, content)
     }
 
     @Composable
@@ -56,6 +58,7 @@ abstract class FloatingBarScope {
         scrollBehavior: BarScrollBehavior,
         animation: BarAnimation,
         collapsedHeight: Dp,
+        estimatedHeight: Dp,
         content: @Composable FloatingBarContentScope.() -> Unit,
     )
 }
