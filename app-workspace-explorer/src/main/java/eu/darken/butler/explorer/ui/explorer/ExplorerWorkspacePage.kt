@@ -63,6 +63,8 @@ import eu.darken.butler.explorer.ui.explorer.elements.EmptyDirectoryState
 import eu.darken.butler.explorer.ui.explorer.elements.EmptyState
 import eu.darken.butler.explorer.ui.explorer.elements.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
+import eu.darken.butler.explorer.ui.explorer.elements.SkeletonGridItem
+import eu.darken.butler.explorer.ui.explorer.elements.SkeletonListItem
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
 import eu.darken.butler.explorer.ui.explorer.elements.LoadingProgressBar
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
@@ -116,11 +118,20 @@ fun ExplorerWorkspacePage(
     initialOperationsExpanded: Boolean = false,
     initialClipboardExpanded: Boolean = false,
 ) {
-    val mainState by mainStateSource.collectAsState(ExplorerWorkspaceViewModel.State())
+    val mainStateRaw by mainStateSource.collectAsState(ExplorerWorkspaceViewModel.State.Loading)
     val operationsState by operationsStateSource.collectAsState(ExplorerWorkspaceViewModel.OperationsState())
     val clipboardState by clipboardStateSource.collectAsState(ExplorerWorkspaceViewModel.ClipboardState())
     val workspaceButtonState by workspaceStateSource.collectAsState(null)
     val isWorkspaceFocused = LocalWorkspaceFocused.current
+
+    // Show mascot while workspace is initializing (brief ~100-200ms)
+    if (mainStateRaw is ExplorerWorkspaceViewModel.State.Loading) {
+        EmptyState(modifier = Modifier.fillMaxSize())
+        return
+    }
+
+    // Safe cast after loading check
+    val mainState = mainStateRaw as ExplorerWorkspaceViewModel.State.Ready
 
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
@@ -257,7 +268,8 @@ fun ExplorerWorkspacePage(
             // Single observation to get both index and viewStyle (avoid redundant .first() call)
             val result = mainStateSource
                 .mapNotNull { state ->
-                    val items = state.items
+                    val readyState = state as? ExplorerWorkspaceViewModel.State.Ready ?: return@mapNotNull null
+                    val items = readyState.items
                     log(tag) { "State emission: ${items?.size ?: 0} items" }
                     val index = items?.indexOfFirst { item ->
                         when (item) {
@@ -270,7 +282,7 @@ fun ExplorerWorkspacePage(
                         }
                     }
                     log(tag) { "Index search result: $index" }
-                    index?.takeIf { it >= 0 }?.let { it to state.viewStyle }
+                    index?.takeIf { it >= 0 }?.let { it to readyState.viewStyle }
                 }
                 .timeout(2.seconds)
                 .catch { e ->
@@ -342,28 +354,18 @@ fun ExplorerWorkspacePage(
     }
 
     // Derived states for stable recomposition
-    val hasOperations by remember {
-        derivedStateOf { operationsState.operations.isNotEmpty() }
-    }
-    // Operations that require the bar to stay visible (in-progress or needing attention)
-    val hasActiveOperations by remember {
-        derivedStateOf {
-            operationsState.operations.any { op ->
-                op.state is OperationDisplay.State.Queued ||
-                    op.state is OperationDisplay.State.Running ||
-                    op.state is OperationDisplay.State.Waiting
-            }
+    val hasOperations by derivedStateOf { operationsState.operations.isNotEmpty() }
+    val hasActiveOperations by derivedStateOf {
+        operationsState.operations.any { op ->
+            op.state is OperationDisplay.State.Queued ||
+                op.state is OperationDisplay.State.Running ||
+                op.state is OperationDisplay.State.Waiting
         }
     }
-    val hasClipboard by remember {
-        derivedStateOf { clipboardState.entries.isNotEmpty() }
-    }
-    val hasActions by remember {
-        derivedStateOf { mainState.availableActions.isNotEmpty() }
-    }
-    val isSelectionMode by remember {
-        derivedStateOf { mainState.selectionState.isSelectionMode }
-    }
+    val hasClipboard by derivedStateOf { clipboardState.entries.isNotEmpty() }
+    val hasActions by derivedStateOf { mainState.availableActions.isNotEmpty() }
+    val isSelectionMode by derivedStateOf { mainState.selectionState.isSelectionMode }
+    val isLoadingItems = mainState.items == null
 
     // Pull-to-refresh handler - shows indicator for 200ms then hides
     val handleRefresh: () -> Unit = {
@@ -418,7 +420,7 @@ fun ExplorerWorkspacePage(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Determine if info bar should be visible
-            val showInfoBar = mainState.info != null || mainState.selectionState.selectedItems.isNotEmpty()
+            val showInfoBar = mainState.info != null || mainState.selectionState.selectedItems.isNotEmpty() || isLoadingItems
 
             // Content padding from floating bar stacks
             val topContentPadding = topBarStackState.contentPaddingDp()
@@ -474,10 +476,10 @@ fun ExplorerWorkspacePage(
                                         bottom = bottomBarStackState.contentPaddingDp(),
                                     )
                                 ) {
-                                    // Handle loading state
+                                    // Handle loading state - show skeleton items while navigating
                                     if (mainStateSnap.items == null) {
-                                        item(key = "loading") {
-                                            EmptyState(modifier = Modifier.fillParentMaxSize())
+                                        items(10, key = { "skeleton-$it" }) {
+                                            SkeletonListItem()
                                         }
                                     }
                                     // Handle empty directory state
@@ -529,10 +531,10 @@ fun ExplorerWorkspacePage(
                                         bottom = bottomBarStackState.contentPaddingDp(),
                                     )
                                 ) {
-                                    // Handle loading state
+                                    // Handle loading state - show skeleton items while navigating
                                     if (mainStateSnap.items == null) {
-                                        item(span = { GridItemSpan(maxLineSpan) }, key = "loading") {
-                                            EmptyState(modifier = Modifier.fillMaxSize())
+                                        items(12, key = { "skeleton-grid-$it" }) {
+                                            SkeletonGridItem()
                                         }
                                     }
                                     // Handle empty directory state
@@ -647,6 +649,7 @@ fun ExplorerWorkspacePage(
                     ) {
                         ExplorerInfoBar(
                             info = mainState.info,
+                            isLoading = isLoadingItems,
                             selectedCount = mainState.selectionState.selectedItems.size,
                             selectedSize = mainState.selectionState.selectedSize,
                             onClearSelection = { vm?.clearSelection() },
@@ -852,7 +855,7 @@ fun ExplorerWorkspacePageHost(
 @Preview2
 @Composable
 fun ExplorerWorkspacePagePreview() {
-    val mockState = ExplorerWorkspaceViewModel.State(
+    val mockState = ExplorerWorkspaceViewModel.State.Ready(
         currentLocation = ExplorerLocation.Directory(
             path = LocalPath.build("/storage/emulated/0"),
             items = MockDataProvider.createAllFileTypes(),
@@ -910,7 +913,7 @@ fun ExplorerWorkspacePagePreview() {
 @Preview2
 @Composable
 fun ExplorerWorkspacePageEmptyPreview() {
-    val mockState = ExplorerWorkspaceViewModel.State(
+    val mockState = ExplorerWorkspaceViewModel.State.Ready(
         currentLocation = ExplorerLocation.Directory(
             path = LocalPath.build("/sdcard/EmptyFolder"),
             items = emptyList(),
@@ -948,7 +951,7 @@ fun ExplorerWorkspacePageEmptyPreview() {
 @Preview2
 @Composable
 fun ExplorerWorkspacePageErrorPreview() {
-    val mockState = ExplorerWorkspaceViewModel.State(
+    val mockState = ExplorerWorkspaceViewModel.State.Ready(
         currentLocation = ExplorerLocation.Directory(
             path = LocalPath.build("/permission/denied"),
             items = emptyList(),
@@ -992,7 +995,7 @@ fun ExplorerWorkspacePageWithAllBarsPreview() {
     val mockOperations = MockDataProvider.createMockOperationsState(runningCount = 2, completedCount = 1)
     val mockClipboardEntries = MockDataProvider.createMockClipboardState(copyCount = 2, cutCount = 1)
 
-    val mockState = ExplorerWorkspaceViewModel.State(
+    val mockState = ExplorerWorkspaceViewModel.State.Ready(
         currentLocation = ExplorerLocation.Directory(
             path = LocalPath.build("/storage/emulated/0"),
             items = MockDataProvider.createAllFileTypes(),
@@ -1062,7 +1065,7 @@ private fun ExplorerPickerMode_MixedMultiPreview() {
         MockDataProvider.createMockRegularFile("budget.xlsx"),
     )
 
-    val mockState = ExplorerWorkspaceViewModel.State(
+    val mockState = ExplorerWorkspaceViewModel.State.Ready(
         pickerConfig = mockPickerConfig,
         currentLocation = ExplorerLocation.Directory(
             path = LocalPath.build("/sdcard/Documents"),

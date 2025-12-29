@@ -197,6 +197,7 @@
         <item quantity="other">%d locations</item>
     </plurals>
     <string name="explorer_infobar_storage_free">%1$s free</string>
+    <string name="explorer_infobar_loading">Loading…</string>
 
     <!-- Dialogs -->
     <string name="explorer_dialog_create_title">Create new item</string>
