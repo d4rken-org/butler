@@ -31,6 +31,10 @@ data class SearcherSelectionState(
         return copy(selectedResultIds = selectableResults.map { it.path.path }.toSet())
     }
 
+    fun addToSelection(items: List<SearchItem>): SearcherSelectionState {
+        return copy(selectedResultIds = selectedResultIds + items.map { it.path.path })
+    }
+
     fun deselectAll(): SearcherSelectionState {
         return copy(selectedResultIds = emptySet())
     }

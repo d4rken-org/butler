@@ -15,6 +15,7 @@ import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
@@ -90,6 +91,16 @@ sealed interface SearcherAction : WorkspaceAction {
     data object SelectAll : SearcherAction {
         override val icon = Icons.TwoTone.SelectAll
         override val label = R.string.searcher_action_select_all.toCaString()
+    }
+
+    data object SelectAllFolders : SearcherAction {
+        override val icon = Icons.TwoTone.SelectAll
+        override val label = CommonR.string.common_select_all_folders_action.toCaString()
+    }
+
+    data object SelectAllFiles : SearcherAction {
+        override val icon = Icons.TwoTone.SelectAll
+        override val label = CommonR.string.common_select_all_files_action.toCaString()
     }
 
     data object DeselectAll : SearcherAction {

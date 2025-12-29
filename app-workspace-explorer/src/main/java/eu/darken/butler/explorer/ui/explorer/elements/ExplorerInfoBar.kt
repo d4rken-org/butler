@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.ui.InfoChip
@@ -26,6 +27,7 @@ fun ExplorerInfoBar(
     modifier: Modifier = Modifier,
     info: ExplorerLocation.LocationInfo?,
     selectedCount: Int = 0,
+    selectedSize: Long? = null,
     onClearSelection: () -> Unit = {},
     onSelectFolders: () -> Unit = {},
     onSelectFiles: () -> Unit = {},
@@ -43,7 +45,7 @@ fun ExplorerInfoBar(
                             InfoChip(
                                 icon = Icons.TwoTone.Folder,
                                 label = pluralStringResource(
-                                    R.plurals.explorer_infobar_folders_count,
+                                    CommonR.plurals.common_folders_count,
                                     info.directoryCount,
                                     info.directoryCount
                                 ),
@@ -54,7 +56,7 @@ fun ExplorerInfoBar(
                             InfoChip(
                                 icon = Icons.TwoTone.Description,
                                 label = pluralStringResource(
-                                    R.plurals.explorer_infobar_files_count,
+                                    CommonR.plurals.common_files_count,
                                     info.fileCount,
                                     info.fileCount
                                 ),
@@ -107,7 +109,7 @@ fun ExplorerInfoBar(
                             InfoChip(
                                 icon = Icons.TwoTone.Folder,
                                 label = pluralStringResource(
-                                    R.plurals.explorer_infobar_folders_count,
+                                    CommonR.plurals.common_folders_count,
                                     info.directoryCount,
                                     info.directoryCount
                                 ),
@@ -118,7 +120,7 @@ fun ExplorerInfoBar(
                             InfoChip(
                                 icon = Icons.TwoTone.Description,
                                 label = pluralStringResource(
-                                    R.plurals.explorer_infobar_files_count,
+                                    CommonR.plurals.common_files_count,
                                     info.fileCount,
                                     info.fileCount
                                 ),
@@ -134,6 +136,16 @@ fun ExplorerInfoBar(
             }
         },
         trailingContent = {
+            if (selectedCount > 0 && selectedSize != null) {
+                Spacer(modifier = Modifier.weight(1f))
+                InfoChip(
+                    icon = Icons.TwoTone.Scale,
+                    label = formatFileSize(selectedSize),
+                    isAccented = true,
+                )
+                return@WorkspaceInfoBar
+            }
+
             when (info) {
                 is ExplorerLocation.Directory.Info -> {
                     Spacer(modifier = Modifier.weight(1f))
@@ -191,7 +203,7 @@ fun ExplorerInfoBar(
                         InfoChip(
                             icon = Icons.TwoTone.Delete,
                             label = pluralStringResource(
-                                R.plurals.explorer_infobar_files_count,
+                                CommonR.plurals.common_files_count,
                                 info.itemCount,
                                 info.itemCount
                             ),
@@ -255,6 +267,7 @@ private fun ExplorerInfoBarWithSelectionPreview() {
                 isWritable = true,
             ),
             selectedCount = 3,
+            selectedSize = 1024L * 1024L * 128L,
         )
     }
 }

@@ -232,17 +232,35 @@ fun SearcherWorkspacePage(
     }
 
     // Calculate results info for info bar
-    val resultsCount by remember {
+    val foldersCount by remember {
         derivedStateOf {
-            state?.listItems?.count { it is SearchListItem.Result } ?: 0
+            state?.listItems?.count {
+                it is SearchListItem.Result && it.searchItem is SearchItem.Directory
+            } ?: 0
         }
     }
 
-    val totalResultsSize by remember {
+    val filesCount by remember {
+        derivedStateOf {
+            state?.listItems?.count {
+                it is SearchListItem.Result && it.searchItem is SearchItem.File
+            } ?: 0
+        }
+    }
+
+    val totalSize by remember {
         derivedStateOf {
             state?.listItems
                 ?.filterIsInstance<SearchListItem.Result>()
                 ?.sumOf { it.searchItem.size ?: 0L }
+                ?: 0L
+        }
+    }
+
+    val selectedSize by remember {
+        derivedStateOf {
+            state?.selectionState?.selectedResults
+                ?.sumOf { it.size ?: 0L }
                 ?: 0L
         }
     }
@@ -545,7 +563,7 @@ fun SearcherWorkspacePage(
                     // Toolbar - closest to top edge, collapses on scroll
                     FloatingBar(
                         visible = true,
-                        scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
+                        scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                         animation = BarAnimation.Slide(),
                         modifier = Modifier.padding(horizontal = 16.dp),
                     ) {
@@ -606,9 +624,17 @@ fun SearcherWorkspacePage(
                         modifier = Modifier.padding(horizontal = 16.dp),
                     ) {
                         SearcherInfoBar(
-                            resultsCount = resultsCount,
-                            totalSize = totalResultsSize,
+                            foldersCount = foldersCount,
+                            filesCount = filesCount,
+                            totalSize = totalSize,
                             selectedCount = currentState.selectionState.selectionCount,
+                            selectedSize = selectedSize,
+                            onSelectAllFolders = {
+                                onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.SelectAllFolders))
+                            },
+                            onSelectAllFiles = {
+                                onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.SelectAllFiles))
+                            },
                             onClearSelection = { onPageAction(SearcherPageAction.Results.ExitSelectionMode) },
                         )
                     }

@@ -216,11 +216,15 @@ internal class FloatingBarScopeImpl(
         visible: Boolean,
         scrollBehavior: BarScrollBehavior,
         animation: BarAnimation,
-        collapsedHeight: Dp,
+        estimatedHeight: Dp,
         content: @Composable FloatingBarContentScope.() -> Unit,
     ) {
         val density = LocalDensity.current
-        val collapsedHeightPx = with(density) { collapsedHeight.toPx() }
+        val collapsedHeightPx = when (scrollBehavior) {
+            is BarScrollBehavior.CollapseOnScroll -> with(density) { scrollBehavior.collapsedHeight.toPx() }
+            else -> 0f
+        }
+        val estimatedHeightPx = with(density) { estimatedHeight.toPx() }
         val coroutineScope = rememberCoroutineScope()
 
         // Create or restore bar state - register immediately during remember
@@ -230,6 +234,7 @@ internal class FloatingBarScopeImpl(
                 scrollBehavior = scrollBehavior,
                 animation = animation,
                 initialVisible = visible,
+                estimatedHeightPx = estimatedHeightPx,
             ).also {
                 it.collapsedHeightPx = collapsedHeightPx
                 // Register immediately so it's available during layout

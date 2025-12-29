@@ -7,7 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
@@ -33,19 +35,25 @@ import kotlin.math.abs
  * - System bar inset integration for edge-to-edge UI
  *
  * @param position Whether this stack is at TOP or BOTTOM of the screen.
- * @param defaultSpacing Default spacing between bars in pixels.
- * @param edgePadding Padding from screen edge in pixels.
- * @param contentPadding Padding between the last bar and content in pixels.
- * @param systemBarInsetPx System bar inset (status bar for TOP, nav bar for BOTTOM) in pixels.
+ * @param initialDefaultSpacingPx Space between consecutive bars (updated via [updateConfig]).
+ * @param initialEdgePaddingPx Space from screen edge to first bar (updated via [updateConfig]).
+ * @param initialContentGapPx Space after last bar before content (updated via [updateConfig]).
+ * @param initialSystemBarInsetPx System bar height - status bar for TOP, nav bar for BOTTOM.
  */
 @Stable
 class FloatingBarStackState(
     val position: BarPosition,
-    private var defaultSpacingPx: Float = 0f,
-    private var edgePaddingPx: Float = 0f,
-    private var contentGapPx: Float = 0f,
-    private var systemBarInsetPx: Float = 0f,
+    initialDefaultSpacingPx: Float = 0f,
+    initialEdgePaddingPx: Float = 0f,
+    initialContentGapPx: Float = 0f,
+    initialSystemBarInsetPx: Float = 0f,
 ) {
+    // Make these mutableState so derivedStateOf can observe changes when updateConfig() is called
+    private var defaultSpacingPx by mutableFloatStateOf(initialDefaultSpacingPx)
+    private var edgePaddingPx by mutableFloatStateOf(initialEdgePaddingPx)
+    private var contentGapPx by mutableFloatStateOf(initialContentGapPx)
+    private var systemBarInsetPx by mutableFloatStateOf(initialSystemBarInsetPx)
+
     internal val barStates = mutableStateListOf<FloatingBarState>()
 
     /**
@@ -236,7 +244,12 @@ class FloatingBarStackState(
                 val edgePx = saved[2] as Float
                 val contentGapPx = saved[3] as Float
                 // systemBarInsetPx is not saved - it's recomputed from WindowInsets via updateConfig()
-                FloatingBarStackState(position, spacingPx, edgePx, contentGapPx).also { state ->
+                FloatingBarStackState(
+                    position = position,
+                    initialDefaultSpacingPx = spacingPx,
+                    initialEdgePaddingPx = edgePx,
+                    initialContentGapPx = contentGapPx,
+                ).also { state ->
                     // Bar states are restored when bars re-register during recomposition
                 }
             },
@@ -280,7 +293,13 @@ fun rememberFloatingBarStackState(
     val scope = rememberCoroutineScope()
 
     return rememberSaveable(saver = FloatingBarStackState.Saver) {
-        FloatingBarStackState(position, defaultSpacingPx, edgePaddingPx, contentGapPx, systemBarInsetPx)
+        FloatingBarStackState(
+            position = position,
+            initialDefaultSpacingPx = defaultSpacingPx,
+            initialEdgePaddingPx = edgePaddingPx,
+            initialContentGapPx = contentGapPx,
+            initialSystemBarInsetPx = systemBarInsetPx,
+        )
     }.also {
         it.updateConfig(defaultSpacingPx, edgePaddingPx, contentGapPx, systemBarInsetPx)
         it.animationScope = scope

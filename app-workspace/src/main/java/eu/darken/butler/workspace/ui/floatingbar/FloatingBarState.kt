@@ -25,6 +25,7 @@ class FloatingBarState(
     scrollBehavior: BarScrollBehavior = BarScrollBehavior.Static,
     val animation: BarAnimation = BarAnimation.Slide(),
     initialVisible: Boolean = true,
+    estimatedHeightPx: Float = 0f,
 ) {
     /**
      * How the bar responds to scroll events. Can be updated dynamically.
@@ -33,8 +34,9 @@ class FloatingBarState(
 
     /**
      * The bar's natural/measured height in pixels.
+     * Initialized with estimated height for correct first-frame padding calculation.
      */
-    var measuredHeight: Float by mutableFloatStateOf(0f)
+    var measuredHeight: Float by mutableFloatStateOf(estimatedHeightPx)
 
     /**
      * Whether the bar should be visible.

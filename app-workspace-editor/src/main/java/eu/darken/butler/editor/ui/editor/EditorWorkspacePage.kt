@@ -32,6 +32,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.compose.Preview2
@@ -171,7 +172,118 @@ fun EditorWorkspacePage(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        // Main content - contentPadding allows scrolling under bars
+        // Top floating bars
+        FloatingBarStack(
+            modifier = Modifier
+                .zIndex(1f)
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            position = BarPosition.TOP,
+            state = topBarStackState,
+            bars = {
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
+                    estimatedHeight = 80.dp, // EditorToolbarCard expanded height
+                    animation = BarAnimation.Slide(),
+                ) {
+                    EditorToolbarCard(
+                        workspaceId = workspaceId,
+                        design = design,
+                        title = state.title,
+                        subTitle = state.subTitle,
+                        isModified = state.isModified,
+                        isLoading = state.isLoading,
+                        hasContent = state.hasContent,
+                        canUndo = state.isModified,
+                        canRedo = false,
+                        workspaceButtonState = workspaceButtonState,
+                        workspaceActionHandler = workspaceActionHandler,
+                        onAction = onPageAction,
+                        collapsedFraction = collapsedFraction,
+                    )
+                }
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    estimatedHeight = 24.dp, // InfoChip height
+                    animation = BarAnimation.Slide(),
+                ) {
+                    EditorInfoBar(
+                        fileSize = state.fileSize,
+                        totalLines = state.totalLines,
+                        cursorLine = state.cursorPosition.line,
+                        cursorColumn = state.cursorPosition.column,
+                        selectedLineCount = state.selectedLineCount,
+                        selectedCharacterCount = state.selectedCharacterCount,
+                        onClearSelection = {
+                            onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
+                        },
+                    )
+                }
+            },
+        ) { _ -> }
+
+        // Bottom floating bars
+        FloatingBarStack(
+            modifier = Modifier
+                .zIndex(1f)
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            position = BarPosition.BOTTOM,
+            state = bottomBarStackState,
+            bars = {
+                FloatingBar(
+                    visible = state.isSearchBarVisible,
+                    scrollBehavior = BarScrollBehavior.HideOnScroll,
+                    animation = BarAnimation.Slide(),
+                ) {
+                    EditorSearchBar(
+                        searchQuery = state.searchQueryInput,
+                        searchResults = state.searchResults,
+                        currentIndex = state.currentSearchResultIndex,
+                        caseSensitive = state.searchCaseSensitive,
+                        regexEnabled = state.searchRegexEnabled,
+                        wholeWord = state.searchWholeWord,
+                        onSearchQueryChange = onSearchQueryChange,
+                        onCaseSensitiveToggle = onCaseSensitiveToggle,
+                        onRegexToggle = onRegexToggle,
+                        onWholeWordToggle = onWholeWordToggle,
+                        onPrevious = onPreviousSearchResult,
+                        onNext = onNextSearchResult,
+                        onClose = onCloseSearch,
+                    )
+                }
+                FloatingBar(
+                    visible = hasClipboard,
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    animation = BarAnimation.Bouncy,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    ClipboardBar(
+                        workspaceType = Workspace.Type.EDITOR,
+                        clipboardEntries = clipboardState.entries,
+                        onPasteClick = onClipboardPaste,
+                        onRemoveClick = onClipboardRemove,
+                        onEntryClick = onClipboardEntryClick,
+                        onClearAll = onClipboardClear,
+                    )
+                }
+                FloatingBar(
+                    visible = hasActions,
+                    scrollBehavior = BarScrollBehavior.HideOnScroll,
+                    animation = BarAnimation.Slide(),
+                ) {
+                    EditorActionBar(
+                        actions = state.availableActions,
+                        onActionClick = onActionExecute,
+                        onActionLongClick = onActionLongClick,
+                    )
+                }
+            },
+        ) { _ -> }
+
+        // Main content - composes after bars so contentPaddingDp() has correct values
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -256,113 +368,6 @@ fun EditorWorkspacePage(
 
             }
         }
-
-        // Top floating bars
-        FloatingBarStack(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            position = BarPosition.TOP,
-            state = topBarStackState,
-            bars = {
-                FloatingBar(
-                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 48.dp),
-                    animation = BarAnimation.Slide(),
-                ) {
-                    EditorToolbarCard(
-                        workspaceId = workspaceId,
-                        design = design,
-                        title = state.title,
-                        subTitle = state.subTitle,
-                        isModified = state.isModified,
-                        isLoading = state.isLoading,
-                        hasContent = state.hasContent,
-                        canUndo = state.isModified,
-                        canRedo = false,
-                        workspaceButtonState = workspaceButtonState,
-                        workspaceActionHandler = workspaceActionHandler,
-                        onAction = onPageAction,
-                        collapsedFraction = collapsedFraction,
-                    )
-                }
-                FloatingBar(
-                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    animation = BarAnimation.Slide(),
-                ) {
-                    EditorInfoBar(
-                        fileSize = state.fileSize,
-                        totalLines = state.totalLines,
-                        cursorLine = state.cursorPosition.line,
-                        cursorColumn = state.cursorPosition.column,
-                        selectedLineCount = state.selectedLineCount,
-                        selectedCharacterCount = state.selectedCharacterCount,
-                        onClearSelection = {
-                            onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
-                        },
-                    )
-                }
-            },
-        ) { _ -> }
-
-        // Bottom floating bars
-        FloatingBarStack(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            position = BarPosition.BOTTOM,
-            state = bottomBarStackState,
-            bars = {
-                FloatingBar(
-                    visible = state.isSearchBarVisible,
-                    scrollBehavior = BarScrollBehavior.HideOnScroll,
-                    animation = BarAnimation.Slide(),
-                ) {
-                    EditorSearchBar(
-                        searchQuery = state.searchQueryInput,
-                        searchResults = state.searchResults,
-                        currentIndex = state.currentSearchResultIndex,
-                        caseSensitive = state.searchCaseSensitive,
-                        regexEnabled = state.searchRegexEnabled,
-                        wholeWord = state.searchWholeWord,
-                        onSearchQueryChange = onSearchQueryChange,
-                        onCaseSensitiveToggle = onCaseSensitiveToggle,
-                        onRegexToggle = onRegexToggle,
-                        onWholeWordToggle = onWholeWordToggle,
-                        onPrevious = onPreviousSearchResult,
-                        onNext = onNextSearchResult,
-                        onClose = onCloseSearch,
-                    )
-                }
-                FloatingBar(
-                    visible = hasClipboard,
-                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    animation = BarAnimation.Bouncy,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    ClipboardBar(
-                        workspaceType = Workspace.Type.EDITOR,
-                        clipboardEntries = clipboardState.entries,
-                        onPasteClick = onClipboardPaste,
-                        onRemoveClick = onClipboardRemove,
-                        onEntryClick = onClipboardEntryClick,
-                        onClearAll = onClipboardClear,
-                    )
-                }
-                FloatingBar(
-                    visible = hasActions,
-                    scrollBehavior = BarScrollBehavior.HideOnScroll,
-                    animation = BarAnimation.Slide(),
-                ) {
-                    EditorActionBar(
-                        actions = state.availableActions,
-                        onActionClick = onActionExecute,
-                        onActionLongClick = onActionLongClick,
-                    )
-                }
-            },
-        ) { _ -> }
     }
 
     // Dialogs
