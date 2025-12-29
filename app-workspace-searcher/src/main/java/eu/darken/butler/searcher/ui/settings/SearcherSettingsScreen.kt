@@ -55,6 +55,7 @@ fun SearcherSettingsScreen(
     onClearSearchHistory: () -> Unit,
 ) {
     var showClearHistoryDialog by remember { mutableStateOf(false) }
+    var showMaxHistoryDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -143,15 +144,10 @@ fun SearcherSettingsScreen(
             item {
                 SettingsPreferenceItem(
                     icon = Icons.TwoTone.Storage,
-                    title = stringResource(R.string.searcher_settings_max_history_title),
+                    title = stringResource(R.string.searcher_settings_max_history_label),
                     subtitle = stringResource(R.string.searcher_settings_max_history_subtitle),
                     value = state.maxHistoryItems.toString(),
-                    onClick = {
-                        // In a real implementation, this would show a dialog to select the number
-                        // For simplicity, we'll just increment the value
-                        val newValue = if (state.maxHistoryItems >= 20) 5 else state.maxHistoryItems + 5
-                        onMaxHistoryItemsChange(newValue)
-                    }
+                    onClick = { showMaxHistoryDialog = true },
                 )
                 SettingsDivider()
             }
@@ -177,7 +173,6 @@ fun SearcherSettingsScreen(
         }
     }
 
-    // Clear history confirmation dialog
     if (showClearHistoryDialog) {
         AlertDialog(
             onDismissRequest = { showClearHistoryDialog = false },
@@ -212,6 +207,17 @@ fun SearcherSettingsScreen(
                     Text(text = stringResource(eu.darken.butler.common.R.string.general_cancel_action))
                 }
             }
+        )
+    }
+
+    if (showMaxHistoryDialog) {
+        MaxHistoryItemsDialog(
+            currentValue = state.maxHistoryItems,
+            onDismiss = { showMaxHistoryDialog = false },
+            onConfirm = { newValue ->
+                onMaxHistoryItemsChange(newValue)
+                showMaxHistoryDialog = false
+            },
         )
     }
 }

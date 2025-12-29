@@ -8,9 +8,11 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.history.SearchHistory
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -55,6 +57,9 @@ constructor(
     fun updateMaxHistoryItems(count: Int) = launch {
         log(tag) { "updateMaxHistoryItems($count)" }
         searcherSettings.maxHistoryItems.value(count)
+        withContext(NonCancellable) {
+            searchHistory.trimToMax(count)
+        }
     }
 
     fun updateSaveHistory(enabled: Boolean) = launch {

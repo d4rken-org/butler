@@ -63,12 +63,8 @@ class SearchHistory @Inject constructor(
         }
 
         appScope.launch {
-            // Clean up old entries if exceeding max
             val maxItems = searcherSettings.maxHistoryItems.value()
-            val currentCount = searchHistoryDao.getCount()
-            if (currentCount > maxItems) {
-                searchHistoryDao.deleteOldest(currentCount - maxItems)
-            }
+            trimToMax(maxItems)
         }
 
         return entityId
@@ -134,6 +130,14 @@ class SearchHistory @Inject constructor(
 
     suspend fun getHistoryCount(): Int {
         return searchHistoryDao.getCount()
+    }
+
+    suspend fun trimToMax(maxItems: Int) {
+        val currentCount = searchHistoryDao.getCount()
+        if (currentCount > maxItems) {
+            log(TAG) { "Trimming history from $currentCount to $maxItems" }
+            searchHistoryDao.deleteOldest(currentCount - maxItems)
+        }
     }
 
     companion object {
