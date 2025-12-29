@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -68,14 +69,15 @@ fun FloatingBarStack(
     val density = LocalDensity.current
     val scope = remember(state) { FloatingBarScopeImpl(state) }
 
-    // Clear previous bar entries on recomposition
-    scope.barEntries.clear()
-
     SubcomposeLayout(
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(state.nestedScrollConnection),
     ) { constraints ->
+        // Clear bar entries at start of each layout pass (not outside SubcomposeLayout,
+        // since the layout lambda runs multiple times per composition during animations)
+        scope.barEntries.clear()
+
         // Phase 1: Compose and measure bars to collect entries
         val barMeasurables = subcompose("bars") {
             scope.bars()
@@ -262,9 +264,16 @@ internal class FloatingBarScopeImpl(
             barState.collapsedHeightPx = collapsedHeightPx
         }
 
-        // Update scroll behavior if changed (e.g., operations bar switching from VanishOnScroll to Static)
-        LaunchedEffect(scrollBehavior) {
+        // Update scroll behavior synchronously so scroll handler sees the correct value immediately
+        SideEffect {
             barState.scrollBehavior = scrollBehavior
+        }
+
+        // Animate back to visible when switching to Static
+        LaunchedEffect(scrollBehavior) {
+            if (scrollBehavior is BarScrollBehavior.Static) {
+                barState.triggerScrollCollapse(coroutineScope, 0f)
+            }
         }
 
         // Create content scope with current collapsed fraction

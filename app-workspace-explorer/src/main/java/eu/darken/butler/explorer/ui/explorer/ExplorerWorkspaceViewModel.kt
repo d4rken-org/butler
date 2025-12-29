@@ -634,6 +634,24 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         selectedItemsFlow.value = stateSnap.selectionState.selectableItems
     }
 
+    fun selectAllFolders() = launch {
+        val stateSnap = state.first()
+        val folders = stateSnap.selectionState.selectableItems.filter { item ->
+            item is ExplorerItem.Directory ||
+                (item is ExplorerItem.Trash.Nested && item.isDirectory)
+        }
+        selectedItemsFlow.value = selectedItemsFlow.value + folders
+    }
+
+    fun selectAllFiles() = launch {
+        val stateSnap = state.first()
+        val files = stateSnap.selectionState.selectableItems.filter { item ->
+            item is ExplorerItem.File ||
+                (item is ExplorerItem.Trash.Nested && item.isFile)
+        }
+        selectedItemsFlow.value = selectedItemsFlow.value + files
+    }
+
     // Focus navigation methods
     fun moveFocusUp() = launch {
         val itemCount = state.first().items?.size ?: return@launch

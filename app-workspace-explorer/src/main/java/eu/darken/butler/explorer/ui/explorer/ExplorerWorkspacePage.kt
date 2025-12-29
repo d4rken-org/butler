@@ -361,6 +361,9 @@ fun ExplorerWorkspacePage(
     val hasActions by remember {
         derivedStateOf { mainState.availableActions.isNotEmpty() }
     }
+    val isSelectionMode by remember {
+        derivedStateOf { mainState.selectionState.isSelectionMode }
+    }
 
     // Pull-to-refresh handler - shows indicator for 200ms then hides
     val handleRefresh: () -> Unit = {
@@ -605,8 +608,9 @@ fun ExplorerWorkspacePage(
                     // Toolbar - closest to top edge, collapses on scroll
                     FloatingBar(
                         visible = true,
-                        scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
+                        scrollBehavior = BarScrollBehavior.CollapseOnScroll,
                         animation = BarAnimation.Slide(),
+                        collapsedHeight = 44.dp,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     ) {
                         ExplorerToolbarCard(
@@ -631,10 +635,14 @@ fun ExplorerWorkspacePage(
                         )
                     }
 
-                    // Info bar - vanishes on scroll
+                    // Info bar - stays visible during selection mode
                     FloatingBar(
                         visible = showInfoBar,
-                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                        scrollBehavior = if (isSelectionMode) {
+                            BarScrollBehavior.Static
+                        } else {
+                            BarScrollBehavior.VanishOnScroll
+                        },
                         animation = BarAnimation.Slide(),
                         modifier = Modifier.padding(horizontal = 16.dp),
                     ) {
@@ -642,6 +650,8 @@ fun ExplorerWorkspacePage(
                             info = mainState.info,
                             selectedCount = mainState.selectionState.selectedItems.size,
                             onClearSelection = { vm?.clearSelection() },
+                            onSelectFolders = { vm?.selectAllFolders() },
+                            onSelectFiles = { vm?.selectAllFiles() },
                             isTrashDisabled = !mainState.trashEnabled,
                         )
                     }
