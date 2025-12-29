@@ -188,18 +188,6 @@
     <string name="explorer_loader_progress_trash_loading">Loading trash…</string>
 
     <!-- InfoBar -->
-    <plurals name="explorer_infobar_selected_count">
-        <item quantity="one">%d selected</item>
-        <item quantity="other">%d selected</item>
-    </plurals>
-    <plurals name="explorer_infobar_folders_count">
-        <item quantity="one">%d folder</item>
-        <item quantity="other">%d folders</item>
-    </plurals>
-    <plurals name="explorer_infobar_files_count">
-        <item quantity="one">%d file</item>
-        <item quantity="other">%d files</item>
-    </plurals>
     <plurals name="explorer_infobar_shortcuts_count">
         <item quantity="one">%d shortcut</item>
         <item quantity="other">%d shortcuts</item>

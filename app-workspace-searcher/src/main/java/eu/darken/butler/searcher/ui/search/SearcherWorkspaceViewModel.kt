@@ -670,6 +670,22 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         selectionState.update { it.selectAll() }
     }
 
+    fun selectAllFolders() {
+        log(TAG) { "Adding all folders to selection" }
+        selectionState.update { state ->
+            val folders = state.selectableResults.filterIsInstance<SearchItem.Directory>()
+            state.addToSelection(folders)
+        }
+    }
+
+    fun selectAllFiles() {
+        log(TAG) { "Adding all files to selection" }
+        selectionState.update { state ->
+            val files = state.selectableResults.filterIsInstance<SearchItem.File>()
+            state.addToSelection(files)
+        }
+    }
+
     fun deselectAll() {
         log(TAG) { "Deselecting all results" }
         selectionState.update { it.deselectAll() }
@@ -748,6 +764,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 systemClipboardHelper.copyToClipboard(action.result.path.path)
             }
             is SearcherAction.SelectAll -> selectAll()
+            is SearcherAction.SelectAllFolders -> selectAllFolders()
+            is SearcherAction.SelectAllFiles -> selectAllFiles()
             is SearcherAction.DeselectAll -> deselectAll()
             is SearcherAction.Common.Sort -> {
                 dialogStateFlow.value = SearcherDialogState.EditSortOptions(

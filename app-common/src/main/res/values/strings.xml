@@ -237,8 +237,14 @@
         <item quantity="one">%d selected</item>
         <item quantity="other">%d selected</item>
     </plurals>
+    <plurals name="common_folders_count">
+        <item quantity="one">%1$d folder</item>
+        <item quantity="other">%1$d folders</item>
+    </plurals>
     <plurals name="common_files_count">
         <item quantity="one">%1$d file</item>
         <item quantity="other">%1$d files</item>
     </plurals>
+    <string name="common_select_all_folders_action">Select all folders</string>
+    <string name="common_select_all_files_action">Select all files</string>
 </resources>
