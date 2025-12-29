@@ -5,15 +5,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
@@ -111,107 +115,134 @@ fun TemplatesWorkspacePage(
         with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     } else 0.dp
 
+    // Settings card height for content padding calculation
+    val settingsCardHeight = 96.dp
+
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp)
-                    .padding(top = statusBarInset + 16.dp, bottom = navBarInset + 16.dp),
+        // Scrollable content
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .padding(top = statusBarInset + 16.dp),
+            horizontalAlignment = Alignment.Start,
+        ) {
+            Text(
+                text = stringResource(R.string.workspace_templates_choose_title),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = stringResource(R.string.workspace_templates_choose_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.Start,
+                contentPadding = PaddingValues(bottom = settingsCardHeight + navBarInset + 32.dp),
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(R.string.workspace_templates_choose_title),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.workspace_templates_choose_subtitle),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
+                items(state.templates.size) { index ->
+                    val template = state.templates[index]
+                    val isFirstItem = index == 0
 
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        items(state.templates.size) { index ->
-                            val template = state.templates[index]
-                            val isFirstItem = index == 0
-
-                            TemplateCard(
-                                template = template,
-                                isFirstItem = isFirstItem,
-                                onClick = {
-                                    onCreateWorkspace(
-                                        WorkspaceAction.Create(
-                                            type = template.type,
-                                            arguments = template.arguments,
-                                            replace = state.id,
-                                            autoFocus = true,
-                                        )
-                                    )
-                                })
-                        }
-                    }
+                    TemplateCard(
+                        template = template,
+                        isFirstItem = isFirstItem,
+                        onClick = {
+                            onCreateWorkspace(
+                                WorkspaceAction.Create(
+                                    type = template.type,
+                                    arguments = template.arguments,
+                                    replace = state.id,
+                                    autoFocus = true,
+                                )
+                            )
+                        },
+                    )
                 }
+            }
+        }
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .clickable { onNavToSettings() }
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        ButlerMascot(
-                            modifier = Modifier.size(64.dp),
-                            variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy() else ButlerMascotMode.Static.Normal()
-                        )
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            if (state.isUpgraded) {
-                                ColoredTitleText(
-                                    fullTitle = stringResource(eu.darken.butler.common.R.string.app_name_upgraded),
-                                    postfix = stringResource(eu.darken.butler.common.R.string.app_name_upgrade_postfix),
-                                    style = MaterialTheme.typography.titleMedium,
-                                )
-                            } else {
-                                Text(
-                                    text = stringResource(eu.darken.butler.common.R.string.app_name),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                            Text(
-                                text = randomSlogan.get(LocalContext.current),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
+        // Floating settings card with gradient fade above
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(bottom = navBarInset + 16.dp),
+        ) {
+            // Gradient fade effect above card
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                MaterialTheme.colorScheme.surface,
                             )
+                        )
+                    )
+            )
+
+            // Floating settings card
+            ElevatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                ),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .clickable { onNavToSettings() }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    ButlerMascot(
+                        modifier = Modifier.size(64.dp),
+                        variant = if (state.isUpgraded) ButlerMascotMode.Static.Happy() else ButlerMascotMode.Static.Normal()
+                    )
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        if (state.isUpgraded) {
+                            ColoredTitleText(
+                                fullTitle = stringResource(eu.darken.butler.common.R.string.app_name_upgraded),
+                                postfix = stringResource(eu.darken.butler.common.R.string.app_name_upgrade_postfix),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        } else {
                             Text(
-                                text = state.versionDescription,
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(top = 2.dp),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                text = stringResource(eu.darken.butler.common.R.string.app_name),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
-
-                        Icon(
-                            imageVector = Icons.TwoTone.Settings,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        Text(
+                            text = randomSlogan.get(LocalContext.current),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = state.versionDescription,
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(top = 2.dp),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         )
                     }
+
+                    Icon(
+                        imageVector = Icons.TwoTone.Settings,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
                 }
             }
         }
