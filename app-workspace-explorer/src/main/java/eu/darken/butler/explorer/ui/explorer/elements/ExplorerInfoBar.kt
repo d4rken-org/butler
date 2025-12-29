@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
+import androidx.compose.material.icons.twotone.HourglassEmpty
 import androidx.compose.material.icons.twotone.Scale
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PauseCircle
@@ -26,6 +27,7 @@ import eu.darken.butler.workspace.ui.WorkspaceInfoBar
 fun ExplorerInfoBar(
     modifier: Modifier = Modifier,
     info: ExplorerLocation.LocationInfo?,
+    isLoading: Boolean = false,
     selectedCount: Int = 0,
     selectedSize: Long? = null,
     onClearSelection: () -> Unit = {},
@@ -131,7 +133,12 @@ fun ExplorerInfoBar(
                 }
 
                 null -> {
-                    // No info available
+                    if (isLoading) {
+                        InfoChip(
+                            icon = Icons.TwoTone.HourglassEmpty,
+                            label = stringResource(R.string.explorer_infobar_loading),
+                        )
+                    }
                 }
             }
         },

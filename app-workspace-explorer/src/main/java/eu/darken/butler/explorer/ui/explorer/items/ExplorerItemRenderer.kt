@@ -31,7 +31,7 @@ import eu.darken.butler.explorer.ui.explorer.items.row.TrashNestedItemRow
 fun ExplorerItemRenderer(
     item: ExplorerItem,
     viewStyle: ExplorerViewStyle,
-    state: ExplorerWorkspaceViewModel.State,
+    state: ExplorerWorkspaceViewModel.State.Ready,
     isFocused: Boolean,
     onItemClick: (ExplorerItem) -> Unit,
     onItemLongClick: (ExplorerItem) -> Unit,
@@ -73,7 +73,7 @@ fun ExplorerItemRenderer(
 private fun ItemContent(
     item: ExplorerItem,
     viewStyle: ExplorerViewStyle,
-    state: ExplorerWorkspaceViewModel.State,
+    state: ExplorerWorkspaceViewModel.State.Ready,
     isSelected: Boolean,
     isEnabled: Boolean,
     showSelection: Boolean,
