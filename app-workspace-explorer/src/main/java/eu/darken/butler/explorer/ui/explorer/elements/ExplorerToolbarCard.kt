@@ -140,7 +140,6 @@ private fun NormalToolbarContent(
     workspaceActionHandler: WorkspaceActionHandler?,
     safLocationManager: SAFLocationManager?,
 ) {
-    val context = LocalContext.current
     val workspaceButtonSize by animateDpAsState(
         targetValue = if (isCollapsed) 32.dp else 40.dp,
         label = "workspaceButtonSize",
@@ -153,10 +152,9 @@ private fun NormalToolbarContent(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (isCollapsed) {
-            // Collapsed state - show icon + current folder name
-            val lastBreadcrumb = breadcrumbs.lastOrNull()
-            val icon = lastBreadcrumb?.icon ?: Icons.TwoTone.Folder
-            val label = lastBreadcrumb?.label?.get(context) ?: ""
+            // Collapsed state - show icon + path breadcrumbs
+            val icon = breadcrumbs.lastOrNull()?.icon ?: Icons.TwoTone.Folder
+            val label = getCollapsedBreadcrumbText(breadcrumbs)
 
             Row(
                 modifier = Modifier
@@ -173,15 +171,15 @@ private fun NormalToolbarContent(
                 )
 
                 Text(
-                    text = label.ifBlank { "Loading…" },
+                    text = label ?: stringResource(R.string.explorer_loading),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (label.isBlank()) {
+                    color = if (label == null) {
                         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     } else {
                         MaterialTheme.colorScheme.onSurface
                     },
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.StartEllipsis,
                 )
             }
 
@@ -260,8 +258,6 @@ private fun PickerToolbarContent(
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    val context = LocalContext.current
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -300,8 +296,11 @@ private fun PickerToolbarContent(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     val displayText = when (pickerSelection) {
-                        is PickerConfig.Selection.SaveAs -> saveAsFilename.ifBlank { "Filename" }
-                        else -> breadcrumbs.lastOrNull()?.label?.get(context) ?: "…"
+                        is PickerConfig.Selection.SaveAs -> saveAsFilename.ifBlank {
+                            stringResource(R.string.explorer_picker_save_as_filename_hint)
+                        }
+                        else -> getCollapsedBreadcrumbText(breadcrumbs)
+                            ?: stringResource(R.string.explorer_loading)
                     }
 
                     Text(
@@ -367,6 +366,15 @@ private fun PickerToolbarContent(
             )
         }
     }
+}
+
+@Composable
+private fun getCollapsedBreadcrumbText(breadcrumbs: List<ExplorerBreadcrumb>): String? {
+    val context = LocalContext.current
+    return breadcrumbs
+        .mapNotNull { it.label.get(context).takeIf { label -> label.isNotBlank() } }
+        .joinToString(" / ")
+        .takeIf { it.isNotBlank() }
 }
 
 @Composable
