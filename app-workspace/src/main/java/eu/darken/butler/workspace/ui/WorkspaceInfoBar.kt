@@ -41,10 +41,11 @@ fun WorkspaceInfoBar(
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     val scrollState = rememberScrollState()
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .propagateScrollAtBoundary(scrollState)
+            .propagateScrollAtBoundary(scrollState, enabled = isWorkspaceFocused)
             .horizontalScroll(scrollState),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
