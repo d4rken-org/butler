@@ -79,7 +79,7 @@
     <string name="general_progress_loading">Loading</string>
     <string name="general_progress_loading_egg_0">Still faster than an iPhone</string>
     <string name="general_progress_loading_egg_1">Downloading more RAM</string>
-    <string name="general_progress_loading_egg_2">Soon™</string>
+    <string name="general_progress_loading_egg_2">ETA: Soon™</string>
     <string name="general_progress_loading_egg_3">The CPU is on a coffee break</string>
     <string name="general_progress_loading_egg_4">Awaiting data from Pepe Silvia</string>
     <string name="general_progress_loading_egg_5">Turbo encabulator is initiating</string>

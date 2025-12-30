@@ -2,6 +2,7 @@ package eu.darken.butler.explorer.ui.explorer.actions
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Sort
+import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
@@ -66,7 +67,10 @@ sealed interface ExplorerAction : WorkspaceAction {
             override val isEnabled: Boolean = true,
             override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
         ) : Common {
-            override val icon = Icons.TwoTone.GridView
+            override val icon = when (viewStyle) {
+                is ExplorerViewStyle.Grid -> Icons.TwoTone.GridView
+                is ExplorerViewStyle.List -> Icons.AutoMirrored.TwoTone.ViewList
+            }
             override val label = R.string.explorer_action_view.toCaString()
         }
 

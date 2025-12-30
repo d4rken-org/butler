@@ -78,7 +78,9 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
-import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
+import eu.darken.butler.workspace.ui.error.ErrorCard
+import eu.darken.butler.workspace.ui.states.WorkspaceErrorContent
+import eu.darken.butler.workspace.ui.states.WorkspaceInitializingContent
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
@@ -118,20 +120,17 @@ fun ExplorerWorkspacePage(
     initialOperationsExpanded: Boolean = false,
     initialClipboardExpanded: Boolean = false,
 ) {
-    val mainStateRaw by mainStateSource.collectAsState(ExplorerWorkspaceViewModel.State.Loading)
+    val mainStateRaw by mainStateSource.collectAsState(ExplorerWorkspaceViewModel.State.Initializing)
     val operationsState by operationsStateSource.collectAsState(ExplorerWorkspaceViewModel.OperationsState())
     val clipboardState by clipboardStateSource.collectAsState(ExplorerWorkspaceViewModel.ClipboardState())
     val workspaceButtonState by workspaceStateSource.collectAsState(null)
     val isWorkspaceFocused = LocalWorkspaceFocused.current
 
-    // Show mascot while workspace is initializing (brief ~100-200ms)
-    if (mainStateRaw is ExplorerWorkspaceViewModel.State.Loading) {
-        EmptyState(modifier = Modifier.fillMaxSize())
-        return
-    }
-
-    // Safe cast after loading check
-    val mainState = mainStateRaw as ExplorerWorkspaceViewModel.State.Ready
+    // Determine if workspace is ready (vs still initializing)
+    val isReady = mainStateRaw is ExplorerWorkspaceViewModel.State.Ready
+    // Use defaults when not ready - enables clean non-null access throughout
+    val state = (mainStateRaw as? ExplorerWorkspaceViewModel.State.Ready)
+        ?: ExplorerWorkspaceViewModel.State.Ready()
 
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
@@ -158,7 +157,7 @@ fun ExplorerWorkspacePage(
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Focus state comes from ViewModel (survives rotation)
-    val focusedItem = mainState.focusedItemIndex?.let { mainState.items?.getOrNull(it) }
+    val focusedItem = state.focusedItemIndex?.let { state.items?.getOrNull(it) }
 
     // Pull-to-refresh indicator state - shows briefly then hides to let progress banner take over
     var showPullToRefreshIndicator by remember { mutableStateOf(false) }
@@ -178,11 +177,12 @@ fun ExplorerWorkspacePage(
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     // Save scroll position when navigating away from current location
-    DisposableEffect(mainState.locationId) {
-        val locationId = mainState.locationId
+    DisposableEffect(state.locationId) {
+        val locationId = state.locationId
+        val viewStyle = state.viewStyle
         onDispose {
             if (locationId != null) {
-                val (index, offset) = when (mainState.viewStyle) {
+                val (index, offset) = when (viewStyle) {
                     is ExplorerViewStyle.Grid -> gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
                     is ExplorerViewStyle.List -> listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
                 }
@@ -193,12 +193,13 @@ fun ExplorerWorkspacePage(
 
     // Track previous location to detect actual navigation vs item updates
     var previousLocationId by remember { mutableStateOf<String?>(null) }
-    val hasItems = mainState.items != null
+    val hasItems = state.items != null
 
     // Restore or reset scroll position ONLY when navigating to a different location
-    LaunchedEffect(mainState.locationId, hasItems) {
+    LaunchedEffect(state.locationId, hasItems) {
         val scrollTag = logTag("Explorer", "Page", "ScrollRestore")
-        val locationId = mainState.locationId ?: return@LaunchedEffect
+        if (!isReady) return@LaunchedEffect
+        val locationId = state.locationId ?: return@LaunchedEffect
 
         // Wait for items to be loaded before restoring scroll
         if (!hasItems) return@LaunchedEffect
@@ -212,13 +213,13 @@ fun ExplorerWorkspacePage(
 
         if (savedPosition != null) {
             // Restore saved position (coming back to previously visited location)
-            when (mainState.viewStyle) {
+            when (state.viewStyle) {
                 is ExplorerViewStyle.Grid -> gridState.scrollToItem(savedPosition.first, savedPosition.second)
                 is ExplorerViewStyle.List -> listState.scrollToItem(savedPosition.first, savedPosition.second)
             }
         } else {
             // New location - scroll to top
-            when (mainState.viewStyle) {
+            when (state.viewStyle) {
                 is ExplorerViewStyle.Grid -> gridState.scrollToItem(0)
                 is ExplorerViewStyle.List -> listState.scrollToItem(0)
             }
@@ -226,16 +227,17 @@ fun ExplorerWorkspacePage(
     }
 
     // Synchronize scroll position when view mode changes
-    LaunchedEffect(mainState.viewStyle) {
-        val items = mainState.items
+    LaunchedEffect(state.viewStyle) {
+        if (!isReady) return@LaunchedEffect
+        val items = state.items
         if (items != null && items.isNotEmpty()) {
-            val currentIndex = when (mainState.viewStyle) {
+            val currentIndex = when (state.viewStyle) {
                 is ExplorerViewStyle.Grid -> gridState.firstVisibleItemIndex
                 is ExplorerViewStyle.List -> listState.firstVisibleItemIndex
             }
 
             // Apply the scroll position to the new view mode
-            when (mainState.viewStyle) {
+            when (state.viewStyle) {
                 is ExplorerViewStyle.Grid -> gridState.scrollToItem(currentIndex, 0)
                 is ExplorerViewStyle.List -> listState.scrollToItem(currentIndex, 0)
             }
@@ -243,17 +245,19 @@ fun ExplorerWorkspacePage(
     }
 
     // Auto-scroll to top when sort settings change
-    LaunchedEffect(mainState.sortSettings) {
-        when (mainState.viewStyle) {
+    LaunchedEffect(state.sortSettings) {
+        if (!isReady) return@LaunchedEffect
+        when (state.viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(0)
         }
     }
 
     // Auto-scroll to keep focused item visible during keyboard navigation
-    LaunchedEffect(mainState.focusedItemIndex) {
-        val focusedIndex = mainState.focusedItemIndex ?: return@LaunchedEffect
-        when (mainState.viewStyle) {
+    LaunchedEffect(state.focusedItemIndex) {
+        if (!isReady) return@LaunchedEffect
+        val focusedIndex = state.focusedItemIndex ?: return@LaunchedEffect
+        when (state.viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(focusedIndex)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(focusedIndex)
         }
@@ -329,9 +333,9 @@ fun ExplorerWorkspacePage(
 
 
     // Handle back button for picker mode
-    if (mainState.pickerConfig != null) {
-        BackHandler(enabled = true) {
-            if (mainState.canGoBack) {
+    if (state.pickerConfig != null) {
+        BackHandler(enabled = isReady) {
+            if (state.canGoBack) {
                 // Navigate up in directory hierarchy
                 vm?.goBack()
             } else {
@@ -342,14 +346,14 @@ fun ExplorerWorkspacePage(
     }
 
     // Handle back button for navigation history (when setting enabled)
-    if (mainState.useBackButtonForNavigation && mainState.pickerConfig == null) {
-        BackHandler(enabled = mainState.canGoBack) {
+    if (state.useBackButtonForNavigation && state.pickerConfig == null) {
+        BackHandler(enabled = isReady && state.canGoBack) {
             vm?.goBack()
         }
     }
 
     // Handle back button for selection mode - clear selection first
-    BackHandler(enabled = mainState.selectionState.isSelectionMode) {
+    BackHandler(enabled = isReady && state.selectionState.isSelectionMode) {
         vm?.clearSelection()
     }
 
@@ -363,9 +367,9 @@ fun ExplorerWorkspacePage(
         }
     }
     val hasClipboard by derivedStateOf { clipboardState.entries.isNotEmpty() }
-    val hasActions by derivedStateOf { mainState.availableActions.isNotEmpty() }
-    val isSelectionMode by derivedStateOf { mainState.selectionState.isSelectionMode }
-    val isLoadingItems = mainState.items == null
+    val hasActions by derivedStateOf { state.availableActions.isNotEmpty() }
+    val isSelectionMode by derivedStateOf { state.selectionState.isSelectionMode }
+    val isLoadingItems = !isReady || state.items == null
 
     // Pull-to-refresh handler - shows indicator for 200ms then hides
     val handleRefresh: () -> Unit = {
@@ -384,14 +388,14 @@ fun ExplorerWorkspacePage(
         modifier = Modifier
             .fillMaxSize()
             .explorerKeyboardShortcuts(
-                availableActions = mainState.availableActions,
+                availableActions = state.availableActions,
                 clipboardEntries = clipboardState.entries,
-                selectedItems = mainState.selectionState.selectedItems,
+                selectedItems = state.selectionState.selectedItems,
                 focusedItem = focusedItem,
-                viewStyle = mainState.viewStyle,
+                viewStyle = state.viewStyle,
                 gridColumns = gridColumns,
-                trashEnabled = mainState.trashEnabled,
-                enabled = isWorkspaceFocused,
+                trashEnabled = state.trashEnabled,
+                enabled = isWorkspaceFocused && isReady,
                 onExecuteAction = { vm?.executeAction(it) },
                 onPaste = { vm?.pasteClipboard(it) },
                 onSelectAll = { vm?.selectAll() },
@@ -410,7 +414,7 @@ fun ExplorerWorkspacePage(
                 onDeleteFocusedItem = { vm?.deleteFocusedItem() },
                 onPermanentDeleteFocusedItem = {
                     // If items are selected, permanently delete them; otherwise delete focused item
-                    if (mainState.selectionState.selectedItems.isNotEmpty()) {
+                    if (state.selectionState.selectedItems.isNotEmpty()) {
                         vm?.permanentDeleteSelectedItems()
                     } else {
                         vm?.deleteFocusedItem(forcePermDelete = true)
@@ -420,47 +424,64 @@ fun ExplorerWorkspacePage(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Determine if info bar should be visible
-            val showInfoBar = mainState.info != null || mainState.selectionState.selectedItems.isNotEmpty() || isLoadingItems
+            val showInfoBar = state.info != null || state.selectionState.selectedItems.isNotEmpty() || isLoadingItems
 
             // Content padding from floating bar stacks
             val topContentPadding = topBarStackState.contentPaddingDp()
 
-            // Main content with PullToRefresh
-            PullToRefreshBox(
-                isRefreshing = showPullToRefreshIndicator,
-                onRefresh = handleRefresh,
-                modifier = Modifier.fillMaxSize(),
-                state = pullToRefreshState,
-                indicator = {
-                    PullToRefreshDefaults.Indicator(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .offset(y = topContentPadding),
-                        state = pullToRefreshState,
-                        isRefreshing = showPullToRefreshIndicator,
+            // Main content area
+            when {
+                mainStateRaw is ExplorerWorkspaceViewModel.State.Error -> {
+                    // Fatal error state - show error content with share/close options
+                    WorkspaceErrorContent(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(top = topContentPadding),
+                        error = (mainStateRaw as ExplorerWorkspaceViewModel.State.Error).error,
+                        onShareError = { vm?.shareWorkspaceError() },
+                        onCloseWorkspace = { vm?.closeWorkspace() },
                     )
-                },
-            ) {
-                val mainStateSnap = mainState
-                when {
-                    mainStateSnap.setupRequirements.needsAction -> {
-                        // Show setup request or SAF picker card when action needed
-                        PermissionRequestCard(
-                            setupRequirements = mainState.setupRequirements,
-                            onNavigateToSetup = {
-                                vm?.navigateToSetup(mainState.setupRequirements)
-                            },
-                            onLaunchSAFPicker = { grant ->
-                                vm?.launchAndroidDataSAFPicker(grant)
-                            },
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(top = topContentPadding),
-                        )
-                    }
-                    else -> {
-                        // Always render the lazy list/grid for structural stability
-                        when (mainStateSnap.viewStyle) {
+                }
+                !isReady -> {
+                    // Initializing state - show mascot with loading message
+                    WorkspaceInitializingContent(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(top = topContentPadding),
+                    )
+                }
+                state.setupRequirements.needsAction -> {
+                    // Show setup request or SAF picker card when action needed
+                    PermissionRequestCard(
+                        setupRequirements = state.setupRequirements,
+                        onNavigateToSetup = {
+                            vm?.navigateToSetup(state.setupRequirements)
+                        },
+                        onLaunchSAFPicker = { grant ->
+                            vm?.launchAndroidDataSAFPicker(grant)
+                        },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = topContentPadding),
+                    )
+                }
+                else -> {
+                    // Content with pull-to-refresh (only when ready)
+                    PullToRefreshBox(
+                        isRefreshing = showPullToRefreshIndicator,
+                        onRefresh = handleRefresh,
+                        modifier = Modifier.fillMaxSize(),
+                        state = pullToRefreshState,
+                        indicator = {
+                            PullToRefreshDefaults.Indicator(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .offset(y = topContentPadding),
+                                state = pullToRefreshState,
+                                isRefreshing = showPullToRefreshIndicator,
+                            )
+                        },
+                    ) {
+                        // Render the lazy list/grid
+                        when (state.viewStyle) {
                             is ExplorerViewStyle.List -> {
                                 LazyColumn(
                                     state = listState,
@@ -477,13 +498,13 @@ fun ExplorerWorkspacePage(
                                     )
                                 ) {
                                     // Handle loading state - show skeleton items while navigating
-                                    if (mainStateSnap.items == null) {
+                                    if (state.items == null) {
                                         items(10, key = { "skeleton-$it" }) {
                                             SkeletonListItem()
                                         }
                                     }
                                     // Handle empty directory state
-                                    else if (mainStateSnap.items.isEmpty()) {
+                                    else if (state.items.isEmpty()) {
                                         item(key = "empty") {
                                             Box(
                                                 modifier = Modifier.fillParentMaxSize(),
@@ -496,13 +517,13 @@ fun ExplorerWorkspacePage(
                                     // Handle normal items
                                     else {
                                         items(
-                                            items = mainStateSnap.items,
+                                            items = state.items,
                                             key = { it.id }
                                         ) { item ->
                                             ExplorerItemRenderer(
                                                 item = item,
-                                                viewStyle = mainStateSnap.viewStyle,
-                                                state = mainStateSnap,
+                                                viewStyle = state.viewStyle,
+                                                state = state,
                                                 isFocused = item == focusedItem,
                                                 onItemClick = { vm?.onItemClick(it) },
                                                 onItemLongClick = { vm?.onItemLongClick(it) },
@@ -532,13 +553,13 @@ fun ExplorerWorkspacePage(
                                     )
                                 ) {
                                     // Handle loading state - show skeleton items while navigating
-                                    if (mainStateSnap.items == null) {
+                                    if (state.items == null) {
                                         items(12, key = { "skeleton-grid-$it" }) {
                                             SkeletonGridItem()
                                         }
                                     }
                                     // Handle empty directory state
-                                    else if (mainStateSnap.items.isEmpty()) {
+                                    else if (state.items.isEmpty()) {
                                         item(span = { GridItemSpan(maxLineSpan) }, key = "empty") {
                                             Box(
                                                 modifier = Modifier.fillMaxSize(),
@@ -551,13 +572,13 @@ fun ExplorerWorkspacePage(
                                     // Handle normal items
                                     else {
                                         items(
-                                            items = mainStateSnap.items,
+                                            items = state.items,
                                             key = { it.id }
                                         ) { item ->
                                             ExplorerItemRenderer(
                                                 item = item,
-                                                viewStyle = mainStateSnap.viewStyle,
-                                                state = mainStateSnap,
+                                                viewStyle = state.viewStyle,
+                                                state = state,
                                                 isFocused = item == focusedItem,
                                                 onItemClick = { vm?.onItemClick(it) },
                                                 onItemLongClick = { vm?.onItemLongClick(it) },
@@ -574,8 +595,8 @@ fun ExplorerWorkspacePage(
             }
 
             // Error card (floating below top bar stack)
-            mainState.error?.let { error ->
-                WorkspaceErrorCard(
+            state.error?.let { error ->
+                ErrorCard(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = topContentPadding)
@@ -589,7 +610,7 @@ fun ExplorerWorkspacePage(
             }
 
             // Loading progress bar (floating below top bar stack)
-            mainState.progress?.let {
+            state.progress?.let {
                 LoadingProgressBar(
                     progress = it,
                     onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
@@ -616,7 +637,7 @@ fun ExplorerWorkspacePage(
                     ) {
                         ExplorerToolbarCard(
                             workspaceId = workspaceId,
-                            breadcrumbs = mainState.breadcrumbs,
+                            breadcrumbs = state.breadcrumbs,
                             design = design,
                             collapsedFraction = collapsedFraction,
                             onBreadcrumbClick = { target -> vm?.navigate(target) },
@@ -626,10 +647,10 @@ fun ExplorerWorkspacePage(
                             workspaceButtonState = workspaceButtonState,
                             workspaceActionHandler = workspaceActionHandler,
                             safLocationManager = vm?.safLocationManager,
-                            pickerSelection = mainState.pickerConfig?.selection,
-                            selectionCount = mainState.selectionState.selectedItems.size,
-                            saveAsFilename = mainState.saveAsFilename,
-                            canConfirmSelection = mainState.canConfirmSelection,
+                            pickerSelection = state.pickerConfig?.selection,
+                            selectionCount = state.selectionState.selectedItems.size,
+                            saveAsFilename = state.saveAsFilename,
+                            canConfirmSelection = state.canConfirmSelection,
                             onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
                             onCancel = { vm?.cancelPicker() },
                             onConfirm = { vm?.confirmPickerSelection() },
@@ -648,14 +669,14 @@ fun ExplorerWorkspacePage(
                         modifier = Modifier.padding(horizontal = 16.dp),
                     ) {
                         ExplorerInfoBar(
-                            info = mainState.info,
+                            info = state.info,
                             isLoading = isLoadingItems,
-                            selectedCount = mainState.selectionState.selectedItems.size,
-                            selectedSize = mainState.selectionState.selectedSize,
+                            selectedCount = state.selectionState.selectedItems.size,
+                            selectedSize = state.selectionState.selectedSize,
                             onClearSelection = { vm?.clearSelection() },
                             onSelectFolders = { vm?.selectAllFolders() },
                             onSelectFiles = { vm?.selectAllFiles() },
-                            isTrashDisabled = !mainState.trashEnabled,
+                            isTrashDisabled = !state.trashEnabled,
                         )
                     }
                 },
@@ -733,7 +754,7 @@ fun ExplorerWorkspacePage(
                         modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
                         WorkspaceActionBar(
-                            actions = mainState.availableActions,
+                            actions = state.availableActions,
                             onActionClick = { action -> vm?.executeAction(action as ExplorerAction) },
                             onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerAction) },
                         )
@@ -746,8 +767,8 @@ fun ExplorerWorkspacePage(
             )
 
             ExplorerDialogHost(
-                dialogState = mainState.dialogState,
-                trashEnabled = mainState.trashEnabled,
+                dialogState = state.dialogState,
+                trashEnabled = state.trashEnabled,
                 vm = vm,
                 bottomInset = navBarInset,
             )

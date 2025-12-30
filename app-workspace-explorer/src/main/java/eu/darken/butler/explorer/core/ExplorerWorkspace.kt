@@ -12,7 +12,6 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.shareLatest
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.explorer.R
@@ -45,11 +44,13 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -83,22 +84,20 @@ class ExplorerWorkspace @AssistedInject constructor(
     override val type: Workspace.Type = Workspace.Type.EXPLORER
 
     private val scope = CoroutineScope(
-        dispatcherProvider.IO +
-            CoroutineName(tag) +
-            CoroutineExceptionHandler { _, throwable ->
-                log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
-                _state.updateAsync { copy(error = throwable) }
-            }
+        dispatcherProvider.IO + CoroutineName(tag) + CoroutineExceptionHandler { _, throwable ->
+            log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
+            _state.value = State.Error(throwable)
+        }
     )
 
-    private val _state: DynamicStateFlow<State> = DynamicStateFlow<State>(parentScope = scope) { State() }
-    val state: Flow<State> = _state.flow
+    private val _state = MutableStateFlow<State>(State.Initializing)
+    val state: Flow<State> = _state.asStateFlow()
 
 
     override suspend fun createArguments(): ExplorerArguments {
         // Extract current path from state for session restoration
-        val currentState = _state.value()
-        val currentPath = (currentState.currentLocation as? ExplorerLocation.Directory)?.path
+        val currentState = _state.value as? State.Ready
+        val currentPath = (currentState?.currentLocation as? ExplorerLocation.Directory)?.path
         return ExplorerArguments.Default(startPath = currentPath)
     }
 
@@ -148,7 +147,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         .shareLatest(scope)
 
     override val info: Flow<Workspace.Info> = combine(
-        _state.flow,
+        _state,
         operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
     ) { state, operations ->
         val states = operations.map { it.id to it.state.value }
@@ -159,15 +158,16 @@ class ExplorerWorkspace @AssistedInject constructor(
             if (value is Operation.State.Completed && value.error != null && value.error !is CancellationException) return@count true
             return@count false
         }
+        val readyState = state as? State.Ready
         Workspace.Info(
             id = id,
             type = type,
             title = when {
-                state.currentTarget != null -> state.currentTarget.label
+                readyState?.currentTarget != null -> readyState.currentTarget.label
                 Bugs.isDebug -> "Explorer ${id.shortTag}".toCaString()
                 else -> R.string.explorer_title.toCaString()
             },
-            subtitle = state.currentTarget?.description,
+            subtitle = readyState?.currentTarget?.description,
             operationCount = activeOperations,
             attentionCount = attentionCount,
             callerWorkspaceId = pickerConfig?.callerWorkspaceId,
@@ -177,22 +177,38 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private val navigationRequests = MutableSharedFlow<ExplorerNavigation>(replay = 1)
 
-    data class State(
-        val historyIndex: Int = 0,
-        val navigationHistory: List<ExplorerNavigation.Target> = emptyList(),
-        val currentTarget: ExplorerNavigation.Target? = null,
-        val currentLocation: ExplorerLocation? = null,
-        val currentBreadcrumbs: List<ExplorerBreadcrumb>? = null,
-        val error: Throwable? = null,
-    ) {
-        val canGoBack: Boolean get() = historyIndex > 0
-        val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
+    sealed interface State {
+        data object Initializing : State
+
+        data class Ready(
+            val historyIndex: Int = 0,
+            val navigationHistory: List<ExplorerNavigation.Target> = emptyList(),
+            val currentTarget: ExplorerNavigation.Target? = null,
+            val currentLocation: ExplorerLocation? = null,
+            val currentBreadcrumbs: List<ExplorerBreadcrumb>? = null,
+            val error: Throwable? = null,
+        ) : State {
+            val canGoBack: Boolean get() = historyIndex > 0
+            val canGoForward: Boolean get() = historyIndex < navigationHistory.size - 1
+        }
+
+        data class Error(val error: Throwable) : State
+    }
+
+    private inline fun updateReady(block: State.Ready.() -> State.Ready) {
+        _state.update {
+            when (it) {
+                is State.Initializing -> it
+                is State.Ready -> it.block()
+                is State.Error -> it
+            }
+        }
     }
 
     init {
         browsingEngine.location
             .onEach { engineState ->
-                _state.updateBlocking {
+                updateReady {
                     copy(
                         currentLocation = engineState.location,
                         currentBreadcrumbs = engineState.breadcrumbs ?: currentBreadcrumbs,
@@ -206,25 +222,20 @@ class ExplorerWorkspace @AssistedInject constructor(
         navigationRequests
             .onEach { request ->
                 log(tag, INFO) { "New navigation request: $request" }
-                _state.updateBlocking { copy(error = null) }
+                updateReady { copy(error = null) }
                 try {
                     processNavigationRequest(request)
                 } catch (e: Exception) {
                     when (e) {
                         is CancellationException -> {
                             log(tag, INFO) { "Navigation cancelled" }
-                            _state.updateBlocking { copy(currentLocation = null) }
+                            updateReady { copy(currentLocation = null) }
                             throw e
                         }
 
                         else -> {
                             log(tag, ERROR) { "Navigation failed: $e" }
-                            _state.updateBlocking {
-                                copy(
-                                    currentLocation = null,
-                                    error = e,
-                                )
-                            }
+                            updateReady { copy(currentLocation = null, error = e) }
                         }
                     }
                 }
@@ -239,6 +250,8 @@ class ExplorerWorkspace @AssistedInject constructor(
         // Load initial location
         scope.launch {
             log(tag, INFO) { "Loading initial data... ($creationArguments)" }
+            // Transition to Ready state before processing navigation
+            _state.value = State.Ready()
             try {
                 val startPath = when (creationArguments) {
                     is ExplorerArguments.Picker -> creationArguments.startPath
@@ -253,14 +266,19 @@ class ExplorerWorkspace @AssistedInject constructor(
                         log(tag, INFO) { "Using default start location from settings: $defaultLocation" }
                         when (defaultLocation) {
                             is DefaultStartLocation.Device -> navigationRequests.emit(ExplorerNavigation.Target.Device)
-                            is DefaultStartLocation.Directory -> navigationRequests.emit(ExplorerNavigation.Target.Directory(defaultLocation.path))
+                            is DefaultStartLocation.Directory -> navigationRequests.emit(
+                                ExplorerNavigation.Target.Directory(
+                                    defaultLocation.path
+                                )
+                            )
                             is DefaultStartLocation.Home, null -> navigationRequests.emit(ExplorerNavigation.Target.Home)
                         }
                     }
                 }
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to initialize: $e" }
+                log(tag, ERROR) { "Failed to initialize: ${e.asLog()}" }
                 Bugs.report(e)
+                _state.value = State.Error(e)
             }
         }
     }
@@ -273,28 +291,20 @@ class ExplorerWorkspace @AssistedInject constructor(
             }
 
             is ExplorerNavigation.Back -> {
-                val currentHistory = _state.value().navigationHistory
-                val currentIndex = _state.value().historyIndex
-
-                if (currentIndex > 0) {
-                    val targetLocation = currentHistory[currentIndex - 1]
+                val readyState = _state.value as? State.Ready ?: return
+                if (readyState.historyIndex > 0) {
+                    val targetLocation = readyState.navigationHistory[readyState.historyIndex - 1]
                     loadTarget(targetLocation, addToHistory = false)
-                    _state.updateBlocking {
-                        copy(historyIndex = currentIndex - 1)
-                    }
+                    updateReady { copy(historyIndex = historyIndex - 1) }
                 }
             }
 
             is ExplorerNavigation.Forward -> {
-                val currentHistory = _state.value().navigationHistory
-                val currentIndex = _state.value().historyIndex
-
-                if (currentIndex < currentHistory.size - 1) {
-                    val targetLocation = currentHistory[currentIndex + 1]
+                val readyState = _state.value as? State.Ready ?: return
+                if (readyState.historyIndex < readyState.navigationHistory.size - 1) {
+                    val targetLocation = readyState.navigationHistory[readyState.historyIndex + 1]
                     loadTarget(targetLocation, addToHistory = false)
-                    _state.updateBlocking {
-                        copy(historyIndex = currentIndex + 1)
-                    }
+                    updateReady { copy(historyIndex = historyIndex + 1) }
                 }
             }
 
@@ -305,12 +315,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
             is ExplorerNavigation.Cancel -> {
                 log(tag, INFO) { "Navigation cancel request processed" }
-                _state.updateBlocking {
-                    copy(
-                        currentLocation = null,
-                        error = null
-                    )
-                }
+                updateReady { copy(currentLocation = null, error = null) }
             }
         }
     }
@@ -318,27 +323,21 @@ class ExplorerWorkspace @AssistedInject constructor(
     private suspend fun loadTarget(target: ExplorerNavigation.Target, addToHistory: Boolean) {
         log(tag, INFO) { "loadTarget($target, $addToHistory)" }
 
-        _state.updateBlocking {
-            copy(currentTarget = target)
-        }
+        updateReady { copy(currentTarget = target) }
 
         if (addToHistory) {
             log(tag) { "loadTarget(): Updating history" }
 
-            val currentHistory = _state.value().navigationHistory
-            val currentIndex = _state.value().historyIndex
-
-            // Remove forward history when navigating to new location
-            val trimmedHistory = currentHistory.take(currentIndex + 1)
-            val newHistory = trimmedHistory + target
-
-            _state.updateBlocking {
+            updateReady {
                 log(tag) { "loadTarget(): Old history: index=$historyIndex history=$navigationHistory" }
+                // Remove forward history when navigating to new location
+                val trimmedHistory = navigationHistory.take(historyIndex + 1)
+                val newHistory = trimmedHistory + target
                 copy(
                     navigationHistory = newHistory,
                     historyIndex = newHistory.size - 1
-                ).apply {
-                    log(tag) { "loadTarget(): New history: index=$historyIndex history=$navigationHistory" }
+                ).also {
+                    log(tag) { "loadTarget(): New history: index=${it.historyIndex} history=${it.navigationHistory}" }
                 }
             }
 

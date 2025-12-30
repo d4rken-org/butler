@@ -178,8 +178,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private suspend fun getWorkspace() = workspaceSource.filterNotNull().first()
     private suspend fun getReadyState(): State.Ready = state.filterIsInstance<State.Ready>().first()
 
-    private val workspaceState: Flow<ExplorerWorkspace.State> = workspaceSource.flatMapLatest { ws ->
-        ws?.state ?: flowOf(ExplorerWorkspace.State())
+    private val workspaceState: Flow<ExplorerWorkspace.State?> = workspaceSource.flatMapLatest { ws ->
+        ws?.state ?: flowOf(null)
+    }
+
+    private val workspaceReadyState: Flow<ExplorerWorkspace.State.Ready?> = workspaceState.map {
+        it as? ExplorerWorkspace.State.Ready
     }
 
     // Picker configuration (null for non-picker workspaces)
@@ -199,15 +203,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .launchInViewModel()
 
         // Clear highlights when navigating to a different location
-        workspaceState
-            .map { it.currentLocation?.locationId }
+        workspaceReadyState
+            .map { it?.currentLocation?.locationId }
             .distinctUntilChanged()
             .onEach { clearHighlights() }
             .launchInViewModel()
     }
 
     sealed interface State {
-        data object Loading : State
+        data object Initializing : State
+
+        data class Error(val error: Throwable) : State
 
         data class Ready(
             internal val currentLocation: ExplorerLocation? = null,
@@ -253,7 +259,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     // Optimization: Process items separately - only re-sort when items/sort/filter actually change
     private val processedItemsFlow: Flow<List<ExplorerItem>?> = combine(
-        workspaceState.map { it.currentLocation?.items }.distinctUntilChanged(),
+        workspaceReadyState.map { it?.currentLocation?.items }.distinctUntilChanged(),
         currentSortSettings,
         filterStateFlow,
         explorerSettings.useRegexPatterns.flow,
@@ -277,94 +283,100 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     val state: Flow<State> = workspaceSource.flatMapLatest { ws ->
         if (ws == null) {
-            flowOf(State.Loading)
+            flowOf(State.Initializing)
         } else {
-            combine(
-                workspaceState,
-                processedItemsFlow,
-                derivedSelectionStateFlow,
-                viewStyleFlow,
-                dialogStateFlow,
-                currentSortSettings,
-                upgradeRepo.upgradeInfo,
-                filterStateFlow,
-                explorerSettings.useRegexPatterns.flow,
-                explorerSettings.useBackButtonForNavigation.flow,
-                pickerConfigFlow,
-                trashManager.isEnabled,
-                saveAsFilenameFlow,
-                highlightedItemIds,
-                focusedItemIndexFlow,
-            ) { wsState, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex ->
-                // Items already filtered and sorted by processedItemsFlow
-                // Selection state already computed by derivedSelectionStateFlow
+            workspaceState.flatMapLatest { wsState ->
+                when (wsState) {
+                    null, is ExplorerWorkspace.State.Initializing -> flowOf(State.Initializing)
+                    is ExplorerWorkspace.State.Error -> flowOf(State.Error(wsState.error))
+                    is ExplorerWorkspace.State.Ready -> combine(
+                        flowOf(wsState),
+                        processedItemsFlow,
+                        derivedSelectionStateFlow,
+                        viewStyleFlow,
+                        dialogStateFlow,
+                        currentSortSettings,
+                        upgradeRepo.upgradeInfo,
+                        filterStateFlow,
+                        explorerSettings.useRegexPatterns.flow,
+                        explorerSettings.useBackButtonForNavigation.flow,
+                        pickerConfigFlow,
+                        trashManager.isEnabled,
+                        saveAsFilenameFlow,
+                        highlightedItemIds,
+                        focusedItemIndexFlow,
+                    ) { wsStateInner, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex ->
+                        // Items already filtered and sorted by processedItemsFlow
+                        // Selection state already computed by derivedSelectionStateFlow
 
-                val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
+                        val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
-                // Compute whether picker confirm is allowed
-                val canConfirmSelection = pickerHelper.canConfirmSelection(
-                    config = pickerConfig,
-                    currentLocation = wsState.currentLocation,
-                    selectedItems = selectionState.selectedItems,
-                    saveAsFilename = saveAsFilename,
-                )
+                        // Compute whether picker confirm is allowed
+                        val canConfirmSelection = pickerHelper.canConfirmSelection(
+                            config = pickerConfig,
+                            currentLocation = wsStateInner.currentLocation,
+                            selectedItems = selectionState.selectedItems,
+                            saveAsFilename = saveAsFilename,
+                        )
 
-                val rawActions = wsState.currentLocation?.let {
-                    actionProvider.getActions(
-                        location = it,
-                        selectionState = selectionState,
-                        viewStyle = viewStyle,
-                        trashEnabled = recycleBinEnabled,
-                    )
-                } ?: emptyList()
+                        val rawActions = wsStateInner.currentLocation?.let {
+                            actionProvider.getActions(
+                                location = it,
+                                selectionState = selectionState,
+                                viewStyle = viewStyle,
+                                trashEnabled = recycleBinEnabled,
+                            )
+                        } ?: emptyList()
 
-                val availableActions = pickerHelper.filterActionsForPicker(rawActions, pickerConfig)
-                    .map { action ->
-                        // Add badge to Filter action if filters are active
-                        if (action is ExplorerAction.Common.Filter) {
-                            val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
-                                || filterState.includePattern.isNotBlank()
-                                || filterState.excludePattern.isNotBlank()
+                        val availableActions = pickerHelper.filterActionsForPicker(rawActions, pickerConfig)
+                            .map { action ->
+                                // Add badge to Filter action if filters are active
+                                if (action is ExplorerAction.Common.Filter) {
+                                    val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
+                                        || filterState.includePattern.isNotBlank()
+                                        || filterState.excludePattern.isNotBlank()
 
-                            if (hasActiveFilters) {
-                                action.copy(badge = true)
-                            } else {
-                                action
+                                    if (hasActiveFilters) {
+                                        action.copy(badge = true)
+                                    } else {
+                                        action
+                                    }
+                                } else {
+                                    action
+                                }
                             }
-                        } else {
-                            action
-                        }
-                    }
 
-                State.Ready(
-                    currentLocation = wsState.currentLocation,
-                    locationId = wsState.currentLocation?.locationId,
-                    breadcrumbs = wsState.currentBreadcrumbs ?: emptyList(),
-                    items = items,
-                    error = wsState.error,
-                    selectionState = selectionState,
-                    viewStyle = viewStyle,
-                    canGoBack = wsState.canGoBack,
-                    canGoForward = wsState.canGoForward,
-                    availableActions = availableActions,
-                    dialogState = dialogState,
-                    setupRequirements = wsState.currentLocation?.setupRequirements ?: PathRequirements(),
-                    isPro = upgradeInfo.isUpgraded,
-                    filterState = filterState,
-                    useRegexPatterns = useRegexPatterns,
-                    useBackButtonForNavigation = useBackButtonForNavigation,
-                    pickerConfig = pickerConfig,
-                    sortSettings = sortSetting,
-                    trashEnabled = recycleBinEnabled,
-                    saveAsFilename = saveAsFilename,
-                    disabledItems = disabledItems,
-                    canConfirmSelection = canConfirmSelection,
-                    highlightedItemIds = highlightedItemIds,
-                    focusedItemIndex = focusedItemIndex?.let { idx ->
-                        // Adjust focus index if it's out of bounds (e.g., items were removed)
-                        items?.let { if (idx < it.size) idx else it.lastIndex.takeIf { it >= 0 } }
-                    },
-                )
+                        State.Ready(
+                            currentLocation = wsStateInner.currentLocation,
+                            locationId = wsStateInner.currentLocation?.locationId,
+                            breadcrumbs = wsStateInner.currentBreadcrumbs ?: emptyList(),
+                            items = items,
+                            error = wsStateInner.error,
+                            selectionState = selectionState,
+                            viewStyle = viewStyle,
+                            canGoBack = wsStateInner.canGoBack,
+                            canGoForward = wsStateInner.canGoForward,
+                            availableActions = availableActions,
+                            dialogState = dialogState,
+                            setupRequirements = wsStateInner.currentLocation?.setupRequirements ?: PathRequirements(),
+                            isPro = upgradeInfo.isUpgraded,
+                            filterState = filterState,
+                            useRegexPatterns = useRegexPatterns,
+                            useBackButtonForNavigation = useBackButtonForNavigation,
+                            pickerConfig = pickerConfig,
+                            sortSettings = sortSetting,
+                            trashEnabled = recycleBinEnabled,
+                            saveAsFilename = saveAsFilename,
+                            disabledItems = disabledItems,
+                            canConfirmSelection = canConfirmSelection,
+                            highlightedItemIds = highlightedItemIds,
+                            focusedItemIndex = focusedItemIndex?.let { idx ->
+                                // Adjust focus index if it's out of bounds (e.g., items were removed)
+                                items?.let { if (idx < it.size) idx else it.lastIndex.takeIf { it >= 0 } }
+                            },
+                        )
+                    }
+                }
             }
         }
     }
@@ -1792,13 +1804,28 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun copyNavigationError() = launch {
         log(tag) { "copyNavigationError()" }
-        workspaceState.first().error?.let { throwable ->
+        workspaceReadyState.first()?.error?.let { throwable ->
             val report = errorReportTool.buildReport(
                 throwable = throwable,
                 errorContext = "Navigation error in workspace ${id.shortTag}",
             )
             errorReportTool.copyToClipboard(report)
         }
+    }
+
+    fun shareWorkspaceError() = launch {
+        log(tag) { "shareWorkspaceError()" }
+        val errorState = workspaceState.first() as? ExplorerWorkspace.State.Error ?: return@launch
+        val report = errorReportTool.buildReport(
+            throwable = errorState.error,
+            errorContext = "Workspace initialization failed: ${id.shortTag}",
+        )
+        errorReportTool.copyToClipboard(report)
+    }
+
+    fun closeWorkspace() = launch {
+        log(tag) { "closeWorkspace()" }
+        workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
     fun retryNavigation() = launch {

@@ -215,6 +215,11 @@
     <string name="workspace_error_hide_details_action">Hide technical details</string>
     <string name="workspace_error_copy_action">Copy error</string>
 
+    <!-- Workspace State Components -->
+    <string name="workspace_initializing_title">Initializing tab</string>
+    <string name="workspace_error_subtitle">An unexpected error occurred</string>
+    <string name="workspace_close_tab_action">Close tab</string>
+
     <!-- Issue Resolution (conflict handling) -->
     <string name="workspace_issue_collision_existing_file_label">Existing file</string>
     <string name="workspace_issue_collision_existing_folder_label">Existing folder</string>
