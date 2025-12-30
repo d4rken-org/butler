@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.rememberDelayedState
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -64,7 +65,6 @@ import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
 import eu.darken.butler.explorer.ui.explorer.elements.SkeletonGridItem
 import eu.darken.butler.explorer.ui.explorer.elements.SkeletonListItem
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
-import eu.darken.butler.explorer.ui.explorer.elements.LoadingProgressBar
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -172,6 +172,9 @@ fun ExplorerWorkspacePage(
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
+
+    // Progress indicator delay state - shows after 200ms to avoid flickering
+    val showProgress = rememberDelayedState(state.progress, delayMs = 200)
 
     // Save scroll position when navigating away from current location
     DisposableEffect(state.locationId) {
@@ -421,7 +424,7 @@ fun ExplorerWorkspacePage(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Determine if info bar should be visible
-            val showInfoBar = state.info != null || state.selectionState.selectedItems.isNotEmpty() || isLoadingItems
+            val showInfoBar = state.info != null || state.selectionState.selectedItems.isNotEmpty() || isLoadingItems || showProgress
 
             // Content padding from floating bar stacks
             val topContentPadding = topBarStackState.contentPaddingDp()
@@ -606,18 +609,6 @@ fun ExplorerWorkspacePage(
                 )
             }
 
-            // Loading progress bar (floating below top bar stack)
-            state.progress?.let {
-                LoadingProgressBar(
-                    progress = it,
-                    onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .offset(y = topContentPadding)
-                        .padding(horizontal = 16.dp)
-                )
-            }
-
             // Floating Top Bars using FloatingBarStack
             // Edge-first ordering: toolbar (closest to top), then info bar
             FloatingBarStack(
@@ -654,10 +645,10 @@ fun ExplorerWorkspacePage(
                         )
                     }
 
-                    // Info bar - stays visible during selection mode
+                    // Info bar - stays visible during selection mode or loading
                     FloatingBar(
                         visible = showInfoBar,
-                        scrollBehavior = if (isSelectionMode) {
+                        scrollBehavior = if (isSelectionMode || showProgress) {
                             BarScrollBehavior.Static
                         } else {
                             BarScrollBehavior.VanishOnScroll
@@ -669,6 +660,8 @@ fun ExplorerWorkspacePage(
                             modifier = Modifier.visible(isReady),
                             info = state.info,
                             isLoading = isLoadingItems,
+                            progress = if (showProgress) state.progress else null,
+                            onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
                             selectedCount = state.selectionState.selectedItems.size,
                             selectedSize = state.selectionState.selectedSize,
                             onClearSelection = { vm?.clearSelection() },
