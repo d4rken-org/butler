@@ -76,7 +76,7 @@ import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
-import eu.darken.butler.workspace.ui.error.WorkspaceErrorCard
+import eu.darken.butler.workspace.ui.error.ErrorCard
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -430,7 +430,7 @@ fun SearcherWorkspacePage(
                                             }
 
                                             is SearchListItem.Error -> {
-                                                WorkspaceErrorCard(
+                                                ErrorCard(
                                                     title = stringResource(R.string.searcher_search_error),
                                                     error = item.throwable,
                                                     onCopyError = { onPageAction(SearcherPageAction.Error.Copy(item.throwable)) },

@@ -46,7 +46,7 @@ import eu.darken.butler.workspace.R
 import java.io.IOException
 
 @Composable
-fun WorkspaceErrorCard(
+fun ErrorCard(
     modifier: Modifier = Modifier,
     title: String,
     error: Throwable,
@@ -235,9 +235,9 @@ fun WorkspaceErrorCard(
 
 @Preview2
 @Composable
-private fun WorkspaceErrorCardWithRetryPreview() {
+private fun ErrorCardWithRetryPreview() {
     PreviewWrapper {
-        WorkspaceErrorCard(
+        ErrorCard(
             title = "Navigation Failed",
             error = IOException("Failed to read directory: Permission denied"),
             onCopyError = {},
@@ -249,9 +249,9 @@ private fun WorkspaceErrorCardWithRetryPreview() {
 
 @Preview2
 @Composable
-private fun WorkspaceErrorCardNoRetryPreview() {
+private fun ErrorCardNoRetryPreview() {
     PreviewWrapper {
-        WorkspaceErrorCard(
+        ErrorCard(
             title = "Search Error",
             error = RuntimeException("Unexpected error occurred while searching"),
             onCopyError = {},
@@ -262,9 +262,9 @@ private fun WorkspaceErrorCardNoRetryPreview() {
 
 @Preview2
 @Composable
-private fun WorkspaceErrorCardMinimalPreview() {
+private fun ErrorCardMinimalPreview() {
     PreviewWrapper {
-        WorkspaceErrorCard(
+        ErrorCard(
             title = "Error",
             error = NullPointerException("Path lookup returned null"),
             onCopyError = {},
