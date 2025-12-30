@@ -320,9 +320,6 @@ fun AppDetailsWorkspacePage(
                     )
                 }
             },
-            content = { _ ->
-                // Content padding is applied to LazyColumn above
-            },
         )
     }
 }

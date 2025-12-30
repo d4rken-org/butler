@@ -274,9 +274,6 @@ private fun AppsWorkspacePage(
                     )
                 }
             },
-            content = { _ ->
-                // Content padding is applied to LazyColumn/LazyVerticalGrid above
-            },
         )
 
         // Bottom floating bars
@@ -301,9 +298,6 @@ private fun AppsWorkspacePage(
                         },
                     )
                 }
-            },
-            content = { _ ->
-                // Content padding is applied to LazyColumn/LazyVerticalGrid above
             },
         )
     }

@@ -221,7 +221,7 @@ fun EditorWorkspacePage(
                     )
                 }
             },
-        ) { _ -> }
+        )
 
         // Bottom floating bars
         FloatingBarStack(
@@ -281,7 +281,7 @@ fun EditorWorkspacePage(
                     )
                 }
             },
-        ) { _ -> }
+        )
 
         // Main content - composes after bars so contentPaddingDp() has correct values
         Column(

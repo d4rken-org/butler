@@ -680,10 +680,6 @@ fun ExplorerWorkspacePage(
                         )
                     }
                 },
-                content = { _ ->
-                    // Content padding is applied to LazyColumn/LazyVerticalGrid above
-                    // This content slot is empty as we manage content outside FloatingBarStack
-                },
             )
 
             // Snackbar host
@@ -759,10 +755,6 @@ fun ExplorerWorkspacePage(
                             onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerAction) },
                         )
                     }
-                },
-                content = { _ ->
-                    // Content padding is applied to LazyColumn/LazyVerticalGrid above
-                    // This content slot is empty as we manage content outside FloatingBarStack
                 },
             )
 
