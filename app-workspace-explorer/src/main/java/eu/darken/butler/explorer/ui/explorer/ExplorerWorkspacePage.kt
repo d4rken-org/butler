@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.visible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -665,6 +666,7 @@ fun ExplorerWorkspacePage(
                         modifier = Modifier.padding(horizontal = 16.dp),
                     ) {
                         ExplorerInfoBar(
+                            modifier = Modifier.visible(isReady),
                             info = state.info,
                             isLoading = isLoadingItems,
                             selectedCount = state.selectionState.selectedItems.size,
