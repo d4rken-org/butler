@@ -18,8 +18,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -61,7 +59,6 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.elements.EmptyDirectoryState
 import eu.darken.butler.explorer.ui.explorer.elements.EmptyState
-import eu.darken.butler.explorer.ui.explorer.elements.ErrorSnackbar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
 import eu.darken.butler.explorer.ui.explorer.elements.SkeletonGridItem
 import eu.darken.butler.explorer.ui.explorer.elements.SkeletonListItem
@@ -154,7 +151,6 @@ fun ExplorerWorkspacePage(
     } else 0.dp
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     // Focus state comes from ViewModel (survives rotation)
     val focusedItem = state.focusedItemIndex?.let { state.items?.getOrNull(it) }
@@ -681,14 +677,6 @@ fun ExplorerWorkspacePage(
                     }
                 },
             )
-
-            // Snackbar host
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier.align(Alignment.BottomCenter),
-            ) { data ->
-                ErrorSnackbar(snackbarData = data)
-            }
 
             // Floating Bottom Bars using FloatingBarStack
             // Visual order (top to bottom on screen): operations, clipboard, action bar
