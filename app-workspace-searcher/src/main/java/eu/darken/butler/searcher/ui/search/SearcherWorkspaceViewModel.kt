@@ -74,6 +74,9 @@ import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -81,11 +84,14 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -148,40 +154,44 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     init {
         // Initialize UI state from workspace (source of truth, already has defaults applied)
-        vmScope.launch {
-            val workspace = getWorkspace()
-            val args = workspace.creationArguments as? SearcherArguments.Default
+        // Non-blocking reactive initialization - waits for workspace to be ready
+        workspaceSearchState
+            .map { it.currentSearchQuery }
+            .filterNotNull()
+            .take(1)
+            .onEach { query ->
+                log(tag, INFO) { "Workspace ready, initializing UI state from query" }
 
-            // TODO: Investigate what UI shows if workspace init is slow (loading state?)
-            val query = workspace.state.map { it.currentSearchQuery }.filterNotNull().first()
+                // Initialize UI state from workspace
+                filenameOptions.value = query.filenameQuery.copy(pattern = "")
+                contentOptions.value = query.contentQuery.copy(pattern = "")
+                contentSearchEnabled.value = query.contentQuery.isNotEmpty
 
-            // Initialize UI state from workspace
-            filenameOptions.value = query.filenameQuery.copy(pattern = "")
-            contentOptions.value = query.contentQuery.copy(pattern = "")
-            contentSearchEnabled.value = query.contentQuery.isNotEmpty
+                query.filenameQuery.pattern.takeIf { it.isNotBlank() }?.let {
+                    filenameQuery.value = it
+                }
+                query.contentQuery.pattern.takeIf { it.isNotBlank() }?.let {
+                    contentQuery.value = it
+                }
 
-            query.filenameQuery.pattern.takeIf { it.isNotBlank() }?.let {
-                filenameQuery.value = it
+                currentFilter.value = query.filter
+
+                // Prevent auto-search flow from triggering on restored queries
+                if (filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank()) {
+                    lastAutoExecutedQuery = "${filenameQuery.value}|${contentQuery.value}"
+                }
+
+                // Auto-execute search if requested (read from args - one-time action flag)
+                val workspace = getWorkspace()
+                val args = workspace.creationArguments as? SearcherArguments.Default
+                if (args?.startSearch == true &&
+                    (filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank())
+                ) {
+                    log(tag, INFO) { "Auto-starting search from arguments" }
+                    performSearch(saveToHistory = true)
+                }
             }
-            query.contentQuery.pattern.takeIf { it.isNotBlank() }?.let {
-                contentQuery.value = it
-            }
-
-            currentFilter.value = query.filter
-
-            // Prevent auto-search flow from triggering on restored queries
-            if (filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank()) {
-                lastAutoExecutedQuery = "${filenameQuery.value}|${contentQuery.value}"
-            }
-
-            // Auto-execute search if requested (read from args - one-time action flag)
-            if (args?.startSearch == true &&
-                (filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank())
-            ) {
-                log(tag, INFO) { "Auto-starting search from arguments" }
-                performSearch(saveToHistory = true)
-            }
-        }
+            .launchIn(vmScope)
 
         // Handle dialog events
         dialogEvents
@@ -336,7 +346,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         .distinctUntilChanged()
         .asStateFlow()
 
-    val state: Flow<State> = combine(
+    // Flow for Ready state - only emits when workspace is initialized
+    private val readyStateFlow: Flow<State.Ready> = combine(
         filenameQuery,
         contentQuery,
         filenameOptions,
@@ -395,8 +406,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             emptyList()
         }
 
-        State(
-            id = id,
+        State.Ready(
             filenameQuery = filenameQ,
             contentQuery = contentQ,
             filenameOptions = fnOptions,
@@ -416,8 +426,27 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             trashEnabled = trashEnabled,
         )
     }
-        .distinctUntilChanged()
-        .asStateFlow()
+
+    val state: StateFlow<State> = workspaceSource
+        .flatMapLatest { workspace ->
+            if (workspace == null) {
+                flowOf(State.Initializing)
+            } else {
+                workspace.state
+                    .flatMapLatest { wsState ->
+                        if (wsState.currentSearchQuery == null) {
+                            flowOf(State.Initializing)
+                        } else {
+                            readyStateFlow
+                        }
+                    }
+            }
+        }
+        .catch { e ->
+            log(tag, ERROR) { "State flow error: ${e.asLog()}" }
+            emit(State.Error(e))
+        }
+        .stateIn(vmScope, SharingStarted.Eagerly, State.Initializing)
 
     fun restoreFromHistory(item: SearchHistory.SearchHistoryItem) {
         log(TAG, INFO) { "Restoring search from history: ${item.baseQuery}" }
@@ -899,67 +928,72 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    @Stable
-    data class State(
-        val id: Workspace.Id,
-        val filenameQuery: String = "",
-        val contentQuery: String = "",
-        val filenameOptions: FilenameQuery = FilenameQuery(),
-        val contentOptions: ContentQuery = ContentQuery(),
-        val contentSearchEnabled: Boolean = false,
-        val workspaceState: SearcherWorkspace.State = SearcherWorkspace.State(),
-        val searchHistory: List<SearchHistory.SearchHistoryItem> = emptyList(),
-        val currentFilter: SearchFilter = SearchFilter(),
-        val searchTargets: List<SearchTarget>,
-        val setupRequirements: PathRequirements = PathRequirements(),
-        val selectionState: SearcherSelectionState = SearcherSelectionState(),
-        val quickActionsResult: SearchItem? = null,
-        val dialogState: SearcherDialogState = SearcherDialogState.None,
-        val availableActions: List<SearcherAction> = emptyList(),
-        val viewStyle: SearcherViewStyle = SearcherViewStyle.default(),
-        val sortSettings: SearchSortSettings = SearchSortSettings(),
-        val trashEnabled: Boolean = false,
-    ) {
-        val isSearching: Boolean
-            get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
+    sealed interface State {
+        data object Initializing : State
 
-        val isIdle: Boolean
-            get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.IDLE
+        data class Error(val error: Throwable) : State
 
-        val hasResults: Boolean
-            get() = workspaceState.results.isNotEmpty()
+        @Stable
+        data class Ready(
+            val filenameQuery: String = "",
+            val contentQuery: String = "",
+            val filenameOptions: FilenameQuery = FilenameQuery(),
+            val contentOptions: ContentQuery = ContentQuery(),
+            val contentSearchEnabled: Boolean = false,
+            val workspaceState: SearcherWorkspace.State = SearcherWorkspace.State(),
+            val searchHistory: List<SearchHistory.SearchHistoryItem> = emptyList(),
+            val currentFilter: SearchFilter = SearchFilter(),
+            val searchTargets: List<SearchTarget> = emptyList(),
+            val setupRequirements: PathRequirements = PathRequirements(),
+            val selectionState: SearcherSelectionState = SearcherSelectionState(),
+            val quickActionsResult: SearchItem? = null,
+            val dialogState: SearcherDialogState = SearcherDialogState.None,
+            val availableActions: List<SearcherAction> = emptyList(),
+            val viewStyle: SearcherViewStyle = SearcherViewStyle.default(),
+            val sortSettings: SearchSortSettings = SearchSortSettings(),
+            val trashEnabled: Boolean = false,
+        ) : State {
+            val isSearching: Boolean
+                get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
 
-        val hasActiveFilter: Boolean
-            get() = currentFilter.hasConditions()
+            val isIdle: Boolean
+                get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.IDLE
 
-        val needsSetup: Boolean
-            get() = setupRequirements.needsSetup
+            val hasResults: Boolean
+                get() = workspaceState.results.isNotEmpty()
 
-        val listItems: List<SearchListItem>
-            get() = buildList {
-                // Add error item at the top if there's an error
-                // Skip permission errors when setup card is already visible
-                workspaceState.error?.let { error ->
-                    val isPermissionError = error.message?.contains("permissions", ignoreCase = true) == true
-                    if (!needsSetup || !isPermissionError) {
+            val hasActiveFilter: Boolean
+                get() = currentFilter.hasConditions()
+
+            val needsSetup: Boolean
+                get() = setupRequirements.needsSetup
+
+            val listItems: List<SearchListItem>
+                get() = buildList {
+                    // Add error item at the top if there's an error
+                    // Skip permission errors when setup card is already visible
+                    workspaceState.error?.let { error ->
+                        val isPermissionError = error.message?.contains("permissions", ignoreCase = true) == true
+                        if (!needsSetup || !isPermissionError) {
+                            add(
+                                SearchListItem.Error(
+                                    throwable = error,
+                                    timestamp = kotlin.time.Clock.System.now()
+                                )
+                            )
+                        }
+                    }
+
+                    // Add all search results
+                    workspaceState.results.forEach { result ->
                         add(
-                            SearchListItem.Error(
-                                throwable = error,
-                                timestamp = kotlin.time.Clock.System.now()
+                            SearchListItem.Result(
+                                searchItem = result
                             )
                         )
                     }
                 }
-
-                // Add all search results
-                workspaceState.results.forEach { result ->
-                    add(
-                        SearchListItem.Result(
-                            searchItem = result
-                        )
-                    )
-                }
-            }
+        }
     }
 
     private suspend fun handleDialogEvent(event: SearcherDialogEvent) {
@@ -1105,6 +1139,21 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         } else {
             log(TAG, WARN) { "Cannot resolve issue: no current issue operation ID" }
         }
+    }
+
+    fun shareWorkspaceError() = launch {
+        val error = (state.value as? State.Error)?.error ?: return@launch
+        log(TAG, INFO) { "Sharing workspace error: ${error.message}" }
+        val report = errorReportTool.buildReport(
+            throwable = error,
+            errorContext = "Workspace initialization failed: ${id.shortTag}",
+        )
+        errorReportTool.copyToClipboard(report)
+    }
+
+    fun closeWorkspace() = launch {
+        log(TAG, INFO) { "Closing workspace $id" }
+        workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
     /**

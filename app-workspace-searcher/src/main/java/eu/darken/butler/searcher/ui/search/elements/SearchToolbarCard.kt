@@ -42,6 +42,7 @@ import eu.darken.butler.searcher.core.FilenameQuery
 import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
+import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
@@ -50,31 +51,12 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
 fun SearchToolbarCard(
-    workspaceId: Workspace.Id,
     modifier: Modifier = Modifier,
-    state: SearcherWorkspaceViewModel.State,
+    workspaceId: Workspace.Id,
+    state: SearcherWorkspaceViewModel.State.Ready?,
     design: WorkspaceDesign,
     collapsedFraction: Float = 0f,
-    onUpdateFilenameQuery: (String) -> Unit,
-    onUpdateContentQuery: (String) -> Unit,
-    onRemoveSearchPath: (SearchTarget) -> Unit,
-    onTogglePathEnabled: (SearchTarget) -> Unit,
-    onPerformSearch: () -> Unit,
-    onExplicitSearch: () -> Unit = onPerformSearch,
-    onCancelSearch: () -> Unit,
-    onToggleFilenameCaseSensitive: () -> Unit,
-    onToggleFilenameWholeWord: () -> Unit,
-    onToggleFilenameRegex: () -> Unit,
-    onToggleContentCaseSensitive: () -> Unit,
-    onToggleContentWholeWord: () -> Unit,
-    onToggleContentRegex: () -> Unit,
-    onToggleContentSearch: () -> Unit,
-    onOpenPathPicker: (() -> Unit)? = null,
-    onConditionClick: ((FilterCondition) -> Unit)? = null,
-    onAddSizeCondition: (() -> Unit)? = null,
-    onAddDateCondition: (() -> Unit)? = null,
-    onAddTypeCondition: (() -> Unit)? = null,
-    onRemoveCondition: ((FilterCondition) -> Unit)? = null,
+    onAction: (SearcherPageAction) -> Unit,
     workspaceButtonState: WorkspaceButtonViewModel.State? = null,
     workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
@@ -115,17 +97,17 @@ fun SearchToolbarCard(
                     )
 
                     val displayText = buildString {
-                        val hasFilename = state.filenameQuery.isNotBlank()
-                        val hasContent = state.contentQuery.isNotBlank()
+                        val hasFilename = state?.filenameQuery?.isNotBlank() == true
+                        val hasContent = state?.contentQuery?.isNotBlank() == true
                         when {
                             hasFilename && hasContent -> {
-                                append(state.filenameQuery)
+                                append(state?.filenameQuery.orEmpty())
                                 append(" | ")
-                                append(state.contentQuery)
+                                append(state?.contentQuery.orEmpty())
                             }
 
-                            hasFilename -> append(state.filenameQuery)
-                            hasContent -> append(state.contentQuery)
+                            hasFilename -> append(state?.filenameQuery.orEmpty())
+                            hasContent -> append(state?.contentQuery.orEmpty())
                         }
                     }
                     Text(
@@ -165,25 +147,25 @@ fun SearchToolbarCard(
                         Column {
                             // Filename pattern field
                             PatternField(
-                                text = state.filenameQuery,
-                                onTextChange = onUpdateFilenameQuery,
-                                onSearch = onExplicitSearch,
+                                text = state?.filenameQuery.orEmpty(),
+                                onTextChange = { onAction(SearcherPageAction.Search.UpdateFilenameQuery(it)) },
+                                onSearch = { onAction(SearcherPageAction.Search.Explicit) },
                                 placeholder = stringResource(R.string.searcher_placeholder_filename),
                                 leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
-                                caseSensitive = state.filenameOptions.caseSensitive,
-                                wholeWord = state.filenameOptions.wholeWord,
-                                useRegex = state.filenameOptions.useRegex,
-                                isSearching = state.isSearching,
-                                onToggleCaseSensitive = onToggleFilenameCaseSensitive,
-                                onToggleWholeWord = onToggleFilenameWholeWord,
-                                onToggleRegex = onToggleFilenameRegex,
+                                caseSensitive = state?.filenameOptions?.caseSensitive ?: false,
+                                wholeWord = state?.filenameOptions?.wholeWord ?: false,
+                                useRegex = state?.filenameOptions?.useRegex ?: false,
+                                isSearching = state?.isSearching ?: false,
+                                onToggleCaseSensitive = { onAction(SearcherPageAction.Options.ToggleFilenameCaseSensitive) },
+                                onToggleWholeWord = { onAction(SearcherPageAction.Options.ToggleFilenameWholeWord) },
+                                onToggleRegex = { onAction(SearcherPageAction.Options.ToggleFilenameRegex) },
                                 extraMenuItems = {
                                     DropdownMenuItem(
                                         text = { Text(stringResource(R.string.searcher_option_search_content_label)) },
-                                        onClick = onToggleContentSearch,
+                                        onClick = { onAction(SearcherPageAction.Options.ToggleContentSearch) },
                                         leadingIcon = {
                                             Checkbox(
-                                                checked = state.contentSearchEnabled,
+                                                checked = state?.contentSearchEnabled ?: false,
                                                 onCheckedChange = null,
                                             )
                                         },
@@ -194,7 +176,7 @@ fun SearchToolbarCard(
 
                             // Content pattern field (conditionally visible)
                             AnimatedVisibility(
-                                visible = state.contentSearchEnabled,
+                                visible = state?.contentSearchEnabled ?: false,
                                 enter = expandVertically(),
                                 exit = shrinkVertically(),
                             ) {
@@ -207,18 +189,18 @@ fun SearchToolbarCard(
 
                                     // Content pattern field
                                     PatternField(
-                                        text = state.contentQuery,
-                                        onTextChange = onUpdateContentQuery,
-                                        onSearch = onExplicitSearch,
+                                        text = state?.contentQuery.orEmpty(),
+                                        onTextChange = { onAction(SearcherPageAction.Search.UpdateContentQuery(it)) },
+                                        onSearch = { onAction(SearcherPageAction.Search.Explicit) },
                                         placeholder = stringResource(R.string.searcher_placeholder_content),
                                         leadingIcon = Icons.TwoTone.Description,
-                                        caseSensitive = state.contentOptions.caseSensitive,
-                                        wholeWord = state.contentOptions.wholeWord,
-                                        useRegex = state.contentOptions.useRegex,
-                                        isSearching = state.isSearching,
-                                        onToggleCaseSensitive = onToggleContentCaseSensitive,
-                                        onToggleWholeWord = onToggleContentWholeWord,
-                                        onToggleRegex = onToggleContentRegex,
+                                        caseSensitive = state?.contentOptions?.caseSensitive ?: false,
+                                        wholeWord = state?.contentOptions?.wholeWord ?: false,
+                                        useRegex = state?.contentOptions?.useRegex ?: false,
+                                        isSearching = state?.isSearching ?: false,
+                                        onToggleCaseSensitive = { onAction(SearcherPageAction.Options.ToggleContentCaseSensitive) },
+                                        onToggleWholeWord = { onAction(SearcherPageAction.Options.ToggleContentWholeWord) },
+                                        onToggleRegex = { onAction(SearcherPageAction.Options.ToggleContentRegex) },
                                     )
                                 }
                             }
@@ -243,12 +225,12 @@ fun SearchToolbarCard(
                         )
 
                         FilterChipBar(
-                            filter = state.currentFilter,
-                            onConditionClick = { onConditionClick?.invoke(it) },
-                            onAddSizeCondition = { onAddSizeCondition?.invoke() },
-                            onAddDateCondition = { onAddDateCondition?.invoke() },
-                            onAddTypeCondition = { onAddTypeCondition?.invoke() },
-                            onRemoveCondition = { onRemoveCondition?.invoke(it) },
+                            filter = state?.currentFilter ?: eu.darken.butler.searcher.core.SearchFilter(),
+                            onConditionClick = { onAction(SearcherPageAction.Filter.EditCondition(it)) },
+                            onAddSizeCondition = { onAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
+                            onAddDateCondition = { onAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
+                            onAddTypeCondition = { onAction(SearcherPageAction.Filter.OpenTypeConditionEditor) },
+                            onRemoveCondition = { onAction(SearcherPageAction.Filter.RemoveCondition(it)) },
                         )
                     }
 
@@ -260,11 +242,11 @@ fun SearchToolbarCard(
                         )
 
                         MultiPathChipBar(
-                            paths = state.searchTargets,
-                            onPathRemove = onRemoveSearchPath,
-                            onPathToggle = onTogglePathEnabled,
-                            onAddPathClick = { onOpenPathPicker?.invoke() },
-                            isSearching = state.isSearching,
+                            paths = state?.searchTargets.orEmpty(),
+                            onPathRemove = { onAction(SearcherPageAction.Targets.Remove(it)) },
+                            onPathToggle = { onAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
+                            onAddPathClick = { onAction(SearcherPageAction.Targets.OpenPicker) },
+                            isSearching = state?.isSearching ?: false,
                         )
                     }
 
@@ -278,9 +260,9 @@ fun SearchToolbarCard(
 private fun SearchToolbarCardPreview() {
     PreviewWrapper {
         SearchToolbarCard(
+            modifier = Modifier.padding(16.dp),
             workspaceId = Workspace.Id(),
-            state = SearcherWorkspaceViewModel.State(
-                id = Workspace.Id(),
+            state = SearcherWorkspaceViewModel.State.Ready(
                 searchTargets = listOf(
                     SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
                     SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
@@ -292,20 +274,7 @@ private fun SearchToolbarCardPreview() {
                 contentSearchEnabled = true,
             ),
             design = WorkspaceDesign(),
-            onUpdateFilenameQuery = {},
-            onUpdateContentQuery = {},
-            onRemoveSearchPath = {},
-            onTogglePathEnabled = {},
-            onPerformSearch = {},
-            onCancelSearch = {},
-            onToggleFilenameCaseSensitive = {},
-            onToggleFilenameWholeWord = {},
-            onToggleFilenameRegex = {},
-            onToggleContentCaseSensitive = {},
-            onToggleContentWholeWord = {},
-            onToggleContentRegex = {},
-            onToggleContentSearch = {},
-            modifier = Modifier.padding(16.dp),
+            onAction = {},
         )
     }
 }
@@ -315,9 +284,9 @@ private fun SearchToolbarCardPreview() {
 private fun SearchToolbarCardCollapsedPreview() {
     PreviewWrapper {
         SearchToolbarCard(
+            modifier = Modifier.padding(16.dp),
             workspaceId = Workspace.Id(),
-            state = SearcherWorkspaceViewModel.State(
-                id = Workspace.Id(),
+            state = SearcherWorkspaceViewModel.State.Ready(
                 searchTargets = listOf(
                     SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
                     SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
@@ -326,21 +295,8 @@ private fun SearchToolbarCardCollapsedPreview() {
                 contentQuery = "TODO",
             ),
             design = WorkspaceDesign(),
-            onUpdateFilenameQuery = {},
-            onUpdateContentQuery = {},
-            onRemoveSearchPath = {},
-            onTogglePathEnabled = {},
-            onPerformSearch = {},
-            onCancelSearch = {},
-            onToggleFilenameCaseSensitive = {},
-            onToggleFilenameWholeWord = {},
-            onToggleFilenameRegex = {},
-            onToggleContentCaseSensitive = {},
-            onToggleContentWholeWord = {},
-            onToggleContentRegex = {},
-            onToggleContentSearch = {},
-            modifier = Modifier.padding(16.dp),
             collapsedFraction = 1f,
+            onAction = {},
         )
     }
 }
