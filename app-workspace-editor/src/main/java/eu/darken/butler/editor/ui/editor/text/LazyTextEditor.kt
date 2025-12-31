@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -302,6 +303,7 @@ private fun DualColumnEditorContent(
     val isWorkspaceFocused = LocalWorkspaceFocused.current
     val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
     val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     // Release focus when workspace loses focus (multi-pane adaptive layout support)
     // Use freeFocus() instead of clearFocus() to only release this component's focus,
@@ -584,7 +586,7 @@ private fun DualColumnEditorContent(
                 modifier = modifier
                     .then(contentModifier)
                     .then(focusBorderModifier)
-                    .pointerInput(isWorkspaceFocused, requestWorkspaceFocus) {
+                    .pointerInput(isWorkspaceFocused, requestWorkspaceFocus, keyboardController) {
                         detectTapGestures(
                             onTap = { offset ->
                                 // Request workspace focus so this pane becomes active
@@ -594,6 +596,7 @@ private fun DualColumnEditorContent(
                                 if (isWorkspaceFocused) {
                                     try {
                                         focusRequester.requestFocus()
+                                        keyboardController?.show()
                                     } catch (e: Exception) {
                                         log(tag, WARN) { "Failed to request focus: ${e.message}" }
                                     }
