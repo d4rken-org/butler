@@ -13,7 +13,6 @@ import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.searcher.ui.search.util.SearcherAction
 import eu.darken.butler.searcher.ui.search.util.SearcherSelectionState
-import eu.darken.butler.workspace.core.Workspace
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -83,85 +82,6 @@ object SearcherMockDataProvider {
     )
 
     /**
-     * Create a mock PDF file for previews.
-     */
-    fun createMockPdfFile(
-        name: String = "document.pdf",
-        sizeMB: Long = 1,
-        hoursAgo: Long = 1
-    ): SearchItem = createMockSearchResult(
-        name = name,
-        path = "/storage/emulated/0/Downloads/$name",
-        fileType = FileType.FILE,
-        sizeKB = sizeMB * 1024,
-        hoursAgo = hoursAgo
-    )
-
-    /**
-     * Create a mock image file for previews.
-     */
-    fun createMockImageFile(
-        name: String = "photo.jpg",
-        sizeMB: Long = 2,
-        hoursAgo: Long = 1,
-        metadata: Map<String, String> = mapOf("Resolution" to "1920x1080")
-    ): SearchItem = createMockSearchResult(
-        name = name,
-        path = "/storage/emulated/0/Pictures/$name",
-        fileType = FileType.FILE,
-        sizeKB = sizeMB * 1024,
-        hoursAgo = hoursAgo
-    )
-
-    /**
-     * Create a mock video file for previews.
-     */
-    fun createMockVideoFile(
-        name: String = "video.mp4",
-        sizeMB: Long = 25,
-        hoursAgo: Long = 3,
-        metadata: Map<String, String> = mapOf("Duration" to "2:34", "Quality" to "1080p")
-    ): SearchItem = createMockSearchResult(
-        name = name,
-        path = "/storage/emulated/0/Movies/$name",
-        fileType = FileType.FILE,
-        sizeKB = sizeMB * 1024,
-        hoursAgo = hoursAgo
-    )
-
-    /**
-     * Create a mock audio file for previews.
-     */
-    fun createMockAudioFile(
-        name: String = "song.mp3",
-        sizeMB: Long = 4,
-        hoursAgo: Long = 2,
-        metadata: Map<String, String> = mapOf("Duration" to "3:45", "Artist" to "Unknown")
-    ): SearchItem = createMockSearchResult(
-        name = name,
-        path = "/storage/emulated/0/Music/$name",
-        fileType = FileType.FILE,
-        sizeKB = sizeMB * 1024,
-        hoursAgo = hoursAgo
-    )
-
-    /**
-     * Create a mock APK file for previews.
-     */
-    fun createMockApkFile(
-        name: String = "app.apk",
-        sizeMB: Long = 35,
-        hoursAgo: Long = 1,
-        metadata: Map<String, String> = mapOf("Package" to "com.example.app", "Version" to "2.1.0")
-    ): SearchItem = createMockSearchResult(
-        name = name,
-        path = "/storage/emulated/0/Download/$name",
-        fileType = FileType.FILE,
-        sizeKB = sizeMB * 1024,
-        hoursAgo = hoursAgo
-    )
-
-    /**
      * Create a mock directory for previews.
      */
     fun createMockDirectory(
@@ -175,29 +95,6 @@ object SearcherMockDataProvider {
         sizeKB = null,
         hoursAgo = hoursAgo
     )
-
-    /**
-     * Create a mock JSON config file for previews.
-     */
-    fun createMockConfigFile(
-        name: String = "config.json",
-        sizeBytes: Long = 256,
-        secondsAgo: Long = 300
-    ): SearchItem {
-        val lookup = LocalPathLookup(
-            lookedUp = LocalPath.build("/storage/emulated/0/Android/data/eu.darken.butler/$name"),
-            fileType = FileType.FILE,
-            size = sizeBytes,
-            modifiedAt = MockTimes.secondsAgo(secondsAgo),
-            target = null,
-        )
-
-        return SearchItem.fromLookup(
-            lookup = lookup,
-            matchedQuery = "",
-            matchContext = null
-        )
-    }
 
     /**
      * Create mock search history items for previews.
@@ -236,22 +133,10 @@ object SearcherMockDataProvider {
     )
 
     /**
-     * Create a list of mock search results for previews.
-     */
-    fun createMockSearchResults(): List<SearchItem> = listOf(
-        createMockTextFile(name = "notes.txt", sizeKB = 15, hoursAgo = 1),
-        createMockConfigFile(name = "config.json", sizeBytes = 2048),
-        createMockPdfFile(name = "document.pdf", sizeMB = 2, hoursAgo = 2),
-        createMockImageFile(name = "screenshot.png", sizeMB = 1, hoursAgo = 1),
-        createMockTextFile(name = "readme.md", sizeKB = 8, hoursAgo = 3)
-    )
-
-    /**
      * Create mock empty state for SearcherWorkspacePage previews.
      */
-    fun createMockEmptyState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State =
-        SearcherWorkspaceViewModel.State(
-            id = workspaceId,
+    fun createMockEmptyState(): SearcherWorkspaceViewModel.State.Ready =
+        SearcherWorkspaceViewModel.State.Ready(
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
             )
@@ -260,9 +145,8 @@ object SearcherMockDataProvider {
     /**
      * Create mock state with search history for SearcherWorkspacePage previews.
      */
-    fun createMockHistoryState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State =
-        SearcherWorkspaceViewModel.State(
-            id = workspaceId,
+    fun createMockHistoryState(): SearcherWorkspaceViewModel.State.Ready =
+        SearcherWorkspaceViewModel.State.Ready(
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
             ),
@@ -273,7 +157,7 @@ object SearcherMockDataProvider {
      * Create mock state with search results for SearcherWorkspacePage previews.
      * Shows selection mode with 3 out of 5 items selected.
      */
-    fun createMockResultsState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State {
+    fun createMockResultsState(): SearcherWorkspaceViewModel.State.Ready {
         val results = listOf(
             createMockSearchResult(
                 name = "config.json",
@@ -315,8 +199,7 @@ object SearcherMockDataProvider {
         // Select 3 items: config.json, app-config.xml, and server-config.yaml
         val selectedResults = listOf(results[0], results[1], results[3])
 
-        return SearcherWorkspaceViewModel.State(
-            id = workspaceId,
+        return SearcherWorkspaceViewModel.State.Ready(
             filenameQuery = "config",
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
@@ -364,9 +247,8 @@ object SearcherMockDataProvider {
     /**
      * Create mock searching state with multiple targets and varied progress for SearcherWorkspacePage previews.
      */
-    fun createMockSearchingWithProgressState(workspaceId: Workspace.Id): SearcherWorkspaceViewModel.State =
-        SearcherWorkspaceViewModel.State(
-            id = workspaceId,
+    fun createMockSearchingWithProgressState(): SearcherWorkspaceViewModel.State.Ready =
+        SearcherWorkspaceViewModel.State.Ready(
             filenameQuery = "log",
             searchTargets = listOf(
                 SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Android")),

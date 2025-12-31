@@ -46,7 +46,6 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
@@ -90,6 +89,8 @@ import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.states.WorkspaceErrorContent
+import eu.darken.butler.workspace.ui.states.WorkspaceInitializingContent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -106,7 +107,7 @@ fun SearcherWorkspacePage(
     workspaceActionHandler: WorkspaceActionHandler? = null,
     onPageAction: (SearcherPageAction) -> Unit = {},
 ) {
-    val state by waitForState(stateSource)
+    val mainState by stateSource.collectAsState(initial = SearcherWorkspaceViewModel.State.Initializing)
     val clipboardState by clipboardStateSource.collectAsState(initial = SearcherWorkspaceViewModel.ClipboardState())
     val operationsState by operationsStateSource.collectAsState(initial = SearcherWorkspaceViewModel.OperationsState())
     val workspaceButtonState by workspaceStateSource.collectAsState(null)
@@ -156,7 +157,8 @@ fun SearcherWorkspacePage(
         { result ->
             // Only clear focus and hide keyboard when entering selection mode (first selection)
             // Not when already in selection mode (subsequent toggles)
-            if (state?.selectionState?.isSelectionMode != true) {
+            val readyState = mainState as? SearcherWorkspaceViewModel.State.Ready
+            if (readyState?.selectionState?.isSelectionMode != true) {
                 focusManager.clearFocus()
                 keyboardController?.hide()
             }
@@ -166,23 +168,26 @@ fun SearcherWorkspacePage(
 
     // Re-request focus for keyboard shortcuts after clearing focus
     // This ensures shortcuts continue working after selecting a result
-    LaunchedEffect(state?.selectionState?.isSelectionMode) {
-        if (state?.selectionState?.isSelectionMode == true) {
+    val isSelectionMode = (mainState as? SearcherWorkspaceViewModel.State.Ready)?.selectionState?.isSelectionMode == true
+    LaunchedEffect(isSelectionMode) {
+        if (isSelectionMode) {
             delay(50) // Small delay to let keyboard animation complete
             shortcutsFocusRequester.requestFocus()
         }
     }
 
     // Auto-scroll to top when sort settings change
-    LaunchedEffect(state?.sortSettings) {
-        if (state?.sortSettings != null) {
+    val sortSettings = (mainState as? SearcherWorkspaceViewModel.State.Ready)?.sortSettings
+    LaunchedEffect(sortSettings) {
+        if (sortSettings != null) {
             listState.animateScrollToItem(0)
         }
     }
 
     // Auto-scroll to top when a new search starts
-    LaunchedEffect(state?.workspaceState?.searchStatus) {
-        if (state?.workspaceState?.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
+    val searchStatus = (mainState as? SearcherWorkspaceViewModel.State.Ready)?.workspaceState?.searchStatus
+    LaunchedEffect(searchStatus) {
+        if (searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
             listState.scrollToItem(0)
         }
     }
@@ -203,9 +208,9 @@ fun SearcherWorkspacePage(
     val hasClipboard by remember {
         derivedStateOf { clipboardState.entries.isNotEmpty() }
     }
-    val hasActions by remember {
+    val hasActions by remember(mainState) {
         derivedStateOf {
-            val currentState = state ?: return@derivedStateOf false
+            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf false
             val showingHistory = !currentState.hasResults && currentState.searchHistory.isNotEmpty()
 
             currentState.selectionState.selectedResultIds.isNotEmpty() ||
@@ -214,58 +219,134 @@ fun SearcherWorkspacePage(
     }
 
     // Determine if progress card should be visible
-    val showProgressCard by remember {
+    val showProgressCard by remember(mainState) {
         derivedStateOf {
-            state?.let { currentState ->
-                currentState.workspaceState.targetProgress.isNotEmpty() &&
-                    currentState.workspaceState.searchStatus != SearcherWorkspace.State.SearchStatus.IDLE
-            } ?: false
+            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf false
+            currentState.workspaceState.targetProgress.isNotEmpty() &&
+                currentState.workspaceState.searchStatus != SearcherWorkspace.State.SearchStatus.IDLE
         }
     }
 
     // Determine if info bar should be visible (when there are results OR selection)
-    val showInfoBar by remember {
+    val showInfoBar by remember(mainState) {
         derivedStateOf {
-            val currentState = state ?: return@derivedStateOf false
+            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf false
             currentState.selectionState.selectionCount > 0 || currentState.hasResults
         }
     }
 
     // Calculate results info for info bar
-    val foldersCount by remember {
+    val foldersCount by remember(mainState) {
         derivedStateOf {
-            state?.listItems?.count {
+            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf 0
+            currentState.listItems.count {
                 it is SearchListItem.Result && it.searchItem is SearchItem.Directory
-            } ?: 0
+            }
         }
     }
 
-    val filesCount by remember {
+    val filesCount by remember(mainState) {
         derivedStateOf {
-            state?.listItems?.count {
+            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf 0
+            currentState.listItems.count {
                 it is SearchListItem.Result && it.searchItem is SearchItem.File
-            } ?: 0
+            }
         }
     }
 
-    val totalSize by remember {
+    val totalSize by remember(mainState) {
         derivedStateOf {
-            state?.listItems
-                ?.filterIsInstance<SearchListItem.Result>()
-                ?.sumOf { it.searchItem.size ?: 0L }
-                ?: 0L
+            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf 0L
+            currentState.listItems
+                .filterIsInstance<SearchListItem.Result>()
+                .sumOf { it.searchItem.size ?: 0L }
         }
     }
 
-    val selectedSize by remember {
+    val selectedSize by remember(mainState) {
         derivedStateOf {
-            state?.selectionState?.selectedResults
-                ?.sumOf { it.size ?: 0L }
-                ?: 0L
+            val currentState = mainState as? SearcherWorkspaceViewModel.State.Ready ?: return@derivedStateOf 0L
+            currentState.selectionState.selectedResults
+                .sumOf { it.size ?: 0L }
         }
     }
 
-    state?.let { currentState ->
+    // Main content area - exhaustive when with smart casting
+    when (val currentState = mainState) {
+        SearcherWorkspaceViewModel.State.Initializing -> {
+            Box(modifier = Modifier.fillMaxSize()) {
+                WorkspaceInitializingContent(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(top = topBarStackState.contentPaddingDp()),
+                )
+
+                // Toolbar - ALWAYS visible even during initialization
+                FloatingBarStack(
+                    state = topBarStackState,
+                    position = BarPosition.TOP,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    bars = {
+                        FloatingBar(
+                            visible = true,
+                            scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
+                            animation = BarAnimation.Slide(),
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        ) {
+                            SearchToolbarCard(
+                                workspaceId = workspaceId,
+                                state = null,
+                                design = design,
+                                collapsedFraction = collapsedFraction,
+                                onAction = {},
+                                workspaceButtonState = workspaceButtonState,
+                                workspaceActionHandler = workspaceActionHandler,
+                            )
+                        }
+                    },
+                    content = {},
+                )
+            }
+        }
+
+        is SearcherWorkspaceViewModel.State.Error -> {
+            Box(modifier = Modifier.fillMaxSize()) {
+                WorkspaceErrorContent(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(top = topBarStackState.contentPaddingDp()),
+                    error = currentState.error,
+                    onShareError = { vm?.shareWorkspaceError() },
+                    onCloseWorkspace = { vm?.closeWorkspace() },
+                )
+
+                // Toolbar - ALWAYS visible even during error
+                FloatingBarStack(
+                    state = topBarStackState,
+                    position = BarPosition.TOP,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    bars = {
+                        FloatingBar(
+                            visible = true,
+                            scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
+                            animation = BarAnimation.Slide(),
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        ) {
+                            SearchToolbarCard(
+                                workspaceId = workspaceId,
+                                state = null,
+                                design = design,
+                                collapsedFraction = collapsedFraction,
+                                onAction = {},
+                                workspaceButtonState = workspaceButtonState,
+                                workspaceActionHandler = workspaceActionHandler,
+                            )
+                        }
+                    },
+                    content = {},
+                )
+            }
+        }
+
+        is SearcherWorkspaceViewModel.State.Ready -> {
         // Handle back button for selection mode - clear selection first
         BackHandler(enabled = currentState.selectionState.isSelectionMode) {
             onPageAction(SearcherPageAction.Results.ExitSelectionMode)
@@ -572,26 +653,7 @@ fun SearcherWorkspacePage(
                             state = currentState,
                             design = design,
                             collapsedFraction = collapsedFraction,
-                            onUpdateFilenameQuery = { onPageAction(SearcherPageAction.Search.UpdateFilenameQuery(it)) },
-                            onUpdateContentQuery = { onPageAction(SearcherPageAction.Search.UpdateContentQuery(it)) },
-                            onRemoveSearchPath = { onPageAction(SearcherPageAction.Targets.Remove(it)) },
-                            onTogglePathEnabled = { onPageAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
-                            onPerformSearch = { onPageAction(SearcherPageAction.Search.Perform) },
-                            onExplicitSearch = { onPageAction(SearcherPageAction.Search.Explicit) },
-                            onCancelSearch = { onPageAction(SearcherPageAction.Search.Cancel) },
-                            onToggleFilenameCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleFilenameCaseSensitive) },
-                            onToggleFilenameWholeWord = { onPageAction(SearcherPageAction.Options.ToggleFilenameWholeWord) },
-                            onToggleFilenameRegex = { onPageAction(SearcherPageAction.Options.ToggleFilenameRegex) },
-                            onToggleContentCaseSensitive = { onPageAction(SearcherPageAction.Options.ToggleContentCaseSensitive) },
-                            onToggleContentWholeWord = { onPageAction(SearcherPageAction.Options.ToggleContentWholeWord) },
-                            onToggleContentRegex = { onPageAction(SearcherPageAction.Options.ToggleContentRegex) },
-                            onToggleContentSearch = { onPageAction(SearcherPageAction.Options.ToggleContentSearch) },
-                            onOpenPathPicker = { onPageAction(SearcherPageAction.Targets.OpenPicker) },
-                            onConditionClick = { onPageAction(SearcherPageAction.Filter.EditCondition(it)) },
-                            onAddSizeCondition = { onPageAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
-                            onAddDateCondition = { onPageAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
-                            onAddTypeCondition = { onPageAction(SearcherPageAction.Filter.OpenTypeConditionEditor) },
-                            onRemoveCondition = { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) },
+                            onAction = onPageAction,
                             workspaceButtonState = workspaceButtonState,
                             workspaceActionHandler = workspaceActionHandler,
                         )
@@ -639,7 +701,6 @@ fun SearcherWorkspacePage(
                         )
                     }
                 },
-                content = {},
             )
 
             // Bottom FloatingBarStack - operations, clipboard, action bar
@@ -712,7 +773,6 @@ fun SearcherWorkspacePage(
                         )
                     }
                 },
-                content = {},
             )
 
             // Error dialog for individual search target failures
@@ -878,7 +938,8 @@ fun SearcherWorkspacePage(
                 vm?.showConflictSheet(operationId)
             },
         )
-    }  // End of state?.let
+        }  // End of State.Ready
+    }  // End of when
 }
 
 @Composable
@@ -914,7 +975,7 @@ private fun SearcherWorkspacePageEmptyPreview() {
         val workspaceId = Workspace.Id()
         SearcherWorkspacePage(
             workspaceId = workspaceId,
-            stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState(workspaceId)),
+            stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState()),
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
@@ -930,7 +991,7 @@ private fun SearcherWorkspacePageWithHistoryPreview() {
         val workspaceId = Workspace.Id()
         SearcherWorkspacePage(
             workspaceId = workspaceId,
-            stateSource = flowOf(SearcherMockDataProvider.createMockHistoryState(workspaceId)),
+            stateSource = flowOf(SearcherMockDataProvider.createMockHistoryState()),
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
@@ -946,7 +1007,7 @@ private fun SearcherWorkspacePageWithResultsPreview() {
         val workspaceId = Workspace.Id()
         SearcherWorkspacePage(
             workspaceId = workspaceId,
-            stateSource = flowOf(SearcherMockDataProvider.createMockResultsState(workspaceId)),
+            stateSource = flowOf(SearcherMockDataProvider.createMockResultsState()),
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),
@@ -962,7 +1023,7 @@ private fun SearcherWorkspacePageSearchingWithProgressPreview() {
         val workspaceId = Workspace.Id()
         SearcherWorkspacePage(
             workspaceId = workspaceId,
-            stateSource = flowOf(SearcherMockDataProvider.createMockSearchingWithProgressState(workspaceId)),
+            stateSource = flowOf(SearcherMockDataProvider.createMockSearchingWithProgressState()),
             clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
             workspaceStateSource = flowOf(null),

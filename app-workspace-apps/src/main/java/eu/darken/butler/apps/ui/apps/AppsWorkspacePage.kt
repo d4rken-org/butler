@@ -153,7 +153,6 @@ private fun AppsWorkspacePage(
                     )
                 }
             },
-            content = { _ -> },
         )
     }
 }

@@ -198,7 +198,7 @@ fun EditorWorkspacePage(
                     }
                 }
             },
-        ) { _ -> }
+        )
 
         // Bottom floating bars - only when Ready
         FloatingBarStack(
@@ -262,7 +262,7 @@ fun EditorWorkspacePage(
                     }
                 }
             },
-        ) { _ -> }
+        )
 
         // Main content area - smart casts via when expression
         val topContentPadding = topBarStackState.contentPaddingDp()
