@@ -639,7 +639,6 @@ fun SearcherWorkspacePage(
                         )
                     }
                 },
-                content = {},
             )
 
             // Bottom FloatingBarStack - operations, clipboard, action bar
@@ -712,7 +711,6 @@ fun SearcherWorkspacePage(
                         )
                     }
                 },
-                content = {},
             )
 
             // Error dialog for individual search target failures

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,7 +29,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -39,14 +37,17 @@ import kotlin.math.roundToInt
 import kotlin.uuid.Uuid
 
 /**
- * A scaffold-like composable that manages floating bars at the top or bottom of the screen.
+ * A composable that manages floating bars at the top or bottom of the screen.
  *
  * Features:
  * - Automatic height measurement for each bar
- * - Reactive content padding based on visible bars
+ * - Reactive content padding based on visible bars (use [FloatingBarStackState.contentPaddingDp])
  * - Coordinated scroll behaviors (static, collapse, hide)
  * - Gap-filling animations when bars show/hide
  * - Edge-first ordering (first bar closest to screen edge)
+ *
+ * Content should be rendered separately, using [FloatingBarStackState.nestedScrollConnection]
+ * for scroll coordination and [contentPaddingDp] for padding.
  *
  * @param modifier Modifier for the root container.
  * @param position Whether bars are positioned at TOP or BOTTOM of the screen.
@@ -54,7 +55,6 @@ import kotlin.uuid.Uuid
  * @param edgePadding Padding from the screen edge to the first bar.
  * @param state State holder managing bar coordination. Use [rememberFloatingBarStackState].
  * @param bars Lambda to declare bars using [FloatingBarScope.FloatingBar].
- * @param content Main content that receives [PaddingValues] accounting for all visible bars.
  */
 @Composable
 fun FloatingBarStack(
@@ -64,7 +64,6 @@ fun FloatingBarStack(
     edgePadding: Dp = 8.dp,
     state: FloatingBarStackState = rememberFloatingBarStackState(position, defaultSpacing, edgePadding),
     bars: @Composable FloatingBarScope.() -> Unit,
-    content: @Composable (contentPadding: PaddingValues) -> Unit,
 ) {
     val density = LocalDensity.current
     val scope = remember(state) { FloatingBarScopeImpl(state) }
@@ -83,19 +82,7 @@ fun FloatingBarStack(
             scope.bars()
         }
 
-        // Phase 2: Calculate content padding (clamp to non-negative for bounce animations)
-        val contentPaddingPx = state.contentPaddingPx.coerceAtLeast(0f)
-        val contentPadding = when (position) {
-            BarPosition.TOP -> PaddingValues(top = with(density) { contentPaddingPx.toDp() })
-            BarPosition.BOTTOM -> PaddingValues(bottom = with(density) { contentPaddingPx.toDp() })
-        }
-
-        // Phase 3: Compose and measure content with padding
-        val contentPlaceable = subcompose("content") {
-            content(contentPadding)
-        }.firstOrNull()?.measure(constraints)
-
-        // Phase 4: Measure each bar
+        // Phase 2: Measure each bar
         val barPlaceables = barMeasurables.map { measurable ->
             measurable.measure(
                 Constraints(
@@ -105,7 +92,7 @@ fun FloatingBarStack(
             )
         }
 
-        // Phase 5: Update measured heights and calculate positions
+        // Phase 3: Update measured heights and calculate positions
         scope.barEntries.forEachIndexed { index, entry ->
             val placeable = barPlaceables.getOrNull(index)
             if (placeable != null) {
@@ -114,9 +101,6 @@ fun FloatingBarStack(
         }
 
         layout(constraints.maxWidth, constraints.maxHeight) {
-            // Place content first (full size)
-            contentPlaceable?.placeRelative(0, 0)
-
             // Place bars at their calculated positions
             // Use state.barStates directly since scope.barEntries may not be populated yet
             state.barStates.forEachIndexed { index, barState ->
@@ -330,30 +314,16 @@ private fun PreviewBar(
 @Composable
 private fun FloatingBarStackBottomPreview() {
     PreviewWrapper {
-        FloatingBarStack(
+        val barStackState = rememberFloatingBarStackState(
             position = BarPosition.BOTTOM,
-            bars = {
-                FloatingBar(
-                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.tertiaryContainer)
-                }
-                FloatingBar(
-                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.secondaryContainer)
-                }
-                FloatingBar(
-                    scrollBehavior = BarScrollBehavior.HideOnScroll,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    PreviewBar("HideOnScroll (edge)", MaterialTheme.colorScheme.primaryContainer)
-                }
-            },
-        ) { contentPadding ->
-            LazyColumn(contentPadding = contentPadding) {
+        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(barStackState.nestedScrollConnection),
+                contentPadding = PaddingValues(bottom = barStackState.contentPaddingDp()),
+            ) {
                 items(20) { index ->
                     Text(
                         text = "Item $index",
@@ -363,6 +333,31 @@ private fun FloatingBarStackBottomPreview() {
                     )
                 }
             }
+            FloatingBarStack(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                state = barStackState,
+                position = BarPosition.BOTTOM,
+                bars = {
+                    FloatingBar(
+                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.tertiaryContainer)
+                    }
+                    FloatingBar(
+                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.secondaryContainer)
+                    }
+                    FloatingBar(
+                        scrollBehavior = BarScrollBehavior.HideOnScroll,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        PreviewBar("HideOnScroll (edge)", MaterialTheme.colorScheme.primaryContainer)
+                    }
+                },
+            )
         }
     }
 }
@@ -371,24 +366,16 @@ private fun FloatingBarStackBottomPreview() {
 @Composable
 private fun FloatingBarStackTopPreview() {
     PreviewWrapper {
-        FloatingBarStack(
+        val barStackState = rememberFloatingBarStackState(
             position = BarPosition.TOP,
-            bars = {
-                FloatingBar(
-                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    PreviewBar("Toolbar (edge)", MaterialTheme.colorScheme.primaryContainer)
-                }
-                FloatingBar(
-                    scrollBehavior = BarScrollBehavior.Static,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    PreviewBar("Static bar", MaterialTheme.colorScheme.surfaceVariant)
-                }
-            },
-        ) { contentPadding ->
-            LazyColumn(contentPadding = contentPadding) {
+        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(barStackState.nestedScrollConnection),
+                contentPadding = PaddingValues(top = barStackState.contentPaddingDp()),
+            ) {
                 items(20) { index ->
                     Text(
                         text = "Item $index",
@@ -398,6 +385,25 @@ private fun FloatingBarStackTopPreview() {
                     )
                 }
             }
+            FloatingBarStack(
+                modifier = Modifier.align(Alignment.TopCenter),
+                state = barStackState,
+                position = BarPosition.TOP,
+                bars = {
+                    FloatingBar(
+                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        PreviewBar("Toolbar (edge)", MaterialTheme.colorScheme.primaryContainer)
+                    }
+                    FloatingBar(
+                        scrollBehavior = BarScrollBehavior.Static,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        PreviewBar("Static bar", MaterialTheme.colorScheme.surfaceVariant)
+                    }
+                },
+            )
         }
     }
 }
@@ -406,30 +412,16 @@ private fun FloatingBarStackTopPreview() {
 @Composable
 private fun FloatingBarStackMixedVisibilityPreview() {
     PreviewWrapper {
-        FloatingBarStack(
+        val barStackState = rememberFloatingBarStackState(
             position = BarPosition.BOTTOM,
-            bars = {
-                FloatingBar(
-                    visible = true,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    PreviewBar("Visible bar 1", MaterialTheme.colorScheme.tertiaryContainer)
-                }
-                FloatingBar(
-                    visible = false, // Hidden - gap should be filled
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    PreviewBar("Hidden bar", MaterialTheme.colorScheme.errorContainer)
-                }
-                FloatingBar(
-                    visible = true,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    PreviewBar("Visible bar 2", MaterialTheme.colorScheme.primaryContainer)
-                }
-            },
-        ) { contentPadding ->
-            LazyColumn(contentPadding = contentPadding) {
+        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(barStackState.nestedScrollConnection),
+                contentPadding = PaddingValues(bottom = barStackState.contentPaddingDp()),
+            ) {
                 items(20) { index ->
                     Text(
                         text = "Item $index",
@@ -439,6 +431,31 @@ private fun FloatingBarStackMixedVisibilityPreview() {
                     )
                 }
             }
+            FloatingBarStack(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                state = barStackState,
+                position = BarPosition.BOTTOM,
+                bars = {
+                    FloatingBar(
+                        visible = true,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        PreviewBar("Visible bar 1", MaterialTheme.colorScheme.tertiaryContainer)
+                    }
+                    FloatingBar(
+                        visible = false, // Hidden - gap should be filled
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        PreviewBar("Hidden bar", MaterialTheme.colorScheme.errorContainer)
+                    }
+                    FloatingBar(
+                        visible = true,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        PreviewBar("Visible bar 2", MaterialTheme.colorScheme.primaryContainer)
+                    }
+                },
+            )
         }
     }
 }

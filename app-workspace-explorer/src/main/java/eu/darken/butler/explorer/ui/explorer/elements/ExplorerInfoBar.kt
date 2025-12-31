@@ -2,21 +2,27 @@ package eu.darken.butler.explorer.ui.explorer.elements
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.material.icons.twotone.HourglassEmpty
-import androidx.compose.material.icons.twotone.Scale
 import androidx.compose.material.icons.twotone.Home
+import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.PauseCircle
+import androidx.compose.material.icons.twotone.Scale
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -28,6 +34,8 @@ fun ExplorerInfoBar(
     modifier: Modifier = Modifier,
     info: ExplorerLocation.LocationInfo?,
     isLoading: Boolean = false,
+    progress: Progress.Data? = null,
+    onCancel: () -> Unit = {},
     selectedCount: Int = 0,
     selectedSize: Long? = null,
     onClearSelection: () -> Unit = {},
@@ -35,11 +43,38 @@ fun ExplorerInfoBar(
     onSelectFiles: () -> Unit = {},
     isTrashDisabled: Boolean = false,
 ) {
+    val context = LocalContext.current
     WorkspaceInfoBar(
         modifier = modifier,
         selectedCount = selectedCount,
         onClearSelection = onClearSelection,
         leadingContent = {
+            // Show progress chips when loading (all on left side for layout stability)
+            if (progress != null) {
+                InfoChip(
+                    icon = Icons.TwoTone.HourglassEmpty,
+                    label = stringResource(R.string.explorer_infobar_loading),
+                    isAccented = true,
+                    onClick = onCancel,
+                    trailingIcon = Icons.TwoTone.Close,
+                )
+                val countDisplay = progress.count.displayValue.get(context)
+                if (countDisplay.isNotEmpty()) {
+                    InfoChip(
+                        icon = Icons.TwoTone.Scale,
+                        label = countDisplay,
+                    )
+                }
+                val secondary = progress.secondary
+                if (secondary != CaString.EMPTY) {
+                    InfoChip(
+                        icon = Icons.TwoTone.Info,
+                        label = secondary.get(context),
+                    )
+                }
+                return@WorkspaceInfoBar
+            }
+
             when (info) {
                 is ExplorerLocation.Directory.Info -> {
                     if (selectedCount == 0) {
@@ -143,6 +178,9 @@ fun ExplorerInfoBar(
             }
         },
         trailingContent = {
+            // No trailing content during loading (all progress chips on left)
+            if (progress != null) return@WorkspaceInfoBar
+
             if (selectedCount > 0 && selectedSize != null) {
                 Spacer(modifier = Modifier.weight(1f))
                 InfoChip(
@@ -323,6 +361,34 @@ private fun ExplorerInfoBarDevicePreview() {
                 usedSpace = 1024L * 1024L * 1024L * 120L,
             ),
             selectedCount = 0,
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ExplorerInfoBarLoadingWithCountPreview() {
+    PreviewWrapper {
+        ExplorerInfoBar(
+            info = null,
+            progress = Progress.Data(
+                secondary = "Loading folder content".toCaString(),
+                count = Progress.Count.Counter(42, 150),
+            ),
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ExplorerInfoBarLoadingIndeterminatePreview() {
+    PreviewWrapper {
+        ExplorerInfoBar(
+            info = null,
+            progress = Progress.Data(
+                secondary = "Checking permissions".toCaString(),
+                count = Progress.Count.Indeterminate(),
+            ),
         )
     }
 }
