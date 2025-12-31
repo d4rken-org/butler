@@ -37,6 +37,19 @@ interface Workspace<ArgT : Workspace.Arguments> {
         ;
     }
 
+    /**
+     * Lifecycle state shared by all workspaces for global Init/Error/Ready handling.
+     * Each workspace derives this from its internal state in the [info] flow.
+     *
+     * Named `LifecycleState` (not `State`) to avoid collision with workspace-specific
+     * State sealed interfaces like `ExplorerWorkspace.State`.
+     */
+    sealed interface LifecycleState {
+        data object Initializing : LifecycleState
+        data class Error(val error: Throwable) : LifecycleState
+        data object Ready : LifecycleState
+    }
+
     @Parcelize
     @TypeParceler<Uuid, UuidParceler>
     data class Id(
@@ -172,6 +185,14 @@ interface Workspace<ArgT : Workspace.Arguments> {
         val type: Type,
         val title: CaString,
         val subtitle: CaString? = null,
+        /**
+         * Lifecycle state of this workspace.
+         * Used by UI layer for global Init/Error/Ready handling at the WorkspaceMapper level.
+         *
+         * Each workspace derives this from its internal state in the info flow.
+         * UI consumers (tabs, previews) can use this for visual indicators.
+         */
+        val lifecycleState: LifecycleState = LifecycleState.Initializing,
         val operationCount: Int = 0,
         val attentionCount: Int = 0,
         /**
@@ -211,6 +232,10 @@ interface Workspace<ArgT : Workspace.Arguments> {
          * [isSubWorkspace] and [modalPresentation].
          */
         val isSubWorkspace: Boolean get() = callerWorkspaceId != null
+
+        val isReady: Boolean get() = lifecycleState is LifecycleState.Ready
+        val isError: Boolean get() = lifecycleState is LifecycleState.Error
+        val isInitializing: Boolean get() = lifecycleState is LifecycleState.Initializing
     }
 }
 

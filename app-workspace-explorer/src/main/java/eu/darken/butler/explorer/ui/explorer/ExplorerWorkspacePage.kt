@@ -50,14 +50,11 @@ import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
-import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
-import eu.darken.butler.workspace.ui.states.WorkspaceErrorContent
-import eu.darken.butler.workspace.ui.states.WorkspaceInitializingContent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -166,76 +163,46 @@ fun ExplorerWorkspacePage(
             // Content padding from floating bar stacks
             val topContentPadding = topBarStackState.contentPaddingDp()
 
-            // Main content area - route based on state
-            when (val state = mainState) {
-                is ExplorerWorkspaceViewModel.State.Error -> {
-                    WorkspaceErrorContent(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(top = topContentPadding),
-                        error = state.error,
-                        onShareError = { vm?.shareWorkspaceError() },
-                        onCloseWorkspace = { vm?.closeWorkspace() },
+            // Main content area - only rendered when Ready (Init/Error handled by WorkspaceMapper)
+            val state = mainState as? ExplorerWorkspaceViewModel.State.Ready
+            if (state != null) {
+                if (state.setupRequirements.needsAction) {
+                    PermissionRequestCard(
+                        setupRequirements = state.setupRequirements,
+                        onNavigateToSetup = {
+                            vm?.navigateToSetup(state.setupRequirements)
+                        },
+                        onLaunchSAFPicker = { grant ->
+                            vm?.launchAndroidDataSAFPicker(grant)
+                        },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = topContentPadding),
+                    )
+                } else {
+                    ExplorerReadyContent(
+                        state = state,
+                        operationsState = operationsState,
+                        clipboardState = clipboardState,
+                        mainStateSource = mainStateSource,
+                        workspaceId = workspaceId,
+                        topBarStackState = topBarStackState,
+                        bottomBarStackState = bottomBarStackState,
+                        design = design,
+                        navBarInset = navBarInset,
+                        vm = vm,
+                        showProgress = showProgress,
+                        isWorkspaceFocused = isWorkspaceFocused,
+                        onShowOperationDetails = { operationId ->
+                            operationDialogState = OperationDialogState.OperationDetails(operationId)
+                        },
+                        workspaceButtonState = workspaceButtonState,
+                        workspaceActionHandler = workspaceActionHandler,
+                        safLocationManager = vm?.safLocationManager,
+                        initialOperationsExpanded = initialOperationsExpanded,
+                        initialClipboardExpanded = initialClipboardExpanded,
                     )
                 }
-                is ExplorerWorkspaceViewModel.State.Initializing -> {
-                    WorkspaceInitializingContent(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(top = topContentPadding),
-                    )
-                }
-                is ExplorerWorkspaceViewModel.State.Ready -> {
-                    if (state.setupRequirements.needsAction) {
-                        PermissionRequestCard(
-                            setupRequirements = state.setupRequirements,
-                            onNavigateToSetup = {
-                                vm?.navigateToSetup(state.setupRequirements)
-                            },
-                            onLaunchSAFPicker = { grant ->
-                                vm?.launchAndroidDataSAFPicker(grant)
-                            },
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(top = topContentPadding),
-                        )
-                    } else {
-                        ExplorerReadyContent(
-                            state = state,
-                            operationsState = operationsState,
-                            clipboardState = clipboardState,
-                            mainStateSource = mainStateSource,
-                            workspaceId = workspaceId,
-                            topBarStackState = topBarStackState,
-                            bottomBarStackState = bottomBarStackState,
-                            design = design,
-                            navBarInset = navBarInset,
-                            vm = vm,
-                            showProgress = showProgress,
-                            isWorkspaceFocused = isWorkspaceFocused,
-                            onShowOperationDetails = { operationId ->
-                                operationDialogState = OperationDialogState.OperationDetails(operationId)
-                            },
-                            workspaceButtonState = workspaceButtonState,
-                            workspaceActionHandler = workspaceActionHandler,
-                            safLocationManager = vm?.safLocationManager,
-                            initialOperationsExpanded = initialOperationsExpanded,
-                            initialClipboardExpanded = initialClipboardExpanded,
-                        )
-                    }
-                }
-            }
-
-            // WorkspaceButton for non-ready states (Initializing/Error)
-            // When Ready, the toolbar with WorkspaceButton is rendered in ExplorerReadyContent
-            if (mainState !is ExplorerWorkspaceViewModel.State.Ready) {
-                WorkspaceButton(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = topContentPadding + 8.dp, end = 16.dp),
-                    state = workspaceButtonState,
-                    buttonSize = 48.dp,
-                    currentWorkspaceId = workspaceId,
-                    workspaceActionHandler = workspaceActionHandler,
-                )
             }
 
             // Dialogs - stay in parent
@@ -615,36 +582,3 @@ private fun ExplorerPickerMode_MixedMultiPreview() {
     }
 }
 
-@Preview2
-@Composable
-private fun ExplorerWorkspacePageInitializingPreview() {
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            workspaceId = Workspace.Id(),
-            mainStateSource = flowOf(ExplorerWorkspaceViewModel.State.Initializing),
-            workspaceStateSource = flowOf(null),
-            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
-            vm = null,
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun ExplorerWorkspacePageFatalErrorPreview() {
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            workspaceId = Workspace.Id(),
-            mainStateSource = flowOf(
-                ExplorerWorkspaceViewModel.State.Error(
-                    error = RuntimeException("Failed to initialize workspace")
-                )
-            ),
-            workspaceStateSource = flowOf(null),
-            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
-            vm = null,
-        )
-    }
-}

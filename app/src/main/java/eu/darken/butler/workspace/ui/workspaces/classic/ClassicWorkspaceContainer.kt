@@ -26,11 +26,13 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
@@ -48,11 +50,13 @@ internal fun ClassicWorkspaceContainer(
     managerDialogs: List<ManagerDialog> = emptyList(),
     onWorkspaceScreenAction: (WorkspaceScreenAction) -> Unit,
     workspaceActionHandler: WorkspaceActionHandler?,
+    workspaceButtonState: WorkspaceButtonViewModel.State?,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
     bannerStates: Map<Workspace.Id, eu.darken.butler.workspace.ui.feedback.BannerState>,
     onDismissBanner: (Workspace.Id) -> Unit,
+    onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val effectivePageCount = if (state.onDemandWorkspaceCreation && state.swipeGesturesEnabled) {
         state.tabWorkspaces.size + 1
@@ -311,6 +315,16 @@ internal fun ClassicWorkspaceContainer(
                                 WorkspaceMapper(
                                     info = paneInfo,
                                     design = design,
+                                    onShareError = { error ->
+                                        onShareError(paneInfo.id, error)
+                                    },
+                                    onCloseWorkspace = {
+                                        workspaceActionHandler?.executeWorkspaceAction(
+                                            WorkspaceAction.Close(paneInfo.id)
+                                        )
+                                    },
+                                    workspaceButtonState = workspaceButtonState,
+                                    workspaceActionHandler = workspaceActionHandler,
                                 )
                             }
                         }

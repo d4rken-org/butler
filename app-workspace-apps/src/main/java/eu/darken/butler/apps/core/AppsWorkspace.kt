@@ -119,6 +119,11 @@ class AppsWorkspace @AssistedInject constructor(
                 else -> R.string.apps_title.toCaString()
             },
             subtitle = R.string.apps_subtitle.toCaString(),
+            lifecycleState = when (state) {
+                is State.Initializing -> Workspace.LifecycleState.Initializing
+                is State.Error -> Workspace.LifecycleState.Error(state.error)
+                is State.Ready -> Workspace.LifecycleState.Ready
+            },
             operationCount = 0,
             attentionCount = 0,
             callerWorkspaceId = null,

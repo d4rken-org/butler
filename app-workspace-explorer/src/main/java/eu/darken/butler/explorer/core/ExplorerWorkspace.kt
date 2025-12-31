@@ -60,6 +60,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlin.time.Duration.Companion.seconds
 
 
 class ExplorerWorkspace @AssistedInject constructor(
@@ -168,6 +169,11 @@ class ExplorerWorkspace @AssistedInject constructor(
                 else -> R.string.explorer_title.toCaString()
             },
             subtitle = readyState?.currentTarget?.description,
+            lifecycleState = when (state) {
+                is State.Initializing -> Workspace.LifecycleState.Initializing
+                is State.Error -> Workspace.LifecycleState.Error(state.error)
+                is State.Ready -> Workspace.LifecycleState.Ready
+            },
             operationCount = activeOperations,
             attentionCount = attentionCount,
             callerWorkspaceId = pickerConfig?.callerWorkspaceId,
@@ -250,6 +256,8 @@ class ExplorerWorkspace @AssistedInject constructor(
         // Load initial location
         scope.launch {
             log(tag, INFO) { "Loading initial data... ($creationArguments)" }
+            delay(10.seconds)
+            throw Exception("Loading initial data...")
             // Transition to Ready state before processing navigation
             _state.value = State.Ready()
             try {

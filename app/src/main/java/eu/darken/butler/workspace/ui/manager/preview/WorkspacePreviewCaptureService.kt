@@ -55,10 +55,13 @@ class WorkspacePreviewCaptureService @Inject constructor(
                         info = WorkspacePaneInfo(
                             id = workspaceId,
                             type = workspaceType,
+                            lifecycleState = Workspace.LifecycleState.Ready,
                         ),
                         design = WorkspaceDesign(
                             layout = WorkspaceDesign.Layout.SINGLE
                         ),
+                        onShareError = { /* No-op for preview */ },
+                        onCloseWorkspace = { /* No-op for preview */ },
                     )
                 }
             }

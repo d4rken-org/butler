@@ -88,6 +88,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
             type = type,
             title = app?.label ?: args.packageName.toCaString(),
             subtitle = app?.packageName?.toCaString(),
+            lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = 0,
             attentionCount = 0,
             callerWorkspaceId = args.callerWorkspaceId,

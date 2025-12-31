@@ -92,6 +92,7 @@ class SearcherWorkspace @AssistedInject constructor(
             id = id,
             type = type,
             title = "Searcher ${id.shortTag}".toCaString(),
+            lifecycleState = Workspace.LifecycleState.Ready,
         )
     )
 

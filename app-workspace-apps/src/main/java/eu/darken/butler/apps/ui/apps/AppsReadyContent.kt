@@ -179,7 +179,6 @@ fun AppsReadyContent(
                     )
                 }
             },
-            content = { _ -> },
         )
 
         // Bottom floating bars
@@ -202,7 +201,6 @@ fun AppsReadyContent(
                     )
                 }
             },
-            content = { _ -> },
         )
     }
 

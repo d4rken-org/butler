@@ -11,6 +11,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
@@ -46,6 +47,7 @@ fun AdaptiveWorkspaceLayout(
     onDismissBanner: (Workspace.Id) -> Unit,
     paneLocalModals: Map<Workspace.Id, Workspace.Info> = emptyMap(),
     isUpgraded: Boolean = false,
+    onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
 
@@ -148,6 +150,16 @@ fun AdaptiveWorkspaceLayout(
                                         WorkspaceMapper(
                                             info = info,
                                             design = paneDesign,
+                                            onShareError = { error ->
+                                                onShareError(info.id, error)
+                                            },
+                                            onCloseWorkspace = {
+                                                workspaceActionHandler?.executeWorkspaceAction(
+                                                    WorkspaceAction.Close(info.id)
+                                                )
+                                            },
+                                            workspaceButtonState = workspaceButtonState,
+                                            workspaceActionHandler = workspaceActionHandler,
                                         )
                                     }
                                 }
@@ -176,6 +188,16 @@ fun AdaptiveWorkspaceLayout(
                                                 WorkspaceMapper(
                                                     info = modal.asPaneInfo(),
                                                     design = paneDesign,
+                                                    onShareError = { error ->
+                                                        onShareError(modal.id, error)
+                                                    },
+                                                    onCloseWorkspace = {
+                                                        workspaceActionHandler?.executeWorkspaceAction(
+                                                            WorkspaceAction.Close(modal.id)
+                                                        )
+                                                    },
+                                                    workspaceButtonState = workspaceButtonState,
+                                                    workspaceActionHandler = workspaceActionHandler,
                                                 )
                                             }
                                         }

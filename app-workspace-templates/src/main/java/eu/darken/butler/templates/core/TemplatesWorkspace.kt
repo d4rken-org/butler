@@ -64,6 +64,7 @@ class TemplatesWorkspace @AssistedInject constructor(
                 if (Bugs.isDebug) base.append(" " + id.shortTag)
                 base.toString()
             },
+            lifecycleState = Workspace.LifecycleState.Ready,
         )
     )
 

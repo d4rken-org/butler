@@ -42,8 +42,6 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.workspace.ui.states.WorkspaceErrorContent
-import eu.darken.butler.workspace.ui.states.WorkspaceInitializingContent
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
@@ -264,39 +262,20 @@ fun EditorWorkspacePage(
             },
         )
 
-        // Main content area - smart casts via when expression
+        // Main content area - only rendered when Ready (Init/Error handled by WorkspaceMapper)
         val topContentPadding = topBarStackState.contentPaddingDp()
         val bottomContentPadding = bottomBarStackState.contentPaddingDp()
 
-        // Capture delegated property into local val to enable smart casting
-        when (val currentState = mainState) {
-            is EditorWorkspaceViewModel.State.Initializing -> {
-                WorkspaceInitializingContent(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(top = topContentPadding),
-                )
-            }
-
-            is EditorWorkspaceViewModel.State.Error -> {
-                WorkspaceErrorContent(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(top = topContentPadding),
-                    error = currentState.error,
-                    onShareError = { onPageAction(EditorPageAction.Workspace.ShareError) },
-                    onCloseWorkspace = { onPageAction(EditorPageAction.Workspace.Close) },
-                )
-            }
-
-            is EditorWorkspaceViewModel.State.Ready -> {
-                EditorReadyContent(
-                    state = currentState,
-                    topContentPadding = topContentPadding,
-                    bottomContentPadding = bottomContentPadding,
-                    topBarNestedScrollConnection = topBarStackState.nestedScrollConnection,
-                    bottomBarNestedScrollConnection = bottomBarStackState.nestedScrollConnection,
-                    onPageAction = onPageAction,
-                )
-            }
+        val currentState = mainState as? EditorWorkspaceViewModel.State.Ready
+        if (currentState != null) {
+            EditorReadyContent(
+                state = currentState,
+                topContentPadding = topContentPadding,
+                bottomContentPadding = bottomContentPadding,
+                topBarNestedScrollConnection = topBarStackState.nestedScrollConnection,
+                bottomBarNestedScrollConnection = bottomBarStackState.nestedScrollConnection,
+                onPageAction = onPageAction,
+            )
         }
     }
 
@@ -507,36 +486,6 @@ private fun EditorPagePreview() {
                     totalLines = 1000,
                     isModified = true,
                     currentContent = "Sample text content\nLine 2\nLine 3",
-                )
-            ),
-            onPageAction = {},
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun EditorPageInitializingPreview() {
-    PreviewWrapper {
-        EditorWorkspacePage(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            mainStateSource = flowOf(EditorWorkspaceViewModel.State.Initializing),
-            onPageAction = {},
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun EditorPageErrorPreview() {
-    PreviewWrapper {
-        EditorWorkspacePage(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            mainStateSource = flowOf(
-                EditorWorkspaceViewModel.State.Error(
-                    error = RuntimeException("Failed to initialize editor workspace")
                 )
             ),
             onPageAction = {},

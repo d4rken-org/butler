@@ -325,6 +325,17 @@ class WorkspacesViewModel @Inject constructor(
         shareIntentEvent.tryEmit(intent)
     }
 
+    fun shareWorkspaceError(workspaceId: Workspace.Id, error: Throwable) {
+        log(tag) { "shareWorkspaceError($workspaceId, $error)" }
+        val report = errorReportTool.buildReport(
+            throwable = error,
+            message = "Workspace initialization failed",
+            errorContext = "Workspace:${workspaceId.shortTag}",
+        )
+        val intent = errorReportTool.createShareChooserIntent(report)
+        shareIntentEvent.tryEmit(intent)
+    }
+
     data class State(
         private val state: WorkspaceRemote.State,
         val focusedWorkspace: Workspace.Id?,

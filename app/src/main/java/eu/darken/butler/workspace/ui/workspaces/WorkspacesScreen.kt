@@ -59,6 +59,7 @@ fun WorkspaceScreen(
     onDismissBanner: (Workspace.Id) -> Unit = {},
     onDismissManagerDialog: (Workspace.Id) -> Unit = {},
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit = {},
+    onShareError: (Workspace.Id, Throwable) -> Unit = { _, _ -> },
 ) {
     val windowSizeInfo = rememberWindowSizeInfo()
     val configuration = LocalConfiguration.current
@@ -125,6 +126,7 @@ fun WorkspaceScreen(
                 onDismissBanner = onDismissBanner,
                 paneLocalModals = state.paneLocalModals,
                 isUpgraded = state.isUpgraded,
+                onShareError = onShareError,
             )
         } else {
             ClassicWorkspaceContainer(
@@ -132,11 +134,13 @@ fun WorkspaceScreen(
                 managerDialogs = managerDialogs,
                 onWorkspaceScreenAction = onScreenAction,
                 workspaceActionHandler = workspaceActionHandler,
+                workspaceButtonState = workspaceButtonState,
                 managerDialogStates = managerDialogStates,
                 onDismissManagerDialog = onDismissManagerDialog,
                 onConfirmManagerDialog = onConfirmManagerDialog,
                 bannerStates = bannerStates,
                 onDismissBanner = onDismissBanner,
+                onShareError = onShareError,
             )
         }
 
@@ -234,6 +238,7 @@ fun WorkspacesScreenHost(
             onDismissBanner = { vm.dismissBanner(it) },
             onDismissManagerDialog = { vm.dismissManagerDialog(it) },
             onConfirmManagerDialog = { vm.confirmManagerDialog(it) },
+            onShareError = { workspaceId, error -> vm.shareWorkspaceError(workspaceId, error) },
         )
     }
 

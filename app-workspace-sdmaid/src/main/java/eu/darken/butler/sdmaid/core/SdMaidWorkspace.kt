@@ -84,6 +84,7 @@ class SdMaidWorkspace @AssistedInject constructor(
                 is ConnectionState.Error -> R.string.sdmaid_status_error.toCaString()
                 is ConnectionState.Checking -> null
             },
+            lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = 0,
             attentionCount = 0,
             callerWorkspaceId = null,

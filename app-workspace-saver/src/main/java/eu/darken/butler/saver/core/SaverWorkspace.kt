@@ -198,6 +198,7 @@ class SaverWorkspace @AssistedInject constructor(
                     ?: "".toCaString()
                 else -> filename.toCaString()
             },
+            lifecycleState = Workspace.LifecycleState.Ready,
             operationCount = operationCount,
             attentionCount = attentionCount,
             callerWorkspaceId = null,

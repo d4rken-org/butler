@@ -213,6 +213,18 @@ class EditorWorkspace @AssistedInject constructor(
             }
         }
 
+        // Update info.lifecycleState when state changes
+        workspaceScope.launch {
+            _state.collect { state ->
+                val lifecycle = when (state) {
+                    is State.Initializing -> Workspace.LifecycleState.Initializing
+                    is State.Error -> Workspace.LifecycleState.Error(state.error)
+                    is State.Ready -> Workspace.LifecycleState.Ready
+                }
+                _info.value = _info.value.copy(lifecycleState = lifecycle)
+            }
+        }
+
         // Track operation counts for this workspace
         operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
             .onEach { operations ->

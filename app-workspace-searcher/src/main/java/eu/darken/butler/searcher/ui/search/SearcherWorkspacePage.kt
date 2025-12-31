@@ -303,7 +303,6 @@ fun SearcherWorkspacePage(
                             )
                         }
                     },
-                    content = {},
                 )
             }
         }
@@ -341,7 +340,6 @@ fun SearcherWorkspacePage(
                             )
                         }
                     },
-                    content = {},
                 )
             }
         }
