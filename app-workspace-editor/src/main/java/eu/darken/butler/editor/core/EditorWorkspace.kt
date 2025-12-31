@@ -35,6 +35,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
@@ -65,7 +67,7 @@ class EditorWorkspace @AssistedInject constructor(
     private val tag = logTag("Editor", "Workspace", id.shortTag)
 
     override suspend fun createArguments(): EditorArguments {
-        val currentState = editorState.first()
+        val currentState = (_state.value as? State.Ready)?.editor ?: return EditorArguments.Default()
         val currentFilePath = (currentState.contentSource as? ContentSource.File)?.path
         return EditorArguments.Default(
             filePath = currentFilePath,
@@ -142,8 +144,15 @@ class EditorWorkspace @AssistedInject constructor(
         }
     )
 
-    // Combined editor state for UI
-    val editorState: Flow<EditorState> = engineHolder.flow.flatMapLatest { engine ->
+    // Unified workspace state - emits Initializing immediately
+    private val _state = MutableStateFlow<State>(State.Initializing)
+    val state: StateFlow<State> = _state.asStateFlow()
+
+    // Track loading for operations (openFile, saveFile, etc.)
+    private val _isLoading = MutableStateFlow(false)
+
+    // Combined editor state for internal use
+    private val editorStateInternal: Flow<EditorState> = engineHolder.flow.flatMapLatest { engine ->
         combine(
             engine.contentSource,
             engine.totalLines,
@@ -180,6 +189,30 @@ class EditorWorkspace @AssistedInject constructor(
     init {
         log(tag, INFO) { "Initialized with file: ${filePath?.name ?: "No file"}" }
 
+        // Collect editorState and emit as State.Ready
+        workspaceScope.launch {
+            try {
+                editorStateInternal.collect { editorState ->
+                    _state.value = State.Ready(editorState, isLoading = _isLoading.value)
+                }
+            } catch (e: Exception) {
+                if (e !is CancellationException) {
+                    _state.value = State.Error(e)
+                    log(tag, ERROR) { "Workspace error: ${e.asLog()}" }
+                }
+            }
+        }
+
+        // Update state when isLoading changes
+        workspaceScope.launch {
+            _isLoading.collect { loading ->
+                val current = _state.value
+                if (current is State.Ready) {
+                    _state.value = current.copy(isLoading = loading)
+                }
+            }
+        }
+
         // Track operation counts for this workspace
         operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
             .onEach { operations ->
@@ -187,7 +220,7 @@ class EditorWorkspace @AssistedInject constructor(
                 var attentionCount = 0
 
                 operations.forEach { operation ->
-                    when (val state = operation.state.value) {
+                    when (val opState = operation.state.value) {
                         is Operation.State.Queued -> operationCount++
                         is Operation.State.Active -> operationCount++
                         is Operation.State.Waiting -> {
@@ -195,7 +228,7 @@ class EditorWorkspace @AssistedInject constructor(
                             attentionCount++
                         }
                         is Operation.State.Completed -> {
-                            if (state.error != null && state.error !is CancellationException) {
+                            if (opState.error != null && opState.error !is CancellationException) {
                                 attentionCount++
                             }
                         }
@@ -221,7 +254,7 @@ class EditorWorkspace @AssistedInject constructor(
 
         // Auto-save logic: debounce after changes
         combine(
-            editorState.map { it.isModified }.distinctUntilChanged(),
+            editorStateInternal.map { it.isModified }.distinctUntilChanged(),
             editorSettings.autoSaveEnabled.flow,
             editorSettings.autoSaveInterval.flow,
         ) { isModified, enabled, interval ->
@@ -307,7 +340,15 @@ class EditorWorkspace @AssistedInject constructor(
     }
 
     // Editor operations
-    suspend fun openFile(filePath: APath<*>) = switchEngine(filePath)
+    suspend fun openFile(filePath: APath<*>) {
+        _isLoading.value = true
+        try {
+            switchEngine(filePath)
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
     suspend fun closeFile() = switchEngine(null)
 
     /**
@@ -321,7 +362,14 @@ class EditorWorkspace @AssistedInject constructor(
         }
     }
 
-    suspend fun saveFile() = engineHolder.value().saveFile()
+    suspend fun saveFile() {
+        _isLoading.value = true
+        try {
+            engineHolder.value().saveFile()
+        } finally {
+            _isLoading.value = false
+        }
+    }
     suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> {
         val engine = engineHolder.value()
 
@@ -444,8 +492,14 @@ class EditorWorkspace @AssistedInject constructor(
         val visibleRange: IntRange = 0..50,
         val error: Throwable? = null,
         val showLineNumbers: Boolean = true,
-        val wordWrap: Boolean = false
+        val wordWrap: Boolean = false,
     )
+
+    sealed interface State {
+        data object Initializing : State
+        data class Ready(val editor: EditorState, val isLoading: Boolean = false) : State
+        data class Error(val error: Throwable) : State
+    }
 
     companion object {
         const val MAX_PASTE_FILE_SIZE = 1024 * 1024L // 1 MB

@@ -26,6 +26,7 @@ import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
@@ -56,8 +57,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val workspaceSource: Flow<EditorWorkspace?> = workspaceProvider.retrieve(id).map { it as EditorWorkspace? }
     private suspend fun getWorkspace(): EditorWorkspace = workspaceSource.filterNotNull().first()
 
-    private val _isLoading = MutableStateFlow(false)
-    private val _loadingFilePath = MutableStateFlow<APath<*>?>(null)
     private val _showGoToLineDialog = MutableStateFlow(false)
     private val _showSearchDialog = MutableStateFlow(false)
     private val _showCloseConfirmDialog = MutableStateFlow(false)
@@ -111,56 +110,57 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
-    private val loadingStates = combine(
-        _isLoading,
-        _loadingFilePath,
-    ) { isLoading, loadingFilePath ->
-        isLoading to loadingFilePath
-    }
+    private val workspaceState: Flow<EditorWorkspace.State> = workspaceSource
+        .filterNotNull()
+        .flatMapLatest { it.state }
 
-    val state = combine(
-        workspaceSource.filterNotNull().flatMapLatest { it.editorState },
-        loadingStates,
+    val state: Flow<State> = combine(
+        workspaceState,
         dialogStates,
         searchStates,
         flowOf(id),
-    ) { editorState, loading, dialogs, search, workspaceId ->
-        val (isLoading, loadingFilePath) = loading
+    ) { wsState, dialogs, search, workspaceId ->
+        when (wsState) {
+            is EditorWorkspace.State.Initializing -> State.Initializing
+            is EditorWorkspace.State.Error -> State.Error(wsState.error)
+            is EditorWorkspace.State.Ready -> {
+                val editorState = wsState.editor
+                val isLoading = wsState.isLoading
 
-        // Use loading file path for title when loading, otherwise use contentSource
-        val displayPath = (editorState.contentSource as? ContentSource.File)?.path ?: loadingFilePath
-        val title = displayPath?.userReadableName ?: editorState.contentSource.name.toCaString()
-        val subTitle = displayPath?.parent?.userReadablePath ?: "In-Memory-Buffer".toCaString()
+                val displayPath = (editorState.contentSource as? ContentSource.File)?.path
+                val title = displayPath?.userReadableName ?: editorState.contentSource.name.toCaString()
+                val subTitle = displayPath?.parent?.userReadablePath ?: "In-Memory-Buffer".toCaString()
 
-        State(
-            id = workspaceId,
-            contentSource = editorState.contentSource,
-            title = title,
-            subTitle = subTitle,
-            totalLines = editorState.totalLines,
-            isModified = editorState.isModified,
-            currentContent = editorState.currentContent,
-            cursorPosition = editorState.cursorPosition,
-            selectionRange = editorState.selectionRange,
-            isLoading = isLoading,
-            error = editorState.error,
-            searchQuery = editorState.searchQuery,
-            searchResults = editorState.searchResults,
-            visibleRange = editorState.visibleRange,
-            showLineNumbers = editorState.showLineNumbers,
-            wordWrap = editorState.wordWrap,
-            showGoToLineDialog = dialogs.showGoToLineDialog,
-            showSearchDialog = dialogs.showSearchDialog,
-            showCloseConfirmDialog = dialogs.showCloseConfirmDialog,
-            searchQueryInput = search.queryInput,
-            currentSearchResultIndex = search.currentResultIndex,
-            searchCaseSensitive = search.caseSensitive,
-            searchRegexEnabled = search.regexEnabled,
-            searchWholeWord = search.wholeWord,
-            scrollTrigger = search.scrollTrigger,
-        )
+                State.Ready(
+                    id = workspaceId,
+                    contentSource = editorState.contentSource,
+                    title = title,
+                    subTitle = subTitle,
+                    totalLines = editorState.totalLines,
+                    isModified = editorState.isModified,
+                    currentContent = editorState.currentContent,
+                    cursorPosition = editorState.cursorPosition,
+                    selectionRange = editorState.selectionRange,
+                    isLoading = isLoading,
+                    error = editorState.error,
+                    searchQuery = editorState.searchQuery,
+                    searchResults = editorState.searchResults,
+                    visibleRange = editorState.visibleRange,
+                    showLineNumbers = editorState.showLineNumbers,
+                    wordWrap = editorState.wordWrap,
+                    showGoToLineDialog = dialogs.showGoToLineDialog,
+                    showSearchDialog = dialogs.showSearchDialog,
+                    showCloseConfirmDialog = dialogs.showCloseConfirmDialog,
+                    searchQueryInput = search.queryInput,
+                    currentSearchResultIndex = search.currentResultIndex,
+                    searchCaseSensitive = search.caseSensitive,
+                    searchRegexEnabled = search.regexEnabled,
+                    searchWholeWord = search.wholeWord,
+                    scrollTrigger = search.scrollTrigger,
+                )
+            }
+        }
     }
-        .asStateFlow()
 
     init {
         // Listen for picker results
@@ -175,7 +175,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     // All operations delegate to workspace
 
     fun launchFilePicker() = launch {
-        val currentPath = (state.first().contentSource as? ContentSource.File)?.path?.parent
+        val currentState = state.first() as? State.Ready
+        val currentPath = (currentState?.contentSource as? ContentSource.File)?.path?.parent
         workspaceRemote.launchPicker(id, currentPath, PickerConfig.Selection.FileSingle)
     }
 
@@ -183,17 +184,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         openFileJob?.cancel()
         openFileJob = vmScope.launch {
             try {
-                _loadingFilePath.value = filePath
-                _isLoading.value = true
-                getWorkspace().openFile(filePath)
+                getWorkspace().openFile(filePath)  // Workspace handles loading state
             } catch (e: CancellationException) {
                 log(tag, INFO) { "File open cancelled: $filePath" }
                 throw e
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to open file: $filePath - ${e.asLog()}" }
             } finally {
-                _isLoading.value = false
-                _loadingFilePath.value = null
                 openFileJob = null
             }
         }
@@ -212,8 +209,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun closeFile() {
         launch {
-            val currentState = state.first()
-            if (currentState.isModified) {
+            val currentState = state.first() as? State.Ready
+            if (currentState?.isModified == true) {
                 // Show confirmation dialog
                 _showCloseConfirmDialog.value = true
             } else {
@@ -226,12 +223,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private fun performCloseFile() {
         launch {
             try {
-                _isLoading.value = true
-                getWorkspace().closeFile()
+                getWorkspace().closeFile()  // Workspace handles loading state
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to close file - ${e.asLog()}" }
-            } finally {
-                _isLoading.value = false
             }
         }
     }
@@ -247,12 +241,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun saveFile() {
         launch {
-            try {
-                _isLoading.value = true
-                getWorkspace().saveFile()
-            } finally {
-                _isLoading.value = false
-            }
+            getWorkspace().saveFile()  // Workspace handles loading state
         }
     }
 
@@ -350,7 +339,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             return
         }
 
-        val currentFilePath = (state.first().contentSource as? ContentSource.File)?.path
+        val currentFilePath = ((state.first() as? State.Ready)?.contentSource as? ContentSource.File)?.path
         val clip = ClipboardClip.Text(
             origin = id,
             content = text,
@@ -452,7 +441,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun nextSearchResult() = launch {
-        val currentState = state.first()
+        val currentState = state.first() as? State.Ready ?: return@launch
         if (currentState.searchResults.isNotEmpty()) {
             val newIndex = (_currentSearchResultIndex.value + 1) % currentState.searchResults.size
             _currentSearchResultIndex.value = newIndex
@@ -462,7 +451,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun previousSearchResult() = launch {
-        val currentState = state.first()
+        val currentState = state.first() as? State.Ready ?: return@launch
         if (currentState.searchResults.isNotEmpty()) {
             val newIndex = if (_currentSearchResultIndex.value == 0) {
                 currentState.searchResults.size - 1
@@ -580,7 +569,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         when (action) {
             // File actions
             is EditorPageAction.File.LaunchPicker -> launchFilePicker()
-            is EditorPageAction.File.Open -> openFile(action.path)
             is EditorPageAction.File.Save -> saveFile()
             is EditorPageAction.File.Close -> closeFile()
             is EditorPageAction.File.CancelOpen -> cancelFileOpen()
@@ -588,123 +576,159 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
             is EditorPageAction.Edit.DeleteAtCursor -> deleteAtCursor(action.count)
-            is EditorPageAction.Edit.DeleteSelection -> deleteSelection()
-            is EditorPageAction.Edit.Copy -> copyToClipboard()
-            is EditorPageAction.Edit.Cut -> cutToClipboard()
-            is EditorPageAction.Edit.Paste -> pasteFromClipboard()
-            is EditorPageAction.Edit.SelectAll -> selectAll()
+            is EditorPageAction.Edit.ForwardDelete -> deleteForward()
             is EditorPageAction.Edit.Undo -> undo()
             is EditorPageAction.Edit.Redo -> redo()
-            is EditorPageAction.Edit.ForwardDelete -> deleteForward()
 
             // Navigation actions
             is EditorPageAction.Navigation.MoveCursor -> moveCursor(action.direction, action.extendSelection)
             is EditorPageAction.Navigation.SetCursor -> setCursorPosition(action.position)
             is EditorPageAction.Navigation.SetSelection -> setSelection(action.start, action.end)
             is EditorPageAction.Navigation.ClearSelection -> setCursorPosition(action.cursorPosition)
-            is EditorPageAction.Navigation.Search -> search(action.query)
             is EditorPageAction.Navigation.GoToLine -> goToLine(action.lineNumber)
             is EditorPageAction.Navigation.UpdateVisibleRange -> updateVisibleRange(action.startLine, action.endLine)
+
+            // Search UI actions
+            is EditorPageAction.Search.UpdateQuery -> updateSearchQuery(action.query)
+            is EditorPageAction.Search.ToggleCaseSensitive -> toggleCaseSensitivity()
+            is EditorPageAction.Search.ToggleRegex -> toggleRegexMode()
+            is EditorPageAction.Search.ToggleWholeWord -> toggleWholeWord()
+            is EditorPageAction.Search.NextResult -> nextSearchResult()
+            is EditorPageAction.Search.PreviousResult -> previousSearchResult()
+            is EditorPageAction.Search.Close -> closeSearch()
+
+            // Dialog actions
+            is EditorPageAction.Dialog.DismissGoToLine -> dismissGoToLineDialog()
+            is EditorPageAction.Dialog.DismissSearch -> dismissSearchDialog()
+            is EditorPageAction.Dialog.DismissCloseConfirm -> dismissCloseConfirmDialog()
+            is EditorPageAction.Dialog.ConfirmClose -> confirmCloseFile()
+
+            // Clipboard actions
+            is EditorPageAction.Clipboard.Paste -> pasteFromClipboard(action.clip)
+            is EditorPageAction.Clipboard.Remove -> removeClipboardEntry(action.clip)
+            is EditorPageAction.Clipboard.ShowInfo -> showClipboardInfo(action.clip)
+            is EditorPageAction.Clipboard.DismissInfo -> dismissClipboardInfo()
+            is EditorPageAction.Clipboard.Clear -> clearAllClipboard()
+
+            // Workspace actions
+            is EditorPageAction.Workspace.ShareError -> shareWorkspaceError()
+            is EditorPageAction.Workspace.Close -> closeWorkspace()
 
             // Error actions
             is EditorPageAction.Error.Clear -> clearError()
         }
     }
 
-    data class State(
-        val id: Workspace.Id,
-        val contentSource: ContentSource = ContentSource.Memory(size = 0L),
-        val title: CaString,
-        val subTitle: CaString,
-        val totalLines: Int = 0,
-        val isModified: Boolean = false,
-        val currentContent: String = "",
-        val cursorPosition: TextPosition = TextPosition.ZERO,
-        val selectionRange: Pair<TextPosition, TextPosition>? = null,
-        val isLoading: Boolean = false,
-        val error: Throwable? = null,
-        val searchQuery: String = "",
-        val searchResults: List<SearchResult> = emptyList(),
-        val visibleRange: IntRange = 0..50,
-        val showLineNumbers: Boolean = true,
-        val wordWrap: Boolean = false,
-        val showGoToLineDialog: Boolean = false,
-        val showSearchDialog: Boolean = false,
-        val showCloseConfirmDialog: Boolean = false,
-        val searchQueryInput: TextFieldValue = TextFieldValue(""),
-        val currentSearchResultIndex: Int = 0,
-        val searchCaseSensitive: Boolean = false,
-        val searchRegexEnabled: Boolean = false,
-        val searchWholeWord: Boolean = false,
-        val scrollTrigger: Int = 0,
-    ) {
-        val hasFile: Boolean get() = contentSource is ContentSource.File
-        val hasContent: Boolean get() = contentSource.hasContent
-        val isFileReady: Boolean get() = contentSource is ContentSource.File && !isLoading
-        val hasSelection: Boolean get() = selectionRange != null
-        val hasSearchResults: Boolean get() = searchResults.isNotEmpty()
-        val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
-        val hasError: Boolean get() = error != null
-        val isSearchBarVisible: Boolean get() = showSearchDialog
+    fun shareWorkspaceError() = launch {
+        val error = (state.first() as? State.Error)?.error ?: return@launch
+        // TODO: Share error via intent - needs ErrorSharingHelper
+        log(tag, INFO) { "Share workspace error: ${error.message}" }
+    }
 
-        // Info bar properties
-        val fileSize: Long get() = contentSource.size
-        val totalCharacters: Int get() = fileSize.toInt()
-        val fileEncoding: String
-            get() = (contentSource as? ContentSource.File)?.detectedCharset?.name() ?: "UTF-8"
-        val selectedCharacterCount: Int
-            get() {
-                if (selectionRange == null) return 0
-                val (start, end) = selectionRange
-                // Calculate character count from offset difference
-                return (end.offset - start.offset).toInt()
-            }
+    fun closeWorkspace() = launch {
+        workspaceRemote.execute(WorkspaceAction.Close(id))
+    }
 
-        val selectedLineCount: Int
-            get() {
-                if (selectionRange == null) return 0
-                val (start, end) = selectionRange
-                return (end.line - start.line) + 1
-            }
+    sealed interface State {
+        data object Initializing : State
 
-        // Available actions based on current state
-        val availableActions: List<EditorAction>
-            get() = buildList {
-                // Copy - visible when there's a selection
-                if (hasSelection) {
-                    add(EditorAction.Copy)
+        data class Ready(
+            val id: Workspace.Id,
+            val contentSource: ContentSource = ContentSource.Memory(size = 0L),
+            val title: CaString,
+            val subTitle: CaString,
+            val totalLines: Int = 0,
+            val isModified: Boolean = false,
+            val currentContent: String = "",
+            val cursorPosition: TextPosition = TextPosition.ZERO,
+            val selectionRange: Pair<TextPosition, TextPosition>? = null,
+            val isLoading: Boolean = false,
+            val error: Throwable? = null,
+            val searchQuery: String = "",
+            val searchResults: List<SearchResult> = emptyList(),
+            val visibleRange: IntRange = 0..50,
+            val showLineNumbers: Boolean = true,
+            val wordWrap: Boolean = false,
+            val showGoToLineDialog: Boolean = false,
+            val showSearchDialog: Boolean = false,
+            val showCloseConfirmDialog: Boolean = false,
+            val searchQueryInput: TextFieldValue = TextFieldValue(""),
+            val currentSearchResultIndex: Int = 0,
+            val searchCaseSensitive: Boolean = false,
+            val searchRegexEnabled: Boolean = false,
+            val searchWholeWord: Boolean = false,
+            val scrollTrigger: Int = 0,
+        ) : State {
+            val hasFile: Boolean get() = contentSource is ContentSource.File
+            val hasContent: Boolean get() = contentSource.hasContent
+            val isFileReady: Boolean get() = contentSource is ContentSource.File && !isLoading
+            val hasSelection: Boolean get() = selectionRange != null
+            val hasSearchResults: Boolean get() = searchResults.isNotEmpty()
+            val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
+            val hasError: Boolean get() = error != null
+            val isSearchBarVisible: Boolean get() = showSearchDialog
+
+            // Info bar properties
+            val fileSize: Long get() = contentSource.size
+            val totalCharacters: Int get() = fileSize.toInt()
+            val fileEncoding: String
+                get() = (contentSource as? ContentSource.File)?.detectedCharset?.name() ?: "UTF-8"
+            val selectedCharacterCount: Int
+                get() {
+                    if (selectionRange == null) return 0
+                    val (start, end) = selectionRange
+                    // Calculate character count from offset difference
+                    return (end.offset - start.offset).toInt()
                 }
 
-                // Cut - visible when there's a selection
-                if (hasSelection) {
-                    add(EditorAction.Cut)
+            val selectedLineCount: Int
+                get() {
+                    if (selectionRange == null) return 0
+                    val (start, end) = selectionRange
+                    return (end.line - start.line) + 1
                 }
 
-                // Delete - visible when there's a selection
-                if (hasSelection) {
-                    add(EditorAction.Delete)
-                }
+            // Available actions based on current state
+            val availableActions: List<EditorAction>
+                get() = buildList {
+                    // Copy - visible when there's a selection
+                    if (hasSelection) {
+                        add(EditorAction.Copy)
+                    }
 
-                // Paste - always visible when there's content
-                if (hasContent || currentContent.isNotEmpty()) {
-                    add(EditorAction.Paste)
-                }
+                    // Cut - visible when there's a selection
+                    if (hasSelection) {
+                        add(EditorAction.Cut)
+                    }
 
-                // Select All - always visible when there's content
-                if (hasContent || currentContent.isNotEmpty()) {
-                    add(EditorAction.SelectAll)
-                }
+                    // Delete - visible when there's a selection
+                    if (hasSelection) {
+                        add(EditorAction.Delete)
+                    }
 
-                // Go to Line - always visible when there's content
-                if (hasContent) {
-                    add(EditorAction.GoToLine)
-                }
+                    // Paste - always visible when there's content
+                    if (hasContent || currentContent.isNotEmpty()) {
+                        add(EditorAction.Paste)
+                    }
 
-                // Search - visible when there's content and search bar is not open
-                if (hasContent && !isSearchBarVisible) {
-                    add(EditorAction.Search)
+                    // Select All - always visible when there's content
+                    if (hasContent || currentContent.isNotEmpty()) {
+                        add(EditorAction.SelectAll)
+                    }
+
+                    // Go to Line - always visible when there's content
+                    if (hasContent) {
+                        add(EditorAction.GoToLine)
+                    }
+
+                    // Search - visible when there's content and search bar is not open
+                    if (hasContent && !isSearchBarVisible) {
+                        add(EditorAction.Search)
+                    }
                 }
-            }
+        }
+
+        data class Error(val error: Throwable) : State
     }
 
     data class ClipboardState(
