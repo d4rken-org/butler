@@ -1,0 +1,64 @@
+package eu.darken.butler.apps.ui.apps
+
+import androidx.compose.ui.text.input.TextFieldValue
+import eu.darken.butler.apps.core.SortSettings
+import eu.darken.butler.apps.core.TagFilterConfig
+import eu.darken.butler.apps.core.engine.AppItem
+
+/**
+ * Sealed interface representing all page-level actions in the Apps workspace.
+ * This consolidates the various callbacks from AppsWorkspacePage into a single type-safe hierarchy.
+ *
+ * Note: This is distinct from [AppsActionBarItem] which represents workspace-level action bar
+ * button/chip definitions. [AppsPageAction] encompasses all UI interactions.
+ */
+sealed interface AppsPageAction {
+
+    /**
+     * Workspace lifecycle actions
+     */
+    sealed interface Workspace : AppsPageAction {
+        data object ShareError : Workspace
+        data object Close : Workspace
+    }
+
+    /**
+     * Search/filter query actions
+     */
+    sealed interface Search : AppsPageAction {
+        data class UpdateQuery(val query: TextFieldValue) : Search
+    }
+
+    /**
+     * App list interaction actions
+     */
+    sealed interface Apps : AppsPageAction {
+        data object Refresh : Apps
+        data class Click(val app: AppItem) : Apps
+        data class LongClick(val app: AppItem) : Apps
+    }
+
+    /**
+     * Selection management actions
+     */
+    sealed interface Selection : AppsPageAction {
+        data object Clear : Selection
+    }
+
+    /**
+     * Dialog management actions
+     */
+    sealed interface Dialog : AppsPageAction {
+        data object Dismiss : Dialog
+        data class ApplyFilter(val config: TagFilterConfig) : Dialog
+        data class ApplySort(val settings: SortSettings) : Dialog
+        data class ConfirmEnable(val apps: List<AppItem>) : Dialog
+        data class ConfirmDisable(val apps: List<AppItem>) : Dialog
+    }
+
+    /**
+     * Wrapper for action bar item clicks.
+     * Delegates to existing [AppsActionBarItem] for domain operations.
+     */
+    data class ActionBarClick(val item: AppsActionBarItem) : AppsPageAction
+}
