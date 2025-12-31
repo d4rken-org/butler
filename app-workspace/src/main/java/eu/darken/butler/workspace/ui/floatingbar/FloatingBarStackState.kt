@@ -1,8 +1,10 @@
 package eu.darken.butler.workspace.ui.floatingbar
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
@@ -280,11 +282,11 @@ fun rememberFloatingBarStackState(
     val edgePaddingPx = with(density) { edgePadding.toPx() }
     val contentGapPx = with(density) { contentPadding.toPx() }
 
-    // Get system bar inset based on position (status bar for TOP, nav bar for BOTTOM)
+    // Get system bar inset based on position (status bar for TOP, nav bar + IME for BOTTOM)
     val systemBarInsetPx = if (includeSystemBarInset) {
         when (position) {
             BarPosition.TOP -> WindowInsets.statusBars.getTop(density).toFloat()
-            BarPosition.BOTTOM -> WindowInsets.navigationBars.getBottom(density).toFloat()
+            BarPosition.BOTTOM -> WindowInsets.navigationBars.union(WindowInsets.ime).getBottom(density).toFloat()
         }
     } else {
         0f
