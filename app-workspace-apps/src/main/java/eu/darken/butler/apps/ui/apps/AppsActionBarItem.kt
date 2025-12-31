@@ -28,7 +28,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.ui.actions.WorkspaceAction
 
-sealed interface AppsAction : WorkspaceAction {
+sealed interface AppsActionBarItem : WorkspaceAction {
     override val icon: ImageVector
     override val label: CaString
     override val isVisible: Boolean get() = true
@@ -38,28 +38,28 @@ sealed interface AppsAction : WorkspaceAction {
     override val badge: Boolean get() = false
 
     // Selection management actions
-    data object SelectAll : AppsAction {
+    data object SelectAll : AppsActionBarItem {
         override val icon = Icons.TwoTone.SelectAll
         override val label = R.string.apps_action_select_all.toCaString()
     }
 
-    data object DeselectAll : AppsAction {
+    data object DeselectAll : AppsActionBarItem {
         override val icon = Icons.TwoTone.Deselect
         override val label = R.string.apps_action_deselect_all.toCaString()
     }
 
-    data object Refresh : AppsAction {
+    data object Refresh : AppsActionBarItem {
         override val icon = Icons.TwoTone.Refresh
         override val label = R.string.apps_action_refresh.toCaString()
     }
 
-    data object Sort : AppsAction {
+    data object Sort : AppsActionBarItem {
         override val icon = Icons.AutoMirrored.TwoTone.Sort
         override val label = R.string.apps_action_sort.toCaString()
         override val group = WorkspaceAction.Group.SECONDARY
     }
 
-    data object Filter : AppsAction {
+    data object Filter : AppsActionBarItem {
         override val icon = Icons.TwoTone.FilterAlt
         override val label = R.string.apps_action_filter.toCaString()
         override val group = WorkspaceAction.Group.SECONDARY
@@ -67,7 +67,7 @@ sealed interface AppsAction : WorkspaceAction {
 
     data class UpdateViewStyle(
         val viewStyle: AppsViewStyle,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon: ImageVector
             get() = when (viewStyle) {
                 is AppsViewStyle.List -> Icons.AutoMirrored.TwoTone.ViewList
@@ -84,7 +84,7 @@ sealed interface AppsAction : WorkspaceAction {
     // Batch actions (work on multiple apps)
     data class Disable(
         val apps: List<AppItem>,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.Block
         override val label = R.string.apps_action_disable.toCaString()
         override val isDestructive = false
@@ -93,7 +93,7 @@ sealed interface AppsAction : WorkspaceAction {
 
     data class Enable(
         val apps: List<AppItem>,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.CheckCircle
         override val label = R.string.apps_action_enable.toCaString()
         override val isVisible: Boolean get() = apps.any { !it.isEnabled }
@@ -101,7 +101,7 @@ sealed interface AppsAction : WorkspaceAction {
 
     data class Uninstall(
         val apps: List<AppItem>,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.Delete
         override val label = R.string.apps_action_uninstall.toCaString()
         override val isDestructive = true
@@ -109,7 +109,7 @@ sealed interface AppsAction : WorkspaceAction {
 
     data class ClearCache(
         val apps: List<AppItem>,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.CleaningServices
         override val label = R.string.apps_action_clear_cache.toCaString()
         override val group = WorkspaceAction.Group.SECONDARY
@@ -117,7 +117,7 @@ sealed interface AppsAction : WorkspaceAction {
 
     data class ClearData(
         val apps: List<AppItem>,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.DeleteSweep
         override val label = R.string.apps_action_clear_data.toCaString()
         override val isDestructive = true
@@ -126,7 +126,7 @@ sealed interface AppsAction : WorkspaceAction {
 
     data class ExportApk(
         val apps: List<AppItem>,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.GetApp
         override val label = R.string.apps_action_export_apk.toCaString()
         override val group = WorkspaceAction.Group.SECONDARY
@@ -134,7 +134,7 @@ sealed interface AppsAction : WorkspaceAction {
 
     data class Share(
         val apps: List<AppItem>,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.Share
         override val label = R.string.apps_action_share.toCaString()
         override val group = WorkspaceAction.Group.SECONDARY
@@ -143,7 +143,7 @@ sealed interface AppsAction : WorkspaceAction {
 
     data class OpenInTab(
         val apps: List<AppItem>,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
         override val label = R.string.apps_action_open_in_tab.toCaString()
         override val isVisible: Boolean get() = apps.isNotEmpty()
@@ -152,14 +152,14 @@ sealed interface AppsAction : WorkspaceAction {
     // Single-app actions (shown in details dialog or quick actions)
     data class Launch(
         val app: AppItem,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.AutoMirrored.TwoTone.Launch
         override val label = R.string.apps_action_launch.toCaString()
     }
 
     data class OpenInfo(
         val app: AppItem,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.Info
         override val label = R.string.apps_action_open_info.toCaString()
     }
@@ -167,7 +167,7 @@ sealed interface AppsAction : WorkspaceAction {
     data class BrowsePath(
         val app: AppItem,
         val path: APath<*>,
-    ) : AppsAction {
+    ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.FolderOpen
         override val label = R.string.apps_action_browse_path.toCaString()
     }
