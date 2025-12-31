@@ -10,7 +10,6 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.apps.core.AppTag
-import eu.darken.butler.apps.core.engine.standardTags
 import eu.darken.butler.apps.core.AppsSettings
 import eu.darken.butler.apps.core.AppsViewStyle
 import eu.darken.butler.apps.core.AppsWorkspace
@@ -18,7 +17,7 @@ import eu.darken.butler.apps.core.SortSettings
 import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.apps.core.arguments.AppDetailsArguments
 import eu.darken.butler.apps.core.engine.AppItem
-import eu.darken.butler.apps.core.engine.AppsState
+import eu.darken.butler.apps.core.engine.standardTags
 import eu.darken.butler.apps.ui.apps.dialogs.AppsDialogState
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
@@ -32,15 +31,18 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.saver.core.arguments.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 @HiltViewModel(assistedFactory = AppsWorkspaceViewModel.Factory::class)
@@ -58,174 +60,171 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             .map { workspace: Workspace<out Workspace.Arguments>? -> workspace as? AppsWorkspace }
 
     private suspend fun getWorkspace(): AppsWorkspace = workspaceSource.filterNotNull().first()
+    private suspend fun getReadyState(): State.Ready = state.filterIsInstance<State.Ready>().first()
+
+    private val workspaceState: Flow<AppsWorkspace.State?> = workspaceSource.flatMapLatest { ws ->
+        ws?.state ?: flowOf(null)
+    }
+
+    private val workspaceReadyState: Flow<AppsWorkspace.State.Ready?> = workspaceState.map {
+        it as? AppsWorkspace.State.Ready
+    }
 
     private val searchQueryFlow = MutableStateFlow(TextFieldValue(""))
     private val dialogStateFlow = MutableStateFlow<AppsDialogState>(AppsDialogState.None)
 
-    data class State(
-        val appsState: AppsState = AppsState(),
-        val searchQuery: TextFieldValue = TextFieldValue(""),
-        val viewStyle: AppsViewStyle = AppsViewStyle.default(),
-        val isLoading: Boolean = true,
-        val dialogState: AppsDialogState = AppsDialogState.None,
-        val availableActions: List<AppsAction> = emptyList(),
-    ) {
-        val apps: List<AppItem>
-            get() = appsState.filteredApps
+    sealed interface State {
+        data object Initializing : State
 
-        val filterConfig: TagFilterConfig
-            get() = appsState.filterConfig
+        data class Error(val error: Throwable) : State
 
-        val sortSettings: SortSettings
-            get() = appsState.sortSettings
-
-        val selectedAppIds: Set<String>
-            get() = appsState.selectedAppIds
-
-        val selectedApps: List<AppItem>
-            get() = apps.filter { it.packageName in selectedAppIds }
-
-        val isMultiSelectMode: Boolean
-            get() = appsState.isMultiSelectMode
-
-        val selectionCount: Int
-            get() = selectedAppIds.size
-
-        val userAppsCount: Int
-            get() = apps.count { !it.isSystemApp }
-
-        val systemAppsCount: Int
-            get() = apps.count { it.isSystemApp }
-    }
-
-    val state: Flow<State> = combine(
-        workspaceSource.filterNotNull().flatMapLatest { it.state },
-        workspaceSource.filterNotNull().flatMapLatest { it.appsEngine.state },
-        workspaceSource.filterNotNull().flatMapLatest { it.viewStyle.filterNotNull() },
-        searchQueryFlow,
-        dialogStateFlow,
-    ) { workspaceState, appsState, viewStyle, searchQuery, dialogState ->
-        // Calculate available actions based on selection state
-        val actions = if (appsState.selectedAppIds.isNotEmpty()) {
-            val selectedApps = appsState.filteredApps.filter { it.packageName in appsState.selectedAppIds }
-            buildList {
-                // Open in Tab - primary action for selections
-                add(AppsAction.OpenInTab(selectedApps))
-
-                // Select All
-                if (appsState.selectedAppIds.size != appsState.filteredApps.size && appsState.filteredApps.isNotEmpty()) {
-                    add(AppsAction.SelectAll)
-                }
-
-                // Disable/Enable/ClearCache/ClearData only if elevated access (root/Shizuku) is available
-                if (workspaceState.hasElevatedAccess) {
-                    // Disable (only if all selected apps are enabled)
-                    val disableAction = AppsAction.Disable(selectedApps)
-                    if (disableAction.isVisible) {
-                        add(disableAction)
-                    }
-
-                    // Enable (only if any selected apps are disabled)
-                    val enableAction = AppsAction.Enable(selectedApps)
-                    if (enableAction.isVisible) {
-                        add(enableAction)
-                    }
-
-                    // Clear Cache
-                    add(AppsAction.ClearCache(selectedApps))
-
-                    // Clear Data
-                    add(AppsAction.ClearData(selectedApps))
-                }
-
-                // Uninstall
-                add(AppsAction.Uninstall(selectedApps))
-
-                // Export APK
-                add(AppsAction.ExportApk(selectedApps))
-
-                // Share (only if reasonable number)
-                val shareAction = AppsAction.Share(selectedApps)
-                if (shareAction.isVisible) {
-                    add(shareAction)
-                }
-            }
-        } else {
-            buildList {
-                add(AppsAction.Refresh)
-                add(AppsAction.Sort)
-                add(AppsAction.Filter)
-                // View style toggle - shows the CURRENT style, clicking switches to the other
-                val toggledViewStyle = when (viewStyle) {
-                    is AppsViewStyle.List -> AppsViewStyle.Grid()
-                    is AppsViewStyle.Grid -> AppsViewStyle.List()
-                }
-                add(AppsAction.UpdateViewStyle(toggledViewStyle))
-            }
-        }
-
-        State(
-            appsState = appsState,
-            searchQuery = searchQuery,
-            viewStyle = viewStyle,
-            isLoading = appsState.isLoading,
-            dialogState = dialogState,
-            availableActions = actions,
-        )
-    }
-
-    fun onAppClick(item: AppItem) = launch {
-        log(tag) { "onAppClick(${item.packageName})" }
-        if (state.first().isMultiSelectMode) {
-            toggleAppSelection(item.packageName)
-        } else {
-            launchApp(item.pkg.id)
+        data class Ready(
+            val apps: List<AppItem> = emptyList(),
+            val searchQuery: TextFieldValue = TextFieldValue(""),
+            val viewStyle: AppsViewStyle = AppsViewStyle.default(),
+            val filterConfig: TagFilterConfig = TagFilterConfig(),
+            val sortSettings: SortSettings = SortSettings(),
+            val selectedAppIds: Set<String> = emptySet(),
+            val hasElevatedAccess: Boolean = false,
+            val isLoading: Boolean = true,
+            val error: Throwable? = null,
+            val dialogState: AppsDialogState = AppsDialogState.None,
+            val availableActions: List<AppsActionBarItem> = emptyList(),
+        ) : State {
+            val isMultiSelectMode: Boolean get() = selectedAppIds.isNotEmpty()
+            val selectionCount: Int get() = selectedAppIds.size
+            val selectedApps: List<AppItem> get() = apps.filter { it.packageName in selectedAppIds }
+            val userAppsCount: Int get() = apps.count { !it.isSystemApp }
+            val systemAppsCount: Int get() = apps.count { it.isSystemApp }
         }
     }
 
-    fun onAppLongClick(item: AppItem) = launch {
+    val state: Flow<State> = workspaceSource.flatMapLatest { ws ->
+        if (ws == null) {
+            flowOf(State.Initializing)
+        } else {
+            workspaceState.flatMapLatest { wsState ->
+                when (wsState) {
+                    null, is AppsWorkspace.State.Initializing -> flowOf(State.Initializing)
+                    is AppsWorkspace.State.Error -> flowOf(State.Error(wsState.error))
+                    is AppsWorkspace.State.Ready -> combine(
+                        flowOf(wsState),
+                        searchQueryFlow,
+                        dialogStateFlow,
+                    ) { readyState, searchQuery, dialogState ->
+                        val actions = buildAvailableActions(readyState)
+                        State.Ready(
+                            apps = readyState.filteredApps,
+                            searchQuery = searchQuery,
+                            viewStyle = readyState.viewStyle,
+                            filterConfig = readyState.filterConfig,
+                            sortSettings = readyState.sortSettings,
+                            selectedAppIds = readyState.selectedAppIds,
+                            hasElevatedAccess = readyState.hasElevatedAccess,
+                            isLoading = readyState.isLoading,
+                            error = readyState.error,
+                            dialogState = dialogState,
+                            availableActions = actions,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun buildAvailableActions(wsState: AppsWorkspace.State.Ready): List<AppsActionBarItem> {
+        return if (wsState.selectedAppIds.isNotEmpty()) {
+            buildSelectionActions(wsState)
+        } else {
+            buildDefaultActions(wsState)
+        }
+    }
+
+    private fun buildSelectionActions(wsState: AppsWorkspace.State.Ready): List<AppsActionBarItem> {
+        val selectedApps = wsState.filteredApps.filter { it.packageName in wsState.selectedAppIds }
+        return buildList {
+            add(AppsActionBarItem.OpenInTab(selectedApps))
+
+            if (wsState.selectedAppIds.size != wsState.filteredApps.size && wsState.filteredApps.isNotEmpty()) {
+                add(AppsActionBarItem.SelectAll)
+            }
+
+            if (wsState.hasElevatedAccess) {
+                val disableAction = AppsActionBarItem.Disable(selectedApps)
+                if (disableAction.isVisible) add(disableAction)
+
+                val enableAction = AppsActionBarItem.Enable(selectedApps)
+                if (enableAction.isVisible) add(enableAction)
+
+                add(AppsActionBarItem.ClearCache(selectedApps))
+                add(AppsActionBarItem.ClearData(selectedApps))
+            }
+
+            add(AppsActionBarItem.Uninstall(selectedApps))
+            add(AppsActionBarItem.ExportApk(selectedApps))
+
+            val shareAction = AppsActionBarItem.Share(selectedApps)
+            if (shareAction.isVisible) add(shareAction)
+        }
+    }
+
+    private fun buildDefaultActions(wsState: AppsWorkspace.State.Ready): List<AppsActionBarItem> {
+        return buildList {
+            add(AppsActionBarItem.Refresh)
+            add(AppsActionBarItem.Sort)
+            add(AppsActionBarItem.Filter)
+
+            val toggledViewStyle = when (wsState.viewStyle) {
+                is AppsViewStyle.List -> AppsViewStyle.Grid()
+                is AppsViewStyle.Grid -> AppsViewStyle.List()
+            }
+            add(AppsActionBarItem.UpdateViewStyle(toggledViewStyle))
+        }
+    }
+
+    private fun onAppLongClick(item: AppItem) = launch {
         log(tag) { "onAppLongClick(${item.packageName})" }
         toggleAppSelection(item.packageName)
     }
 
     private suspend fun toggleAppSelection(packageName: String) {
         val workspace = getWorkspace()
-        val currentState = workspace.appsEngine.state.first()
-        val isSelected = packageName in currentState.selectedAppIds
-        workspace.appsEngine.selectApp(packageName, !isSelected)
+        val readyState = workspaceReadyState.filterNotNull().first()
+        val isSelected = packageName in readyState.selectedAppIds
+        workspace.selectApp(packageName, !isSelected)
     }
 
     fun onSearchQueryChanged(query: TextFieldValue) = launch {
         log(tag, DEBUG) { "Search query changed: ${query.text}" }
         searchQueryFlow.value = query
-        getWorkspace().appsEngine.updateSearchQuery(query.text)
+        getWorkspace().updateSearchQuery(query.text)
     }
 
     fun onFilterChanged(filterConfig: TagFilterConfig) = launch {
         log(tag) { "Filter changed: $filterConfig" }
-        getWorkspace().appsEngine.updateFilterConfig(filterConfig)
+        getWorkspace().updateFilterConfig(filterConfig)
         appsSettings.defaultFilterConfig.value(filterConfig)
     }
 
     fun onSortSettingsChanged(sortSettings: SortSettings) = launch {
         log(tag) { "Sort settings changed: $sortSettings" }
-        getWorkspace().appsEngine.updateSortSettings(sortSettings)
+        getWorkspace().updateSortSettings(sortSettings)
         appsSettings.defaultSortSettings.value(sortSettings)
     }
 
     fun onClearSelection() = launch {
         log(tag) { "Clearing selection" }
-        getWorkspace().appsEngine.clearSelection()
+        getWorkspace().clearSelection()
     }
 
     fun onSelectAll() = launch {
         log(tag) { "Selecting all" }
-        getWorkspace().appsEngine.selectAll()
+        getWorkspace().selectAll()
     }
 
     fun onRefresh() = launch {
         log(tag) { "Refreshing apps" }
-        getWorkspace().appsEngine.refresh()
+        getWorkspace().refresh()
     }
 
     private suspend fun launchApp(pkgId: Pkg.Id) {
@@ -273,22 +272,20 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             type = Workspace.Type.APP_DETAILS,
             arguments = AppDetailsArguments(
                 packageName = app.packageName,
-                callerWorkspaceId = null,  // No caller = opens as tab
+                callerWorkspaceId = null,
             )
         )
     }
 
     fun showFilterDialog() = launch {
         log(tag) { "Showing filter dialog" }
-        val currentState = state.first()
+        val currentState = getReadyState()
 
-        // Build available tags from standard tags + user profile tags from the app list
         val userProfileTags = currentState.apps
             .filter { it.userProfile.handle.handleId != 0 }
             .map { AppTag.User(it.userProfile.handle.handleId, it.userProfile.label) }
             .distinctBy { it.handleId }
 
-        // Defensive: filter out any potential nulls that might sneak in through R8/reflection
         @Suppress("USELESS_CAST")
         val availableTags = (AppTag.standardTags + userProfileTags)
             .filterNotNull()
@@ -301,7 +298,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
     fun showSortDialog() = launch {
         log(tag) { "Showing sort dialog" }
-        val currentState = state.first()
+        val currentState = getReadyState()
         dialogStateFlow.value = AppsDialogState.SortOptions(currentState.sortSettings)
     }
 
@@ -322,53 +319,119 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().disableApps(apps)
     }
 
-    fun onAction(action: AppsAction) {
-        log(tag) { "Executing action: ${action.javaClass.simpleName}" }
+    fun shareWorkspaceError() = launch {
+        log(tag) { "Sharing workspace error" }
+        val errorState = state.first() as? State.Error ?: return@launch
+        val shareText = errorState.error.stackTraceToString()
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(
+            Intent.createChooser(intent, null).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        )
+    }
+
+    fun closeWorkspace() = launch {
+        log(tag) { "Closing workspace" }
+        workspaceRemote.execute(WorkspaceAction.Close(id))
+    }
+
+    /**
+     * Unified handler for all page-level actions.
+     * Dispatches to appropriate methods based on action type.
+     */
+    fun onPageAction(action: AppsPageAction) {
+        log(tag, INFO) { "onPageAction(): $action" }
 
         when (action) {
-            is AppsAction.SelectAll -> onSelectAll()
-            is AppsAction.DeselectAll -> onClearSelection()
-            is AppsAction.Refresh -> onRefresh()
-            is AppsAction.Sort -> showSortDialog()
-            is AppsAction.Filter -> showFilterDialog()
+            // Workspace lifecycle
+            is AppsPageAction.Workspace.ShareError -> shareWorkspaceError()
+            is AppsPageAction.Workspace.Close -> closeWorkspace()
 
-            is AppsAction.Launch -> launch {
+            // Search
+            is AppsPageAction.Search.UpdateQuery -> onSearchQueryChanged(action.query)
+
+            // App interactions
+            is AppsPageAction.Apps.Refresh -> onRefresh()
+            is AppsPageAction.Apps.Click -> handleAppClick(action.app)
+            is AppsPageAction.Apps.LongClick -> onAppLongClick(action.app)
+
+            // Selection
+            is AppsPageAction.Selection.Clear -> onClearSelection()
+
+            // Dialog
+            is AppsPageAction.Dialog.Dismiss -> dismissDialog()
+            is AppsPageAction.Dialog.ApplyFilter -> onFilterChanged(action.config)
+            is AppsPageAction.Dialog.ApplySort -> onSortSettingsChanged(action.settings)
+            is AppsPageAction.Dialog.ConfirmEnable -> performEnableApps(action.apps)
+            is AppsPageAction.Dialog.ConfirmDisable -> performDisableApps(action.apps)
+
+            // Action bar clicks
+            is AppsPageAction.ActionBarClick -> onActionBarClick(action.item)
+        }
+    }
+
+    /**
+     * Handles app click with conditional logic (multi-select mode check).
+     */
+    private fun handleAppClick(app: AppItem) = launch {
+        log(tag) { "handleAppClick(${app.packageName})" }
+        val currentState = getReadyState()
+        if (currentState.isMultiSelectMode) {
+            toggleAppSelection(app.packageName)
+        } else {
+            showAppDetails(app)
+        }
+    }
+
+    private fun onActionBarClick(action: AppsActionBarItem) {
+        log(tag) { "onActionBarClick: ${action.javaClass.simpleName}" }
+
+        when (action) {
+            is AppsActionBarItem.SelectAll -> onSelectAll()
+            is AppsActionBarItem.DeselectAll -> onClearSelection()
+            is AppsActionBarItem.Refresh -> onRefresh()
+            is AppsActionBarItem.Sort -> showSortDialog()
+            is AppsActionBarItem.Filter -> showFilterDialog()
+
+            is AppsActionBarItem.Launch -> launch {
                 launchApp(action.app.pkg.id)
             }
 
-            is AppsAction.OpenInfo -> {
+            is AppsActionBarItem.OpenInfo -> {
                 openAppInfo(action.app.pkg.id)
             }
 
-            is AppsAction.Disable -> launch {
+            is AppsActionBarItem.Disable -> launch {
                 log(tag) { "Disable action for ${action.apps.size} apps" }
                 dialogStateFlow.value = AppsDialogState.ConfirmDisable(action.apps)
             }
 
-            is AppsAction.Enable -> launch {
+            is AppsActionBarItem.Enable -> launch {
                 log(tag) { "Enable action for ${action.apps.size} apps" }
                 dialogStateFlow.value = AppsDialogState.ConfirmEnable(action.apps)
             }
 
-            is AppsAction.Uninstall -> launch {
+            is AppsActionBarItem.Uninstall -> launch {
                 log(tag) { "Uninstall action for ${action.apps.size} apps" }
                 dialogStateFlow.value = AppsDialogState.ConfirmUninstall(action.apps)
-                // TODO: Implement actual uninstall operation
             }
 
-            is AppsAction.ClearCache -> launch {
+            is AppsActionBarItem.ClearCache -> launch {
                 log(tag) { "Clear cache action for ${action.apps.size} apps" }
                 dialogStateFlow.value = AppsDialogState.ConfirmClearCache(action.apps)
-                // TODO: Implement actual clear cache operation
             }
 
-            is AppsAction.ClearData -> launch {
+            is AppsActionBarItem.ClearData -> launch {
                 log(tag) { "Clear data action for ${action.apps.size} apps" }
                 dialogStateFlow.value = AppsDialogState.ConfirmClearData(action.apps)
-                // TODO: Implement actual clear data operation
             }
 
-            is AppsAction.ExportApk -> launch {
+            is AppsActionBarItem.ExportApk -> launch {
                 log(tag) { "Export APK action for ${action.apps.size} apps" }
                 val apkUris = action.apps.mapNotNull { app ->
                     (app.pkg as? SourceAvailable)?.sourceDir?.path?.let { "file://$it" }
@@ -381,14 +444,13 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                             callerPackage = null,
                         ),
                     )
-                    // Clear selection after initiating export
-                    getWorkspace().appsEngine.clearSelection()
+                    getWorkspace().clearSelection()
                 } else {
                     log(tag, WARN) { "No APK source paths available for export" }
                 }
             }
 
-            is AppsAction.Share -> launch {
+            is AppsActionBarItem.Share -> launch {
                 log(tag) { "Share action for ${action.apps.size} apps" }
                 val shareText = action.apps.joinToString("\n\n") { app ->
                     buildString {
@@ -419,19 +481,18 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                     }
                 )
 
-                getWorkspace().appsEngine.clearSelection()
+                getWorkspace().clearSelection()
             }
 
-            is AppsAction.OpenInTab -> launch {
+            is AppsActionBarItem.OpenInTab -> launch {
                 log(tag) { "Opening ${action.apps.size} apps in tabs" }
                 action.apps.forEach { app ->
                     openAppDetailsInTab(app)
                 }
-                // Clear selection after opening
-                getWorkspace().appsEngine.clearSelection()
+                getWorkspace().clearSelection()
             }
 
-            is AppsAction.BrowsePath -> launch {
+            is AppsActionBarItem.BrowsePath -> launch {
                 log(tag) { "Browse path action for ${action.app.packageName}: ${action.path}" }
                 workspaceRemote.createAndFocus(
                     type = Workspace.Type.EXPLORER,
@@ -439,7 +500,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
                 )
             }
 
-            is AppsAction.UpdateViewStyle -> launch {
+            is AppsActionBarItem.UpdateViewStyle -> launch {
                 getWorkspace().updateViewStyle(action.viewStyle)
                 appsSettings.defaultViewStyle.value(action.viewStyle)
             }

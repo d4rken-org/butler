@@ -7,31 +7,32 @@ import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.arguments.AppsArguments
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsEngine
-import eu.darken.butler.apps.core.engine.AppsState
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -51,37 +52,65 @@ class AppsWorkspace @AssistedInject constructor(
 
     private val tag = logTag("Apps", "Workspace", id.shortTag)
 
-    private val scope = CoroutineScope(dispatcherProvider.IO + CoroutineName(tag))
+    private val scope = CoroutineScope(
+        dispatcherProvider.IO + CoroutineName(tag) + CoroutineExceptionHandler { _, throwable ->
+            log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
+            _state.value = State.Error(throwable)
+        }
+    )
 
-    val appsEngine = appsEngineFactory.create(id, scope)
+    private val appsEngine = appsEngineFactory.create(id, scope)
 
     private val _viewStyle = MutableStateFlow<AppsViewStyle?>(null)
-    val viewStyle: StateFlow<AppsViewStyle?> = _viewStyle.asStateFlow()
-
-    fun updateViewStyle(style: AppsViewStyle) {
-        _viewStyle.value = style
-    }
 
     override val type: Workspace.Type = Workspace.Type.APPS
 
+    private val _state = MutableStateFlow<State>(State.Initializing)
+    val state: Flow<State> = _state.asStateFlow()
+
+    sealed interface State {
+        data object Initializing : State
+
+        data class Ready(
+            val apps: List<AppItem> = emptyList(),
+            val filteredApps: List<AppItem> = emptyList(),
+            val filterConfig: TagFilterConfig = TagFilterConfig(),
+            val sortSettings: SortSettings = SortSettings(),
+            val searchQuery: String = "",
+            val viewStyle: AppsViewStyle = AppsViewStyle.default(),
+            val selectedAppIds: Set<String> = emptySet(),
+            val hasElevatedAccess: Boolean = false,
+            val isLoading: Boolean = false,
+            val error: Throwable? = null,
+        ) : State {
+            val isMultiSelectMode: Boolean get() = selectedAppIds.isNotEmpty()
+            val selectionCount: Int get() = selectedAppIds.size
+            val selectedApps: List<AppItem> get() = filteredApps.filter { it.packageName in selectedAppIds }
+        }
+
+        data class Error(val error: Throwable) : State
+    }
+
+    private inline fun updateReady(block: State.Ready.() -> State.Ready) {
+        _state.update {
+            when (it) {
+                is State.Initializing -> it
+                is State.Ready -> it.block()
+                is State.Error -> it
+            }
+        }
+    }
+
     override suspend fun createArguments(): AppsArguments {
-        val engineState = appsEngine.state.first()
+        val currentState = _state.value as? State.Ready
         return AppsArguments.Default(
-            filterConfig = engineState.filterConfig,
-            sortSettings = engineState.sortSettings,
-            viewStyle = _viewStyle.value ?: AppsViewStyle.default(),
+            filterConfig = currentState?.filterConfig ?: TagFilterConfig(),
+            sortSettings = currentState?.sortSettings ?: SortSettings(),
+            viewStyle = currentState?.viewStyle ?: AppsViewStyle.default(),
         )
     }
 
-    private val _state = DynamicStateFlow<State>(parentScope = scope) { State() }
-    val state: Flow<State> = _state.flow
-
-    data class State(
-        val appsState: AppsState = AppsState(),
-        val hasElevatedAccess: Boolean = false,
-    )
-
-    override val info: Flow<Workspace.Info> = _state.flow.map { state ->
+    override val info: Flow<Workspace.Info> = _state.map { state ->
         Workspace.Info(
             id = id,
             type = type,
@@ -99,12 +128,11 @@ class AppsWorkspace @AssistedInject constructor(
     init {
         log(tag, INFO) { "AppsWorkspace initialized: $id" }
 
-        // Load initial filter/sort/view settings from arguments or fall back to global defaults
+        // Load initial settings and transition to Ready state
         scope.launch {
             try {
                 val args = creationArguments as? AppsArguments.Default
 
-                // Use arguments if provided, otherwise fall back to global defaults
                 val filterConfig = args?.filterConfig ?: appsSettings.defaultFilterConfig.value()
                 val sortSettings = args?.sortSettings ?: appsSettings.defaultSortSettings.value()
                 val viewStyle = args?.viewStyle ?: appsSettings.defaultViewStyle.value()
@@ -114,8 +142,18 @@ class AppsWorkspace @AssistedInject constructor(
                 appsEngine.updateFilterConfig(filterConfig)
                 appsEngine.updateSortSettings(sortSettings)
                 _viewStyle.value = viewStyle
+
+                // Transition to Ready state
+                _state.value = State.Ready(
+                    filterConfig = filterConfig,
+                    sortSettings = sortSettings,
+                    viewStyle = viewStyle,
+                    isLoading = true,
+                )
             } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to load settings: $e" }
+                log(tag, ERROR) { "Failed to initialize: ${e.asLog()}" }
+                Bugs.report(e)
+                _state.value = State.Error(e)
             }
         }
 
@@ -124,14 +162,56 @@ class AppsWorkspace @AssistedInject constructor(
             appsEngine.state,
             rootManager.useRoot,
             adbManager.useAdb,
-        ) { engineState, hasRoot, hasAdb ->
-            _state.updateBlocking {
+            _viewStyle,
+        ) { engineState, hasRoot, hasAdb, viewStyle ->
+            updateReady {
                 copy(
-                    appsState = engineState,
+                    apps = engineState.apps,
+                    filteredApps = engineState.filteredApps,
+                    filterConfig = engineState.filterConfig,
+                    sortSettings = engineState.sortSettings,
+                    searchQuery = engineState.searchQuery,
+                    viewStyle = viewStyle ?: this.viewStyle,
+                    selectedAppIds = engineState.selectedAppIds,
                     hasElevatedAccess = hasRoot || hasAdb,
+                    isLoading = engineState.isLoading,
+                    error = engineState.error,
                 )
             }
         }.launchIn(scope)
+    }
+
+    // Delegate methods for engine operations
+    suspend fun updateFilterConfig(config: TagFilterConfig) {
+        appsEngine.updateFilterConfig(config)
+    }
+
+    suspend fun updateSortSettings(settings: SortSettings) {
+        appsEngine.updateSortSettings(settings)
+    }
+
+    suspend fun updateSearchQuery(query: String) {
+        appsEngine.updateSearchQuery(query)
+    }
+
+    fun updateViewStyle(style: AppsViewStyle) {
+        _viewStyle.value = style
+    }
+
+    suspend fun selectApp(packageName: String, selected: Boolean) {
+        appsEngine.selectApp(packageName, selected)
+    }
+
+    suspend fun clearSelection() {
+        appsEngine.clearSelection()
+    }
+
+    suspend fun selectAll() {
+        appsEngine.selectAll()
+    }
+
+    suspend fun refresh() {
+        appsEngine.refresh()
     }
 
     suspend fun enableApps(apps: List<AppItem>) {

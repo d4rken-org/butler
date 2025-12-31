@@ -39,7 +39,7 @@ import coil3.compose.AsyncImage
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.engine.AppItem
-import eu.darken.butler.apps.ui.apps.AppsAction
+import eu.darken.butler.apps.ui.apps.AppsActionBarItem
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
@@ -48,7 +48,7 @@ fun AppDetailsDialog(
     app: AppItem,
     availablePaths: List<AppPath>,
     onDismiss: () -> Unit,
-    onAction: (AppsAction) -> Unit,
+    onAction: (AppsActionBarItem) -> Unit,
     modifier: Modifier = Modifier,
     bottomInset: Dp = 0.dp,
 ) {
@@ -72,7 +72,7 @@ fun AppDetailsDialog(
 private fun AppDetailsContent(
     app: AppItem,
     availablePaths: List<AppPath>,
-    onAction: (AppsAction) -> Unit,
+    onAction: (AppsActionBarItem) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -205,7 +205,7 @@ private fun AppDetailsContent(
                 availablePaths.forEach { appPath ->
                     FilledTonalButton(
                         onClick = {
-                            onAction(AppsAction.BrowsePath(app, appPath.path))
+                            onAction(AppsActionBarItem.BrowsePath(app, appPath.path))
                             onDismiss()
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -252,7 +252,7 @@ private fun AppDetailsContent(
             // Launch
             FilledTonalButton(
                 onClick = {
-                    onAction(AppsAction.Launch(app))
+                    onAction(AppsActionBarItem.Launch(app))
                     onDismiss()
                 }
             ) {
@@ -268,7 +268,7 @@ private fun AppDetailsContent(
             // App Info
             FilledTonalButton(
                 onClick = {
-                    onAction(AppsAction.OpenInfo(app))
+                    onAction(AppsActionBarItem.OpenInfo(app))
                     onDismiss()
                 }
             ) {
@@ -285,7 +285,7 @@ private fun AppDetailsContent(
             if (app.isEnabled) {
                 FilledTonalButton(
                     onClick = {
-                        onAction(AppsAction.Disable(listOf(app)))
+                        onAction(AppsActionBarItem.Disable(listOf(app)))
                         onDismiss()
                     }
                 ) {
@@ -300,7 +300,7 @@ private fun AppDetailsContent(
             } else {
                 FilledTonalButton(
                     onClick = {
-                        onAction(AppsAction.Enable(listOf(app)))
+                        onAction(AppsActionBarItem.Enable(listOf(app)))
                         onDismiss()
                     }
                 ) {
@@ -317,7 +317,7 @@ private fun AppDetailsContent(
             // Uninstall
             FilledTonalButton(
                 onClick = {
-                    onAction(AppsAction.Uninstall(listOf(app)))
+                    onAction(AppsActionBarItem.Uninstall(listOf(app)))
                     onDismiss()
                 }
             ) {
@@ -333,7 +333,7 @@ private fun AppDetailsContent(
             // Export APK
             FilledTonalButton(
                 onClick = {
-                    onAction(AppsAction.ExportApk(listOf(app)))
+                    onAction(AppsActionBarItem.ExportApk(listOf(app)))
                     onDismiss()
                 }
             ) {
@@ -349,7 +349,7 @@ private fun AppDetailsContent(
             // Share
             FilledTonalButton(
                 onClick = {
-                    onAction(AppsAction.Share(listOf(app)))
+                    onAction(AppsActionBarItem.Share(listOf(app)))
                     onDismiss()
                 }
             ) {
