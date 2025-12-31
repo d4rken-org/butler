@@ -2,7 +2,6 @@ package eu.darken.butler.editor.ui.editor.text
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
@@ -571,21 +570,11 @@ private fun DualColumnEditorContent(
                     .horizontalScroll(horizontalScrollState)
             }
 
-            val focusBorderModifier = if (isFocused) {
-                Modifier.border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                )
-            } else {
-                Modifier
-            }
-
             LazyColumn(
                 state = contentListState,
                 contentPadding = contentPadding,
                 modifier = modifier
                     .then(contentModifier)
-                    .then(focusBorderModifier)
                     .pointerInput(isWorkspaceFocused, requestWorkspaceFocus, keyboardController) {
                         detectTapGestures(
                             onTap = { offset ->
