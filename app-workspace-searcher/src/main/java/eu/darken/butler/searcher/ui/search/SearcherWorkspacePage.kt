@@ -50,12 +50,10 @@ import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
-import eu.darken.butler.searcher.ui.search.dialogs.DateConditionEditSheet
+import eu.darken.butler.searcher.ui.search.dialogs.FilterConditionsSheetHost
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
-import eu.darken.butler.searcher.ui.search.dialogs.SizeConditionEditSheet
-import eu.darken.butler.searcher.ui.search.dialogs.TypeConditionEditSheet
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
 import eu.darken.butler.searcher.ui.search.elements.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.elements.SearchResultItemDetails
@@ -795,50 +793,13 @@ fun SearcherWorkspacePage(
         onSortOptionsConfirmed = { vm?.onSortOptions(it) },
     )
 
-    // Size condition edit bottom sheet
-    val sizeConditionState = currentState.dialogState as? SearcherDialogState.EditSizeCondition
-    SizeConditionEditSheet(
-        visible = sizeConditionState != null,
-        existingCondition = sizeConditionState?.existing,
+    // Filter condition edit sheets (Size, Date, Type)
+    FilterConditionsSheetHost(
+        dialogState = currentState.dialogState,
         onDismiss = { vm?.dismissDialog() },
-        onApply = { newCondition ->
-            // Remove existing condition if editing, then add new one
-            sizeConditionState?.existing?.let {
-                onPageAction(SearcherPageAction.Filter.RemoveCondition(it))
-            }
-            onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
-        },
-        bottomInset = navBarInset,
-    )
-
-    // Date condition edit bottom sheet
-    val dateConditionState = currentState.dialogState as? SearcherDialogState.EditDateCondition
-    DateConditionEditSheet(
-        visible = dateConditionState != null,
-        existingCondition = dateConditionState?.existing,
-        onDismiss = { vm?.dismissDialog() },
-        onApply = { newCondition ->
-            // Remove existing condition if editing, then add new one
-            dateConditionState?.existing?.let {
-                onPageAction(SearcherPageAction.Filter.RemoveCondition(it))
-            }
-            onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
-        },
-        bottomInset = navBarInset,
-    )
-
-    // Type condition edit bottom sheet
-    val typeConditionState = currentState.dialogState as? SearcherDialogState.EditTypeCondition
-    TypeConditionEditSheet(
-        visible = typeConditionState != null,
-        existingCondition = typeConditionState?.existing,
-        onDismiss = { vm?.dismissDialog() },
-        onApply = { newCondition ->
-            // Remove existing condition if editing, then add new one
-            typeConditionState?.existing?.let {
-                onPageAction(SearcherPageAction.Filter.RemoveCondition(it))
-            }
-            onPageAction(SearcherPageAction.Filter.AddCondition(newCondition))
+        onConditionApply = { existing, new ->
+            existing?.let { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) }
+            onPageAction(SearcherPageAction.Filter.AddCondition(new))
         },
         bottomInset = navBarInset,
     )
