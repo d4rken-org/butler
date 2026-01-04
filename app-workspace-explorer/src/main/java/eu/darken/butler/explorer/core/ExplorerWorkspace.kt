@@ -256,7 +256,6 @@ class ExplorerWorkspace @AssistedInject constructor(
         // Load initial location
         scope.launch {
             log(tag, INFO) { "Loading initial data... ($creationArguments)" }
-
             // Transition to Ready state before processing navigation
             _state.value = State.Ready()
             try {

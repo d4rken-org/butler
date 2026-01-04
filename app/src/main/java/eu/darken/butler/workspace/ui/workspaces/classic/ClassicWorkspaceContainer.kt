@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.workspaces.classic
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +11,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -259,79 +259,77 @@ internal fun ClassicWorkspaceContainer(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = MaterialTheme.colorScheme.background,
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        ) { _ ->
-            if (state.tabWorkspaces.isNotEmpty()) {
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
-                    flingBehavior = flingBehavior,
-                    userScrollEnabled = state.swipeGesturesEnabled,
-                ) { page ->
-                    val paneInfo = state.tabWorkspaces.getOrNull(page)?.asPaneInfo()
-                    val isPlaceholderPage = page >= state.tabWorkspaces.size
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        if (state.tabWorkspaces.isNotEmpty()) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                flingBehavior = flingBehavior,
+                userScrollEnabled = state.swipeGesturesEnabled,
+            ) { page ->
+                val paneInfo = state.tabWorkspaces.getOrNull(page)?.asPaneInfo()
+                val isPlaceholderPage = page >= state.tabWorkspaces.size
 
-                    if (paneInfo == null) {
-                        val isCreating = creationState is PlaceholderCreationState.Creating ||
-                            creationState is PlaceholderCreationState.Triggered
-                        CreatingWorkspacePlaceholder(
-                            isCreating = isPlaceholderPage && isCreating,
-                            onClick = {
-                                if (creationState is PlaceholderCreationState.Visiting ||
-                                    creationState is PlaceholderCreationState.Idle ||
-                                    creationState is PlaceholderCreationState.Blocked
-                                ) {
-                                    log(TAG, INFO) { "Manual click triggered workspace creation" }
-                                    creationState = PlaceholderCreationState.Triggered
-                                    onWorkspaceScreenAction(WorkspaceScreenAction.CreateOnDemand)
-                                }
-                            },
-                        )
-                    } else {
-                        CompositionLocalProvider(
-                            LocalWorkspaceFocused provides (state.focused == paneInfo.id),
-                            LocalWorkspaceFocusRequest provides {
-                                onWorkspaceScreenAction(
-                                    WorkspaceScreenAction.Select(
-                                        paneInfo.id
-                                    )
-                                )
-                            },
-                        ) {
-                            WorkspaceOverlayContainer(
-                                workspaceId = paneInfo.id,
-                                managerDialogStates = managerDialogStates,
-                                onDismissManagerDialog = onDismissManagerDialog,
-                                onConfirmManagerDialog = onConfirmManagerDialog,
-                                bannerStates = bannerStates,
-                                onDismissBanner = onDismissBanner,
+                if (paneInfo == null) {
+                    val isCreating = creationState is PlaceholderCreationState.Creating ||
+                        creationState is PlaceholderCreationState.Triggered
+                    CreatingWorkspacePlaceholder(
+                        isCreating = isPlaceholderPage && isCreating,
+                        onClick = {
+                            if (creationState is PlaceholderCreationState.Visiting ||
+                                creationState is PlaceholderCreationState.Idle ||
+                                creationState is PlaceholderCreationState.Blocked
                             ) {
-                                WorkspaceMapper(
-                                    info = paneInfo,
-                                    design = design,
-                                    onShareError = { error ->
-                                        onShareError(paneInfo.id, error)
-                                    },
-                                    onCloseWorkspace = {
-                                        workspaceActionHandler?.executeWorkspaceAction(
-                                            WorkspaceAction.Close(paneInfo.id)
-                                        )
-                                    },
-                                )
+                                log(TAG, INFO) { "Manual click triggered workspace creation" }
+                                creationState = PlaceholderCreationState.Triggered
+                                onWorkspaceScreenAction(WorkspaceScreenAction.CreateOnDemand)
                             }
+                        },
+                    )
+                } else {
+                    CompositionLocalProvider(
+                        LocalWorkspaceFocused provides (state.focused == paneInfo.id),
+                        LocalWorkspaceFocusRequest provides {
+                            onWorkspaceScreenAction(
+                                WorkspaceScreenAction.Select(
+                                    paneInfo.id
+                                )
+                            )
+                        },
+                    ) {
+                        WorkspaceOverlayContainer(
+                            workspaceId = paneInfo.id,
+                            managerDialogStates = managerDialogStates,
+                            onDismissManagerDialog = onDismissManagerDialog,
+                            onConfirmManagerDialog = onConfirmManagerDialog,
+                            bannerStates = bannerStates,
+                            onDismissBanner = onDismissBanner,
+                        ) {
+                            WorkspaceMapper(
+                                info = paneInfo,
+                                design = design,
+                                onShareError = { error ->
+                                    onShareError(paneInfo.id, error)
+                                },
+                                onCloseWorkspace = {
+                                    workspaceActionHandler?.executeWorkspaceAction(
+                                        WorkspaceAction.Close(paneInfo.id)
+                                    )
+                                },
+                            )
                         }
                     }
                 }
-            } else {
-                EmptyClassicWorkspaceContent(
-                    modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
-                    isUpgraded = state.isUpgraded,
-                )
             }
+        } else {
+            EmptyClassicWorkspaceContent(
+                modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
+                isUpgraded = state.isUpgraded,
+            )
         }
 
         // Position indicator overlay

@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -41,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -71,20 +70,21 @@ fun WorkspaceErrorContent(
 ) {
     var showTechnicalDetails by remember { mutableStateOf(false) }
 
-    val insets = when {
-        design.paneEdges.touchesTop && design.paneEdges.touchesBottom -> WindowInsets.systemBars
-        design.paneEdges.touchesTop -> WindowInsets.statusBars
-        design.paneEdges.touchesBottom -> WindowInsets.navigationBars
-        else -> WindowInsets(0, 0, 0, 0)
-    }
+    // Compute stable Dp values to prevent UI jumping when WindowInsets update asynchronously
+    val density = LocalDensity.current
+    val statusBarInset = if (design.paneEdges.touchesTop) {
+        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    } else 0.dp
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .windowInsetsPadding(insets)
-                .padding(32.dp),
+                .padding(top = statusBarInset + 32.dp, bottom = navBarInset + 32.dp, start = 32.dp, end = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
         ) {
@@ -243,8 +243,7 @@ fun WorkspaceErrorContent(
             WorkspaceButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .windowInsetsPadding(insets)
-                    .padding(top = 32.dp, end = 32.dp),
+                    .padding(top = statusBarInset + 24.dp, end = 24.dp),
                 currentWorkspaceId = currentWorkspaceId,
             )
         }
