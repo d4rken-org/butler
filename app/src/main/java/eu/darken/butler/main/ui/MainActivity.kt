@@ -90,8 +90,9 @@ class MainActivity : Activity2() {
             // Prime WindowInsets listener before first layout to prevent UI jumping.
             // Without this, nested composables get 0 insets on first composition.
             // See: https://github.com/google/accompanist/issues/155
-            WindowInsets.safeDrawing.let {
-                log(TAG) { "WindowInsets primed: $it" }
+            val primedInsets = WindowInsets.safeDrawing
+            LaunchedEffect(Unit) {
+                log(TAG) { "WindowInsets primed: $primedInsets" }
             }
 
 
@@ -102,7 +103,9 @@ class MainActivity : Activity2() {
                 vm.state.collect { value = it }
             }
             themeState?.let { themeState ->
-                log(TAG) { "Theme state: $themeState" }
+                LaunchedEffect(themeState) {
+                    log(TAG) { "Theme state: $themeState" }
+                }
                 MyAppTheme(state = themeState) {
                     // Set window background to match the current theme
                     val backgroundColor = MaterialTheme.colorScheme.background
@@ -115,7 +118,9 @@ class MainActivity : Activity2() {
                         NavigationEventHandler(vm)
 
                         vmState?.let { mainState ->
-                            log(TAG) { "Main state: $mainState" }
+                            LaunchedEffect(mainState) {
+                                log(TAG) { "Main state: $mainState" }
+                            }
                             Navigation(mainState)
                         }
                     }
