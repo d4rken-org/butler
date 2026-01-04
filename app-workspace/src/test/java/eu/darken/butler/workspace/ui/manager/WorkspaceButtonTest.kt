@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.manager
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onNodeWithText
 import eu.darken.butler.common.compose.ButlerMascotMode
@@ -10,20 +11,23 @@ import testhelpers.ComposeTest
 class WorkspaceButtonTest : ComposeTest() {
 
     // Use static mascot to avoid infinite animation loop in Robolectric
-    private val testMascotVariant = ButlerMascotMode.Static.Normal
+    private val testMascotVariant = ButlerMascotMode.Static.Normal()
 
     @Test
     fun `displays workspace count badge`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceButton(
-                    state = WorkspaceButtonViewModel.State(
-                        workspaceCount = 5,
-                        operationsCount = 0,
-                        attentionCount = 0,
-                    ),
-                    mascotVariant = testMascotVariant,
-                )
+                CompositionLocalProvider(
+                    LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                        WorkspaceButtonViewModel.State(
+                            workspaceCount = 5,
+                            operationsCount = 0,
+                            attentionCount = 0,
+                        )
+                    )
+                ) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
             }
         }
 
@@ -34,14 +38,17 @@ class WorkspaceButtonTest : ComposeTest() {
     fun `displays operations count badge`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceButton(
-                    state = WorkspaceButtonViewModel.State(
-                        workspaceCount = 1,
-                        operationsCount = 3,
-                        attentionCount = 0,
-                    ),
-                    mascotVariant = testMascotVariant,
-                )
+                CompositionLocalProvider(
+                    LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                        WorkspaceButtonViewModel.State(
+                            workspaceCount = 1,
+                            operationsCount = 3,
+                            attentionCount = 0,
+                        )
+                    )
+                ) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
             }
         }
 
@@ -52,14 +59,17 @@ class WorkspaceButtonTest : ComposeTest() {
     fun `displays attention count badge`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceButton(
-                    state = WorkspaceButtonViewModel.State(
-                        workspaceCount = 1,
-                        operationsCount = 0,
-                        attentionCount = 2,
-                    ),
-                    mascotVariant = testMascotVariant,
-                )
+                CompositionLocalProvider(
+                    LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                        WorkspaceButtonViewModel.State(
+                            workspaceCount = 1,
+                            operationsCount = 0,
+                            attentionCount = 2,
+                        )
+                    )
+                ) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
             }
         }
 
@@ -70,14 +80,17 @@ class WorkspaceButtonTest : ComposeTest() {
     fun `workspace count over 9 shows 9+`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceButton(
-                    state = WorkspaceButtonViewModel.State(
-                        workspaceCount = 12,
-                        operationsCount = 0,
-                        attentionCount = 0,
-                    ),
-                    mascotVariant = testMascotVariant,
-                )
+                CompositionLocalProvider(
+                    LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                        WorkspaceButtonViewModel.State(
+                            workspaceCount = 12,
+                            operationsCount = 0,
+                            attentionCount = 0,
+                        )
+                    )
+                ) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
             }
         }
 
@@ -88,14 +101,17 @@ class WorkspaceButtonTest : ComposeTest() {
     fun `operations count over 9 shows 9+`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceButton(
-                    state = WorkspaceButtonViewModel.State(
-                        workspaceCount = 1,
-                        operationsCount = 15,
-                        attentionCount = 0,
-                    ),
-                    mascotVariant = testMascotVariant,
-                )
+                CompositionLocalProvider(
+                    LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                        WorkspaceButtonViewModel.State(
+                            workspaceCount = 1,
+                            operationsCount = 15,
+                            attentionCount = 0,
+                        )
+                    )
+                ) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
             }
         }
 
@@ -106,14 +122,17 @@ class WorkspaceButtonTest : ComposeTest() {
     fun `attention count over 9 shows 9+`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceButton(
-                    state = WorkspaceButtonViewModel.State(
-                        workspaceCount = 1,
-                        operationsCount = 0,
-                        attentionCount = 10,
-                    ),
-                    mascotVariant = testMascotVariant,
-                )
+                CompositionLocalProvider(
+                    LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                        WorkspaceButtonViewModel.State(
+                            workspaceCount = 1,
+                            operationsCount = 0,
+                            attentionCount = 10,
+                        )
+                    )
+                ) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
             }
         }
 
@@ -124,14 +143,17 @@ class WorkspaceButtonTest : ComposeTest() {
     fun `all badges display with correct counts`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceButton(
-                    state = WorkspaceButtonViewModel.State(
-                        workspaceCount = 5,
-                        operationsCount = 7,
-                        attentionCount = 3,
-                    ),
-                    mascotVariant = testMascotVariant,
-                )
+                CompositionLocalProvider(
+                    LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                        WorkspaceButtonViewModel.State(
+                            workspaceCount = 5,
+                            operationsCount = 7,
+                            attentionCount = 3,
+                        )
+                    )
+                ) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
             }
         }
 
@@ -144,14 +166,17 @@ class WorkspaceButtonTest : ComposeTest() {
     fun `zero counts hide badges`() {
         composeTestRule.setContent {
             PreviewWrapper {
-                WorkspaceButton(
-                    state = WorkspaceButtonViewModel.State(
-                        workspaceCount = 0,
-                        operationsCount = 0,
-                        attentionCount = 0,
-                    ),
-                    mascotVariant = testMascotVariant,
-                )
+                CompositionLocalProvider(
+                    LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                        WorkspaceButtonViewModel.State(
+                            workspaceCount = 0,
+                            operationsCount = 0,
+                            attentionCount = 0,
+                        )
+                    )
+                ) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
             }
         }
 

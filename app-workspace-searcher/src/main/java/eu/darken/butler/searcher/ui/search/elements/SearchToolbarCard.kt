@@ -39,14 +39,11 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.ContentQuery
 import eu.darken.butler.searcher.core.FilenameQuery
-import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
@@ -57,8 +54,6 @@ fun SearchToolbarCard(
     design: WorkspaceDesign,
     collapsedFraction: Float = 0f,
     onAction: (SearcherPageAction) -> Unit,
-    workspaceButtonState: WorkspaceButtonViewModel.State? = null,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
@@ -126,8 +121,6 @@ fun SearchToolbarCard(
                     if (design.isSingle) {
                         WorkspaceButton(
                             buttonSize = 32.dp,
-                            state = workspaceButtonState,
-                            workspaceActionHandler = workspaceActionHandler,
                         )
                     }
                 }
@@ -211,44 +204,42 @@ fun SearchToolbarCard(
                         Spacer(modifier = Modifier.width(8.dp))
 
                         WorkspaceButton(
-                            state = workspaceButtonState,
                             currentWorkspaceId = workspaceId,
-                            workspaceActionHandler = workspaceActionHandler,
                         )
                     }
                 }
 
 
-                    Column {
-                        Spacer(
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
+                Column {
+                    Spacer(
+                        modifier = Modifier.padding(vertical = 4.dp),
+                    )
 
-                        FilterChipBar(
-                            filter = state?.currentFilter ?: eu.darken.butler.searcher.core.SearchFilter(),
-                            onConditionClick = { onAction(SearcherPageAction.Filter.EditCondition(it)) },
-                            onAddSizeCondition = { onAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
-                            onAddDateCondition = { onAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
-                            onAddTypeCondition = { onAction(SearcherPageAction.Filter.OpenTypeConditionEditor) },
-                            onRemoveCondition = { onAction(SearcherPageAction.Filter.RemoveCondition(it)) },
-                        )
-                    }
+                    FilterChipBar(
+                        filter = state?.currentFilter ?: eu.darken.butler.searcher.core.SearchFilter(),
+                        onConditionClick = { onAction(SearcherPageAction.Filter.EditCondition(it)) },
+                        onAddSizeCondition = { onAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
+                        onAddDateCondition = { onAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
+                        onAddTypeCondition = { onAction(SearcherPageAction.Filter.OpenTypeConditionEditor) },
+                        onRemoveCondition = { onAction(SearcherPageAction.Filter.RemoveCondition(it)) },
+                    )
+                }
 
 
 
-                    Column {
-                        Spacer(
-                            modifier = Modifier.padding(vertical = 4.dp),
-                        )
+                Column {
+                    Spacer(
+                        modifier = Modifier.padding(vertical = 4.dp),
+                    )
 
-                        MultiPathChipBar(
-                            paths = state?.searchTargets.orEmpty(),
-                            onPathRemove = { onAction(SearcherPageAction.Targets.Remove(it)) },
-                            onPathToggle = { onAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
-                            onAddPathClick = { onAction(SearcherPageAction.Targets.OpenPicker) },
-                            isSearching = state?.isSearching ?: false,
-                        )
-                    }
+                    MultiPathChipBar(
+                        paths = state?.searchTargets.orEmpty(),
+                        onPathRemove = { onAction(SearcherPageAction.Targets.Remove(it)) },
+                        onPathToggle = { onAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
+                        onAddPathClick = { onAction(SearcherPageAction.Targets.OpenPicker) },
+                        isSearching = state?.isSearching ?: false,
+                    )
+                }
 
             }
         }

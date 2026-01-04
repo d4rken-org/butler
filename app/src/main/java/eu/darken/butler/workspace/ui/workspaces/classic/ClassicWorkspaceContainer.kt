@@ -31,8 +31,7 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
@@ -49,8 +48,6 @@ internal fun ClassicWorkspaceContainer(
     state: WorkspacesViewModel.State,
     managerDialogs: List<ManagerDialog> = emptyList(),
     onWorkspaceScreenAction: (WorkspaceScreenAction) -> Unit,
-    workspaceActionHandler: WorkspaceActionHandler?,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit,
@@ -58,6 +55,7 @@ internal fun ClassicWorkspaceContainer(
     onDismissBanner: (Workspace.Id) -> Unit,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
+    val workspaceActionHandler = LocalWorkspaceButtonProvider.current
     val effectivePageCount = if (state.onDemandWorkspaceCreation && state.swipeGesturesEnabled) {
         state.tabWorkspaces.size + 1
     } else {
@@ -323,8 +321,6 @@ internal fun ClassicWorkspaceContainer(
                                             WorkspaceAction.Close(paneInfo.id)
                                         )
                                     },
-                                    workspaceButtonState = workspaceButtonState,
-                                    workspaceActionHandler = workspaceActionHandler,
                                 )
                             }
                         }
@@ -334,7 +330,6 @@ internal fun ClassicWorkspaceContainer(
                 EmptyClassicWorkspaceContent(
                     modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
                     isUpgraded = state.isUpgraded,
-                    workspaceActionHandler = workspaceActionHandler,
                 )
             }
         }

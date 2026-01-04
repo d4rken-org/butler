@@ -6,7 +6,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -25,6 +25,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,13 +55,14 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 @SuppressLint("ModifierParameter")
 fun WorkspaceButton(
     modifier: Modifier = Modifier,
-    state: WorkspaceButtonViewModel.State?,
     containerColor: Color? = null,
     buttonSize: Dp = WORKSPACE_BUTTON_SIZE_DEFAULT,
     currentWorkspaceId: Workspace.Id? = null,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
     mascotVariant: ButlerMascotMode = ButlerMascotMode.Animated.RandomCycling(),
 ) {
+    val provider = LocalWorkspaceButtonProvider.current
+    val state = provider?.state?.collectAsState(initial = null)?.value
+
     var expanded by remember { mutableStateOf(false) }
     var showCloseAllDialog by remember { mutableStateOf(false) }
 
@@ -73,7 +76,7 @@ fun WorkspaceButton(
                 .combinedClickable(
                     onClick = { expanded = true },
                     onLongClick = {
-                        workspaceActionHandler?.navToWorkspaceManager()
+                        provider?.navToWorkspaceManager()
                     }
                 ),
             contentAlignment = Alignment.Center
@@ -95,7 +98,7 @@ fun WorkspaceButton(
                 text = { Text(stringResource(R.string.workspace_button_menu_manager_action)) },
                 onClick = {
                     expanded = false
-                    workspaceActionHandler?.navToWorkspaceManager()
+                    provider?.navToWorkspaceManager()
                 },
                 leadingIcon = {
                     Icon(
@@ -108,7 +111,7 @@ fun WorkspaceButton(
                 text = { Text(stringResource(R.string.workspace_button_menu_settings_action)) },
                 onClick = {
                     expanded = false
-                    workspaceActionHandler?.navToSettings()
+                    provider?.navToSettings()
                 },
                 leadingIcon = {
                     Icon(
@@ -122,7 +125,7 @@ fun WorkspaceButton(
                     text = stringResource(R.string.workspace_button_menu_close_current_action),
                     onClick = {
                         expanded = false
-                        workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Close(currentWorkspaceId))
+                        provider?.executeWorkspaceAction(WorkspaceAction.Close(currentWorkspaceId))
                     },
                     onLongClick = {
                         expanded = false
@@ -145,7 +148,7 @@ fun WorkspaceButton(
             onDismiss = { showCloseAllDialog = false },
             onConfirm = {
                 showCloseAllDialog = false
-                workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.CloseAll)
+                provider?.executeWorkspaceAction(WorkspaceAction.CloseAll)
             }
         )
 
@@ -273,86 +276,90 @@ val WORKSPACE_BUTTON_SIZE_COMPACT = 32.dp
 
 @Preview2
 @Composable
-private fun WorkspaceButtonModifiedPreview() {
+private fun WorkspaceButtonSizesPreview() {
     PreviewWrapper {
-        Box(
-            modifier = Modifier
-                .width(128.dp)
-                .height(128.dp)
-        ) {
-            WorkspaceButton(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 16.dp, end = 16.dp),
-                state = WorkspaceButtonViewModel.State(
-                    workspaceCount = 5,
-                    operationsCount = 7,
+        CompositionLocalProvider(
+            LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                WorkspaceButtonViewModel.State(
+                    workspaceCount = 3,
+                    operationsCount = 2,
                     attentionCount = 1,
-                ),
+                )
             )
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(16.dp),
+            ) {
+                WorkspaceButton(buttonSize = 24.dp)
+                WorkspaceButton(buttonSize = 32.dp)
+                WorkspaceButton(buttonSize = 48.dp)
+                WorkspaceButton(buttonSize = 72.dp)
+            }
         }
     }
 }
 
 @Preview2
 @Composable
-private fun WorkspaceButtonPreview() {
+private fun WorkspaceButtonEmptyBadgesPreview() {
     PreviewWrapper {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(16.dp)
-        ) {
-            WorkspaceButton(
-                buttonSize = 24.dp,
-                state = WorkspaceButtonViewModel.State(
-                    workspaceCount = 5,
-                    operationsCount = 7,
-                    attentionCount = 1,
-                ),
-            )
-
-            WorkspaceButton(
-                buttonSize = 32.dp,
-                state = WorkspaceButtonViewModel.State(
-                    workspaceCount = 5,
-                    operationsCount = 7,
-                    attentionCount = 1,
-                ),
-            )
-
-            WorkspaceButton(
-                state = WorkspaceButtonViewModel.State(
-                    workspaceCount = 1,
+        CompositionLocalProvider(
+            LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                WorkspaceButtonViewModel.State(
+                    workspaceCount = 0,
                     operationsCount = 0,
                     attentionCount = 0,
-                ),
+                )
             )
+        ) {
+            WorkspaceButton(modifier = Modifier.padding(16.dp))
+        }
+    }
+}
 
-            WorkspaceButton(
-                buttonSize = 72.dp,
-                state = WorkspaceButtonViewModel.State(
-                    workspaceCount = 3,
-                    operationsCount = 2,
-                    attentionCount = 0,
-                ),
-                currentWorkspaceId = Workspace.Id(),
-            )
-
-            WorkspaceButton(
-                state = WorkspaceButtonViewModel.State(
-                    workspaceCount = 5,
-                    operationsCount = 7,
-                    attentionCount = 1,
-                ),
-            )
-
-            WorkspaceButton(
-                state = WorkspaceButtonViewModel.State(
+@Preview2
+@Composable
+private fun WorkspaceButtonOverflowBadgesPreview() {
+    PreviewWrapper {
+        CompositionLocalProvider(
+            LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                WorkspaceButtonViewModel.State(
                     workspaceCount = 12,
                     operationsCount = 15,
                     attentionCount = 10,
-                ),
+                )
             )
+        ) {
+            WorkspaceButton(modifier = Modifier.padding(16.dp))
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceButtonPositionedPreview() {
+    PreviewWrapper {
+        CompositionLocalProvider(
+            LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+                WorkspaceButtonViewModel.State(
+                    workspaceCount = 5,
+                    operationsCount = 7,
+                    attentionCount = 1,
+                )
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(128.dp)
+                    .height(128.dp)
+            ) {
+                WorkspaceButton(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 16.dp, end = 16.dp),
+                )
+            }
         }
     }
 }

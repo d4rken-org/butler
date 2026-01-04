@@ -14,9 +14,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.saver.R
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import java.text.DateFormat
 import java.util.Date
 import kotlin.time.Instant
@@ -26,9 +24,7 @@ internal fun SaverHeader(
     modifier: Modifier = Modifier,
     callerLabel: String?,
     createdAt: Instant?,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceId: Workspace.Id,
-    workspaceActionHandler: WorkspaceActionHandler?,
 ) {
     val formattedTime = remember(createdAt) {
         createdAt?.let {
@@ -63,9 +59,7 @@ internal fun SaverHeader(
             }
         }
         WorkspaceButton(
-            state = workspaceButtonState,
             currentWorkspaceId = workspaceId,
-            workspaceActionHandler = workspaceActionHandler,
         )
     }
 }
@@ -77,9 +71,7 @@ private fun SaverHeaderPreview() {
         SaverHeader(
             callerLabel = "Telegram",
             createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-            workspaceButtonState = null,
             workspaceId = Workspace.Id(),
-            workspaceActionHandler = null,
         )
     }
 }
@@ -91,9 +83,7 @@ private fun SaverHeaderNoCallerPreview() {
         SaverHeader(
             callerLabel = null,
             createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-            workspaceButtonState = null,
             workspaceId = Workspace.Id(),
-            workspaceActionHandler = null,
         )
     }
 }
@@ -105,9 +95,7 @@ private fun SaverHeaderUnknownCallerPreview() {
         SaverHeader(
             callerLabel = "?",
             createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-            workspaceButtonState = null,
             workspaceId = Workspace.Id(),
-            workspaceActionHandler = null,
         )
     }
 }

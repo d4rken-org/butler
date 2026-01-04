@@ -27,7 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,12 +62,9 @@ import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.templates.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
-import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun TemplatesWorkspacePageHost(
@@ -78,10 +74,9 @@ fun TemplatesWorkspacePageHost(
         key = id.longTag,
         creationCallback = { factory: TemplatesWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
-    NavigationEventHandler(vm, workspaceButtonVm)
+    NavigationEventHandler(vm)
 
     val state by waitForState(vm.state)
     log(vm.tag) { "Compose state: $state" }
@@ -91,8 +86,6 @@ fun TemplatesWorkspacePageHost(
             workspaceId = id,
             design = design,
             state = state,
-            workspaceStateSource = workspaceButtonVm.state,
-            workspaceActionHandler = workspaceButtonVm,
             onNavToSettings = { vm.navTo(Nav.Main.settings()) },
             onCreateWorkspace = { vm.createWorkspace(it) },
         )
@@ -104,16 +97,13 @@ fun TemplatesWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     state: TemplatesWorkspaceViewModel.State,
-    workspaceStateSource: Flow<WorkspaceButtonViewModel.State?>,
-    workspaceActionHandler: WorkspaceActionHandler?,
     onNavToSettings: () -> Unit,
     onCreateWorkspace: (WorkspaceAction.Create) -> Unit = {},
 ) {
     val randomSlogan = remember { Slogans.random }
-    val workspaceButtonState by workspaceStateSource.collectAsState(null)
 
     // System bar insets for edge-to-edge (based on pane edges)
-    val density = androidx.compose.ui.platform.LocalDensity.current
+    val density = LocalDensity.current
     val statusBarInset = if (design.paneEdges.touchesTop) {
         with(density) { WindowInsets.statusBars.getTop(density).toDp() }
     } else 0.dp
@@ -258,9 +248,7 @@ fun TemplatesWorkspacePage(
                     .align(Alignment.TopEnd)
                     .padding(top = statusBarInset + 16.dp, end = 16.dp),
                 buttonSize = 48.dp,
-                state = workspaceButtonState,
                 currentWorkspaceId = workspaceId,
-                workspaceActionHandler = workspaceActionHandler,
             )
         }
     }
@@ -397,14 +385,6 @@ private fun TemplatesWorkspacePagePreview() {
                 isUpgraded = true,
                 versionDescription = "1.0.0-preview",
             ),
-            workspaceStateSource = kotlinx.coroutines.flow.flowOf(
-                WorkspaceButtonViewModel.State(
-                    workspaceCount = 1,
-                    operationsCount = 0,
-                    attentionCount = 0,
-                )
-            ),
-            workspaceActionHandler = null,
             onNavToSettings = {},
         )
     }

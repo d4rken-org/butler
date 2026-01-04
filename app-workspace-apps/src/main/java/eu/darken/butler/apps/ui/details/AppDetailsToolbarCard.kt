@@ -36,9 +36,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
@@ -50,8 +48,6 @@ fun AppDetailsToolbarCard(
     collapsedFraction: Float = 0f,
     onBackClick: () -> Unit,
     currentWorkspaceId: Workspace.Id? = null,
-    workspaceButtonState: WorkspaceButtonViewModel.State? = null,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     val context = LocalContext.current
     val isCollapsed = collapsedFraction > 0.5f
@@ -141,12 +137,10 @@ fun AppDetailsToolbarCard(
             }
 
             // Workspace button (non-modal mode, single pane)
-            if (!isModal && design.isSingle && workspaceButtonState != null && workspaceActionHandler != null) {
+            if (!isModal && design.isSingle) {
                 WorkspaceButton(
                     buttonSize = 40.dp,
-                    state = workspaceButtonState,
                     currentWorkspaceId = currentWorkspaceId,
-                    workspaceActionHandler = workspaceActionHandler,
                 )
             }
         }
@@ -163,8 +157,6 @@ private fun AppDetailsToolbarCardExpandedPreview() {
             isModal = false,
             collapsedFraction = 0f,
             onBackClick = {},
-            workspaceButtonState = null,
-            workspaceActionHandler = null,
             modifier = Modifier.padding(16.dp)
         )
     }
@@ -180,8 +172,6 @@ private fun AppDetailsToolbarCardCollapsedPreview() {
             isModal = false,
             collapsedFraction = 1f,
             onBackClick = {},
-            workspaceButtonState = null,
-            workspaceActionHandler = null,
             modifier = Modifier.padding(16.dp)
         )
     }
@@ -197,8 +187,6 @@ private fun AppDetailsToolbarCardModalPreview() {
             isModal = true,
             collapsedFraction = 0f,
             onBackClick = {},
-            workspaceButtonState = null,
-            workspaceActionHandler = null,
             modifier = Modifier.padding(16.dp)
         )
     }

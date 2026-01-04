@@ -27,7 +27,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,12 +42,8 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.developer.R
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.*
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun DeveloperWorkspacePageHost(
@@ -56,9 +51,8 @@ fun DeveloperWorkspacePageHost(
     design: WorkspaceDesign,
     vm: DeveloperWorkspaceViewModel = hiltViewModel(
         key = id.longTag,
-        creationCallback = { factory: DeveloperWorkspaceViewModel.Factory -> factory.create(id = id) }
+        creationCallback = { factory: Factory -> factory.create(id = id) }
     ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
 
@@ -70,8 +64,6 @@ fun DeveloperWorkspacePageHost(
             workspaceId = id,
             design = design,
             state = state,
-            workspaceStateSource = workspaceButtonVm.state,
-            workspaceActionHandler = workspaceButtonVm,
             onTabSelected = { vm.selectTab(it) },
             onToggleLogPause = { vm.toggleLogPause() },
             onClearLogs = { vm.clearLogs() },
@@ -93,9 +85,7 @@ fun DeveloperWorkspacePageHost(
 fun DeveloperWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
-    state: DeveloperWorkspaceViewModel.State,
-    workspaceStateSource: Flow<WorkspaceButtonViewModel.State?>,
-    workspaceActionHandler: WorkspaceActionHandler?,
+    state: State,
     onTabSelected: (DeveloperTab) -> Unit = {},
     onToggleLogPause: () -> Unit = {},
     onClearLogs: () -> Unit = {},
@@ -110,8 +100,6 @@ fun DeveloperWorkspacePage(
     onTestShizuku: () -> Unit = {},
     onHideDeveloperMode: () -> Unit = {},
 ) {
-    val workspaceButtonState by workspaceStateSource.collectAsState(null)
-
     Column(modifier = Modifier.fillMaxSize()) {
         // Floating header card with tabs and workspace button
         ElevatedCard(
@@ -156,9 +144,7 @@ fun DeveloperWorkspacePage(
                     Spacer(modifier = Modifier.width(8.dp))
                     WorkspaceButton(
                         buttonSize = 40.dp,
-                        state = workspaceButtonState,
                         currentWorkspaceId = workspaceId,
-                        workspaceActionHandler = workspaceActionHandler,
                     )
                 }
             }
@@ -202,7 +188,7 @@ fun DeveloperWorkspacePage(
 
 @Composable
 private fun OptionsSection(
-    optionsState: DeveloperWorkspaceViewModel.OptionsState,
+    optionsState: OptionsState,
     onToggleDebugMode: (Boolean) -> Unit,
     onToggleTraceMode: (Boolean) -> Unit,
     onTestRoot: () -> Unit,
@@ -449,7 +435,7 @@ private fun Boolean?.toResultString(): String = when (this) {
 }
 
 @Composable
-private fun SystemInfoSection(systemInfo: DeveloperWorkspaceViewModel.SystemInfo) {
+private fun SystemInfoSection(systemInfo: SystemInfo) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -582,8 +568,8 @@ private fun LogsSection(
 
 @Composable
 private fun TestDataSection(
-    storageVolumes: List<DeveloperWorkspaceViewModel.StorageVolumeInfo>,
-    testDataState: DeveloperWorkspaceViewModel.TestDataState,
+    storageVolumes: List<StorageVolumeInfo>,
+    testDataState: TestDataState,
     onVolumeSelected: (Int) -> Unit,
     onLargeFilesToggled: (Boolean) -> Unit,
     onNestedStructureToggled: (Boolean) -> Unit,
@@ -791,10 +777,10 @@ private fun DeveloperWorkspacePagePreview() {
         val workspaceId = Workspace.Id()
         DeveloperWorkspacePage(
             workspaceId = workspaceId,
-            state = DeveloperWorkspaceViewModel.State(
+            state = State(
                 id = workspaceId,
                 selectedTab = DeveloperTab.SYSTEM,
-                systemInfo = DeveloperWorkspaceViewModel.SystemInfo(
+                systemInfo = SystemInfo(
                     deviceModel = "Pixel 8 Pro",
                     deviceManufacturer = "Google",
                     apiLevel = 34,
@@ -806,7 +792,7 @@ private fun DeveloperWorkspacePagePreview() {
                     memoryAvailable = "4.2 GB",
                     memoryTotal = "8.0 GB",
                     storageVolumes = listOf(
-                        DeveloperWorkspaceViewModel.StorageVolumeInfo(
+                        StorageVolumeInfo(
                             name = "Internal Storage",
                             path = "/storage/emulated/0",
                             freeSpace = "64 GB",
@@ -816,7 +802,7 @@ private fun DeveloperWorkspacePagePreview() {
                 ),
                 logLines = emptyList(),
                 isLogPaused = false,
-                testDataState = DeveloperWorkspaceViewModel.TestDataState(
+                testDataState = TestDataState(
                     selectedVolumeIndex = 0,
                     largeFilesEnabled = false,
                     nestedStructureEnabled = false,
@@ -824,7 +810,7 @@ private fun DeveloperWorkspacePagePreview() {
                     progress = null,
                     canGenerate = true,
                 ),
-                optionsState = DeveloperWorkspaceViewModel.OptionsState(
+                optionsState = OptionsState(
                     isDebugMode = true,
                     isTraceMode = false,
                     rootTestResult = null,
@@ -834,14 +820,6 @@ private fun DeveloperWorkspacePagePreview() {
                     canHideDeveloperMode = false,
                 ),
             ),
-            workspaceStateSource = flowOf(
-                WorkspaceButtonViewModel.State(
-                    workspaceCount = 2,
-                    operationsCount = 0,
-                    attentionCount = 0,
-                )
-            ),
-            workspaceActionHandler = null,
         )
     }
 }

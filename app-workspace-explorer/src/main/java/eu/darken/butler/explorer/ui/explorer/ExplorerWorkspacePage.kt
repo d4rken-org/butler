@@ -2,7 +2,6 @@ package eu.darken.butler.explorer.ui.explorer
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
@@ -15,7 +14,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -49,8 +47,6 @@ import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
@@ -67,16 +63,13 @@ fun ExplorerWorkspacePage(
     mainStateSource: Flow<ExplorerWorkspaceViewModel.State>,
     operationsStateSource: Flow<ExplorerWorkspaceViewModel.OperationsState>,
     clipboardStateSource: Flow<ExplorerWorkspaceViewModel.ClipboardState>,
-    workspaceStateSource: Flow<WorkspaceButtonViewModel.State?>,
     vm: ExplorerWorkspaceViewModel? = null,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
     initialOperationsExpanded: Boolean = false,
     initialClipboardExpanded: Boolean = false,
 ) {
     val mainState by mainStateSource.collectAsState(ExplorerWorkspaceViewModel.State.Initializing)
     val operationsState by operationsStateSource.collectAsState(ExplorerWorkspaceViewModel.OperationsState())
     val clipboardState by clipboardStateSource.collectAsState(ExplorerWorkspaceViewModel.ClipboardState())
-    val workspaceButtonState by workspaceStateSource.collectAsState(null)
     val isWorkspaceFocused = LocalWorkspaceFocused.current
 
     val topBarStackState = rememberFloatingBarStackState(
@@ -196,8 +189,6 @@ fun ExplorerWorkspacePage(
                         onShowOperationDetails = { operationId ->
                             operationDialogState = OperationDialogState.OperationDetails(operationId)
                         },
-                        workspaceButtonState = workspaceButtonState,
-                        workspaceActionHandler = workspaceActionHandler,
                         safLocationManager = vm?.safLocationManager,
                         initialOperationsExpanded = initialOperationsExpanded,
                         initialClipboardExpanded = initialClipboardExpanded,
@@ -271,10 +262,9 @@ fun ExplorerWorkspacePageHost(
         key = id.longTag,
         creationCallback = { factory: ExplorerWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
-    NavigationEventHandler(vm, workspaceButtonVm)
+    NavigationEventHandler(vm)
 
     val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
@@ -309,9 +299,7 @@ fun ExplorerWorkspacePageHost(
         mainStateSource = vm.state,
         clipboardStateSource = vm.clipboard,
         operationsStateSource = vm.operations,
-        workspaceStateSource = workspaceButtonVm.state,
         vm = vm,
-        workspaceActionHandler = workspaceButtonVm,
     )
 }
 
@@ -365,7 +353,6 @@ private fun ExplorerWorkspacePagePreview() {
         ExplorerWorkspacePage(
             workspaceId = Workspace.Id(),
             mainStateSource = flowOf(mockState),
-            workspaceStateSource = flowOf(null),
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
@@ -402,7 +389,6 @@ private fun ExplorerWorkspacePageEmptyPreview() {
         ExplorerWorkspacePage(
             workspaceId = Workspace.Id(),
             mainStateSource = flowOf(mockState),
-            workspaceStateSource = flowOf(null),
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
@@ -443,7 +429,6 @@ private fun ExplorerWorkspacePageErrorPreview() {
         ExplorerWorkspacePage(
             workspaceId = Workspace.Id(),
             mainStateSource = flowOf(mockState),
-            workspaceStateSource = flowOf(null),
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
@@ -504,7 +489,6 @@ private fun ExplorerWorkspacePageWithAllBarsPreview() {
             mainStateSource = flowOf(mockState),
             clipboardStateSource = flowOf(mockClipboardEntries),
             operationsStateSource = flowOf(mockOperations),
-            workspaceStateSource = flowOf(null),
             vm = null,
         )
     }
@@ -573,11 +557,9 @@ private fun ExplorerPickerMode_MixedMultiPreview() {
             workspaceId = Workspace.Id(),
             design = WorkspaceDesign(),
             mainStateSource = flowOf(mockState),
-            workspaceStateSource = flowOf(null),
             clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
             operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
             vm = null,
-            workspaceActionHandler = null,
         )
     }
 }

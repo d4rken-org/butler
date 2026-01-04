@@ -14,18 +14,14 @@ import eu.darken.butler.apps.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 
 @Composable
 fun AppsTopBar(
     workspaceId: Workspace.Id,
     modifier: Modifier = Modifier,
     scrollBehavior: TopAppBarScrollBehavior? = null,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
     showWorkspaceButton: Boolean,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     TopAppBar(
         modifier = modifier,
@@ -39,9 +35,7 @@ fun AppsTopBar(
                 WorkspaceButton(
                     modifier = Modifier.padding(end = 8.dp),
                     buttonSize = 40.dp,
-                    state = workspaceButtonState,
                     currentWorkspaceId = workspaceId,
-                    workspaceActionHandler = workspaceActionHandler,
                 )
             }
         },
@@ -55,7 +49,6 @@ private fun AppsTopBarPreview() {
         AppsTopBar(
             workspaceId = Workspace.Id(),
             scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(),
-            workspaceButtonState = null,
             showWorkspaceButton = true,
         )
     }

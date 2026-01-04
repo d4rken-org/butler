@@ -28,7 +28,6 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 
 @Composable
 fun WorkspaceBadgeExplanationCard(
@@ -82,12 +81,6 @@ fun WorkspaceBadgeExplanationCard(
             WorkspaceButton(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 buttonSize = 56.dp,
-                state = WorkspaceButtonViewModel.State(
-                    workspaceCount = 3,
-                    operationsCount = 2,
-                    attentionCount = 1,
-                ),
-                currentWorkspaceId = null,  // Demo context - no actual workspace
             )
 
             // Explanations

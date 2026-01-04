@@ -49,8 +49,6 @@ import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 sealed interface AppDetailsPageAction {
@@ -75,12 +73,10 @@ fun AppDetailsWorkspacePageHost(
             factory.create(id = id, arguments = null)
         }
     ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
-    NavigationEventHandler(vm, workspaceButtonVm)
+    NavigationEventHandler(vm)
 
-    val workspaceButtonState by waitForState(workspaceButtonVm.state)
     val state by waitForState(vm.state)
 
     state?.let { currentState ->
@@ -88,8 +84,6 @@ fun AppDetailsWorkspacePageHost(
             design = design,
             state = currentState,
             workspaceId = id,
-            workspaceButtonState = workspaceButtonState,
-            workspaceActionHandler = workspaceButtonVm,
             onPageAction = { action ->
                 when (action) {
                     is AppDetailsPageAction.Close -> vm.close()
@@ -113,8 +107,6 @@ fun AppDetailsWorkspacePage(
     design: WorkspaceDesign,
     state: AppDetailsWorkspace.State,
     workspaceId: Workspace.Id? = null,
-    workspaceButtonState: WorkspaceButtonViewModel.State? = null,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
     onPageAction: (AppDetailsPageAction) -> Unit = {},
 ) {
     val density = LocalDensity.current
@@ -315,8 +307,6 @@ fun AppDetailsWorkspacePage(
                         collapsedFraction = collapsedFraction,
                         onBackClick = { onPageAction(AppDetailsPageAction.Close) },
                         currentWorkspaceId = workspaceId,
-                        workspaceButtonState = workspaceButtonState,
-                        workspaceActionHandler = workspaceActionHandler,
                     )
                 }
             },

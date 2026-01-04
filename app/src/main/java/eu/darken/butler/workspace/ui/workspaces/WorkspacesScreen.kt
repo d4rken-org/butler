@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,7 +35,7 @@ import eu.darken.butler.workspace.ui.dialogs.ClearSessionConfirmationDialog
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
 import eu.darken.butler.workspace.ui.dialogs.WorkspaceLimitDialog
 import eu.darken.butler.workspace.ui.feedback.BannerState
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
+import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
@@ -46,8 +47,6 @@ import kotlin.uuid.Uuid
 
 @Composable
 fun WorkspaceScreen(
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
     state: WorkspacesViewModel.State,
     bannerStates: Map<Workspace.Id, BannerState> = emptyMap(),
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
@@ -61,6 +60,7 @@ fun WorkspaceScreen(
     onConfirmManagerDialog: (ManagerDialog.WorkspaceTargeted) -> Unit = {},
     onShareError: (Workspace.Id, Throwable) -> Unit = { _, _ -> },
 ) {
+    val workspaceActionHandler = LocalWorkspaceButtonProvider.current
     val windowSizeInfo = rememberWindowSizeInfo()
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -116,8 +116,6 @@ fun WorkspaceScreen(
                     showPaneOverlay = isOpen
                     showPaneNumbers = isOpen
                 },
-                workspaceButtonState = workspaceButtonState,
-                workspaceActionHandler = workspaceActionHandler,
                 onScreenAction = onScreenAction,
                 managerDialogStates = managerDialogStates,
                 onDismissManagerDialog = onDismissManagerDialog,
@@ -133,8 +131,6 @@ fun WorkspaceScreen(
                 state = state,
                 managerDialogs = managerDialogs,
                 onWorkspaceScreenAction = onScreenAction,
-                workspaceActionHandler = workspaceActionHandler,
-                workspaceButtonState = workspaceButtonState,
                 managerDialogStates = managerDialogStates,
                 onDismissManagerDialog = onDismissManagerDialog,
                 onConfirmManagerDialog = onConfirmManagerDialog,
@@ -185,7 +181,6 @@ fun WorkspacesScreenHost(
 
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val workspaceButtonState by workspaceButtonVm.state.collectAsState(initial = null)
     val bannerStates by vm.bannerStates.collectAsState(initial = emptyMap())
     val showClearSessionConfirmation by vm.showClearSessionConfirmation.collectAsState(initial = false)
     val managerDialogs by vm.managerDialogs.collectAsState()
@@ -223,59 +218,59 @@ fun WorkspacesScreenHost(
 
     val state by waitForState(vm.state)
 
-    state?.let { state ->
-        WorkspaceScreen(
-            workspaceButtonState = workspaceButtonState,
-            workspaceActionHandler = workspaceButtonVm,
-            state = state,
-            bannerStates = bannerStates,
-            managerDialogStates = managerDialogStates,
-            managerDialogs = managerDialogs,
-            onScreenAction = { vm.executeScreenAction(it) },
-            onHideMotd = { vm.hideMotd(it) },
-            onDismissMotd = { vm.dismissMotd(it) },
-            onMotdLinkClick = { vm.openMotdLink(it) },
-            onDismissBanner = { vm.dismissBanner(it) },
-            onDismissManagerDialog = { vm.dismissManagerDialog(it) },
-            onConfirmManagerDialog = { vm.confirmManagerDialog(it) },
-            onShareError = { workspaceId, error -> vm.shareWorkspaceError(workspaceId, error) },
-        )
-    }
-
-    // Manager overlay
-    if (pageManagerState.isManagerOverlayVisible) {
-        managerState?.let { currentManagerState ->
-            WorkspaceManagerScreen(
-                state = currentManagerState,
-                onCloseWorkspace = managerVm::closeWorkspace,
-                onReorderWorkspaces = managerVm::reorderWorkspaces,
-                onSelectWorkspace = managerVm::selectWorkspace,
-                onCreateWorkspace = managerVm::createWorkspace,
-                onNavigateBack = managerVm::navigateBack,
-                onDismissBadgeExplanation = managerVm::dismissBadgeExplanation,
-                onDismissLongPressHint = managerVm::dismissLongPressHint,
-                onCloseAllWorkspaces = managerVm::closeAllWorkspaces,
-                onTabsClick = managerVm::clearFilters,
-                onOperationsFilterClick = managerVm::toggleOperationsFilter,
-                onAttentionFilterClick = managerVm::toggleAttentionFilter,
+    CompositionLocalProvider(LocalWorkspaceButtonProvider provides workspaceButtonVm) {
+        state?.let { state ->
+            WorkspaceScreen(
+                state = state,
+                bannerStates = bannerStates,
+                managerDialogStates = managerDialogStates,
+                managerDialogs = managerDialogs,
+                onScreenAction = { vm.executeScreenAction(it) },
+                onHideMotd = { vm.hideMotd(it) },
+                onDismissMotd = { vm.dismissMotd(it) },
+                onMotdLinkClick = { vm.openMotdLink(it) },
+                onDismissBanner = { vm.dismissBanner(it) },
+                onDismissManagerDialog = { vm.dismissManagerDialog(it) },
+                onConfirmManagerDialog = { vm.confirmManagerDialog(it) },
+                onShareError = { workspaceId, error -> vm.shareWorkspaceError(workspaceId, error) },
             )
         }
-    }
 
-    if (showClearSessionConfirmation) {
-        ClearSessionConfirmationDialog(
-            onDismiss = { vm.dismissClearSessionConfirmation() },
-            onConfirm = { vm.confirmClearSession() },
-        )
-    }
+        // Manager overlay
+        if (pageManagerState.isManagerOverlayVisible) {
+            managerState?.let { currentManagerState ->
+                WorkspaceManagerScreen(
+                    state = currentManagerState,
+                    onCloseWorkspace = managerVm::closeWorkspace,
+                    onReorderWorkspaces = managerVm::reorderWorkspaces,
+                    onSelectWorkspace = managerVm::selectWorkspace,
+                    onCreateWorkspace = managerVm::createWorkspace,
+                    onNavigateBack = managerVm::navigateBack,
+                    onDismissBadgeExplanation = managerVm::dismissBadgeExplanation,
+                    onDismissLongPressHint = managerVm::dismissLongPressHint,
+                    onCloseAllWorkspaces = managerVm::closeAllWorkspaces,
+                    onTabsClick = managerVm::clearFilters,
+                    onOperationsFilterClick = managerVm::toggleOperationsFilter,
+                    onAttentionFilterClick = managerVm::toggleAttentionFilter,
+                )
+            }
+        }
 
-    // WorkspaceLimitDialog renders above everything - visible over both workspace and manager
-    workspaceLimitDialog?.let { dialogState ->
-        WorkspaceLimitDialog(
-            limit = dialogState.limit,
-            onDismiss = { vm.dismissWorkspaceLimitDialog() },
-            onUpgrade = { vm.onUpgradeFromLimitDialog() },
-        )
+        if (showClearSessionConfirmation) {
+            ClearSessionConfirmationDialog(
+                onDismiss = { vm.dismissClearSessionConfirmation() },
+                onConfirm = { vm.confirmClearSession() },
+            )
+        }
+
+        // WorkspaceLimitDialog renders above everything - visible over both workspace and manager
+        workspaceLimitDialog?.let { dialogState ->
+            WorkspaceLimitDialog(
+                limit = dialogState.limit,
+                onDismiss = { vm.dismissWorkspaceLimitDialog() },
+                onUpgrade = { vm.onUpgradeFromLimitDialog() },
+            )
+        }
     }
 }
 
@@ -295,14 +290,7 @@ private fun WorkspacesScreenPreview() {
             swipeGesturesEnabled = true,
         )
 
-        val workspaceButtonState = WorkspaceButtonViewModel.State(
-            workspaceCount = 0,
-            operationsCount = 0,
-            attentionCount = 0,
-        )
-
         WorkspacesScreenPreviewContent(
-            workspaceButtonState = workspaceButtonState,
             state = state,
         )
     }
@@ -310,11 +298,9 @@ private fun WorkspacesScreenPreview() {
 
 @Composable
 private fun WorkspacesScreenPreviewContent(
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
     state: WorkspacesViewModel.State,
 ) {
     WorkspaceScreen(
-        workspaceButtonState = workspaceButtonState,
         state = state,
         bannerStates = emptyMap(),
         managerDialogStates = emptyMap(),

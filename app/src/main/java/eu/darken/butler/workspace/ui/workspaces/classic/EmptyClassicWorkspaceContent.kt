@@ -36,15 +36,15 @@ import eu.darken.butler.common.compose.ButlerTip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.WorkspaceAction
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
+import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
 internal fun EmptyClassicWorkspaceContent(
     modifier: Modifier = Modifier,
     isUpgraded: Boolean,
-    workspaceActionHandler: WorkspaceActionHandler?,
 ) {
+    val workspaceActionHandler = LocalWorkspaceButtonProvider.current
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -194,7 +194,6 @@ private fun EmptyWorkspaceContentPreview() {
     PreviewWrapper {
         EmptyClassicWorkspaceContent(
             isUpgraded = false,
-            workspaceActionHandler = null,
         )
     }
 }

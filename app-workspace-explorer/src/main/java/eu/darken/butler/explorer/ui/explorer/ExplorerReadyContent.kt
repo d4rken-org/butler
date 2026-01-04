@@ -38,14 +38,13 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.common.files.saf.location.SAFLocationManager
-import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.elements.EmptyDirectoryState
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
@@ -66,8 +65,6 @@ import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStackState
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
@@ -101,8 +98,6 @@ internal fun ExplorerReadyContent(
     showProgress: Boolean,
     isWorkspaceFocused: Boolean,
     onShowOperationDetails: (Operation.Id) -> Unit,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    workspaceActionHandler: WorkspaceActionHandler?,
     safLocationManager: SAFLocationManager?,
     initialOperationsExpanded: Boolean = false,
     initialClipboardExpanded: Boolean = false,
@@ -131,7 +126,6 @@ internal fun ExplorerReadyContent(
     }
     val hasClipboard by derivedStateOf { clipboardState.entries.isNotEmpty() }
     val hasActions by derivedStateOf { state.availableActions.isNotEmpty() }
-    val isSelectionMode by derivedStateOf { state.selectionState.isSelectionMode }
     val isLoadingItems = state.items == null
     val hasItems = state.items != null
 
@@ -152,7 +146,6 @@ internal fun ExplorerReadyContent(
     }
 
     // Grid columns for keyboard navigation
-    val gridColumns = 3
 
     // Track previous location to detect actual navigation vs item updates
     var previousLocationId by remember { mutableStateOf<String?>(null) }
@@ -485,8 +478,6 @@ internal fun ExplorerReadyContent(
                         onNavigateToPath = { path -> vm?.navigateToPath(path) },
                         onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
                         onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
-                        workspaceButtonState = workspaceButtonState,
-                        workspaceActionHandler = workspaceActionHandler,
                         safLocationManager = safLocationManager,
                         pickerSelection = state.pickerConfig?.selection,
                         selectionCount = state.selectionState.selectedItems.size,
@@ -636,8 +627,6 @@ private fun ExplorerReadyContentPreview() {
                 showProgress = false,
                 isWorkspaceFocused = true,
                 onShowOperationDetails = {},
-                workspaceButtonState = null,
-                workspaceActionHandler = null,
                 safLocationManager = null,
             )
         }
@@ -672,8 +661,6 @@ private fun ExplorerReadyContentEmptyPreview() {
                 showProgress = false,
                 isWorkspaceFocused = true,
                 onShowOperationDetails = {},
-                workspaceButtonState = null,
-                workspaceActionHandler = null,
                 safLocationManager = null,
             )
         }
@@ -704,8 +691,6 @@ private fun ExplorerReadyContentLoadingPreview() {
                 showProgress = true,
                 isWorkspaceFocused = true,
                 onShowOperationDetails = {},
-                workspaceButtonState = null,
-                workspaceActionHandler = null,
                 safLocationManager = null,
             )
         }
@@ -758,8 +743,6 @@ private fun ExplorerReadyContentSelectionModePreview() {
                 showProgress = false,
                 isWorkspaceFocused = true,
                 onShowOperationDetails = {},
-                workspaceButtonState = null,
-                workspaceActionHandler = null,
                 safLocationManager = null,
             )
         }
@@ -799,8 +782,6 @@ private fun ExplorerReadyContentGridViewPreview() {
                 showProgress = false,
                 isWorkspaceFocused = true,
                 onShowOperationDetails = {},
-                workspaceButtonState = null,
-                workspaceActionHandler = null,
                 safLocationManager = null,
             )
         }

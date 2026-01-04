@@ -17,9 +17,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
@@ -29,8 +27,6 @@ fun AppsToolbarCard(
     searchQuery: TextFieldValue,
     onSearchQueryChange: (TextFieldValue) -> Unit,
     design: WorkspaceDesign,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    workspaceActionHandler: WorkspaceActionHandler?,
     collapsedFraction: Float = 0f,
 ) {
     Card(
@@ -58,9 +54,7 @@ fun AppsToolbarCard(
                         .padding(end = 8.dp)
                         .graphicsLayer { alpha = 1f - collapsedFraction },
                     buttonSize = 32.dp,
-                    state = workspaceButtonState,
                     currentWorkspaceId = workspaceId,
-                    workspaceActionHandler = workspaceActionHandler,
                 )
             }
         }
@@ -76,8 +70,6 @@ private fun AppsToolbarCardPreview() {
             searchQuery = TextFieldValue(""),
             onSearchQueryChange = {},
             design = WorkspaceDesign(),
-            workspaceButtonState = null,
-            workspaceActionHandler = null,
             modifier = Modifier.padding(16.dp)
         )
     }
@@ -92,8 +84,6 @@ private fun AppsToolbarCardWithQueryPreview() {
             searchQuery = TextFieldValue("Chrome"),
             onSearchQueryChange = {},
             design = WorkspaceDesign(),
-            workspaceButtonState = null,
-            workspaceActionHandler = null,
             modifier = Modifier.padding(16.dp)
         )
     }

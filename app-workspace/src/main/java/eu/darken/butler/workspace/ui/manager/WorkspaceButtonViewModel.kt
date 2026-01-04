@@ -11,6 +11,7 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.WorkspacePageManager
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -19,13 +20,13 @@ class WorkspaceButtonViewModel @Inject constructor(
     dispatchers: DispatcherProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val workspacePageManager: WorkspacePageManager,
-) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM")), WorkspaceActionHandler {
+) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM")), WorkspaceButtonProvider {
 
     init {
         log(TAG) { "init(): $this" }
     }
 
-    val state = workspaceRemote.state.map {
+    override val state: Flow<State> = workspaceRemote.state.map {
         State(
             workspaceCount = it.workspaceCount,
             operationsCount = it.operationCount,

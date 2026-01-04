@@ -48,9 +48,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
@@ -64,8 +62,6 @@ fun ExplorerToolbarCard(
     onNavigateToPath: (APath<*>) -> Unit,
     onSetAsHome: ((ExplorerNavigation.Target) -> Unit)? = null,
     onCopyPath: ((String) -> Unit)? = null,
-    workspaceButtonState: WorkspaceButtonViewModel.State? = null,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
     safLocationManager: SAFLocationManager? = null,
     // Picker mode parameters (all null/default for normal mode)
     pickerSelection: PickerConfig.Selection? = null,
@@ -117,8 +113,6 @@ fun ExplorerToolbarCard(
                 onNavigateToPath = onNavigateToPath,
                 onSetAsHome = onSetAsHome,
                 onCopyPath = onCopyPath,
-                workspaceButtonState = workspaceButtonState,
-                workspaceActionHandler = workspaceActionHandler,
                 safLocationManager = safLocationManager,
             )
         }
@@ -136,8 +130,6 @@ private fun NormalToolbarContent(
     onNavigateToPath: (APath<*>) -> Unit,
     onSetAsHome: ((ExplorerNavigation.Target) -> Unit)?,
     onCopyPath: ((String) -> Unit)?,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    workspaceActionHandler: WorkspaceActionHandler?,
     safLocationManager: SAFLocationManager?,
 ) {
     val workspaceButtonSize by animateDpAsState(
@@ -201,10 +193,8 @@ private fun NormalToolbarContent(
             Spacer(modifier = Modifier.width(8.dp))
 
             WorkspaceButton(
-                state = workspaceButtonState,
                 buttonSize = workspaceButtonSize,
                 currentWorkspaceId = workspaceId,
-                workspaceActionHandler = workspaceActionHandler,
             )
         }
     }
@@ -414,11 +404,6 @@ private fun ExplorerToolbarCardExpandedPreview() {
             collapsedFraction = 0f,
             onBreadcrumbClick = {},
             onNavigateToPath = {},
-            workspaceButtonState = WorkspaceButtonViewModel.State(
-                workspaceCount = 1,
-                operationsCount = 1,
-                attentionCount = 1,
-            ),
             modifier = Modifier.padding(16.dp),
         )
     }
@@ -435,11 +420,6 @@ private fun ExplorerToolbarCardCollapsedPreview() {
             collapsedFraction = 1f,
             onBreadcrumbClick = {},
             onNavigateToPath = {},
-            workspaceButtonState = WorkspaceButtonViewModel.State(
-                workspaceCount = 1,
-                operationsCount = 1,
-                attentionCount = 1,
-            ),
             modifier = Modifier.padding(16.dp),
         )
     }

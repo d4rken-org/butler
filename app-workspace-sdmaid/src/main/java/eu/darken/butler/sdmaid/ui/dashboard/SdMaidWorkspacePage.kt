@@ -39,8 +39,6 @@ import eu.darken.butler.sdmaid.R
 import eu.darken.butler.sdmaid.core.SdMaidWorkspace
 import eu.darken.butler.sdmaid.core.arguments.SdMaidArguments
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -53,20 +51,17 @@ fun SdMaidWorkspacePageHost(
         key = id.longTag,
         creationCallback = { factory: SdMaidWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
-    NavigationEventHandler(vm, workspaceButtonVm)
+    NavigationEventHandler(vm)
 
     SdMaidWorkspacePage(
         workspaceId = id,
         design = design,
         stateSource = vm.state,
-        workspaceButtonStateSource = workspaceButtonVm.state,
         onInstallClick = vm::openInstallPage,
         onToolSelect = vm::selectTool,
         onRetry = vm::retry,
-        workspaceActionHandler = workspaceButtonVm,
     )
 }
 
@@ -76,11 +71,9 @@ fun SdMaidWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     stateSource: Flow<SdMaidWorkspaceViewModel.State>,
-    workspaceButtonStateSource: Flow<WorkspaceButtonViewModel.State>,
     onInstallClick: () -> Unit,
     onToolSelect: (SdMaidArguments.ToolType?) -> Unit,
     onRetry: () -> Unit,
-    workspaceActionHandler: WorkspaceActionHandler,
 ) {
     val state by stateSource.collectAsState(initial = SdMaidWorkspaceViewModel.State())
 

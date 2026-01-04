@@ -40,9 +40,7 @@ import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.EditorPageAction
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
@@ -57,8 +55,6 @@ fun EditorToolbarCard(
     hasContent: Boolean,
     canUndo: Boolean,
     canRedo: Boolean,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    workspaceActionHandler: WorkspaceActionHandler?,
     onAction: (EditorPageAction) -> Unit,
     collapsedFraction: Float = 0f,
 ) {
@@ -135,8 +131,7 @@ fun EditorToolbarCard(
                     if (design.isSingle) {
                         WorkspaceButton(
                             buttonSize = 40.dp,
-                            state = workspaceButtonState,
-                            workspaceActionHandler = workspaceActionHandler,
+                            currentWorkspaceId = workspaceId,
                         )
                     }
                 }
@@ -183,9 +178,7 @@ fun EditorToolbarCard(
                         Spacer(modifier = Modifier.width(8.dp))
 
                         WorkspaceButton(
-                            state = workspaceButtonState,
                             currentWorkspaceId = workspaceId,
-                            workspaceActionHandler = workspaceActionHandler,
                         )
                     }
                 }
@@ -236,7 +229,10 @@ fun EditorToolbarCard(
 
                         if (hasContent) {
                             IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
-                                Icon(Icons.TwoTone.Close, contentDescription = stringResource(R.string.editor_action_close))
+                                Icon(
+                                    Icons.TwoTone.Close,
+                                    contentDescription = stringResource(R.string.editor_action_close)
+                                )
                             }
                         }
 
@@ -280,8 +276,6 @@ private fun EditorToolbarCardPreview() {
             hasContent = true,
             canUndo = true,
             canRedo = false,
-            workspaceButtonState = null,
-            workspaceActionHandler = null,
             onAction = {},
         )
     }
@@ -301,10 +295,8 @@ private fun EditorToolbarCardCollapsedPreview() {
             hasContent = true,
             canUndo = true,
             canRedo = false,
-            workspaceButtonState = null,
-            workspaceActionHandler = null,
             onAction = {},
-            collapsedFraction = 1f
+            collapsedFraction = 1f,
         )
     }
 }
@@ -323,8 +315,6 @@ private fun EditorToolbarCardLoadingPreview() {
             hasContent = false,
             canUndo = false,
             canRedo = false,
-            workspaceButtonState = null,
-            workspaceActionHandler = null,
             onAction = {},
         )
     }

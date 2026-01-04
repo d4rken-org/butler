@@ -31,21 +31,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
-import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
@@ -54,14 +52,13 @@ import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
+import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
 import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -77,18 +74,14 @@ fun EditorWorkspacePageHost(
             factory.create(id)
         }
     ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
-    NavigationEventHandler(vm, workspaceButtonVm)
+    NavigationEventHandler(vm)
 
-    val workspaceButtonState by workspaceButtonVm.state.collectAsState(null)
     val clipboardInfoClip by vm.clipboardInfoClip.collectAsState(null)
 
     EditorWorkspacePage(
         workspaceId = id,
-        workspaceButtonState = workspaceButtonState,
-        workspaceActionHandler = workspaceButtonVm,
         design = design,
         mainStateSource = vm.state,
         clipboardStateSource = vm.clipboard,
@@ -102,8 +95,6 @@ fun EditorWorkspacePageHost(
 @Composable
 fun EditorWorkspacePage(
     workspaceId: Workspace.Id,
-    workspaceButtonState: WorkspaceButtonViewModel.State? = null,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
     design: WorkspaceDesign,
     mainStateSource: Flow<EditorWorkspaceViewModel.State>,
     clipboardStateSource: Flow<EditorWorkspaceViewModel.ClipboardState> = flowOf(EditorWorkspaceViewModel.ClipboardState()),
@@ -168,8 +159,6 @@ fun EditorWorkspacePage(
                         hasContent = readyState?.hasContent ?: false,
                         canUndo = readyState?.isModified ?: false,
                         canRedo = false,
-                        workspaceButtonState = workspaceButtonState,
-                        workspaceActionHandler = workspaceActionHandler,
                         onAction = onPageAction,
                         collapsedFraction = collapsedFraction,
                     )

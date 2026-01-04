@@ -32,8 +32,6 @@ import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.saver.core.SaverWorkspace
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
@@ -49,18 +47,15 @@ fun SaverWorkspacePageHost(
         key = id.longTag,
         creationCallback = { factory: SaverWorkspaceViewModel.Factory -> factory.create(id = id) }
     ),
-    workspaceButtonVm: WorkspaceButtonViewModel = hiltViewModel(),
 ) {
     ErrorEventHandler(vm)
-    NavigationEventHandler(vm, workspaceButtonVm)
+    NavigationEventHandler(vm)
 
     SaverWorkspacePage(
         workspaceId = id,
         design = design,
         stateSource = vm.state,
-        workspaceButtonStateSource = workspaceButtonVm.state,
         vm = vm,
-        workspaceActionHandler = workspaceButtonVm,
     )
 }
 
@@ -69,14 +64,11 @@ private fun SaverWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     stateSource: Flow<SaverWorkspaceViewModel.State>,
-    workspaceButtonStateSource: Flow<WorkspaceButtonViewModel.State?>,
     vm: SaverWorkspaceViewModel? = null,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
 ) {
     val state by stateSource.collectAsState(
         initial = SaverWorkspaceViewModel.State()
     )
-    val workspaceButtonState by workspaceButtonStateSource.collectAsState(null)
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
@@ -110,9 +102,7 @@ private fun SaverWorkspacePage(
             BatchModeContent(
                 design = design,
                 state = state,
-                workspaceButtonState = workspaceButtonState,
                 workspaceId = workspaceId,
-                workspaceActionHandler = workspaceActionHandler,
                 vm = vm,
                 onOperationClick = { operationId ->
                     val op = state.operationDisplay
@@ -128,9 +118,7 @@ private fun SaverWorkspacePage(
             SingleFileModeContent(
                 design = design,
                 state = state,
-                workspaceButtonState = workspaceButtonState,
                 workspaceId = workspaceId,
-                workspaceActionHandler = workspaceActionHandler,
                 vm = vm,
                 onOperationClick = { operationId ->
                     val op = state.operationDisplay
@@ -173,9 +161,7 @@ private fun SaverWorkspacePage(
 private fun SingleFileModeContent(
     design: WorkspaceDesign,
     state: SaverWorkspaceViewModel.State,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceId: Workspace.Id,
-    workspaceActionHandler: WorkspaceActionHandler?,
     vm: SaverWorkspaceViewModel?,
     onOperationClick: (eu.darken.butler.workspace.core.operations.Operation.Id) -> Unit,
 ) {
@@ -197,9 +183,7 @@ private fun SingleFileModeContent(
         SaverHeader(
             callerLabel = state.callerLabel,
             createdAt = state.createdAt,
-            workspaceButtonState = workspaceButtonState,
             workspaceId = workspaceId,
-            workspaceActionHandler = workspaceActionHandler,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -258,9 +242,7 @@ private fun SingleFileModeContent(
 private fun BatchModeContent(
     design: WorkspaceDesign,
     state: SaverWorkspaceViewModel.State,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
     workspaceId: Workspace.Id,
-    workspaceActionHandler: WorkspaceActionHandler?,
     vm: SaverWorkspaceViewModel?,
     onOperationClick: (eu.darken.butler.workspace.core.operations.Operation.Id) -> Unit,
 ) {
@@ -282,9 +264,7 @@ private fun BatchModeContent(
         SaverHeader(
             callerLabel = state.callerLabel,
             createdAt = state.createdAt,
-            workspaceButtonState = workspaceButtonState,
             workspaceId = workspaceId,
-            workspaceActionHandler = workspaceActionHandler,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -357,7 +337,6 @@ private fun SaverWorkspacePageSingleFilePreview() {
                     callerLabel = "Telegram",
                 )
             ),
-            workspaceButtonStateSource = flowOf(null),
         )
     }
 }
@@ -398,7 +377,6 @@ private fun SaverWorkspacePageBatchModePreview() {
                     callerLabel = "Gallery",
                 )
             ),
-            workspaceButtonStateSource = flowOf(null),
         )
     }
 }
@@ -426,7 +404,6 @@ private fun SaverWorkspacePageWithDestinationPreview() {
                     callerLabel = "Email",
                 )
             ),
-            workspaceButtonStateSource = flowOf(null),
         )
     }
 }
@@ -453,7 +430,6 @@ private fun SaverWorkspacePageInaccessiblePreview() {
                     callerLabel = "Telegram",
                 )
             ),
-            workspaceButtonStateSource = flowOf(null),
         )
     }
 }

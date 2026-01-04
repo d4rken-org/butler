@@ -16,8 +16,7 @@ import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.WorkspaceOverlayContainer
 import eu.darken.butler.workspace.ui.dialogs.ManagerDialog
-import eu.darken.butler.workspace.ui.manager.WorkspaceActionHandler
-import eu.darken.butler.workspace.ui.manager.WorkspaceButtonViewModel
+import eu.darken.butler.workspace.ui.manager.LocalWorkspaceButtonProvider
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.adaptive.AdaptiveWorkspaceContainer
 import eu.darken.butler.workspace.ui.workspaces.adaptive.DividerPositions
@@ -37,8 +36,6 @@ fun AdaptiveWorkspaceLayout(
     showPaneNumbers: Boolean,
     showPaneOverlay: Boolean,
     onPaneMenuToggle: (Boolean) -> Unit,
-    workspaceButtonState: WorkspaceButtonViewModel.State?,
-    workspaceActionHandler: WorkspaceActionHandler? = null,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
@@ -50,7 +47,7 @@ fun AdaptiveWorkspaceLayout(
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
-
+    val workspaceActionHandler = LocalWorkspaceButtonProvider.current
 
     CompositionLocalProvider(LocalDragDropState provides dragDropState) {
         Row(
@@ -103,8 +100,6 @@ fun AdaptiveWorkspaceLayout(
                     onPaneMenuToggle(false)
                 },
                 onPaneMenuToggle = onPaneMenuToggle,
-                workspaceButtonState = workspaceButtonState,
-                workspaceActionHandler = workspaceActionHandler,
             )
 
             AdaptiveWorkspaceContainer(
@@ -158,8 +153,6 @@ fun AdaptiveWorkspaceLayout(
                                                     WorkspaceAction.Close(info.id)
                                                 )
                                             },
-                                            workspaceButtonState = workspaceButtonState,
-                                            workspaceActionHandler = workspaceActionHandler,
                                         )
                                     }
                                 }
@@ -196,8 +189,6 @@ fun AdaptiveWorkspaceLayout(
                                                             WorkspaceAction.Close(modal.id)
                                                         )
                                                     },
-                                                    workspaceButtonState = workspaceButtonState,
-                                                    workspaceActionHandler = workspaceActionHandler,
                                                 )
                                             }
                                         }
