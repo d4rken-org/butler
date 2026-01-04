@@ -93,7 +93,8 @@ class MainActivity : Activity2() {
             WindowInsets.safeDrawing.let {
                 log(TAG) { "WindowInsets primed: $it" }
             }
-            
+
+
             val themeState by produceState<ThemeState?>(initialValue = null) {
                 vm.themeState.collect { value = it }
             }
