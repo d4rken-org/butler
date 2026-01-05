@@ -53,7 +53,6 @@ import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.dialogs.FilterConditionsSheetHost
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
-import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
 import eu.darken.butler.searcher.ui.search.elements.SearchProgressCard
 import eu.darken.butler.searcher.ui.search.elements.SearchResultItemDetails
@@ -322,34 +321,34 @@ fun SearcherWorkspacePage(
             bottom = bottomBarStackState.contentPaddingDp(),
         )
 
-        // Conditional rendering: History mode vs Results mode
+        // Conditional rendering: Idle state (templates + history) vs Results mode
         val hasNoQuery = currentState.filenameQuery.isBlank() && currentState.contentQuery.isBlank()
-        // Show history only when truly idle (cleared state) - hide during/after search
-        val showHistory = currentState.isIdle && currentState.searchHistory.isNotEmpty()
+        // Show idle state when no query and have search targets configured
+        val showIdleState = currentState.isIdle && hasNoQuery && currentState.searchTargets.isNotEmpty()
 
         when {
-            showHistory -> {
-                // History mode - always LazyColumn
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .nestedScroll(topBarStackState.nestedScrollConnection)
-                        .nestedScroll(bottomBarStackState.nestedScrollConnection),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = contentPaddingValues
-                ) {
-                    // Show templates card when idle and have search targets
-                    if (!currentState.isSearching && currentState.searchTargets.isNotEmpty()) {
-                        item {
-                            TemplatesCard(
-                                onClick = { showTemplatesSheet = true },
-                                modifier = Modifier.padding(top = 8.dp),
-                            )
-                        }
+            // Idle state - show templates card and optionally history
+            showIdleState -> LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(topBarStackState.nestedScrollConnection)
+                    .nestedScroll(bottomBarStackState.nestedScrollConnection),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = contentPaddingValues
+            ) {
+                // Show templates card when idle and have search targets
+                if (!currentState.isSearching && currentState.searchTargets.isNotEmpty()) {
+                    item {
+                        TemplatesCard(
+                            onClick = { showTemplatesSheet = true },
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
                     }
+                }
 
-                    // Show search history (LazyListScope extension)
+                // Show search history if available
+                if (currentState.searchHistory.isNotEmpty()) {
                     searchHistorySection(
                         searchHistory = currentState.searchHistory,
                         onHistoryItemClick = { onPageAction(SearcherPageAction.History.Click(it)) },
@@ -359,190 +358,188 @@ fun SearcherWorkspacePage(
                 }
             }
 
-            else -> {
-                // Results mode - List or Grid based on viewStyle
-                when (val style = currentState.viewStyle) {
-                    is SearcherViewStyle.List -> {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .nestedScroll(topBarStackState.nestedScrollConnection)
-                                .nestedScroll(bottomBarStackState.nestedScrollConnection),
-                            verticalArrangement = Arrangement.spacedBy(
-                                when (style.density) {
-                                    SearcherViewStyle.List.Density.COMPACT -> 4.dp
-                                    SearcherViewStyle.List.Density.COMFORTABLE -> 8.dp
-                                    SearcherViewStyle.List.Density.DETAILED -> 12.dp
-                                }
-                            ),
-                            contentPadding = contentPaddingValues
-                        ) {
-                            // Show setup card if needed
-                            if (currentState.needsSetup && currentState.searchTargets.isNotEmpty()) {
-                                item {
-                                    PermissionSetupCard(
-                                        setupRequirements = currentState.setupRequirements,
-                                        onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
-                                        modifier = Modifier.padding(top = 8.dp)
-                                    )
-                                }
+            // Results mode - List or Grid based on viewStyle
+            else -> when (val style = currentState.viewStyle) {
+                is SearcherViewStyle.List -> {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(topBarStackState.nestedScrollConnection)
+                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
+                        verticalArrangement = Arrangement.spacedBy(
+                            when (style.density) {
+                                SearcherViewStyle.List.Density.COMPACT -> 4.dp
+                                SearcherViewStyle.List.Density.COMFORTABLE -> 8.dp
+                                SearcherViewStyle.List.Density.DETAILED -> 12.dp
                             }
-
-                            // Show empty state when no search targets configured
-                            if (currentState.searchTargets.isEmpty()) {
-                                item {
-                                    SearchTargetsEmptyStateCard(
-                                        onAddDefaultPaths = { onPageAction(SearcherPageAction.Targets.AddDefaultPaths) },
-                                        modifier = Modifier.padding(top = 8.dp)
-                                    )
-                                }
+                        ),
+                        contentPadding = contentPaddingValues
+                    ) {
+                        // Show setup card if needed
+                        if (currentState.needsSetup && currentState.searchTargets.isNotEmpty()) {
+                            item {
+                                PermissionSetupCard(
+                                    setupRequirements = currentState.setupRequirements,
+                                    onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
                             }
+                        }
 
-                            // Search results and errors
-                            if (currentState.listItems.isNotEmpty()) {
-                                items(
-                                    items = currentState.listItems,
-                                    key = { item ->
-                                        when (item) {
-                                            is SearchListItem.Result -> item.searchItem.path.path
-                                            is SearchListItem.Error -> "error_${item.timestamp}"
-                                        }
-                                    }
-                                ) { item ->
+                        // Show empty state when no search targets configured
+                        if (currentState.searchTargets.isEmpty()) {
+                            item {
+                                SearchTargetsEmptyStateCard(
+                                    onAddDefaultPaths = { onPageAction(SearcherPageAction.Targets.AddDefaultPaths) },
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
+                            }
+                        }
+
+                        // Search results and errors
+                        if (currentState.listItems.isNotEmpty()) {
+                            items(
+                                items = currentState.listItems,
+                                key = { item ->
                                     when (item) {
-                                        is SearchListItem.Result -> {
-                                            SelectableFileRow(
-                                                result = item.searchItem,
-                                                isSelected = currentState.selectionState.isSelected(item.searchItem),
-                                                isSelectionMode = currentState.selectionState.isSelectionMode,
-                                                onClick = {
-                                                    if (currentState.selectionState.isSelectionMode) {
-                                                        wrappedOnToggleSelection(item.searchItem)
-                                                    } else {
-                                                        onPageAction(SearcherPageAction.Results.Click(item.searchItem))
-                                                    }
-                                                },
-                                                onLongPress = {
-                                                    wrappedOnEnterSelectionMode(item.searchItem)
-                                                },
-                                            )
-                                        }
-
-                                        is SearchListItem.Error -> {
-                                            ErrorCard(
-                                                title = stringResource(R.string.searcher_search_error),
-                                                error = item.throwable,
-                                                onCopyError = { onPageAction(SearcherPageAction.Error.Copy(item.throwable)) },
-                                                onDismiss = null,
-                                            )
-                                        }
+                                        is SearchListItem.Result -> item.searchItem.path.path
+                                        is SearchListItem.Error -> "error_${item.timestamp}"
                                     }
                                 }
-                            }
-
-                            // Empty state placeholder when no query and no history
-                            if (hasNoQuery && currentState.searchHistory.isEmpty()) {
-                                item {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(top = 100.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.searcher_placeholder_search),
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.padding(32.dp)
+                            ) { item ->
+                                when (item) {
+                                    is SearchListItem.Result -> {
+                                        SelectableFileRow(
+                                            result = item.searchItem,
+                                            isSelected = currentState.selectionState.isSelected(item.searchItem),
+                                            isSelectionMode = currentState.selectionState.isSelectionMode,
+                                            onClick = {
+                                                if (currentState.selectionState.isSelectionMode) {
+                                                    wrappedOnToggleSelection(item.searchItem)
+                                                } else {
+                                                    onPageAction(SearcherPageAction.Results.Click(item.searchItem))
+                                                }
+                                            },
+                                            onLongPress = {
+                                                wrappedOnEnterSelectionMode(item.searchItem)
+                                            },
                                         )
                                     }
+
+                                    is SearchListItem.Error -> {
+                                        ErrorCard(
+                                            title = stringResource(R.string.searcher_search_error),
+                                            error = item.throwable,
+                                            onCopyError = { onPageAction(SearcherPageAction.Error.Copy(item.throwable)) },
+                                            onDismiss = null,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Empty state placeholder when no query and no history
+                        if (hasNoQuery && currentState.searchHistory.isEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 100.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.searcher_placeholder_search),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.padding(32.dp)
+                                    )
                                 }
                             }
                         }
                     }
+                }
 
-                    is SearcherViewStyle.Grid -> {
-                        val minSize = when (style.size) {
-                            SearcherViewStyle.Grid.GridSize.SMALL -> 90.dp
-                            SearcherViewStyle.Grid.GridSize.MEDIUM -> 120.dp
-                            SearcherViewStyle.Grid.GridSize.LARGE -> 160.dp
+                is SearcherViewStyle.Grid -> {
+                    val minSize = when (style.size) {
+                        SearcherViewStyle.Grid.GridSize.SMALL -> 90.dp
+                        SearcherViewStyle.Grid.GridSize.MEDIUM -> 120.dp
+                        SearcherViewStyle.Grid.GridSize.LARGE -> 160.dp
+                    }
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = minSize),
+                        state = gridState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(topBarStackState.nestedScrollConnection)
+                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = contentPaddingValues
+                    ) {
+                        // Show setup card if needed
+                        if (currentState.needsSetup && currentState.searchTargets.isNotEmpty()) {
+                            item {
+                                PermissionSetupCard(
+                                    setupRequirements = currentState.setupRequirements,
+                                    onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
+                            }
                         }
 
-                        LazyVerticalGrid(
-                            columns = GridCells.Adaptive(minSize = minSize),
-                            state = gridState,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .nestedScroll(topBarStackState.nestedScrollConnection)
-                                .nestedScroll(bottomBarStackState.nestedScrollConnection),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = contentPaddingValues
-                        ) {
-                            // Show setup card if needed
-                            if (currentState.needsSetup && currentState.searchTargets.isNotEmpty()) {
-                                item {
-                                    PermissionSetupCard(
-                                        setupRequirements = currentState.setupRequirements,
-                                        onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
-                                        modifier = Modifier.padding(top = 8.dp)
-                                    )
-                                }
+                        // Show empty state when no search targets configured
+                        if (currentState.searchTargets.isEmpty()) {
+                            item {
+                                SearchTargetsEmptyStateCard(
+                                    onAddDefaultPaths = { onPageAction(SearcherPageAction.Targets.AddDefaultPaths) },
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
                             }
+                        }
 
-                            // Show empty state when no search targets configured
-                            if (currentState.searchTargets.isEmpty()) {
-                                item {
-                                    SearchTargetsEmptyStateCard(
-                                        onAddDefaultPaths = { onPageAction(SearcherPageAction.Targets.AddDefaultPaths) },
-                                        modifier = Modifier.padding(top = 8.dp)
-                                    )
-                                }
+                        // Search results (grid mode - only results, no errors)
+                        if (currentState.listItems.isNotEmpty()) {
+                            items(
+                                items = currentState.listItems.filterIsInstance<SearchListItem.Result>(),
+                                key = { item -> item.searchItem.path.path }
+                            ) { item ->
+                                SelectableFileGrid(
+                                    result = item.searchItem,
+                                    isSelected = currentState.selectionState.isSelected(item.searchItem),
+                                    isSelectionMode = currentState.selectionState.isSelectionMode,
+                                    onClick = {
+                                        if (currentState.selectionState.isSelectionMode) {
+                                            wrappedOnToggleSelection(item.searchItem)
+                                        } else {
+                                            onPageAction(SearcherPageAction.Results.Click(item.searchItem))
+                                        }
+                                    },
+                                    onLongPress = {
+                                        wrappedOnEnterSelectionMode(item.searchItem)
+                                    },
+                                )
                             }
+                        }
 
-                            // Search results (grid mode - only results, no errors)
-                            if (currentState.listItems.isNotEmpty()) {
-                                items(
-                                    items = currentState.listItems.filterIsInstance<SearchListItem.Result>(),
-                                    key = { item -> item.searchItem.path.path }
-                                ) { item ->
-                                    SelectableFileGrid(
-                                        result = item.searchItem,
-                                        isSelected = currentState.selectionState.isSelected(item.searchItem),
-                                        isSelectionMode = currentState.selectionState.isSelectionMode,
-                                        onClick = {
-                                            if (currentState.selectionState.isSelectionMode) {
-                                                wrappedOnToggleSelection(item.searchItem)
-                                            } else {
-                                                onPageAction(SearcherPageAction.Results.Click(item.searchItem))
-                                            }
-                                        },
-                                        onLongPress = {
-                                            wrappedOnEnterSelectionMode(item.searchItem)
-                                        },
+                        // Empty state placeholder when no query and no history
+                        if (hasNoQuery && currentState.searchHistory.isEmpty()) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 100.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.searcher_placeholder_search),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.padding(32.dp)
                                     )
-                                }
-                            }
-
-                            // Empty state placeholder when no query and no history
-                            if (hasNoQuery && currentState.searchHistory.isEmpty()) {
-                                item {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(top = 100.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.searcher_placeholder_search),
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.padding(32.dp)
-                                        )
-                                    }
                                 }
                             }
                         }
