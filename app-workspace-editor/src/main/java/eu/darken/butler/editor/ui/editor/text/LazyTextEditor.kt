@@ -26,6 +26,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -142,16 +144,20 @@ fun LazyTextEditor(
     }
 
     // Update visible range when scroll position changes
-    LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size) {
-        if (totalLines > 0 && contentListState.layoutInfo.totalItemsCount > 0) {
-            val startIndex = (contentListState.firstVisibleItemIndex - 10).coerceAtLeast(0)
-            val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
-            val endIndex = minOf(
-                startIndex + visibleCount + 10, // Buffer
-                totalLines - 1
-            ).coerceAtLeast(startIndex)
+    LaunchedEffect(totalLines) {
+        snapshotFlow {
+            contentListState.firstVisibleItemIndex to contentListState.layoutInfo.visibleItemsInfo.size
+        }.collect { (firstVisibleIndex, visibleItemsSize) ->
+            if (totalLines > 0 && contentListState.layoutInfo.totalItemsCount > 0) {
+                val startIndex = (firstVisibleIndex - 10).coerceAtLeast(0)
+                val visibleCount = visibleItemsSize.coerceAtLeast(1)
+                val endIndex = minOf(
+                    startIndex + visibleCount + 10, // Buffer
+                    totalLines - 1
+                ).coerceAtLeast(startIndex)
 
-            onVisibleRangeChange(startIndex..endIndex)
+                onVisibleRangeChange(startIndex..endIndex)
+            }
         }
     }
 
@@ -168,7 +174,7 @@ fun LazyTextEditor(
         val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size
         val lastVisibleLine = firstVisibleLine + visibleCount - 1
 
-        val needsVerticalScroll = targetLine < firstVisibleLine || targetLine > lastVisibleLine
+        val needsVerticalScroll = targetLine !in firstVisibleLine..lastVisibleLine
         val forceScroll = scrollTrigger > 0
 
         if (needsVerticalScroll || forceScroll) {
@@ -178,7 +184,7 @@ fun LazyTextEditor(
                 val scrollTarget = (targetLine - centerOffset).coerceAtLeast(0)
                 contentListState.scrollToItem(scrollTarget)
                 lineNumbersListState.scrollToItem(scrollTarget)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Ignore scroll errors - layout might not be ready yet
             }
         }
@@ -195,13 +201,12 @@ fun LazyTextEditor(
             val cursorX = textPaddingPx + (cursorPosition.column * charWidth)
 
             val currentScrollX = horizontalScrollState.value.toFloat()
-            val visibleLeft = currentScrollX
             val visibleRight = currentScrollX + viewportWidth
 
             // Center cursor horizontally in viewport when scrolling
             val centerOffset = viewportWidth / 2
             val targetScroll: Int? = when {
-                cursorX < visibleLeft + margin -> (cursorX - centerOffset).coerceAtLeast(0f).toInt()
+                cursorX < currentScrollX + margin -> (cursorX - centerOffset).coerceAtLeast(0f).toInt()
                 cursorX > visibleRight - margin -> (cursorX - centerOffset).coerceAtLeast(0f).toInt()
                 else -> null
             }
@@ -240,7 +245,6 @@ fun LazyTextEditor(
         contentPadding = contentPadding,
         totalLines = totalLines,
         visibleLineContent = visibleLineContent,
-        visibleRange = visibleRange,
         cursorPosition = cursorPosition,
         selection = selection,
         lineNumbersListState = lineNumbersListState,
@@ -268,7 +272,6 @@ private fun DualColumnEditorContent(
     contentPadding: PaddingValues,
     totalLines: Int,
     visibleLineContent: Map<Int, String>,
-    visibleRange: IntRange,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     lineNumbersListState: LazyListState,
@@ -304,9 +307,9 @@ private fun DualColumnEditorContent(
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     var isFocused by remember { mutableStateOf(false) }
     var isUserEditing by remember { mutableStateOf(false) }
-    var lastTapTime by remember { mutableStateOf(0L) }
+    var lastTapTime by remember { mutableLongStateOf(0L) }
     var lastTapPosition by remember { mutableStateOf<Offset?>(null) }
-    var tapCount by remember { mutableStateOf(0) }
+    var tapCount by remember { mutableIntStateOf(0) }
     rememberCoroutineScope()
     val density = LocalDensity.current
     val contentPaddingTopPx = with(density) { contentPadding.calculateTopPadding().toPx() }
@@ -358,32 +361,34 @@ private fun DualColumnEditorContent(
     }
 
     // Synchronize vertical scrolling between line numbers and content
-    LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.firstVisibleItemScrollOffset) {
-        if (lineNumbersListState.firstVisibleItemIndex != contentListState.firstVisibleItemIndex ||
-            lineNumbersListState.firstVisibleItemScrollOffset != contentListState.firstVisibleItemScrollOffset
-        ) {
-            try {
-                lineNumbersListState.scrollToItem(
-                    contentListState.firstVisibleItemIndex,
-                    contentListState.firstVisibleItemScrollOffset
-                )
-            } catch (e: Exception) {
-                // Ignore sync errors
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            contentListState.firstVisibleItemIndex to contentListState.firstVisibleItemScrollOffset
+        }.collect { (index, offset) ->
+            if (lineNumbersListState.firstVisibleItemIndex != index ||
+                lineNumbersListState.firstVisibleItemScrollOffset != offset
+            ) {
+                try {
+                    lineNumbersListState.scrollToItem(index, offset)
+                } catch (_: Exception) {
+                    // Ignore sync errors
+                }
             }
         }
     }
 
-    LaunchedEffect(lineNumbersListState.firstVisibleItemIndex, lineNumbersListState.firstVisibleItemScrollOffset) {
-        if (contentListState.firstVisibleItemIndex != lineNumbersListState.firstVisibleItemIndex ||
-            contentListState.firstVisibleItemScrollOffset != lineNumbersListState.firstVisibleItemScrollOffset
-        ) {
-            try {
-                contentListState.scrollToItem(
-                    lineNumbersListState.firstVisibleItemIndex,
-                    lineNumbersListState.firstVisibleItemScrollOffset
-                )
-            } catch (e: Exception) {
-                // Ignore sync errors
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            lineNumbersListState.firstVisibleItemIndex to lineNumbersListState.firstVisibleItemScrollOffset
+        }.collect { (index, offset) ->
+            if (contentListState.firstVisibleItemIndex != index ||
+                contentListState.firstVisibleItemScrollOffset != offset
+            ) {
+                try {
+                    contentListState.scrollToItem(index, offset)
+                } catch (_: Exception) {
+                    // Ignore sync errors
+                }
             }
         }
     }
@@ -790,14 +795,14 @@ private fun DualColumnEditorContent(
 @Composable
 private fun LazyTextEditorPreview() {
     PreviewWrapper {
-        val sampleContent = """
+        val sampleContent = $$"""
             fun calculateSum(a: Int, b: Int): Int {
                 return a + b
             }
 
             fun main() {
                 val result = calculateSum(5, 3)
-                println("Result: ${'$'}result")
+                println("Result: $result")
             }
         """.trimIndent()
 
