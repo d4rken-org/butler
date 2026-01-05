@@ -711,6 +711,7 @@ fun SearcherWorkspacePage(
             onDismiss = { showTemplatesSheet = false },
         ) {
             TemplatesBottomSheetContent(
+                bottomPadding = navBarInset,
                 onTemplateClick = { template ->
                     showTemplatesSheet = false
                     onPageAction(SearcherPageAction.Templates.Apply(template))
