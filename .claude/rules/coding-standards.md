@@ -23,5 +23,17 @@
 - Prefer flow based solutions.
 - Prefer reactive programming.
 - When using `if` that is not single-line, always use brackets.
+- In `when` expressions, omit braces for single-expression branches. Use braces only when a branch contains multiple statements. A composable's trailing lambda does not require wrapper braces.
+    ```kotlin
+    when (state) {
+        // Comment goes above the branch
+        State.LOADING -> CircularProgressIndicator()
+        State.SUCCESS -> LazyColumn(...) { items(...) }
+        State.COMPLEX -> {
+            val data = computeData()
+            ComplexComponent(data)
+        }
+    }
+    ```
 - Always add trailing commas.
 - In `@Composable` functions, the parameter `modifier: Modifier = Modifier,` should be the first parameter.
