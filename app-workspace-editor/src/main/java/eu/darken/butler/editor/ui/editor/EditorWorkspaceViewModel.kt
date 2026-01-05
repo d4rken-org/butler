@@ -110,16 +110,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
-    private val workspaceState: Flow<EditorWorkspace.State> = workspaceSource
+    private val workspaceWithState: Flow<Pair<EditorWorkspace, EditorWorkspace.State>> = workspaceSource
         .filterNotNull()
-        .flatMapLatest { it.state }
+        .flatMapLatest { ws -> ws.state.map { state -> ws to state } }
 
     val state: Flow<State> = combine(
-        workspaceState,
+        workspaceWithState,
         dialogStates,
         searchStates,
         flowOf(id),
-    ) { wsState, dialogs, search, workspaceId ->
+    ) { (workspace, wsState), dialogs, search, workspaceId ->
         when (wsState) {
             is EditorWorkspace.State.Initializing -> State.Initializing
             is EditorWorkspace.State.Error -> State.Error(wsState.error)
@@ -157,6 +157,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                     searchRegexEnabled = search.regexEnabled,
                     searchWholeWord = search.wholeWord,
                     scrollTrigger = search.scrollTrigger,
+                    canUndo = workspace.canUndo(),
+                    canRedo = workspace.canRedo(),
                 )
             }
         }
@@ -658,6 +660,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             val searchRegexEnabled: Boolean = false,
             val searchWholeWord: Boolean = false,
             val scrollTrigger: Int = 0,
+            val canUndo: Boolean = false,
+            val canRedo: Boolean = false,
         ) : State {
             val hasFile: Boolean get() = contentSource is ContentSource.File
             val hasContent: Boolean get() = contentSource.hasContent
