@@ -51,7 +51,6 @@ import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.searcher.core.SearcherWorkspace
-import eu.darken.butler.searcher.ui.search.dialogs.FilterConditionsSheetHost
 import eu.darken.butler.searcher.ui.search.dialogs.SearchErrorDialog
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogHost
 import eu.darken.butler.searcher.ui.search.elements.PermissionSetupCard
@@ -80,6 +79,7 @@ import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
 import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
+import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
@@ -126,7 +126,6 @@ fun SearcherWorkspacePage(
         with(density) { WindowInsets.statusBars.getTop(density).toDp() }
     } else 0.dp
     val listState = rememberLazyListState()
-    var showClearHistoryDialog by remember { mutableStateOf(false) }
     var showTemplatesSheet by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -357,7 +356,7 @@ fun SearcherWorkspacePage(
                         searchHistory = currentState.searchHistory,
                         onHistoryItemClick = { onPageAction(SearcherPageAction.History.Click(it)) },
                         onHistoryItemRemove = { onPageAction(SearcherPageAction.History.Remove(it)) },
-                        onShowClearHistoryDialog = { showClearHistoryDialog = true }
+                        onShowClearHistoryDialog = { onPageAction(SearcherPageAction.History.ShowClearDialog) },
                     )
                 }
             }
@@ -744,7 +743,7 @@ fun SearcherWorkspacePage(
     // Issue/conflict resolution bottom sheet
     val issueState by (vm?.issueState?.collectAsState() ?: remember { mutableStateOf(null) })
     if (issueState != null) {
-        eu.darken.butler.workspace.ui.issues.IssuesBottomSheet(
+        IssuesBottomSheet(
             issue = issueState!!,
             onResolution = { resolution -> vm?.resolveIssue(resolution) },
             onDismiss = { /* Issue will auto-clear when resolved or cancelled */ },
@@ -753,40 +752,7 @@ fun SearcherWorkspacePage(
         )
     }
 
-    // Clear history confirmation dialog
-    if (showClearHistoryDialog) {
-        AlertDialog(
-            onDismissRequest = { showClearHistoryDialog = false },
-            title = {
-                Text(text = stringResource(R.string.searcher_history_clear_dialog_title))
-            },
-            text = {
-                Text(text = stringResource(R.string.searcher_history_clear_dialog_message))
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onPageAction(SearcherPageAction.History.Clear)
-                        showClearHistoryDialog = false
-                    }
-                ) {
-                    Text(
-                        text = stringResource(R.string.searcher_history_clear_confirm_action),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showClearHistoryDialog = false }
-                ) {
-                    Text(text = stringResource(eu.darken.butler.common.R.string.general_cancel_action))
-                }
-            }
-        )
-    }
-
-    // Dialog host
+    // Dialog host (handles all dialogs and bottom sheets)
     SearcherDialogHost(
         dialogState = currentState.dialogState,
         trashEnabled = currentState.trashEnabled,
@@ -796,12 +762,7 @@ fun SearcherWorkspacePage(
         onNavigateToClipboardSource = { clip -> vm?.navigateToClipboardSource(clip) },
         onRemoveClipboardEntry = { clip -> vm?.removeClipboardEntry(clip) },
         onSortOptionsConfirmed = { vm?.onSortOptions(it) },
-    )
-
-    // Filter condition edit sheets (Size, Date, Type)
-    FilterConditionsSheetHost(
-        dialogState = currentState.dialogState,
-        onDismiss = { vm?.dismissDialog() },
+        onClearHistoryConfirmed = { vm?.onClearHistoryConfirmed() },
         onConditionApply = { existing, new ->
             existing?.let { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) }
             onPageAction(SearcherPageAction.Filter.AddCondition(new))

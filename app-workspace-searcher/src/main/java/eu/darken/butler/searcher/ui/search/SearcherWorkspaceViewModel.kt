@@ -1027,6 +1027,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         currentSortSettings.value = result.sortSettings
     }
 
+    fun onClearHistoryConfirmed() = launch {
+        log(tag) { "onClearHistoryConfirmed()" }
+        dialogStateFlow.value = SearcherDialogState.None
+        searchHistory.clearHistory()
+    }
+
     fun navigateToClipboardSource(clip: ClipboardClip) = launch {
         log(TAG) { "navigateToClipboardSource($clip)" }
         dismissDialog()
@@ -1229,6 +1235,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
 
             // History
+            is SearcherPageAction.History.ShowClearDialog -> {
+                dialogStateFlow.value = SearcherDialogState.ClearHistoryConfirmation
+            }
             is SearcherPageAction.History.Clear -> {
                 vmScope.launch {
                     searchHistory.clearHistory()

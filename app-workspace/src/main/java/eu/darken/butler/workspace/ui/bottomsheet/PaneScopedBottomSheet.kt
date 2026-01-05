@@ -75,6 +75,7 @@ fun PaneScopedBottomSheet(
 ) {
     // In preview mode, just show the content as a card
     if (LocalInspectionMode.current) {
+        if (!visible) return
         Card(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
