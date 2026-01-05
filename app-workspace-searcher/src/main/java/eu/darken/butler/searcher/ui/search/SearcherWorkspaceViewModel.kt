@@ -432,14 +432,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             if (workspace == null) {
                 flowOf(State.Initializing)
             } else {
-                workspace.state
-                    .flatMapLatest { wsState ->
-                        if (wsState.currentSearchQuery == null) {
-                            flowOf(State.Initializing)
-                        } else {
-                            readyStateFlow
-                        }
-                    }
+                readyStateFlow
             }
         }
         .catch { e ->
