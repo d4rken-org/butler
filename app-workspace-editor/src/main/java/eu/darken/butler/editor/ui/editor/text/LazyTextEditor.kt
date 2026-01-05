@@ -75,6 +75,8 @@ import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
@@ -143,11 +145,12 @@ fun LazyTextEditor(
         measured.size.width.toFloat()
     }
 
-    // Update visible range when scroll position changes
+    // Update visible range when scroll position changes (debounced to reduce load frequency)
+    @OptIn(FlowPreview::class)
     LaunchedEffect(totalLines) {
         snapshotFlow {
             contentListState.firstVisibleItemIndex to contentListState.layoutInfo.visibleItemsInfo.size
-        }.collect { (firstVisibleIndex, visibleItemsSize) ->
+        }.debounce(50).collect { (firstVisibleIndex, visibleItemsSize) ->
             if (totalLines > 0 && contentListState.layoutInfo.totalItemsCount > 0) {
                 val startIndex = (firstVisibleIndex - 10).coerceAtLeast(0)
                 val visibleCount = visibleItemsSize.coerceAtLeast(1)
@@ -568,6 +571,9 @@ private fun DualColumnEditorContent(
                     .pointerInput(isWorkspaceFocused, requestWorkspaceFocus, keyboardController) {
                         detectTapGestures(
                             onTap = { offset ->
+                                // Ignore taps during scroll fling to prevent accidental keyboard show
+                                if (contentListState.isScrollInProgress) return@detectTapGestures
+
                                 // Request workspace focus so this pane becomes active
                                 requestWorkspaceFocus?.invoke()
 
@@ -639,6 +645,9 @@ private fun DualColumnEditorContent(
                                 }
                             },
                             onLongPress = { offset ->
+                                // Ignore long press during scroll
+                                if (contentListState.isScrollInProgress) return@detectTapGestures
+
                                 // Request workspace focus so this pane becomes active
                                 requestWorkspaceFocus?.invoke()
 

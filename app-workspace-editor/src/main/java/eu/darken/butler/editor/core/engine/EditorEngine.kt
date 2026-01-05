@@ -28,6 +28,7 @@ import kotlinx.coroutines.sync.withLock
 import okio.Source
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.coroutineContext
+import kotlin.math.abs
 
 class EditorEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -949,7 +950,13 @@ class EditorEngine @AssistedInject constructor(
         val constrainedEnd = endLine.coerceIn(constrainedStart, totalLines - 1)
         val newRange = constrainedStart..constrainedEnd
 
-        if (_visibleRange.value != newRange) {
+        val currentRange = _visibleRange.value
+        val rangeChanged = currentRange != newRange
+        // Only reload if range shifted by at least 3 lines to reduce load frequency during scroll
+        val significantChange = abs(currentRange.first - newRange.first) >= 3 ||
+            abs(currentRange.last - newRange.last) >= 3
+
+        if (rangeChanged && significantChange) {
             _visibleRange.value = newRange
 
             // Load content for the new visible range
