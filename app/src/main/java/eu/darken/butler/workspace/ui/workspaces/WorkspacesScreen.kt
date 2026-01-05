@@ -51,6 +51,7 @@ fun WorkspaceScreen(
     bannerStates: Map<Workspace.Id, BannerState> = emptyMap(),
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     managerDialogs: List<ManagerDialog> = emptyList(),
+    isOverlayVisible: Boolean = false,
     onScreenAction: (WorkspaceScreenAction) -> Unit,
     onHideMotd: (Uuid) -> Unit = {},
     onDismissMotd: (Uuid) -> Unit = {},
@@ -124,12 +125,14 @@ fun WorkspaceScreen(
                 onDismissBanner = onDismissBanner,
                 paneLocalModals = state.paneLocalModals,
                 isUpgraded = state.isUpgraded,
+                isOverlayVisible = isOverlayVisible,
                 onShareError = onShareError,
             )
         } else {
             ClassicWorkspaceContainer(
                 state = state,
                 managerDialogs = managerDialogs,
+                isOverlayVisible = isOverlayVisible,
                 onWorkspaceScreenAction = onScreenAction,
                 managerDialogStates = managerDialogStates,
                 onDismissManagerDialog = onDismissManagerDialog,
@@ -225,6 +228,7 @@ fun WorkspacesScreenHost(
                 bannerStates = bannerStates,
                 managerDialogStates = managerDialogStates,
                 managerDialogs = managerDialogs,
+                isOverlayVisible = pageManagerState.isManagerOverlayVisible,
                 onScreenAction = { vm.executeScreenAction(it) },
                 onHideMotd = { vm.hideMotd(it) },
                 onDismissMotd = { vm.dismissMotd(it) },

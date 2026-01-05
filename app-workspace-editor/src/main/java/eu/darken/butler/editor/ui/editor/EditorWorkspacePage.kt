@@ -63,7 +63,6 @@ import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-
 @Composable
 fun EditorWorkspacePageHost(
     id: Workspace.Id,
@@ -202,7 +201,7 @@ fun EditorWorkspacePage(
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
                 ) {
-                    if (readyState != null) {
+                    if (readyState?.isSearchBarVisible == true) {
                         EditorSearchBar(
                             searchQuery = readyState.searchQueryInput,
                             searchResults = readyState.searchResults,

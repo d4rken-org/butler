@@ -47,6 +47,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 
 @Composable
 fun EditorSearchBar(
@@ -70,10 +71,11 @@ fun EditorSearchBar(
     val hasActiveOptions = caseSensitive || regexEnabled || wholeWord
     var showOptionsMenu by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
 
-    // Auto-focus the search input when the search bar appears
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    // Auto-focus the search input when the search bar appears and workspace is focused
+    LaunchedEffect(isWorkspaceFocused) {
+        if (isWorkspaceFocused) focusRequester.requestFocus()
     }
 
     Card(
@@ -108,157 +110,157 @@ fun EditorSearchBar(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 // Search text field with overflow menu
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .padding(start = 12.dp, end = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BasicTextField(
-                    value = searchQuery,
-                    onValueChange = onSearchQueryChange,
+                Row(
                     modifier = Modifier
                         .weight(1f)
-                        .focusRequester(focusRequester),
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Search
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onSearch = {
-                            if (hasResults) {
-                                onNext()
-                            }
-                        }
-                    ),
-                    decorationBox = { innerTextField ->
-                        Box(modifier = Modifier.padding(vertical = 8.dp)) {
-                            if (searchQuery.text.isEmpty()) {
-                                Text(
-                                    text = stringResource(R.string.editor_search_placeholder),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            innerTextField()
-                        }
-                    }
-                )
-
-                // Options menu button
-                Box {
-                    Icon(
-                        imageVector = Icons.TwoTone.MoreVert,
-                        contentDescription = stringResource(R.string.editor_search_options_label),
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(start = 12.dp, end = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BasicTextField(
+                        value = searchQuery,
+                        onValueChange = onSearchQueryChange,
                         modifier = Modifier
-                            .clickable { showOptionsMenu = true }
-                            .padding(8.dp)
-                            .size(20.dp),
-                        tint = if (hasActiveOptions) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            .weight(1f)
+                            .focusRequester(focusRequester),
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Search
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onSearch = {
+                                if (hasResults) {
+                                    onNext()
+                                }
+                            }
+                        ),
+                        decorationBox = { innerTextField ->
+                            Box(modifier = Modifier.padding(vertical = 8.dp)) {
+                                if (searchQuery.text.isEmpty()) {
+                                    Text(
+                                        text = stringResource(R.string.editor_search_placeholder),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                innerTextField()
+                            }
                         }
                     )
 
-                    DropdownMenu(
-                        expanded = showOptionsMenu,
-                        onDismissRequest = { showOptionsMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.editor_search_case_sensitive_label)) },
-                            onClick = {
-                                onCaseSensitiveToggle()
-                            },
-                            leadingIcon = {
-                                Checkbox(
-                                    checked = caseSensitive,
-                                    onCheckedChange = null
-                                )
+                    // Options menu button
+                    Box {
+                        Icon(
+                            imageVector = Icons.TwoTone.MoreVert,
+                            contentDescription = stringResource(R.string.editor_search_options_label),
+                            modifier = Modifier
+                                .clickable { showOptionsMenu = true }
+                                .padding(8.dp)
+                                .size(20.dp),
+                            tint = if (hasActiveOptions) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             }
                         )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.editor_search_whole_word_label)) },
-                            onClick = {
-                                onWholeWordToggle()
-                            },
-                            leadingIcon = {
-                                Checkbox(
-                                    checked = wholeWord,
-                                    onCheckedChange = null
-                                )
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.editor_search_regex_label)) },
-                            onClick = {
-                                onRegexToggle()
-                            },
-                            leadingIcon = {
-                                Checkbox(
-                                    checked = regexEnabled,
-                                    onCheckedChange = null
-                                )
-                            }
-                        )
+
+                        DropdownMenu(
+                            expanded = showOptionsMenu,
+                            onDismissRequest = { showOptionsMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.editor_search_case_sensitive_label)) },
+                                onClick = {
+                                    onCaseSensitiveToggle()
+                                },
+                                leadingIcon = {
+                                    Checkbox(
+                                        checked = caseSensitive,
+                                        onCheckedChange = null
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.editor_search_whole_word_label)) },
+                                onClick = {
+                                    onWholeWordToggle()
+                                },
+                                leadingIcon = {
+                                    Checkbox(
+                                        checked = wholeWord,
+                                        onCheckedChange = null
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.editor_search_regex_label)) },
+                                onClick = {
+                                    onRegexToggle()
+                                },
+                                leadingIcon = {
+                                    Checkbox(
+                                        checked = regexEnabled,
+                                        onCheckedChange = null
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
-            }
 
-            // Previous result button
-            IconButton(
-                onClick = onPrevious,
-                enabled = canNavigate,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.KeyboardArrowUp,
-                    contentDescription = stringResource(R.string.editor_search_previous),
-                    tint = if (canNavigate) {
-                        MaterialTheme.colorScheme.onSurface
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    }
-                )
-            }
+                // Previous result button
+                IconButton(
+                    onClick = onPrevious,
+                    enabled = canNavigate,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.KeyboardArrowUp,
+                        contentDescription = stringResource(R.string.editor_search_previous),
+                        tint = if (canNavigate) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        }
+                    )
+                }
 
-            // Next result button
-            IconButton(
-                onClick = onNext,
-                enabled = canNavigate,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.KeyboardArrowDown,
-                    contentDescription = stringResource(R.string.editor_search_next),
-                    tint = if (canNavigate) {
-                        MaterialTheme.colorScheme.onSurface
-                    } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    }
-                )
-            }
+                // Next result button
+                IconButton(
+                    onClick = onNext,
+                    enabled = canNavigate,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.editor_search_next),
+                        tint = if (canNavigate) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        }
+                    )
+                }
 
-            // Close button
-            IconButton(
-                onClick = onClose,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.Close,
-                    contentDescription = stringResource(eu.darken.butler.common.R.string.general_close_action),
-                )
+                // Close button
+                IconButton(
+                    onClick = onClose,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = stringResource(eu.darken.butler.common.R.string.general_close_action),
+                    )
+                }
             }
-        }
         }
     }
 }
