@@ -10,6 +10,7 @@ fun FilterConditionsSheetHost(
     dialogState: SearcherDialogState,
     onDismiss: () -> Unit,
     onConditionApply: (existing: FilterCondition?, new: FilterCondition) -> Unit,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     val sizeState = dialogState as? SearcherDialogState.EditSizeCondition
@@ -18,6 +19,7 @@ fun FilterConditionsSheetHost(
         existingCondition = sizeState?.existing,
         onDismiss = onDismiss,
         onApply = { onConditionApply(sizeState?.existing, it) },
+        topInset = topInset,
         bottomInset = bottomInset,
     )
 
@@ -27,6 +29,7 @@ fun FilterConditionsSheetHost(
         existingCondition = dateState?.existing,
         onDismiss = onDismiss,
         onApply = { onConditionApply(dateState?.existing, it) },
+        topInset = topInset,
         bottomInset = bottomInset,
     )
 
@@ -36,6 +39,7 @@ fun FilterConditionsSheetHost(
         existingCondition = typeState?.existing,
         onDismiss = onDismiss,
         onApply = { onConditionApply(typeState?.existing, it) },
+        topInset = topInset,
         bottomInset = bottomInset,
     )
 }

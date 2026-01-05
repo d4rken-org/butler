@@ -57,12 +57,14 @@ fun DateConditionEditSheet(
     existingCondition: FilterCondition.ModifiedDate?,
     onDismiss: () -> Unit,
     onApply: (FilterCondition.ModifiedDate) -> Unit,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         modifier = modifier,
         visible = visible,
         onDismiss = onDismiss,
+        topInset = topInset,
         bottomInset = bottomInset,
     ) {
         DateConditionEditContent(

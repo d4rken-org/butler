@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -120,6 +121,9 @@ fun SearcherWorkspacePage(
     val density = LocalDensity.current
     val navBarInset = if (design.paneEdges.touchesBottom) {
         with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
+    val statusBarInset = if (design.paneEdges.touchesTop) {
+        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
     } else 0.dp
     val listState = rememberLazyListState()
     var showClearHistoryDialog by remember { mutableStateOf(false) }
@@ -706,6 +710,7 @@ fun SearcherWorkspacePage(
         PaneScopedBottomSheet(
             visible = showTemplatesSheet,
             onDismiss = { showTemplatesSheet = false },
+            topInset = statusBarInset,
         ) {
             TemplatesBottomSheetContent(
                 bottomPadding = navBarInset,
@@ -731,6 +736,7 @@ fun SearcherWorkspacePage(
                 onPageAction(SearcherPageAction.Results.HideQuickActions)
             },
             onDismiss = { onPageAction(SearcherPageAction.Results.HideQuickActions) },
+            topInset = statusBarInset,
             bottomInset = navBarInset,
         )
     }
@@ -742,6 +748,7 @@ fun SearcherWorkspacePage(
             issue = issueState!!,
             onResolution = { resolution -> vm?.resolveIssue(resolution) },
             onDismiss = { /* Issue will auto-clear when resolved or cancelled */ },
+            topInset = statusBarInset,
             bottomInset = navBarInset,
         )
     }
@@ -799,6 +806,7 @@ fun SearcherWorkspacePage(
             existing?.let { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) }
             onPageAction(SearcherPageAction.Filter.AddCondition(new))
         },
+        topInset = statusBarInset,
         bottomInset = navBarInset,
     )
 

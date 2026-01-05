@@ -68,6 +68,7 @@ fun PaneScopedBottomSheet(
     modifier: Modifier = Modifier,
     visible: Boolean,
     onDismiss: () -> Unit,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
     dragHandle: @Composable (() -> Unit)? = { DefaultDragHandle() },
     content: @Composable () -> Unit,
@@ -123,7 +124,9 @@ fun PaneScopedBottomSheet(
 
         // Bottom sheet content
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = topInset),
             contentAlignment = Alignment.BottomCenter
         ) {
             AnimatedVisibility(
