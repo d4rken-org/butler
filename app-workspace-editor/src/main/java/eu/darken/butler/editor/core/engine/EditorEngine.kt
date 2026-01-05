@@ -976,6 +976,17 @@ class EditorEngine @AssistedInject constructor(
                         _totalLines.value = currentState.resources.textBuffer.totalLines.value
                         invalidateSearchResults()
                         refreshVisibleContent()
+
+                        // Update cursor position based on undone operation
+                        result.getOrNull()?.let { operation ->
+                            val newCursorPosition = when (operation) {
+                                is EditOperation.Insert -> operation.position
+                                is EditOperation.Delete -> computeEndPosition(operation.position, operation.deletedText)
+                                is EditOperation.Replace -> computeEndPosition(operation.position, operation.oldText)
+                            }
+                            _cursorPosition.value = newCursorPosition
+                            _selectionRange.value = null
+                        }
                     }
                     result
                 } catch (e: Exception) {
@@ -1001,6 +1012,17 @@ class EditorEngine @AssistedInject constructor(
                         _totalLines.value = currentState.resources.textBuffer.totalLines.value
                         invalidateSearchResults()
                         refreshVisibleContent()
+
+                        // Update cursor position based on redone operation
+                        result.getOrNull()?.let { operation ->
+                            val newCursorPosition = when (operation) {
+                                is EditOperation.Insert -> computeEndPosition(operation.position, operation.text)
+                                is EditOperation.Delete -> operation.position
+                                is EditOperation.Replace -> computeEndPosition(operation.position, operation.newText)
+                            }
+                            _cursorPosition.value = newCursorPosition
+                            _selectionRange.value = null
+                        }
                     }
                     result
                 } catch (e: Exception) {
@@ -1015,6 +1037,19 @@ class EditorEngine @AssistedInject constructor(
                 Result.failure(error)
             }
         }
+    }
+
+    private fun computeEndPosition(start: TextPosition, text: String): TextPosition {
+        val newlineCount = text.count { it == '\n' }
+        return TextPosition(
+            offset = start.offset + text.length,
+            line = start.line + newlineCount,
+            column = if (newlineCount > 0) {
+                text.length - text.lastIndexOf('\n') - 1
+            } else {
+                start.column + text.length
+            },
+        )
     }
 
     fun canUndo(): Boolean {
