@@ -73,7 +73,6 @@ import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
@@ -783,20 +782,6 @@ private fun DualColumnEditorContent(
                 visibleLineContent = currentVisibleLineContent,
                 contentPaddingTop = contentPaddingTopPx,
             )
-        }
-    }
-
-    // Request focus when content is loaded (only if workspace is focused)
-    // Small delay avoids focus during quick page peeks - if user swipes away during delay,
-    // the LaunchedEffect will be cancelled (isWorkspaceFocused key changes)
-    LaunchedEffect(totalLines, isWorkspaceFocused) {
-        if (isWorkspaceFocused) {
-            delay(150)
-            try {
-                focusRequester.requestFocus()
-            } catch (e: Exception) {
-                log(tag, WARN) { "Focus request failed: ${e.message}" }
-            }
         }
     }
 }
