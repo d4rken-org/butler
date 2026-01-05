@@ -33,8 +33,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -44,6 +42,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -55,13 +60,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isShiftPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -75,6 +73,9 @@ import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 
 private val tag = logTag("Editor", "LazyTextEditor")
 
@@ -119,20 +120,13 @@ fun LazyTextEditor(
     val lineNumbersListState = rememberLazyListState()
     val contentListState = rememberLazyListState()
 
-    // Release focus when workspace loses focus (multi-pane adaptive layout support)
-    // Use freeFocus() instead of clearFocus() to only release this component's focus,
-    // not clear focus globally (which would break focus transfer to other workspaces)
+    // Release focus and hide keyboard when workspace loses focus
     LaunchedEffect(isWorkspaceFocused) {
-        if (!isWorkspaceFocused) {
-            try {
-                focusRequester.freeFocus()
-            } catch (_: Exception) {
-            }
-        }
+        if (!isWorkspaceFocused) focusManager.clearFocus()
     }
     val horizontalScrollState = rememberScrollState()
     var pendingHorizontalScroll by remember { mutableStateOf<Int?>(null) }
-    val scope = rememberCoroutineScope()
+    rememberCoroutineScope()
     val density = LocalDensity.current
 
     // Measure character width for horizontal scroll calculations
@@ -298,22 +292,14 @@ private fun DualColumnEditorContent(
 ) {
     // Ensure drag handlers always see latest values, not captured closures
     val currentVisibleLineContent by rememberUpdatedState(visibleLineContent)
-    val currentVisibleRange by rememberUpdatedState(visibleRange)
     val isWorkspaceFocused = LocalWorkspaceFocused.current
     val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // Release focus when workspace loses focus (multi-pane adaptive layout support)
-    // Use freeFocus() instead of clearFocus() to only release this component's focus,
-    // not clear focus globally (which would break focus transfer to other workspaces)
+    // Release focus and hide keyboard when workspace loses focus
     LaunchedEffect(isWorkspaceFocused) {
-        if (!isWorkspaceFocused) {
-            try {
-                focusRequester.freeFocus()
-            } catch (_: Exception) {
-            }
-        }
+        if (!isWorkspaceFocused) focusManager.clearFocus()
     }
 
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
@@ -322,7 +308,7 @@ private fun DualColumnEditorContent(
     var lastTapTime by remember { mutableStateOf(0L) }
     var lastTapPosition by remember { mutableStateOf<Offset?>(null) }
     var tapCount by remember { mutableStateOf(0) }
-    val scope = rememberCoroutineScope()
+    rememberCoroutineScope()
     val density = LocalDensity.current
     val contentPaddingTopPx = with(density) { contentPadding.calculateTopPadding().toPx() }
 
@@ -801,12 +787,15 @@ private fun DualColumnEditorContent(
     }
 
     // Request focus when content is loaded (only if workspace is focused)
+    // Small delay avoids focus during quick page peeks - if user swipes away during delay,
+    // the LaunchedEffect will be cancelled (isWorkspaceFocused key changes)
     LaunchedEffect(totalLines, isWorkspaceFocused) {
         if (isWorkspaceFocused) {
+            delay(150)
             try {
                 focusRequester.requestFocus()
             } catch (e: Exception) {
-                // Ignore focus errors
+                log(tag, WARN) { "Focus request failed: ${e.message}" }
             }
         }
     }

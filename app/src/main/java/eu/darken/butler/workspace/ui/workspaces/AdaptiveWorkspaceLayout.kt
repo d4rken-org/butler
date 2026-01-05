@@ -44,6 +44,7 @@ fun AdaptiveWorkspaceLayout(
     onDismissBanner: (Workspace.Id) -> Unit,
     paneLocalModals: Map<Workspace.Id, Workspace.Info> = emptyMap(),
     isUpgraded: Boolean = false,
+    isOverlayVisible: Boolean = false,
     onShareError: (Workspace.Id, Throwable) -> Unit,
 ) {
     val dragDropState = remember { DragDropState() }
@@ -124,8 +125,9 @@ fun AdaptiveWorkspaceLayout(
 
                             Box {
                                 // Background: Parent workspace
+                                // When overlay is visible, no workspace should be considered focused
                                 CompositionLocalProvider(
-                                    LocalWorkspaceFocused provides (focusedId == info.id),
+                                    LocalWorkspaceFocused provides (focusedId == info.id && !isOverlayVisible),
                                     LocalWorkspaceFocusRequest provides {
                                         onScreenAction(
                                             WorkspaceScreenAction.Focus(
@@ -161,7 +163,7 @@ fun AdaptiveWorkspaceLayout(
                                 childModal?.let { modal ->
                                     key(modal.id) {
                                         CompositionLocalProvider(
-                                            LocalWorkspaceFocused provides (focusedId == modal.id),
+                                            LocalWorkspaceFocused provides (focusedId == modal.id && !isOverlayVisible),
                                             LocalWorkspaceFocusRequest provides {
                                                 onScreenAction(
                                                     WorkspaceScreenAction.Focus(

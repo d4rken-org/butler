@@ -16,6 +16,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,6 +48,7 @@ internal fun ClassicWorkspaceContainer(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: WorkspacesViewModel.State,
     managerDialogs: List<ManagerDialog> = emptyList(),
+    isOverlayVisible: Boolean = false,
     onWorkspaceScreenAction: (WorkspaceScreenAction) -> Unit,
     managerDialogStates: Map<Workspace.Id, ManagerDialog.WorkspaceTargeted>,
     onDismissManagerDialog: (Workspace.Id) -> Unit,
@@ -63,11 +65,11 @@ internal fun ClassicWorkspaceContainer(
     }
     val pagerState = rememberPagerState(pageCount = { effectivePageCount })
 
-    // Custom fling behavior requiring ~50% drag before committing to page change
+    // Custom fling behavior requiring ~70% drag before committing to page change
     // snapPositionalThreshold: fraction of page that must be scrolled before switching (for low velocity flings)
     val flingBehavior = PagerDefaults.flingBehavior(
         state = pagerState,
-        snapPositionalThreshold = 0.5f,
+        snapPositionalThreshold = 0.7f,
     )
 
     // State machine for placeholder workspace creation
@@ -83,7 +85,7 @@ internal fun ClassicWorkspaceContainer(
     var lastUserSwipeFocusId by remember { mutableStateOf<Workspace.Id?>(null) }
 
     // Sync pager with selected tab
-    LaunchedEffect(state.focused, state.tabWorkspaces, state.isRestoring) {
+    LaunchedEffect(state.focused, state.tabWorkspaces, state.isRestoring, isOverlayVisible) {
         val selectedId = state.focused ?: return@LaunchedEffect
 
         // Skip animation if this focus change was initiated by user swipe
@@ -111,15 +113,15 @@ internal fun ClassicWorkspaceContainer(
         }
 
         // First sync for a new focus should be instant (no animation), subsequent syncs animate
+        // Also skip animation when overlay is visible to prevent IME trigger during reorder
         val isFirstSyncForFocus = lastSyncedFocusId != selectedId
-        val shouldSkipAnimation = state.isRestoring || isFirstSyncForFocus
+        val shouldSkipAnimation = state.isRestoring || isFirstSyncForFocus || isOverlayVisible
 
         isAnimatingProgrammatically = true
         if (shouldSkipAnimation) {
-            log(
-                TAG,
-                VERBOSE
-            ) { "Jumping pager to page $selectedIndex (restoration=${state.isRestoring}, firstSync=$isFirstSyncForFocus)" }
+            log(TAG, VERBOSE) {
+                "Jumping pager to page $selectedIndex (restoration=${state.isRestoring}, firstSync=$isFirstSyncForFocus, overlay=$isOverlayVisible)"
+            }
             pagerState.scrollToPage(selectedIndex)
         } else {
             log(TAG, VERBOSE) { "Animating pager to page $selectedIndex" }
@@ -135,6 +137,7 @@ internal fun ClassicWorkspaceContainer(
     val hasBlockingDialog = managerDialogs.any { it.isBlocking }
     val settledPage by remember { derivedStateOf { pagerState.settledPage } }
     val workspaceCount = state.tabWorkspaces.size
+
 
     // State machine transitions for placeholder creation
     LaunchedEffect(
@@ -291,36 +294,41 @@ internal fun ClassicWorkspaceContainer(
                         },
                     )
                 } else {
-                    CompositionLocalProvider(
-                        LocalWorkspaceFocused provides (state.focused == paneInfo.id),
-                        LocalWorkspaceFocusRequest provides {
-                            onWorkspaceScreenAction(
-                                WorkspaceScreenAction.Select(
-                                    paneInfo.id
-                                )
-                            )
-                        },
-                    ) {
-                        WorkspaceOverlayContainer(
-                            workspaceId = paneInfo.id,
-                            managerDialogStates = managerDialogStates,
-                            onDismissManagerDialog = onDismissManagerDialog,
-                            onConfirmManagerDialog = onConfirmManagerDialog,
-                            bannerStates = bannerStates,
-                            onDismissBanner = onDismissBanner,
-                        ) {
-                            WorkspaceMapper(
-                                info = paneInfo,
-                                design = design,
-                                onShareError = { error ->
-                                    onShareError(paneInfo.id, error)
-                                },
-                                onCloseWorkspace = {
-                                    workspaceActionHandler?.executeWorkspaceAction(
-                                        WorkspaceAction.Close(paneInfo.id)
+                    // Use key to preserve composition identity during workspace reorder
+                    key(paneInfo.id) {
+                        // When overlay is visible, no workspace should be considered focused
+                        val isFocused = state.focused == paneInfo.id && !isOverlayVisible
+                        CompositionLocalProvider(
+                            LocalWorkspaceFocused provides isFocused,
+                            LocalWorkspaceFocusRequest provides {
+                                onWorkspaceScreenAction(
+                                    WorkspaceScreenAction.Select(
+                                        paneInfo.id
                                     )
-                                },
-                            )
+                                )
+                            },
+                        ) {
+                            WorkspaceOverlayContainer(
+                                workspaceId = paneInfo.id,
+                                managerDialogStates = managerDialogStates,
+                                onDismissManagerDialog = onDismissManagerDialog,
+                                onConfirmManagerDialog = onConfirmManagerDialog,
+                                bannerStates = bannerStates,
+                                onDismissBanner = onDismissBanner,
+                            ) {
+                                WorkspaceMapper(
+                                    info = paneInfo,
+                                    design = design,
+                                    onShareError = { error ->
+                                        onShareError(paneInfo.id, error)
+                                    },
+                                    onCloseWorkspace = {
+                                        workspaceActionHandler?.executeWorkspaceAction(
+                                            WorkspaceAction.Close(paneInfo.id)
+                                        )
+                                    },
+                                )
+                            }
                         }
                     }
                 }

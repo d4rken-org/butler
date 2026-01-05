@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.manager.preview
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.unit.DpSize
 import androidx.lifecycle.ViewModelStoreOwner
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -13,6 +14,7 @@ import eu.darken.butler.common.theming.MyAppTheme
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
@@ -50,19 +52,22 @@ class WorkspacePreviewCaptureService @Inject constructor(
                 captureContext = captureContext,
                 viewModelStoreOwner = viewmodelStoreOwner,
             ) {
-                MyAppTheme(state = themeState) {
-                    WorkspaceMapper(
-                        info = WorkspacePaneInfo(
-                            id = workspaceId,
-                            type = workspaceType,
-                            lifecycleState = Workspace.LifecycleState.Ready,
-                        ),
-                        design = WorkspaceDesign(
-                            layout = WorkspaceDesign.Layout.SINGLE
-                        ),
-                        onShareError = { /* No-op for preview */ },
-                        onCloseWorkspace = { /* No-op for preview */ },
-                    )
+                // Disable focus during preview capture to prevent keyboard from showing
+                CompositionLocalProvider(LocalWorkspaceFocused provides false) {
+                    MyAppTheme(state = themeState) {
+                        WorkspaceMapper(
+                            info = WorkspacePaneInfo(
+                                id = workspaceId,
+                                type = workspaceType,
+                                lifecycleState = Workspace.LifecycleState.Ready,
+                            ),
+                            design = WorkspaceDesign(
+                                layout = WorkspaceDesign.Layout.SINGLE
+                            ),
+                            onShareError = { /* No-op for preview */ },
+                            onCloseWorkspace = { /* No-op for preview */ },
+                        )
+                    }
                 }
             }
         }
