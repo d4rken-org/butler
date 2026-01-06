@@ -634,7 +634,7 @@ fun SearcherWorkspacePage(
                     visible = hasOperations,
                     scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     OperationsBar(
                         operations = operationsState.operations,
@@ -659,7 +659,7 @@ fun SearcherWorkspacePage(
                     visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     ClipboardBar(
                         workspaceType = Workspace.Type.SEARCHER,
@@ -676,7 +676,7 @@ fun SearcherWorkspacePage(
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     WorkspaceActionBar(
                         actions = currentState.availableActions,

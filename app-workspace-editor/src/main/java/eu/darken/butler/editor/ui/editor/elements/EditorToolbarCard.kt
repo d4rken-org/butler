@@ -60,7 +60,7 @@ fun EditorToolbarCard(
 ) {
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 4.dp else 8.dp,
+        targetValue = if (isCollapsed) 8.dp else 16.dp,
         label = "cardPadding"
     )
 

@@ -523,7 +523,7 @@ internal fun ExplorerReadyContent(
                     visible = hasOperations,
                     scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     OperationsBar(
                         operations = operationsState.operations,
@@ -549,7 +549,7 @@ internal fun ExplorerReadyContent(
                     visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     ClipboardBar(
                         workspaceType = Workspace.Type.EXPLORER,
@@ -567,7 +567,7 @@ internal fun ExplorerReadyContent(
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     WorkspaceActionBar(
                         actions = state.availableActions,

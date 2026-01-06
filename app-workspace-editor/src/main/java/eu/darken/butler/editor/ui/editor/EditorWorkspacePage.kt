@@ -137,8 +137,7 @@ fun EditorWorkspacePage(
             modifier = Modifier
                 .zIndex(1f)
                 .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                .fillMaxWidth(),
             position = BarPosition.TOP,
             state = topBarStackState,
             bars = {
@@ -147,6 +146,7 @@ fun EditorWorkspacePage(
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
                     estimatedHeight = 80.dp, // EditorToolbarCard expanded height
                     animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     EditorToolbarCard(
                         workspaceId = workspaceId,
@@ -168,6 +168,7 @@ fun EditorWorkspacePage(
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     estimatedHeight = 24.dp, // InfoChip height
                     animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     if (readyState != null) {
                         EditorInfoBar(
@@ -191,8 +192,7 @@ fun EditorWorkspacePage(
             modifier = Modifier
                 .zIndex(1f)
                 .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
+                .fillMaxWidth(),
             position = BarPosition.BOTTOM,
             state = bottomBarStackState,
             bars = {
@@ -200,6 +200,7 @@ fun EditorWorkspacePage(
                     visible = readyState?.isSearchBarVisible == true,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     if (readyState?.isSearchBarVisible == true) {
                         EditorSearchBar(
@@ -223,7 +224,7 @@ fun EditorWorkspacePage(
                     visible = readyState != null && hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
-                    modifier = Modifier.padding(horizontal = 8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     ClipboardBar(
                         workspaceType = Workspace.Type.EDITOR,
@@ -238,6 +239,7 @@ fun EditorWorkspacePage(
                     visible = hasActions,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     if (readyState != null) {
                         EditorActionBar(
