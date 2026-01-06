@@ -156,8 +156,8 @@ fun EditorWorkspacePage(
                         isModified = readyState?.isModified ?: false,
                         isLoading = readyState?.isLoading ?: (mainState is EditorWorkspaceViewModel.State.Initializing),
                         hasContent = readyState?.hasContent ?: false,
-                        canUndo = readyState?.isModified ?: false,
-                        canRedo = false,
+                        canUndo = readyState?.canUndo ?: false,
+                        canRedo = readyState?.canRedo ?: false,
                         onAction = onPageAction,
                         collapsedFraction = collapsedFraction,
                     )

@@ -26,6 +26,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,7 +75,8 @@ import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
@@ -142,17 +145,22 @@ fun LazyTextEditor(
         measured.size.width.toFloat()
     }
 
-    // Update visible range when scroll position changes
-    LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.layoutInfo.visibleItemsInfo.size) {
-        if (totalLines > 0 && contentListState.layoutInfo.totalItemsCount > 0) {
-            val startIndex = (contentListState.firstVisibleItemIndex - 10).coerceAtLeast(0)
-            val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
-            val endIndex = minOf(
-                startIndex + visibleCount + 10, // Buffer
-                totalLines - 1
-            ).coerceAtLeast(startIndex)
+    // Update visible range when scroll position changes (debounced to reduce load frequency)
+    @OptIn(FlowPreview::class)
+    LaunchedEffect(totalLines) {
+        snapshotFlow {
+            contentListState.firstVisibleItemIndex to contentListState.layoutInfo.visibleItemsInfo.size
+        }.debounce(50).collect { (firstVisibleIndex, visibleItemsSize) ->
+            if (totalLines > 0 && contentListState.layoutInfo.totalItemsCount > 0) {
+                val startIndex = (firstVisibleIndex - 10).coerceAtLeast(0)
+                val visibleCount = visibleItemsSize.coerceAtLeast(1)
+                val endIndex = minOf(
+                    startIndex + visibleCount + 10, // Buffer
+                    totalLines - 1
+                ).coerceAtLeast(startIndex)
 
-            onVisibleRangeChange(startIndex..endIndex)
+                onVisibleRangeChange(startIndex..endIndex)
+            }
         }
     }
 
@@ -169,7 +177,7 @@ fun LazyTextEditor(
         val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size
         val lastVisibleLine = firstVisibleLine + visibleCount - 1
 
-        val needsVerticalScroll = targetLine < firstVisibleLine || targetLine > lastVisibleLine
+        val needsVerticalScroll = targetLine !in firstVisibleLine..lastVisibleLine
         val forceScroll = scrollTrigger > 0
 
         if (needsVerticalScroll || forceScroll) {
@@ -179,7 +187,7 @@ fun LazyTextEditor(
                 val scrollTarget = (targetLine - centerOffset).coerceAtLeast(0)
                 contentListState.scrollToItem(scrollTarget)
                 lineNumbersListState.scrollToItem(scrollTarget)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Ignore scroll errors - layout might not be ready yet
             }
         }
@@ -196,13 +204,12 @@ fun LazyTextEditor(
             val cursorX = textPaddingPx + (cursorPosition.column * charWidth)
 
             val currentScrollX = horizontalScrollState.value.toFloat()
-            val visibleLeft = currentScrollX
             val visibleRight = currentScrollX + viewportWidth
 
             // Center cursor horizontally in viewport when scrolling
             val centerOffset = viewportWidth / 2
             val targetScroll: Int? = when {
-                cursorX < visibleLeft + margin -> (cursorX - centerOffset).coerceAtLeast(0f).toInt()
+                cursorX < currentScrollX + margin -> (cursorX - centerOffset).coerceAtLeast(0f).toInt()
                 cursorX > visibleRight - margin -> (cursorX - centerOffset).coerceAtLeast(0f).toInt()
                 else -> null
             }
@@ -241,7 +248,6 @@ fun LazyTextEditor(
         contentPadding = contentPadding,
         totalLines = totalLines,
         visibleLineContent = visibleLineContent,
-        visibleRange = visibleRange,
         cursorPosition = cursorPosition,
         selection = selection,
         lineNumbersListState = lineNumbersListState,
@@ -269,7 +275,6 @@ private fun DualColumnEditorContent(
     contentPadding: PaddingValues,
     totalLines: Int,
     visibleLineContent: Map<Int, String>,
-    visibleRange: IntRange,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     lineNumbersListState: LazyListState,
@@ -305,9 +310,9 @@ private fun DualColumnEditorContent(
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     var isFocused by remember { mutableStateOf(false) }
     var isUserEditing by remember { mutableStateOf(false) }
-    var lastTapTime by remember { mutableStateOf(0L) }
+    var lastTapTime by remember { mutableLongStateOf(0L) }
     var lastTapPosition by remember { mutableStateOf<Offset?>(null) }
-    var tapCount by remember { mutableStateOf(0) }
+    var tapCount by remember { mutableIntStateOf(0) }
     rememberCoroutineScope()
     val density = LocalDensity.current
     val contentPaddingTopPx = with(density) { contentPadding.calculateTopPadding().toPx() }
@@ -359,32 +364,34 @@ private fun DualColumnEditorContent(
     }
 
     // Synchronize vertical scrolling between line numbers and content
-    LaunchedEffect(contentListState.firstVisibleItemIndex, contentListState.firstVisibleItemScrollOffset) {
-        if (lineNumbersListState.firstVisibleItemIndex != contentListState.firstVisibleItemIndex ||
-            lineNumbersListState.firstVisibleItemScrollOffset != contentListState.firstVisibleItemScrollOffset
-        ) {
-            try {
-                lineNumbersListState.scrollToItem(
-                    contentListState.firstVisibleItemIndex,
-                    contentListState.firstVisibleItemScrollOffset
-                )
-            } catch (e: Exception) {
-                // Ignore sync errors
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            contentListState.firstVisibleItemIndex to contentListState.firstVisibleItemScrollOffset
+        }.collect { (index, offset) ->
+            if (lineNumbersListState.firstVisibleItemIndex != index ||
+                lineNumbersListState.firstVisibleItemScrollOffset != offset
+            ) {
+                try {
+                    lineNumbersListState.scrollToItem(index, offset)
+                } catch (_: Exception) {
+                    // Ignore sync errors
+                }
             }
         }
     }
 
-    LaunchedEffect(lineNumbersListState.firstVisibleItemIndex, lineNumbersListState.firstVisibleItemScrollOffset) {
-        if (contentListState.firstVisibleItemIndex != lineNumbersListState.firstVisibleItemIndex ||
-            contentListState.firstVisibleItemScrollOffset != lineNumbersListState.firstVisibleItemScrollOffset
-        ) {
-            try {
-                contentListState.scrollToItem(
-                    lineNumbersListState.firstVisibleItemIndex,
-                    lineNumbersListState.firstVisibleItemScrollOffset
-                )
-            } catch (e: Exception) {
-                // Ignore sync errors
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            lineNumbersListState.firstVisibleItemIndex to lineNumbersListState.firstVisibleItemScrollOffset
+        }.collect { (index, offset) ->
+            if (contentListState.firstVisibleItemIndex != index ||
+                contentListState.firstVisibleItemScrollOffset != offset
+            ) {
+                try {
+                    contentListState.scrollToItem(index, offset)
+                } catch (_: Exception) {
+                    // Ignore sync errors
+                }
             }
         }
     }
@@ -564,6 +571,9 @@ private fun DualColumnEditorContent(
                     .pointerInput(isWorkspaceFocused, requestWorkspaceFocus, keyboardController) {
                         detectTapGestures(
                             onTap = { offset ->
+                                // Ignore taps during scroll fling to prevent accidental keyboard show
+                                if (contentListState.isScrollInProgress) return@detectTapGestures
+
                                 // Request workspace focus so this pane becomes active
                                 requestWorkspaceFocus?.invoke()
 
@@ -635,6 +645,9 @@ private fun DualColumnEditorContent(
                                 }
                             },
                             onLongPress = { offset ->
+                                // Ignore long press during scroll
+                                if (contentListState.isScrollInProgress) return@detectTapGestures
+
                                 // Request workspace focus so this pane becomes active
                                 requestWorkspaceFocus?.invoke()
 
@@ -785,34 +798,20 @@ private fun DualColumnEditorContent(
             )
         }
     }
-
-    // Request focus when content is loaded (only if workspace is focused)
-    // Small delay avoids focus during quick page peeks - if user swipes away during delay,
-    // the LaunchedEffect will be cancelled (isWorkspaceFocused key changes)
-    LaunchedEffect(totalLines, isWorkspaceFocused) {
-        if (isWorkspaceFocused) {
-            delay(150)
-            try {
-                focusRequester.requestFocus()
-            } catch (e: Exception) {
-                log(tag, WARN) { "Focus request failed: ${e.message}" }
-            }
-        }
-    }
 }
 
 @Preview2
 @Composable
 private fun LazyTextEditorPreview() {
     PreviewWrapper {
-        val sampleContent = """
+        val sampleContent = $$"""
             fun calculateSum(a: Int, b: Int): Int {
                 return a + b
             }
 
             fun main() {
                 val result = calculateSum(5, 3)
-                println("Result: ${'$'}result")
+                println("Result: $result")
             }
         """.trimIndent()
 

@@ -6,7 +6,12 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.editor.core.engine.TextPosition
+
+private val tag = logTag("Editor", "PositionUtils")
 
 internal fun String.expandTabs(tabSize: Int): String {
     return this.replace("\t", " ".repeat(tabSize))
@@ -87,6 +92,7 @@ internal fun calculatePositionFromOffset(
                     charOffset
                 }
             } catch (e: Exception) {
+                log(tag, WARN) { "getBoundingBox failed for offset $lastCharOnVisualLine (text length: ${expandedContent.length}): ${e.message}" }
                 charOffset
             }
         } else if (charOffset < expandedContent.length && expandedContent.isNotEmpty()) {
@@ -95,6 +101,7 @@ internal fun calculatePositionFromOffset(
                 val charBounds = layout.getBoundingBox(charOffset)
                 if (adjustedX > (charBounds.left + charBounds.right) / 2) charOffset + 1 else charOffset
             } catch (e: Exception) {
+                log(tag, WARN) { "getBoundingBox failed for offset $charOffset (text length: ${expandedContent.length}): ${e.message}" }
                 charOffset
             }
         } else {
