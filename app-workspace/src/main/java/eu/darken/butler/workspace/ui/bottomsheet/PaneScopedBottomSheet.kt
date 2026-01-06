@@ -68,12 +68,14 @@ fun PaneScopedBottomSheet(
     modifier: Modifier = Modifier,
     visible: Boolean,
     onDismiss: () -> Unit,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
     dragHandle: @Composable (() -> Unit)? = { DefaultDragHandle() },
     content: @Composable () -> Unit,
 ) {
     // In preview mode, just show the content as a card
     if (LocalInspectionMode.current) {
+        if (!visible) return
         Card(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
@@ -123,7 +125,9 @@ fun PaneScopedBottomSheet(
 
         // Bottom sheet content
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = topInset),
             contentAlignment = Alignment.BottomCenter
         ) {
             AnimatedVisibility(

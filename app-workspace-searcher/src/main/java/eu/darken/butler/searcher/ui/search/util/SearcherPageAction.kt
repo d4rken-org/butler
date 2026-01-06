@@ -103,6 +103,11 @@ sealed interface SearcherPageAction {
      */
     sealed interface History : SearcherPageAction {
         /**
+         * Show clear history confirmation dialog
+         */
+        data object ShowClearDialog : History
+
+        /**
          * Clear all search history
          */
         data object Clear : History

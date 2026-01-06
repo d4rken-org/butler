@@ -55,12 +55,14 @@ fun TypeConditionEditSheet(
     existingCondition: FilterCondition.Type?,
     onDismiss: () -> Unit,
     onApply: (FilterCondition.Type) -> Unit,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         modifier = modifier,
         visible = visible,
         onDismiss = onDismiss,
+        topInset = topInset,
         bottomInset = bottomInset,
     ) {
         TypeConditionEditContent(

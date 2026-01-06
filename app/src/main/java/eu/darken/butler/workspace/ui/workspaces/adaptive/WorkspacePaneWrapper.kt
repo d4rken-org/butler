@@ -32,7 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
@@ -98,7 +98,7 @@ internal fun WorkspacePaneWrapper(
     Box(
         modifier = modifier
             .clickable { onFocus() }
-            .clipToBounds()
+            .clip(MaterialTheme.shapes.medium)
             .then(
                 if (showFocusBorder || isDropTarget) {
                     Modifier.border(
@@ -112,7 +112,13 @@ internal fun WorkspacePaneWrapper(
             )
             .padding(if (showFocusBorder || isDropTarget) 2.dp else 0.dp),
     ) {
-        content()
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            content()
+        }
 
         // Show overlay for drop target
         if (isDropTarget) {

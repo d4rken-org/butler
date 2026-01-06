@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -269,6 +270,10 @@ private fun OptionsSection(
                 }
             }
         }
+
+        item {
+            Spacer(modifier = Modifier.padding(4.dp))
+        }
     }
 }
 
@@ -500,6 +505,10 @@ private fun SystemInfoSection(systemInfo: SystemInfo) {
                 }
             }
         }
+
+        item {
+            Spacer(modifier = Modifier.padding(4.dp))
+        }
     }
 }
 
@@ -559,6 +568,10 @@ private fun LogsSection(
                         modifier = Modifier.padding(vertical = 1.dp),
                     )
                 }
+
+                item {
+                    Spacer(modifier = Modifier.padding(4.dp))
+                }
             }
         }
     }
@@ -575,7 +588,9 @@ private fun TestDataSection(
     onGenerateTestData: () -> Unit,
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
@@ -678,8 +693,10 @@ private fun TestDataSection(
         }
 
         Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
             onClick = onGenerateTestData,
-            modifier = Modifier.fillMaxWidth(),
             enabled = testDataState.canGenerate && !testDataState.progress?.isGenerating.orFalse(),
         ) {
             Text(

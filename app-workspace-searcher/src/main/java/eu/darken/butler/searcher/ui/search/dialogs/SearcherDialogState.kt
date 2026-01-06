@@ -12,6 +12,8 @@ sealed interface SearcherDialogState {
         val forcePermDelete: Boolean = false,
     ) : SearcherDialogState
 
+    data object ClearHistoryConfirmation : SearcherDialogState
+
     data class ClipboardInfo(val clip: ClipboardClip) : SearcherDialogState
     data class EditSortOptions(val currentSortSettings: SearchSortSettings) : SearcherDialogState
 

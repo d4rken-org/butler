@@ -64,12 +64,14 @@ fun SizeConditionEditSheet(
     existingCondition: FilterCondition.Size?,
     onDismiss: () -> Unit,
     onApply: (FilterCondition.Size) -> Unit,
+    topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
 ) {
     PaneScopedBottomSheet(
         modifier = modifier,
         visible = visible,
         onDismiss = onDismiss,
+        topInset = topInset,
         bottomInset = bottomInset,
     ) {
         SizeConditionEditContent(
