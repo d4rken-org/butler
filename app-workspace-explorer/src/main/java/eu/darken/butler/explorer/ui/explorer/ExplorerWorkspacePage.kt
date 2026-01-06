@@ -141,7 +141,7 @@ fun ExplorerWorkspacePage(
                 onMoveFocusToFirst = { vm?.moveFocusToFirst() },
                 onMoveFocusToLast = { vm?.moveFocusToLast() },
                 onActivateFocusedItem = { focusedItem?.let { vm?.navigate(it) } },
-                onRenameFocusedItem = { (focusedItem as? ExplorerItem.Lookup)?.let { vm?.renameFile(it) } },
+                onRenameFocusedItem = { (focusedItem as? ExplorerItem.Lookup)?.let { vm?.executeAction(ExplorerAction.Common.Rename(it)) } },
                 onDeleteFocusedItem = { vm?.deleteFocusedItem() },
                 onPermanentDeleteFocusedItem = {
                     if (keyboardState.selectionState.selectedItems.isNotEmpty()) {

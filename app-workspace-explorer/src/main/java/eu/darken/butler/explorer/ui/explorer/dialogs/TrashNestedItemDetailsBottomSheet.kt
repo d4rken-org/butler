@@ -33,6 +33,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import java.text.DateFormat
@@ -41,8 +42,7 @@ import java.util.Date
 @Composable
 fun TrashNestedItemDetailsBottomSheet(
     item: ExplorerItem.Trash.Nested,
-    onRestore: () -> Unit,
-    onDeletePermanently: () -> Unit,
+    onAction: (ExplorerAction) -> Unit,
     onCopyToClipboard: (String) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -56,10 +56,8 @@ fun TrashNestedItemDetailsBottomSheet(
     ) {
         TrashNestedItemOptionsContent(
             item = item,
-            onRestore = onRestore,
-            onDeletePermanently = onDeletePermanently,
+            onAction = onAction,
             onCopyToClipboard = onCopyToClipboard,
-            onDismiss = onDismiss,
         )
     }
 }
@@ -67,10 +65,8 @@ fun TrashNestedItemDetailsBottomSheet(
 @Composable
 private fun TrashNestedItemOptionsContent(
     item: ExplorerItem.Trash.Nested,
-    onRestore: () -> Unit,
-    onDeletePermanently: () -> Unit,
+    onAction: (ExplorerAction) -> Unit,
     onCopyToClipboard: (String) -> Unit,
-    onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
     val lookup = item.lookup
@@ -176,8 +172,13 @@ private fun TrashNestedItemOptionsContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    onRestore()
-                    onDismiss()
+                    onAction(
+                        ExplorerAction.TrashNested.Restore(
+                            items = listOf(item),
+                            icon = Icons.TwoTone.Restore,
+                            labelRes = R.string.explorer_trash_restore_action,
+                        )
+                    )
                 }
                 .padding(horizontal = 16.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -209,8 +210,13 @@ private fun TrashNestedItemOptionsContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    onDeletePermanently()
-                    onDismiss()
+                    onAction(
+                        ExplorerAction.TrashNested.DeletePermanently(
+                            items = listOf(item),
+                            icon = Icons.TwoTone.DeleteForever,
+                            labelRes = R.string.explorer_trash_delete_permanently_action,
+                        )
+                    )
                 }
                 .padding(horizontal = 16.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -246,10 +252,8 @@ private fun TrashNestedItemOptionsBottomSheetPreview() {
     PreviewWrapper {
         TrashNestedItemOptionsContent(
             item = MockDataProvider.createMockTrashNestedItem(),
-            onRestore = {},
-            onDeletePermanently = {},
+            onAction = {},
             onCopyToClipboard = {},
-            onDismiss = {},
         )
     }
 }
@@ -260,10 +264,8 @@ private fun TrashNestedItemOptionsBottomSheetDirectoryPreview() {
     PreviewWrapper {
         TrashNestedItemOptionsContent(
             item = MockDataProvider.createMockTrashNestedDirectory(),
-            onRestore = {},
-            onDeletePermanently = {},
+            onAction = {},
             onCopyToClipboard = {},
-            onDismiss = {},
         )
     }
 }
