@@ -11,13 +11,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.InsertDriveFile
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Search
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
@@ -43,6 +41,7 @@ import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
@@ -61,20 +60,21 @@ fun SearchToolbarCard(
         label = "cardPadding"
     )
 
-    Card(
+    CutoutCard(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
+        cutoutContent = if (design.isSingle) {
+            {
+                WorkspaceButton(
+                    currentWorkspaceId = workspaceId,
+                    buttonSize = if (isCollapsed) 40.dp else 48.dp,
+                )
+            }
+        } else null,
+        cutoutFullHeight = isCollapsed,
+        gapDistance = if (isCollapsed) 6.dp else 8.dp,
+        contentPadding = cardPadding,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(cardPadding),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
             if (isCollapsed) {
                 // Collapsed state - compact display
                 Row(
@@ -117,12 +117,6 @@ fun SearchToolbarCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
-
-                    if (design.isSingle) {
-                        WorkspaceButton(
-                            buttonSize = 32.dp,
-                        )
-                    }
                 }
             } else {
                 // Expanded state - full interactive card with dual pattern fields
@@ -199,14 +193,6 @@ fun SearchToolbarCard(
                             }
                         }
                     }
-
-                    if (design.isSingle) {
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        WorkspaceButton(
-                            currentWorkspaceId = workspaceId,
-                        )
-                    }
                 }
 
 
@@ -242,7 +228,6 @@ fun SearchToolbarCard(
                 }
 
             }
-        }
     }
 }
 
