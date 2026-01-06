@@ -168,6 +168,11 @@
     <string name="explorer_trash_nested_restore_conflict">File already exists at original location</string>
     <string name="explorer_trash_nested_parent_missing">Parent item no longer exists in trash</string>
     <string name="explorer_trash_nested_path_missing">Path no longer exists</string>
+    <string name="explorer_trash_error_items_not_found">Items not found in trash</string>
+    <string name="explorer_trash_error_restore_failed">Failed to restore items</string>
+    <string name="explorer_trash_error_delete_failed">Failed to delete items</string>
+    <string name="explorer_trash_nested_error_restore_failed">Failed to restore %1$s</string>
+    <string name="explorer_trash_nested_error_delete_failed">Failed to delete %1$s</string>
 
     <string name="explorer_navigation_root">Root directory</string>
     <string name="explorer_navigation_rom">System ROM</string>

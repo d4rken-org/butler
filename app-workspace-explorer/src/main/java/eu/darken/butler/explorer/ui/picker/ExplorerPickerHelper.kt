@@ -173,7 +173,7 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerAction.Trash.SelectAll,
             is ExplorerAction.TrashNested.SelectAll -> true
 
-            // Blocked: modification, clipboard, device, and recycle bin actions
+            // Blocked: modification, clipboard, device, file, and recycle bin actions
             is ExplorerAction.Directory.Copy,
             is ExplorerAction.Directory.Cut,
             is ExplorerAction.Directory.Delete,
@@ -181,14 +181,22 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerAction.Directory.Rename,
             is ExplorerAction.Directory.OpenInNewTabs,
             is ExplorerAction.Common.Info,
+            is ExplorerAction.Common.Rename,
             is ExplorerAction.Device.AddLocation,
             is ExplorerAction.Device.RemoveLocation,
             is ExplorerAction.Device.RenameLocation,
-            is ExplorerAction.Trash.RestoreSelected,
-            is ExplorerAction.Trash.DeletePermanentlySelected,
+            is ExplorerAction.File.OpenInEditor,
+            is ExplorerAction.File.OpenWith,
+            is ExplorerAction.File.Share,
+            is ExplorerAction.File.Copy,
+            is ExplorerAction.File.Cut,
+            is ExplorerAction.File.Delete,
+            is ExplorerAction.File.ShowProperties,
+            is ExplorerAction.Trash.Restore,
+            is ExplorerAction.Trash.DeletePermanently,
             is ExplorerAction.Trash.EmptyBin,
-            is ExplorerAction.TrashNested.RestoreSelected,
-            is ExplorerAction.TrashNested.DeletePermanentlySelected -> false
+            is ExplorerAction.TrashNested.Restore,
+            is ExplorerAction.TrashNested.DeletePermanently -> false
         }
     }
 }

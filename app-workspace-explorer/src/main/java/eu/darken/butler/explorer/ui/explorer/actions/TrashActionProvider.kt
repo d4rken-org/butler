@@ -6,6 +6,7 @@ import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.Restore
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
+import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import javax.inject.Inject
@@ -40,19 +41,23 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                 actions.add(ExplorerAction.Trash.SelectAll)
             }
 
+            val selectedRootItems = selectionState.selectedItems.filterIsInstance<ExplorerItem.Trash.Root>()
+
             actions.add(
-                ExplorerAction.Trash.RestoreSelected(
+                ExplorerAction.Trash.Restore(
+                    items = selectedRootItems,
                     icon = Icons.TwoTone.Restore,
                     labelRes = R.string.explorer_trash_restore_selected_action,
-                    isEnabled = true,
+                    isEnabled = selectedRootItems.isNotEmpty(),
                 )
             )
 
             actions.add(
-                ExplorerAction.Trash.DeletePermanentlySelected(
+                ExplorerAction.Trash.DeletePermanently(
+                    items = selectedRootItems,
                     icon = Icons.TwoTone.DeleteForever,
                     labelRes = R.string.explorer_trash_delete_selected_action,
-                    isEnabled = true,
+                    isEnabled = selectedRootItems.isNotEmpty(),
                 )
             )
         } else {
@@ -84,19 +89,23 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                 actions.add(ExplorerAction.TrashNested.SelectAll)
             }
 
+            val selectedNestedItems = selectionState.selectedItems.filterIsInstance<ExplorerItem.Trash.Nested>()
+
             actions.add(
-                ExplorerAction.TrashNested.RestoreSelected(
+                ExplorerAction.TrashNested.Restore(
+                    items = selectedNestedItems,
                     icon = Icons.TwoTone.Restore,
                     labelRes = R.string.explorer_trash_restore_selected_action,
-                    isEnabled = true,
+                    isEnabled = selectedNestedItems.isNotEmpty(),
                 )
             )
 
             actions.add(
-                ExplorerAction.TrashNested.DeletePermanentlySelected(
+                ExplorerAction.TrashNested.DeletePermanently(
+                    items = selectedNestedItems,
                     icon = Icons.TwoTone.DeleteForever,
                     labelRes = R.string.explorer_trash_delete_selected_action,
-                    isEnabled = true,
+                    isEnabled = selectedNestedItems.isNotEmpty(),
                 )
             )
         } else {

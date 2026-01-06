@@ -55,6 +55,7 @@ import eu.darken.butler.common.files.toCaString
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
@@ -66,14 +67,7 @@ fun FileOptionsBottomSheet(
     item: ExplorerItem.File,
     trashEnabled: Boolean,
     onDismiss: () -> Unit,
-    onOpenInEditor: () -> Unit,
-    onOpenWith: () -> Unit,
-    onShare: () -> Unit,
-    onCopy: () -> Unit,
-    onCut: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
-    onProperties: () -> Unit,
+    onAction: (ExplorerAction) -> Unit,
     modifier: Modifier = Modifier,
     bottomInset: Dp = 0.dp,
 ) {
@@ -86,14 +80,7 @@ fun FileOptionsBottomSheet(
         FileOptionsContent(
             item = item,
             trashEnabled = trashEnabled,
-            onOpenInEditor = onOpenInEditor,
-            onOpenWith = onOpenWith,
-            onShare = onShare,
-            onCopy = onCopy,
-            onCut = onCut,
-            onRename = onRename,
-            onDelete = onDelete,
-            onProperties = onProperties,
+            onAction = onAction,
         )
     }
 }
@@ -102,14 +89,7 @@ fun FileOptionsBottomSheet(
 private fun FileOptionsContent(
     item: ExplorerItem.File,
     trashEnabled: Boolean,
-    onOpenInEditor: () -> Unit,
-    onOpenWith: () -> Unit,
-    onShare: () -> Unit,
-    onCopy: () -> Unit,
-    onCut: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
-    onProperties: () -> Unit,
+    onAction: (ExplorerAction) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -241,7 +221,7 @@ private fun FileOptionsContent(
                 icon = Workspace.Type.EDITOR.icon,
                 title = stringResource(R.string.explorer_file_action_open_in_editor),
                 subtitle = stringResource(R.string.explorer_file_action_open_in_editor_subtitle),
-                onClick = onOpenInEditor
+                onClick = { onAction(ExplorerAction.File.OpenInEditor(item)) },
             )
         }
 
@@ -249,14 +229,14 @@ private fun FileOptionsContent(
             icon = Icons.TwoTone.OpenInBrowser,
             title = stringResource(R.string.explorer_file_action_open_with),
             subtitle = stringResource(R.string.explorer_file_action_open_with_subtitle),
-            onClick = onOpenWith
+            onClick = { onAction(ExplorerAction.File.OpenWith(item)) },
         )
 
         FileActionRow(
             icon = Icons.TwoTone.Share,
             title = stringResource(R.string.explorer_file_action_share),
             subtitle = stringResource(R.string.explorer_file_action_share_subtitle),
-            onClick = onShare
+            onClick = { onAction(ExplorerAction.File.Share(item)) },
         )
 
         HorizontalDivider()
@@ -265,21 +245,21 @@ private fun FileOptionsContent(
             icon = Icons.TwoTone.ContentCopy,
             title = stringResource(R.string.explorer_file_action_copy),
             subtitle = stringResource(R.string.explorer_file_action_copy_subtitle),
-            onClick = onCopy
+            onClick = { onAction(ExplorerAction.File.Copy(item)) },
         )
 
         FileActionRow(
             icon = Icons.TwoTone.ContentCut,
             title = stringResource(R.string.explorer_file_action_cut),
             subtitle = stringResource(R.string.explorer_file_action_cut_subtitle),
-            onClick = onCut
+            onClick = { onAction(ExplorerAction.File.Cut(item)) },
         )
 
         FileActionRow(
             icon = Icons.TwoTone.DriveFileRenameOutline,
             title = stringResource(R.string.explorer_file_action_rename),
             subtitle = stringResource(R.string.explorer_file_action_rename_subtitle),
-            onClick = onRename
+            onClick = { onAction(ExplorerAction.Common.Rename(item)) },
         )
 
         HorizontalDivider()
@@ -294,7 +274,7 @@ private fun FileOptionsContent(
                 if (trashEnabled) R.string.explorer_file_action_move_to_trash_subtitle
                 else R.string.explorer_file_action_delete_subtitle
             ),
-            onClick = onDelete,
+            onClick = { onAction(ExplorerAction.File.Delete(item)) },
             isDestructive = !trashEnabled,
         )
 
@@ -302,7 +282,7 @@ private fun FileOptionsContent(
             icon = Icons.TwoTone.Info,
             title = stringResource(R.string.explorer_file_action_properties),
             subtitle = stringResource(R.string.explorer_file_action_properties_subtitle),
-            onClick = onProperties
+            onClick = { onAction(ExplorerAction.File.ShowProperties(item)) },
         )
     }
 }
@@ -393,14 +373,7 @@ private fun FileOptionsBottomSheetPreview() {
             item = mockItem,
             trashEnabled = true,
             onDismiss = {},
-            onOpenInEditor = {},
-            onOpenWith = {},
-            onShare = {},
-            onCopy = {},
-            onCut = {},
-            onRename = {},
-            onDelete = {},
-            onProperties = {},
+            onAction = {},
         )
     }
 }

@@ -774,6 +774,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "executeAction(${action::class.simpleName})" }
         val stateSnap = getReadyState()
         if (stateSnap.items == null) return@launch
+
+        // File actions come from bottom sheets - always dismiss first
+        if (action is ExplorerAction.File) {
+            dismissDialog()
+        }
+
         when (action) {
             is ExplorerAction.Directory.Create -> {
                 dialogEvents.emit(ExplorerDialogEvent.ShowCreateItem)
@@ -951,6 +957,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
+            is ExplorerAction.Common.Rename -> {
+                dismissDialog()
+                val event = ExplorerDialogEvent.ShowRename(
+                    item = action.item.lookup.lookedUp,
+                )
+                dialogEvents.emit(event)
+            }
             is ExplorerAction.Device.AddLocation -> {
                 showAddStorageSheet()
             }
@@ -980,28 +993,59 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.Trash.SelectAll -> {
                 selectedItemsFlow.value = stateSnap.selectionState.selectableItems
             }
-            is ExplorerAction.Trash.RestoreSelected -> {
-                log(tag) { "restoreSelectedTrashItems(): ${selectedItemsFlow.value.size} items" }
-                val selectedTrashItems = selectedItemsFlow.value
-                    .filterIsInstance<ExplorerItem.Trash.Root>()
-
-                if (selectedTrashItems.isNotEmpty()) {
-                    selectedTrashItems.forEach { item ->
-                        restoreTrashItem(item)
+            is ExplorerAction.Trash.Restore -> {
+                log(tag) { "restoreTrashItems(): ${action.items.size} items" }
+                dismissDialog()
+                if (action.items.isNotEmpty()) {
+                    try {
+                        val repoItems = action.items.mapNotNull { trashRepo.getById(it.itemId) }
+                        if (repoItems.isEmpty()) {
+                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_items_not_found)))
+                            clearSelection()
+                            return@launch
+                        }
+                        val result = trashManager.restore(repoItems)
+                        if (result.restored.isNotEmpty()) {
+                            log(tag, INFO) { "Successfully restored ${result.restored.size} items" }
+                            getWorkspace().navigate(ExplorerNavigation.Refresh)
+                            clearSelection()
+                        } else if (result.failed.isNotEmpty()) {
+                            log(tag, ERROR) { "Failed to restore ${result.failed.size} items" }
+                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_restore_failed)))
+                        } else if (result.conflicts.isNotEmpty()) {
+                            log(tag, WARN) { "Conflicts when restoring ${result.conflicts.size} items" }
+                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
+                        }
+                    } catch (e: Exception) {
+                        log(tag, ERROR) { "Error restoring trash items: ${e.asLog()}" }
+                        errorEvents.emit(e)
                     }
-                    clearSelection()
                 }
             }
-            is ExplorerAction.Trash.DeletePermanentlySelected -> {
-                log(tag) { "deleteSelectedTrashItems(): ${selectedItemsFlow.value.size} items" }
-                val selectedTrashItems = selectedItemsFlow.value
-                    .filterIsInstance<ExplorerItem.Trash.Root>()
-
-                if (selectedTrashItems.isNotEmpty()) {
-                    selectedTrashItems.forEach { item ->
-                        deleteTrashItemPermanently(item)
+            is ExplorerAction.Trash.DeletePermanently -> {
+                log(tag) { "deleteTrashItemsPermanently(): ${action.items.size} items" }
+                dismissDialog()
+                if (action.items.isNotEmpty()) {
+                    try {
+                        val repoItems = action.items.mapNotNull { trashRepo.getById(it.itemId) }
+                        if (repoItems.isEmpty()) {
+                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_items_not_found)))
+                            clearSelection()
+                            return@launch
+                        }
+                        val deletedCount = trashManager.deletePermanently(repoItems)
+                        if (deletedCount > 0) {
+                            log(tag, INFO) { "Successfully deleted $deletedCount items permanently" }
+                            getWorkspace().navigate(ExplorerNavigation.Refresh)
+                            clearSelection()
+                        } else {
+                            log(tag, ERROR) { "Failed to delete items permanently" }
+                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_delete_failed)))
+                        }
+                    } catch (e: Exception) {
+                        log(tag, ERROR) { "Error deleting trash items permanently: ${e.asLog()}" }
+                        errorEvents.emit(e)
                     }
-                    clearSelection()
                 }
             }
             is ExplorerAction.Trash.EmptyBin -> {
@@ -1011,29 +1055,153 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerAction.TrashNested.SelectAll -> {
                 selectedItemsFlow.value = stateSnap.selectionState.selectableItems
             }
-            is ExplorerAction.TrashNested.RestoreSelected -> {
-                log(tag) { "restoreSelectedNestedItems(): ${selectedItemsFlow.value.size} items" }
-                val selectedItems = selectedItemsFlow.value
-                    .filterIsInstance<ExplorerItem.Trash.Nested>()
+            is ExplorerAction.TrashNested.Restore -> {
+                log(tag) { "restoreNestedItems(): ${action.items.size} items" }
+                dismissDialog()
+                if (action.items.isNotEmpty()) {
+                    try {
+                        var totalRestored = 0
+                        // Group items by parent to reduce duplicate repo lookups
+                        val itemsByParent = action.items.groupBy { it.parentRef.itemId }
 
-                if (selectedItems.isNotEmpty()) {
-                    selectedItems.forEach { item ->
-                        restoreNestedTrashItem(item)
+                        for ((parentId, items) in itemsByParent) {
+                            val parentRepoItem = trashRepo.getById(parentId)
+                            if (parentRepoItem == null) {
+                                log(tag, ERROR) { "Parent trash item not found: $parentId" }
+                                errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_parent_missing)))
+                                continue
+                            }
+
+                            for (item in items) {
+                                val result = trashManager.restoreNested(parentRepoItem, item.relativePath)
+                                if (result.restored.isNotEmpty()) {
+                                    totalRestored += result.restored.size
+                                    log(tag, INFO) { "Successfully restored nested item" }
+                                } else if (result.conflicts.isNotEmpty()) {
+                                    log(tag, WARN) { "Conflict when restoring nested item" }
+                                    errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
+                                } else {
+                                    log(tag, ERROR) { "Failed to restore nested item" }
+                                    errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_error_restore_failed, item.displayName.get(context))))
+                                }
+                            }
+                        }
+                        if (totalRestored > 0) {
+                            getWorkspace().navigate(ExplorerNavigation.Refresh)
+                            clearSelection()
+                        }
+                    } catch (e: Exception) {
+                        log(tag, ERROR) { "Error restoring nested trash items: ${e.asLog()}" }
+                        errorEvents.emit(e)
                     }
-                    clearSelection()
                 }
             }
-            is ExplorerAction.TrashNested.DeletePermanentlySelected -> {
-                log(tag) { "deleteSelectedNestedItems(): ${selectedItemsFlow.value.size} items" }
-                val selectedItems = selectedItemsFlow.value
-                    .filterIsInstance<ExplorerItem.Trash.Nested>()
+            is ExplorerAction.TrashNested.DeletePermanently -> {
+                log(tag) { "deleteNestedItemsPermanently(): ${action.items.size} items" }
+                dismissDialog()
+                if (action.items.isNotEmpty()) {
+                    try {
+                        var totalDeleted = 0
+                        // Group items by parent to reduce duplicate repo lookups
+                        val itemsByParent = action.items.groupBy { it.parentRef.itemId }
 
-                if (selectedItems.isNotEmpty()) {
-                    selectedItems.forEach { item ->
-                        deleteNestedTrashItemPermanently(item)
+                        for ((parentId, items) in itemsByParent) {
+                            val parentRepoItem = trashRepo.getById(parentId)
+                            if (parentRepoItem == null) {
+                                log(tag, ERROR) { "Parent trash item not found: $parentId" }
+                                errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_parent_missing)))
+                                continue
+                            }
+
+                            for (item in items) {
+                                val deletedCount = trashManager.deleteNestedPermanently(parentRepoItem, item.relativePath)
+                                if (deletedCount > 0) {
+                                    totalDeleted += deletedCount
+                                    log(tag, INFO) { "Successfully deleted nested item permanently" }
+                                } else {
+                                    log(tag, ERROR) { "Failed to delete nested item permanently" }
+                                    errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_error_delete_failed, item.displayName.get(context))))
+                                }
+                            }
+                        }
+                        if (totalDeleted > 0) {
+                            getWorkspace().navigate(ExplorerNavigation.Refresh)
+                            clearSelection()
+                        }
+                    } catch (e: Exception) {
+                        log(tag, ERROR) { "Error deleting nested trash items: ${e.asLog()}" }
+                        errorEvents.emit(e)
                     }
-                    clearSelection()
                 }
+            }
+            is ExplorerAction.File.OpenInEditor -> {
+                try {
+                    val wsAction = WorkspaceAction.Create(
+                        type = Workspace.Type.EDITOR,
+                        arguments = EditorArguments.Default(filePath = action.item.lookup.lookedUp),
+                        autoFocus = true,
+                    )
+                    workspaceRemote.execute(wsAction)
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to create editor workspace: ${e.asLog()}" }
+                    errorEvents.emit(e)
+                }
+            }
+            is ExplorerAction.File.OpenWith -> {
+                val intent = fileIntentHelper.openFileWith(action.item)
+                if (intent != null && fileIntentHelper.canHandleIntent(intent)) {
+                    try {
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        log(tag, ERROR) { "Failed to open file with external app: ${e.asLog()}" }
+                        errorEvents.emit(e)
+                    }
+                } else {
+                    log(tag, WARN) { "No app found to open file: ${action.item.lookup.name}" }
+                    errorEvents.emit(Exception("No app found to open file: ${action.item.lookup.name}"))
+                }
+            }
+            is ExplorerAction.File.Share -> {
+                val shareItem = object : ShareIntentUseCase.Item {
+                    override val path = action.item.lookup.lookedUp
+                    override val mimeType = action.item.mimeType.rawType
+                    override val displayName = action.item.lookup.name
+                }
+                val chooserTitle = context.getString(
+                    eu.darken.butler.common.R.string.general_share_single_title,
+                    action.item.lookup.name
+                )
+                val success = shareIntentUseCase.shareWithChooser(listOf(shareItem), chooserTitle)
+                if (!success) {
+                    errorEvents.emit(Exception("Failed to share file: ${action.item.lookup.name}"))
+                }
+            }
+            is ExplorerAction.File.Copy -> {
+                val clip = ClipboardClip.Paths(
+                    mode = ClipboardClip.Paths.Mode.COPY,
+                    origin = getWorkspace().id,
+                    paths = listOf(action.item.lookup.lookedUp),
+                )
+                clipboardRepo.add(clip)
+            }
+            is ExplorerAction.File.Cut -> {
+                val clip = ClipboardClip.Paths(
+                    mode = ClipboardClip.Paths.Mode.CUT,
+                    origin = getWorkspace().id,
+                    paths = listOf(action.item.lookup.lookedUp),
+                )
+                clipboardRepo.add(clip)
+            }
+            is ExplorerAction.File.Delete -> {
+                dialogEvents.emit(
+                    ExplorerDialogEvent.ShowDeleteConfirmation(
+                        items = setOf(action.item.lookup.lookedUp)
+                    )
+                )
+            }
+            is ExplorerAction.File.ShowProperties -> {
+                val infoContext = ItemInfo.InfoContext.SingleFile(action.item)
+                dialogStateFlow.value = ItemInfo(infoContext)
             }
         }
     }
@@ -1099,117 +1267,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
 
         clearSelection()
-    }
-
-    fun openFileInEditor(item: ExplorerItem.File) = launch {
-        log(tag) { "openFileInEditor(${item.lookup.name})" }
-        dismissDialog()
-
-        try {
-            val action = WorkspaceAction.Create(
-                type = Workspace.Type.EDITOR,
-                arguments = EditorArguments.Default(filePath = item.lookup.lookedUp),
-                autoFocus = true,
-            )
-
-            workspaceRemote.execute(action)
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to create editor workspace: ${e.asLog()}" }
-            errorEvents.emit(e)
-        }
-    }
-
-    fun openFileWith(item: ExplorerItem.File) = launch {
-        log(tag) { "openFileWith(${item.lookup.name})" }
-        dismissDialog()
-
-        val intent = fileIntentHelper.openFileWith(item)
-        if (intent != null && fileIntentHelper.canHandleIntent(intent)) {
-            try {
-                context.startActivity(intent)
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Failed to open file with external app: ${e.asLog()}" }
-                errorEvents.emit(e)
-            }
-        } else {
-            log(tag, WARN) { "No app found to open file: ${item.lookup.name}" }
-            errorEvents.emit(Exception("No app found to open file: ${item.lookup.name}"))
-        }
-    }
-
-    fun shareFile(item: ExplorerItem.File) = launch {
-        log(tag) { "shareFile(${item.lookup.name})" }
-        dismissDialog()
-
-        val shareItem = object : ShareIntentUseCase.Item {
-            override val path = item.lookup.lookedUp
-            override val mimeType = item.mimeType.rawType
-            override val displayName = item.lookup.name
-        }
-
-        val chooserTitle = context.getString(
-            eu.darken.butler.common.R.string.general_share_single_title,
-            item.lookup.name
-        )
-
-        val success = shareIntentUseCase.shareWithChooser(listOf(shareItem), chooserTitle)
-        if (!success) {
-            errorEvents.emit(Exception("Failed to share file: ${item.lookup.name}"))
-        }
-    }
-
-    fun copyFile(item: ExplorerItem.File) = launch {
-        log(tag) { "copyFile(${item.lookup.name})" }
-        dismissDialog()
-
-        val clip = ClipboardClip.Paths(
-            mode = ClipboardClip.Paths.Mode.COPY,
-            origin = getWorkspace().id,
-            paths = listOf(item.lookup.lookedUp),
-        )
-        clipboardRepo.add(clip)
-    }
-
-    fun cutFile(item: ExplorerItem.File) = launch {
-        log(tag) { "cutFile(${item.lookup.name})" }
-        dismissDialog()
-
-        val clip = ClipboardClip.Paths(
-            mode = ClipboardClip.Paths.Mode.CUT,
-            origin = getWorkspace().id,
-            paths = listOf(item.lookup.lookedUp),
-        )
-        clipboardRepo.add(clip)
-    }
-
-    fun renameFile(item: ExplorerItem.Lookup) = launch {
-        log(tag) { "renameFile(${item.lookup.name})" }
-        dismissDialog()
-
-        val event = ExplorerDialogEvent.ShowRename(
-            item = item.lookup.lookedUp,
-        )
-        dialogEvents.emit(event)
-    }
-
-    fun deleteFile(item: ExplorerItem.File) = launch {
-        log(tag) { "deleteFile(${item.lookup.name})" }
-        dismissDialog()
-
-        dialogEvents.emit(
-            ExplorerDialogEvent.ShowDeleteConfirmation(
-                items = setOf(item.lookup.lookedUp)
-            )
-        )
-    }
-
-    fun showFileProperties(item: ExplorerItem.File) = launch {
-        log(tag) { "showFileProperties(${item.lookup.name})" }
-        dismissDialog()
-
-        // Show file info dialog
-        val infoContext = ItemInfo.InfoContext.SingleFile(item)
-        dialogStateFlow.value = ItemInfo(infoContext)
     }
 
     private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {
@@ -1331,120 +1388,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clearSelection()
         delay(500.milliseconds)
         getWorkspace().navigate(ExplorerNavigation.Refresh)
-    }
-
-    fun restoreTrashItem(item: ExplorerItem.Trash.Root) = launch {
-        log(tag) { "restoreTrashItem(${item.itemId})" }
-        dismissDialog()
-
-        try {
-            val repoItem = trashRepo.getById(item.itemId)
-            if (repoItem == null) {
-                log(tag, ERROR) { "Trash item not found: ${item.itemId}" }
-                errorEvents.emit(Exception("Item not found in trash"))
-                return@launch
-            }
-
-            val result = trashManager.restore(listOf(repoItem))
-
-            if (result.restored.isNotEmpty()) {
-                log(tag, INFO) { "Successfully restored ${result.restored.size} items" }
-                getWorkspace().navigate(ExplorerNavigation.Refresh)
-            } else if (result.failed.isNotEmpty()) {
-                log(tag, ERROR) { "Failed to restore ${result.failed.size} items" }
-                errorEvents.emit(Exception("Failed to restore ${item.displayName.get(context)}"))
-            } else if (result.conflicts.isNotEmpty()) {
-                log(tag, WARN) { "Conflicts when restoring ${result.conflicts.size} items" }
-                errorEvents.emit(Exception("File already exists at original location"))
-            }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Error restoring trash item: ${e.asLog()}" }
-            errorEvents.emit(e)
-        }
-    }
-
-    fun deleteTrashItemPermanently(item: ExplorerItem.Trash.Root) = launch {
-        log(tag) { "deleteTrashItemPermanently(${item.itemId})" }
-        dismissDialog()
-
-        try {
-            val repoItem = trashRepo.getById(item.itemId)
-            if (repoItem == null) {
-                log(tag, ERROR) { "Trash item not found: ${item.itemId}" }
-                errorEvents.emit(Exception("Item not found in trash"))
-                return@launch
-            }
-
-            val deletedCount = trashManager.deletePermanently(listOf(repoItem))
-
-            if (deletedCount > 0) {
-                log(tag, INFO) { "Successfully deleted $deletedCount items permanently" }
-                getWorkspace().navigate(ExplorerNavigation.Refresh)
-            } else {
-                log(tag, ERROR) { "Failed to delete item permanently" }
-                errorEvents.emit(Exception("Failed to delete ${item.displayName.get(context)}"))
-            }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Error deleting trash item permanently: ${e.asLog()}" }
-            errorEvents.emit(e)
-        }
-    }
-
-    fun restoreNestedTrashItem(item: ExplorerItem.Trash.Nested) = launch {
-        log(tag) { "restoreNestedTrashItem(${item.relativePath})" }
-        dismissDialog()
-
-        try {
-            val parentRepoItem = trashRepo.getById(item.parentRef.itemId)
-            if (parentRepoItem == null) {
-                log(tag, ERROR) { "Parent trash item not found: ${item.parentRef.itemId}" }
-                errorEvents.emit(Exception("Parent item no longer exists in trash"))
-                return@launch
-            }
-
-            val result = trashManager.restoreNested(parentRepoItem, item.relativePath)
-
-            if (result.restored.isNotEmpty()) {
-                log(tag, INFO) { "Successfully restored nested item" }
-                getWorkspace().navigate(ExplorerNavigation.Refresh)
-            } else if (result.conflicts.isNotEmpty()) {
-                log(tag, WARN) { "Conflict when restoring nested item" }
-                errorEvents.emit(Exception("File already exists at original location"))
-            } else {
-                log(tag, ERROR) { "Failed to restore nested item" }
-                errorEvents.emit(Exception("Failed to restore ${item.displayName.get(context)}"))
-            }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Error restoring nested trash item: ${e.asLog()}" }
-            errorEvents.emit(e)
-        }
-    }
-
-    fun deleteNestedTrashItemPermanently(item: ExplorerItem.Trash.Nested) = launch {
-        log(tag) { "deleteNestedTrashItemPermanently(${item.relativePath})" }
-        dismissDialog()
-
-        try {
-            val parentRepoItem = trashRepo.getById(item.parentRef.itemId)
-            if (parentRepoItem == null) {
-                log(tag, ERROR) { "Parent trash item not found: ${item.parentRef.itemId}" }
-                errorEvents.emit(Exception("Parent item no longer exists in trash"))
-                return@launch
-            }
-
-            val deletedCount = trashManager.deleteNestedPermanently(parentRepoItem, item.relativePath)
-
-            if (deletedCount > 0) {
-                log(tag, INFO) { "Successfully deleted nested item permanently" }
-                getWorkspace().navigate(ExplorerNavigation.Refresh)
-            } else {
-                log(tag, ERROR) { "Failed to delete nested item permanently" }
-                errorEvents.emit(Exception("Failed to delete ${item.displayName.get(context)}"))
-            }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Error deleting nested trash item: ${e.asLog()}" }
-            errorEvents.emit(e)
-        }
     }
 
     fun onRename(result: RenameResult) = launch {

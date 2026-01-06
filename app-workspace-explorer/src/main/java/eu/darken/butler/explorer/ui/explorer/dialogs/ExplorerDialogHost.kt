@@ -85,14 +85,7 @@ fun ExplorerDialogHost(
                 item = dialogState.item,
                 trashEnabled = trashEnabled,
                 onDismiss = { vm?.dismissDialog() },
-                onOpenInEditor = { vm?.openFileInEditor(dialogState.item) },
-                onOpenWith = { vm?.openFileWith(dialogState.item) },
-                onShare = { vm?.shareFile(dialogState.item) },
-                onCopy = { vm?.copyFile(dialogState.item) },
-                onCut = { vm?.cutFile(dialogState.item) },
-                onRename = { vm?.renameFile(dialogState.item) },
-                onDelete = { vm?.deleteFile(dialogState.item) },
-                onProperties = { vm?.showFileProperties(dialogState.item) },
+                onAction = { action -> vm?.executeAction(action) },
                 bottomInset = bottomInset,
             )
         }
@@ -100,8 +93,7 @@ fun ExplorerDialogHost(
         is ExplorerDialogState.TrashItemOptions -> {
             TrashItemDetailsBottomSheet(
                 item = dialogState.item,
-                onRestore = { vm?.restoreTrashItem(dialogState.item) },
-                onDeletePermanently = { vm?.deleteTrashItemPermanently(dialogState.item) },
+                onAction = { action -> vm?.executeAction(action) },
                 onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
                 onDismiss = { vm?.dismissDialog() },
                 bottomInset = bottomInset,
@@ -111,8 +103,7 @@ fun ExplorerDialogHost(
         is ExplorerDialogState.TrashNestedItemOptions -> {
             TrashNestedItemDetailsBottomSheet(
                 item = dialogState.item,
-                onRestore = { vm?.restoreNestedTrashItem(dialogState.item) },
-                onDeletePermanently = { vm?.deleteNestedTrashItemPermanently(dialogState.item) },
+                onAction = { action -> vm?.executeAction(action) },
                 onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
                 onDismiss = { vm?.dismissDialog() },
                 bottomInset = bottomInset,
