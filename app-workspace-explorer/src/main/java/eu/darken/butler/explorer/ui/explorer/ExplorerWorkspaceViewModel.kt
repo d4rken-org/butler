@@ -1000,25 +1000,26 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     try {
                         val repoItems = action.items.mapNotNull { trashRepo.getById(it.itemId) }
                         if (repoItems.isEmpty()) {
-                            errorEvents.emit(Exception("Items not found in trash"))
+                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_items_not_found)))
+                            clearSelection()
                             return@launch
                         }
                         val result = trashManager.restore(repoItems)
                         if (result.restored.isNotEmpty()) {
                             log(tag, INFO) { "Successfully restored ${result.restored.size} items" }
                             getWorkspace().navigate(ExplorerNavigation.Refresh)
+                            clearSelection()
                         } else if (result.failed.isNotEmpty()) {
                             log(tag, ERROR) { "Failed to restore ${result.failed.size} items" }
-                            errorEvents.emit(Exception("Failed to restore items"))
+                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_restore_failed)))
                         } else if (result.conflicts.isNotEmpty()) {
                             log(tag, WARN) { "Conflicts when restoring ${result.conflicts.size} items" }
-                            errorEvents.emit(Exception("File already exists at original location"))
+                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
                         }
                     } catch (e: Exception) {
                         log(tag, ERROR) { "Error restoring trash items: ${e.asLog()}" }
                         errorEvents.emit(e)
                     }
-                    clearSelection()
                 }
             }
             is ExplorerAction.Trash.DeletePermanently -> {
@@ -1028,22 +1029,23 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     try {
                         val repoItems = action.items.mapNotNull { trashRepo.getById(it.itemId) }
                         if (repoItems.isEmpty()) {
-                            errorEvents.emit(Exception("Items not found in trash"))
+                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_items_not_found)))
+                            clearSelection()
                             return@launch
                         }
                         val deletedCount = trashManager.deletePermanently(repoItems)
                         if (deletedCount > 0) {
                             log(tag, INFO) { "Successfully deleted $deletedCount items permanently" }
                             getWorkspace().navigate(ExplorerNavigation.Refresh)
+                            clearSelection()
                         } else {
                             log(tag, ERROR) { "Failed to delete items permanently" }
-                            errorEvents.emit(Exception("Failed to delete items"))
+                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_delete_failed)))
                         }
                     } catch (e: Exception) {
                         log(tag, ERROR) { "Error deleting trash items permanently: ${e.asLog()}" }
                         errorEvents.emit(e)
                     }
-                    clearSelection()
                 }
             }
             is ExplorerAction.Trash.EmptyBin -> {
@@ -1058,6 +1060,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 dismissDialog()
                 if (action.items.isNotEmpty()) {
                     try {
+                        var totalRestored = 0
                         // Group items by parent to reduce duplicate repo lookups
                         val itemsByParent = action.items.groupBy { it.parentRef.itemId }
 
@@ -1065,29 +1068,32 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             val parentRepoItem = trashRepo.getById(parentId)
                             if (parentRepoItem == null) {
                                 log(tag, ERROR) { "Parent trash item not found: $parentId" }
-                                errorEvents.emit(Exception("Parent item no longer exists in trash"))
+                                errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_parent_missing)))
                                 continue
                             }
 
                             for (item in items) {
                                 val result = trashManager.restoreNested(parentRepoItem, item.relativePath)
                                 if (result.restored.isNotEmpty()) {
+                                    totalRestored += result.restored.size
                                     log(tag, INFO) { "Successfully restored nested item" }
                                 } else if (result.conflicts.isNotEmpty()) {
                                     log(tag, WARN) { "Conflict when restoring nested item" }
-                                    errorEvents.emit(Exception("File already exists at original location"))
+                                    errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
                                 } else {
                                     log(tag, ERROR) { "Failed to restore nested item" }
-                                    errorEvents.emit(Exception("Failed to restore ${item.displayName.get(context)}"))
+                                    errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_error_restore_failed, item.displayName.get(context))))
                                 }
                             }
                         }
-                        getWorkspace().navigate(ExplorerNavigation.Refresh)
+                        if (totalRestored > 0) {
+                            getWorkspace().navigate(ExplorerNavigation.Refresh)
+                            clearSelection()
+                        }
                     } catch (e: Exception) {
                         log(tag, ERROR) { "Error restoring nested trash items: ${e.asLog()}" }
                         errorEvents.emit(e)
                     }
-                    clearSelection()
                 }
             }
             is ExplorerAction.TrashNested.DeletePermanently -> {
@@ -1103,7 +1109,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             val parentRepoItem = trashRepo.getById(parentId)
                             if (parentRepoItem == null) {
                                 log(tag, ERROR) { "Parent trash item not found: $parentId" }
-                                errorEvents.emit(Exception("Parent item no longer exists in trash"))
+                                errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_parent_missing)))
                                 continue
                             }
 
@@ -1114,18 +1120,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                                     log(tag, INFO) { "Successfully deleted nested item permanently" }
                                 } else {
                                     log(tag, ERROR) { "Failed to delete nested item permanently" }
-                                    errorEvents.emit(Exception("Failed to delete ${item.displayName.get(context)}"))
+                                    errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_error_delete_failed, item.displayName.get(context))))
                                 }
                             }
                         }
                         if (totalDeleted > 0) {
                             getWorkspace().navigate(ExplorerNavigation.Refresh)
+                            clearSelection()
                         }
                     } catch (e: Exception) {
                         log(tag, ERROR) { "Error deleting nested trash items: ${e.asLog()}" }
                         errorEvents.emit(e)
                     }
-                    clearSelection()
                 }
             }
             is ExplorerAction.File.OpenInEditor -> {
