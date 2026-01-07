@@ -6,7 +6,7 @@ import eu.darken.butler.common.ca.CaString
 /**
  * Base interface for workspace actions shown in the action bar
  */
-interface WorkspaceAction {
+interface WorkspaceActionBarItem {
     val icon: ImageVector
     val label: CaString
     val isVisible: Boolean get() = true

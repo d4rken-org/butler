@@ -23,7 +23,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
         trashEnabled: Boolean,
-    ): List<ExplorerAction> = when (location) {
+    ): List<ExplorerActionBarItem> = when (location) {
         is ExplorerLocation.Trash.Root -> getRootActions(location, selectionState, viewStyle)
         is ExplorerLocation.Trash.Nested -> getNestedActions(selectionState, viewStyle)
         else -> emptyList()
@@ -33,18 +33,18 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
         location: ExplorerLocation.Trash.Root,
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
-    ): List<ExplorerAction> {
-        val actions = mutableListOf<ExplorerAction>()
+    ): List<ExplorerActionBarItem> {
+        val actions = mutableListOf<ExplorerActionBarItem>()
 
         if (selectionState.isSelectionMode) {
             if (!selectionState.isAllSelected) {
-                actions.add(ExplorerAction.Trash.SelectAll)
+                actions.add(ExplorerActionBarItem.Trash.SelectAll)
             }
 
             val selectedRootItems = selectionState.selectedItems.filterIsInstance<ExplorerItem.Trash.Root>()
 
             actions.add(
-                ExplorerAction.Trash.Restore(
+                ExplorerActionBarItem.Trash.Restore(
                     items = selectedRootItems,
                     icon = Icons.TwoTone.Restore,
                     labelRes = R.string.explorer_trash_restore_selected_action,
@@ -53,7 +53,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
             )
 
             actions.add(
-                ExplorerAction.Trash.DeletePermanently(
+                ExplorerActionBarItem.Trash.DeletePermanently(
                     items = selectedRootItems,
                     icon = Icons.TwoTone.DeleteForever,
                     labelRes = R.string.explorer_trash_delete_selected_action,
@@ -61,13 +61,13 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                 )
             )
         } else {
-            actions.add(ExplorerAction.Common.Refresh())
-            actions.add(ExplorerAction.Common.Sort())
-            actions.add(ExplorerAction.Common.Filter())
-            actions.add(ExplorerAction.Common.UpdateViewStyle(viewStyle))
+            actions.add(ExplorerActionBarItem.Common.Refresh())
+            actions.add(ExplorerActionBarItem.Common.Sort())
+            actions.add(ExplorerActionBarItem.Common.Filter())
+            actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle))
 
             actions.add(
-                ExplorerAction.Trash.EmptyBin(
+                ExplorerActionBarItem.Trash.EmptyBin(
                     icon = Icons.TwoTone.DeleteSweep,
                     labelRes = R.string.explorer_trash_empty_trash_action,
                     isEnabled = location.info?.itemCount?.let { it > 0 } ?: false,
@@ -81,18 +81,18 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
     private fun getNestedActions(
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
-    ): List<ExplorerAction> {
-        val actions = mutableListOf<ExplorerAction>()
+    ): List<ExplorerActionBarItem> {
+        val actions = mutableListOf<ExplorerActionBarItem>()
 
         if (selectionState.isSelectionMode) {
             if (!selectionState.isAllSelected) {
-                actions.add(ExplorerAction.TrashNested.SelectAll)
+                actions.add(ExplorerActionBarItem.TrashNested.SelectAll)
             }
 
             val selectedNestedItems = selectionState.selectedItems.filterIsInstance<ExplorerItem.Trash.Nested>()
 
             actions.add(
-                ExplorerAction.TrashNested.Restore(
+                ExplorerActionBarItem.TrashNested.Restore(
                     items = selectedNestedItems,
                     icon = Icons.TwoTone.Restore,
                     labelRes = R.string.explorer_trash_restore_selected_action,
@@ -101,7 +101,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
             )
 
             actions.add(
-                ExplorerAction.TrashNested.DeletePermanently(
+                ExplorerActionBarItem.TrashNested.DeletePermanently(
                     items = selectedNestedItems,
                     icon = Icons.TwoTone.DeleteForever,
                     labelRes = R.string.explorer_trash_delete_selected_action,
@@ -109,10 +109,10 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                 )
             )
         } else {
-            actions.add(ExplorerAction.Common.Refresh())
-            actions.add(ExplorerAction.Common.Sort())
-            actions.add(ExplorerAction.Common.Filter())
-            actions.add(ExplorerAction.Common.UpdateViewStyle(viewStyle))
+            actions.add(ExplorerActionBarItem.Common.Refresh())
+            actions.add(ExplorerActionBarItem.Common.Sort())
+            actions.add(ExplorerActionBarItem.Common.Filter())
+            actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle))
         }
 
         return actions

@@ -11,6 +11,6 @@ interface ExplorerActionProvider {
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
         trashEnabled: Boolean = false,
-    ): List<ExplorerAction>
+    ): List<ExplorerActionBarItem>
 
 }

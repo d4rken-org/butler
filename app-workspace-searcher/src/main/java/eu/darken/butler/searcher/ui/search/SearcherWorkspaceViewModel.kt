@@ -51,7 +51,7 @@ import eu.darken.butler.searcher.core.sorting.SearchItemSorter
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.searcher.ui.search.util.SearchListItem
-import eu.darken.butler.searcher.ui.search.util.SearcherAction
+import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.searcher.ui.search.util.SearcherSelectionState
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
@@ -372,35 +372,35 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             buildList {
                 // Select All
                 if (!updatedSelectionState.isAllSelected && updatedSelectionState.selectableResults.isNotEmpty()) {
-                    add(SearcherAction.SelectAll)
+                    add(SearcherActionBarItem.SelectAll)
                 }
 
                 // Open in New Tabs
-                add(SearcherAction.OpenInNewTabs(updatedSelectionState.selectedResults))
+                add(SearcherActionBarItem.OpenInNewTabs(updatedSelectionState.selectedResults))
 
                 // Copy
-                add(SearcherAction.Copy(updatedSelectionState.selectedResults))
+                add(SearcherActionBarItem.Copy(updatedSelectionState.selectedResults))
 
                 // Cut
-                add(SearcherAction.Cut(updatedSelectionState.selectedResults))
+                add(SearcherActionBarItem.Cut(updatedSelectionState.selectedResults))
 
                 // Share (if reasonable number of items)
-                val shareAction = SearcherAction.Share(updatedSelectionState.selectedResults)
+                val shareAction = SearcherActionBarItem.Share(updatedSelectionState.selectedResults)
                 if (shareAction.isVisible) {
                     add(shareAction)
                 }
 
                 // Delete
-                add(SearcherAction.Delete(updatedSelectionState.selectedResults, trashSettings.enabled.value()))
+                add(SearcherActionBarItem.Delete(updatedSelectionState.selectedResults, trashSettings.enabled.value()))
             }
         } else if (sortedResults.isNotEmpty()) {
             buildList {
-                add(SearcherAction.Common.Sort())
+                add(SearcherActionBarItem.Common.Sort())
                 val toggledViewStyle = when (viewStyle) {
                     is SearcherViewStyle.List -> SearcherViewStyle.Grid()
                     is SearcherViewStyle.Grid -> SearcherViewStyle.List()
                 }
-                add(SearcherAction.Common.UpdateViewStyle(toggledViewStyle))
+                add(SearcherActionBarItem.Common.UpdateViewStyle(toggledViewStyle))
             }
         } else {
             emptyList()
@@ -713,11 +713,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         selectionState.update { it.deselectAll() }
     }
 
-    fun onAction(action: SearcherAction) {
+    fun onAction(action: SearcherActionBarItem) {
         log(TAG) { "Executing action: ${action.javaClass.simpleName}" }
 
         when (action) {
-            is SearcherAction.Copy -> {
+            is SearcherActionBarItem.Copy -> {
                 vmScope.launch {
                     clipboardRepo.add(
                         ClipboardClip.Paths(
@@ -728,7 +728,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     )
                 }
             }
-            is SearcherAction.Cut -> {
+            is SearcherActionBarItem.Cut -> {
                 vmScope.launch {
                     clipboardRepo.add(
                         ClipboardClip.Paths(
@@ -739,13 +739,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     )
                 }
             }
-            is SearcherAction.Delete -> {
+            is SearcherActionBarItem.Delete -> {
                 vmScope.launch {
                     val paths = action.results.map { it.path }.toSet()
                     dialogEvents.emit(SearcherDialogEvent.ShowDeleteConfirmation(paths))
                 }
             }
-            is SearcherAction.Share -> {
+            is SearcherActionBarItem.Share -> {
                 vmScope.launch {
                     try {
                         shareFiles(action.results)
@@ -756,7 +756,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 }
                 deselectAll()
             }
-            is SearcherAction.OpenInEditor -> {
+            is SearcherActionBarItem.OpenInEditor -> {
                 launch {
                     workspaceRemote.createAndFocus(
                         type = Workspace.Type.EDITOR,
@@ -766,7 +766,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     )
                 }
             }
-            is SearcherAction.OpenInExplorer -> {
+            is SearcherActionBarItem.OpenInExplorer -> {
                 launch {
                     if (action.result.path is LocalPath) {
                         val parentPath = (action.result.path as LocalPath).parent
@@ -781,26 +781,26 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
-            is SearcherAction.CopyPath -> {
+            is SearcherActionBarItem.CopyPath -> {
                 log(TAG, INFO) { "Copying path to system clipboard: ${action.result.path.path}" }
                 systemClipboardHelper.copyToClipboard(action.result.path.path)
             }
-            is SearcherAction.SelectAll -> selectAll()
-            is SearcherAction.SelectAllFolders -> selectAllFolders()
-            is SearcherAction.SelectAllFiles -> selectAllFiles()
-            is SearcherAction.DeselectAll -> deselectAll()
-            is SearcherAction.Common.Sort -> {
+            is SearcherActionBarItem.SelectAll -> selectAll()
+            is SearcherActionBarItem.SelectAllFolders -> selectAllFolders()
+            is SearcherActionBarItem.SelectAllFiles -> selectAllFiles()
+            is SearcherActionBarItem.DeselectAll -> deselectAll()
+            is SearcherActionBarItem.Common.Sort -> {
                 dialogStateFlow.value = SearcherDialogState.EditSortOptions(
                     currentSortSettings = currentSortSettings.value
                 )
             }
-            is SearcherAction.Common.UpdateViewStyle -> {
+            is SearcherActionBarItem.Common.UpdateViewStyle -> {
                 viewStyleFlow.value = action.viewStyle
                 vmScope.launch {
                     searcherSettings.defaultViewStyle.value(action.viewStyle)
                 }
             }
-            is SearcherAction.OpenInNewTabs -> {
+            is SearcherActionBarItem.OpenInNewTabs -> {
                 vmScope.launch {
                     log(TAG) { "openInNewTabs(): ${action.results.size} items" }
 
@@ -834,10 +834,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         hideQuickActions()
     }
 
-    fun onActionLongClick(action: SearcherAction) {
+    fun onActionLongClick(action: SearcherActionBarItem) {
         log(TAG) { "onActionLongClick(${action.javaClass.simpleName})" }
         when (action) {
-            is SearcherAction.Delete -> {
+            is SearcherActionBarItem.Delete -> {
                 vmScope.launch {
                     val paths = action.results.map { it.path }.toSet()
                     dialogEvents.emit(
@@ -941,7 +941,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             val selectionState: SearcherSelectionState = SearcherSelectionState(),
             val quickActionsResult: SearchItem? = null,
             val dialogState: SearcherDialogState = SearcherDialogState.None,
-            val availableActions: List<SearcherAction> = emptyList(),
+            val availableActions: List<SearcherActionBarItem> = emptyList(),
             val viewStyle: SearcherViewStyle = SearcherViewStyle.default(),
             val sortSettings: SearchSortSettings = SearchSortSettings(),
             val trashEnabled: Boolean = false,

@@ -32,7 +32,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.picker.PickerConfig
-import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
@@ -141,7 +141,7 @@ fun ExplorerWorkspacePage(
                 onMoveFocusToFirst = { vm?.moveFocusToFirst() },
                 onMoveFocusToLast = { vm?.moveFocusToLast() },
                 onActivateFocusedItem = { focusedItem?.let { vm?.navigate(it) } },
-                onRenameFocusedItem = { (focusedItem as? ExplorerItem.Lookup)?.let { vm?.executeAction(ExplorerAction.Common.Rename(it)) } },
+                onRenameFocusedItem = { (focusedItem as? ExplorerItem.Lookup)?.let { vm?.executeAction(ExplorerActionBarItem.Common.Rename(it)) } },
                 onDeleteFocusedItem = { vm?.deleteFocusedItem() },
                 onPermanentDeleteFocusedItem = {
                     if (keyboardState.selectionState.selectedItems.isNotEmpty()) {
@@ -344,9 +344,9 @@ private fun ExplorerWorkspacePagePreview() {
         ),
         items = MockDataProvider.createAllFileTypes(),
         availableActions = listOf(
-            ExplorerAction.Directory.Create(isEnabled = false),
-            ExplorerAction.Common.Sort(),
-            ExplorerAction.Common.Filter(isEnabled = false),
+            ExplorerActionBarItem.Directory.Create(isEnabled = false),
+            ExplorerActionBarItem.Common.Sort(),
+            ExplorerActionBarItem.Common.Filter(isEnabled = false),
         ),
     )
     PreviewWrapper {
@@ -473,9 +473,9 @@ private fun ExplorerWorkspacePageWithAllBarsPreview() {
         ),
         items = mockFileItems,
         availableActions = listOf(
-            ExplorerAction.Directory.Create(isEnabled = true),
-            ExplorerAction.Common.Sort(),
-            ExplorerAction.Common.Filter(isEnabled = true),
+            ExplorerActionBarItem.Directory.Create(isEnabled = true),
+            ExplorerActionBarItem.Common.Sort(),
+            ExplorerActionBarItem.Common.Filter(isEnabled = true),
         ),
         selectionState = ExplorerSelectionState(
             selectedItems = setOf(mockFileItems[0], mockFileItems[2]),

@@ -45,7 +45,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.elements.EmptyDirectoryState
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
@@ -571,8 +571,8 @@ internal fun ExplorerReadyContent(
                 ) {
                     WorkspaceActionBar(
                         actions = state.availableActions,
-                        onActionClick = { action -> vm?.executeAction(action as ExplorerAction) },
-                        onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerAction) },
+                        onActionClick = { action -> vm?.executeAction(action as ExplorerActionBarItem) },
+                        onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerActionBarItem) },
                     )
                 }
             },
@@ -605,9 +605,9 @@ private fun ExplorerReadyContentPreview() {
         ),
         items = MockDataProvider.createAllFileTypes(),
         availableActions = listOf(
-            ExplorerAction.Directory.Create(isEnabled = false),
-            ExplorerAction.Common.Sort(),
-            ExplorerAction.Common.Filter(isEnabled = false),
+            ExplorerActionBarItem.Directory.Create(isEnabled = false),
+            ExplorerActionBarItem.Common.Sort(),
+            ExplorerActionBarItem.Common.Filter(isEnabled = false),
         ),
     )
     PreviewWrapper {
@@ -722,9 +722,9 @@ private fun ExplorerReadyContentSelectionModePreview() {
             selectableItems = mockItems.toSet(),
         ),
         availableActions = listOf(
-            ExplorerAction.Directory.Copy(),
-            ExplorerAction.Directory.Cut(),
-            ExplorerAction.Directory.Delete(),
+            ExplorerActionBarItem.Directory.Copy(),
+            ExplorerActionBarItem.Directory.Cut(),
+            ExplorerActionBarItem.Directory.Delete(),
         ),
     )
     PreviewWrapper {
@@ -762,8 +762,8 @@ private fun ExplorerReadyContentGridViewPreview() {
         items = MockDataProvider.createAllFileTypes(),
         viewStyle = ExplorerViewStyle.Grid(),
         availableActions = listOf(
-            ExplorerAction.Directory.Create(isEnabled = false),
-            ExplorerAction.Common.Sort(),
+            ExplorerActionBarItem.Directory.Create(isEnabled = false),
+            ExplorerActionBarItem.Common.Sort(),
         ),
     )
     PreviewWrapper {

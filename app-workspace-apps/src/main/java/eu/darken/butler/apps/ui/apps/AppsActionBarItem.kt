@@ -26,15 +26,15 @@ import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.workspace.ui.actions.WorkspaceAction
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBarItem
 
-sealed interface AppsActionBarItem : WorkspaceAction {
+sealed interface AppsActionBarItem : WorkspaceActionBarItem {
     override val icon: ImageVector
     override val label: CaString
     override val isVisible: Boolean get() = true
     override val isEnabled: Boolean get() = true
     override val isDestructive: Boolean get() = false
-    override val group: WorkspaceAction.Group get() = WorkspaceAction.Group.PRIMARY
+    override val group: WorkspaceActionBarItem.Group get() = WorkspaceActionBarItem.Group.PRIMARY
     override val badge: Boolean get() = false
 
     // Selection management actions
@@ -56,13 +56,13 @@ sealed interface AppsActionBarItem : WorkspaceAction {
     data object Sort : AppsActionBarItem {
         override val icon = Icons.AutoMirrored.TwoTone.Sort
         override val label = R.string.apps_action_sort.toCaString()
-        override val group = WorkspaceAction.Group.SECONDARY
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
     data object Filter : AppsActionBarItem {
         override val icon = Icons.TwoTone.FilterAlt
         override val label = R.string.apps_action_filter.toCaString()
-        override val group = WorkspaceAction.Group.SECONDARY
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
     data class UpdateViewStyle(
@@ -78,7 +78,7 @@ sealed interface AppsActionBarItem : WorkspaceAction {
                 is AppsViewStyle.List -> R.string.apps_action_view_list.toCaString()
                 is AppsViewStyle.Grid -> R.string.apps_action_view_grid.toCaString()
             }
-        override val group = WorkspaceAction.Group.SECONDARY
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
     // Batch actions (work on multiple apps)
@@ -112,7 +112,7 @@ sealed interface AppsActionBarItem : WorkspaceAction {
     ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.CleaningServices
         override val label = R.string.apps_action_clear_cache.toCaString()
-        override val group = WorkspaceAction.Group.SECONDARY
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
     data class ClearData(
@@ -121,7 +121,7 @@ sealed interface AppsActionBarItem : WorkspaceAction {
         override val icon = Icons.TwoTone.DeleteSweep
         override val label = R.string.apps_action_clear_data.toCaString()
         override val isDestructive = true
-        override val group = WorkspaceAction.Group.SECONDARY
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
     data class ExportApk(
@@ -129,7 +129,7 @@ sealed interface AppsActionBarItem : WorkspaceAction {
     ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.GetApp
         override val label = R.string.apps_action_export_apk.toCaString()
-        override val group = WorkspaceAction.Group.SECONDARY
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
     data class Share(
@@ -137,7 +137,7 @@ sealed interface AppsActionBarItem : WorkspaceAction {
     ) : AppsActionBarItem {
         override val icon = Icons.TwoTone.Share
         override val label = R.string.apps_action_share.toCaString()
-        override val group = WorkspaceAction.Group.SECONDARY
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
         override val isVisible: Boolean get() = apps.size <= 5 // Reasonable limit for sharing
     }
 

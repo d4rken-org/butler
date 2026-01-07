@@ -6,7 +6,7 @@ import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.core.picker.isDisabled
 import eu.darken.butler.explorer.core.picker.isSelectable
-import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -81,9 +81,9 @@ class ExplorerPickerHelper @Inject constructor() {
      * Filters actions to only those allowed in picker mode.
      */
     fun filterActionsForPicker(
-        actions: List<ExplorerAction>,
+        actions: List<ExplorerActionBarItem>,
         config: PickerConfig?,
-    ): List<ExplorerAction> {
+    ): List<ExplorerActionBarItem> {
         if (config == null) return actions
         return actions.filter { isActionAllowedInPicker(it) }
     }
@@ -160,43 +160,43 @@ class ExplorerPickerHelper @Inject constructor() {
         else -> null
     }
 
-    private fun isActionAllowedInPicker(action: ExplorerAction): Boolean {
+    private fun isActionAllowedInPicker(action: ExplorerActionBarItem): Boolean {
         return when (action) {
             // Allowed: browsing, creation, and selection actions
-            is ExplorerAction.Common.Refresh,
-            is ExplorerAction.Common.Sort,
-            is ExplorerAction.Common.Filter,
-            is ExplorerAction.Common.UpdateViewStyle,
-            is ExplorerAction.Directory.Create,
-            is ExplorerAction.Directory.SelectAll,
-            is ExplorerAction.Directory.DeselectAll,
-            is ExplorerAction.Trash.SelectAll,
-            is ExplorerAction.TrashNested.SelectAll -> true
+            is ExplorerActionBarItem.Common.Refresh,
+            is ExplorerActionBarItem.Common.Sort,
+            is ExplorerActionBarItem.Common.Filter,
+            is ExplorerActionBarItem.Common.UpdateViewStyle,
+            is ExplorerActionBarItem.Directory.Create,
+            is ExplorerActionBarItem.Directory.SelectAll,
+            is ExplorerActionBarItem.Directory.DeselectAll,
+            is ExplorerActionBarItem.Trash.SelectAll,
+            is ExplorerActionBarItem.TrashNested.SelectAll -> true
 
             // Blocked: modification, clipboard, device, file, and recycle bin actions
-            is ExplorerAction.Directory.Copy,
-            is ExplorerAction.Directory.Cut,
-            is ExplorerAction.Directory.Delete,
-            is ExplorerAction.Directory.Share,
-            is ExplorerAction.Directory.Rename,
-            is ExplorerAction.Directory.OpenInNewTabs,
-            is ExplorerAction.Common.Info,
-            is ExplorerAction.Common.Rename,
-            is ExplorerAction.Device.AddLocation,
-            is ExplorerAction.Device.RemoveLocation,
-            is ExplorerAction.Device.RenameLocation,
-            is ExplorerAction.File.OpenInEditor,
-            is ExplorerAction.File.OpenWith,
-            is ExplorerAction.File.Share,
-            is ExplorerAction.File.Copy,
-            is ExplorerAction.File.Cut,
-            is ExplorerAction.File.Delete,
-            is ExplorerAction.File.ShowProperties,
-            is ExplorerAction.Trash.Restore,
-            is ExplorerAction.Trash.DeletePermanently,
-            is ExplorerAction.Trash.EmptyBin,
-            is ExplorerAction.TrashNested.Restore,
-            is ExplorerAction.TrashNested.DeletePermanently -> false
+            is ExplorerActionBarItem.Directory.Copy,
+            is ExplorerActionBarItem.Directory.Cut,
+            is ExplorerActionBarItem.Directory.Delete,
+            is ExplorerActionBarItem.Directory.Share,
+            is ExplorerActionBarItem.Directory.Rename,
+            is ExplorerActionBarItem.Directory.OpenInNewTabs,
+            is ExplorerActionBarItem.Common.Info,
+            is ExplorerActionBarItem.Common.Rename,
+            is ExplorerActionBarItem.Device.AddLocation,
+            is ExplorerActionBarItem.Device.RemoveLocation,
+            is ExplorerActionBarItem.Device.RenameLocation,
+            is ExplorerActionBarItem.File.OpenInEditor,
+            is ExplorerActionBarItem.File.OpenWith,
+            is ExplorerActionBarItem.File.Share,
+            is ExplorerActionBarItem.File.Copy,
+            is ExplorerActionBarItem.File.Cut,
+            is ExplorerActionBarItem.File.Delete,
+            is ExplorerActionBarItem.File.ShowProperties,
+            is ExplorerActionBarItem.Trash.Restore,
+            is ExplorerActionBarItem.Trash.DeletePermanently,
+            is ExplorerActionBarItem.Trash.EmptyBin,
+            is ExplorerActionBarItem.TrashNested.Restore,
+            is ExplorerActionBarItem.TrashNested.DeletePermanently -> false
         }
     }
 }

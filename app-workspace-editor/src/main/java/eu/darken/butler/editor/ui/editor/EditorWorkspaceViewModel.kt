@@ -536,15 +536,15 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
      * Executes workspace-level domain actions from action bar.
      * Routes EditorAction objects to appropriate handlers.
      */
-    fun executeAction(action: EditorAction) {
+    fun executeAction(action: EditorActionBarItem) {
         when (action) {
-            EditorAction.Copy -> copyToClipboard()
-            EditorAction.Cut -> cutToClipboard()
-            EditorAction.Paste -> pasteFromClipboard()
-            EditorAction.Delete -> deleteSelection()
-            EditorAction.SelectAll -> selectAll()
-            EditorAction.GoToLine -> showGoToLineDialog()
-            EditorAction.Search -> showSearchDialog()
+            EditorActionBarItem.Copy -> copyToClipboard()
+            EditorActionBarItem.Cut -> cutToClipboard()
+            EditorActionBarItem.Paste -> pasteFromClipboard()
+            EditorActionBarItem.Delete -> deleteSelection()
+            EditorActionBarItem.SelectAll -> selectAll()
+            EditorActionBarItem.GoToLine -> showGoToLineDialog()
+            EditorActionBarItem.Search -> showSearchDialog()
         }
     }
 
@@ -552,10 +552,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
      * Handles long-press on action bar buttons.
      * Copy/Cut long press copies/cuts to Butler clipboard.
      */
-    fun executeActionLongClick(action: EditorAction) {
+    fun executeActionLongClick(action: EditorActionBarItem) {
         when (action) {
-            EditorAction.Copy -> copyToButlerClipboard()
-            EditorAction.Cut -> cutToButlerClipboard()
+            EditorActionBarItem.Copy -> copyToButlerClipboard()
+            EditorActionBarItem.Cut -> cutToButlerClipboard()
             else -> { /* Other actions don't have long press behavior */ }
         }
     }
@@ -681,15 +681,15 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             }
 
         // Available actions based on current state
-        val availableActions: List<EditorAction>
+        val availableActions: List<EditorActionBarItem>
             get() = buildList {
-                if (hasSelection) add(EditorAction.Copy)
-                if (hasSelection) add(EditorAction.Cut)
-                if (hasSelection) add(EditorAction.Delete)
-                if (hasContent || currentContent.isNotEmpty()) add(EditorAction.Paste)
-                if (hasContent || currentContent.isNotEmpty()) add(EditorAction.SelectAll)
-                if (hasContent) add(EditorAction.GoToLine)
-                if (hasContent && !isSearchBarVisible) add(EditorAction.Search)
+                if (hasSelection) add(EditorActionBarItem.Copy)
+                if (hasSelection) add(EditorActionBarItem.Cut)
+                if (hasSelection) add(EditorActionBarItem.Delete)
+                if (hasContent || currentContent.isNotEmpty()) add(EditorActionBarItem.Paste)
+                if (hasContent || currentContent.isNotEmpty()) add(EditorActionBarItem.SelectAll)
+                if (hasContent) add(EditorActionBarItem.GoToLine)
+                if (hasContent && !isSearchBarVisible) add(EditorActionBarItem.Search)
             }
     }
 

@@ -21,29 +21,29 @@ import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearcherViewStyle
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
-import eu.darken.butler.workspace.ui.actions.WorkspaceAction
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBarItem
 import eu.darken.butler.common.R as CommonR
 
-sealed interface SearcherAction : WorkspaceAction {
+sealed interface SearcherActionBarItem : WorkspaceActionBarItem {
     override val icon: ImageVector
     override val label: CaString
     override val isVisible: Boolean get() = true
     override val isEnabled: Boolean get() = true
     override val isDestructive: Boolean get() = false
-    override val group: WorkspaceAction.Group get() = WorkspaceAction.Group.PRIMARY
+    override val group: WorkspaceActionBarItem.Group get() = WorkspaceActionBarItem.Group.PRIMARY
     override val badge: Boolean get() = false
 
     // Actions that work on one or more results
     data class Copy(
         val results: List<SearchItem>,
-    ) : SearcherAction {
+    ) : SearcherActionBarItem {
         override val icon = Icons.TwoTone.ContentCopy
         override val label = R.string.searcher_action_copy.toCaString()
     }
 
     data class Cut(
         val results: List<SearchItem>,
-    ) : SearcherAction {
+    ) : SearcherActionBarItem {
         override val icon = Icons.TwoTone.ContentCut
         override val label = R.string.searcher_action_cut.toCaString()
     }
@@ -51,7 +51,7 @@ sealed interface SearcherAction : WorkspaceAction {
     data class Delete(
         val results: List<SearchItem>,
         val trashEnabled: Boolean = false,
-    ) : SearcherAction {
+    ) : SearcherActionBarItem {
         override val icon = if (trashEnabled) Icons.TwoTone.Delete else Icons.TwoTone.DeleteForever
         override val label = R.string.searcher_action_delete.toCaString()
         override val isDestructive = !trashEnabled
@@ -60,7 +60,7 @@ sealed interface SearcherAction : WorkspaceAction {
 
     data class Share(
         val results: List<SearchItem>,
-    ) : SearcherAction {
+    ) : SearcherActionBarItem {
         override val icon = Icons.TwoTone.Share
         override val label = CommonR.string.general_share_action.toCaString()
         override val isVisible: Boolean get() = results.size <= 10 // Reasonable limit for sharing
@@ -69,59 +69,59 @@ sealed interface SearcherAction : WorkspaceAction {
     // Actions that only make sense for a single result
     data class OpenInEditor(
         val result: SearchItem,
-    ) : SearcherAction {
+    ) : SearcherActionBarItem {
         override val icon = Workspace.Type.EDITOR.icon
         override val label = R.string.searcher_action_open_in_editor.toCaString()
     }
 
     data class OpenInExplorer(
         val result: SearchItem,
-    ) : SearcherAction {
+    ) : SearcherActionBarItem {
         override val icon = Workspace.Type.EXPLORER.icon
         override val label = R.string.searcher_action_open_in_explorer.toCaString()
     }
 
     data class CopyPath(
         val result: SearchItem,
-    ) : SearcherAction {
+    ) : SearcherActionBarItem {
         override val icon = Icons.TwoTone.Link
         override val label = R.string.searcher_action_copy_path.toCaString()
     }
 
     // Selection management actions
-    data object SelectAll : SearcherAction {
+    data object SelectAll : SearcherActionBarItem {
         override val icon = Icons.TwoTone.SelectAll
         override val label = R.string.searcher_action_select_all.toCaString()
     }
 
-    data object SelectAllFolders : SearcherAction {
+    data object SelectAllFolders : SearcherActionBarItem {
         override val icon = Icons.TwoTone.SelectAll
         override val label = CommonR.string.common_select_all_folders_action.toCaString()
     }
 
-    data object SelectAllFiles : SearcherAction {
+    data object SelectAllFiles : SearcherActionBarItem {
         override val icon = Icons.TwoTone.SelectAll
         override val label = CommonR.string.common_select_all_files_action.toCaString()
     }
 
-    data object DeselectAll : SearcherAction {
+    data object DeselectAll : SearcherActionBarItem {
         override val icon = Icons.TwoTone.Deselect
         override val label = R.string.searcher_action_deselect_all.toCaString()
     }
 
     data class OpenInNewTabs(
         val results: List<SearchItem>,
-    ) : SearcherAction {
+    ) : SearcherActionBarItem {
         override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
         override val label = R.string.searcher_action_open_in_new_tabs.toCaString()
-        override val group = WorkspaceAction.Group.PRIMARY
+        override val group = WorkspaceActionBarItem.Group.PRIMARY
     }
 
     // Common actions for browsing/viewing
-    sealed interface Common : SearcherAction {
+    sealed interface Common : SearcherActionBarItem {
         data class Sort(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Common {
             override val icon = Icons.AutoMirrored.TwoTone.Sort
             override val label = R.string.searcher_action_sort.toCaString()
@@ -130,7 +130,7 @@ sealed interface SearcherAction : WorkspaceAction {
         data class UpdateViewStyle(
             val viewStyle: SearcherViewStyle,
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Common {
             override val icon = when (viewStyle) {
                 is SearcherViewStyle.Grid -> Icons.TwoTone.GridView
