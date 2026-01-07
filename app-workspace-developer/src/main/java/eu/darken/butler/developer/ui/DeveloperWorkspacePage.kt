@@ -7,9 +7,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -99,12 +102,19 @@ fun DeveloperWorkspacePage(
     onTestShizuku: () -> Unit = {},
     onHideDeveloperMode: () -> Unit = {},
 ) {
+    // System bar insets for edge-to-edge (based on pane edges)
+    val density = LocalDensity.current
+    val statusBarInset = if (design.paneEdges.touchesTop) {
+        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
+    } else 0.dp
+
     Column(modifier = Modifier.fillMaxSize()) {
         // Floating header card with tabs and workspace button
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(top = statusBarInset + 12.dp, bottom = 12.dp)
+                .padding(horizontal = 16.dp),
             elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
         ) {
             Row(
@@ -563,6 +573,7 @@ private fun LogsSection(
                         text = line,
                         style = MaterialTheme.typography.bodySmall,
                         fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         softWrap = false,
                         modifier = Modifier.padding(vertical = 1.dp),
