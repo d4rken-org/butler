@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -25,6 +26,7 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
+import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.editor.ui.editor.elements.EditorErrorBanner
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorLoadingOverlay
@@ -58,6 +60,10 @@ fun EditorWorkspacePageHost(
 ) {
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
+    LifecycleResumeEffect(Unit) {
+        vm.refreshClipboardState()
+        onPauseOrDispose {}
+    }
 
     val clipboardInfoClip by vm.clipboardInfoClip.collectAsState(null)
 
@@ -81,8 +87,8 @@ fun EditorWorkspacePage(
     clipboardStateSource: Flow<EditorWorkspaceViewModel.ClipboardState> = flowOf(EditorWorkspaceViewModel.ClipboardState()),
     clipboardInfoClip: ClipboardClip? = null,
     onPageAction: (EditorPageAction) -> Unit,
-    onActionExecute: (EditorAction) -> Unit = {},
-    onActionLongClick: (EditorAction) -> Unit = {},
+    onActionExecute: (EditorActionBarItem) -> Unit = {},
+    onActionLongClick: (EditorActionBarItem) -> Unit = {},
 ) {
     // Page is hidden by WorkspaceMapper during Init/Error states, so nothing to render until Ready
     val stateOrNull by mainStateSource.collectAsState(null)

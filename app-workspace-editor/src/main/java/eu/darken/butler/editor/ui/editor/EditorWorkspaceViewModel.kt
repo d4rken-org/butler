@@ -115,12 +115,15 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         .filterNotNull()
         .flatMapLatest { ws -> ws.state.map { state -> ws to state } }
 
+    private val _hasSystemClipboardContent = MutableStateFlow(clipboardHelper.hasClipboardContent())
+
     val state: Flow<State> = combine(
         workspaceWithState,
         dialogStates,
         searchStates,
         flowOf(id),
-    ) { (workspace, wsState), dialogs, search, workspaceId ->
+        _hasSystemClipboardContent,
+    ) { (workspace, wsState), dialogs, search, workspaceId, hasClipboardContent ->
         // Only emit Ready states - Init/Error are handled globally by WorkspaceMapper
         val readyState = wsState as? EditorWorkspace.State.Ready ?: return@combine null
 
@@ -159,6 +162,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             scrollTrigger = search.scrollTrigger,
             canUndo = workspace.canUndo(),
             canRedo = workspace.canRedo(),
+            hasSystemClipboardContent = hasClipboardContent,
         )
     }.filterNotNull()
 
@@ -276,6 +280,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         result.fold(
             onSuccess = { text ->
                 clipboardHelper.copyToClipboard(text)
+                _hasSystemClipboardContent.value = true
                 log(tag) { "Copied ${text.length} characters to system clipboard" }
             },
             onFailure = { e ->
@@ -290,6 +295,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         copyResult.fold(
             onSuccess = { text ->
                 clipboardHelper.copyToClipboard(text)
+                _hasSystemClipboardContent.value = true
                 workspace.deleteSelection()
                 log(tag) { "Cut ${text.length} characters to system clipboard" }
             },
@@ -357,6 +363,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         } else {
             log(tag) { "No text content in clipboard to paste" }
         }
+    }
+
+    fun refreshClipboardState() {
+        _hasSystemClipboardContent.value = clipboardHelper.hasClipboardContent()
     }
 
     /**
@@ -653,6 +663,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val scrollTrigger: Int = 0,
         val canUndo: Boolean = false,
         val canRedo: Boolean = false,
+        val hasSystemClipboardContent: Boolean = false,
     ) {
         val hasFile: Boolean get() = contentSource is ContentSource.File
         val hasContent: Boolean get() = contentSource.hasContent
@@ -689,7 +700,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 if (hasSelection) add(EditorActionBarItem.Copy)
                 if (hasSelection) add(EditorActionBarItem.Cut)
                 if (hasSelection) add(EditorActionBarItem.Delete)
-                if (hasContent || currentContent.isNotEmpty()) add(EditorActionBarItem.Paste)
+                if (hasSystemClipboardContent) add(EditorActionBarItem.Paste)
                 if (hasContent || currentContent.isNotEmpty()) add(EditorActionBarItem.SelectAll)
                 if (hasContent) add(EditorActionBarItem.GoToLine)
                 if (hasContent && !isSearchBarVisible) add(EditorActionBarItem.Search)
