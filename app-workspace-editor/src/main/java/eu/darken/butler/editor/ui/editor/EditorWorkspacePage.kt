@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
@@ -34,17 +33,15 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.common.compose.ButlerMascot
-import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.common.easterEggProgressMsg
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
+import eu.darken.butler.editor.ui.editor.elements.EditorLoadingOverlay
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
 import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
@@ -339,35 +336,6 @@ private fun ErrorBanner(
     }
 }
 
-@Composable
-private fun EditorLoadingOverlay(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-
-            ButlerMascot(
-                modifier = Modifier.size(144.dp),
-                variant = ButlerMascotMode.Animated.Drink(),
-            )
-            Text(
-                modifier = Modifier.padding(top = 8.dp),
-                text = stringResource(eu.darken.butler.common.R.string.general_progress_loading),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = stringResource(easterEggProgressMsg),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-        }
-    }
-}
 
 /**
  * Content for Ready state - type-safe, no casting needed.
@@ -482,10 +450,3 @@ private fun EditorPagePreview() {
     }
 }
 
-@Preview2
-@Composable
-private fun EditorLoadingOverlayPreview() {
-    PreviewWrapper {
-        EditorLoadingOverlay()
-    }
-}
