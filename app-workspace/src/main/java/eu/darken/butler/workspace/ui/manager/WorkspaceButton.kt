@@ -49,6 +49,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults.sizeCompact
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults.sizeDefault
 
 
 @Composable
@@ -56,7 +58,7 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 fun WorkspaceButton(
     modifier: Modifier = Modifier,
     containerColor: Color? = null,
-    buttonSize: Dp = WORKSPACE_BUTTON_SIZE_DEFAULT,
+    buttonSize: Dp = sizeDefault,
     currentWorkspaceId: Workspace.Id? = null,
     mascotVariant: ButlerMascotMode = ButlerMascotMode.Animated.RandomCycling(),
 ) {
@@ -159,11 +161,11 @@ fun WorkspaceButton(
                     .align(Alignment.TopStart)
                     .run {
                         when {
-                            buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT -> this
+                            buttonSize >= sizeDefault -> this
                                 .offset(x = (-6).dp, y = (-6).dp)
                                 .size(14.dp)
                                 .visible(true)
-                            buttonSize >= WORKSPACE_BUTTON_SIZE_COMPACT -> this
+                            buttonSize >= sizeCompact -> this
                                 .offset(x = (-4).dp, y = (-4).dp)
                                 .size(12.dp)
                                 .visible(true)
@@ -180,13 +182,13 @@ fun WorkspaceButton(
                 Text(
                     text = if (state.workspaceCount > 9) "9+" else state.workspaceCount.toString(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
-                    lineHeight = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    fontSize = if (buttonSize >= sizeDefault) 9.sp else 7.sp,
+                    lineHeight = if (buttonSize >= sizeDefault) 9.sp else 7.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(bottom = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
+                        .padding(bottom = if (buttonSize >= sizeDefault) 1.dp else 0.dp)
                 )
             }
         }
@@ -198,11 +200,11 @@ fun WorkspaceButton(
                     .align(Alignment.TopEnd)
                     .run {
                         when {
-                            buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT -> this
+                            buttonSize >= sizeDefault -> this
                                 .offset(x = 6.dp, y = (-6).dp)
                                 .size(14.dp)
                                 .visible(true)
-                            buttonSize >= WORKSPACE_BUTTON_SIZE_COMPACT -> this
+                            buttonSize >= sizeCompact -> this
                                 .offset(x = 4.dp, y = (-4).dp)
                                 .size(12.dp)
                                 .visible(true)
@@ -219,13 +221,13 @@ fun WorkspaceButton(
                 Text(
                     text = if (state.operationsCount > 9) "9+" else state.operationsCount.toString(),
                     color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
-                    lineHeight = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    fontSize = if (buttonSize >= sizeDefault) 9.sp else 7.sp,
+                    lineHeight = if (buttonSize >= sizeDefault) 9.sp else 7.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(bottom = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
+                        .padding(bottom = if (buttonSize >= sizeDefault) 1.dp else 0.dp)
                 )
             }
         }
@@ -237,11 +239,11 @@ fun WorkspaceButton(
                     .align(Alignment.BottomEnd)
                     .run {
                         when {
-                            buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT -> this
+                            buttonSize >= sizeDefault -> this
                                 .offset(x = 6.dp, y = 6.dp)
                                 .size(14.dp)
                                 .visible(true)
-                            buttonSize >= WORKSPACE_BUTTON_SIZE_COMPACT -> this
+                            buttonSize >= sizeCompact -> this
                                 .offset(x = 4.dp, y = 4.dp)
                                 .size(12.dp)
                                 .visible(true)
@@ -258,21 +260,23 @@ fun WorkspaceButton(
                 Text(
                     text = if (state.attentionCount > 9) "9+" else state.attentionCount.toString(),
                     color = MaterialTheme.colorScheme.onError,
-                    fontSize = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
-                    lineHeight = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 9.sp else 7.sp,
+                    fontSize = if (buttonSize >= sizeDefault) 9.sp else 7.sp,
+                    lineHeight = if (buttonSize >= sizeDefault) 9.sp else 7.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(bottom = if (buttonSize >= WORKSPACE_BUTTON_SIZE_DEFAULT) 1.dp else 0.dp)
+                        .padding(bottom = if (buttonSize >= sizeDefault) 1.dp else 0.dp)
                 )
             }
         }
     }
 }
 
-val WORKSPACE_BUTTON_SIZE_DEFAULT = 48.dp
-val WORKSPACE_BUTTON_SIZE_COMPACT = 32.dp
+object WorkspaceButtonDefaults {
+    val sizeDefault = 48.dp
+    val sizeCompact = 40.dp
+}
 
 @Preview2
 @Composable
@@ -291,9 +295,9 @@ private fun WorkspaceButtonSizesPreview() {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.padding(16.dp),
             ) {
-                WorkspaceButton(buttonSize = 24.dp)
                 WorkspaceButton(buttonSize = 32.dp)
-                WorkspaceButton(buttonSize = 48.dp)
+                WorkspaceButton(buttonSize = sizeCompact)
+                WorkspaceButton(buttonSize = sizeDefault)
                 WorkspaceButton(buttonSize = 72.dp)
             }
         }
