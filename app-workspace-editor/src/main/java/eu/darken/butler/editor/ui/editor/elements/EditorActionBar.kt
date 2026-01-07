@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.editor.ui.editor.EditorActionBarItem
+import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 
 @Composable

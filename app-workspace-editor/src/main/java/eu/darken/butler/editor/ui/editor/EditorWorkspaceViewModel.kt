@@ -31,6 +31,7 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import androidx.compose.ui.text.input.TextFieldValue
+import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow

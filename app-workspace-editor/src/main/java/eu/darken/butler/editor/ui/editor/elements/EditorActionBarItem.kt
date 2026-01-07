@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.ui.editor
+package eu.darken.butler.editor.ui.editor.elements
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
@@ -9,9 +9,9 @@ import androidx.compose.material.icons.twotone.FormatListNumbered
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.ui.graphics.vector.ImageVector
+import eu.darken.butler.common.R
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.editor.R
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBarItem
 
 /**
@@ -36,7 +36,7 @@ sealed interface EditorActionBarItem : WorkspaceActionBarItem {
      */
     data object Copy : EditorActionBarItem {
         override val icon = Icons.TwoTone.ContentCopy
-        override val label = eu.darken.butler.common.R.string.general_copy_action.toCaString()
+        override val label = R.string.general_copy_action.toCaString()
         override val supportsLongPress = true
     }
 
@@ -46,7 +46,7 @@ sealed interface EditorActionBarItem : WorkspaceActionBarItem {
      */
     data object Cut : EditorActionBarItem {
         override val icon = Icons.TwoTone.ContentCut
-        override val label = eu.darken.butler.common.R.string.general_cut_action.toCaString()
+        override val label = R.string.general_cut_action.toCaString()
         override val supportsLongPress = true
     }
 
@@ -55,7 +55,7 @@ sealed interface EditorActionBarItem : WorkspaceActionBarItem {
      */
     data object Paste : EditorActionBarItem {
         override val icon = Icons.TwoTone.ContentPaste
-        override val label = eu.darken.butler.common.R.string.general_paste_action.toCaString()
+        override val label = R.string.general_paste_action.toCaString()
     }
 
     /**
@@ -63,7 +63,7 @@ sealed interface EditorActionBarItem : WorkspaceActionBarItem {
      */
     data object Delete : EditorActionBarItem {
         override val icon = Icons.TwoTone.Delete
-        override val label = R.string.editor_action_delete.toCaString()
+        override val label = eu.darken.butler.editor.R.string.editor_action_delete.toCaString()
         override val isDestructive = true
     }
 
@@ -72,7 +72,7 @@ sealed interface EditorActionBarItem : WorkspaceActionBarItem {
      */
     data object SelectAll : EditorActionBarItem {
         override val icon = Icons.TwoTone.SelectAll
-        override val label = R.string.editor_action_select_all.toCaString()
+        override val label = eu.darken.butler.editor.R.string.editor_action_select_all.toCaString()
         override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
@@ -81,7 +81,7 @@ sealed interface EditorActionBarItem : WorkspaceActionBarItem {
      */
     data object GoToLine : EditorActionBarItem {
         override val icon = Icons.TwoTone.FormatListNumbered
-        override val label = R.string.editor_action_go_to_line.toCaString()
+        override val label = eu.darken.butler.editor.R.string.editor_action_go_to_line.toCaString()
         override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
@@ -90,7 +90,7 @@ sealed interface EditorActionBarItem : WorkspaceActionBarItem {
      */
     data object Search : EditorActionBarItem {
         override val icon = Icons.TwoTone.Search
-        override val label = R.string.editor_action_search.toCaString()
+        override val label = eu.darken.butler.editor.R.string.editor_action_search.toCaString()
         override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 }
