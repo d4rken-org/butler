@@ -1,6 +1,5 @@
 package eu.darken.butler.editor.ui.editor
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,13 +13,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Error
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -37,8 +34,11 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerMascot
+import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.easterEggProgressMsg
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.R
@@ -340,30 +340,31 @@ private fun ErrorBanner(
 }
 
 @Composable
-private fun EditorLoadingOverlay(
-    modifier: Modifier = Modifier,
-    fileName: String? = null,
-    onCancel: () -> Unit = {},
-) {
+private fun EditorLoadingOverlay(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(48.dp)
+
+            ButlerMascot(
+                modifier = Modifier.size(144.dp),
+                variant = ButlerMascotMode.Animated.Drink(),
             )
             Text(
-                text = fileName ?: stringResource(R.string.editor_loading_file),
+                modifier = Modifier.padding(top = 8.dp),
+                text = stringResource(eu.darken.butler.common.R.string.general_progress_loading),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(easterEggProgressMsg),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            TextButton(onClick = onCancel) {
-                Text(stringResource(R.string.editor_action_cancel_loading))
-            }
+
         }
     }
 }
@@ -402,9 +403,7 @@ private fun EditorReadyContent(
             ) {
                 if (!state.hasFile && state.isLoading) {
                     // Initial file load - show centered loading overlay
-                    EditorLoadingOverlay(
-                        onCancel = { onPageAction(EditorPageAction.File.CancelOpen) }
-                    )
+                    EditorLoadingOverlay()
                 } else {
                     // Show editor (with file content or empty in-memory buffer)
                     LazyTextEditor(
