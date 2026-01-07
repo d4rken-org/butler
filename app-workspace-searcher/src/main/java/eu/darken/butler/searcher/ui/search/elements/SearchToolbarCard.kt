@@ -42,7 +42,9 @@ import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.common.CutoutCard
+import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
@@ -66,168 +68,168 @@ fun SearchToolbarCard(
             {
                 WorkspaceButton(
                     currentWorkspaceId = workspaceId,
-                    buttonSize = if (isCollapsed) 40.dp else 48.dp,
+                    buttonSize = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault,
                 )
             }
         } else null,
         cutoutFullHeight = isCollapsed,
-        gapDistance = if (isCollapsed) 6.dp else 8.dp,
+        gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
         contentPadding = cardPadding,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
-            if (isCollapsed) {
-                // Collapsed state - compact display
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = Icons.TwoTone.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+        if (isCollapsed) {
+            // Collapsed state - compact display
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    imageVector = Icons.TwoTone.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
 
-                    val displayText = buildString {
-                        val hasFilename = state?.filenameQuery?.isNotBlank() == true
-                        val hasContent = state?.contentQuery?.isNotBlank() == true
-                        when {
-                            hasFilename && hasContent -> {
-                                append(state?.filenameQuery.orEmpty())
-                                append(" | ")
-                                append(state?.contentQuery.orEmpty())
-                            }
-
-                            hasFilename -> append(state?.filenameQuery.orEmpty())
-                            hasContent -> append(state?.contentQuery.orEmpty())
+                val displayText = buildString {
+                    val hasFilename = state?.filenameQuery?.isNotBlank() == true
+                    val hasContent = state?.contentQuery?.isNotBlank() == true
+                    when {
+                        hasFilename && hasContent -> {
+                            append(state.filenameQuery)
+                            append(" | ")
+                            append(state.contentQuery)
                         }
-                    }
-                    Text(
-                        text = displayText.ifBlank { stringResource(R.string.searcher_placeholder_search) },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (displayText.isBlank()) {
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            } else {
-                // Expanded state - full interactive card with dual pattern fields
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    // Unified surface for both pattern fields
-                    Surface(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-                    ) {
-                        Column {
-                            // Filename pattern field
-                            PatternField(
-                                text = state?.filenameQuery.orEmpty(),
-                                onTextChange = { onAction(SearcherPageAction.Search.UpdateFilenameQuery(it)) },
-                                onSearch = { onAction(SearcherPageAction.Search.Explicit) },
-                                placeholder = stringResource(R.string.searcher_placeholder_filename),
-                                leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
-                                caseSensitive = state?.filenameOptions?.caseSensitive ?: false,
-                                wholeWord = state?.filenameOptions?.wholeWord ?: false,
-                                useRegex = state?.filenameOptions?.useRegex ?: false,
-                                isSearching = state?.isSearching ?: false,
-                                onToggleCaseSensitive = { onAction(SearcherPageAction.Options.ToggleFilenameCaseSensitive) },
-                                onToggleWholeWord = { onAction(SearcherPageAction.Options.ToggleFilenameWholeWord) },
-                                onToggleRegex = { onAction(SearcherPageAction.Options.ToggleFilenameRegex) },
-                                extraMenuItems = {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.searcher_option_search_content_label)) },
-                                        onClick = { onAction(SearcherPageAction.Options.ToggleContentSearch) },
-                                        leadingIcon = {
-                                            Checkbox(
-                                                checked = state?.contentSearchEnabled ?: false,
-                                                onCheckedChange = null,
-                                            )
-                                        },
-                                    )
-                                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                                },
-                            )
 
-                            // Content pattern field (conditionally visible)
-                            AnimatedVisibility(
-                                visible = state?.contentSearchEnabled ?: false,
-                                enter = expandVertically(),
-                                exit = shrinkVertically(),
-                            ) {
-                                Column {
-                                    // Divider between fields
-                                    HorizontalDivider(
-                                        modifier = Modifier.padding(horizontal = 12.dp),
-                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                    )
-
-                                    // Content pattern field
-                                    PatternField(
-                                        text = state?.contentQuery.orEmpty(),
-                                        onTextChange = { onAction(SearcherPageAction.Search.UpdateContentQuery(it)) },
-                                        onSearch = { onAction(SearcherPageAction.Search.Explicit) },
-                                        placeholder = stringResource(R.string.searcher_placeholder_content),
-                                        leadingIcon = Icons.TwoTone.Description,
-                                        caseSensitive = state?.contentOptions?.caseSensitive ?: false,
-                                        wholeWord = state?.contentOptions?.wholeWord ?: false,
-                                        useRegex = state?.contentOptions?.useRegex ?: false,
-                                        isSearching = state?.isSearching ?: false,
-                                        onToggleCaseSensitive = { onAction(SearcherPageAction.Options.ToggleContentCaseSensitive) },
-                                        onToggleWholeWord = { onAction(SearcherPageAction.Options.ToggleContentWholeWord) },
-                                        onToggleRegex = { onAction(SearcherPageAction.Options.ToggleContentRegex) },
-                                    )
-                                }
-                            }
-                        }
+                        hasFilename -> append(state.filenameQuery)
+                        hasContent -> append(state.contentQuery)
                     }
                 }
-
-
-                Column {
-                    Spacer(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                    )
-
-                    FilterChipBar(
-                        filter = state?.currentFilter ?: eu.darken.butler.searcher.core.SearchFilter(),
-                        onConditionClick = { onAction(SearcherPageAction.Filter.EditCondition(it)) },
-                        onAddSizeCondition = { onAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
-                        onAddDateCondition = { onAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
-                        onAddTypeCondition = { onAction(SearcherPageAction.Filter.OpenTypeConditionEditor) },
-                        onRemoveCondition = { onAction(SearcherPageAction.Filter.RemoveCondition(it)) },
-                    )
-                }
-
-
-
-                Column {
-                    Spacer(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                    )
-
-                    MultiPathChipBar(
-                        paths = state?.searchTargets.orEmpty(),
-                        onPathRemove = { onAction(SearcherPageAction.Targets.Remove(it)) },
-                        onPathToggle = { onAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
-                        onAddPathClick = { onAction(SearcherPageAction.Targets.OpenPicker) },
-                        isSearching = state?.isSearching ?: false,
-                    )
-                }
-
+                Text(
+                    text = displayText.ifBlank { stringResource(R.string.searcher_placeholder_search) },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (displayText.isBlank()) {
+                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
             }
+        } else {
+            // Expanded state - full interactive card with dual pattern fields
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top,
+            ) {
+                // Unified surface for both pattern fields
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                ) {
+                    Column {
+                        // Filename pattern field
+                        PatternField(
+                            text = state?.filenameQuery.orEmpty(),
+                            onTextChange = { onAction(SearcherPageAction.Search.UpdateFilenameQuery(it)) },
+                            onSearch = { onAction(SearcherPageAction.Search.Explicit) },
+                            placeholder = stringResource(R.string.searcher_placeholder_filename),
+                            leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
+                            caseSensitive = state?.filenameOptions?.caseSensitive ?: false,
+                            wholeWord = state?.filenameOptions?.wholeWord ?: false,
+                            useRegex = state?.filenameOptions?.useRegex ?: false,
+                            isSearching = state?.isSearching ?: false,
+                            onToggleCaseSensitive = { onAction(SearcherPageAction.Options.ToggleFilenameCaseSensitive) },
+                            onToggleWholeWord = { onAction(SearcherPageAction.Options.ToggleFilenameWholeWord) },
+                            onToggleRegex = { onAction(SearcherPageAction.Options.ToggleFilenameRegex) },
+                            extraMenuItems = {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.searcher_option_search_content_label)) },
+                                    onClick = { onAction(SearcherPageAction.Options.ToggleContentSearch) },
+                                    leadingIcon = {
+                                        Checkbox(
+                                            checked = state?.contentSearchEnabled ?: false,
+                                            onCheckedChange = null,
+                                        )
+                                    },
+                                )
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                            },
+                        )
+
+                        // Content pattern field (conditionally visible)
+                        AnimatedVisibility(
+                            visible = state?.contentSearchEnabled ?: false,
+                            enter = expandVertically(),
+                            exit = shrinkVertically(),
+                        ) {
+                            Column {
+                                // Divider between fields
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                )
+
+                                // Content pattern field
+                                PatternField(
+                                    text = state?.contentQuery.orEmpty(),
+                                    onTextChange = { onAction(SearcherPageAction.Search.UpdateContentQuery(it)) },
+                                    onSearch = { onAction(SearcherPageAction.Search.Explicit) },
+                                    placeholder = stringResource(R.string.searcher_placeholder_content),
+                                    leadingIcon = Icons.TwoTone.Description,
+                                    caseSensitive = state?.contentOptions?.caseSensitive ?: false,
+                                    wholeWord = state?.contentOptions?.wholeWord ?: false,
+                                    useRegex = state?.contentOptions?.useRegex ?: false,
+                                    isSearching = state?.isSearching ?: false,
+                                    onToggleCaseSensitive = { onAction(SearcherPageAction.Options.ToggleContentCaseSensitive) },
+                                    onToggleWholeWord = { onAction(SearcherPageAction.Options.ToggleContentWholeWord) },
+                                    onToggleRegex = { onAction(SearcherPageAction.Options.ToggleContentRegex) },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            Column {
+                Spacer(
+                    modifier = Modifier.padding(vertical = 4.dp),
+                )
+
+                FilterChipBar(
+                    filter = state?.currentFilter ?: eu.darken.butler.searcher.core.SearchFilter(),
+                    onConditionClick = { onAction(SearcherPageAction.Filter.EditCondition(it)) },
+                    onAddSizeCondition = { onAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
+                    onAddDateCondition = { onAction(SearcherPageAction.Filter.OpenDateConditionEditor) },
+                    onAddTypeCondition = { onAction(SearcherPageAction.Filter.OpenTypeConditionEditor) },
+                    onRemoveCondition = { onAction(SearcherPageAction.Filter.RemoveCondition(it)) },
+                )
+            }
+
+
+
+            Column {
+                Spacer(
+                    modifier = Modifier.padding(vertical = 4.dp),
+                )
+
+                MultiPathChipBar(
+                    paths = state?.searchTargets.orEmpty(),
+                    onPathRemove = { onAction(SearcherPageAction.Targets.Remove(it)) },
+                    onPathToggle = { onAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
+                    onAddPathClick = { onAction(SearcherPageAction.Targets.OpenPicker) },
+                    isSearching = state?.isSearching ?: false,
+                )
+            }
+
+        }
     }
 }
 

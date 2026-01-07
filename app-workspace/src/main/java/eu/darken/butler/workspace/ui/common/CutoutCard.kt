@@ -22,7 +22,8 @@ import androidx.compose.ui.unit.dp
  */
 object CutoutCardDefaults {
     val CornerRadius = 12.dp
-    val GapDistance = 8.dp
+    val GapDistanceExpanded = 8.dp
+    val GapDistanceCollapsed = 8.dp
     val ContentPadding = 16.dp
     val ElevationDp = 6.dp
 }
@@ -55,7 +56,7 @@ fun CutoutCard(
     modifier: Modifier = Modifier,
     cutoutContent: (@Composable () -> Unit)? = null,
     cutoutFullHeight: Boolean = false,
-    gapDistance: Dp = CutoutCardDefaults.GapDistance,
+    gapDistance: Dp = CutoutCardDefaults.GapDistanceExpanded,
     contentPadding: Dp = CutoutCardDefaults.ContentPadding,
     elevation: CardElevation = CardDefaults.cardElevation(defaultElevation = CutoutCardDefaults.ElevationDp),
     colors: CardColors = CardDefaults.cardColors(),
