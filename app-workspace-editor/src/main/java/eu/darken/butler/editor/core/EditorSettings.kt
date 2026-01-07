@@ -13,7 +13,6 @@ import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration.Companion.seconds
-import kotlin.times
 
 @Singleton
 class EditorSettings @Inject constructor(
@@ -36,7 +35,7 @@ class EditorSettings @Inject constructor(
     val autoSaveEnabled = dataStore.createValue("editor.auto_save.enabled", false)
 
     val undoStackSize = dataStore.createValue("editor.undo.stack_size", 100)
-    val undoMaxMemory = dataStore.createValue("editor.undo.memory_max", 10  * 1_048_576L )
+    val undoMaxMemory = dataStore.createValue("editor.undo.memory_max", 10 * 1_048_576L)
 
     override val mapper = PreferenceStoreMapper(
         showLineNumbers,

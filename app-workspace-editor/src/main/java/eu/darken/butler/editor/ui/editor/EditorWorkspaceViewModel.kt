@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.ui.editor
 
+import androidx.compose.ui.text.input.TextFieldValue
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -15,23 +16,22 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
-import eu.darken.butler.workspace.core.clipboard.ClipboardClip
-import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
-import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
-import androidx.compose.ui.text.input.TextFieldValue
-import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -557,7 +557,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         when (action) {
             EditorActionBarItem.Copy -> copyToButlerClipboard()
             EditorActionBarItem.Cut -> cutToButlerClipboard()
-            else -> { /* Other actions don't have long press behavior */ }
+            else -> { /* Other actions don't have long press behavior */
+            }
         }
     }
 
@@ -611,7 +612,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Clipboard.Clear -> clearAllClipboard()
 
             // Workspace actions
-            is EditorPageAction.Workspace.ShareError -> { /* Handled globally by WorkspaceMapper */ }
+            is EditorPageAction.Workspace.ShareError -> { /* Handled globally by WorkspaceMapper */
+            }
             is EditorPageAction.Workspace.Close -> closeWorkspace()
 
             // Error actions

@@ -285,8 +285,8 @@ class FileDataSource @AssistedInject constructor(
                     log(tag) { "Saving ${dirtyChunks.size} modified chunks using atomic write" }
 
                     // Get current file info for charset and BOM preservation
-                val fileSource = _contentSource.value as? ContentSource.File
-                    ?: error("ContentSource.File not initialized")
+                    val fileSource = _contentSource.value as? ContentSource.File
+                        ?: error("ContentSource.File not initialized")
 
                     // Read original file into memory
                     val originalBytes = gatewaySwitch.file(filePath, readWrite = false).use { handle ->
@@ -296,8 +296,8 @@ class FileDataSource @AssistedInject constructor(
                     }
 
                     // Strip BOM from original content before merging (we'll restore it separately)
-                val originalContent = if (fileSource.hasBOM && fileSource.bomBytes != null) {
-                    originalBytes.drop(fileSource.bomBytes.size).toByteArray()
+                    val originalContent = if (fileSource.hasBOM && fileSource.bomBytes != null) {
+                        originalBytes.drop(fileSource.bomBytes.size).toByteArray()
                     } else {
                         originalBytes
                     }
@@ -307,7 +307,7 @@ class FileDataSource @AssistedInject constructor(
                         originalContent,
                         dirtyChunks,
                         boundaries,
-                    charset = fileSource.detectedCharset
+                        charset = fileSource.detectedCharset
                     )
 
                     // Atomic save: write to temp file, then rename
@@ -319,9 +319,9 @@ class FileDataSource @AssistedInject constructor(
                         gatewaySwitch.file(tempPath, readWrite = true).use { handle ->
                             handle.sink().buffer().use { sink ->
                                 // Restore BOM if original file had one
-                            if (fileSource.hasBOM && fileSource.bomBytes != null) {
-                                sink.write(fileSource.bomBytes)
-                                log(tag) { "Restored ${fileSource.bomBytes.size} byte BOM to saved file" }
+                                if (fileSource.hasBOM && fileSource.bomBytes != null) {
+                                    sink.write(fileSource.bomBytes)
+                                    log(tag) { "Restored ${fileSource.bomBytes.size} byte BOM to saved file" }
                                 }
                                 sink.write(mergedContent)
                             }
@@ -350,17 +350,17 @@ class FileDataSource @AssistedInject constructor(
                     // Update state
                     _isModified.value = false
 
-                // Update content source with new size (preserve charset and BOM)
+                    // Update content source with new size (preserve charset and BOM)
                     val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
-                _contentSource.value = ContentSource.File(
+                    _contentSource.value = ContentSource.File(
                         path = filePath,
                         size = lookup.size!!,
                         lastModified = lookup.modifiedAt!!,
                         canWrite = true,
-                    lineEnding = fileSource.lineEnding, // Preserve line ending
-                    detectedCharset = fileSource.detectedCharset, // Preserve charset
-                    hasBOM = fileSource.hasBOM, // Preserve BOM flag
-                    bomBytes = fileSource.bomBytes // Preserve BOM bytes
+                        lineEnding = fileSource.lineEnding, // Preserve line ending
+                        detectedCharset = fileSource.detectedCharset, // Preserve charset
+                        hasBOM = fileSource.hasBOM, // Preserve BOM flag
+                        bomBytes = fileSource.bomBytes // Preserve BOM bytes
                     )
 
                 } catch (e: Exception) {

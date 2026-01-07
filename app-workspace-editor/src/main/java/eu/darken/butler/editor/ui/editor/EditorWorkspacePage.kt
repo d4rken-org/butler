@@ -26,8 +26,8 @@ import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorErrorBanner
-import eu.darken.butler.editor.ui.editor.elements.EditorLoadingOverlay
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
+import eu.darken.butler.editor.ui.editor.elements.EditorLoadingOverlay
 import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
 import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
 import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
@@ -259,10 +259,21 @@ fun EditorWorkspacePage(
                         scrollTrigger = state.scrollTrigger,
                         onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
                         onTextDelete = { count -> onPageAction(EditorPageAction.Edit.DeleteAtCursor(count)) },
-                        onCursorPositionChange = { position -> onPageAction(EditorPageAction.Navigation.SetCursor(position)) },
+                        onCursorPositionChange = { position ->
+                            onPageAction(
+                                EditorPageAction.Navigation.SetCursor(
+                                    position
+                                )
+                            )
+                        },
                         onSelectionChange = { selection ->
                             if (selection != null) {
-                                onPageAction(EditorPageAction.Navigation.SetSelection(selection.first, selection.second))
+                                onPageAction(
+                                    EditorPageAction.Navigation.SetSelection(
+                                        selection.first,
+                                        selection.second
+                                    )
+                                )
                             } else {
                                 onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
                             }
