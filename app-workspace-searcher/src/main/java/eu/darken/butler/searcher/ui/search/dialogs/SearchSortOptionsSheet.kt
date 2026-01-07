@@ -7,15 +7,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
@@ -77,28 +72,12 @@ private fun SearchSortOptionsContent(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
     ) {
-        // Header row with title and close button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.searcher_action_sort),
-                style = MaterialTheme.typography.titleLarge,
-            )
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier.size(40.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.TwoTone.Close,
-                    contentDescription = stringResource(eu.darken.butler.common.R.string.general_cancel_action),
-                )
-            }
-        }
+        // Header
+        Text(
+            text = stringResource(R.string.searcher_action_sort),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 8.dp),
+        )
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
