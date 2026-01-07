@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Description
@@ -40,7 +39,10 @@ import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.EditorPageAction
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.common.CutoutCard
+import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
@@ -64,198 +66,182 @@ fun EditorToolbarCard(
         label = "cardPadding"
     )
 
-    Card(
+    CutoutCard(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
+        cutoutContent = if (design.isSingle) {
+            {
+                WorkspaceButton(
+                    currentWorkspaceId = workspaceId,
+                    buttonSize = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault,
+                )
+            }
+        } else null,
+        cutoutFullHeight = isCollapsed,
+        gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
+        contentPadding = CutoutCardDefaults.contentPadding(
+            start = cardPadding,
+            top = cardPadding,
+            end = cardPadding,
+            bottom = if (isCollapsed) cardPadding else 8.dp,
+        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = cardPadding)
-                .padding(top = cardPadding, bottom = if (isCollapsed) cardPadding else 2.dp),
-        ) {
-            if (isCollapsed) {
-                // Collapsed state - compact single row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+        if (isCollapsed) {
+            // Collapsed state - compact single row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    imageVector = Icons.TwoTone.Description,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Text(
+                    text = title.asComposable(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Show loading indicator or modified indicator
+                if (isLoading) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Text(
+                            text = stringResource(R.string.editor_saving),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                } else if (isModified) {
                     Icon(
-                        modifier = Modifier.size(24.dp),
-                        imageVector = Icons.TwoTone.Description,
+                        modifier = Modifier.size(14.dp),
+                        imageVector = Icons.TwoTone.Edit,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.tertiary,
+                    )
+                }
+            }
+        } else {
+            // Expanded state - full interactive card
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp),
+                ) {
+                    Text(
+                        text = title.asComposable(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     Text(
-                        text = title.asComposable(),
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = subTitle.asComposable(),
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
                     )
+                }
 
-                    // Show loading indicator or modified indicator
-                    if (isLoading) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                            Text(
-                                text = stringResource(R.string.editor_saving),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    } else if (isModified) {
-                        Icon(
-                            modifier = Modifier.size(14.dp),
-                            imageVector = Icons.TwoTone.Edit,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.tertiary,
-                        )
-                    }
+                // Show modified indicator (loading is shown in actions section below)
+                if (isModified && !isLoading) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(horizontal = 8.dp)
+                            .size(16.dp),
+                        imageVector = Icons.TwoTone.Edit,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                    )
+                }
+            }
 
-                    if (design.isSingle) {
-                        WorkspaceButton(
-                            buttonSize = 40.dp,
-                            currentWorkspaceId = workspaceId,
-                        )
+            // Actions section below (hidden during loading)
+            if (isLoading) {
+                // Loading progress row - replaces action buttons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = stringResource(R.string.editor_loading_file),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    TextButton(onClick = { onAction(EditorPageAction.File.CancelOpen) }) {
+                        Text(stringResource(R.string.editor_action_cancel_loading))
                     }
                 }
             } else {
-                // Expanded state - full interactive card
                 Row(
-                    modifier = Modifier,
                     verticalAlignment = Alignment.CenterVertically,
-
-                    ) {
-
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 8.dp),
-                    ) {
-                        Text(
-                            text = title.asComposable(),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-
-                        Text(
-                            text = subTitle.asComposable(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-
-
-                    // Show modified indicator (loading is shown in actions section below)
-                    if (isModified && !isLoading) {
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    IconButton(onClick = { onAction(EditorPageAction.File.LaunchPicker) }) {
                         Icon(
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .size(16.dp),
-                            imageVector = Icons.TwoTone.Edit,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.tertiary,
+                            Icons.TwoTone.Description,
+                            contentDescription = stringResource(R.string.editor_action_open)
                         )
                     }
 
-                    if (design.isSingle) {
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        WorkspaceButton(
-                            currentWorkspaceId = workspaceId,
-                        )
-                    }
-                }
-
-                // Actions section below (hidden during loading)
-                if (isLoading) {
-                    // Loading progress row - replaces action buttons
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                    IconButton(
+                        onClick = { onAction(EditorPageAction.File.Save) },
+                        enabled = isModified
                     ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = stringResource(R.string.editor_loading_file),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        TextButton(onClick = { onAction(EditorPageAction.File.CancelOpen) }) {
-                            Text(stringResource(R.string.editor_action_cancel_loading))
-                        }
+                        Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
                     }
-                } else {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        IconButton(onClick = { onAction(EditorPageAction.File.LaunchPicker) }) {
+
+                    if (hasContent) {
+                        IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
                             Icon(
-                                Icons.TwoTone.Description,
-                                contentDescription = stringResource(R.string.editor_action_open)
+                                Icons.TwoTone.Close,
+                                contentDescription = stringResource(R.string.editor_action_close)
                             )
                         }
-
-                        IconButton(
-                            onClick = { onAction(EditorPageAction.File.Save) },
-                            enabled = isModified
-                        ) {
-                            Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
-                        }
-
-                        if (hasContent) {
-                            IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
-                                Icon(
-                                    Icons.TwoTone.Close,
-                                    contentDescription = stringResource(R.string.editor_action_close)
-                                )
-                            }
-                        }
-
-                        if (canUndo) {
-                            IconButton(onClick = { onAction(EditorPageAction.Edit.Undo) }) {
-                                Icon(
-                                    Icons.TwoTone.KeyboardArrowUp,
-                                    contentDescription = stringResource(R.string.editor_action_undo)
-                                )
-                            }
-                        }
-
-                        if (canRedo) {
-                            IconButton(onClick = { onAction(EditorPageAction.Edit.Redo) }) {
-                                Icon(
-                                    Icons.TwoTone.KeyboardArrowDown,
-                                    contentDescription = stringResource(R.string.editor_action_redo)
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.weight(1f))
                     }
+
+                    if (canUndo) {
+                        IconButton(onClick = { onAction(EditorPageAction.Edit.Undo) }) {
+                            Icon(
+                                Icons.TwoTone.KeyboardArrowUp,
+                                contentDescription = stringResource(R.string.editor_action_undo)
+                            )
+                        }
+                    }
+
+                    if (canRedo) {
+                        IconButton(onClick = { onAction(EditorPageAction.Edit.Redo) }) {
+                            Icon(
+                                Icons.TwoTone.KeyboardArrowDown,
+                                contentDescription = stringResource(R.string.editor_action_redo)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -314,6 +300,25 @@ private fun EditorToolbarCardLoadingPreview() {
             isLoading = true,
             hasContent = false,
             canUndo = false,
+            canRedo = false,
+            onAction = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun EditorToolbarCardMultiPanePreview() {
+    PreviewWrapper {
+        EditorToolbarCard(
+            workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+            title = "example.txt".toCaString(),
+            subTitle = "/storage/emulated/0/Documents".toCaString(),
+            isModified = true,
+            isLoading = false,
+            hasContent = true,
+            canUndo = true,
             canRedo = false,
             onAction = {},
         )

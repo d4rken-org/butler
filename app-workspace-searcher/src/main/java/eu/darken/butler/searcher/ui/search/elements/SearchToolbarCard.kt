@@ -74,7 +74,7 @@ fun SearchToolbarCard(
         } else null,
         cutoutFullHeight = isCollapsed,
         gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
-        contentPadding = cardPadding,
+        contentPadding = CutoutCardDefaults.contentPadding(cardPadding),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         if (isCollapsed) {

@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.ui.common
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,22 @@ object CutoutCardDefaults {
     val GapDistanceCollapsed = 8.dp
     val ContentPadding = 16.dp
     val ElevationDp = 6.dp
+
+    fun contentPadding(
+        all: Dp = ContentPadding,
+    ): PaddingValues = PaddingValues(all)
+
+    fun contentPadding(
+        horizontal: Dp = ContentPadding,
+        vertical: Dp = ContentPadding,
+    ): PaddingValues = PaddingValues(horizontal, vertical)
+
+    fun contentPadding(
+        start: Dp = ContentPadding,
+        top: Dp = ContentPadding,
+        end: Dp = ContentPadding,
+        bottom: Dp = ContentPadding,
+    ): PaddingValues = PaddingValues(start, top, end, bottom)
 }
 
 /**
@@ -45,7 +62,8 @@ object CutoutCardDefaults {
  *                    applied to both the left and bottom edges of the cutout. In full-height mode,
  *                    only the horizontal gap (left of cutout) is applied since the cutout spans
  *                    the full height.
- * @param contentPadding Padding inside the card for the main content
+ * @param contentPadding Padding inside the card for the main content. Use [CutoutCardDefaults.contentPadding]
+ *                       factory functions to create custom padding values.
  * @param elevation Card elevation
  * @param colors Card colors
  * @param cornerRadius Corner radius for the card (and cutout inner corners)
@@ -57,7 +75,7 @@ fun CutoutCard(
     cutoutContent: (@Composable () -> Unit)? = null,
     cutoutFullHeight: Boolean = false,
     gapDistance: Dp = CutoutCardDefaults.GapDistanceExpanded,
-    contentPadding: Dp = CutoutCardDefaults.ContentPadding,
+    contentPadding: PaddingValues = CutoutCardDefaults.contentPadding(),
     elevation: CardElevation = CardDefaults.cardElevation(defaultElevation = CutoutCardDefaults.ElevationDp),
     colors: CardColors = CardDefaults.cardColors(),
     cornerRadius: Dp = CutoutCardDefaults.CornerRadius,
