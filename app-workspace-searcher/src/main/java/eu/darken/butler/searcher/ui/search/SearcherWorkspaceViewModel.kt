@@ -1264,9 +1264,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 dialogStateFlow.value = SearcherDialogState.EditTypeCondition(existing = null)
             }
             is SearcherPageAction.Filter.AddCondition -> {
-                currentFilter.value = currentFilter.value.copy(
-                    conditions = currentFilter.value.conditions + action.condition
-                )
+                currentFilter.value = currentFilter.value.withCondition(action.condition)
                 selectionState.value = SearcherSelectionState()
                 dismissDialog()
                 performSearch(saveToHistory = false)
