@@ -96,11 +96,11 @@ fun EditorWorkspacePage(
     onActionExecute: (EditorAction) -> Unit = {},
     onActionLongClick: (EditorAction) -> Unit = {},
 ) {
-    val mainState by mainStateSource.collectAsState(EditorWorkspaceViewModel.State.Initializing)
+    // Page is hidden by WorkspaceMapper during Init/Error states, so nothing to render until Ready
+    val stateOrNull by mainStateSource.collectAsState(null)
     val clipboardState by clipboardStateSource.collectAsState(EditorWorkspaceViewModel.ClipboardState())
 
-    // Page is hidden by WorkspaceMapper during Init/Error states, so nothing to render
-    val state = mainState as? EditorWorkspaceViewModel.State.Ready ?: return
+    val state = stateOrNull ?: return
 
     val hasClipboard by remember { derivedStateOf { clipboardState.entries.isNotEmpty() } }
     val hasActions = state.availableActions.isNotEmpty()
@@ -375,7 +375,7 @@ private fun EditorPagePreview() {
             workspaceId = Workspace.Id(),
             design = WorkspaceDesign(),
             mainStateSource = flowOf(
-                EditorWorkspaceViewModel.State.Ready(
+                EditorWorkspaceViewModel.State(
                     id = Workspace.Id(),
                     title = caString("test.txt"),
                     subTitle = caString("/some/storage/test.txt"),
