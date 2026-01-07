@@ -3,20 +3,9 @@ package eu.darken.butler.editor.ui.editor
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.Error
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -25,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,10 +22,10 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
+import eu.darken.butler.editor.ui.editor.elements.EditorErrorBanner
 import eu.darken.butler.editor.ui.editor.elements.EditorLoadingOverlay
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
@@ -237,7 +225,7 @@ fun EditorWorkspacePage(
         Column(modifier = Modifier.fillMaxSize()) {
             // Error banner (soft errors within Ready state)
             state.error?.let { error ->
-                ErrorBanner(
+                EditorErrorBanner(
                     error = error,
                     onDismiss = { onPageAction(EditorPageAction.Error.Clear) },
                 )
@@ -325,47 +313,6 @@ fun EditorWorkspacePage(
         )
     }
 }
-
-@Composable
-private fun ErrorBanner(
-    error: Throwable,
-    onDismiss: () -> Unit
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.errorContainer,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.TwoTone.Error,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer
-            )
-
-            Spacer(Modifier.width(16.dp))
-
-            Text(
-                text = error.message ?: stringResource(R.string.editor_error_unknown),
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.weight(1f)
-            )
-
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    Icons.TwoTone.Close,
-                    contentDescription = stringResource(R.string.editor_action_dismiss),
-                    tint = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-        }
-    }
-}
-
 
 @Preview2
 @Composable
