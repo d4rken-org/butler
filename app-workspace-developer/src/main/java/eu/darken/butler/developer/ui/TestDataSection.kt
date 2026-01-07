@@ -25,9 +25,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.developer.R
-import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.StorageVolumeInfo
-import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.TestDataProgress
-import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.TestDataState
+import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.*
 
 @Composable
 internal fun TestDataSection(
@@ -41,12 +39,14 @@ internal fun TestDataSection(
 ) {
     Column(
         modifier = Modifier
+            .padding(16.dp)
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = stringResource(R.string.developer_testdata_volume_label),
+            color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleMedium,
         )
 
@@ -85,6 +85,7 @@ internal fun TestDataSection(
 
         Text(
             text = stringResource(R.string.developer_testdata_options_header),
+            color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleMedium,
         )
 
