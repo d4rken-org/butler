@@ -118,10 +118,12 @@ private fun SizeConditionEditContent(
         sizeError = sizeText.isNotBlank() && parseSize(sizeText) == null
     }
 
+    val parsedBytes = parseSize(sizeText)
+    val isInputValid = !sizeError && sizeText.isNotBlank() && parsedBytes != null
+
     val handleApply = {
-        val bytes = parseSize(sizeText)
-        if (!sizeError && bytes != null) {
-            onApply(FilterCondition.Size(selectedDirection.comparator, bytes))
+        if (isInputValid) {
+            onApply(FilterCondition.Size(selectedDirection.comparator, parsedBytes!!))
         }
     }
 
@@ -187,7 +189,7 @@ private fun SizeConditionEditContent(
                 isError = sizeError,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done,
+                    imeAction = if (isInputValid) ImeAction.Done else ImeAction.None,
                 ),
                 keyboardActions = KeyboardActions(onDone = { handleApply() }),
             )
@@ -210,7 +212,7 @@ private fun SizeConditionEditContent(
             Button(
                 onClick = handleApply,
                 modifier = Modifier.weight(1f),
-                enabled = !sizeError && sizeText.isNotBlank() && parseSize(sizeText) != null,
+                enabled = isInputValid,
             ) {
                 Text(stringResource(eu.darken.butler.common.R.string.general_apply_action))
             }
