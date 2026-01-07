@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.SortSettings
 import eu.darken.butler.apps.core.TagFilterConfig
-import eu.darken.butler.apps.ui.apps.AppsActionBarItem
+import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
 
 @Composable
 fun AppsDialogHost(

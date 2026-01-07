@@ -41,7 +41,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.common.ui.waitForState
+import androidx.compose.runtime.collectAsState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
 import eu.darken.butler.workspace.ui.floatingbar.BarPosition
@@ -77,7 +77,7 @@ fun AppDetailsWorkspacePageHost(
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
-    val state by waitForState(vm.state)
+    val state by vm.state.collectAsState(initial = null)
 
     state?.let { currentState ->
         AppDetailsWorkspacePage(

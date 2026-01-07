@@ -39,7 +39,7 @@ import coil3.compose.AsyncImage
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppPath
 import eu.darken.butler.apps.core.engine.AppItem
-import eu.darken.butler.apps.ui.apps.AppsActionBarItem
+import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
