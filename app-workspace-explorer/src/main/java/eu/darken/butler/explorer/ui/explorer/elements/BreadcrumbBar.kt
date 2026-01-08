@@ -362,7 +362,7 @@ fun BreadcrumbBar(
                     cutoutWidth = cutoutWidth,
                     cutoutHeight = cutoutHeight,
                     horizontalSpacing = 0.dp,
-                    verticalSpacing = 0.dp,
+                    verticalSpacing = 2.dp,
                 ) {
                     breadcrumbs.forEachIndexed { index, breadcrumb ->
                         val isLast = index == breadcrumbs.lastIndex
@@ -426,7 +426,7 @@ fun BreadcrumbBar(
                                         modifier = Modifier.scale(animatedScale),
                                         icon = breadcrumb.icon,
                                         badge = breadcrumb.badgeIcon,
-                                        iconSize = 20.dp,
+                                        iconSize = 16.dp,
                                         badgeSize = 10.dp,
                                         iconTint = animatedColor,
                                         badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -434,11 +434,7 @@ fun BreadcrumbBar(
 
                                         Text(
                                             text = breadcrumb.label.get(context),
-                                            style = if (isLast) {
-                                                MaterialTheme.typography.labelLarge.copy(color = animatedColor)
-                                            } else {
-                                                MaterialTheme.typography.labelMedium.copy(color = animatedColor)
-                                            },
+                                            style = MaterialTheme.typography.labelMedium.copy(color = animatedColor),
                                         )
                                 }
 
@@ -491,7 +487,7 @@ fun BreadcrumbBar(
                                     imageVector = Icons.TwoTone.ChevronRight,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
                         }
