@@ -29,8 +29,6 @@ class BreadcrumbGenerator @Inject constructor(
             icon = Icons.TwoTone.Delete,
             badgeIcon = if (!trashEnabled) Icons.TwoTone.PauseCircle else null,
             target = ExplorerNavigation.Target.Trash.Root,
-            showIcon = true,
-            showText = false,
         )
     }
 
@@ -47,7 +45,6 @@ class BreadcrumbGenerator @Inject constructor(
                 ExplorerBreadcrumb(
                     label = location.parentItem.displayName,
                     icon = Icons.TwoTone.FolderOpen,
-                    showIcon = true,
                     target = ExplorerNavigation.Target.Trash.Nested(location.parentItem, ""),
                 )
             )
@@ -111,7 +108,6 @@ class BreadcrumbGenerator @Inject constructor(
                                 segment.toCaString()
                             },
                             icon = Icons.TwoTone.FolderOpen,
-                            showIcon = segment.isEmpty(), // Show icon for root breadcrumb
                             target = ExplorerNavigation.Target.Directory(LocalPath.build(newPath))
                         )
                     )
@@ -128,7 +124,6 @@ class BreadcrumbGenerator @Inject constructor(
                             ExplorerBreadcrumb(
                                 label = locationMatch.location.displayName,
                                 icon = Icons.TwoTone.FolderShared,
-                                showIcon = true,
                                 target = ExplorerNavigation.Target.Directory(
                                     SAFPath.build(location.path.treeRootUri)
                                 )
@@ -185,16 +180,12 @@ class BreadcrumbGenerator @Inject constructor(
             label = R.string.explorer_navigation_device.toCaString(),
             icon = Icons.TwoTone.PhoneAndroid,
             target = ExplorerNavigation.Target.Device,
-            showIcon = true,
-            showText = false,
         )
 
         val HOME = ExplorerBreadcrumb(
             label = R.string.explorer_navigation_home.toCaString(),
             icon = Icons.TwoTone.Home,
             target = ExplorerNavigation.Target.Home,
-            showIcon = true,
-            showText = false,
         )
     }
 }
