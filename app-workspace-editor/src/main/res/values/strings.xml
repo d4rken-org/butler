@@ -42,6 +42,10 @@
     <string name="editor_loading_file">Loading file…</string>
     <string name="editor_saving">Saving…</string>
     <string name="editor_action_cancel_loading">Cancel</string>
+    <string name="editor_progress_opening">Opening file…</string>
+    <string name="editor_progress_saving">Saving file…</string>
+    <string name="editor_progress_processing_chunk">Processing chunk %1$d of %2$d</string>
+    <string name="editor_progress_building_index">Building file index…</string>
 
     <!-- Editor UI elements -->
     <string name="editor_error_unknown">Unknown error</string>

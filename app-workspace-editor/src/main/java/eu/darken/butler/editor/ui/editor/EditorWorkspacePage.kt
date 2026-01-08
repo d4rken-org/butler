@@ -136,7 +136,7 @@ fun EditorWorkspacePage(
                         title = state.title,
                         subTitle = state.subTitle,
                         isModified = state.isModified,
-                        isLoading = state.isLoading,
+                        progress = state.progress,
                         hasContent = state.hasContent,
                         canUndo = state.canUndo,
                         canRedo = state.canRedo,

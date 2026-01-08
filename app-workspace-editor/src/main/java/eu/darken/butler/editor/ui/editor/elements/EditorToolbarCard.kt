@@ -35,6 +35,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.EditorPageAction
 import eu.darken.butler.workspace.core.Workspace
@@ -52,13 +53,14 @@ fun EditorToolbarCard(
     title: CaString,
     subTitle: CaString,
     isModified: Boolean,
-    isLoading: Boolean,
+    progress: Progress.Data?,
     hasContent: Boolean,
     canUndo: Boolean,
     canRedo: Boolean,
     onAction: (EditorPageAction) -> Unit,
     collapsedFraction: Float = 0f,
 ) {
+    val isLoading = progress != null
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
         targetValue = if (isCollapsed) 8.dp else 16.dp,
@@ -111,7 +113,7 @@ fun EditorToolbarCard(
                 )
 
                 // Show loading indicator or modified indicator
-                if (isLoading) {
+                if (progress != null) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -121,10 +123,20 @@ fun EditorToolbarCard(
                             strokeWidth = 2.dp
                         )
                         Text(
-                            text = stringResource(R.string.editor_saving),
+                            text = progress.primary.asComposable(),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
                         )
+                        val displayValue = progress.count.displayValue.asComposable()
+                        if (displayValue.isNotEmpty()) {
+                            Text(
+                                text = displayValue,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                            )
+                        }
                     }
                 } else if (isModified) {
                     Icon(
@@ -170,26 +182,52 @@ fun EditorToolbarCard(
             }
 
             // Actions section below (hidden during loading)
-            if (isLoading) {
+            if (progress != null) {
                 // Loading progress row - replaces action buttons
+                // Layout: [🔄] Primary • Secondary    DisplayValue    [Cancel]
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
                         strokeWidth = 2.dp
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = stringResource(R.string.editor_loading_file),
+                        text = progress.primary.asComposable(),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
+                    val secondary = progress.secondary.asComposable()
+                    if (secondary.isNotEmpty()) {
+                        Text(
+                            text = "•",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        )
+                        Text(
+                            text = secondary,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f, fill = false),
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    val displayValue = progress.count.displayValue.asComposable()
+                    if (displayValue.isNotEmpty()) {
+                        Text(
+                            text = displayValue,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                        )
+                    }
                     TextButton(onClick = { onAction(EditorPageAction.File.CancelOpen) }) {
                         Text(stringResource(R.string.editor_action_cancel_loading))
                     }
@@ -257,7 +295,7 @@ private fun EditorToolbarCardPreview() {
             title = "example.txt".toCaString(),
             subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = true,
-            isLoading = false,
+            progress = null,
             hasContent = true,
             canUndo = true,
             canRedo = false,
@@ -276,7 +314,7 @@ private fun EditorToolbarCardCollapsedPreview() {
             title = "example.txt".toCaString(),
             subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = true,
-            isLoading = false,
+            progress = null,
             hasContent = true,
             canUndo = true,
             canRedo = false,
@@ -296,11 +334,39 @@ private fun EditorToolbarCardLoadingPreview() {
             title = "example.txt".toCaString(),
             subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = false,
-            isLoading = true,
+            progress = Progress.Data(
+                primary = R.string.editor_progress_opening.toCaString(),
+                secondary = "Processing chunk 5 of 20".toCaString(),
+                count = Progress.Count.Counter(5, 20),
+            ),
             hasContent = false,
             canUndo = false,
             canRedo = false,
             onAction = {},
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun EditorToolbarCardLoadingCollapsedPreview() {
+    PreviewWrapper {
+        EditorToolbarCard(
+            workspaceId = Workspace.Id(),
+            design = WorkspaceDesign(),
+            title = "example.txt".toCaString(),
+            subTitle = "/storage/emulated/0/Documents".toCaString(),
+            isModified = false,
+            progress = Progress.Data(
+                primary = R.string.editor_progress_opening.toCaString(),
+                secondary = "Processing chunk 5 of 20".toCaString(),
+                count = Progress.Count.Counter(5, 20),
+            ),
+            hasContent = false,
+            canUndo = false,
+            canRedo = false,
+            onAction = {},
+            collapsedFraction = 1f,
         )
     }
 }
@@ -315,7 +381,7 @@ private fun EditorToolbarCardMultiPanePreview() {
             title = "example.txt".toCaString(),
             subTitle = "/storage/emulated/0/Documents".toCaString(),
             isModified = true,
-            isLoading = false,
+            progress = null,
             hasContent = true,
             canUndo = true,
             canRedo = false,

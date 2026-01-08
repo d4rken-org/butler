@@ -14,6 +14,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.ContentSource
@@ -128,7 +129,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val readyState = wsState as? EditorWorkspace.State.Ready ?: return@combine null
 
         val editorState = readyState.editor
-        val isLoading = readyState.isLoading
 
         val displayPath = (editorState.contentSource as? ContentSource.File)?.path
         val title = displayPath?.userReadableName ?: editorState.contentSource.name.toCaString()
@@ -144,7 +144,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             currentContent = editorState.currentContent,
             cursorPosition = editorState.cursorPosition,
             selectionRange = editorState.selectionRange,
-            isLoading = isLoading,
+            progress = readyState.progress,
             error = editorState.error,
             searchQuery = editorState.searchQuery,
             searchResults = editorState.searchResults,
@@ -645,7 +645,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val currentContent: String = "",
         val cursorPosition: TextPosition = TextPosition.ZERO,
         val selectionRange: Pair<TextPosition, TextPosition>? = null,
-        val isLoading: Boolean = false,
+        val progress: Progress.Data? = null,
         val error: Throwable? = null,
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
@@ -665,9 +665,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val canRedo: Boolean = false,
         val hasSystemClipboardContent: Boolean = false,
     ) {
+        val isLoading: Boolean get() = progress != null
         val hasFile: Boolean get() = contentSource is ContentSource.File
         val hasContent: Boolean get() = contentSource.hasContent
-        val isFileReady: Boolean get() = contentSource is ContentSource.File && !isLoading
+        val isFileReady: Boolean get() = contentSource is ContentSource.File && progress == null
         val hasSelection: Boolean get() = selectionRange != null
         val hasSearchResults: Boolean get() = searchResults.isNotEmpty()
         val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
