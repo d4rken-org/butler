@@ -2,8 +2,8 @@ package eu.darken.butler.developer.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -20,9 +21,13 @@ import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.StorageVolumeIn
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.SystemInfo
 
 @Composable
-internal fun SystemInfoSection(systemInfo: SystemInfo) {
+internal fun SystemInfoSection(
+    systemInfo: SystemInfo,
+    bottomPadding: Dp = 0.dp,
+) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(bottom = bottomPadding),
     ) {
         // Device Section
         item {
@@ -86,10 +91,6 @@ internal fun SystemInfoSection(systemInfo: SystemInfo) {
                     }
                 }
             }
-        }
-
-        item {
-            Spacer(modifier = Modifier.padding(4.dp))
         }
     }
 }

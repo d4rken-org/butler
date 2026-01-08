@@ -157,6 +157,10 @@ fun DeveloperWorkspacePage(
         with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     } else 0.dp
 
+    // Calculate bottom padding for content sections
+    val hasOperations = state.operationsState.operations.isNotEmpty()
+    val bottomPadding = navBarInset + if (hasOperations) 80.dp else 16.dp
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
         // Floating header card with tabs and workspace button
@@ -216,9 +220,13 @@ fun DeveloperWorkspacePage(
                 .padding(horizontal = 16.dp)
         ) {
             when (state.selectedTab) {
-                DeveloperTab.SYSTEM -> SystemInfoSection(state.systemInfo)
+                DeveloperTab.SYSTEM -> SystemInfoSection(
+                    systemInfo = state.systemInfo,
+                    bottomPadding = bottomPadding,
+                )
                 DeveloperTab.OPTIONS -> OptionsSection(
                     optionsState = state.optionsState,
+                    bottomPadding = bottomPadding,
                     onToggleDebugMode = onToggleDebugMode,
                     onToggleTraceMode = onToggleTraceMode,
                     onTestRoot = onTestRoot,
@@ -228,11 +236,13 @@ fun DeveloperWorkspacePage(
                 DeveloperTab.LOGS -> LogsSection(
                     logs = state.logLines,
                     isPaused = state.isLogPaused,
+                    bottomPadding = bottomPadding,
                     onTogglePause = onToggleLogPause,
                     onClear = onClearLogs,
                 )
                 DeveloperTab.TEST_DATA -> TestDataSection(
                     testDataState = state.testDataState,
+                    bottomPadding = bottomPadding,
                     onAddPath = onAddPath,
                     onRemovePath = onRemovePath,
                     onLargeFilesToggled = onLargeFilesToggled,

@@ -26,18 +26,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.developer.R
-import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.TargetPathInfo
-import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.TestDataState
+import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.*
 
 @Composable
 internal fun TestDataSection(
     testDataState: TestDataState,
+    bottomPadding: Dp = 0.dp,
     onAddPath: () -> Unit,
     onRemovePath: (APath<*>) -> Unit,
     onLargeFilesToggled: (Boolean) -> Unit,
@@ -54,7 +55,7 @@ internal fun TestDataSection(
             .padding(16.dp)
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
             text = stringResource(R.string.developer_testdata_target_paths_label),
@@ -156,7 +157,7 @@ internal fun TestDataSection(
         Button(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(bottom = bottomPadding),
             onClick = onDeleteTestData,
             enabled = testDataState.canDelete,
         ) {
