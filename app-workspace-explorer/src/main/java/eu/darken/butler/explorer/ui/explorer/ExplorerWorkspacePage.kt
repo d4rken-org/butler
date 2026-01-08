@@ -312,257 +312,70 @@ fun ExplorerWorkspacePageHost(
     )
 }
 
+@Composable
+private fun ExplorerWorkspacePagePreviewBase(
+    mockState: ExplorerWorkspaceViewModel.State.Ready,
+    clipboardState: ExplorerWorkspaceViewModel.ClipboardState = ExplorerWorkspaceViewModel.ClipboardState(),
+    operationsState: ExplorerWorkspaceViewModel.OperationsState = ExplorerWorkspaceViewModel.OperationsState(),
+) = PreviewWrapper {
+    ExplorerWorkspacePage(
+        workspaceId = Workspace.Id(),
+        mainStateSource = flowOf(mockState),
+        clipboardStateSource = flowOf(clipboardState),
+        operationsStateSource = flowOf(operationsState),
+        vm = null,
+    )
+}
+
 @Preview2
 @Composable
 private fun ExplorerWorkspacePagePreview() {
-    val mockState = ExplorerWorkspaceViewModel.State.Ready(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/storage/emulated/0"),
-            items = MockDataProvider.createAllFileTypes(),
-            info = ExplorerLocation.Directory.Info(
-                fileCount = 15,
-                directoryCount = 5,
-                totalSize = 1024L * 1024L * 250L,
-                volumeFreeSpace = 1024L * 1024L * 1024L * 50L,
-                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
-                isWritable = true,
-            ),
-            progress = null,
-        ),
-        breadcrumbs = listOf(
-            BreadcrumbGenerator.HOME,
-            BreadcrumbGenerator.DEVICE,
-            ExplorerBreadcrumb(
-                label = "storage".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage")),
-                icon = Icons.TwoTone.FolderOpen,
-
-                ),
-            ExplorerBreadcrumb(
-                label = "emulated".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated")),
-                icon = Icons.TwoTone.FolderOpen,
-            ),
-            ExplorerBreadcrumb(
-                label = "0".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
-                icon = Icons.TwoTone.FolderOpen,
-            )
-        ),
-        items = MockDataProvider.createAllFileTypes(),
-        availableActions = listOf(
-            ExplorerActionBarItem.Directory.Create(isEnabled = false),
-            ExplorerActionBarItem.Common.Sort(),
-            ExplorerActionBarItem.Common.Filter(isEnabled = false),
+    ExplorerWorkspacePagePreviewBase(
+        mockState = MockDataProvider.createReadyState(
+            actions = MockDataProvider.createDefaultDirectoryActions(createEnabled = false, filterEnabled = false),
         ),
     )
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            workspaceId = Workspace.Id(),
-            mainStateSource = flowOf(mockState),
-            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
-            vm = null,
-        )
-    }
 }
 
 @Preview2
 @Composable
 private fun ExplorerWorkspacePageEmptyPreview() {
-    val mockState = ExplorerWorkspaceViewModel.State.Ready(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/sdcard/EmptyFolder"),
-            items = emptyList(),
-            progress = null,
-        ),
-        breadcrumbs = listOf(
-            BreadcrumbGenerator.HOME,
-            ExplorerBreadcrumb(
-                label = "sdcard".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
-
-                icon = Icons.TwoTone.FolderOpen,
-            ),
-            ExplorerBreadcrumb(
-                label = "EmptyFolder".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/EmptyFolder")),
-
-                icon = Icons.TwoTone.FolderOpen,
-            ),
-        ),
-        items = emptyList(),
-    )
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            workspaceId = Workspace.Id(),
-            mainStateSource = flowOf(mockState),
-            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
-            vm = null,
-        )
-    }
+    ExplorerWorkspacePagePreviewBase(mockState = MockDataProvider.createEmptyState())
 }
-
 
 @Preview2
 @Composable
 private fun ExplorerWorkspacePageErrorPreview() {
-    val mockState = ExplorerWorkspaceViewModel.State.Ready(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/permission/denied"),
-            items = emptyList(),
-            progress = null,
+    ExplorerWorkspacePagePreviewBase(
+        mockState = MockDataProvider.createErrorState(
+            error = ReadException(path = LocalPath.build("/permission/denied")),
         ),
-        breadcrumbs = listOf(
-            ExplorerBreadcrumb(
-                label = R.string.explorer_navigation_home.toCaString(),
-                target = ExplorerNavigation.Target.Home,
-                icon = Icons.TwoTone.FolderOpen,
-            ),
-            ExplorerBreadcrumb(
-                label = "permission".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission")),
-                icon = Icons.TwoTone.FolderOpen,
-            ),
-            ExplorerBreadcrumb(
-                label = "denied".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission/denied")),
-                icon = Icons.TwoTone.FolderOpen,
-            ),
-        ),
-        items = emptyList(),
-        error = ReadException(
-            path = LocalPath.build("/permission/denied")
-        )
     )
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            workspaceId = Workspace.Id(),
-            mainStateSource = flowOf(mockState),
-            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
-            vm = null,
-        )
-    }
 }
 
 @Preview2
 @Composable
 private fun ExplorerWorkspacePageWithAllBarsPreview() {
-    val mockFileItems = MockDataProvider.createAllFileTypes()
-    val mockOperations = MockDataProvider.createMockOperationsState(runningCount = 2, completedCount = 1)
-    val mockClipboardEntries = MockDataProvider.createMockClipboardState(copyCount = 2, cutCount = 1)
-
-    val mockState = ExplorerWorkspaceViewModel.State.Ready(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/storage/emulated/0"),
-            items = MockDataProvider.createAllFileTypes(),
-            info = ExplorerLocation.Directory.Info(
-                fileCount = 25,
-                directoryCount = 8,
-                totalSize = 1024L * 1024L * 512L,
-                volumeFreeSpace = 1024L * 1024L * 1024L * 32L,
-                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
-                isWritable = true,
-            ),
-            progress = null,
-        ),
-        breadcrumbs = listOf(
-            BreadcrumbGenerator.HOME,
-            BreadcrumbGenerator.DEVICE,
-            ExplorerBreadcrumb(
-                label = "0".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
-                icon = Icons.TwoTone.FolderOpen,
-            )
-        ),
-        items = mockFileItems,
-        availableActions = listOf(
-            ExplorerActionBarItem.Directory.Create(isEnabled = true),
-            ExplorerActionBarItem.Common.Sort(),
-            ExplorerActionBarItem.Common.Filter(isEnabled = true),
-        ),
-        selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockFileItems[0], mockFileItems[2]),
-            selectableItems = setOf(mockFileItems[0], mockFileItems[2]),
-        ),
+    ExplorerWorkspacePagePreviewBase(
+        mockState = MockDataProvider.createStateWithSelection(),
+        clipboardState = MockDataProvider.createMockClipboardState(copyCount = 2, cutCount = 1),
+        operationsState = MockDataProvider.createMockOperationsState(runningCount = 2, completedCount = 1),
     )
-
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            workspaceId = Workspace.Id(),
-            mainStateSource = flowOf(mockState),
-            clipboardStateSource = flowOf(mockClipboardEntries),
-            operationsStateSource = flowOf(mockOperations),
-            vm = null,
-        )
-    }
 }
 
 @Preview2
 @Composable
 private fun ExplorerPickerMode_MixedMultiPreview() {
-    val mockPickerConfig = PickerConfig(
-        selection = PickerConfig.Selection.MixedMulti,
-        callerWorkspaceId = Workspace.Id(),
-    )
-
-    val mockItems = listOf(
+    val mockItems = MockDataProvider.createAllFileTypes() + listOf(
         MockDataProvider.createMockDirectory("Photos", childCount = 234),
         MockDataProvider.createMockDirectory("Videos", childCount = 56),
         MockDataProvider.createMockDirectory("Music", childCount = 189),
-        MockDataProvider.createMockRegularFile("vacation.jpg"),
-        MockDataProvider.createMockRegularFile("recipe.pdf"),
-        MockDataProvider.createMockRegularFile("notes.txt"),
-        MockDataProvider.createMockRegularFile("budget.xlsx"),
     )
-
-    val mockState = ExplorerWorkspaceViewModel.State.Ready(
-        pickerConfig = mockPickerConfig,
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/sdcard/Documents"),
+    ExplorerWorkspacePagePreviewBase(
+        mockState = MockDataProvider.createPickerState(
             items = mockItems,
-            info = ExplorerLocation.Directory.Info(
-                fileCount = 4,
-                directoryCount = 3,
-                totalSize = 1024L * 1024L * 512L,
-                volumeFreeSpace = 1024L * 1024L * 1024L * 28L,
-                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
-                isWritable = true,
-            ),
-            progress = null,
-        ),
-        breadcrumbs = listOf(
-            BreadcrumbGenerator.HOME,
-            BreadcrumbGenerator.DEVICE,
-            ExplorerBreadcrumb(
-                label = "sdcard".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
-                icon = Icons.TwoTone.FolderOpen,
-            ),
-            ExplorerBreadcrumb(
-                label = "Documents".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Documents")),
-                icon = Icons.TwoTone.FolderOpen,
-            )
-        ),
-        items = mockItems,
-        selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockItems[0], mockItems[2], mockItems[3], mockItems[5], mockItems[6]),
-            selectableItems = mockItems.toSet(),
+            selectedItems = setOf(mockItems[0], mockItems[2], mockItems[4], mockItems[5], mockItems[6]),
         ),
     )
-
-    PreviewWrapper {
-        ExplorerWorkspacePage(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            mainStateSource = flowOf(mockState),
-            clipboardStateSource = flowOf(ExplorerWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(ExplorerWorkspaceViewModel.OperationsState()),
-            vm = null,
-        )
-    }
 }
 

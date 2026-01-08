@@ -64,9 +64,9 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.BreadcrumbGenerator
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.common.CutoutAwareFlowRow
@@ -500,60 +500,27 @@ fun BreadcrumbBar(
 
 @Preview2
 @Composable
-fun BreadcrumbBarPreview() {
-    val breadcrumbs = listOf(
-        BreadcrumbGenerator.HOME,
-        BreadcrumbGenerator.DEVICE,
-        ExplorerBreadcrumb(
-            label = "/".toCaString(),
-            icon = Icons.TwoTone.FolderOpen,
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/"))
-        ),
-        ExplorerBreadcrumb(
-            label = "storage".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage")),
-            icon = Icons.TwoTone.FolderOpen,
-        ),
-        ExplorerBreadcrumb(
-            label = "emulated".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated")),
-            icon = Icons.TwoTone.FolderOpen,
-        ),
-        ExplorerBreadcrumb(
-            label = "0".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
-            icon = Icons.TwoTone.FolderOpen,
-        )
+private fun BreadcrumbBarPreview() = PreviewWrapper {
+    BreadcrumbBar(
+        breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
+        onBreadcrumbClick = {},
     )
-
-    PreviewWrapper {
-        BreadcrumbBar(
-            breadcrumbs = breadcrumbs,
-            onBreadcrumbClick = {}
-        )
-    }
 }
 
 @Preview2
 @Composable
-fun BreadcrumbBarHomeOnlyPreview() {
-    val breadcrumbs = listOf(BreadcrumbGenerator.HOME)
-
-    PreviewWrapper {
-        BreadcrumbBar(
-            breadcrumbs = breadcrumbs,
-            onBreadcrumbClick = {}
-        )
-    }
+private fun BreadcrumbBarHomeOnlyPreview() = PreviewWrapper {
+    BreadcrumbBar(
+        breadcrumbs = listOf(MockDataProvider.createHomeBreadcrumb()),
+        onBreadcrumbClick = {},
+    )
 }
 
 @Preview2
 @Composable
-fun BreadcrumbBarEmptyPreview() {
-    PreviewWrapper {
-        BreadcrumbBar(
-            breadcrumbs = emptyList(),
-            onBreadcrumbClick = {}
-        )
-    }
+private fun BreadcrumbBarEmptyPreview() = PreviewWrapper {
+    BreadcrumbBar(
+        breadcrumbs = emptyList(),
+        onBreadcrumbClick = {},
+    )
 }

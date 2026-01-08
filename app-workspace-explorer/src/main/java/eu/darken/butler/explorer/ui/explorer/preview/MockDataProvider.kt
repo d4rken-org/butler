@@ -27,8 +27,12 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
+import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
+import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
@@ -694,6 +698,266 @@ object MockDataProvider {
                 label = "Download".toCaString(),
                 target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Download")),
                 icon = Icons.TwoTone.FolderOpen,
+            ),
+        )
+    }
+
+    // MARK: - Location Info Factories
+
+    fun createMockDirectoryInfo(
+        fileCount: Int = 15,
+        directoryCount: Int = 5,
+        totalSize: Long = MockSizes.mb(250),
+        freeSpace: Long = MockSizes.gb(50),
+        totalSpace: Long = MockSizes.gb(128),
+        isWritable: Boolean = true,
+        isReadable: Boolean = true,
+    ): ExplorerLocation.Directory.Info = ExplorerLocation.Directory.Info(
+        fileCount = fileCount,
+        directoryCount = directoryCount,
+        totalSize = totalSize,
+        volumeFreeSpace = freeSpace,
+        volumeTotalSpace = totalSpace,
+        isWritable = isWritable,
+        isReadable = isReadable,
+    )
+
+    fun createMockEmptyDirectoryInfo(
+        freeSpace: Long = MockSizes.gb(50),
+        totalSpace: Long = MockSizes.gb(128),
+    ): ExplorerLocation.Directory.Info = createMockDirectoryInfo(
+        fileCount = 0,
+        directoryCount = 0,
+        totalSize = 0L,
+        freeSpace = freeSpace,
+        totalSpace = totalSpace,
+    )
+
+    fun createMockHomeInfo(
+        shortcutCount: Int = 5,
+        totalDeviceStorage: Long = MockSizes.gb(128),
+        usedStorage: Long = MockSizes.gb(78),
+    ): ExplorerLocation.Home.Info = ExplorerLocation.Home.Info(
+        shortcutCount = shortcutCount,
+        totalDeviceStorage = totalDeviceStorage,
+        usedStorage = usedStorage,
+    )
+
+    fun createMockDeviceInfo(
+        locationCount: Int = 2,
+        totalCapacity: Long = MockSizes.gb(256),
+        usedSpace: Long = MockSizes.gb(120),
+    ): ExplorerLocation.Device.Info = ExplorerLocation.Device.Info(
+        locationCount = locationCount,
+        totalCapacity = totalCapacity,
+        usedSpace = usedSpace,
+    )
+
+    fun createMockTrashRootInfo(
+        itemCount: Int = 12,
+        totalSize: Long = MockSizes.mb(350),
+        oldestItem: Instant? = MockTimes.daysAgo(7),
+    ): ExplorerLocation.Trash.Root.Info = ExplorerLocation.Trash.Root.Info(
+        itemCount = itemCount,
+        totalSize = totalSize,
+        oldestItem = oldestItem,
+    )
+
+    fun createMockTrashNestedInfo(
+        fileCount: Int = 8,
+        directoryCount: Int = 3,
+        totalSize: Long = MockSizes.mb(120),
+    ): ExplorerLocation.Trash.Nested.Info = ExplorerLocation.Trash.Nested.Info(
+        fileCount = fileCount,
+        directoryCount = directoryCount,
+        totalSize = totalSize,
+    )
+
+    // MARK: - Location Factories
+
+    fun createMockDirectoryLocation(
+        path: String = "/storage/emulated/0",
+        items: List<ExplorerItem.Path> = createAllFileTypes(),
+        info: ExplorerLocation.Directory.Info = createMockDirectoryInfo(),
+        progress: Progress.Data? = null,
+    ): ExplorerLocation.Directory = ExplorerLocation.Directory(
+        path = LocalPath.build(path),
+        items = items,
+        info = info,
+        progress = progress,
+    )
+
+    fun createMockEmptyDirectoryLocation(
+        path: String = "/sdcard/EmptyFolder",
+    ): ExplorerLocation.Directory = createMockDirectoryLocation(
+        path = path,
+        items = emptyList(),
+        info = createMockEmptyDirectoryInfo(),
+    )
+
+    fun createMockHomeLocation(
+        items: List<ExplorerItem> = listOf(
+            createMockShortcut("device", "Device", Icons.TwoTone.PhoneAndroid),
+            createMockStorageLocal(),
+        ),
+        info: ExplorerLocation.Home.Info = createMockHomeInfo(),
+    ): ExplorerLocation.Home = ExplorerLocation.Home(
+        items = items,
+        info = info,
+        progress = null,
+    )
+
+    fun createMockDeviceLocation(
+        items: List<ExplorerItem> = listOf(
+            createMockStorageLocal(),
+            createMockStorageSAF(),
+        ),
+        info: ExplorerLocation.Device.Info = createMockDeviceInfo(),
+    ): ExplorerLocation.Device = ExplorerLocation.Device(
+        items = items,
+        info = info,
+        progress = null,
+    )
+
+    // MARK: - Progress Factory
+
+    fun createMockProgress(
+        primary: String = "Loading",
+        secondary: String = "Processing files…",
+        current: Int = 50,
+        total: Int = 100,
+    ): Progress.Data = Progress.Data(
+        primary = primary.toCaString(),
+        secondary = secondary.toCaString(),
+        count = Progress.Count.Counter(current, total),
+    )
+
+    fun createMockIndeterminateProgress(
+        secondary: String = "Checking permissions…",
+    ): Progress.Data = Progress.Data(
+        secondary = secondary.toCaString(),
+        count = Progress.Count.Indeterminate(),
+    )
+
+    // MARK: - Action Bar Factories
+
+    fun createDefaultDirectoryActions(
+        createEnabled: Boolean = true,
+        filterEnabled: Boolean = true,
+    ): List<ExplorerActionBarItem> = listOf(
+        ExplorerActionBarItem.Directory.Create(isEnabled = createEnabled),
+        ExplorerActionBarItem.Common.Sort(),
+        ExplorerActionBarItem.Common.Filter(isEnabled = filterEnabled),
+    )
+
+    // MARK: - State.Ready Factories
+
+    fun createReadyState(
+        location: ExplorerLocation.Directory = createMockDirectoryLocation(),
+        breadcrumbs: List<ExplorerBreadcrumb> = createStorageBreadcrumbs(),
+        actions: List<ExplorerActionBarItem> = createDefaultDirectoryActions(),
+        selectionState: ExplorerSelectionState = ExplorerSelectionState(),
+    ): ExplorerWorkspaceViewModel.State.Ready = ExplorerWorkspaceViewModel.State.Ready(
+        currentLocation = location,
+        breadcrumbs = breadcrumbs,
+        items = location.items,
+        availableActions = actions,
+        selectionState = selectionState,
+    )
+
+    fun createEmptyState(
+        path: String = "/sdcard/EmptyFolder",
+        breadcrumbs: List<ExplorerBreadcrumb> = createDownloadBreadcrumbs(),
+    ): ExplorerWorkspaceViewModel.State.Ready = createReadyState(
+        location = createMockEmptyDirectoryLocation(path),
+        breadcrumbs = breadcrumbs,
+    )
+
+    fun createErrorState(
+        path: String = "/permission/denied",
+        error: Throwable,
+    ): ExplorerWorkspaceViewModel.State.Ready = ExplorerWorkspaceViewModel.State.Ready(
+        currentLocation = ExplorerLocation.Directory(
+            path = LocalPath.build(path),
+            items = emptyList(),
+            progress = null,
+        ),
+        breadcrumbs = listOf(
+            createHomeBreadcrumb(),
+            ExplorerBreadcrumb(
+                label = "permission".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission")),
+                icon = Icons.TwoTone.FolderOpen,
+            ),
+            ExplorerBreadcrumb(
+                label = "denied".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission/denied")),
+                icon = Icons.TwoTone.FolderOpen,
+            ),
+        ),
+        items = emptyList(),
+        error = error,
+    )
+
+    fun createPickerState(
+        selection: PickerConfig.Selection = PickerConfig.Selection.MixedMulti,
+        items: List<ExplorerItem.Path> = createAllFileTypes() + listOf(
+            createMockDirectory("Photos", childCount = 234),
+            createMockDirectory("Videos", childCount = 56),
+            createMockDirectory("Music", childCount = 189),
+        ),
+        selectedItems: Set<ExplorerItem> = emptySet(),
+        path: String = "/sdcard/Documents",
+    ): ExplorerWorkspaceViewModel.State.Ready {
+        val pickerConfig = PickerConfig(
+            selection = selection,
+            callerWorkspaceId = Workspace.Id(),
+        )
+        return ExplorerWorkspaceViewModel.State.Ready(
+            pickerConfig = pickerConfig,
+            currentLocation = ExplorerLocation.Directory(
+                path = LocalPath.build(path),
+                items = items,
+                info = createMockDirectoryInfo(
+                    fileCount = items.count { it is ExplorerItem.File },
+                    directoryCount = items.count { it is ExplorerItem.RegularDirectory },
+                ),
+                progress = null,
+            ),
+            breadcrumbs = listOf(
+                createHomeBreadcrumb(),
+                ExplorerBreadcrumb(
+                    label = "sdcard".toCaString(),
+                    target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
+                    icon = Icons.TwoTone.FolderOpen,
+                ),
+                ExplorerBreadcrumb(
+                    label = "Documents".toCaString(),
+                    target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Documents")),
+                    icon = Icons.TwoTone.FolderOpen,
+                ),
+            ),
+            items = items,
+            selectionState = ExplorerSelectionState(
+                selectedItems = selectedItems,
+                selectableItems = items.toSet(),
+            ),
+        )
+    }
+
+    fun createStateWithSelection(
+        location: ExplorerLocation.Directory = createMockDirectoryLocation(),
+        breadcrumbs: List<ExplorerBreadcrumb> = createStorageBreadcrumbs(),
+        selectedIndices: List<Int> = listOf(0, 2),
+    ): ExplorerWorkspaceViewModel.State.Ready {
+        val items = location.items ?: emptyList()
+        val selectedItems = selectedIndices.mapNotNull { items.getOrNull(it) }.toSet()
+        return createReadyState(
+            location = location,
+            breadcrumbs = breadcrumbs,
+            selectionState = ExplorerSelectionState(
+                selectedItems = selectedItems,
+                selectableItems = items.toSet(),
             ),
         )
     }

@@ -582,211 +582,87 @@ internal fun ExplorerReadyContent(
     }
 }
 
+@Composable
+private fun ExplorerReadyContentPreviewBase(
+    mockState: ExplorerWorkspaceViewModel.State.Ready,
+    showProgress: Boolean = false,
+) = PreviewWrapper {
+    Box(modifier = Modifier.fillMaxSize()) {
+        ExplorerReadyContent(
+            state = mockState,
+            operationsState = ExplorerWorkspaceViewModel.OperationsState(),
+            clipboardState = ExplorerWorkspaceViewModel.ClipboardState(),
+            mainStateSource = flowOf(mockState),
+            workspaceId = Workspace.Id(),
+            topBarStackState = FloatingBarStackState(BarPosition.TOP),
+            bottomBarStackState = FloatingBarStackState(BarPosition.BOTTOM),
+            design = WorkspaceDesign(),
+            navBarInset = 0.dp,
+            vm = null,
+            showProgress = showProgress,
+            isWorkspaceFocused = true,
+            onShowOperationDetails = {},
+            safLocationManager = null,
+        )
+    }
+}
+
 @Preview2
 @Composable
 private fun ExplorerReadyContentPreview() {
-    val mockState = ExplorerWorkspaceViewModel.State.Ready(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/storage/emulated/0"),
-            items = MockDataProvider.createAllFileTypes(),
-            info = ExplorerLocation.Directory.Info(
-                fileCount = 15,
-                directoryCount = 5,
-                totalSize = 1024L * 1024L * 250L,
-                volumeFreeSpace = 1024L * 1024L * 1024L * 50L,
-                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
-                isWritable = true,
-            ),
-            progress = null,
-        ),
-        breadcrumbs = listOf(
-            ExplorerBreadcrumb(
-                label = R.string.explorer_navigation_home.toCaString(),
-                target = ExplorerNavigation.Target.Home,
-                icon = Icons.TwoTone.Home,
-            ),
-        ),
-        items = MockDataProvider.createAllFileTypes(),
-        availableActions = listOf(
-            ExplorerActionBarItem.Directory.Create(isEnabled = false),
-            ExplorerActionBarItem.Common.Sort(),
-            ExplorerActionBarItem.Common.Filter(isEnabled = false),
+    ExplorerReadyContentPreviewBase(
+        mockState = MockDataProvider.createReadyState(
+            breadcrumbs = listOf(MockDataProvider.createHomeBreadcrumb()),
+            actions = MockDataProvider.createDefaultDirectoryActions(createEnabled = false, filterEnabled = false),
         ),
     )
-    PreviewWrapper {
-        // Note: Preview cannot fully render FloatingBarStack behavior
-        Box(modifier = Modifier.fillMaxSize()) {
-            ExplorerReadyContent(
-                state = mockState,
-                operationsState = ExplorerWorkspaceViewModel.OperationsState(),
-                clipboardState = ExplorerWorkspaceViewModel.ClipboardState(),
-                mainStateSource = flowOf(mockState),
-                workspaceId = Workspace.Id(),
-                topBarStackState = FloatingBarStackState(BarPosition.TOP),
-                bottomBarStackState = FloatingBarStackState(BarPosition.BOTTOM),
-                design = WorkspaceDesign(),
-                navBarInset = 0.dp,
-                vm = null,
-                showProgress = false,
-                isWorkspaceFocused = true,
-                onShowOperationDetails = {},
-                safLocationManager = null,
-            )
-        }
-    }
 }
 
 @Preview2
 @Composable
 private fun ExplorerReadyContentEmptyPreview() {
-    val mockState = ExplorerWorkspaceViewModel.State.Ready(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/sdcard/EmptyFolder"),
-            items = emptyList(),
-            progress = null,
-        ),
-        breadcrumbs = emptyList(),
-        items = emptyList(),
-    )
-    PreviewWrapper {
-        Box(modifier = Modifier.fillMaxSize()) {
-            ExplorerReadyContent(
-                state = mockState,
-                operationsState = ExplorerWorkspaceViewModel.OperationsState(),
-                clipboardState = ExplorerWorkspaceViewModel.ClipboardState(),
-                mainStateSource = flowOf(mockState),
-                workspaceId = Workspace.Id(),
-                topBarStackState = FloatingBarStackState(BarPosition.TOP),
-                bottomBarStackState = FloatingBarStackState(BarPosition.BOTTOM),
-                design = WorkspaceDesign(),
-                navBarInset = 0.dp,
-                vm = null,
-                showProgress = false,
-                isWorkspaceFocused = true,
-                onShowOperationDetails = {},
-                safLocationManager = null,
-            )
-        }
-    }
+    ExplorerReadyContentPreviewBase(mockState = MockDataProvider.createEmptyState())
 }
 
 @Preview2
 @Composable
 private fun ExplorerReadyContentLoadingPreview() {
-    val mockState = ExplorerWorkspaceViewModel.State.Ready(
-        currentLocation = null,
-        breadcrumbs = emptyList(),
-        items = null,
+    ExplorerReadyContentPreviewBase(
+        mockState = ExplorerWorkspaceViewModel.State.Ready(
+            currentLocation = null,
+            breadcrumbs = emptyList(),
+            items = null,
+        ),
+        showProgress = true,
     )
-    PreviewWrapper {
-        Box(modifier = Modifier.fillMaxSize()) {
-            ExplorerReadyContent(
-                state = mockState,
-                operationsState = ExplorerWorkspaceViewModel.OperationsState(),
-                clipboardState = ExplorerWorkspaceViewModel.ClipboardState(),
-                mainStateSource = flowOf(mockState),
-                workspaceId = Workspace.Id(),
-                topBarStackState = FloatingBarStackState(BarPosition.TOP),
-                bottomBarStackState = FloatingBarStackState(BarPosition.BOTTOM),
-                design = WorkspaceDesign(),
-                navBarInset = 0.dp,
-                vm = null,
-                showProgress = true,
-                isWorkspaceFocused = true,
-                onShowOperationDetails = {},
-                safLocationManager = null,
-            )
-        }
-    }
 }
 
 @Preview2
 @Composable
 private fun ExplorerReadyContentSelectionModePreview() {
-    val mockItems = MockDataProvider.createAllFileTypes()
-    val mockState = ExplorerWorkspaceViewModel.State.Ready(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/storage/emulated/0"),
-            items = mockItems,
-            info = ExplorerLocation.Directory.Info(
-                fileCount = 15,
-                directoryCount = 5,
-                totalSize = 1024L * 1024L * 250L,
-                volumeFreeSpace = 1024L * 1024L * 1024L * 50L,
-                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
-                isWritable = true,
+    ExplorerReadyContentPreviewBase(
+        mockState = MockDataProvider.createStateWithSelection(
+            selectedIndices = listOf(0, 2),
+        ).copy(
+            availableActions = listOf(
+                ExplorerActionBarItem.Directory.Copy(),
+                ExplorerActionBarItem.Directory.Cut(),
+                ExplorerActionBarItem.Directory.Delete(),
             ),
-            progress = null,
-        ),
-        breadcrumbs = emptyList(),
-        items = mockItems,
-        selectionState = ExplorerSelectionState(
-            selectedItems = setOf(mockItems[0], mockItems[2]),
-            selectableItems = mockItems.toSet(),
-        ),
-        availableActions = listOf(
-            ExplorerActionBarItem.Directory.Copy(),
-            ExplorerActionBarItem.Directory.Cut(),
-            ExplorerActionBarItem.Directory.Delete(),
         ),
     )
-    PreviewWrapper {
-        Box(modifier = Modifier.fillMaxSize()) {
-            ExplorerReadyContent(
-                state = mockState,
-                operationsState = ExplorerWorkspaceViewModel.OperationsState(),
-                clipboardState = ExplorerWorkspaceViewModel.ClipboardState(),
-                mainStateSource = flowOf(mockState),
-                workspaceId = Workspace.Id(),
-                topBarStackState = FloatingBarStackState(BarPosition.TOP),
-                bottomBarStackState = FloatingBarStackState(BarPosition.BOTTOM),
-                design = WorkspaceDesign(),
-                navBarInset = 0.dp,
-                vm = null,
-                showProgress = false,
-                isWorkspaceFocused = true,
-                onShowOperationDetails = {},
-                safLocationManager = null,
-            )
-        }
-    }
 }
 
 @Preview2
 @Composable
 private fun ExplorerReadyContentGridViewPreview() {
-    val mockState = ExplorerWorkspaceViewModel.State.Ready(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build("/storage/emulated/0"),
-            items = MockDataProvider.createAllFileTypes(),
-            progress = null,
-        ),
-        breadcrumbs = emptyList(),
-        items = MockDataProvider.createAllFileTypes(),
-        viewStyle = ExplorerViewStyle.Grid(),
-        availableActions = listOf(
-            ExplorerActionBarItem.Directory.Create(isEnabled = false),
-            ExplorerActionBarItem.Common.Sort(),
+    ExplorerReadyContentPreviewBase(
+        mockState = MockDataProvider.createReadyState().copy(
+            viewStyle = ExplorerViewStyle.Grid(),
+            availableActions = listOf(
+                ExplorerActionBarItem.Directory.Create(isEnabled = false),
+                ExplorerActionBarItem.Common.Sort(),
+            ),
         ),
     )
-    PreviewWrapper {
-        Box(modifier = Modifier.fillMaxSize()) {
-            ExplorerReadyContent(
-                state = mockState,
-                operationsState = ExplorerWorkspaceViewModel.OperationsState(),
-                clipboardState = ExplorerWorkspaceViewModel.ClipboardState(),
-                mainStateSource = flowOf(mockState),
-                workspaceId = Workspace.Id(),
-                topBarStackState = FloatingBarStackState(BarPosition.TOP),
-                bottomBarStackState = FloatingBarStackState(BarPosition.BOTTOM),
-                design = WorkspaceDesign(),
-                navBarInset = 0.dp,
-                vm = null,
-                showProgress = false,
-                isWorkspaceFocused = true,
-                onShowOperationDetails = {},
-                safLocationManager = null,
-            )
-        }
-    }
 }
