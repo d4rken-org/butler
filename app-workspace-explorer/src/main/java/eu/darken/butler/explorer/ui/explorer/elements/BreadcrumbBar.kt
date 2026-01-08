@@ -2,7 +2,6 @@ package eu.darken.butler.explorer.ui.explorer.elements
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -11,16 +10,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.ContentCopy
@@ -75,7 +73,6 @@ import eu.darken.butler.workspace.ui.common.CutoutAwareFlowRow
 import kotlinx.coroutines.delay
 import java.io.File
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BreadcrumbBar(
     modifier: Modifier = Modifier,
@@ -361,12 +358,11 @@ fun BreadcrumbBar(
                 CutoutAwareFlowRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 120.dp)
                         .verticalScroll(scrollState),
                     cutoutWidth = cutoutWidth,
                     cutoutHeight = cutoutHeight,
-                    horizontalSpacing = 2.dp,
-                    verticalSpacing = 4.dp,
+                    horizontalSpacing = 0.dp,
+                    verticalSpacing = 0.dp,
                 ) {
                     breadcrumbs.forEachIndexed { index, breadcrumb ->
                         val isLast = index == breadcrumbs.lastIndex
@@ -421,29 +417,27 @@ fun BreadcrumbBar(
                                     )
                                     val animatedColor = when {
                                         isAnimating -> MaterialTheme.colorScheme.primary
-                                        isLast -> MaterialTheme.colorScheme.onSurface
+                                        isLast -> MaterialTheme.colorScheme.tertiary
                                         else -> MaterialTheme.colorScheme.onSurfaceVariant
                                     }
 
                                     // Always show icon if available
-                                    if (breadcrumb.icon != null) {
-                                        BadgedIcon(
-                                            modifier = Modifier.scale(animatedScale),
-                                            icon = breadcrumb.icon,
-                                            badge = breadcrumb.badgeIcon,
-                                            iconSize = 20.dp,
-                                            badgeSize = 10.dp,
-                                            iconTint = animatedColor,
-                                            badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
-                                    }
+                                    BadgedIcon(
+                                        modifier = Modifier.scale(animatedScale),
+                                        icon = breadcrumb.icon,
+                                        badge = breadcrumb.badgeIcon,
+                                        iconSize = 20.dp,
+                                        badgeSize = 10.dp,
+                                        iconTint = animatedColor,
+                                        badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
 
                                         Text(
                                             text = breadcrumb.label.get(context),
                                             style = if (isLast) {
-                                                MaterialTheme.typography.bodyMedium.copy(color = animatedColor)
+                                                MaterialTheme.typography.labelLarge.copy(color = animatedColor)
                                             } else {
-                                                MaterialTheme.typography.bodySmall.copy(color = animatedColor)
+                                                MaterialTheme.typography.labelMedium.copy(color = animatedColor)
                                             },
                                         )
                                 }
@@ -497,7 +491,7 @@ fun BreadcrumbBar(
                                     imageVector = Icons.TwoTone.ChevronRight,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
