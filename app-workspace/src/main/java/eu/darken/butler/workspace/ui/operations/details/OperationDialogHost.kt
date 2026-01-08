@@ -1,6 +1,8 @@
 package eu.darken.butler.workspace.ui.operations.details
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 
@@ -12,6 +14,7 @@ fun OperationDialogHost(
     onCancelOperation: ((Operation.Id) -> Unit)? = null,
     onCopyError: ((Operation.Id) -> Unit)? = null,
     onHandleIssue: ((Operation.Id) -> Unit)? = null,
+    bottomInset: Dp = 0.dp,
 ) {
     when (dialogState) {
         is OperationDialogState.None -> {
@@ -26,6 +29,7 @@ fun OperationDialogHost(
                 OperationDetailsSheet(
                     operation = currentOperation,
                     onDismiss = onDismissDialog,
+                    bottomInset = bottomInset,
                     onCancel = if (currentOperation.canCancel && currentOperation.state is OperationDisplay.State.Running) {
                         {
                             onCancelOperation?.invoke(currentOperation.id)

@@ -6,15 +6,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +27,7 @@ import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.*
 internal fun TestDataSection(
     storageVolumes: List<StorageVolumeInfo>,
     testDataState: TestDataState,
-    onVolumeSelected: (Int) -> Unit,
+    onVolumeToggled: (Int, Boolean) -> Unit,
     onLargeFilesToggled: (Boolean) -> Unit,
     onNestedStructureToggled: (Boolean) -> Unit,
     onTextFilesToggled: (Boolean) -> Unit,
@@ -61,24 +57,29 @@ internal fun TestDataSection(
                 }
             }
         } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 storageVolumes.forEachIndexed { index, volume ->
-                    FilterChip(
-                        selected = testDataState.selectedVolumeIndex == index,
-                        onClick = { onVolumeSelected(index) },
-                        label = {
-                            Column {
-                                Text(text = volume.name, style = MaterialTheme.typography.labelMedium)
-                                Text(
-                                    text = "${volume.freeSpace} free",
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            }
-                        },
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(
+                            checked = index in testDataState.selectedVolumeIndices,
+                            onCheckedChange = { checked -> onVolumeToggled(index, checked) },
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = volume.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = "${volume.freeSpace} free",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -95,75 +96,31 @@ internal fun TestDataSection(
             description = stringResource(R.string.developer_testdata_large_files_desc),
             checked = testDataState.largeFilesEnabled,
             onCheckedChange = onLargeFilesToggled,
-            enabled = !testDataState.progress?.isGenerating.orFalse(),
         )
         TestDataOption(
             title = stringResource(R.string.developer_testdata_nested_structure),
             description = stringResource(R.string.developer_testdata_nested_structure_desc),
             checked = testDataState.nestedStructureEnabled,
             onCheckedChange = onNestedStructureToggled,
-            enabled = !testDataState.progress?.isGenerating.orFalse(),
         )
         TestDataOption(
             title = stringResource(R.string.developer_testdata_text_files),
             description = stringResource(R.string.developer_testdata_text_files_desc),
             checked = testDataState.textFilesEnabled,
             onCheckedChange = onTextFilesToggled,
-            enabled = !testDataState.progress?.isGenerating.orFalse(),
         )
-
-        // Progress indicator
-        testDataState.progress?.let { progress ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (progress.isGenerating) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.secondaryContainer
-                    }
-                ),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    if (progress.isGenerating) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    }
-                    Text(
-                        text = progress.message,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-        }
 
         Button(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             onClick = onGenerateTestData,
-            enabled = testDataState.canGenerate && !testDataState.progress?.isGenerating.orFalse(),
+            enabled = testDataState.canGenerate,
         ) {
-            Text(
-                text = if (testDataState.progress?.isGenerating == true) {
-                    stringResource(R.string.developer_testdata_generating)
-                } else {
-                    stringResource(R.string.developer_testdata_generate)
-                }
-            )
+            Text(text = stringResource(R.string.developer_testdata_generate))
         }
     }
 }
-
-private fun Boolean?.orFalse(): Boolean = this ?: false
 
 @Composable
 private fun TestDataOption(
@@ -171,7 +128,6 @@ private fun TestDataOption(
     description: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    enabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -180,22 +136,17 @@ private fun TestDataOption(
         Checkbox(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            enabled = enabled,
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (enabled) {
-                    MaterialTheme.colorScheme.onSurface
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                },
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 0.7f else 0.4f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             )
         }
     }
@@ -221,14 +172,13 @@ private fun TestDataSectionPreview() {
                 ),
             ),
             testDataState = TestDataState(
-                selectedVolumeIndex = 0,
+                selectedVolumeIndices = setOf(0),
                 largeFilesEnabled = false,
                 nestedStructureEnabled = true,
                 textFilesEnabled = true,
-                progress = null,
                 canGenerate = true,
             ),
-            onVolumeSelected = {},
+            onVolumeToggled = { _, _ -> },
             onLargeFilesToggled = {},
             onNestedStructureToggled = {},
             onTextFilesToggled = {},
@@ -239,7 +189,7 @@ private fun TestDataSectionPreview() {
 
 @Preview2
 @Composable
-private fun TestDataSectionGeneratingPreview() {
+private fun TestDataSectionAllEnabledPreview() {
     PreviewWrapper {
         TestDataSection(
             storageVolumes = listOf(
@@ -251,17 +201,13 @@ private fun TestDataSectionGeneratingPreview() {
                 ),
             ),
             testDataState = TestDataState(
-                selectedVolumeIndex = 0,
+                selectedVolumeIndices = setOf(0),
                 largeFilesEnabled = true,
                 nestedStructureEnabled = true,
-                textFilesEnabled = false,
-                progress = TestDataProgress(
-                    isGenerating = true,
-                    message = "Creating large files (3/8)...",
-                ),
+                textFilesEnabled = true,
                 canGenerate = true,
             ),
-            onVolumeSelected = {},
+            onVolumeToggled = { _, _ -> },
             onLargeFilesToggled = {},
             onNestedStructureToggled = {},
             onTextFilesToggled = {},
@@ -277,14 +223,13 @@ private fun TestDataSectionNoStoragePreview() {
         TestDataSection(
             storageVolumes = emptyList(),
             testDataState = TestDataState(
-                selectedVolumeIndex = -1,
+                selectedVolumeIndices = emptySet(),
                 largeFilesEnabled = false,
                 nestedStructureEnabled = false,
                 textFilesEnabled = false,
-                progress = null,
                 canGenerate = false,
             ),
-            onVolumeSelected = {},
+            onVolumeToggled = { _, _ -> },
             onLargeFilesToggled = {},
             onNestedStructureToggled = {},
             onTextFilesToggled = {},

@@ -16,10 +16,11 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.Logging
-import eu.darken.butler.common.developer.DeveloperSettings
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.developer.DeveloperSettings
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.flow.throttleLatest
 import eu.darken.butler.common.formatFileSize
@@ -27,12 +28,21 @@ import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.developer.core.DeveloperLogRepo
-import eu.darken.butler.developer.core.testdata.TestDataGenerator
+import eu.darken.butler.developer.core.DeveloperWorkspace
+import eu.darken.butler.developer.core.operations.DeveloperCommand
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.io.File
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel(assistedFactory = DeveloperWorkspaceViewModel.Factory::class)
@@ -42,12 +52,13 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     navCtrl: NavigationController,
     @ApplicationContext private val context: Context,
     private val developerLogRepo: DeveloperLogRepo,
-    private val testDataGenerator: TestDataGenerator,
     private val debugSettings: DebugSettings,
     private val developerSettings: DeveloperSettings,
     private val rootManager: RootManager,
     private val shizukuManager: ShizukuManager,
     private val workspaceRemote: WorkspaceRemote,
+    private val workspaceProvider: WorkspaceProvider,
+    private val operationsManager: OperationsManager,
 ) : ViewModel4(dispatchers, logTag("Developer", "Workspace", id.shortTag, "Page")) {
 
     private val selectedTab = MutableStateFlow(DeveloperTab.SYSTEM)
@@ -55,11 +66,23 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     private val isLogPaused = MutableStateFlow(false)
 
     // Test data state
-    private val selectedVolumeIndex = MutableStateFlow(0)
+    private val selectedVolumeIndices = MutableStateFlow<Set<Int>>(emptySet())
     private val largeFilesEnabled = MutableStateFlow(false)
     private val nestedStructureEnabled = MutableStateFlow(false)
     private val textFilesEnabled = MutableStateFlow(true)
-    private val generationProgress = MutableStateFlow<TestDataProgress?>(null)
+
+    // Workspace and operations
+    private val workspaceSource = workspaceProvider.retrieve(id)
+        .map { it as? DeveloperWorkspace }
+        .filterNotNull()
+
+    private val operationsState = workspaceSource
+        .flatMapLatest { it.operations }
+        .map { opsState ->
+            OperationsState(
+                operations = opsState.operations.map { it.toDisplayModel() }
+            )
+        }
 
     // Options state
     private val rootTestResult = MutableStateFlow<RootTestResult?>(null)
@@ -72,11 +95,11 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         developerLogRepo.logLines.throttleLatest(100.milliseconds),
         pausedLogSnapshot,
         isLogPaused,
-        selectedVolumeIndex,
+        selectedVolumeIndices,
         largeFilesEnabled,
         nestedStructureEnabled,
         textFilesEnabled,
-        generationProgress,
+        operationsState,
         debugSettings.isDebugMode.flow,
         debugSettings.isTraceMode.flow,
         rootTestResult,
@@ -84,7 +107,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         shizukuTestResult,
         isShizukuTesting,
         developerSettings.isDeveloperModeUnlocked.flow,
-    ) { tab, liveLogs, snapshot, paused, volIndex, largeFiles, nested, text, progress,
+    ) { tab, liveLogs, snapshot, paused, volIndices, largeFiles, nested, text, ops,
         isDebugMode, isTraceMode, rootResult, rootTesting, shizukuResult, shizukuTesting,
         isDeveloperModeUnlocked ->
         val displayLogs = if (paused && snapshot != null) snapshot else liveLogs
@@ -97,12 +120,11 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
             logLines = displayLogs,
             isLogPaused = paused,
             testDataState = TestDataState(
-                selectedVolumeIndex = volIndex,
+                selectedVolumeIndices = volIndices,
                 largeFilesEnabled = largeFiles,
                 nestedStructureEnabled = nested,
                 textFilesEnabled = text,
-                progress = progress,
-                canGenerate = systemInfo.storageVolumes.isNotEmpty() && (largeFiles || nested || text),
+                canGenerate = volIndices.isNotEmpty() && (largeFiles || nested || text),
             ),
             optionsState = OptionsState(
                 isDebugMode = isDebugMode,
@@ -113,6 +135,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                 isShizukuTesting = shizukuTesting,
                 canHideDeveloperMode = isDeveloperModeUnlocked,
             ),
+            operationsState = ops,
         )
     }.asStateFlow()
 
@@ -144,9 +167,13 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "Logs cleared" }
     }
 
-    fun selectVolume(index: Int) {
-        selectedVolumeIndex.value = index
-        log(tag) { "Selected volume index: $index" }
+    fun toggleVolumeSelection(index: Int, selected: Boolean) {
+        selectedVolumeIndices.value = if (selected) {
+            selectedVolumeIndices.value + index
+        } else {
+            selectedVolumeIndices.value - index
+        }
+        log(tag) { "Volume $index selection: $selected, selected volumes: ${selectedVolumeIndices.value}" }
     }
 
     fun toggleLargeFiles(enabled: Boolean) {
@@ -163,101 +190,45 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
 
     fun generateTestData() {
         val volumes = getStorageVolumes()
-        if (volumes.isEmpty()) {
-            log(tag, Logging.Priority.WARN) { "No storage volumes available" }
+        val selectedIndices = selectedVolumeIndices.value
+        if (selectedIndices.isEmpty()) {
+            log(tag, Logging.Priority.WARN) { "No storage volumes selected" }
             return
         }
 
-        val volumeIndex = selectedVolumeIndex.value.coerceIn(0, volumes.lastIndex)
-        val baseDir = File(volumes[volumeIndex].path)
-
-        log(tag) { "Starting test data generation in: $baseDir" }
-        generationProgress.value = TestDataProgress(isGenerating = true, message = "Starting…")
+        log(tag) { "Starting test data generation for ${selectedIndices.size} volume(s)" }
 
         launch {
-            var totalFilesCreated = 0
+            val workspace = workspaceSource.first()
 
-            if (largeFilesEnabled.value) {
-                testDataGenerator.generateLargeFiles(baseDir).collect { progress ->
-                    when (progress) {
-                        is TestDataGenerator.Progress.Creating -> {
-                            generationProgress.value = TestDataProgress(
-                                isGenerating = true,
-                                message = "Large files: ${progress.current}/${progress.total} - ${progress.name}",
-                            )
-                        }
-                        is TestDataGenerator.Progress.Completed -> {
-                            totalFilesCreated += progress.filesCreated
-                            log(tag) { "Large files completed: ${progress.filesCreated} files" }
-                        }
-                        is TestDataGenerator.Progress.Error -> {
-                            log(tag, Logging.Priority.ERROR) { "Large files error: ${progress.message}" }
-                            generationProgress.value = TestDataProgress(
-                                isGenerating = false,
-                                message = "Error: ${progress.message}",
-                            )
-                            return@collect
-                        }
-                    }
+            for (volumeIndex in selectedIndices.sorted()) {
+                if (volumeIndex !in volumes.indices) continue
+                val basePath = LocalPath.build(volumes[volumeIndex].path)
+                log(tag) { "Generating test data in: $basePath" }
+
+                if (largeFilesEnabled.value) {
+                    workspace.execute(DeveloperCommand.GenerateLargeFiles(basePath))
+                }
+                if (nestedStructureEnabled.value) {
+                    workspace.execute(DeveloperCommand.GenerateNestedStructure(basePath))
+                }
+                if (textFilesEnabled.value) {
+                    workspace.execute(DeveloperCommand.GenerateTextFiles(basePath))
                 }
             }
-
-            if (nestedStructureEnabled.value) {
-                testDataGenerator.generateNestedStructure(baseDir).collect { progress ->
-                    when (progress) {
-                        is TestDataGenerator.Progress.Creating -> {
-                            generationProgress.value = TestDataProgress(
-                                isGenerating = true,
-                                message = "Nested: ${progress.current}/${progress.total} - ${progress.name}",
-                            )
-                        }
-                        is TestDataGenerator.Progress.Completed -> {
-                            totalFilesCreated += progress.filesCreated
-                            log(tag) { "Nested structure completed: ${progress.filesCreated} files" }
-                        }
-                        is TestDataGenerator.Progress.Error -> {
-                            log(tag, Logging.Priority.ERROR) { "Nested structure error: ${progress.message}" }
-                            generationProgress.value = TestDataProgress(
-                                isGenerating = false,
-                                message = "Error: ${progress.message}",
-                            )
-                            return@collect
-                        }
-                    }
-                }
-            }
-
-            if (textFilesEnabled.value) {
-                testDataGenerator.generateTextFiles(baseDir).collect { progress ->
-                    when (progress) {
-                        is TestDataGenerator.Progress.Creating -> {
-                            generationProgress.value = TestDataProgress(
-                                isGenerating = true,
-                                message = "Text files: ${progress.current}/${progress.total} - ${progress.name}",
-                            )
-                        }
-                        is TestDataGenerator.Progress.Completed -> {
-                            totalFilesCreated += progress.filesCreated
-                            log(tag) { "Text files completed: ${progress.filesCreated} files" }
-                        }
-                        is TestDataGenerator.Progress.Error -> {
-                            log(tag, Logging.Priority.ERROR) { "Text files error: ${progress.message}" }
-                            generationProgress.value = TestDataProgress(
-                                isGenerating = false,
-                                message = "Error: ${progress.message}",
-                            )
-                            return@collect
-                        }
-                    }
-                }
-            }
-
-            generationProgress.value = TestDataProgress(
-                isGenerating = false,
-                message = "Completed! $totalFilesCreated files created",
-            )
-            log(tag) { "Test data generation completed: $totalFilesCreated total files" }
         }
+    }
+
+    fun cancelOperation(operationId: Operation.Id) = launch {
+        operationsManager.cancel(operationId)
+    }
+
+    fun dismissOperation(operationId: Operation.Id) = launch {
+        operationsManager.remove(operationId)
+    }
+
+    fun clearCompletedOperations() = launch {
+        operationsManager.clearCompleted()
     }
 
     fun toggleDebugMode(enabled: Boolean) {
@@ -424,20 +395,19 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         val isLogPaused: Boolean,
         val testDataState: TestDataState,
         val optionsState: OptionsState,
+        val operationsState: OperationsState,
     )
 
     data class TestDataState(
-        val selectedVolumeIndex: Int,
+        val selectedVolumeIndices: Set<Int>,
         val largeFilesEnabled: Boolean,
         val nestedStructureEnabled: Boolean,
         val textFilesEnabled: Boolean,
-        val progress: TestDataProgress?,
         val canGenerate: Boolean,
     )
 
-    data class TestDataProgress(
-        val isGenerating: Boolean,
-        val message: String,
+    data class OperationsState(
+        val operations: List<OperationDisplay> = emptyList(),
     )
 
     data class SystemInfo(

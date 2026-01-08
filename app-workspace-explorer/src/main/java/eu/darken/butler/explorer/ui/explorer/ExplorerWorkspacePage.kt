@@ -227,6 +227,7 @@ fun ExplorerWorkspacePage(
                 onHandleIssue = { operationId ->
                     vm?.showConflictSheet(operationId)
                 },
+                bottomInset = navBarInset,
             )
 
             // Show conflict bottom sheet when needed

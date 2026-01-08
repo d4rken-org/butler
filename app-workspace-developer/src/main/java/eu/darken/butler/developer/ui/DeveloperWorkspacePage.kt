@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
@@ -19,6 +20,9 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -32,14 +36,19 @@ import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.developer.R
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.DeveloperTab
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.Factory
+import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.OperationsState
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.OptionsState
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.State
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.StorageVolumeInfo
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.SystemInfo
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.TestDataState
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
+import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
+import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 
 @Composable
 fun DeveloperWorkspacePageHost(
@@ -54,6 +63,14 @@ fun DeveloperWorkspacePageHost(
 
     val state by waitForState(vm.state)
 
+    var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
+
+    // Calculate nav bar inset for bottom sheets
+    val density = LocalDensity.current
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
+
     state?.let { state ->
         DeveloperWorkspacePage(
             workspaceId = id,
@@ -62,7 +79,7 @@ fun DeveloperWorkspacePageHost(
             onTabSelected = { vm.selectTab(it) },
             onToggleLogPause = { vm.toggleLogPause() },
             onClearLogs = { vm.clearLogs() },
-            onVolumeSelected = { vm.selectVolume(it) },
+            onVolumeToggled = { index, selected -> vm.toggleVolumeSelection(index, selected) },
             onLargeFilesToggled = { vm.toggleLargeFiles(it) },
             onNestedStructureToggled = { vm.toggleNestedStructure(it) },
             onTextFilesToggled = { vm.toggleTextFiles(it) },
@@ -72,6 +89,25 @@ fun DeveloperWorkspacePageHost(
             onTestRoot = { vm.testRoot() },
             onTestShizuku = { vm.testShizuku() },
             onHideDeveloperMode = { vm.hideDeveloperMode() },
+            onCancelOperation = { vm.cancelOperation(it) },
+            onDismissOperation = { vm.dismissOperation(it) },
+            onClearCompletedOperations = { vm.clearCompletedOperations() },
+            onShowOperationDetails = { operationId ->
+                operationDialogState = OperationDialogState.OperationDetails(operationId)
+            },
+        )
+
+        OperationDialogHost(
+            dialogState = operationDialogState,
+            operations = state.operationsState.operations,
+            onDismissDialog = { operationDialogState = OperationDialogState.None },
+            onCancelOperation = { operationId ->
+                operationDialogState = OperationDialogState.None
+                vm.cancelOperation(operationId)
+            },
+            onCopyError = {},
+            onHandleIssue = {},
+            bottomInset = navBarInset,
         )
     }
 }
@@ -84,7 +120,7 @@ fun DeveloperWorkspacePage(
     onTabSelected: (DeveloperTab) -> Unit = {},
     onToggleLogPause: () -> Unit = {},
     onClearLogs: () -> Unit = {},
-    onVolumeSelected: (Int) -> Unit = {},
+    onVolumeToggled: (Int, Boolean) -> Unit = { _, _ -> },
     onLargeFilesToggled: (Boolean) -> Unit = {},
     onNestedStructureToggled: (Boolean) -> Unit = {},
     onTextFilesToggled: (Boolean) -> Unit = {},
@@ -94,14 +130,22 @@ fun DeveloperWorkspacePage(
     onTestRoot: () -> Unit = {},
     onTestShizuku: () -> Unit = {},
     onHideDeveloperMode: () -> Unit = {},
+    onCancelOperation: (Operation.Id) -> Unit = {},
+    onDismissOperation: (Operation.Id) -> Unit = {},
+    onClearCompletedOperations: () -> Unit = {},
+    onShowOperationDetails: (Operation.Id) -> Unit = {},
 ) {
     // System bar insets for edge-to-edge (based on pane edges)
     val density = LocalDensity.current
     val statusBarInset = if (design.paneEdges.touchesTop) {
         with(density) { WindowInsets.statusBars.getTop(density).toDp() }
     } else 0.dp
+    val navBarInset = if (design.paneEdges.touchesBottom) {
+        with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    } else 0.dp
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
         // Floating header card with tabs and workspace button
         ElevatedCard(
             modifier = Modifier
@@ -177,13 +221,29 @@ fun DeveloperWorkspacePage(
                 DeveloperTab.TEST_DATA -> TestDataSection(
                     storageVolumes = state.systemInfo.storageVolumes,
                     testDataState = state.testDataState,
-                    onVolumeSelected = onVolumeSelected,
+                    onVolumeToggled = onVolumeToggled,
                     onLargeFilesToggled = onLargeFilesToggled,
                     onNestedStructureToggled = onNestedStructureToggled,
                     onTextFilesToggled = onTextFilesToggled,
                     onGenerateTestData = onGenerateTestData,
                 )
             }
+        }
+        }
+
+        // Operations bar at bottom
+        if (state.operationsState.operations.isNotEmpty()) {
+            OperationsBar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = navBarInset + 16.dp),
+                operations = state.operationsState.operations,
+                onCancelOperation = onCancelOperation,
+                onDismissOperation = onDismissOperation,
+                onOperationClick = { onShowOperationDetails(it.id) },
+                onClearCompleted = onClearCompletedOperations,
+            )
         }
     }
 }
@@ -221,11 +281,10 @@ private fun DeveloperWorkspacePagePreview() {
                 logLines = emptyList(),
                 isLogPaused = false,
                 testDataState = TestDataState(
-                    selectedVolumeIndex = 0,
+                    selectedVolumeIndices = setOf(0),
                     largeFilesEnabled = false,
                     nestedStructureEnabled = false,
                     textFilesEnabled = true,
-                    progress = null,
                     canGenerate = true,
                 ),
                 optionsState = OptionsState(
@@ -237,6 +296,7 @@ private fun DeveloperWorkspacePagePreview() {
                     isShizukuTesting = false,
                     canHideDeveloperMode = false,
                 ),
+                operationsState = OperationsState(),
             ),
         )
     }
