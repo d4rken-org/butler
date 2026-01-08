@@ -12,13 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -48,7 +46,10 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.common.CutoutCard
+import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 @Composable
@@ -78,20 +79,26 @@ fun ExplorerToolbarCard(
         label = "cardPadding",
     )
 
-    Card(
+    CutoutCard(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
+        cutoutContent = if (design.isSingle && pickerSelection == null) {
+            {
+                WorkspaceButton(
+                    currentWorkspaceId = workspaceId,
+                    buttonSize = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault,
+                )
+            }
+        } else null,
+        cutoutFullHeight = isCollapsed,
+        gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
+        contentPadding = CutoutCardDefaults.contentPadding(cardPadding),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         if (pickerSelection != null) {
             // Picker mode
             PickerToolbarContent(
                 breadcrumbs = breadcrumbs,
                 isCollapsed = isCollapsed,
-                cardPadding = cardPadding,
                 pickerSelection = pickerSelection,
                 selectionCount = selectionCount,
                 saveAsFilename = saveAsFilename,
@@ -102,13 +109,12 @@ fun ExplorerToolbarCard(
                 onConfirm = onConfirm,
             )
         } else {
-            // Normal mode
+            // Normal mode - use scope dimensions for breadcrumb layout
             NormalToolbarContent(
-                workspaceId = workspaceId,
                 breadcrumbs = breadcrumbs,
                 isCollapsed = isCollapsed,
-                cardPadding = cardPadding,
-                design = design,
+                cutoutWidth = cutoutWidth,
+                cutoutHeight = cutoutHeight,
                 onBreadcrumbClick = onBreadcrumbClick,
                 onNavigateToPath = onNavigateToPath,
                 onSetAsHome = onSetAsHome,
@@ -121,82 +127,60 @@ fun ExplorerToolbarCard(
 
 @Composable
 private fun NormalToolbarContent(
-    workspaceId: Workspace.Id,
     breadcrumbs: List<ExplorerBreadcrumb>,
     isCollapsed: Boolean,
-    cardPadding: Dp,
-    design: WorkspaceDesign,
+    cutoutWidth: Dp,
+    cutoutHeight: Dp,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: (APath<*>) -> Unit,
     onSetAsHome: ((ExplorerNavigation.Target) -> Unit)?,
     onCopyPath: ((String) -> Unit)?,
     safLocationManager: SAFLocationManager?,
 ) {
-    val workspaceButtonSize by animateDpAsState(
-        targetValue = if (isCollapsed) 32.dp else 40.dp,
-        label = "workspaceButtonSize",
-    )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(cardPadding),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (isCollapsed) {
-            // Collapsed state - show icon + path breadcrumbs
-            val icon = breadcrumbs.lastOrNull()?.icon ?: Icons.TwoTone.Folder
-            val label = getCollapsedBreadcrumbText(breadcrumbs)
+    if (isCollapsed) {
+        // Collapsed state - show icon + path breadcrumbs
+        val icon = breadcrumbs.lastOrNull()?.icon ?: Icons.TwoTone.Folder
+        val label = getCollapsedBreadcrumbText(breadcrumbs)
 
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
 
-                Text(
-                    text = label ?: stringResource(R.string.explorer_loading),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (label == null) {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                    maxLines = 1,
-                    overflow = TextOverflow.StartEllipsis,
-                )
-            }
-
-        } else {
-            // Expanded state - full breadcrumb bar
-            BreadcrumbBar(
-                breadcrumbs = breadcrumbs,
-                onBreadcrumbClick = onBreadcrumbClick,
-                onNavigateToPath = onNavigateToPath,
-                onSetAsHome = onSetAsHome,
-                onCopyPath = onCopyPath,
-                safLocationManager = safLocationManager,
-                showBackground = false,
-                modifier = Modifier.weight(1f),
+            Text(
+                text = label ?: stringResource(R.string.explorer_loading),
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (label == null) {
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+                maxLines = 1,
+                overflow = TextOverflow.StartEllipsis,
             )
         }
-
-        if (design.isSingle) {
-            Spacer(modifier = Modifier.width(8.dp))
-
-            WorkspaceButton(
-                buttonSize = workspaceButtonSize,
-                currentWorkspaceId = workspaceId,
-            )
-        }
+    } else {
+        // Expanded state - full breadcrumb bar
+        BreadcrumbBar(
+            breadcrumbs = breadcrumbs,
+            onBreadcrumbClick = onBreadcrumbClick,
+            onNavigateToPath = onNavigateToPath,
+            onSetAsHome = onSetAsHome,
+            onCopyPath = onCopyPath,
+            safLocationManager = safLocationManager,
+            showBackground = false,
+            cutoutWidth = cutoutWidth,
+            cutoutHeight = cutoutHeight,
+        )
     }
 }
 
@@ -238,7 +222,6 @@ private fun SaveAsFilenameInput(
 private fun PickerToolbarContent(
     breadcrumbs: List<ExplorerBreadcrumb>,
     isCollapsed: Boolean,
-    cardPadding: Dp,
     pickerSelection: PickerConfig.Selection,
     selectionCount: Int,
     saveAsFilename: String,
@@ -249,9 +232,7 @@ private fun PickerToolbarContent(
     onConfirm: () -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(cardPadding),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (isCollapsed) {
