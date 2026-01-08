@@ -8,8 +8,11 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
@@ -74,6 +77,9 @@ class EditorEngine @AssistedInject constructor(
 
     private val _error = MutableStateFlow<Throwable?>(null)
     val error: StateFlow<Throwable?> = _error.asStateFlow()
+
+    private val _progress = MutableStateFlow<Progress.Data?>(null)
+    val progress: StateFlow<Progress.Data?> = _progress.asStateFlow()
 
     private val isInitializing = AtomicBoolean(true)
     private var initializationJob: Job? = null
@@ -174,13 +180,17 @@ class EditorEngine @AssistedInject constructor(
             resources.dataSource.open()
             currentCoroutineContext().ensureActive()
 
-            // Initialize text buffer
-            val bufferInitResult = resources.textBuffer.initialize()
+            // Initialize text buffer - progress updates flow to _progress StateFlow
+            val bufferInitResult = resources.textBuffer.initialize { progressData ->
+                _progress.value = progressData
+            }
             currentCoroutineContext().ensureActive()
             if (bufferInitResult.isFailure) {
                 val error = bufferInitResult.exceptionOrNull() ?: Exception("Unknown error")
                 _state.value = EditorState.Error(error, _state.value)
                 _error.value = error
+                _progress.value = null
+                disposeResources(resources)
                 return bufferInitResult
             }
 
@@ -214,6 +224,7 @@ class EditorEngine @AssistedInject constructor(
             log(tag) { "Successfully initialized engine with: ${filePath?.name ?: "in-memory editor"}" }
             isInitializing.set(false)
             initializationJob = null
+            _progress.value = null
             Result.success(Unit)
 
         } catch (e: Exception) {
@@ -221,6 +232,7 @@ class EditorEngine @AssistedInject constructor(
             _state.value = EditorState.Error(e, _state.value)
             _error.value = e
             initializationJob = null
+            _progress.value = null
             Result.failure(e)
         }
     }
@@ -235,6 +247,7 @@ class EditorEngine @AssistedInject constructor(
             job.cancel()
             initializationJob = null
             _state.value = EditorState.Empty
+            _progress.value = null
         }
     }
 
@@ -242,6 +255,10 @@ class EditorEngine @AssistedInject constructor(
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 try {
+                    _progress.value = Progress.Data(
+                        primary = R.string.editor_progress_saving.toCaString(),
+                        count = Progress.Count.Indeterminate(),
+                    )
                     log(tag) { "Saving file: ${currentState.filePath?.name ?: "in-memory"}" }
                     val result = currentState.resources.textBuffer.saveFile()
                     if (result.isFailure) {
@@ -255,6 +272,8 @@ class EditorEngine @AssistedInject constructor(
                     log(tag, ERROR) { "Failed to save file - ${e.asLog()}" }
                     _error.value = e
                     Result.failure(e)
+                } finally {
+                    _progress.value = null
                 }
             }
             else -> {
