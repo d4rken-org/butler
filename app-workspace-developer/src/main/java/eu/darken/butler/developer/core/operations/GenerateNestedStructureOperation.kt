@@ -13,8 +13,8 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.sharedresource.useRes
 import eu.darken.butler.developer.R
@@ -60,7 +60,7 @@ class GenerateNestedStructureOperation @AssistedInject constructor(
             var filesCreated = 0
             var totalSize = 0L
 
-            suspend fun createNestedLevel(parent: LocalPath, currentDepth: Int) {
+            suspend fun createNestedLevel(parent: APath<*>, currentDepth: Int) {
                 if (currentDepth > command.depth) return
 
                 currentCoroutineContext().ensureActive()
@@ -127,7 +127,7 @@ class GenerateNestedStructureOperation @AssistedInject constructor(
         }
     }
 
-    private suspend fun createTextFile(path: LocalPath, size: Long) = withContext(dispatcherProvider.IO) {
+    private suspend fun createTextFile(path: APath<*>, size: Long) = withContext(dispatcherProvider.IO) {
         gatewaySwitch.createFile(path, createParents = false)
         gatewaySwitch.openOutputStream(path, append = false).bufferedWriter().use { writer ->
             var written = 0L

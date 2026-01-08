@@ -15,13 +15,19 @@ import eu.darken.butler.common.adb.shizuku.ShizukuManager
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.DebugSettings
-import eu.darken.butler.common.debug.logging.Logging
+import eu.darken.butler.common.debug.logging.Logging.Priority.ERROR
+import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.developer.DeveloperSettings
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.combine
+import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.workspace.core.handleResult
+import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.common.flow.throttleLatest
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.navigation.NavigationController
@@ -32,6 +38,7 @@ import eu.darken.butler.developer.core.DeveloperWorkspace
 import eu.darken.butler.developer.core.operations.DeveloperCommand
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.operations.Operation
@@ -42,13 +49,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel(assistedFactory = DeveloperWorkspaceViewModel.Factory::class)
 class DeveloperWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
-    dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider,
     navCtrl: NavigationController,
     @ApplicationContext private val context: Context,
     private val developerLogRepo: DeveloperLogRepo,
@@ -65,8 +74,10 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     private val pausedLogSnapshot = MutableStateFlow<List<String>?>(null)
     private val isLogPaused = MutableStateFlow(false)
 
+    // Test data state - Target paths
+    private val targetPaths = MutableStateFlow<List<APath<*>>>(emptyList())
+
     // Test data state - Generate
-    private val selectedVolumeIndices = MutableStateFlow<Set<Int>>(emptySet())
     private val largeFilesEnabled = MutableStateFlow(false)
     private val nestedStructureEnabled = MutableStateFlow(false)
     private val textFilesEnabled = MutableStateFlow(true)
@@ -100,7 +111,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         developerLogRepo.logLines.throttleLatest(100.milliseconds),
         pausedLogSnapshot,
         isLogPaused,
-        selectedVolumeIndices,
+        targetPaths,
         largeFilesEnabled,
         nestedStructureEnabled,
         textFilesEnabled,
@@ -115,11 +126,18 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         shizukuTestResult,
         isShizukuTesting,
         developerSettings.isDeveloperModeUnlocked.flow,
-    ) { tab, liveLogs, snapshot, paused, volIndices, largeFiles, nested, text,
+    ) { tab, liveLogs, snapshot, paused, paths, largeFiles, nested, text,
         delLargeFiles, delNested, delText, ops, isDebugMode, isTraceMode, rootResult,
         rootTesting, shizukuResult, shizukuTesting, isDeveloperModeUnlocked ->
         val displayLogs = if (paused && snapshot != null) snapshot else liveLogs
         val systemInfo = getSystemInfo()
+
+        val pathInfos = paths.map { path ->
+            TargetPathInfo(
+                path = path,
+                displayPath = path.userReadablePath.get(context),
+            )
+        }
 
         State(
             id = id,
@@ -128,15 +146,15 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
             logLines = displayLogs,
             isLogPaused = paused,
             testDataState = TestDataState(
-                selectedVolumeIndices = volIndices,
+                targetPaths = pathInfos,
                 largeFilesEnabled = largeFiles,
                 nestedStructureEnabled = nested,
                 textFilesEnabled = text,
-                canGenerate = volIndices.isNotEmpty() && (largeFiles || nested || text),
+                canGenerate = pathInfos.isNotEmpty() && (largeFiles || nested || text),
                 deleteLargeFilesEnabled = delLargeFiles,
                 deleteNestedStructureEnabled = delNested,
                 deleteTextFilesEnabled = delText,
-                canDelete = volIndices.isNotEmpty() && (delLargeFiles || delNested || delText),
+                canDelete = pathInfos.isNotEmpty() && (delLargeFiles || delNested || delText),
             ),
             optionsState = OptionsState(
                 isDebugMode = isDebugMode,
@@ -153,6 +171,26 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
 
     init {
         log(tag) { "Initialized for workspace $id" }
+
+        // Pre-populate target paths with detected storage volumes
+        launch {
+            if (targetPaths.value.isEmpty()) {
+                val volumes = withContext(dispatchers.IO) { getStorageVolumes() }
+                targetPaths.value = volumes.map { LocalPath.build(it.path) }
+                log(tag) { "Pre-populated ${volumes.size} storage volume(s)" }
+            }
+        }
+
+        // Listen for picker results
+        workspaceRemote.events
+            .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
+                log(tag, INFO) { "Received picker result: ${result.selectedPaths}" }
+                if (result.selectedPaths.isNotEmpty()) {
+                    targetPaths.value = (targetPaths.value + result.selectedPaths)
+                        .distinctBy { it.path }
+                }
+            }
+            .launchIn(vmScope)
     }
 
     fun selectTab(tab: DeveloperTab) {
@@ -179,13 +217,19 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "Logs cleared" }
     }
 
-    fun toggleVolumeSelection(index: Int, selected: Boolean) {
-        selectedVolumeIndices.value = if (selected) {
-            selectedVolumeIndices.value + index
-        } else {
-            selectedVolumeIndices.value - index
-        }
-        log(tag) { "Volume $index selection: $selected, selected volumes: ${selectedVolumeIndices.value}" }
+    fun openPathPicker() = launch {
+        log(tag) { "Opening path picker" }
+        workspaceRemote.launchPicker(
+            callerWorkspaceId = id,
+            startPath = null,
+            selection = PickerConfig.Selection.DirectoryMulti,
+            requireWritable = true,
+        )
+    }
+
+    fun removePath(path: APath<*>) {
+        targetPaths.value = targetPaths.value.filter { it.path != path.path }
+        log(tag) { "Removed path: ${path.path}, remaining: ${targetPaths.value.size}" }
     }
 
     fun toggleLargeFiles(enabled: Boolean) {
@@ -213,57 +257,51 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun generateTestData() {
-        val volumes = getStorageVolumes()
-        val selectedIndices = selectedVolumeIndices.value
-        if (selectedIndices.isEmpty()) {
-            log(tag, Logging.Priority.WARN) { "No storage volumes selected" }
+        val paths = targetPaths.value
+        if (paths.isEmpty()) {
+            log(tag, WARN) { "No target paths selected" }
             return
         }
 
-        log(tag) { "Starting test data generation for ${selectedIndices.size} volume(s)" }
+        log(tag) { "Starting test data generation for ${paths.size} path(s)" }
 
         launch {
             val workspace = workspaceSource.first()
 
-            for (volumeIndex in selectedIndices.sorted()) {
-                if (volumeIndex !in volumes.indices) continue
-                val basePath = LocalPath.build(volumes[volumeIndex].path)
-                log(tag) { "Generating test data in: $basePath" }
+            for (path in paths) {
+                log(tag) { "Generating test data in: $path" }
 
                 if (largeFilesEnabled.value) {
-                    workspace.execute(DeveloperCommand.GenerateLargeFiles(basePath))
+                    workspace.execute(DeveloperCommand.GenerateLargeFiles(path))
                 }
                 if (nestedStructureEnabled.value) {
-                    workspace.execute(DeveloperCommand.GenerateNestedStructure(basePath))
+                    workspace.execute(DeveloperCommand.GenerateNestedStructure(path))
                 }
                 if (textFilesEnabled.value) {
-                    workspace.execute(DeveloperCommand.GenerateTextFiles(basePath))
+                    workspace.execute(DeveloperCommand.GenerateTextFiles(path))
                 }
             }
         }
     }
 
     fun deleteTestData() {
-        val volumes = getStorageVolumes()
-        val selectedIndices = selectedVolumeIndices.value
-        if (selectedIndices.isEmpty()) {
-            log(tag, Logging.Priority.WARN) { "No storage volumes selected for deletion" }
+        val paths = targetPaths.value
+        if (paths.isEmpty()) {
+            log(tag, WARN) { "No target paths selected for deletion" }
             return
         }
 
-        log(tag) { "Starting test data deletion for ${selectedIndices.size} volume(s)" }
+        log(tag) { "Starting test data deletion for ${paths.size} path(s)" }
 
         launch {
             val workspace = workspaceSource.first()
 
-            for (volumeIndex in selectedIndices.sorted()) {
-                if (volumeIndex !in volumes.indices) continue
-                val basePath = LocalPath.build(volumes[volumeIndex].path)
-                log(tag) { "Deleting test data from: $basePath" }
+            for (path in paths) {
+                log(tag) { "Deleting test data from: $path" }
 
                 workspace.execute(
                     DeveloperCommand.DeleteTestData(
-                        basePath = basePath,
+                        basePath = path,
                         deleteLargeFiles = deleteLargeFilesEnabled.value,
                         deleteNestedStructure = deleteNestedStructureEnabled.value,
                         deleteTextFiles = deleteTextFilesEnabled.value,
@@ -296,7 +334,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun hideDeveloperMode() = launch {
-        log(tag, Logging.Priority.INFO) { "Hiding developer mode" }
+        log(tag, INFO) { "Hiding developer mode" }
         developerSettings.isDeveloperModeUnlocked.value(false)
         workspaceRemote.execute(WorkspaceAction.Close(id))
     }
@@ -315,7 +353,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                     try {
                         rootManager.serviceClient.get().use { it.item.ipc.checkBase() }
                     } catch (e: Exception) {
-                        log(tag, Logging.Priority.WARN) { "Root base check failed: ${e.asLog()}" }
+                        log(tag, WARN) { "Root base check failed: ${e.asLog()}" }
                         null
                     }
                 } else null
@@ -327,7 +365,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                 )
                 log(tag) { "Root test completed: installed=$isInstalled, rooted=$isRooted, baseCheck=$baseCheck" }
             } catch (e: Exception) {
-                log(tag, Logging.Priority.ERROR) { "Root test failed: ${e.asLog()}" }
+                log(tag, ERROR) { "Root test failed: ${e.asLog()}" }
                 rootTestResult.value = RootTestResult(
                     isInstalled = false,
                     isRooted = false,
@@ -354,7 +392,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                     try {
                         shizukuManager.serviceClient.get().use { it.item.ipc.checkBase() != null }
                     } catch (e: Exception) {
-                        log(tag, Logging.Priority.WARN) { "Shizuku service check failed: ${e.asLog()}" }
+                        log(tag, WARN) { "Shizuku service check failed: ${e.asLog()}" }
                         false
                     }
                 } else false
@@ -367,7 +405,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                 )
                 log(tag) { "Shizuku test completed: installed=$isInstalled, granted=$isGranted, compatible=$isCompatible, service=$isServiceAvailable" }
             } catch (e: Exception) {
-                log(tag, Logging.Priority.ERROR) { "Shizuku test failed: ${e.asLog()}" }
+                log(tag, ERROR) { "Shizuku test failed: ${e.asLog()}" }
                 shizukuTestResult.value = ShizukuTestResult(
                     isInstalled = false,
                     isGranted = null,
@@ -433,7 +471,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                         )
                     )
                 } catch (e: Exception) {
-                    log(tag, Logging.Priority.WARN) { "Failed to get stats for ${file.absolutePath}: $e" }
+                    log(tag, WARN) { "Failed to get stats for ${file.absolutePath}: $e" }
                 }
             }
         }
@@ -453,7 +491,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     )
 
     data class TestDataState(
-        val selectedVolumeIndices: Set<Int>,
+        val targetPaths: List<TargetPathInfo>,
         val largeFilesEnabled: Boolean,
         val nestedStructureEnabled: Boolean,
         val textFilesEnabled: Boolean,
@@ -462,6 +500,11 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         val deleteNestedStructureEnabled: Boolean,
         val deleteTextFilesEnabled: Boolean,
         val canDelete: Boolean,
+    )
+
+    data class TargetPathInfo(
+        val path: APath<*>,
+        val displayPath: String,
     )
 
     data class OperationsState(

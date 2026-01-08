@@ -34,6 +34,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.developer.R
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.DeveloperTab
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.Factory
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.OperationsState
@@ -41,6 +43,7 @@ import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.OptionsState
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.State
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.StorageVolumeInfo
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.SystemInfo
+import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.TargetPathInfo
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.TestDataState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
@@ -79,7 +82,8 @@ fun DeveloperWorkspacePageHost(
             onTabSelected = { vm.selectTab(it) },
             onToggleLogPause = { vm.toggleLogPause() },
             onClearLogs = { vm.clearLogs() },
-            onVolumeToggled = { index, selected -> vm.toggleVolumeSelection(index, selected) },
+            onAddPath = { vm.openPathPicker() },
+            onRemovePath = { vm.removePath(it) },
             onLargeFilesToggled = { vm.toggleLargeFiles(it) },
             onNestedStructureToggled = { vm.toggleNestedStructure(it) },
             onTextFilesToggled = { vm.toggleTextFiles(it) },
@@ -124,7 +128,8 @@ fun DeveloperWorkspacePage(
     onTabSelected: (DeveloperTab) -> Unit = {},
     onToggleLogPause: () -> Unit = {},
     onClearLogs: () -> Unit = {},
-    onVolumeToggled: (Int, Boolean) -> Unit = { _, _ -> },
+    onAddPath: () -> Unit = {},
+    onRemovePath: (APath<*>) -> Unit = {},
     onLargeFilesToggled: (Boolean) -> Unit = {},
     onNestedStructureToggled: (Boolean) -> Unit = {},
     onTextFilesToggled: (Boolean) -> Unit = {},
@@ -227,9 +232,9 @@ fun DeveloperWorkspacePage(
                     onClear = onClearLogs,
                 )
                 DeveloperTab.TEST_DATA -> TestDataSection(
-                    storageVolumes = state.systemInfo.storageVolumes,
                     testDataState = state.testDataState,
-                    onVolumeToggled = onVolumeToggled,
+                    onAddPath = onAddPath,
+                    onRemovePath = onRemovePath,
                     onLargeFilesToggled = onLargeFilesToggled,
                     onNestedStructureToggled = onNestedStructureToggled,
                     onTextFilesToggled = onTextFilesToggled,
@@ -293,7 +298,12 @@ private fun DeveloperWorkspacePagePreview() {
                 logLines = emptyList(),
                 isLogPaused = false,
                 testDataState = TestDataState(
-                    selectedVolumeIndices = setOf(0),
+                    targetPaths = listOf(
+                        TargetPathInfo(
+                            path = LocalPath.build("/storage/emulated/0"),
+                            displayPath = "/storage/emulated/0",
+                        ),
+                    ),
                     largeFilesEnabled = false,
                     nestedStructureEnabled = false,
                     textFilesEnabled = true,

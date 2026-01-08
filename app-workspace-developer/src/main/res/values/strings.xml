@@ -63,8 +63,9 @@
     <string name="developer_logs_empty">No logs</string>
 
     <!-- Test Data Section -->
-    <string name="developer_testdata_volume_label">Storage Volume</string>
-    <string name="developer_testdata_no_storage">No storage available</string>
+    <string name="developer_testdata_target_paths_label">Target Paths</string>
+    <string name="developer_testdata_no_paths">No target paths selected. Add paths to generate test data.</string>
+    <string name="developer_testdata_add_path_action">Add path</string>
     <string name="developer_testdata_options_header">Generation Options</string>
     <string name="developer_testdata_large_files">Large files</string>
     <string name="developer_testdata_large_files_desc">1MB, 10MB, 100MB, 1GB, 2GB, 4GB, 8GB</string>
@@ -72,7 +73,7 @@
     <string name="developer_testdata_nested_structure_desc">~1500 folders, ~3500 files</string>
     <string name="developer_testdata_text_files">Text files for Editor</string>
     <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
-    <string name="developer_testdata_generate">Generate</string>
+    <string name="developer_testdata_generate_action">Generate</string>
     <string name="developer_testdata_generating">Generating…</string>
     <string name="developer_testdata_progress">%1$s of %2$s</string>
     <string name="developer_testdata_complete">Test data generated at:</string>
