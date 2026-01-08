@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.combine
+import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.editor.core.engine.ContentSource
@@ -147,9 +148,6 @@ class EditorWorkspace @AssistedInject constructor(
     private val _state = MutableStateFlow<State>(State.Initializing)
     val state: StateFlow<State> = _state.asStateFlow()
 
-    // Track loading for operations (openFile, saveFile, etc.)
-    private val _isLoading = MutableStateFlow(false)
-
     // Combined editor state for internal use
     private val editorStateInternal: Flow<EditorState> = engineHolder.flow.flatMapLatest { engine ->
         combine(
@@ -163,11 +161,12 @@ class EditorWorkspace @AssistedInject constructor(
             engine.searchResults,
             engine.visibleRange,
             engine.error,
+            engine.progress,
             editorSettings.showLineNumbers.flow,
             editorSettings.wordWrap.flow,
         ) { contentSource, totalLines, isModified, currentContent, cursorPosition,
             selectionRange, searchQuery, searchResults, visibleRange, error,
-            showLineNumbers, wordWrap ->
+            progress, showLineNumbers, wordWrap ->
             EditorState(
                 contentSource = contentSource,
                 totalLines = totalLines,
@@ -180,7 +179,8 @@ class EditorWorkspace @AssistedInject constructor(
                 visibleRange = visibleRange,
                 error = error,
                 showLineNumbers = showLineNumbers,
-                wordWrap = wordWrap
+                wordWrap = wordWrap,
+                progress = progress,
             )
         }
     }
@@ -192,22 +192,12 @@ class EditorWorkspace @AssistedInject constructor(
         workspaceScope.launch {
             try {
                 editorStateInternal.collect { editorState ->
-                    _state.value = State.Ready(editorState, isLoading = _isLoading.value)
+                    _state.value = State.Ready(editorState)
                 }
             } catch (e: Exception) {
                 if (e !is CancellationException) {
                     _state.value = State.Error(e)
                     log(tag, ERROR) { "Workspace error: ${e.asLog()}" }
-                }
-            }
-        }
-
-        // Update state when isLoading changes
-        workspaceScope.launch {
-            _isLoading.collect { loading ->
-                val current = _state.value
-                if (current is State.Ready) {
-                    _state.value = current.copy(isLoading = loading)
                 }
             }
         }
@@ -332,6 +322,7 @@ class EditorWorkspace @AssistedInject constructor(
         try {
             engineHolder.updateBlocking {
                 // 'this' is the old engine (receiver of extension function)
+                // Progress is emitted via engine's progress StateFlow
                 val initResult = newEngine.initialize()
 
                 if (initResult.isFailure) {
@@ -352,12 +343,8 @@ class EditorWorkspace @AssistedInject constructor(
 
     // Editor operations
     suspend fun openFile(filePath: APath<*>) {
-        _isLoading.value = true
-        try {
-            switchEngine(filePath)
-        } finally {
-            _isLoading.value = false
-        }
+        // Progress is emitted by EditorEngine during initialization
+        switchEngine(filePath)
     }
 
     suspend fun closeFile() = switchEngine(null)
@@ -374,12 +361,8 @@ class EditorWorkspace @AssistedInject constructor(
     }
 
     suspend fun saveFile() {
-        _isLoading.value = true
-        try {
-            engineHolder.value().saveFile()
-        } finally {
-            _isLoading.value = false
-        }
+        // Progress is emitted by EditorEngine during save
+        engineHolder.value().saveFile()
     }
 
     suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> {
@@ -505,11 +488,14 @@ class EditorWorkspace @AssistedInject constructor(
         val error: Throwable? = null,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
+        val progress: Progress.Data? = null,
     )
 
     sealed interface State {
         data object Initializing : State
-        data class Ready(val editor: EditorState, val isLoading: Boolean = false) : State
+        data class Ready(val editor: EditorState) : State {
+            val progress: Progress.Data? get() = editor.progress
+        }
         data class Error(val error: Throwable) : State
     }
 

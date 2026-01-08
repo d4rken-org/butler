@@ -3,10 +3,14 @@ package eu.darken.butler.editor.core.engine
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.editor.R
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,7 +56,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     private var chunkIds: List<TextChunk.ChunkId> = emptyList()
 
-    suspend fun initialize(): Result<Unit> = bufferMutex.withLock {
+    suspend fun initialize(
+        onProgress: ((Progress.Data) -> Unit)? = null,
+    ): Result<Unit> = bufferMutex.withLock {
         try {
             // Get content source info from data source
             val source = chunkRepository.getContentSource()
@@ -88,7 +94,7 @@ class ChunkedTextBuffer @AssistedInject constructor(
             }
 
             // Build chunk metadata via streaming scan
-            buildChunkMetadata()
+            buildChunkMetadata(onProgress)
 
             // Evict chunks outside initial visible range to enable on-demand loading
             evictChunksOutsideRange(0, 50)
@@ -843,7 +849,9 @@ class ChunkedTextBuffer @AssistedInject constructor(
 
     fun canRedo(): Boolean = redoStack.isNotEmpty()
 
-    private suspend fun buildChunkMetadata() {
+    private suspend fun buildChunkMetadata(
+        onProgress: ((Progress.Data) -> Unit)? = null,
+    ) {
         chunkMetadata.clear()
         var totalLines = 0
 
@@ -912,9 +920,19 @@ class ChunkedTextBuffer @AssistedInject constructor(
                 ?: throw IllegalStateException("No boundary for chunk $chunkId")
         }
 
+        val totalChunks = chunkIds.size
         for ((index, chunkId) in chunkIds.withIndex()) {
             // Allow cancellation during long metadata builds
             coroutineContext.ensureActive()
+
+            // Emit progress for every chunk (only if callback is provided)
+            onProgress?.invoke(
+                Progress.Data(
+                    primary = R.string.editor_progress_opening.toCaString(),
+                    secondary = caString { getString(R.string.editor_progress_processing_chunk, index + 1, totalChunks) },
+                    count = Progress.Count.Counter(index + 1, totalChunks),
+                )
+            )
 
             // Use snapshotted boundary data (prevents stale reads during concurrent edits)
             val boundary = boundariesSnapshot[chunkId]
