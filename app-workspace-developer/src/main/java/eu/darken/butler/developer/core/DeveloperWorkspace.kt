@@ -12,6 +12,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.developer.R
 import eu.darken.butler.developer.core.arguments.DeveloperArguments
+import eu.darken.butler.developer.core.operations.DeleteTestDataOperation
 import eu.darken.butler.developer.core.operations.DeveloperCommand
 import eu.darken.butler.developer.core.operations.GenerateLargeFilesOperation
 import eu.darken.butler.developer.core.operations.GenerateNestedStructureOperation
@@ -50,6 +51,7 @@ class DeveloperWorkspace @AssistedInject constructor(
     private val generateLargeFilesFactory: GenerateLargeFilesOperation.Factory,
     private val generateNestedStructureFactory: GenerateNestedStructureOperation.Factory,
     private val generateTextFilesFactory: GenerateTextFilesOperation.Factory,
+    private val deleteTestDataFactory: DeleteTestDataOperation.Factory,
 ) : Workspace<DeveloperArguments> {
 
     private val tag = logTag("Developer", "Workspace", id.shortTag)
@@ -140,6 +142,10 @@ class DeveloperWorkspace @AssistedInject constructor(
                 command = command,
             )
             is DeveloperCommand.GenerateTextFiles -> generateTextFilesFactory.create(
+                workspaceId = id,
+                command = command,
+            )
+            is DeveloperCommand.DeleteTestData -> deleteTestDataFactory.create(
                 workspaceId = id,
                 command = command,
             )

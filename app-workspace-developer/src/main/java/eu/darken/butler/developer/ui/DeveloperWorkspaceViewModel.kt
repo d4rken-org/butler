@@ -65,11 +65,16 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     private val pausedLogSnapshot = MutableStateFlow<List<String>?>(null)
     private val isLogPaused = MutableStateFlow(false)
 
-    // Test data state
+    // Test data state - Generate
     private val selectedVolumeIndices = MutableStateFlow<Set<Int>>(emptySet())
     private val largeFilesEnabled = MutableStateFlow(false)
     private val nestedStructureEnabled = MutableStateFlow(false)
     private val textFilesEnabled = MutableStateFlow(true)
+
+    // Test data state - Delete
+    private val deleteLargeFilesEnabled = MutableStateFlow(false)
+    private val deleteNestedStructureEnabled = MutableStateFlow(false)
+    private val deleteTextFilesEnabled = MutableStateFlow(true)
 
     // Workspace and operations
     private val workspaceSource = workspaceProvider.retrieve(id)
@@ -99,6 +104,9 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         largeFilesEnabled,
         nestedStructureEnabled,
         textFilesEnabled,
+        deleteLargeFilesEnabled,
+        deleteNestedStructureEnabled,
+        deleteTextFilesEnabled,
         operationsState,
         debugSettings.isDebugMode.flow,
         debugSettings.isTraceMode.flow,
@@ -107,9 +115,9 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         shizukuTestResult,
         isShizukuTesting,
         developerSettings.isDeveloperModeUnlocked.flow,
-    ) { tab, liveLogs, snapshot, paused, volIndices, largeFiles, nested, text, ops,
-        isDebugMode, isTraceMode, rootResult, rootTesting, shizukuResult, shizukuTesting,
-        isDeveloperModeUnlocked ->
+    ) { tab, liveLogs, snapshot, paused, volIndices, largeFiles, nested, text,
+        delLargeFiles, delNested, delText, ops, isDebugMode, isTraceMode, rootResult,
+        rootTesting, shizukuResult, shizukuTesting, isDeveloperModeUnlocked ->
         val displayLogs = if (paused && snapshot != null) snapshot else liveLogs
         val systemInfo = getSystemInfo()
 
@@ -125,6 +133,10 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                 nestedStructureEnabled = nested,
                 textFilesEnabled = text,
                 canGenerate = volIndices.isNotEmpty() && (largeFiles || nested || text),
+                deleteLargeFilesEnabled = delLargeFiles,
+                deleteNestedStructureEnabled = delNested,
+                deleteTextFilesEnabled = delText,
+                canDelete = volIndices.isNotEmpty() && (delLargeFiles || delNested || delText),
             ),
             optionsState = OptionsState(
                 isDebugMode = isDebugMode,
@@ -188,6 +200,18 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         textFilesEnabled.value = enabled
     }
 
+    fun toggleDeleteLargeFiles(enabled: Boolean) {
+        deleteLargeFilesEnabled.value = enabled
+    }
+
+    fun toggleDeleteNestedStructure(enabled: Boolean) {
+        deleteNestedStructureEnabled.value = enabled
+    }
+
+    fun toggleDeleteTextFiles(enabled: Boolean) {
+        deleteTextFilesEnabled.value = enabled
+    }
+
     fun generateTestData() {
         val volumes = getStorageVolumes()
         val selectedIndices = selectedVolumeIndices.value
@@ -215,6 +239,36 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                 if (textFilesEnabled.value) {
                     workspace.execute(DeveloperCommand.GenerateTextFiles(basePath))
                 }
+            }
+        }
+    }
+
+    fun deleteTestData() {
+        val volumes = getStorageVolumes()
+        val selectedIndices = selectedVolumeIndices.value
+        if (selectedIndices.isEmpty()) {
+            log(tag, Logging.Priority.WARN) { "No storage volumes selected for deletion" }
+            return
+        }
+
+        log(tag) { "Starting test data deletion for ${selectedIndices.size} volume(s)" }
+
+        launch {
+            val workspace = workspaceSource.first()
+
+            for (volumeIndex in selectedIndices.sorted()) {
+                if (volumeIndex !in volumes.indices) continue
+                val basePath = LocalPath.build(volumes[volumeIndex].path)
+                log(tag) { "Deleting test data from: $basePath" }
+
+                workspace.execute(
+                    DeveloperCommand.DeleteTestData(
+                        basePath = basePath,
+                        deleteLargeFiles = deleteLargeFilesEnabled.value,
+                        deleteNestedStructure = deleteNestedStructureEnabled.value,
+                        deleteTextFiles = deleteTextFilesEnabled.value,
+                    )
+                )
             }
         }
     }
@@ -404,6 +458,10 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         val nestedStructureEnabled: Boolean,
         val textFilesEnabled: Boolean,
         val canGenerate: Boolean,
+        val deleteLargeFilesEnabled: Boolean,
+        val deleteNestedStructureEnabled: Boolean,
+        val deleteTextFilesEnabled: Boolean,
+        val canDelete: Boolean,
     )
 
     data class OperationsState(

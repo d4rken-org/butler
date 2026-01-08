@@ -101,4 +101,24 @@
         <item quantity="one">%d directory</item>
         <item quantity="other">%d directories</item>
     </plurals>
+
+    <!-- Delete Test Data -->
+    <string name="developer_testdata_delete_header">Delete Test Data</string>
+    <string name="developer_testdata_delete_action">Delete</string>
+
+    <string name="developer_operation_delete_testdata_title">Delete Test Data</string>
+    <string name="developer_operation_delete_testdata_desc">Deleting test data from %1$s</string>
+    <string name="developer_operation_delete_testdata_checking">Checking %1$s…</string>
+    <string name="developer_operation_delete_testdata_scanning">Scanning %1$s…</string>
+    <string name="developer_operation_delete_testdata_deleting">Deleting %1$s…</string>
+
+    <plurals name="developer_testdata_report_files_deleted">
+        <item quantity="one">%d file deleted</item>
+        <item quantity="other">%d files deleted</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_deleted">
+        <item quantity="one">%d directory</item>
+        <item quantity="other">%d directories</item>
+    </plurals>
 </resources>

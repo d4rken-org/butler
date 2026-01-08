@@ -32,6 +32,10 @@ internal fun TestDataSection(
     onNestedStructureToggled: (Boolean) -> Unit,
     onTextFilesToggled: (Boolean) -> Unit,
     onGenerateTestData: () -> Unit,
+    onDeleteLargeFilesToggled: (Boolean) -> Unit,
+    onDeleteNestedStructureToggled: (Boolean) -> Unit,
+    onDeleteTextFilesToggled: (Boolean) -> Unit,
+    onDeleteTestData: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -111,13 +115,47 @@ internal fun TestDataSection(
         )
 
         Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth(),
             onClick = onGenerateTestData,
             enabled = testDataState.canGenerate,
         ) {
             Text(text = stringResource(R.string.developer_testdata_generate))
+        }
+
+        // Delete Test Data section
+        Text(
+            text = stringResource(R.string.developer_testdata_delete_header),
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium,
+        )
+
+        TestDataOption(
+            title = stringResource(R.string.developer_testdata_large_files),
+            description = stringResource(R.string.developer_testdata_large_files_desc),
+            checked = testDataState.deleteLargeFilesEnabled,
+            onCheckedChange = onDeleteLargeFilesToggled,
+        )
+        TestDataOption(
+            title = stringResource(R.string.developer_testdata_nested_structure),
+            description = stringResource(R.string.developer_testdata_nested_structure_desc),
+            checked = testDataState.deleteNestedStructureEnabled,
+            onCheckedChange = onDeleteNestedStructureToggled,
+        )
+        TestDataOption(
+            title = stringResource(R.string.developer_testdata_text_files),
+            description = stringResource(R.string.developer_testdata_text_files_desc),
+            checked = testDataState.deleteTextFilesEnabled,
+            onCheckedChange = onDeleteTextFilesToggled,
+        )
+
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            onClick = onDeleteTestData,
+            enabled = testDataState.canDelete,
+        ) {
+            Text(text = stringResource(R.string.developer_testdata_delete_action))
         }
     }
 }
@@ -177,12 +215,20 @@ private fun TestDataSectionPreview() {
                 nestedStructureEnabled = true,
                 textFilesEnabled = true,
                 canGenerate = true,
+                deleteLargeFilesEnabled = false,
+                deleteNestedStructureEnabled = false,
+                deleteTextFilesEnabled = true,
+                canDelete = true,
             ),
             onVolumeToggled = { _, _ -> },
             onLargeFilesToggled = {},
             onNestedStructureToggled = {},
             onTextFilesToggled = {},
             onGenerateTestData = {},
+            onDeleteLargeFilesToggled = {},
+            onDeleteNestedStructureToggled = {},
+            onDeleteTextFilesToggled = {},
+            onDeleteTestData = {},
         )
     }
 }
@@ -206,12 +252,20 @@ private fun TestDataSectionAllEnabledPreview() {
                 nestedStructureEnabled = true,
                 textFilesEnabled = true,
                 canGenerate = true,
+                deleteLargeFilesEnabled = true,
+                deleteNestedStructureEnabled = true,
+                deleteTextFilesEnabled = true,
+                canDelete = true,
             ),
             onVolumeToggled = { _, _ -> },
             onLargeFilesToggled = {},
             onNestedStructureToggled = {},
             onTextFilesToggled = {},
             onGenerateTestData = {},
+            onDeleteLargeFilesToggled = {},
+            onDeleteNestedStructureToggled = {},
+            onDeleteTextFilesToggled = {},
+            onDeleteTestData = {},
         )
     }
 }
@@ -228,12 +282,20 @@ private fun TestDataSectionNoStoragePreview() {
                 nestedStructureEnabled = false,
                 textFilesEnabled = false,
                 canGenerate = false,
+                deleteLargeFilesEnabled = false,
+                deleteNestedStructureEnabled = false,
+                deleteTextFilesEnabled = false,
+                canDelete = false,
             ),
             onVolumeToggled = { _, _ -> },
             onLargeFilesToggled = {},
             onNestedStructureToggled = {},
             onTextFilesToggled = {},
             onGenerateTestData = {},
+            onDeleteLargeFilesToggled = {},
+            onDeleteNestedStructureToggled = {},
+            onDeleteTextFilesToggled = {},
+            onDeleteTestData = {},
         )
     }
 }
