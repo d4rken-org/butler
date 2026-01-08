@@ -177,7 +177,7 @@ fun EditorToolbarCard(
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.Start
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),

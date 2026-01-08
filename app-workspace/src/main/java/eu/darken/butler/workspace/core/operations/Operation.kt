@@ -42,6 +42,7 @@ interface Operation {
             data class Explorer(override val workspaceId: Workspace.Id) : Origin
             data class Searcher(override val workspaceId: Workspace.Id) : Origin
             data class Saver(override val workspaceId: Workspace.Id) : Origin
+            data class Developer(override val workspaceId: Workspace.Id) : Origin
         }
     }
 

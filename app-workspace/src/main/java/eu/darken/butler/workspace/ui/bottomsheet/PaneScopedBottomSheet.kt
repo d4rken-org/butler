@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -81,7 +82,9 @@ fun PaneScopedBottomSheet(
             shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
         ) {
             Column(
-                modifier = Modifier.padding(bottom = bottomInset),
+                modifier = Modifier
+                    .imePadding()
+                    .padding(bottom = bottomInset),
             ) {
                 dragHandle?.invoke()
                 content()
@@ -175,7 +178,9 @@ fun PaneScopedBottomSheet(
                     shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(bottom = bottomInset),
+                        modifier = Modifier
+                            .imePadding()
+                            .padding(bottom = bottomInset),
                     ) {
                         dragHandle?.invoke()
                         content()

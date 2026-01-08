@@ -621,7 +621,8 @@ fun ExplorerWorkspacePage(
                                         onOperationClick = { operation ->
                                             when (operation.state) {
                                                 is OperationDisplay.State.Waiting -> vm?.showConflictSheet(operation.id)
-                                                else -> operationDialogState = OperationDialogState.OperationDetails(operation.id)
+                                                else -> operationDialogState =
+                                                    OperationDialogState.OperationDetails(operation.id)
                                             }
                                         },
                                         onClearCompleted = { vm?.clearCompletedOperations() },
@@ -684,6 +685,7 @@ fun ExplorerWorkspacePage(
                 },
                 onCopyError = { vm?.copyError(it) },
                 onHandleIssue = { operationId -> vm?.showConflictSheet(operationId) },
+                bottomInset = navBarInset,
             )
 
             // Show conflict bottom sheet when needed
