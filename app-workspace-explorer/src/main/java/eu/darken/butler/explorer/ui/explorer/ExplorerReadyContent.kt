@@ -452,7 +452,7 @@ internal fun ExplorerReadyContent(
                     .padding(horizontal = 16.dp),
                 title = stringResource(R.string.explorer_navigation_error_title),
                 error = error,
-                onCopyError = { vm?.copyNavigationError() },
+                onShareError = { vm?.shareNavigationError() },
                 onRetry = { vm?.retryNavigation() },
                 onDismiss = { vm?.dismissNavigationError() },
             )

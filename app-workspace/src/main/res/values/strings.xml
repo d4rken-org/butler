@@ -100,7 +100,6 @@
     <string name="operations_details_error">Error details</string>
     <string name="operations_details_actions">Actions</string>
     <string name="operations_details_overview">Overview</string>
-    <string name="operations_details_copy_error">Copy error details</string>
     <string name="operations_details_handle_issue">Handle issue</string>
     <string name="operations_details_status">Status</string>
     <string name="operations_details_result">Result</string>
@@ -213,7 +212,6 @@
     <!-- Error Display (shared across workspaces) -->
     <string name="workspace_error_show_details_action">Show technical details</string>
     <string name="workspace_error_hide_details_action">Hide technical details</string>
-    <string name="workspace_error_copy_action">Copy error</string>
 
     <!-- Workspace State Components -->
     <string name="workspace_initializing_title">Initializing tab</string>

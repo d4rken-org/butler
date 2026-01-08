@@ -109,7 +109,7 @@ fun DeveloperWorkspacePageHost(
                 operationDialogState = OperationDialogState.None
                 vm.cancelOperation(operationId)
             },
-            onCopyError = {},
+            onShareError = {},
             onHandleIssue = {},
             bottomInset = navBarInset,
         )

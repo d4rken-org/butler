@@ -12,7 +12,7 @@ fun OperationDialogHost(
     operations: List<OperationDisplay>,
     onDismissDialog: () -> Unit,
     onCancelOperation: ((Operation.Id) -> Unit)? = null,
-    onCopyError: ((Operation.Id) -> Unit)? = null,
+    onShareError: ((Operation.Id) -> Unit)? = null,
     onHandleIssue: ((Operation.Id) -> Unit)? = null,
     bottomInset: Dp = 0.dp,
 ) {
@@ -35,9 +35,9 @@ fun OperationDialogHost(
                             onCancelOperation?.invoke(currentOperation.id)
                         }
                     } else null,
-                    onCopyError = if (currentOperation.state is OperationDisplay.State.Failed) {
+                    onShareError = if (currentOperation.state is OperationDisplay.State.Failed) {
                         {
-                            onCopyError?.invoke(currentOperation.id)
+                            onShareError?.invoke(currentOperation.id)
                             onDismissDialog()
                         }
                     } else null,

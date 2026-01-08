@@ -252,9 +252,9 @@ sealed interface SearcherPageAction {
      */
     sealed interface Error : SearcherPageAction {
         /**
-         * Copy error details to clipboard
+         * Share error details
          */
-        data class Copy(val error: Throwable) : Error
+        data class Share(val error: Throwable) : Error
     }
 
     /**

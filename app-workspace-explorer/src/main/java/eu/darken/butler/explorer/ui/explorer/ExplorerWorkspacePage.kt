@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -223,7 +224,7 @@ fun ExplorerWorkspacePage(
                     operationDialogState = OperationDialogState.None
                     showCancelConfirmation = operationId
                 },
-                onCopyError = { vm?.copyError(it) },
+                onShareError = { vm?.shareError(it) },
                 onHandleIssue = { operationId ->
                     vm?.showConflictSheet(operationId)
                 },
@@ -300,6 +301,14 @@ fun ExplorerWorkspacePageHost(
     LaunchedEffect(vm) {
         vm.safPickerEvents.collect { intent ->
             safPickerLauncher.launch(intent)
+        }
+    }
+
+    // Handle share intent events
+    val context = LocalContext.current
+    LaunchedEffect(vm) {
+        vm.shareIntentEvent.collect { intent ->
+            context.startActivity(intent)
         }
     }
 

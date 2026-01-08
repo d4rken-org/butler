@@ -15,7 +15,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
@@ -50,7 +50,7 @@ fun ErrorCard(
     modifier: Modifier = Modifier,
     title: String,
     error: Throwable,
-    onCopyError: () -> Unit,
+    onShareError: () -> Unit,
     onRetry: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null,
 ) {
@@ -209,7 +209,7 @@ fun ErrorCard(
                 }
 
                 OutlinedButton(
-                    onClick = onCopyError,
+                    onClick = onShareError,
                     modifier = if (onRetry != null) {
                         Modifier.weight(1f)
                     } else {
@@ -221,11 +221,11 @@ fun ErrorCard(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
-                            imageVector = Icons.TwoTone.ContentCopy,
+                            imageVector = Icons.TwoTone.Share,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
-                        Text(stringResource(R.string.workspace_error_copy_action))
+                        Text(stringResource(eu.darken.butler.common.R.string.general_share_error_action))
                     }
                 }
             }
@@ -240,7 +240,7 @@ private fun ErrorCardWithRetryPreview() {
         ErrorCard(
             title = "Navigation Failed",
             error = IOException("Failed to read directory: Permission denied"),
-            onCopyError = {},
+            onShareError = {},
             onRetry = {},
             onDismiss = {},
         )
@@ -254,7 +254,7 @@ private fun ErrorCardNoRetryPreview() {
         ErrorCard(
             title = "Search Error",
             error = RuntimeException("Unexpected error occurred while searching"),
-            onCopyError = {},
+            onShareError = {},
             onDismiss = null,
         )
     }
@@ -267,7 +267,7 @@ private fun ErrorCardMinimalPreview() {
         ErrorCard(
             title = "Error",
             error = NullPointerException("Path lookup returned null"),
-            onCopyError = {},
+            onShareError = {},
         )
     }
 }

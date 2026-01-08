@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -131,6 +132,14 @@ fun SearcherWorkspacePage(
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
+
+    // Handle share intent events
+    val context = LocalContext.current
+    LaunchedEffect(vm) {
+        vm?.shareIntentEvent?.collect { intent ->
+            context.startActivity(intent)
+        }
+    }
 
     // Use rememberUpdatedState for callback to avoid lambda recreation
     val currentOnPageAction by rememberUpdatedState(onPageAction)
@@ -431,7 +440,7 @@ fun SearcherWorkspacePage(
                                         ErrorCard(
                                             title = stringResource(R.string.searcher_search_error),
                                             error = item.throwable,
-                                            onCopyError = { onPageAction(SearcherPageAction.Error.Copy(item.throwable)) },
+                                            onShareError = { onPageAction(SearcherPageAction.Error.Share(item.throwable)) },
                                             onDismiss = null,
                                         )
                                     }
@@ -694,8 +703,8 @@ fun SearcherWorkspacePage(
             SearchErrorDialog(
                 path = path,
                 exception = exception,
-                onCopyError = {
-                    onPageAction(SearcherPageAction.Error.Copy(exception))
+                onShareError = {
+                    onPageAction(SearcherPageAction.Error.Share(exception))
                     errorDialogState = null
                 },
                 onDismiss = { errorDialogState = null }
@@ -777,7 +786,7 @@ fun SearcherWorkspacePage(
             operationDialogState = OperationDialogState.None
             vm?.cancelOperation(operationId)
         },
-        onCopyError = { vm?.copyError(it) },
+        onShareError = { vm?.shareError(it) },
         onHandleIssue = { operationId ->
             vm?.showConflictSheet(operationId)
         },

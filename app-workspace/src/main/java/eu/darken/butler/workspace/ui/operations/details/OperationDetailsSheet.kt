@@ -45,7 +45,7 @@ fun OperationDetailsSheet(
     modifier: Modifier = Modifier,
     bottomInset: Dp = 0.dp,
     onCancel: (() -> Unit)? = null,
-    onCopyError: (() -> Unit)? = null,
+    onShareError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
 ) {
     val isInPreview = LocalInspectionMode.current
@@ -58,7 +58,7 @@ fun OperationDetailsSheet(
             OperationDetailsContent(
                 operation = operation,
                 onCancel = onCancel,
-                onCopyError = onCopyError,
+                onShareError = onShareError,
                 onHandleIssue = onHandleIssue,
             )
         }
@@ -72,7 +72,7 @@ fun OperationDetailsSheet(
             OperationDetailsContent(
                 operation = operation,
                 onCancel = onCancel,
-                onCopyError = onCopyError,
+                onShareError = onShareError,
                 onHandleIssue = onHandleIssue,
             )
         }
@@ -83,7 +83,7 @@ fun OperationDetailsSheet(
 private fun OperationDetailsContent(
     operation: OperationDisplay,
     onCancel: (() -> Unit)? = null,
-    onCopyError: (() -> Unit)? = null,
+    onShareError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
 ) {
     Column(
@@ -143,7 +143,7 @@ private fun OperationDetailsContent(
         // Actions Section - only show if there are available actions
         val hasActions = when (operation.state) {
             is OperationDisplay.State.Running -> onCancel != null
-            is OperationDisplay.State.Failed -> onCopyError != null
+            is OperationDisplay.State.Failed -> onShareError != null
             is OperationDisplay.State.Waiting -> onHandleIssue != null
             else -> false
         }
@@ -152,7 +152,7 @@ private fun OperationDetailsContent(
             OperationActionsSection(
                 operation = operation,
                 onCancel = onCancel,
-                onCopyError = onCopyError,
+                onShareError = onShareError,
                 onHandleIssue = onHandleIssue,
             )
         }
@@ -257,7 +257,7 @@ private fun OperationDetailsSheetFailedPreview() {
                 startedAt = Clock.System.now() - 5.minutes,
             ),
             onDismiss = {},
-            onCopyError = {},
+            onShareError = {},
         )
     }
 }

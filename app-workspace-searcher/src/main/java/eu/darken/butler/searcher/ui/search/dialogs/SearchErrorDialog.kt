@@ -9,7 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -35,7 +36,7 @@ import java.io.IOException
 fun SearchErrorDialog(
     path: String,
     exception: Throwable,
-    onCopyError: () -> Unit,
+    onShareError: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var showDetails by rememberSaveable { mutableStateOf(false) }
@@ -96,10 +97,10 @@ fun SearchErrorDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onCopyError) {
-                Icon(Icons.TwoTone.ContentCopy, contentDescription = null)
+            TextButton(onClick = onShareError) {
+                Icon(Icons.TwoTone.Share, contentDescription = null)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Copy")
+                Text(stringResource(eu.darken.butler.common.R.string.general_share_error_action))
             }
         }
     )
@@ -112,7 +113,7 @@ private fun SearchErrorDialogPreview() {
         SearchErrorDialog(
             path = "/storage/emulated/0",
             exception = SecurityException("Permission denied: READ_EXTERNAL_STORAGE required"),
-            onCopyError = {},
+            onShareError = {},
             onDismiss = {}
         )
     }
@@ -125,7 +126,7 @@ private fun SearchErrorDialogLongMessagePreview() {
         SearchErrorDialog(
             path = "/data/data/com.example.app",
             exception = IOException("I/O error occurred while trying to access the directory: Operation not permitted due to insufficient file system permissions"),
-            onCopyError = {},
+            onShareError = {},
             onDismiss = {}
         )
     }

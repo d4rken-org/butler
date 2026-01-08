@@ -20,6 +20,7 @@ class ErrorReportTool @Inject constructor(
         throwable: Throwable,
         message: String? = null,
         errorContext: String? = null,
+        metadata: Map<String, String?> = emptyMap(),
     ): ErrorReport = ErrorReport(
         title = context.getString(R.string.general_error_report_title),
         deviceFingerprint = Build.FINGERPRINT,
@@ -28,6 +29,7 @@ class ErrorReportTool @Inject constructor(
         context = errorContext,
         errorMessage = throwable.message ?: throwable.javaClass.simpleName,
         stackTrace = throwable.asLog(),
+        metadata = metadata,
     )
 
     fun copyToClipboard(report: ErrorReport) {

@@ -8,6 +8,7 @@ data class ErrorReport(
     val context: String?,
     val errorMessage: String,
     val stackTrace: String,
+    val metadata: Map<String, String?> = emptyMap(),
 ) {
     fun toMarkdown(): String = buildString {
         appendLine("# $title")
@@ -17,6 +18,13 @@ data class ErrorReport(
         appendLine("* `$appVersion`")
         context?.let {
             appendLine("* Context: $it")
+        }
+        if (metadata.isNotEmpty()) {
+            appendLine()
+            appendLine("## Details")
+            metadata.forEach { (key, value) ->
+                if (value != null) appendLine("* $key: `$value`")
+            }
         }
         customMessage?.let {
             appendLine()
@@ -37,6 +45,9 @@ data class ErrorReport(
         appendLine("Device: $deviceFingerprint")
         appendLine("Version: $appVersion")
         context?.let { appendLine("Context: $it") }
+        metadata.forEach { (key, value) ->
+            if (value != null) appendLine("$key: $value")
+        }
         customMessage?.let { appendLine("Message: $it") }
         appendLine()
         appendLine("Error: $errorMessage")

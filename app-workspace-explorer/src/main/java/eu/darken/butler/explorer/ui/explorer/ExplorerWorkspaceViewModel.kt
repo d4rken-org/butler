@@ -89,7 +89,6 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.returnResult
-import eu.darken.butler.workspace.ui.operations.CopyErrorTool
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.delay
@@ -126,7 +125,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     itemSorterFactory: ExplorerItemSorter.Factory,
     private val operationsManager: OperationsManager,
     private val systemClipboardHelper: SystemClipboardHelper,
-    private val copyErrorTool: CopyErrorTool,
     private val upgradeRepo: UpgradeRepo,
     private val filenameValidator: FilenameValidator,
     private val gatewaySwitch: GatewaySwitch,
@@ -154,6 +152,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
 
     val safPickerEvents = SingleEventFlow<Intent>()
+
+    val shareIntentEvent = SingleEventFlow<Intent>()
 
     // Reveal and highlight functionality
     data class RevealRequest(
@@ -1660,16 +1660,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun copyError(id: Operation.Id) = launch {
-        log(tag) { "copyError($id)" }
+    fun shareError(id: Operation.Id) = launch {
+        log(tag) { "shareError($id)" }
         val operation = operationsManager.get(id)
         if (operation == null) {
             log(tag, ERROR) { "Operation with id $id not found" }
             return@launch
         }
-        copyErrorTool.formatError(operation)?.let {
-            systemClipboardHelper.copyToClipboard(it)
-        }
+        val state = operation.state.value as? Operation.State.Completed ?: return@launch
+        val error = state.error ?: return@launch
+
+        val metadata = mapOf<String, String?>(
+            "OperationId" to operation.id.toString(),
+            "Source" to operation.metadata.origin.toString(),
+            "CompletedAt" to state.completedAt.toString(),
+        )
+        val report = errorReportTool.buildReport(
+            throwable = error,
+            message = "${operation.metadata.title.get(context)}\n${operation.metadata.description.get(context)}",
+            errorContext = "Operation error in workspace ${this@ExplorerWorkspaceViewModel.id.shortTag}",
+            metadata = metadata,
+        )
+        val intent = errorReportTool.createShareChooserIntent(report)
+        shareIntentEvent.tryEmit(intent)
     }
 
     fun cancelOperation(id: Operation.Id) = launch {
@@ -1745,14 +1758,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun copyNavigationError() = launch {
-        log(tag) { "copyNavigationError()" }
+    fun shareNavigationError() = launch {
+        log(tag) { "shareNavigationError()" }
         workspaceReadyState.first()?.error?.let { throwable ->
             val report = errorReportTool.buildReport(
                 throwable = throwable,
                 errorContext = "Navigation error in workspace ${id.shortTag}",
             )
-            errorReportTool.copyToClipboard(report)
+            val intent = errorReportTool.createShareChooserIntent(report)
+            shareIntentEvent.tryEmit(intent)
         }
     }
 
@@ -1763,7 +1777,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             throwable = errorState.error,
             errorContext = "Workspace initialization failed: ${id.shortTag}",
         )
-        errorReportTool.copyToClipboard(report)
+        val intent = errorReportTool.createShareChooserIntent(report)
+        shareIntentEvent.tryEmit(intent)
     }
 
     fun closeWorkspace() = launch {

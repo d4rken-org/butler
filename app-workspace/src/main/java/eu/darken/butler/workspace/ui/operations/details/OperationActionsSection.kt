@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Handyman
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,7 +31,7 @@ import eu.darken.butler.workspace.ui.operations.OperationDisplay
 internal fun OperationActionsSection(
     operation: OperationDisplay,
     onCancel: (() -> Unit)? = null,
-    onCopyError: (() -> Unit)? = null,
+    onShareError: (() -> Unit)? = null,
     onHandleIssue: (() -> Unit)? = null,
 ) {
     Card(
@@ -80,18 +80,18 @@ internal fun OperationActionsSection(
                         }
                     }
                     is OperationDisplay.State.Failed -> {
-                        if (onCopyError != null) {
+                        if (onShareError != null) {
                             OutlinedButton(
-                                onClick = onCopyError,
+                                onClick = onShareError,
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(
-                                    imageVector = Icons.TwoTone.ContentCopy,
+                                    imageVector = Icons.TwoTone.Share,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(R.string.operations_details_copy_error))
+                                Text(stringResource(eu.darken.butler.common.R.string.general_share_error_action))
                             }
                         }
                     }

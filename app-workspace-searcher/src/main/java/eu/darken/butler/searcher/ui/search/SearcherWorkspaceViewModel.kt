@@ -1,6 +1,7 @@
 package eu.darken.butler.searcher.ui.search
 
 import android.content.Context
+import android.content.Intent
 import android.webkit.MimeTypeMap
 import androidx.compose.runtime.Stable
 import dagger.assisted.Assisted
@@ -69,7 +70,6 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.workspace.ui.operations.CopyErrorTool
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlinx.coroutines.flow.Flow
@@ -111,7 +111,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val shareIntentUseCase: ShareIntentUseCase,
     private val trashSettings: TrashSettings,
     private val errorReportTool: ErrorReportTool,
-    private val copyErrorTool: CopyErrorTool,
     itemSorterFactory: SearchItemSorter.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
 
@@ -146,6 +145,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private var currentIssueOperationId: Operation.Id? = null
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
+
+    val shareIntentEvent = SingleEventFlow<Intent>()
 
     // Observe workspace search state
     private val workspaceSearchState: Flow<SearcherWorkspace.State> = workspaceSource
@@ -1111,16 +1112,29 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         operationsManager.cancel(id)
     }
 
-    fun copyError(id: Operation.Id) = launch {
-        log(TAG) { "copyError($id)" }
+    fun shareError(id: Operation.Id) = launch {
+        log(TAG) { "shareError($id)" }
         val operation = operationsManager.get(id)
         if (operation == null) {
             log(TAG, ERROR) { "Operation with id $id not found" }
             return@launch
         }
-        copyErrorTool.formatError(operation)?.let {
-            systemClipboardHelper.copyToClipboard(it)
-        }
+        val state = operation.state.value as? Operation.State.Completed ?: return@launch
+        val error = state.error ?: return@launch
+
+        val metadata = mapOf<String, String?>(
+            "OperationId" to operation.id.toString(),
+            "Source" to operation.metadata.origin.toString(),
+            "CompletedAt" to state.completedAt.toString(),
+        )
+        val report = errorReportTool.buildReport(
+            throwable = error,
+            message = "${operation.metadata.title.get(appContext)}\n${operation.metadata.description.get(appContext)}",
+            errorContext = "Operation error in workspace ${this@SearcherWorkspaceViewModel.id.shortTag}",
+            metadata = metadata,
+        )
+        val intent = errorReportTool.createShareChooserIntent(report)
+        shareIntentEvent.tryEmit(intent)
     }
 
     fun showConflictSheet(operationId: Operation.Id) = launch {
@@ -1147,7 +1161,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             throwable = error,
             errorContext = "Workspace initialization failed: ${id.shortTag}",
         )
-        errorReportTool.copyToClipboard(report)
+        val intent = errorReportTool.createShareChooserIntent(report)
+        shareIntentEvent.tryEmit(intent)
     }
 
     fun closeWorkspace() = launch {
@@ -1345,13 +1360,14 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             )
 
             // Error
-            is SearcherPageAction.Error.Copy -> {
-                log(TAG) { "copySearchError(${action.error.javaClass.simpleName})" }
+            is SearcherPageAction.Error.Share -> {
+                log(TAG) { "shareSearchError(${action.error.javaClass.simpleName})" }
                 val report = errorReportTool.buildReport(
                     throwable = action.error,
                     errorContext = "Search operation in workspace ${id.shortTag}",
                 )
-                errorReportTool.copyToClipboard(report)
+                val intent = errorReportTool.createShareChooserIntent(report)
+                shareIntentEvent.tryEmit(intent)
             }
 
             // Workspace actions (delegate to existing handler)
