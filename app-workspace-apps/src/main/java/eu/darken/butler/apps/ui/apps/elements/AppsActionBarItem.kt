@@ -1,4 +1,4 @@
-package eu.darken.butler.apps.ui.apps
+package eu.darken.butler.apps.ui.apps.elements
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Launch

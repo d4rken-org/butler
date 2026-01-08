@@ -1,4 +1,4 @@
-package eu.darken.butler.apps.ui.apps
+package eu.darken.butler.apps.ui.apps.elements
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource

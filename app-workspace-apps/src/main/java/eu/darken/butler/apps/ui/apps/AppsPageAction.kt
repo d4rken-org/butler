@@ -4,12 +4,13 @@ import androidx.compose.ui.text.input.TextFieldValue
 import eu.darken.butler.apps.core.SortSettings
 import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.apps.core.engine.AppItem
+import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
 
 /**
  * Sealed interface representing all page-level actions in the Apps workspace.
  * This consolidates the various callbacks from AppsWorkspacePage into a single type-safe hierarchy.
  *
- * Note: This is distinct from [AppsActionBarItem] which represents workspace-level action bar
+ * Note: This is distinct from [eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem] which represents workspace-level action bar
  * button/chip definitions. [AppsPageAction] encompasses all UI interactions.
  */
 sealed interface AppsPageAction {
@@ -58,7 +59,7 @@ sealed interface AppsPageAction {
 
     /**
      * Wrapper for action bar item clicks.
-     * Delegates to existing [AppsActionBarItem] for domain operations.
+     * Delegates to existing [eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem] for domain operations.
      */
     data class ActionBarClick(val item: AppsActionBarItem) : AppsPageAction
 }
