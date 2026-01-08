@@ -45,7 +45,7 @@ class ChunkManager @AssistedInject constructor(
     private var maxCachedChunks: Int = DEFAULT_MAX_CACHED_CHUNKS
 
     suspend fun loadChunk(chunkId: TextChunk.ChunkId): Result<TextChunk> = chunkMutex.withLock {
-        val boundary = boundaries[chunkId]
+        boundaries[chunkId]
 
         // Check if already loaded - but always reload if chunk was evicted/cache cleared
         // This ensures we don't serve stale cached chunks after boundary changes

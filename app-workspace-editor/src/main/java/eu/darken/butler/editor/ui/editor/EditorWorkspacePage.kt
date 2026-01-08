@@ -1,51 +1,35 @@
 package eu.darken.butler.editor.ui.editor
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.Error
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.caString
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
+import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
+import eu.darken.butler.editor.ui.editor.elements.EditorErrorBanner
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
+import eu.darken.butler.editor.ui.editor.elements.EditorLoadingOverlay
 import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
 import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
 import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
@@ -76,6 +60,10 @@ fun EditorWorkspacePageHost(
 ) {
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
+    LifecycleResumeEffect(Unit) {
+        vm.refreshClipboardState()
+        onPauseOrDispose {}
+    }
 
     val clipboardInfoClip by vm.clipboardInfoClip.collectAsState(null)
 
@@ -99,19 +87,17 @@ fun EditorWorkspacePage(
     clipboardStateSource: Flow<EditorWorkspaceViewModel.ClipboardState> = flowOf(EditorWorkspaceViewModel.ClipboardState()),
     clipboardInfoClip: ClipboardClip? = null,
     onPageAction: (EditorPageAction) -> Unit,
-    onActionExecute: (EditorAction) -> Unit = {},
-    onActionLongClick: (EditorAction) -> Unit = {},
+    onActionExecute: (EditorActionBarItem) -> Unit = {},
+    onActionLongClick: (EditorActionBarItem) -> Unit = {},
 ) {
-    val mainState by mainStateSource.collectAsState(EditorWorkspaceViewModel.State.Initializing)
+    // Page is hidden by WorkspaceMapper during Init/Error states, so nothing to render until Ready
+    val stateOrNull by mainStateSource.collectAsState(null)
     val clipboardState by clipboardStateSource.collectAsState(EditorWorkspaceViewModel.ClipboardState())
 
-    val hasClipboard by remember {
-        derivedStateOf { clipboardState.entries.isNotEmpty() }
-    }
+    val state = stateOrNull ?: return
 
-    // Derive Ready state properties with safe defaults for non-Ready states
-    val readyState = mainState as? EditorWorkspaceViewModel.State.Ready
-    val hasActions = readyState?.availableActions?.isNotEmpty() == true
+    val hasClipboard by remember { derivedStateOf { clipboardState.entries.isNotEmpty() } }
+    val hasActions = state.availableActions.isNotEmpty()
 
     val topBarStackState = rememberFloatingBarStackState(
         position = BarPosition.TOP,
@@ -128,10 +114,7 @@ fun EditorWorkspacePage(
         includeSystemBarInset = design.paneEdges.touchesBottom,
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         // Top floating bars
         FloatingBarStack(
             modifier = Modifier
@@ -141,53 +124,46 @@ fun EditorWorkspacePage(
             position = BarPosition.TOP,
             state = topBarStackState,
             bars = {
-                // Toolbar - ALWAYS visible with safe defaults for non-Ready states
                 FloatingBar(
                     scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
-                    estimatedHeight = 80.dp, // EditorToolbarCard expanded height
+                    estimatedHeight = 80.dp,
                     animation = BarAnimation.Slide(),
                     modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     EditorToolbarCard(
                         workspaceId = workspaceId,
                         design = design,
-                        title = readyState?.title ?: "".toCaString(),
-                        subTitle = readyState?.subTitle ?: "".toCaString(),
-                        isModified = readyState?.isModified ?: false,
-                        isLoading = readyState?.isLoading ?: (mainState is EditorWorkspaceViewModel.State.Initializing),
-                        hasContent = readyState?.hasContent ?: false,
-                        canUndo = readyState?.canUndo ?: false,
-                        canRedo = readyState?.canRedo ?: false,
+                        title = state.title,
+                        subTitle = state.subTitle,
+                        isModified = state.isModified,
+                        isLoading = state.isLoading,
+                        hasContent = state.hasContent,
+                        canUndo = state.canUndo,
+                        canRedo = state.canRedo,
                         onAction = onPageAction,
                         collapsedFraction = collapsedFraction,
                     )
                 }
-                // InfoBar - only when Ready
                 FloatingBar(
-                    visible = readyState != null,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                    estimatedHeight = 24.dp, // InfoChip height
+                    estimatedHeight = 24.dp,
                     animation = BarAnimation.Slide(),
                     modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
-                    if (readyState != null) {
-                        EditorInfoBar(
-                            fileSize = readyState.fileSize,
-                            totalLines = readyState.totalLines,
-                            cursorLine = readyState.cursorPosition.line,
-                            cursorColumn = readyState.cursorPosition.column,
-                            selectedLineCount = readyState.selectedLineCount,
-                            selectedCharacterCount = readyState.selectedCharacterCount,
-                            onClearSelection = {
-                                onPageAction(EditorPageAction.Navigation.ClearSelection(readyState.cursorPosition))
-                            },
-                        )
-                    }
+                    EditorInfoBar(
+                        fileSize = state.fileSize,
+                        totalLines = state.totalLines,
+                        cursorLine = state.cursorPosition.line,
+                        cursorColumn = state.cursorPosition.column,
+                        selectedLineCount = state.selectedLineCount,
+                        selectedCharacterCount = state.selectedCharacterCount,
+                        onClearSelection = { onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition)) },
+                    )
                 }
             },
         )
 
-        // Bottom floating bars - only when Ready
+        // Bottom floating bars
         FloatingBarStack(
             modifier = Modifier
                 .zIndex(1f)
@@ -197,31 +173,29 @@ fun EditorWorkspacePage(
             state = bottomBarStackState,
             bars = {
                 FloatingBar(
-                    visible = readyState?.isSearchBarVisible == true,
+                    visible = state.isSearchBarVisible,
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
                     modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
-                    if (readyState?.isSearchBarVisible == true) {
-                        EditorSearchBar(
-                            searchQuery = readyState.searchQueryInput,
-                            searchResults = readyState.searchResults,
-                            currentIndex = readyState.currentSearchResultIndex,
-                            caseSensitive = readyState.searchCaseSensitive,
-                            regexEnabled = readyState.searchRegexEnabled,
-                            wholeWord = readyState.searchWholeWord,
-                            onSearchQueryChange = { onPageAction(EditorPageAction.Search.UpdateQuery(it)) },
-                            onCaseSensitiveToggle = { onPageAction(EditorPageAction.Search.ToggleCaseSensitive) },
-                            onRegexToggle = { onPageAction(EditorPageAction.Search.ToggleRegex) },
-                            onWholeWordToggle = { onPageAction(EditorPageAction.Search.ToggleWholeWord) },
-                            onPrevious = { onPageAction(EditorPageAction.Search.PreviousResult) },
-                            onNext = { onPageAction(EditorPageAction.Search.NextResult) },
-                            onClose = { onPageAction(EditorPageAction.Search.Close) },
-                        )
-                    }
+                    EditorSearchBar(
+                        searchQuery = state.searchQueryInput,
+                        searchResults = state.searchResults,
+                        currentIndex = state.currentSearchResultIndex,
+                        caseSensitive = state.searchCaseSensitive,
+                        regexEnabled = state.searchRegexEnabled,
+                        wholeWord = state.searchWholeWord,
+                        onSearchQueryChange = { onPageAction(EditorPageAction.Search.UpdateQuery(it)) },
+                        onCaseSensitiveToggle = { onPageAction(EditorPageAction.Search.ToggleCaseSensitive) },
+                        onRegexToggle = { onPageAction(EditorPageAction.Search.ToggleRegex) },
+                        onWholeWordToggle = { onPageAction(EditorPageAction.Search.ToggleWholeWord) },
+                        onPrevious = { onPageAction(EditorPageAction.Search.PreviousResult) },
+                        onNext = { onPageAction(EditorPageAction.Search.NextResult) },
+                        onClose = { onPageAction(EditorPageAction.Search.Close) },
+                    )
                 }
                 FloatingBar(
-                    visible = readyState != null && hasClipboard,
+                    visible = hasClipboard,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
                     animation = BarAnimation.Bouncy,
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -241,172 +215,37 @@ fun EditorWorkspacePage(
                     animation = BarAnimation.Slide(),
                     modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
-                    if (readyState != null) {
-                        EditorActionBar(
-                            actions = readyState.availableActions,
-                            onActionClick = onActionExecute,
-                            onActionLongClick = onActionLongClick,
-                        )
-                    }
+                    EditorActionBar(
+                        actions = state.availableActions,
+                        onActionClick = onActionExecute,
+                        onActionLongClick = onActionLongClick,
+                    )
                 }
             },
         )
 
-        // Main content area - only rendered when Ready (Init/Error handled by WorkspaceMapper)
+        // Main content area
         val topContentPadding = topBarStackState.contentPaddingDp()
         val bottomContentPadding = bottomBarStackState.contentPaddingDp()
 
-        val currentState = mainState as? EditorWorkspaceViewModel.State.Ready
-        if (currentState != null) {
-            EditorReadyContent(
-                state = currentState,
-                topContentPadding = topContentPadding,
-                bottomContentPadding = bottomContentPadding,
-                topBarNestedScrollConnection = topBarStackState.nestedScrollConnection,
-                bottomBarNestedScrollConnection = bottomBarStackState.nestedScrollConnection,
-                onPageAction = onPageAction,
-            )
-        }
-    }
-
-    // Dialogs - only when Ready
-    if (readyState?.showGoToLineDialog == true) {
-        GoToLineDialog(
-            totalLines = readyState.totalLines,
-            onGoToLine = { line ->
-                onPageAction(EditorPageAction.Navigation.GoToLine(line))
-                onPageAction(EditorPageAction.Dialog.DismissGoToLine)
-            },
-            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissGoToLine) },
-        )
-    }
-
-    if (readyState?.showCloseConfirmDialog == true) {
-        CloseConfirmDialog(
-            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmClose) },
-            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissCloseConfirm) },
-        )
-    }
-
-    clipboardInfoClip?.let { clip ->
-        ClipboardInfoBottomSheet(
-            clip = clip,
-            onDismiss = { onPageAction(EditorPageAction.Clipboard.DismissInfo) },
-            onNavigateToSource = null,
-            onPaste = { onPageAction(EditorPageAction.Clipboard.Paste(clip)) },
-            onRemove = { onPageAction(EditorPageAction.Clipboard.Remove(clip)) },
-        )
-    }
-}
-
-@Composable
-private fun ErrorBanner(
-    error: Throwable,
-    onDismiss: () -> Unit
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.errorContainer,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                Icons.TwoTone.Error,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer
-            )
-
-            Spacer(Modifier.width(16.dp))
-
-            Text(
-                text = error.message ?: stringResource(R.string.editor_error_unknown),
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.weight(1f)
-            )
-
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    Icons.TwoTone.Close,
-                    contentDescription = stringResource(R.string.editor_action_dismiss),
-                    tint = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun EditorLoadingOverlay(
-    modifier: Modifier = Modifier,
-    fileName: String? = null,
-    onCancel: () -> Unit = {},
-) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(48.dp)
-            )
-            Text(
-                text = fileName ?: stringResource(R.string.editor_loading_file),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            TextButton(onClick = onCancel) {
-                Text(stringResource(R.string.editor_action_cancel_loading))
-            }
-        }
-    }
-}
-
-/**
- * Content for Ready state - type-safe, no casting needed.
- */
-@Composable
-private fun EditorReadyContent(
-    state: EditorWorkspaceViewModel.State.Ready,
-    topContentPadding: Dp,
-    bottomContentPadding: Dp,
-    topBarNestedScrollConnection: NestedScrollConnection,
-    bottomBarNestedScrollConnection: NestedScrollConnection,
-    onPageAction: (EditorPageAction) -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            // Error display (soft errors within Ready state)
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Error banner (soft errors within Ready state)
             state.error?.let { error ->
-                ErrorBanner(
+                EditorErrorBanner(
                     error = error,
-                    onDismiss = { onPageAction(EditorPageAction.Error.Clear) }
+                    onDismiss = { onPageAction(EditorPageAction.Error.Clear) },
                 )
             }
 
-            // Main editor content - conditional rendering based on file state
+            // Main editor content
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
                 if (!state.hasFile && state.isLoading) {
-                    // Initial file load - show centered loading overlay
-                    EditorLoadingOverlay(
-                        onCancel = { onPageAction(EditorPageAction.File.CancelOpen) }
-                    )
+                    EditorLoadingOverlay()
                 } else {
-                    // Show editor (with file content or empty in-memory buffer)
                     LazyTextEditor(
                         contentPadding = PaddingValues(
                             top = topContentPadding,
@@ -427,7 +266,11 @@ private fun EditorReadyContent(
                         onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
                         onTextDelete = { count -> onPageAction(EditorPageAction.Edit.DeleteAtCursor(count)) },
                         onCursorPositionChange = { position ->
-                            onPageAction(EditorPageAction.Navigation.SetCursor(position))
+                            onPageAction(
+                                EditorPageAction.Navigation.SetCursor(
+                                    position
+                                )
+                            )
                         },
                         onSelectionChange = { selection ->
                             if (selection != null) {
@@ -447,17 +290,44 @@ private fun EditorReadyContent(
                         onCursorMove = { direction, extendSelection ->
                             onPageAction(EditorPageAction.Navigation.MoveCursor(direction, extendSelection))
                         },
-                        onForwardDelete = {
-                            onPageAction(EditorPageAction.Edit.ForwardDelete)
-                        },
+                        onForwardDelete = { onPageAction(EditorPageAction.Edit.ForwardDelete) },
                         modifier = Modifier
                             .fillMaxSize()
-                            .nestedScroll(topBarNestedScrollConnection)
-                            .nestedScroll(bottomBarNestedScrollConnection),
+                            .nestedScroll(topBarStackState.nestedScrollConnection)
+                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
                     )
                 }
             }
         }
+    }
+
+    // Dialogs
+    if (state.showGoToLineDialog) {
+        GoToLineDialog(
+            totalLines = state.totalLines,
+            onGoToLine = { line ->
+                onPageAction(EditorPageAction.Navigation.GoToLine(line))
+                onPageAction(EditorPageAction.Dialog.DismissGoToLine)
+            },
+            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissGoToLine) },
+        )
+    }
+
+    if (state.showCloseConfirmDialog) {
+        CloseConfirmDialog(
+            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmClose) },
+            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissCloseConfirm) },
+        )
+    }
+
+    clipboardInfoClip?.let { clip ->
+        ClipboardInfoBottomSheet(
+            clip = clip,
+            onDismiss = { onPageAction(EditorPageAction.Clipboard.DismissInfo) },
+            onNavigateToSource = null,
+            onPaste = { onPageAction(EditorPageAction.Clipboard.Paste(clip)) },
+            onRemove = { onPageAction(EditorPageAction.Clipboard.Remove(clip)) },
+        )
     }
 }
 
@@ -469,7 +339,7 @@ private fun EditorPagePreview() {
             workspaceId = Workspace.Id(),
             design = WorkspaceDesign(),
             mainStateSource = flowOf(
-                EditorWorkspaceViewModel.State.Ready(
+                EditorWorkspaceViewModel.State(
                     id = Workspace.Id(),
                     title = caString("test.txt"),
                     subTitle = caString("/some/storage/test.txt"),
@@ -483,10 +353,3 @@ private fun EditorPagePreview() {
     }
 }
 
-@Preview2
-@Composable
-private fun EditorLoadingOverlayPreview() {
-    PreviewWrapper {
-        EditorLoadingOverlay()
-    }
-}

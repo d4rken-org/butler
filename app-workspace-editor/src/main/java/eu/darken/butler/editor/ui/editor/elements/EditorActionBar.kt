@@ -4,21 +4,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.editor.ui.editor.EditorAction
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 
 @Composable
 fun EditorActionBar(
     modifier: Modifier = Modifier,
-    actions: List<EditorAction>,
-    onActionClick: (EditorAction) -> Unit,
-    onActionLongClick: (EditorAction) -> Unit = {},
+    actions: List<EditorActionBarItem>,
+    onActionClick: (EditorActionBarItem) -> Unit,
+    onActionLongClick: (EditorActionBarItem) -> Unit = {},
 ) {
     WorkspaceActionBar(
         modifier = modifier,
         actions = actions,
-        onActionClick = { action -> onActionClick(action as EditorAction) },
-        onActionLongClick = { action -> onActionLongClick(action as EditorAction) },
+        onActionClick = { action -> onActionClick(action as EditorActionBarItem) },
+        onActionLongClick = { action -> onActionLongClick(action as EditorActionBarItem) },
     )
 }
 
@@ -27,10 +26,10 @@ fun EditorActionBar(
 private fun EditorActionBarPreview() = PreviewWrapper {
     EditorActionBar(
         actions = listOf(
-            EditorAction.Cut,
-            EditorAction.Copy,
-            EditorAction.Paste,
-            EditorAction.Delete,
+            EditorActionBarItem.Cut,
+            EditorActionBarItem.Copy,
+            EditorActionBarItem.Paste,
+            EditorActionBarItem.Delete,
         ),
         onActionClick = {},
     )

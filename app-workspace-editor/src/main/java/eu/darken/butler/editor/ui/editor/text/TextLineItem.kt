@@ -66,7 +66,7 @@ internal fun TextLineItem(
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val density = LocalDensity.current
     val cursorColor = MaterialTheme.colorScheme.primary
-    val expandedText = remember(lineContent, tabSize) { lineContent.expandTabs(tabSize) }
+    remember(lineContent, tabSize) { lineContent.expandTabs(tabSize) }
 
     // Blinking animation when focused
     val infiniteTransition = rememberInfiniteTransition(label = "cursor_blink")
@@ -197,7 +197,7 @@ internal fun TextLineItem(
                     layoutResultForWidth != null && position == expandedText.length - 1 && expandedText.isNotEmpty() -> {
                         val box = layoutResultForWidth.getBoundingBox(position)
                         if (position > 0) {
-                            val prevBox = layoutResultForWidth.getBoundingBox(position - 1)
+                            layoutResultForWidth.getBoundingBox(position - 1)
                             (box.right - box.left).coerceAtLeast(0f)
                         } else {
                             with(density) { (fontSize * 0.6f).sp.toPx() }
@@ -300,8 +300,10 @@ internal fun SelectableText(
 
                     if (layout != null && wordWrap && layout.lineCount > 1) {
                         // Multi-line wrapped text
-                        val startVisualLine = layout.getLineForOffset(adjustedStart.coerceIn(0, text.length.coerceAtLeast(1) - 1))
-                        val endVisualLine = layout.getLineForOffset((adjustedEnd - 1).coerceIn(0, text.length.coerceAtLeast(1) - 1))
+                        val startVisualLine =
+                            layout.getLineForOffset(adjustedStart.coerceIn(0, text.length.coerceAtLeast(1) - 1))
+                        val endVisualLine =
+                            layout.getLineForOffset((adjustedEnd - 1).coerceIn(0, text.length.coerceAtLeast(1) - 1))
 
                         for (visualLine in startVisualLine..endVisualLine) {
                             val lineStartOffset = layout.getLineStart(visualLine)
@@ -340,7 +342,8 @@ internal fun SelectableText(
                         // Single line
                         val bounds = runCatching {
                             val startBounds = layout.getBoundingBox(adjustedStart)
-                            val endBounds = layout.getBoundingBox((adjustedEnd - 1).coerceAtLeast(0).coerceAtMost(text.length - 1))
+                            val endBounds =
+                                layout.getBoundingBox((adjustedEnd - 1).coerceAtLeast(0).coerceAtMost(text.length - 1))
                             SelectionBounds(
                                 startBounds.left,
                                 0f,

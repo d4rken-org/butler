@@ -64,7 +64,7 @@ import eu.darken.butler.searcher.ui.search.items.SelectableFileGrid
 import eu.darken.butler.searcher.ui.search.items.SelectableFileRow
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.searcher.ui.search.util.SearchListItem
-import eu.darken.butler.searcher.ui.search.util.SearcherAction
+import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
@@ -278,29 +278,29 @@ fun SearcherWorkspacePage(
                 on(KeyboardShortcut.Copy) {
                     val selectedResults = currentState.selectionState.selectedResults
                     if (selectedResults.isNotEmpty()) {
-                        onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.Copy(selectedResults)))
+                        onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.Copy(selectedResults)))
                     }
                 }
                 on(KeyboardShortcut.Cut) {
                     val selectedResults = currentState.selectionState.selectedResults
                     if (selectedResults.isNotEmpty()) {
-                        onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.Cut(selectedResults)))
+                        onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.Cut(selectedResults)))
                     }
                 }
                 on(KeyboardShortcut.SelectAll) {
                     if (currentState.selectionState.selectableResults.isNotEmpty()) {
-                        onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.SelectAll))
+                        onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAll))
                     }
                 }
                 on(KeyboardShortcut.Delete) {
                     val selectedResults = currentState.selectionState.selectedResults
                     if (selectedResults.isNotEmpty()) {
-                        onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.Delete(selectedResults)))
+                        onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.Delete(selectedResults)))
                     }
                 }
                 on(KeyboardShortcut.Escape) {
                     if (currentState.selectionState.isSelectionMode) {
-                        onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.DeselectAll))
+                        onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.DeselectAll))
                     }
                 }
             }
@@ -606,10 +606,10 @@ fun SearcherWorkspacePage(
                         selectedCount = currentState.selectionState.selectionCount,
                         selectedSize = selectedSize,
                         onSelectAllFolders = {
-                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.SelectAllFolders))
+                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAllFolders))
                         },
                         onSelectAllFiles = {
-                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherAction.SelectAllFiles))
+                            onPageAction(SearcherPageAction.WorkspaceAction(SearcherActionBarItem.SelectAllFiles))
                         },
                         onClearSelection = { onPageAction(SearcherPageAction.Results.ExitSelectionMode) },
                     )
@@ -676,13 +676,13 @@ fun SearcherWorkspacePage(
                     WorkspaceActionBar(
                         actions = currentState.availableActions,
                         onActionClick = { action ->
-                            when (val searcherAction = action as SearcherAction) {
-                                is SearcherAction.DeselectAll -> onPageAction(SearcherPageAction.Results.ExitSelectionMode)
+                            when (val searcherAction = action as SearcherActionBarItem) {
+                                is SearcherActionBarItem.DeselectAll -> onPageAction(SearcherPageAction.Results.ExitSelectionMode)
                                 else -> onPageAction(SearcherPageAction.WorkspaceAction(searcherAction))
                             }
                         },
                         onActionLongClick = { action ->
-                            vm?.onActionLongClick(action as SearcherAction)
+                            vm?.onActionLongClick(action as SearcherActionBarItem)
                         },
                     )
                 }

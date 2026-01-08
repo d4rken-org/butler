@@ -34,7 +34,7 @@ import eu.darken.butler.common.formatDate
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.searcher.R
 import eu.darken.butler.searcher.core.SearchItem
-import eu.darken.butler.searcher.ui.search.util.SearcherAction
+import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.getEllipsizedMatchLine
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import kotlin.time.Clock
@@ -43,7 +43,7 @@ import kotlin.time.Clock
 fun SearchResultItemDetails(
     result: SearchItem,
     trashEnabled: Boolean,
-    onAction: (SearcherAction) -> Unit,
+    onAction: (SearcherActionBarItem) -> Unit,
     onLongPress: (SearchItem) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -192,14 +192,14 @@ fun SearchResultItemDetails(
                 // Primary actions
                 if (isTextFile(result)) {
                     QuickActionItem(
-                        action = SearcherAction.OpenInEditor(result),
+                        action = SearcherActionBarItem.OpenInEditor(result),
                         onClick = onAction,
                         isPrimary = true
                     )
                 }
 
                 QuickActionItem(
-                    action = SearcherAction.OpenInExplorer(result),
+                    action = SearcherActionBarItem.OpenInExplorer(result),
                     onClick = onAction,
                     isPrimary = true
                 )
@@ -211,12 +211,12 @@ fun SearchResultItemDetails(
 
                 // Clipboard actions
                 QuickActionItem(
-                    action = SearcherAction.Copy(listOf(result)),
+                    action = SearcherActionBarItem.Copy(listOf(result)),
                     onClick = onAction
                 )
 
                 QuickActionItem(
-                    action = SearcherAction.Cut(listOf(result)),
+                    action = SearcherActionBarItem.Cut(listOf(result)),
                     onClick = onAction
                 )
 
@@ -227,12 +227,12 @@ fun SearchResultItemDetails(
 
                 // Additional actions
                 QuickActionItem(
-                    action = SearcherAction.Share(listOf(result)),
+                    action = SearcherActionBarItem.Share(listOf(result)),
                     onClick = onAction
                 )
 
                 QuickActionItem(
-                    action = SearcherAction.CopyPath(result),
+                    action = SearcherActionBarItem.CopyPath(result),
                     onClick = onAction
                 )
 
@@ -243,7 +243,7 @@ fun SearchResultItemDetails(
 
                 // Destructive actions
                 QuickActionItem(
-                    action = SearcherAction.Delete(listOf(result), trashEnabled),
+                    action = SearcherActionBarItem.Delete(listOf(result), trashEnabled),
                     onClick = onAction,
                 )
             }
@@ -253,8 +253,8 @@ fun SearchResultItemDetails(
 
 @Composable
 private fun QuickActionItem(
-    action: SearcherAction,
-    onClick: (SearcherAction) -> Unit,
+    action: SearcherActionBarItem,
+    onClick: (SearcherActionBarItem) -> Unit,
     isPrimary: Boolean = false,
     isDestructive: Boolean = action.isDestructive,
     modifier: Modifier = Modifier

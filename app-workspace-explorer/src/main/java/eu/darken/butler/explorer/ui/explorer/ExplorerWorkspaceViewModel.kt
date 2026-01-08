@@ -58,7 +58,7 @@ import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
-import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemResult
 import eu.darken.butler.explorer.ui.explorer.dialogs.CreateItemType
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogEvent
@@ -225,7 +225,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             val viewStyle: ExplorerViewStyle = ExplorerViewStyle.default(),
             val canGoBack: Boolean = false,
             val canGoForward: Boolean = false,
-            val availableActions: List<ExplorerAction> = emptyList(),
+            val availableActions: List<ExplorerActionBarItem> = emptyList(),
             val dialogState: ExplorerDialogState = None,
             val setupRequirements: PathRequirements = PathRequirements(),
             val isPro: Boolean = false,
@@ -331,7 +331,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         val availableActions = pickerHelper.filterActionsForPicker(rawActions, pickerConfig)
                             .map { action ->
                                 // Add badge to Filter action if filters are active
-                                if (action is ExplorerAction.Common.Filter) {
+                                if (action is ExplorerActionBarItem.Common.Filter) {
                                     val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
                                         || filterState.includePattern.isNotBlank()
                                         || filterState.excludePattern.isNotBlank()
@@ -770,28 +770,28 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun executeAction(action: ExplorerAction) = launch {
+    fun executeAction(action: ExplorerActionBarItem) = launch {
         log(tag) { "executeAction(${action::class.simpleName})" }
         val stateSnap = getReadyState()
         if (stateSnap.items == null) return@launch
 
         // File actions come from bottom sheets - always dismiss first
-        if (action is ExplorerAction.File) {
+        if (action is ExplorerActionBarItem.File) {
             dismissDialog()
         }
 
         when (action) {
-            is ExplorerAction.Directory.Create -> {
+            is ExplorerActionBarItem.Directory.Create -> {
                 dialogEvents.emit(ExplorerDialogEvent.ShowCreateItem)
             }
-            is ExplorerAction.Directory.Rename -> {
+            is ExplorerActionBarItem.Directory.Rename -> {
                 val item = stateSnap.selectionState.selectedItems.single() as ExplorerItem.Lookup
                 val event = ExplorerDialogEvent.ShowRename(
                     item = item.lookup.lookedUp,
                 )
                 dialogEvents.emit(event)
             }
-            is ExplorerAction.Directory.Copy -> {
+            is ExplorerActionBarItem.Directory.Copy -> {
                 log(tag) { "copySelectedItems(): ${selectedItemsFlow.value.size} items" }
                 val selected = selectedItemsFlow.value
                 if (selected.isEmpty()) return@launch
@@ -805,7 +805,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 clipboardRepo.add(clip)
                 clearSelection()
             }
-            is ExplorerAction.Directory.Cut -> {
+            is ExplorerActionBarItem.Directory.Cut -> {
                 log(tag) { "cutSelectedItems(): ${selectedItemsFlow.value.size} items" }
                 val selected = selectedItemsFlow.value
                 if (selected.isEmpty()) return@launch
@@ -819,7 +819,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 clipboardRepo.add(clip)
                 clearSelection()
             }
-            is ExplorerAction.Directory.Delete -> {
+            is ExplorerActionBarItem.Directory.Delete -> {
                 log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
                 val selectedItems = selectedItemsFlow.value
                 if (selectedItems.isNotEmpty()) {
@@ -836,7 +836,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
-            is ExplorerAction.Directory.Share -> {
+            is ExplorerActionBarItem.Directory.Share -> {
                 log(tag) { "shareSelectedItems(): ${selectedItemsFlow.value.size} items" }
 
                 val selectedFiles = selectedItemsFlow.value.filterIsInstance<ExplorerItem.File>()
@@ -871,13 +871,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     errorEvents.emit(Exception("Failed to share ${selectedFiles.size} files"))
                 }
             }
-            is ExplorerAction.Directory.SelectAll -> {
+            is ExplorerActionBarItem.Directory.SelectAll -> {
                 selectedItemsFlow.value = stateSnap.selectionState.selectableItems
             }
-            is ExplorerAction.Directory.DeselectAll -> {
+            is ExplorerActionBarItem.Directory.DeselectAll -> {
                 selectedItemsFlow.value = emptySet()
             }
-            is ExplorerAction.Directory.OpenInNewTabs -> {
+            is ExplorerActionBarItem.Directory.OpenInNewTabs -> {
                 log(tag) { "openInNewTabs(): ${selectedItemsFlow.value.size} items" }
                 val selectedLookups = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Lookup>()
                 val selectedStorages = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Storage>()
@@ -921,12 +921,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 // Always emit event - WorkspacesViewModel handles confirmation
                 executeOpenInNewTabs(analysis)
             }
-            is ExplorerAction.Common.Sort -> {
+            is ExplorerActionBarItem.Common.Sort -> {
                 dialogStateFlow.value = EditSortOptions(
                     currentSortSettings = currentSortSettings.value
                 )
             }
-            is ExplorerAction.Common.Filter -> {
+            is ExplorerActionBarItem.Common.Filter -> {
                 val filterState = filterStateFlow.value
                 dialogStateFlow.value = FilterOptions(
                     includePattern = filterState.includePattern,
@@ -935,16 +935,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     useRegexPatterns = explorerSettings.useRegexPatterns.valueBlocking,
                 )
             }
-            is ExplorerAction.Common.UpdateViewStyle -> {
+            is ExplorerActionBarItem.Common.UpdateViewStyle -> {
                 viewStyleFlow.value = action.viewStyle
                 launch {
                     explorerSettings.defaultViewStyle.value(action.viewStyle)
                 }
             }
-            is ExplorerAction.Common.Refresh -> {
+            is ExplorerActionBarItem.Common.Refresh -> {
                 getWorkspace().navigate(ExplorerNavigation.Refresh)
             }
-            is ExplorerAction.Common.Info -> {
+            is ExplorerActionBarItem.Common.Info -> {
                 log(tag) { "showInfo(): ${selectedItemsFlow.value.size} items selected" }
 
                 // Only show info when items are selected
@@ -957,17 +957,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
-            is ExplorerAction.Common.Rename -> {
+            is ExplorerActionBarItem.Common.Rename -> {
                 dismissDialog()
                 val event = ExplorerDialogEvent.ShowRename(
                     item = action.item.lookup.lookedUp,
                 )
                 dialogEvents.emit(event)
             }
-            is ExplorerAction.Device.AddLocation -> {
+            is ExplorerActionBarItem.Device.AddLocation -> {
                 showAddStorageSheet()
             }
-            is ExplorerAction.Device.RemoveLocation -> {
+            is ExplorerActionBarItem.Device.RemoveLocation -> {
                 log(tag) { "removeDeviceStorageLocation(): ${selectedItemsFlow.value.size} items" }
                 val selectedItems = selectedItemsFlow.value
                 if (selectedItems.isNotEmpty()) {
@@ -979,7 +979,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
-            is ExplorerAction.Device.RenameLocation -> {
+            is ExplorerActionBarItem.Device.RenameLocation -> {
                 log(tag) { "renameDeviceStorageLocation()" }
                 val selectedItem = selectedItemsFlow.value
                     .filterIsInstance<ExplorerItem.Storage.SAF>()
@@ -990,10 +990,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     currentName = selectedItem.location.userLabel,
                 )
             }
-            is ExplorerAction.Trash.SelectAll -> {
+            is ExplorerActionBarItem.Trash.SelectAll -> {
                 selectedItemsFlow.value = stateSnap.selectionState.selectableItems
             }
-            is ExplorerAction.Trash.Restore -> {
+            is ExplorerActionBarItem.Trash.Restore -> {
                 log(tag) { "restoreTrashItems(): ${action.items.size} items" }
                 dismissDialog()
                 if (action.items.isNotEmpty()) {
@@ -1022,7 +1022,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
-            is ExplorerAction.Trash.DeletePermanently -> {
+            is ExplorerActionBarItem.Trash.DeletePermanently -> {
                 log(tag) { "deleteTrashItemsPermanently(): ${action.items.size} items" }
                 dismissDialog()
                 if (action.items.isNotEmpty()) {
@@ -1048,14 +1048,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
-            is ExplorerAction.Trash.EmptyBin -> {
+            is ExplorerActionBarItem.Trash.EmptyBin -> {
                 log(tag) { "Showing empty trash confirmation" }
                 dialogStateFlow.value = EmptyTrashConfirmation
             }
-            is ExplorerAction.TrashNested.SelectAll -> {
+            is ExplorerActionBarItem.TrashNested.SelectAll -> {
                 selectedItemsFlow.value = stateSnap.selectionState.selectableItems
             }
-            is ExplorerAction.TrashNested.Restore -> {
+            is ExplorerActionBarItem.TrashNested.Restore -> {
                 log(tag) { "restoreNestedItems(): ${action.items.size} items" }
                 dismissDialog()
                 if (action.items.isNotEmpty()) {
@@ -1096,7 +1096,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
-            is ExplorerAction.TrashNested.DeletePermanently -> {
+            is ExplorerActionBarItem.TrashNested.DeletePermanently -> {
                 log(tag) { "deleteNestedItemsPermanently(): ${action.items.size} items" }
                 dismissDialog()
                 if (action.items.isNotEmpty()) {
@@ -1134,7 +1134,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
                 }
             }
-            is ExplorerAction.File.OpenInEditor -> {
+            is ExplorerActionBarItem.File.OpenInEditor -> {
                 try {
                     val wsAction = WorkspaceAction.Create(
                         type = Workspace.Type.EDITOR,
@@ -1147,7 +1147,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     errorEvents.emit(e)
                 }
             }
-            is ExplorerAction.File.OpenWith -> {
+            is ExplorerActionBarItem.File.OpenWith -> {
                 val intent = fileIntentHelper.openFileWith(action.item)
                 if (intent != null && fileIntentHelper.canHandleIntent(intent)) {
                     try {
@@ -1161,7 +1161,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     errorEvents.emit(Exception("No app found to open file: ${action.item.lookup.name}"))
                 }
             }
-            is ExplorerAction.File.Share -> {
+            is ExplorerActionBarItem.File.Share -> {
                 val shareItem = object : ShareIntentUseCase.Item {
                     override val path = action.item.lookup.lookedUp
                     override val mimeType = action.item.mimeType.rawType
@@ -1176,7 +1176,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     errorEvents.emit(Exception("Failed to share file: ${action.item.lookup.name}"))
                 }
             }
-            is ExplorerAction.File.Copy -> {
+            is ExplorerActionBarItem.File.Copy -> {
                 val clip = ClipboardClip.Paths(
                     mode = ClipboardClip.Paths.Mode.COPY,
                     origin = getWorkspace().id,
@@ -1184,7 +1184,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 )
                 clipboardRepo.add(clip)
             }
-            is ExplorerAction.File.Cut -> {
+            is ExplorerActionBarItem.File.Cut -> {
                 val clip = ClipboardClip.Paths(
                     mode = ClipboardClip.Paths.Mode.CUT,
                     origin = getWorkspace().id,
@@ -1192,24 +1192,24 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 )
                 clipboardRepo.add(clip)
             }
-            is ExplorerAction.File.Delete -> {
+            is ExplorerActionBarItem.File.Delete -> {
                 dialogEvents.emit(
                     ExplorerDialogEvent.ShowDeleteConfirmation(
                         items = setOf(action.item.lookup.lookedUp)
                     )
                 )
             }
-            is ExplorerAction.File.ShowProperties -> {
+            is ExplorerActionBarItem.File.ShowProperties -> {
                 val infoContext = ItemInfo.InfoContext.SingleFile(action.item)
                 dialogStateFlow.value = ItemInfo(infoContext)
             }
         }
     }
 
-    fun executeActionLongClick(action: ExplorerAction) = launch {
+    fun executeActionLongClick(action: ExplorerActionBarItem) = launch {
         log(tag) { "executeActionLongClick($action)" }
         when (action) {
-            is ExplorerAction.Directory.Delete -> {
+            is ExplorerActionBarItem.Directory.Delete -> {
                 log(tag) { "longPress deleteSelectedItems(): ${selectedItemsFlow.value.size} items (forcePermDelete)" }
                 val selectedItems = selectedItemsFlow.value
                 if (selectedItems.isNotEmpty()) {

@@ -33,7 +33,7 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import java.text.DateFormat
@@ -42,7 +42,7 @@ import java.util.Date
 @Composable
 fun TrashNestedItemDetailsBottomSheet(
     item: ExplorerItem.Trash.Nested,
-    onAction: (ExplorerAction) -> Unit,
+    onAction: (ExplorerActionBarItem) -> Unit,
     onCopyToClipboard: (String) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -65,7 +65,7 @@ fun TrashNestedItemDetailsBottomSheet(
 @Composable
 private fun TrashNestedItemOptionsContent(
     item: ExplorerItem.Trash.Nested,
-    onAction: (ExplorerAction) -> Unit,
+    onAction: (ExplorerActionBarItem) -> Unit,
     onCopyToClipboard: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -173,7 +173,7 @@ private fun TrashNestedItemOptionsContent(
                 .fillMaxWidth()
                 .clickable {
                     onAction(
-                        ExplorerAction.TrashNested.Restore(
+                        ExplorerActionBarItem.TrashNested.Restore(
                             items = listOf(item),
                             icon = Icons.TwoTone.Restore,
                             labelRes = R.string.explorer_trash_restore_action,
@@ -211,7 +211,7 @@ private fun TrashNestedItemOptionsContent(
                 .fillMaxWidth()
                 .clickable {
                     onAction(
-                        ExplorerAction.TrashNested.DeletePermanently(
+                        ExplorerActionBarItem.TrashNested.DeletePermanently(
                             items = listOf(item),
                             icon = Icons.TwoTone.DeleteForever,
                             labelRes = R.string.explorer_trash_delete_permanently_action,

@@ -3,7 +3,6 @@ package eu.darken.butler.searcher.ui.search.util
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.core.SearchItem
-import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.core.SearchTemplate
 import eu.darken.butler.searcher.core.history.SearchHistory
@@ -14,7 +13,7 @@ import eu.darken.butler.workspace.core.operations.Operation
  * Sealed interface representing all page-level actions in the Searcher workspace.
  * This consolidates the various callbacks from SearcherWorkspacePage into a single type-safe hierarchy.
  *
- * Note: This is distinct from [SearcherAction] which represents workspace-level domain operations
+ * Note: This is distinct from [SearcherActionBarItem] which represents workspace-level domain operations
  * (Copy, Cut, Delete, etc.). [SearcherPageAction] encompasses all UI interactions including search,
  * state management, and delegation to workspace actions.
  */
@@ -260,7 +259,7 @@ sealed interface SearcherPageAction {
 
     /**
      * Wrapper for workspace-level actions
-     * Delegates to existing [SearcherAction] for domain operations
+     * Delegates to existing [SearcherActionBarItem] for domain operations
      */
-    data class WorkspaceAction(val action: SearcherAction) : SearcherPageAction
+    data class WorkspaceAction(val action: SearcherActionBarItem) : SearcherPageAction
 }

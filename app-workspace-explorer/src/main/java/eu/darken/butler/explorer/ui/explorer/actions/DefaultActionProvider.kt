@@ -17,7 +17,7 @@ class DefaultActionProvider @Inject constructor(
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
         trashEnabled: Boolean,
-    ): List<ExplorerAction> {
+    ): List<ExplorerActionBarItem> {
         val provider = when (location) {
             is ExplorerLocation.Home -> homeProvider
             is ExplorerLocation.Device -> deviceProvider

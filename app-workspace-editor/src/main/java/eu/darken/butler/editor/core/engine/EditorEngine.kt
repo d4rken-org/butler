@@ -836,7 +836,8 @@ class EditorEngine @AssistedInject constructor(
         return result
     }
 
-    suspend fun search(query: String, options: SearchOptions = SearchOptions()): Result<List<SearchResult>> = stateMutex.withLock {
+    suspend fun search(query: String, options: SearchOptions = SearchOptions()): Result<List<SearchResult>> =
+        stateMutex.withLock {
             _searchQuery.value = query
 
             if (query.isEmpty()) {

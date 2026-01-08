@@ -13,8 +13,8 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
         trashEnabled: Boolean,
-    ): List<ExplorerAction> {
-        val actions = mutableListOf<ExplorerAction>()
+    ): List<ExplorerActionBarItem> {
+        val actions = mutableListOf<ExplorerActionBarItem>()
 
         if (selectionState.selectedItems.isNotEmpty()) {
             // Check if selected items are SAF storage items
@@ -24,31 +24,31 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
             // Check if any storage items are selected (for opening in new tabs)
             val hasStorageItems = selectionState.selectedItems.any { it is ExplorerItem.Storage }
             if (hasStorageItems) {
-                actions.add(ExplorerAction.Directory.OpenInNewTabs())
+                actions.add(ExplorerActionBarItem.Directory.OpenInNewTabs())
             }
 
-            actions.add(ExplorerAction.Common.Info())
+            actions.add(ExplorerActionBarItem.Common.Info())
 
             if (selectedSAFItems.size == 1) {
-                actions.add(ExplorerAction.Device.RenameLocation())
+                actions.add(ExplorerActionBarItem.Device.RenameLocation())
             }
 
             if (selectedSAFItems.isNotEmpty()) {
-                actions.add(ExplorerAction.Device.RemoveLocation())
+                actions.add(ExplorerActionBarItem.Device.RemoveLocation())
             }
         } else {
-            actions.add(ExplorerAction.Device.AddLocation())
+            actions.add(ExplorerActionBarItem.Device.AddLocation())
         }
 
-        actions.add(ExplorerAction.Common.Refresh())
-        actions.add(ExplorerAction.Common.Sort())
-        actions.add(ExplorerAction.Common.Filter())
+        actions.add(ExplorerActionBarItem.Common.Refresh())
+        actions.add(ExplorerActionBarItem.Common.Sort())
+        actions.add(ExplorerActionBarItem.Common.Filter())
 
         val toggledViewStyle = when (viewStyle) {
             is ExplorerViewStyle.List -> ExplorerViewStyle.Grid()
             is ExplorerViewStyle.Grid -> ExplorerViewStyle.List()
         }
-        actions.add(ExplorerAction.Common.UpdateViewStyle(toggledViewStyle))
+        actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(toggledViewStyle))
 
         return actions
     }

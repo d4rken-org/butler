@@ -12,18 +12,18 @@ class HomeActionProvider @Inject constructor() : ExplorerActionProvider {
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
         trashEnabled: Boolean,
-    ): List<ExplorerAction> {
-        val actions = mutableListOf<ExplorerAction>()
+    ): List<ExplorerActionBarItem> {
+        val actions = mutableListOf<ExplorerActionBarItem>()
 
-        actions.add(ExplorerAction.Common.Refresh())
-        actions.add(ExplorerAction.Common.Sort())
-        actions.add(ExplorerAction.Common.Filter())
+        actions.add(ExplorerActionBarItem.Common.Refresh())
+        actions.add(ExplorerActionBarItem.Common.Sort())
+        actions.add(ExplorerActionBarItem.Common.Filter())
 
         val toggledViewStyle = when (viewStyle) {
             is ExplorerViewStyle.List -> ExplorerViewStyle.Grid()
             is ExplorerViewStyle.Grid -> ExplorerViewStyle.List()
         }
-        actions.add(ExplorerAction.Common.UpdateViewStyle(toggledViewStyle))
+        actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(toggledViewStyle))
 
         return actions
     }

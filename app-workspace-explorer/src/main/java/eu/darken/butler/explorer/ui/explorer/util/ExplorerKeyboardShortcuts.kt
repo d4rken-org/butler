@@ -6,7 +6,7 @@ import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.ui.explorer.actions.ExplorerAction
+import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 
 /**
@@ -30,7 +30,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
  * - End: Focus last item
  */
 fun Modifier.explorerKeyboardShortcuts(
-    availableActions: List<ExplorerAction>,
+    availableActions: List<ExplorerActionBarItem>,
     clipboardEntries: List<ClipboardClip>,
     selectedItems: Set<ExplorerItem>,
     focusedItem: ExplorerItem?,
@@ -38,7 +38,7 @@ fun Modifier.explorerKeyboardShortcuts(
     gridColumns: Int,
     trashEnabled: Boolean,
     enabled: Boolean = true,
-    onExecuteAction: (ExplorerAction) -> Unit,
+    onExecuteAction: (ExplorerActionBarItem) -> Unit,
     onPaste: (ClipboardClip) -> Unit,
     onSelectAll: () -> Unit,
     onClearSelection: () -> Unit,
@@ -59,7 +59,7 @@ fun Modifier.explorerKeyboardShortcuts(
     keyboardShortcuts(enabled = enabled) {
         on(KeyboardShortcut.Copy) {
             val copyAction = availableActions
-                .filterIsInstance<ExplorerAction.Directory.Copy>()
+                .filterIsInstance<ExplorerActionBarItem.Directory.Copy>()
                 .firstOrNull()
             if (copyAction != null && copyAction.isEnabled) {
                 onExecuteAction(copyAction)
@@ -67,7 +67,7 @@ fun Modifier.explorerKeyboardShortcuts(
         }
         on(KeyboardShortcut.Cut) {
             val cutAction = availableActions
-                .filterIsInstance<ExplorerAction.Directory.Cut>()
+                .filterIsInstance<ExplorerActionBarItem.Directory.Cut>()
                 .firstOrNull()
             if (cutAction != null && cutAction.isEnabled) {
                 onExecuteAction(cutAction)
@@ -81,7 +81,7 @@ fun Modifier.explorerKeyboardShortcuts(
         }
         on(KeyboardShortcut.New) {
             val createAction = availableActions
-                .filterIsInstance<ExplorerAction.Directory.Create>()
+                .filterIsInstance<ExplorerActionBarItem.Directory.Create>()
                 .firstOrNull()
             if (createAction != null && createAction.isEnabled) {
                 onExecuteAction(createAction)
@@ -89,7 +89,7 @@ fun Modifier.explorerKeyboardShortcuts(
         }
         on(KeyboardShortcut.Delete) {
             val deleteAction = availableActions
-                .filterIsInstance<ExplorerAction.Directory.Delete>()
+                .filterIsInstance<ExplorerActionBarItem.Directory.Delete>()
                 .firstOrNull()
             when {
                 // If Delete action is available (selection mode), use it
@@ -101,7 +101,7 @@ fun Modifier.explorerKeyboardShortcuts(
         // Shift+Delete: Permanently delete (bypass trash)
         on(KeyboardShortcut.ShiftDelete) {
             val deleteAction = availableActions
-                .filterIsInstance<ExplorerAction.Directory.Delete>()
+                .filterIsInstance<ExplorerActionBarItem.Directory.Delete>()
                 .firstOrNull()
             when {
                 // If Delete action is available (selection mode), force permanent delete
@@ -118,7 +118,7 @@ fun Modifier.explorerKeyboardShortcuts(
         }
         on(KeyboardShortcut.F2) {
             val renameAction = availableActions
-                .filterIsInstance<ExplorerAction.Directory.Rename>()
+                .filterIsInstance<ExplorerActionBarItem.Directory.Rename>()
                 .firstOrNull()
             when {
                 // If Rename action is available (selection mode), use it

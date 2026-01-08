@@ -12,19 +12,28 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.developer.R
 import eu.darken.butler.developer.core.arguments.DeveloperArguments
+import eu.darken.butler.developer.core.operations.DeleteTestDataOperation
+import eu.darken.butler.developer.core.operations.DeveloperCommand
+import eu.darken.butler.developer.core.operations.GenerateLargeFilesOperation
+import eu.darken.butler.developer.core.operations.GenerateNestedStructureOperation
+import eu.darken.butler.developer.core.operations.GenerateTextFilesOperation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
+import eu.darken.butler.workspace.core.operations.withStateUpdates
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -39,6 +48,10 @@ class DeveloperWorkspace @AssistedInject constructor(
     dispatcherProvider: DispatcherProvider,
     private val operationsManager: OperationsManager,
     private val developerLogRepo: DeveloperLogRepo,
+    private val generateLargeFilesFactory: GenerateLargeFilesOperation.Factory,
+    private val generateNestedStructureFactory: GenerateNestedStructureOperation.Factory,
+    private val generateTextFilesFactory: GenerateTextFilesOperation.Factory,
+    private val deleteTestDataFactory: DeleteTestDataOperation.Factory,
 ) : Workspace<DeveloperArguments> {
 
     private val tag = logTag("Developer", "Workspace", id.shortTag)
@@ -107,6 +120,49 @@ class DeveloperWorkspace @AssistedInject constructor(
         log(tag, INFO) { "release()" }
         developerLogRepo.uninstall()
         scope.cancel()
+    }
+
+    data class OperationsState(
+        val operations: List<ManagedOperation> = emptyList(),
+    )
+
+    val operations: Flow<OperationsState> = operationsManager.operationsForWorkspace(id)
+        .withStateUpdates()
+        .map { ops -> OperationsState(operations = ops) }
+
+    suspend fun execute(command: DeveloperCommand): Operation.Id {
+        log(tag) { "execute(): $command" }
+        val operation = when (command) {
+            is DeveloperCommand.GenerateLargeFiles -> generateLargeFilesFactory.create(
+                workspaceId = id,
+                command = command,
+            )
+            is DeveloperCommand.GenerateNestedStructure -> generateNestedStructureFactory.create(
+                workspaceId = id,
+                command = command,
+            )
+            is DeveloperCommand.GenerateTextFiles -> generateTextFilesFactory.create(
+                workspaceId = id,
+                command = command,
+            )
+            is DeveloperCommand.DeleteTestData -> deleteTestDataFactory.create(
+                workspaceId = id,
+                command = command,
+            )
+        }
+        return operationsManager.submit(operation)
+    }
+
+    fun cancelOperation(operationId: Operation.Id) {
+        scope.launch { operationsManager.cancel(operationId) }
+    }
+
+    fun dismissOperation(operationId: Operation.Id) {
+        scope.launch { operationsManager.remove(operationId) }
+    }
+
+    fun clearCompletedOperations() {
+        scope.launch { operationsManager.clearCompleted() }
     }
 
     @AssistedFactory

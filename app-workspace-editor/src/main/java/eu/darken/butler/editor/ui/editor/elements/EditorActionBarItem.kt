@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.ui.editor
+package eu.darken.butler.editor.ui.editor.elements
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
@@ -9,10 +9,10 @@ import androidx.compose.material.icons.twotone.FormatListNumbered
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.ui.graphics.vector.ImageVector
+import eu.darken.butler.common.R
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.editor.R
-import eu.darken.butler.workspace.ui.actions.WorkspaceAction
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBarItem
 
 /**
  * Sealed interface for workspace-level domain actions in the Editor.
@@ -21,22 +21,22 @@ import eu.darken.butler.workspace.ui.actions.WorkspaceAction
  * Currently minimal as the editor is primarily focused on single-file editing,
  * but can be extended for features like copy/paste, multi-file editing, etc.
  */
-sealed interface EditorAction : WorkspaceAction {
+sealed interface EditorActionBarItem : WorkspaceActionBarItem {
     override val icon: ImageVector
     override val label: CaString
     override val isVisible: Boolean get() = true
     override val isEnabled: Boolean get() = true
     override val isDestructive: Boolean get() = false
-    override val group: WorkspaceAction.Group get() = WorkspaceAction.Group.PRIMARY
+    override val group: WorkspaceActionBarItem.Group get() = WorkspaceActionBarItem.Group.PRIMARY
     override val badge: Boolean get() = false
 
     /**
      * Copy selected text to clipboard.
      * Long press copies to Butler clipboard.
      */
-    data object Copy : EditorAction {
+    data object Copy : EditorActionBarItem {
         override val icon = Icons.TwoTone.ContentCopy
-        override val label = eu.darken.butler.common.R.string.general_copy_action.toCaString()
+        override val label = R.string.general_copy_action.toCaString()
         override val supportsLongPress = true
     }
 
@@ -44,53 +44,53 @@ sealed interface EditorAction : WorkspaceAction {
      * Cut selected text to clipboard.
      * Long press cuts to Butler clipboard.
      */
-    data object Cut : EditorAction {
+    data object Cut : EditorActionBarItem {
         override val icon = Icons.TwoTone.ContentCut
-        override val label = eu.darken.butler.common.R.string.general_cut_action.toCaString()
+        override val label = R.string.general_cut_action.toCaString()
         override val supportsLongPress = true
     }
 
     /**
      * Paste text from clipboard
      */
-    data object Paste : EditorAction {
+    data object Paste : EditorActionBarItem {
         override val icon = Icons.TwoTone.ContentPaste
-        override val label = eu.darken.butler.common.R.string.general_paste_action.toCaString()
+        override val label = R.string.general_paste_action.toCaString()
     }
 
     /**
      * Delete selected text
      */
-    data object Delete : EditorAction {
+    data object Delete : EditorActionBarItem {
         override val icon = Icons.TwoTone.Delete
-        override val label = R.string.editor_action_delete.toCaString()
+        override val label = eu.darken.butler.editor.R.string.editor_action_delete.toCaString()
         override val isDestructive = true
     }
 
     /**
      * Select all text in document
      */
-    data object SelectAll : EditorAction {
+    data object SelectAll : EditorActionBarItem {
         override val icon = Icons.TwoTone.SelectAll
-        override val label = R.string.editor_action_select_all.toCaString()
-        override val group = WorkspaceAction.Group.SECONDARY
+        override val label = eu.darken.butler.editor.R.string.editor_action_select_all.toCaString()
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
     /**
      * Go to a specific line number
      */
-    data object GoToLine : EditorAction {
+    data object GoToLine : EditorActionBarItem {
         override val icon = Icons.TwoTone.FormatListNumbered
-        override val label = R.string.editor_action_go_to_line.toCaString()
-        override val group = WorkspaceAction.Group.SECONDARY
+        override val label = eu.darken.butler.editor.R.string.editor_action_go_to_line.toCaString()
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 
     /**
      * Search for text in the document
      */
-    data object Search : EditorAction {
+    data object Search : EditorActionBarItem {
         override val icon = Icons.TwoTone.Search
-        override val label = R.string.editor_action_search.toCaString()
-        override val group = WorkspaceAction.Group.SECONDARY
+        override val label = eu.darken.butler.editor.R.string.editor_action_search.toCaString()
+        override val group = WorkspaceActionBarItem.Group.SECONDARY
     }
 }

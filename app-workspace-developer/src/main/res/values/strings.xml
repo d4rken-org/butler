@@ -76,4 +76,49 @@
     <string name="developer_testdata_generating">Generating…</string>
     <string name="developer_testdata_progress">%1$s of %2$s</string>
     <string name="developer_testdata_complete">Test data generated at:</string>
+
+    <!-- Test Data Operations -->
+    <string name="developer_operation_large_files_title">Generate Large Files</string>
+    <string name="developer_operation_large_files_desc">Creating test files in %1$s</string>
+    <string name="developer_operation_large_files_creating">Creating %1$s</string>
+
+    <string name="developer_operation_nested_title">Generate Nested Structure</string>
+    <string name="developer_operation_nested_desc">Creating folder hierarchy in %1$s</string>
+    <string name="developer_operation_nested_starting">Starting nested structure…</string>
+    <string name="developer_operation_nested_creating">Creating %1$s</string>
+    <string name="developer_operation_nested_files_created">%1$d files created</string>
+
+    <string name="developer_operation_text_files_title">Generate Text Files</string>
+    <string name="developer_operation_text_files_desc">Creating text files in %1$s</string>
+    <string name="developer_operation_text_files_creating">Creating %1$s</string>
+
+    <plurals name="developer_testdata_report_files_created">
+        <item quantity="one">%d file created</item>
+        <item quantity="other">%d files created</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_created">
+        <item quantity="one">%d directory</item>
+        <item quantity="other">%d directories</item>
+    </plurals>
+
+    <!-- Delete Test Data -->
+    <string name="developer_testdata_delete_header">Delete Test Data</string>
+    <string name="developer_testdata_delete_action">Delete</string>
+
+    <string name="developer_operation_delete_testdata_title">Delete Test Data</string>
+    <string name="developer_operation_delete_testdata_desc">Deleting test data from %1$s</string>
+    <string name="developer_operation_delete_testdata_checking">Checking %1$s…</string>
+    <string name="developer_operation_delete_testdata_scanning">Scanning %1$s…</string>
+    <string name="developer_operation_delete_testdata_deleting">Deleting %1$s…</string>
+
+    <plurals name="developer_testdata_report_files_deleted">
+        <item quantity="one">%d file deleted</item>
+        <item quantity="other">%d files deleted</item>
+    </plurals>
+
+    <plurals name="developer_testdata_report_dirs_deleted">
+        <item quantity="one">%d directory</item>
+        <item quantity="other">%d directories</item>
+    </plurals>
 </resources>

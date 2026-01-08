@@ -9,7 +9,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
  * Sealed interface representing all page-level actions in the Editor workspace.
  * This consolidates the various callbacks from EditorWorkspacePage into a single type-safe hierarchy.
  *
- * Note: This is distinct from [EditorAction] which represents workspace-level domain operations
+ * Note: This is distinct from [eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem] which represents workspace-level domain operations
  * for the action bar (presentation). [EditorPageAction] encompasses all UI interactions including
  * file operations, editing, navigation, search UI, dialogs, and clipboard.
  */

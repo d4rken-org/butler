@@ -25,22 +25,22 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.workspace.ui.actions.WorkspaceAction
+import eu.darken.butler.workspace.ui.actions.WorkspaceActionBarItem
 
-sealed interface ExplorerAction : WorkspaceAction {
+sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
     override val icon: ImageVector
     override val label: CaString
     override val isVisible: Boolean get() = true
     override val isEnabled: Boolean get() = true
     override val isDestructive: Boolean get() = false
-    override val group: WorkspaceAction.Group get() = WorkspaceAction.Group.PRIMARY
+    override val group: WorkspaceActionBarItem.Group get() = WorkspaceActionBarItem.Group.PRIMARY
     override val badge: Boolean get() = false
 
     // Common actions shared across contexts
-    sealed interface Common : ExplorerAction {
+    sealed interface Common : ExplorerActionBarItem {
         data class Refresh(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Common {
             override val icon = Icons.TwoTone.Refresh
             override val label = R.string.explorer_action_refresh.toCaString()
@@ -48,7 +48,7 @@ sealed interface ExplorerAction : WorkspaceAction {
 
         data class Sort(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Common {
             override val icon = Icons.AutoMirrored.TwoTone.Sort
             override val label = R.string.explorer_action_sort.toCaString()
@@ -56,7 +56,7 @@ sealed interface ExplorerAction : WorkspaceAction {
 
         data class Filter(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
             override val badge: Boolean = false,
         ) : Common {
             override val icon = Icons.TwoTone.FilterList
@@ -66,7 +66,7 @@ sealed interface ExplorerAction : WorkspaceAction {
         data class UpdateViewStyle(
             val viewStyle: ExplorerViewStyle,
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Common {
             override val icon = when (viewStyle) {
                 is ExplorerViewStyle.Grid -> Icons.TwoTone.GridView
@@ -77,7 +77,7 @@ sealed interface ExplorerAction : WorkspaceAction {
 
         data class Info(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Common {
             override val icon = Icons.TwoTone.Info
             override val label = R.string.explorer_action_info.toCaString()
@@ -93,10 +93,10 @@ sealed interface ExplorerAction : WorkspaceAction {
     }
 
     // Directory-specific actions
-    sealed interface Directory : ExplorerAction {
+    sealed interface Directory : ExplorerActionBarItem {
         data class Create(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.Add
             override val label = R.string.explorer_action_create.toCaString()
@@ -104,14 +104,14 @@ sealed interface ExplorerAction : WorkspaceAction {
 
         data class Rename(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.DriveFileRenameOutline
             override val label = R.string.explorer_action_rename.toCaString()
         }
 
         data class Copy(
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.ContentCopy
             override val label = R.string.explorer_action_copy.toCaString()
@@ -119,7 +119,7 @@ sealed interface ExplorerAction : WorkspaceAction {
 
         data class Cut(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.ContentCut
             override val label = R.string.explorer_action_cut.toCaString()
@@ -128,7 +128,7 @@ sealed interface ExplorerAction : WorkspaceAction {
         data class Delete(
             override val isEnabled: Boolean = true,
             val trashEnabled: Boolean = false,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Directory {
             override val icon = if (trashEnabled) Icons.TwoTone.Delete else Icons.TwoTone.DeleteForever
             override val label = R.string.explorer_action_delete.toCaString()
@@ -137,7 +137,7 @@ sealed interface ExplorerAction : WorkspaceAction {
         }
 
         data class Share(
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.TwoTone.Share
             override val label = eu.darken.butler.common.R.string.general_share_action.toCaString()
@@ -155,17 +155,17 @@ sealed interface ExplorerAction : WorkspaceAction {
 
         data class OpenInNewTabs(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Directory {
             override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
             override val label = R.string.explorer_action_open_in_new_tabs.toCaString()
         }
     }
 
-    sealed interface Device : ExplorerAction {
+    sealed interface Device : ExplorerActionBarItem {
         data class AddLocation(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Device {
             override val icon = Icons.TwoTone.FolderShared
             override val label = R.string.explorer_action_add_location.toCaString()
@@ -173,7 +173,7 @@ sealed interface ExplorerAction : WorkspaceAction {
 
         data class RemoveLocation(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Device {
             override val icon = Icons.TwoTone.RemoveCircle
             override val label = R.string.explorer_device_action_remove_location.toCaString()
@@ -182,19 +182,19 @@ sealed interface ExplorerAction : WorkspaceAction {
 
         data class RenameLocation(
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Device {
             override val icon = Icons.TwoTone.DriveFileRenameOutline
             override val label = R.string.explorer_location_rename_action.toCaString()
         }
     }
 
-    sealed interface Home : ExplorerAction
+    sealed interface Home : ExplorerActionBarItem
 
     /**
      * Actions for single-file context menu operations (from FileOptionsBottomSheet).
      */
-    sealed interface File : ExplorerAction {
+    sealed interface File : ExplorerActionBarItem {
         data class OpenInEditor(
             val item: ExplorerItem.File,
             override val icon: ImageVector = Icons.TwoTone.DriveFileRenameOutline,
@@ -253,7 +253,7 @@ sealed interface ExplorerAction : WorkspaceAction {
         }
     }
 
-    sealed interface Trash : ExplorerAction {
+    sealed interface Trash : ExplorerActionBarItem {
         object SelectAll : Trash {
             override val icon = Icons.TwoTone.SelectAll
             override val label = R.string.explorer_action_select_all.toCaString()
@@ -264,7 +264,7 @@ sealed interface ExplorerAction : WorkspaceAction {
             override val icon: ImageVector,
             val labelRes: Int,
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Trash {
             override val label = labelRes.toCaString()
         }
@@ -274,7 +274,7 @@ sealed interface ExplorerAction : WorkspaceAction {
             override val icon: ImageVector,
             val labelRes: Int,
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : Trash {
             override val label = labelRes.toCaString()
             override val isDestructive = true
@@ -284,7 +284,7 @@ sealed interface ExplorerAction : WorkspaceAction {
             override val icon: ImageVector,
             val labelRes: Int,
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.SECONDARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
         ) : Trash {
             override val label = labelRes.toCaString()
             override val isDestructive = true
@@ -295,7 +295,7 @@ sealed interface ExplorerAction : WorkspaceAction {
      * Actions for browsing inside a trashed folder (read-only).
      * No create/paste/rename operations allowed.
      */
-    sealed interface TrashNested : ExplorerAction {
+    sealed interface TrashNested : ExplorerActionBarItem {
         object SelectAll : TrashNested {
             override val icon = Icons.TwoTone.SelectAll
             override val label = R.string.explorer_action_select_all.toCaString()
@@ -306,7 +306,7 @@ sealed interface ExplorerAction : WorkspaceAction {
             override val icon: ImageVector,
             val labelRes: Int,
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : TrashNested {
             override val label = labelRes.toCaString()
         }
@@ -316,7 +316,7 @@ sealed interface ExplorerAction : WorkspaceAction {
             override val icon: ImageVector,
             val labelRes: Int,
             override val isEnabled: Boolean = true,
-            override val group: WorkspaceAction.Group = WorkspaceAction.Group.PRIMARY,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
         ) : TrashNested {
             override val label = labelRes.toCaString()
             override val isDestructive = true

@@ -62,7 +62,6 @@ internal fun SelectionHandle(
 
     // Use rememberUpdatedState to get current position without restarting gesture
     val currentPositionColumn by rememberUpdatedState(position.column)
-    val currentPositionLine by rememberUpdatedState(position.line)
 
     // Use simple state to store Y position, updated via LaunchedEffect observing layout
     var yPosition by remember { mutableStateOf<Float?>(null) }

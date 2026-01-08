@@ -13,58 +13,58 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
         trashEnabled: Boolean,
-    ): List<ExplorerAction> {
-        val actions = mutableListOf<ExplorerAction>()
+    ): List<ExplorerActionBarItem> {
+        val actions = mutableListOf<ExplorerActionBarItem>()
 
         val directory = location as? ExplorerLocation.Directory
         val isWritable = (directory?.info?.isWritable ?: false)
 
         if (selectionState.isSelectionMode) {
             if (!selectionState.isAllSelected) {
-                actions.add(ExplorerAction.Directory.SelectAll)
+                actions.add(ExplorerActionBarItem.Directory.SelectAll)
             }
 
-            actions.add(ExplorerAction.Directory.OpenInNewTabs())
+            actions.add(ExplorerActionBarItem.Directory.OpenInNewTabs())
 
             if (selectionState.selectionCount == 1) {
-                actions.add(ExplorerAction.Directory.Rename())
+                actions.add(ExplorerActionBarItem.Directory.Rename())
             }
 
-            actions.add(ExplorerAction.Directory.Copy())
+            actions.add(ExplorerActionBarItem.Directory.Copy())
 
             actions.add(
-                ExplorerAction.Directory.Cut(
+                ExplorerActionBarItem.Directory.Cut(
                     isEnabled = isWritable,
                 )
             )
 
             actions.add(
-                ExplorerAction.Directory.Delete(
+                ExplorerActionBarItem.Directory.Delete(
                     isEnabled = isWritable,
                     trashEnabled = trashEnabled,
                 )
             )
 
             if (selectionState.selectedItems.all { it is ExplorerItem.File }) {
-                actions.add(ExplorerAction.Directory.Share())
+                actions.add(ExplorerActionBarItem.Directory.Share())
             }
-            actions.add(ExplorerAction.Common.Info())
+            actions.add(ExplorerActionBarItem.Common.Info())
         } else {
             actions.add(
-                ExplorerAction.Directory.Create(
+                ExplorerActionBarItem.Directory.Create(
                     isEnabled = isWritable,
                 )
             )
 
-            actions.add(ExplorerAction.Common.Refresh())
-            actions.add(ExplorerAction.Common.Sort())
-            actions.add(ExplorerAction.Common.Filter())
+            actions.add(ExplorerActionBarItem.Common.Refresh())
+            actions.add(ExplorerActionBarItem.Common.Sort())
+            actions.add(ExplorerActionBarItem.Common.Filter())
 
             val toggledViewStyle = when (viewStyle) {
                 is ExplorerViewStyle.List -> ExplorerViewStyle.Grid()
                 is ExplorerViewStyle.Grid -> ExplorerViewStyle.List()
             }
-            actions.add(ExplorerAction.Common.UpdateViewStyle(toggledViewStyle))
+            actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(toggledViewStyle))
         }
 
         return actions
