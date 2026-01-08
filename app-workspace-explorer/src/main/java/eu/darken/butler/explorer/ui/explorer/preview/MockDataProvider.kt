@@ -850,14 +850,14 @@ object MockDataProvider {
         ExplorerActionBarItem.Common.Filter(isEnabled = filterEnabled),
     )
 
-    // MARK: - State.Ready Factories
+    // MARK: - State Factories
 
     fun createReadyState(
         location: ExplorerLocation.Directory = createMockDirectoryLocation(),
         breadcrumbs: List<ExplorerBreadcrumb> = createStorageBreadcrumbs(),
         actions: List<ExplorerActionBarItem> = createDefaultDirectoryActions(),
         selectionState: ExplorerSelectionState = ExplorerSelectionState(),
-    ): ExplorerWorkspaceViewModel.State.Ready = ExplorerWorkspaceViewModel.State.Ready(
+    ): ExplorerWorkspaceViewModel.State = ExplorerWorkspaceViewModel.State(
         currentLocation = location,
         breadcrumbs = breadcrumbs,
         items = location.items,
@@ -868,7 +868,7 @@ object MockDataProvider {
     fun createEmptyState(
         path: String = "/sdcard/EmptyFolder",
         breadcrumbs: List<ExplorerBreadcrumb> = createDownloadBreadcrumbs(),
-    ): ExplorerWorkspaceViewModel.State.Ready = createReadyState(
+    ): ExplorerWorkspaceViewModel.State = createReadyState(
         location = createMockEmptyDirectoryLocation(path),
         breadcrumbs = breadcrumbs,
     )
@@ -876,7 +876,7 @@ object MockDataProvider {
     fun createErrorState(
         path: String = "/permission/denied",
         error: Throwable,
-    ): ExplorerWorkspaceViewModel.State.Ready = ExplorerWorkspaceViewModel.State.Ready(
+    ): ExplorerWorkspaceViewModel.State = ExplorerWorkspaceViewModel.State(
         currentLocation = ExplorerLocation.Directory(
             path = LocalPath.build(path),
             items = emptyList(),
@@ -908,12 +908,12 @@ object MockDataProvider {
         ),
         selectedItems: Set<ExplorerItem> = emptySet(),
         path: String = "/sdcard/Documents",
-    ): ExplorerWorkspaceViewModel.State.Ready {
+    ): ExplorerWorkspaceViewModel.State {
         val pickerConfig = PickerConfig(
             selection = selection,
             callerWorkspaceId = Workspace.Id(),
         )
-        return ExplorerWorkspaceViewModel.State.Ready(
+        return ExplorerWorkspaceViewModel.State(
             pickerConfig = pickerConfig,
             currentLocation = ExplorerLocation.Directory(
                 path = LocalPath.build(path),
@@ -949,7 +949,7 @@ object MockDataProvider {
         location: ExplorerLocation.Directory = createMockDirectoryLocation(),
         breadcrumbs: List<ExplorerBreadcrumb> = createStorageBreadcrumbs(),
         selectedIndices: List<Int> = listOf(0, 2),
-    ): ExplorerWorkspaceViewModel.State.Ready {
+    ): ExplorerWorkspaceViewModel.State {
         val items = location.items ?: emptyList()
         val selectedItems = selectedIndices.mapNotNull { items.getOrNull(it) }.toSet()
         return createReadyState(

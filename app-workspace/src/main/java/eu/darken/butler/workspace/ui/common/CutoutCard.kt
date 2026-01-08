@@ -289,7 +289,7 @@ private fun CutoutCardShortContentPreview() {
             modifier = Modifier.padding(16.dp),
             cutoutContent = { PreviewCutoutButton() },
         ) {
-            Text("Short content auto-switches to full-height mode")
+            Text("Short content auto-switches to full")
         }
     }
 }

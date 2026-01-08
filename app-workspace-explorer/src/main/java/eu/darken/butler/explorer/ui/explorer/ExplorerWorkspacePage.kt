@@ -106,9 +106,11 @@ fun ExplorerWorkspacePage(
     initialOperationsExpanded: Boolean = false,
     initialClipboardExpanded: Boolean = false,
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    // Early return - don't render until state is available (mapper shows loading)
+    val nullableState by mainStateSource.collectAsState(initial = null)
+    val state = nullableState ?: return
 
-    val mainState by mainStateSource.collectAsState(ExplorerWorkspaceViewModel.State.Initializing)
+    val coroutineScope = rememberCoroutineScope()
     val operationsState by operationsStateSource.collectAsState(ExplorerWorkspaceViewModel.OperationsState())
     val clipboardState by clipboardStateSource.collectAsState(ExplorerWorkspaceViewModel.ClipboardState())
     val isWorkspaceFocused = LocalWorkspaceFocused.current
@@ -148,8 +150,7 @@ fun ExplorerWorkspacePage(
     var showCancelConfirmation by remember { mutableStateOf<Operation.Id?>(null) }
 
     // Progress indicator delay state - shows after 200ms to avoid flickering
-    val readyState = mainState as? ExplorerWorkspaceViewModel.State.Ready
-    val showProgress = rememberDelayedState(readyState?.progress, delayMs = 200)
+    val showProgress = rememberDelayedState(state.progress, delayMs = 200)
 
     // List and grid scroll states
     val listState = rememberLazyListState()
@@ -169,13 +170,13 @@ fun ExplorerWorkspacePage(
         }
     }
     val hasClipboard by derivedStateOf { clipboardState.entries.isNotEmpty() }
-    val hasActions by derivedStateOf { readyState?.availableActions?.isNotEmpty() == true }
-    val isLoadingItems = readyState?.items == null
-    val hasItems = readyState?.items != null
+    val hasActions by derivedStateOf { state.availableActions.isNotEmpty() }
+    val isLoadingItems = state.items == null
+    val hasItems = state.items != null
 
     // Determine if info bar should be visible
-    val showInfoBar = readyState?.info != null ||
-        readyState?.selectionState?.selectedItems?.isNotEmpty() == true ||
+    val showInfoBar = state.info != null ||
+        state.selectionState.selectedItems.isNotEmpty() ||
         isLoadingItems ||
         showProgress
 
@@ -193,11 +194,11 @@ fun ExplorerWorkspacePage(
     var previousLocationId by remember { mutableStateOf<String?>(null) }
 
     // Save scroll position when navigating away from current location
-    DisposableEffect(readyState?.locationId) {
-        val locationId = readyState?.locationId
-        val viewStyle = readyState?.viewStyle
+    DisposableEffect(state.locationId) {
+        val locationId = state.locationId
+        val viewStyle = state.viewStyle
         onDispose {
-            if (locationId != null && viewStyle != null) {
+            if (locationId != null) {
                 val (index, offset) = when (viewStyle) {
                     is ExplorerViewStyle.Grid -> gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
                     is ExplorerViewStyle.List -> listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
@@ -208,9 +209,9 @@ fun ExplorerWorkspacePage(
     }
 
     // Restore or reset scroll position when navigating to a different location
-    LaunchedEffect(readyState?.locationId, hasItems) {
+    LaunchedEffect(state.locationId, hasItems) {
         val scrollTag = logTag("Explorer", "Page", "ScrollRestore")
-        val locationId = readyState?.locationId ?: return@LaunchedEffect
+        val locationId = state.locationId ?: return@LaunchedEffect
 
         // Wait for items to be loaded before restoring scroll
         if (!hasItems) return@LaunchedEffect
@@ -221,15 +222,14 @@ fun ExplorerWorkspacePage(
 
         log(scrollTag) { "Restoring scroll for $locationId" }
         val savedPosition = vm?.getScrollPosition(locationId)
-        val viewStyle = readyState?.viewStyle ?: return@LaunchedEffect
 
         if (savedPosition != null) {
-            when (viewStyle) {
+            when (state.viewStyle) {
                 is ExplorerViewStyle.Grid -> gridState.scrollToItem(savedPosition.first, savedPosition.second)
                 is ExplorerViewStyle.List -> listState.scrollToItem(savedPosition.first, savedPosition.second)
             }
         } else {
-            when (viewStyle) {
+            when (state.viewStyle) {
                 is ExplorerViewStyle.Grid -> gridState.scrollToItem(0)
                 is ExplorerViewStyle.List -> listState.scrollToItem(0)
             }
@@ -237,15 +237,14 @@ fun ExplorerWorkspacePage(
     }
 
     // Synchronize scroll position when view mode changes
-    LaunchedEffect(readyState?.viewStyle) {
-        val items = readyState?.items
-        val viewStyle = readyState?.viewStyle ?: return@LaunchedEffect
-        if (items != null && items.isNotEmpty()) {
-            val currentIndex = when (viewStyle) {
+    LaunchedEffect(state.viewStyle) {
+        val items = state.items
+        if (!items.isNullOrEmpty()) {
+            val currentIndex = when (state.viewStyle) {
                 is ExplorerViewStyle.Grid -> gridState.firstVisibleItemIndex
                 is ExplorerViewStyle.List -> listState.firstVisibleItemIndex
             }
-            when (viewStyle) {
+            when (state.viewStyle) {
                 is ExplorerViewStyle.Grid -> gridState.scrollToItem(currentIndex, 0)
                 is ExplorerViewStyle.List -> listState.scrollToItem(currentIndex, 0)
             }
@@ -253,19 +252,17 @@ fun ExplorerWorkspacePage(
     }
 
     // Auto-scroll to top when sort settings change
-    LaunchedEffect(readyState?.sortSettings) {
-        val viewStyle = readyState?.viewStyle ?: return@LaunchedEffect
-        when (viewStyle) {
+    LaunchedEffect(state.sortSettings) {
+        when (state.viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(0)
         }
     }
 
     // Auto-scroll to keep focused item visible during keyboard navigation
-    LaunchedEffect(readyState?.focusedItemIndex) {
-        val focusedIndex = readyState?.focusedItemIndex ?: return@LaunchedEffect
-        val viewStyle = readyState?.viewStyle ?: return@LaunchedEffect
-        when (viewStyle) {
+    LaunchedEffect(state.focusedItemIndex) {
+        val focusedIndex = state.focusedItemIndex ?: return@LaunchedEffect
+        when (state.viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(focusedIndex)
             is ExplorerViewStyle.List -> listState.animateScrollToItem(focusedIndex)
         }
@@ -278,9 +275,8 @@ fun ExplorerWorkspacePage(
         vm?.revealRequests?.collect { request ->
             log(tag) { "Received reveal request for path: ${request.path.path}" }
             val result = mainStateSource
-                .mapNotNull { state ->
-                    val ready = state as? ExplorerWorkspaceViewModel.State.Ready ?: return@mapNotNull null
-                    val items = ready.items
+                .mapNotNull { emittedState ->
+                    val items = emittedState.items
                     log(tag) { "State emission: ${items?.size ?: 0} items" }
                     val index = items?.indexOfFirst { item ->
                         when (item) {
@@ -293,7 +289,7 @@ fun ExplorerWorkspacePage(
                         }
                     }
                     log(tag) { "Index search result: $index" }
-                    index?.takeIf { it >= 0 }?.let { it to ready.viewStyle }
+                    index?.takeIf { it >= 0 }?.let { it to emittedState.viewStyle }
                 }
                 .timeout(2.seconds)
                 .catch { e -> log(tag) { "Timeout or error waiting for item: $e" } }
@@ -336,9 +332,9 @@ fun ExplorerWorkspacePage(
     }
 
     // Handle back button for picker mode
-    if (readyState?.pickerConfig != null) {
+    if (state.pickerConfig != null) {
         BackHandler(enabled = true) {
-            if (readyState.canGoBack) {
+            if (state.canGoBack) {
                 vm?.goBack()
             } else {
                 vm?.cancelPicker()
@@ -347,36 +343,33 @@ fun ExplorerWorkspacePage(
     }
 
     // Handle back button for navigation history (when setting enabled)
-    if (readyState?.useBackButtonForNavigation == true && readyState.pickerConfig == null) {
-        BackHandler(enabled = readyState.canGoBack) {
+    if (state.useBackButtonForNavigation && state.pickerConfig == null) {
+        BackHandler(enabled = state.canGoBack) {
             vm?.goBack()
         }
     }
 
     // Handle back button for selection mode - clear selection first
-    BackHandler(enabled = readyState?.selectionState?.isSelectionMode == true) {
+    BackHandler(enabled = state.selectionState.isSelectionMode) {
         vm?.clearSelection()
     }
 
     // Grid columns for keyboard navigation (approximate for adaptive grid)
     val gridColumns = 3
-
-    // Keyboard shortcuts need Ready state properties - use defaults when not ready
-    val keyboardState = readyState ?: ExplorerWorkspaceViewModel.State.Ready()
-    val focusedItem = keyboardState.focusedItemIndex?.let { keyboardState.items?.getOrNull(it) }
+    val focusedItem = state.focusedItemIndex?.let { state.items?.getOrNull(it) }
 
     Surface(
         modifier = Modifier
             .fillMaxSize()
             .explorerKeyboardShortcuts(
-                availableActions = keyboardState.availableActions,
+                availableActions = state.availableActions,
                 clipboardEntries = clipboardState.entries,
-                selectedItems = keyboardState.selectionState.selectedItems,
+                selectedItems = state.selectionState.selectedItems,
                 focusedItem = focusedItem,
-                viewStyle = keyboardState.viewStyle,
+                viewStyle = state.viewStyle,
                 gridColumns = gridColumns,
-                trashEnabled = keyboardState.trashEnabled,
-                enabled = isWorkspaceFocused && readyState != null,
+                trashEnabled = state.trashEnabled,
+                enabled = isWorkspaceFocused,
                 onExecuteAction = { vm?.executeAction(it) },
                 onPaste = { vm?.pasteClipboard(it) },
                 onSelectAll = { vm?.selectAll() },
@@ -398,7 +391,7 @@ fun ExplorerWorkspacePage(
                 },
                 onDeleteFocusedItem = { vm?.deleteFocusedItem() },
                 onPermanentDeleteFocusedItem = {
-                    if (keyboardState.selectionState.selectedItems.isNotEmpty()) {
+                    if (state.selectionState.selectedItems.isNotEmpty()) {
                         vm?.permanentDeleteSelectedItems()
                     } else {
                         vm?.deleteFocusedItem(forcePermDelete = true)
@@ -409,271 +402,266 @@ fun ExplorerWorkspacePage(
         Box(modifier = Modifier.fillMaxSize()) {
             val topContentPadding = topBarStackState.contentPaddingDp()
 
-            // Main content area - only rendered when Ready (Init/Error handled by WorkspaceMapper)
-            val state = mainState as? ExplorerWorkspaceViewModel.State.Ready
-            if (state != null) {
-                if (state.setupRequirements.needsAction) {
-                    PermissionRequestCard(
-                        setupRequirements = state.setupRequirements,
-                        onNavigateToSetup = { vm?.navigateToSetup(state.setupRequirements) },
-                        onLaunchSAFPicker = { grant -> vm?.launchAndroidDataSAFPicker(grant) },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = topContentPadding),
-                    )
-                } else {
-                    // Focus state from ViewModel
-                    val contentFocusedItem = state.focusedItemIndex?.let { state.items?.getOrNull(it) }
+            // Main content area
+            if (state.setupRequirements.needsAction) {
+                PermissionRequestCard(
+                    setupRequirements = state.setupRequirements,
+                    onNavigateToSetup = { vm?.navigateToSetup(state.setupRequirements) },
+                    onLaunchSAFPicker = { grant -> vm?.launchAndroidDataSAFPicker(grant) },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = topContentPadding),
+                )
+            } else {
+                // Focus state from ViewModel
+                val contentFocusedItem = state.focusedItemIndex?.let { state.items?.getOrNull(it) }
 
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        // Main content with pull-to-refresh
-                        PullToRefreshBox(
-                            isRefreshing = showPullToRefreshIndicator,
-                            onRefresh = handleRefresh,
-                            modifier = Modifier.fillMaxSize(),
-                            state = pullToRefreshState,
-                            indicator = {
-                                PullToRefreshDefaults.Indicator(
-                                    modifier = Modifier
-                                        .align(Alignment.TopCenter)
-                                        .offset(y = topContentPadding),
-                                    state = pullToRefreshState,
-                                    isRefreshing = showPullToRefreshIndicator,
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Main content with pull-to-refresh
+                    PullToRefreshBox(
+                        isRefreshing = showPullToRefreshIndicator,
+                        onRefresh = handleRefresh,
+                        modifier = Modifier.fillMaxSize(),
+                        state = pullToRefreshState,
+                        indicator = {
+                            PullToRefreshDefaults.Indicator(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .offset(y = topContentPadding),
+                                state = pullToRefreshState,
+                                isRefreshing = showPullToRefreshIndicator,
+                            )
+                        },
+                    ) {
+                        when (state.viewStyle) {
+                            is ExplorerViewStyle.List -> LazyColumn(
+                                state = listState,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .nestedScroll(topBarStackState.nestedScrollConnection)
+                                    .nestedScroll(bottomBarStackState.nestedScrollConnection),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                contentPadding = PaddingValues(
+                                    start = 12.dp,
+                                    end = 12.dp,
+                                    top = topContentPadding,
+                                    bottom = bottomBarStackState.contentPaddingDp(),
                                 )
-                            },
-                        ) {
-                            when (state.viewStyle) {
-                                is ExplorerViewStyle.List -> LazyColumn(
-                                    state = listState,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .nestedScroll(topBarStackState.nestedScrollConnection)
-                                        .nestedScroll(bottomBarStackState.nestedScrollConnection),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                                    contentPadding = PaddingValues(
-                                        start = 12.dp,
-                                        end = 12.dp,
-                                        top = topContentPadding,
-                                        bottom = bottomBarStackState.contentPaddingDp(),
-                                    )
-                                ) {
-                                    if (state.items == null) {
-                                        items(10, key = { "skeleton-$it" }) {
-                                            SkeletonListItem()
-                                        }
-                                    } else if (state.items.isEmpty()) {
-                                        item(key = "empty") {
-                                            Box(
-                                                modifier = Modifier.fillParentMaxSize(),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                EmptyDirectoryState()
-                                            }
-                                        }
-                                    } else {
-                                        items(items = state.items, key = { it.id }) { item ->
-                                            ExplorerItemRenderer(
-                                                item = item,
-                                                viewStyle = state.viewStyle,
-                                                state = state,
-                                                isFocused = item == contentFocusedItem,
-                                                onItemClick = { vm?.onItemClick(it) },
-                                                onItemLongClick = { vm?.onItemLongClick(it) },
-                                                onNavigate = { vm?.navigate(it) },
-                                                onToggleSelection = { vm?.toggleItemSelection(it) },
-                                            )
+                            ) {
+                                if (state.items == null) {
+                                    items(10, key = { "skeleton-$it" }) {
+                                        SkeletonListItem()
+                                    }
+                                } else if (state.items.isEmpty()) {
+                                    item(key = "empty") {
+                                        Box(
+                                            modifier = Modifier.fillParentMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            EmptyDirectoryState()
                                         }
                                     }
+                                } else {
+                                    items(items = state.items, key = { it.id }) { item ->
+                                        ExplorerItemRenderer(
+                                            item = item,
+                                            viewStyle = state.viewStyle,
+                                            state = state,
+                                            isFocused = item == contentFocusedItem,
+                                            onItemClick = { vm?.onItemClick(it) },
+                                            onItemLongClick = { vm?.onItemLongClick(it) },
+                                            onNavigate = { vm?.navigate(it) },
+                                            onToggleSelection = { vm?.toggleItemSelection(it) },
+                                        )
+                                    }
                                 }
+                            }
 
-                                is ExplorerViewStyle.Grid -> LazyVerticalGrid(
-                                    state = gridState,
-                                    columns = GridCells.Adaptive(minSize = 120.dp),
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .nestedScroll(topBarStackState.nestedScrollConnection)
-                                        .nestedScroll(bottomBarStackState.nestedScrollConnection),
-                                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                    contentPadding = PaddingValues(
-                                        start = 2.dp,
-                                        end = 2.dp,
-                                        top = topContentPadding,
-                                        bottom = bottomBarStackState.contentPaddingDp(),
-                                    )
-                                ) {
-                                    if (state.items == null) {
-                                        items(12, key = { "skeleton-grid-$it" }) {
-                                            SkeletonGridItem()
+                            is ExplorerViewStyle.Grid -> LazyVerticalGrid(
+                                state = gridState,
+                                columns = GridCells.Adaptive(minSize = 120.dp),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .nestedScroll(topBarStackState.nestedScrollConnection)
+                                    .nestedScroll(bottomBarStackState.nestedScrollConnection),
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                contentPadding = PaddingValues(
+                                    start = 2.dp,
+                                    end = 2.dp,
+                                    top = topContentPadding,
+                                    bottom = bottomBarStackState.contentPaddingDp(),
+                                )
+                            ) {
+                                if (state.items == null) {
+                                    items(12, key = { "skeleton-grid-$it" }) {
+                                        SkeletonGridItem()
+                                    }
+                                } else if (state.items.isEmpty()) {
+                                    item(span = { GridItemSpan(maxLineSpan) }, key = "empty") {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            EmptyDirectoryState()
                                         }
-                                    } else if (state.items.isEmpty()) {
-                                        item(span = { GridItemSpan(maxLineSpan) }, key = "empty") {
-                                            Box(
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                EmptyDirectoryState()
-                                            }
-                                        }
-                                    } else {
-                                        items(items = state.items, key = { it.id }) { item ->
-                                            ExplorerItemRenderer(
-                                                item = item,
-                                                viewStyle = state.viewStyle,
-                                                state = state,
-                                                isFocused = item == contentFocusedItem,
-                                                onItemClick = { vm?.onItemClick(it) },
-                                                onItemLongClick = { vm?.onItemLongClick(it) },
-                                                onNavigate = { vm?.navigate(it) },
-                                                onToggleSelection = { vm?.toggleItemSelection(it) },
-                                            )
-                                        }
+                                    }
+                                } else {
+                                    items(items = state.items, key = { it.id }) { item ->
+                                        ExplorerItemRenderer(
+                                            item = item,
+                                            viewStyle = state.viewStyle,
+                                            state = state,
+                                            isFocused = item == contentFocusedItem,
+                                            onItemClick = { vm?.onItemClick(it) },
+                                            onItemLongClick = { vm?.onItemLongClick(it) },
+                                            onNavigate = { vm?.navigate(it) },
+                                            onToggleSelection = { vm?.toggleItemSelection(it) },
+                                        )
                                     }
                                 }
                             }
                         }
+                    }
 
-                        // Error card (floating below top bar stack)
-                        state.error?.let { error ->
-                            ErrorCard(
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .offset(y = topContentPadding)
-                                    .padding(horizontal = 16.dp),
-                                title = stringResource(R.string.explorer_navigation_error_title),
-                                error = error,
-                                onCopyError = { vm?.copyNavigationError() },
-                                onRetry = { vm?.retryNavigation() },
-                                onDismiss = { vm?.dismissNavigationError() },
-                            )
-                        }
-
-                        // Top FloatingBarStack with toolbar and InfoBar
-                        FloatingBarStack(
-                            state = topBarStackState,
-                            position = BarPosition.TOP,
-                            modifier = Modifier.align(Alignment.TopCenter),
-                            bars = {
-                                FloatingBar(
-                                    visible = true,
-                                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
-                                    animation = BarAnimation.Slide(),
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                ) {
-                                    ExplorerToolbarCard(
-                                        workspaceId = workspaceId,
-                                        breadcrumbs = state.breadcrumbs,
-                                        design = design,
-                                        collapsedFraction = collapsedFraction,
-                                        onBreadcrumbClick = { target -> vm?.navigate(target) },
-                                        onNavigateToPath = { path -> vm?.navigateToPath(path) },
-                                        onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
-                                        onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
-                                        safLocationManager = vm?.safLocationManager,
-                                        pickerSelection = state.pickerConfig?.selection,
-                                        selectionCount = state.selectionState.selectedItems.size,
-                                        saveAsFilename = state.saveAsFilename,
-                                        canConfirmSelection = state.canConfirmSelection,
-                                        onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
-                                        onCancel = { vm?.cancelPicker() },
-                                        onConfirm = { vm?.confirmPickerSelection() },
-                                    )
-                                }
-
-                                FloatingBar(
-                                    visible = showInfoBar,
-                                    scrollBehavior = BarScrollBehavior.Static,
-                                    animation = BarAnimation.Slide(),
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                ) {
-                                    ExplorerInfoBar(
-                                        info = state.info,
-                                        isLoading = isLoadingItems,
-                                        progress = if (showProgress) state.progress else null,
-                                        onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
-                                        selectedCount = state.selectionState.selectedItems.size,
-                                        selectedSize = state.selectionState.selectedSize,
-                                        onClearSelection = { vm?.clearSelection() },
-                                        onSelectFolders = { vm?.selectAllFolders() },
-                                        onSelectFiles = { vm?.selectAllFiles() },
-                                        isTrashDisabled = !state.trashEnabled,
-                                    )
-                                }
-                            },
-                        )
-
-                        // Bottom FloatingBarStack
-                        FloatingBarStack(
-                            state = bottomBarStackState,
-                            position = BarPosition.BOTTOM,
-                            modifier = Modifier.align(Alignment.BottomCenter),
-                            bars = {
-                                FloatingBar(
-                                    visible = hasOperations,
-                                    scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
-                                    animation = BarAnimation.Slide(),
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                ) {
-                                    OperationsBar(
-                                        operations = operationsState.operations,
-                                        onCancelOperation = { id -> vm?.cancelOperation(id) },
-                                        onDismissOperation = { id -> vm?.dismissOperation(id) },
-                                        onOperationClick = { operation ->
-                                            when (operation.state) {
-                                                is OperationDisplay.State.Waiting -> vm?.showConflictSheet(operation.id)
-                                                else -> operationDialogState =
-                                                    OperationDialogState.OperationDetails(operation.id)
-                                            }
-                                        },
-                                        onClearCompleted = { vm?.clearCompletedOperations() },
-                                        initialExpanded = initialOperationsExpanded,
-                                    )
-                                }
-
-                                FloatingBar(
-                                    visible = hasClipboard,
-                                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                                    animation = BarAnimation.Bouncy,
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                ) {
-                                    ClipboardBar(
-                                        workspaceType = Workspace.Type.EXPLORER,
-                                        clipboardEntries = clipboardState.entries,
-                                        onPasteClick = { clip -> vm?.pasteClipboard(clip) },
-                                        onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },
-                                        onEntryClick = { clip -> vm?.showClipboardInfo(clip) },
-                                        onClearAll = { vm?.clearAllClipboard() },
-                                        initialExpanded = initialClipboardExpanded,
-                                    )
-                                }
-
-                                FloatingBar(
-                                    visible = hasActions,
-                                    scrollBehavior = BarScrollBehavior.HideOnScroll,
-                                    animation = BarAnimation.Slide(),
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                ) {
-                                    WorkspaceActionBar(
-                                        actions = state.availableActions,
-                                        onActionClick = { action -> vm?.executeAction(action as ExplorerActionBarItem) },
-                                        onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerActionBarItem) },
-                                    )
-                                }
-                            },
+                    // Error card (floating below top bar stack)
+                    state.error?.let { error ->
+                        ErrorCard(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .offset(y = topContentPadding)
+                                .padding(horizontal = 16.dp),
+                            title = stringResource(R.string.explorer_navigation_error_title),
+                            error = error,
+                            onCopyError = { vm?.copyNavigationError() },
+                            onRetry = { vm?.retryNavigation() },
+                            onDismiss = { vm?.dismissNavigationError() },
                         )
                     }
+
+                    // Top FloatingBarStack with toolbar and InfoBar
+                    FloatingBarStack(
+                        state = topBarStackState,
+                        position = BarPosition.TOP,
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        bars = {
+                            FloatingBar(
+                                visible = true,
+                                scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
+                                animation = BarAnimation.Slide(),
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                            ) {
+                                ExplorerToolbarCard(
+                                    workspaceId = workspaceId,
+                                    breadcrumbs = state.breadcrumbs,
+                                    design = design,
+                                    collapsedFraction = collapsedFraction,
+                                    onBreadcrumbClick = { target -> vm?.navigate(target) },
+                                    onNavigateToPath = { path -> vm?.navigateToPath(path) },
+                                    onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
+                                    onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
+                                    safLocationManager = vm?.safLocationManager,
+                                    pickerSelection = state.pickerConfig?.selection,
+                                    selectionCount = state.selectionState.selectedItems.size,
+                                    saveAsFilename = state.saveAsFilename,
+                                    canConfirmSelection = state.canConfirmSelection,
+                                    onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
+                                    onCancel = { vm?.cancelPicker() },
+                                    onConfirm = { vm?.confirmPickerSelection() },
+                                )
+                            }
+
+                            FloatingBar(
+                                visible = showInfoBar,
+                                scrollBehavior = BarScrollBehavior.Static,
+                                animation = BarAnimation.Slide(),
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                            ) {
+                                ExplorerInfoBar(
+                                    info = state.info,
+                                    isLoading = isLoadingItems,
+                                    progress = if (showProgress) state.progress else null,
+                                    onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
+                                    selectedCount = state.selectionState.selectedItems.size,
+                                    selectedSize = state.selectionState.selectedSize,
+                                    onClearSelection = { vm?.clearSelection() },
+                                    onSelectFolders = { vm?.selectAllFolders() },
+                                    onSelectFiles = { vm?.selectAllFiles() },
+                                    isTrashDisabled = !state.trashEnabled,
+                                )
+                            }
+                        },
+                    )
+
+                    // Bottom FloatingBarStack
+                    FloatingBarStack(
+                        state = bottomBarStackState,
+                        position = BarPosition.BOTTOM,
+                        modifier = Modifier.align(Alignment.BottomCenter),
+                        bars = {
+                            FloatingBar(
+                                visible = hasOperations,
+                                scrollBehavior = if (hasActiveOperations) BarScrollBehavior.Static else BarScrollBehavior.VanishOnScroll,
+                                animation = BarAnimation.Slide(),
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                            ) {
+                                OperationsBar(
+                                    operations = operationsState.operations,
+                                    onCancelOperation = { id -> vm?.cancelOperation(id) },
+                                    onDismissOperation = { id -> vm?.dismissOperation(id) },
+                                    onOperationClick = { operation ->
+                                        when (operation.state) {
+                                            is OperationDisplay.State.Waiting -> vm?.showConflictSheet(operation.id)
+                                            else -> operationDialogState =
+                                                OperationDialogState.OperationDetails(operation.id)
+                                        }
+                                    },
+                                    onClearCompleted = { vm?.clearCompletedOperations() },
+                                    initialExpanded = initialOperationsExpanded,
+                                )
+                            }
+
+                            FloatingBar(
+                                visible = hasClipboard,
+                                scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                                animation = BarAnimation.Bouncy,
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                            ) {
+                                ClipboardBar(
+                                    workspaceType = Workspace.Type.EXPLORER,
+                                    clipboardEntries = clipboardState.entries,
+                                    onPasteClick = { clip -> vm?.pasteClipboard(clip) },
+                                    onRemoveClick = { clip -> vm?.removeClipboardEntry(clip) },
+                                    onEntryClick = { clip -> vm?.showClipboardInfo(clip) },
+                                    onClearAll = { vm?.clearAllClipboard() },
+                                    initialExpanded = initialClipboardExpanded,
+                                )
+                            }
+
+                            FloatingBar(
+                                visible = hasActions,
+                                scrollBehavior = BarScrollBehavior.HideOnScroll,
+                                animation = BarAnimation.Slide(),
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                            ) {
+                                WorkspaceActionBar(
+                                    actions = state.availableActions,
+                                    onActionClick = { action -> vm?.executeAction(action as ExplorerActionBarItem) },
+                                    onActionLongClick = { action -> vm?.executeActionLongClick(action as ExplorerActionBarItem) },
+                                )
+                            }
+                        },
+                    )
                 }
             }
 
             // Dialogs - stay in parent
-            if (readyState != null) {
-                ExplorerDialogHost(
-                    dialogState = readyState.dialogState,
-                    trashEnabled = readyState.trashEnabled,
-                    vm = vm,
-                    bottomInset = navBarInset,
-                )
-            }
+            ExplorerDialogHost(
+                dialogState = state.dialogState,
+                trashEnabled = state.trashEnabled,
+                vm = vm,
+                bottomInset = navBarInset,
+            )
 
             OperationDialogHost(
                 dialogState = operationDialogState,
@@ -769,7 +757,7 @@ fun ExplorerWorkspacePageHost(
 
 @Composable
 private fun ExplorerWorkspacePagePreviewBase(
-    mockState: ExplorerWorkspaceViewModel.State.Ready,
+    mockState: ExplorerWorkspaceViewModel.State,
     clipboardState: ExplorerWorkspaceViewModel.ClipboardState = ExplorerWorkspaceViewModel.ClipboardState(),
     operationsState: ExplorerWorkspaceViewModel.OperationsState = ExplorerWorkspaceViewModel.OperationsState(),
 ) = PreviewWrapper {
