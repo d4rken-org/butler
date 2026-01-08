@@ -145,20 +145,20 @@ private fun NormalToolbarContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 8.dp),
+                .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 modifier = Modifier.size(24.dp),
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.onSurface,
             )
 
             Text(
                 text = label ?: stringResource(R.string.explorer_loading),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.labelLarge,
                 color = if (label == null) {
                     MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 } else {
@@ -272,8 +272,7 @@ private fun PickerToolbarContent(
                         is PickerConfig.Selection.SaveAs -> saveAsFilename.ifBlank {
                             stringResource(R.string.explorer_picker_save_as_filename_hint)
                         }
-                        else -> getCollapsedBreadcrumbText(breadcrumbs)
-                            ?: stringResource(R.string.explorer_loading)
+                        else -> getCollapsedBreadcrumbText(breadcrumbs) ?: stringResource(R.string.explorer_loading)
                     }
 
                     Text(
@@ -346,7 +345,7 @@ private fun getCollapsedBreadcrumbText(breadcrumbs: List<ExplorerBreadcrumb>): S
     val context = LocalContext.current
     return breadcrumbs
         .mapNotNull { it.label.get(context).takeIf { label -> label.isNotBlank() } }
-        .joinToString(" / ")
+        .joinToString(" / ")
         .takeIf { it.isNotBlank() }
 }
 
