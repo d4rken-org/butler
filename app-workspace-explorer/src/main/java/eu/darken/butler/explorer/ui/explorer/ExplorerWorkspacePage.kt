@@ -407,6 +407,7 @@ fun ExplorerWorkspacePage(
                 PermissionRequestCard(
                     setupRequirements = state.setupRequirements,
                     onNavigateToSetup = { vm?.navigateToSetup(state.setupRequirements) },
+                    nestedScrollConnection = topBarStackState.nestedScrollConnection,
                     onLaunchSAFPicker = { grant -> vm?.launchAndroidDataSAFPicker(grant) },
                     modifier = Modifier
                         .fillMaxSize()
@@ -539,60 +540,6 @@ fun ExplorerWorkspacePage(
                         )
                     }
 
-                    // Top FloatingBarStack with toolbar and InfoBar
-                    FloatingBarStack(
-                        state = topBarStackState,
-                        position = BarPosition.TOP,
-                        modifier = Modifier.align(Alignment.TopCenter),
-                        bars = {
-                            FloatingBar(
-                                visible = true,
-                                scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
-                                animation = BarAnimation.Slide(),
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                            ) {
-                                ExplorerToolbarCard(
-                                    workspaceId = workspaceId,
-                                    breadcrumbs = state.breadcrumbs,
-                                    design = design,
-                                    collapsedFraction = collapsedFraction,
-                                    onBreadcrumbClick = { target -> vm?.navigate(target) },
-                                    onNavigateToPath = { path -> vm?.navigateToPath(path) },
-                                    onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
-                                    onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
-                                    safLocationManager = vm?.safLocationManager,
-                                    pickerSelection = state.pickerConfig?.selection,
-                                    selectionCount = state.selectionState.selectedItems.size,
-                                    saveAsFilename = state.saveAsFilename,
-                                    canConfirmSelection = state.canConfirmSelection,
-                                    onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
-                                    onCancel = { vm?.cancelPicker() },
-                                    onConfirm = { vm?.confirmPickerSelection() },
-                                )
-                            }
-
-                            FloatingBar(
-                                visible = showInfoBar,
-                                scrollBehavior = BarScrollBehavior.Static,
-                                animation = BarAnimation.Slide(),
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                            ) {
-                                ExplorerInfoBar(
-                                    info = state.info,
-                                    isLoading = isLoadingItems,
-                                    progress = if (showProgress) state.progress else null,
-                                    onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
-                                    selectedCount = state.selectionState.selectedItems.size,
-                                    selectedSize = state.selectionState.selectedSize,
-                                    onClearSelection = { vm?.clearSelection() },
-                                    onSelectFolders = { vm?.selectAllFolders() },
-                                    onSelectFiles = { vm?.selectAllFiles() },
-                                    isTrashDisabled = !state.trashEnabled,
-                                )
-                            }
-                        },
-                    )
-
                     // Bottom FloatingBarStack
                     FloatingBarStack(
                         state = bottomBarStackState,
@@ -654,6 +601,61 @@ fun ExplorerWorkspacePage(
                     )
                 }
             }
+
+            // Top FloatingBarStack with toolbar and InfoBar - always visible
+            FloatingBarStack(
+                state = topBarStackState,
+                position = BarPosition.TOP,
+                modifier = Modifier.align(Alignment.TopCenter),
+                bars = {
+                    FloatingBar(
+                        visible = true,
+                        scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
+                        animation = BarAnimation.Slide(),
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    ) {
+                        ExplorerToolbarCard(
+                            workspaceId = workspaceId,
+                            breadcrumbs = state.breadcrumbs,
+                            design = design,
+                            collapsedFraction = collapsedFraction,
+                            onBreadcrumbClick = { target -> vm?.navigate(target) },
+                            onNavigateToPath = { path -> vm?.navigateToPath(path) },
+                            onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
+                            onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
+                            safLocationManager = vm?.safLocationManager,
+                            pickerSelection = state.pickerConfig?.selection,
+                            selectionCount = state.selectionState.selectedItems.size,
+                            saveAsFilename = state.saveAsFilename,
+                            canConfirmSelection = state.canConfirmSelection,
+                            onSaveAsFilenameChange = { filename -> vm?.updateSaveAsFilename(filename) },
+                            onCancel = { vm?.cancelPicker() },
+                            onConfirm = { vm?.confirmPickerSelection() },
+                        )
+                    }
+
+                    // InfoBar - only shown when NOT on permission screen
+                    FloatingBar(
+                        visible = showInfoBar && !state.setupRequirements.needsAction,
+                        scrollBehavior = BarScrollBehavior.Static,
+                        animation = BarAnimation.Slide(),
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    ) {
+                        ExplorerInfoBar(
+                            info = state.info,
+                            isLoading = isLoadingItems,
+                            progress = if (showProgress) state.progress else null,
+                            onCancel = { vm?.navigate(ExplorerNavigation.Cancel) },
+                            selectedCount = state.selectionState.selectedItems.size,
+                            selectedSize = state.selectionState.selectedSize,
+                            onClearSelection = { vm?.clearSelection() },
+                            onSelectFolders = { vm?.selectAllFolders() },
+                            onSelectFiles = { vm?.selectAllFiles() },
+                            isTrashDisabled = !state.trashEnabled,
+                        )
+                    }
+                },
+            )
 
             // Dialogs - stay in parent
             ExplorerDialogHost(
