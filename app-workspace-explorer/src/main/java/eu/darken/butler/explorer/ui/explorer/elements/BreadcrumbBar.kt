@@ -438,8 +438,6 @@ fun BreadcrumbBar(
                                         )
                                     }
 
-                                    // Show text if showText is true
-                                    if (breadcrumb.showText) {
                                         Text(
                                             text = breadcrumb.label.get(context),
                                             style = if (isLast) {
@@ -448,7 +446,6 @@ fun BreadcrumbBar(
                                                 MaterialTheme.typography.bodySmall.copy(color = animatedColor)
                                             },
                                         )
-                                    }
                                 }
 
                                 // Context menu for Home, Device, and Directory breadcrumbs
@@ -520,20 +517,22 @@ fun BreadcrumbBarPreview() {
         ExplorerBreadcrumb(
             label = "/".toCaString(),
             icon = Icons.TwoTone.FolderOpen,
-            showIcon = true,
             target = ExplorerNavigation.Target.Directory(LocalPath.build("/"))
         ),
         ExplorerBreadcrumb(
             label = "storage".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage"))
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage")),
+            icon = Icons.TwoTone.FolderOpen,
         ),
         ExplorerBreadcrumb(
             label = "emulated".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated"))
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated")),
+            icon = Icons.TwoTone.FolderOpen,
         ),
         ExplorerBreadcrumb(
             label = "0".toCaString(),
-            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0"))
+            target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
+            icon = Icons.TwoTone.FolderOpen,
         )
     )
 

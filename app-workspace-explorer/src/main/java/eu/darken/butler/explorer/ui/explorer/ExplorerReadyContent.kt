@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -600,7 +602,8 @@ private fun ExplorerReadyContentPreview() {
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
                 label = R.string.explorer_navigation_home.toCaString(),
-                target = ExplorerNavigation.Target.Home
+                target = ExplorerNavigation.Target.Home,
+                icon = Icons.TwoTone.Home,
             ),
         ),
         items = MockDataProvider.createAllFileTypes(),

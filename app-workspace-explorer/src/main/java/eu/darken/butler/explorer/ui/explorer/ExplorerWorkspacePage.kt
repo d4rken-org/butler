@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +29,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.BreadcrumbGenerator
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -141,7 +144,13 @@ fun ExplorerWorkspacePage(
                 onMoveFocusToFirst = { vm?.moveFocusToFirst() },
                 onMoveFocusToLast = { vm?.moveFocusToLast() },
                 onActivateFocusedItem = { focusedItem?.let { vm?.navigate(it) } },
-                onRenameFocusedItem = { (focusedItem as? ExplorerItem.Lookup)?.let { vm?.executeAction(ExplorerActionBarItem.Common.Rename(it)) } },
+                onRenameFocusedItem = {
+                    (focusedItem as? ExplorerItem.Lookup)?.let {
+                        vm?.executeAction(
+                            ExplorerActionBarItem.Common.Rename(it)
+                        )
+                    }
+                },
                 onDeleteFocusedItem = { vm?.deleteFocusedItem() },
                 onPermanentDeleteFocusedItem = {
                     if (keyboardState.selectionState.selectedItems.isNotEmpty()) {
@@ -321,25 +330,23 @@ private fun ExplorerWorkspacePagePreview() {
             progress = null,
         ),
         breadcrumbs = listOf(
-            ExplorerBreadcrumb(
-                label = R.string.explorer_navigation_home.toCaString(),
-                target = ExplorerNavigation.Target.Home
-            ),
-            ExplorerBreadcrumb(
-                label = R.string.explorer_navigation_device.toCaString(),
-                target = ExplorerNavigation.Target.Device
-            ),
+            BreadcrumbGenerator.HOME,
+            BreadcrumbGenerator.DEVICE,
             ExplorerBreadcrumb(
                 label = "storage".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage"))
-            ),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage")),
+                icon = Icons.TwoTone.FolderOpen,
+
+                ),
             ExplorerBreadcrumb(
                 label = "emulated".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated")),
+                icon = Icons.TwoTone.FolderOpen,
             ),
             ExplorerBreadcrumb(
                 label = "0".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
+                icon = Icons.TwoTone.FolderOpen,
             )
         ),
         items = MockDataProvider.createAllFileTypes(),
@@ -370,17 +377,18 @@ private fun ExplorerWorkspacePageEmptyPreview() {
             progress = null,
         ),
         breadcrumbs = listOf(
-            ExplorerBreadcrumb(
-                label = R.string.explorer_navigation_home.toCaString(),
-                target = ExplorerNavigation.Target.Home
-            ),
+            BreadcrumbGenerator.HOME,
             ExplorerBreadcrumb(
                 label = "sdcard".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
+
+                icon = Icons.TwoTone.FolderOpen,
             ),
             ExplorerBreadcrumb(
                 label = "EmptyFolder".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/EmptyFolder"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/EmptyFolder")),
+
+                icon = Icons.TwoTone.FolderOpen,
             ),
         ),
         items = emptyList(),
@@ -409,15 +417,18 @@ private fun ExplorerWorkspacePageErrorPreview() {
         breadcrumbs = listOf(
             ExplorerBreadcrumb(
                 label = R.string.explorer_navigation_home.toCaString(),
-                target = ExplorerNavigation.Target.Home
+                target = ExplorerNavigation.Target.Home,
+                icon = Icons.TwoTone.FolderOpen,
             ),
             ExplorerBreadcrumb(
                 label = "permission".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission")),
+                icon = Icons.TwoTone.FolderOpen,
             ),
             ExplorerBreadcrumb(
                 label = "denied".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission/denied"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission/denied")),
+                icon = Icons.TwoTone.FolderOpen,
             ),
         ),
         items = emptyList(),
@@ -458,17 +469,12 @@ private fun ExplorerWorkspacePageWithAllBarsPreview() {
             progress = null,
         ),
         breadcrumbs = listOf(
-            ExplorerBreadcrumb(
-                label = R.string.explorer_navigation_home.toCaString(),
-                target = ExplorerNavigation.Target.Home
-            ),
-            ExplorerBreadcrumb(
-                label = R.string.explorer_navigation_device.toCaString(),
-                target = ExplorerNavigation.Target.Device
-            ),
+            BreadcrumbGenerator.HOME,
+            BreadcrumbGenerator.DEVICE,
             ExplorerBreadcrumb(
                 label = "0".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
+                icon = Icons.TwoTone.FolderOpen,
             )
         ),
         items = mockFileItems,
@@ -528,21 +534,17 @@ private fun ExplorerPickerMode_MixedMultiPreview() {
             progress = null,
         ),
         breadcrumbs = listOf(
-            ExplorerBreadcrumb(
-                label = R.string.explorer_navigation_home.toCaString(),
-                target = ExplorerNavigation.Target.Home
-            ),
-            ExplorerBreadcrumb(
-                label = R.string.explorer_navigation_device.toCaString(),
-                target = ExplorerNavigation.Target.Device
-            ),
+            BreadcrumbGenerator.HOME,
+            BreadcrumbGenerator.DEVICE,
             ExplorerBreadcrumb(
                 label = "sdcard".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
+                icon = Icons.TwoTone.FolderOpen,
             ),
             ExplorerBreadcrumb(
                 label = "Documents".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Documents"))
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Documents")),
+                icon = Icons.TwoTone.FolderOpen,
             )
         ),
         items = mockItems,

@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
+import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PhoneAndroid
@@ -657,8 +658,6 @@ object MockDataProvider {
             label = R.string.explorer_navigation_home.toCaString(),
             icon = Icons.TwoTone.Home,
             target = ExplorerNavigation.Target.Home,
-            showIcon = true,
-            showText = false,
         )
     }
 
@@ -668,14 +667,17 @@ object MockDataProvider {
             ExplorerBreadcrumb(
                 label = "storage".toCaString(),
                 target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage")),
+                icon = Icons.TwoTone.FolderOpen,
             ),
             ExplorerBreadcrumb(
                 label = "emulated".toCaString(),
                 target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated")),
+                icon = Icons.TwoTone.FolderOpen,
             ),
             ExplorerBreadcrumb(
                 label = "0".toCaString(),
                 target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
+                icon = Icons.TwoTone.FolderOpen,
             ),
         )
     }
@@ -686,10 +688,12 @@ object MockDataProvider {
             ExplorerBreadcrumb(
                 label = "sdcard".toCaString(),
                 target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard")),
+                icon = Icons.TwoTone.FolderOpen,
             ),
             ExplorerBreadcrumb(
                 label = "Download".toCaString(),
                 target = ExplorerNavigation.Target.Directory(LocalPath.build("/sdcard/Download")),
+                icon = Icons.TwoTone.FolderOpen,
             ),
         )
     }
