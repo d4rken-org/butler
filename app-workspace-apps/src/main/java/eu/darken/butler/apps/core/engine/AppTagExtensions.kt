@@ -56,3 +56,16 @@ val AppTag.Companion.standardTags: List<AppTag>
         AppTag.Debug,
         AppTag.SplitApk,
     )
+
+/**
+ * Returns the conflicting tag that should be auto-removed when this tag is selected.
+ * Used for mutual exclusivity in filter UI (e.g., System ↔ UserApp, Disabled ↔ Enabled).
+ */
+val AppTag.conflictingTag: AppTag?
+    get() = when (this) {
+        AppTag.System -> AppTag.UserApp
+        AppTag.UserApp -> AppTag.System
+        AppTag.Disabled -> AppTag.Enabled
+        AppTag.Enabled -> AppTag.Disabled
+        else -> null
+    }

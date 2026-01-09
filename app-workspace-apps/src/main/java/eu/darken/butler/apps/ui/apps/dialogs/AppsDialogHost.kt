@@ -13,6 +13,7 @@ import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
 fun AppsDialogHost(
     modifier: Modifier = Modifier,
     dialogState: AppsDialogState,
+    filterConfig: TagFilterConfig,
     onDismiss: () -> Unit,
     onAction: (AppsActionBarItem) -> Unit,
     onFilterApply: (TagFilterConfig) -> Unit,
@@ -38,12 +39,13 @@ fun AppsDialogHost(
         }
 
         is AppsDialogState.FilterOptions -> {
-            FilterOptionsDialog(
+            FilterBottomSheet(
                 modifier = modifier,
-                currentFilter = dialogState.currentFilter,
+                filterConfig = filterConfig,
                 availableTags = dialogState.availableTags,
+                onFilterChange = onFilterApply,
                 onDismiss = onDismiss,
-                onApply = onFilterApply,
+                bottomInset = bottomInset,
             )
         }
 

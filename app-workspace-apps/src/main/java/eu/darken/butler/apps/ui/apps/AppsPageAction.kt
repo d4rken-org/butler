@@ -1,6 +1,7 @@
 package eu.darken.butler.apps.ui.apps
 
 import androidx.compose.ui.text.input.TextFieldValue
+import eu.darken.butler.apps.core.AppTag
 import eu.darken.butler.apps.core.SortSettings
 import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.apps.core.engine.AppItem
@@ -28,6 +29,14 @@ sealed interface AppsPageAction {
      */
     sealed interface Search : AppsPageAction {
         data class UpdateQuery(val query: TextFieldValue) : Search
+    }
+
+    /**
+     * Filter chip actions (inline filter management)
+     */
+    sealed interface Filter : AppsPageAction {
+        data object OpenDialog : Filter
+        data class RemoveTag(val tag: AppTag, val isExcluded: Boolean) : Filter
     }
 
     /**

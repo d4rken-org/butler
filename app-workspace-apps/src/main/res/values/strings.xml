@@ -156,6 +156,12 @@
     <string name="apps_filter_tag_user_app_label">User app</string>
     <string name="apps_filter_include_label">Must match (all selected)</string>
     <string name="apps_filter_exclude_label">Must not match</string>
+    <string name="apps_filter_add_action">Filter</string>
+    <string name="apps_filter_hint">Tap to include, tap again to exclude, tap once more to remove</string>
+    <plurals name="apps_filter_count">
+        <item quantity="one">%d filter</item>
+        <item quantity="other">%d filters</item>
+    </plurals>
 
     <!-- Components Section -->
     <string name="apps_details_section_components">Components</string>

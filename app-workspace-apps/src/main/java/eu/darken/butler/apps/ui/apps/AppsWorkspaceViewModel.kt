@@ -173,7 +173,6 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         return buildList {
             add(AppsActionBarItem.Refresh)
             add(AppsActionBarItem.Sort)
-            add(AppsActionBarItem.Filter)
 
             val toggledViewStyle = when (wsState.viewStyle) {
                 is AppsViewStyle.List -> AppsViewStyle.Grid()
@@ -205,6 +204,18 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "Filter changed: $filterConfig" }
         getWorkspace().updateFilterConfig(filterConfig)
         appsSettings.defaultFilterConfig.value(filterConfig)
+    }
+
+    private fun onFilterTagRemoved(appTag: AppTag, isExcluded: Boolean) = launch {
+        log(tag) { "Removing filter tag: $appTag (excluded: $isExcluded)" }
+        val currentConfig = workspaceReadyState.filterNotNull().first().filterConfig
+        val newConfig = if (isExcluded) {
+            currentConfig.copy(excludeTags = currentConfig.excludeTags - appTag)
+        } else {
+            currentConfig.copy(includeTags = currentConfig.includeTags - appTag)
+        }
+        getWorkspace().updateFilterConfig(newConfig)
+        appsSettings.defaultFilterConfig.value(newConfig)
     }
 
     fun onSortSettingsChanged(sortSettings: SortSettings) = launch {
@@ -292,7 +303,6 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
             .filterNotNull()
 
         dialogStateFlow.value = AppsDialogState.FilterOptions(
-            currentFilter = currentState.filterConfig,
             availableTags = availableTags,
         )
     }
@@ -355,6 +365,10 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
             // Search
             is AppsPageAction.Search.UpdateQuery -> onSearchQueryChanged(action.query)
+
+            // Filter chips
+            is AppsPageAction.Filter.OpenDialog -> showFilterDialog()
+            is AppsPageAction.Filter.RemoveTag -> onFilterTagRemoved(action.tag, action.isExcluded)
 
             // App interactions
             is AppsPageAction.Apps.Refresh -> onRefresh()
