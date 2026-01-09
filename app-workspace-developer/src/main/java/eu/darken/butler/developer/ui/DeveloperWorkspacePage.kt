@@ -1,22 +1,15 @@
 package eu.darken.butler.developer.ui
 
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,7 +40,11 @@ import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.TargetPathInfo
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.TestDataState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.common.CutoutAwareFlowRow
+import eu.darken.butler.workspace.ui.common.CutoutCard
+import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
+import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
@@ -156,50 +153,45 @@ fun DeveloperWorkspacePage(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
         // Floating header card with tabs and workspace button
-        ElevatedCard(
+        CutoutCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = statusBarInset + 12.dp, bottom = 12.dp)
                 .padding(horizontal = 16.dp),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Tab chips in a horizontally scrollable row
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    DeveloperTab.entries.forEach { tab ->
-                        FilterChip(
-                            selected = state.selectedTab == tab,
-                            onClick = { onTabSelected(tab) },
-                            label = {
-                                Text(
-                                    text = when (tab) {
-                                        DeveloperTab.SYSTEM -> stringResource(R.string.developer_tab_system)
-                                        DeveloperTab.OPTIONS -> stringResource(R.string.developer_tab_options)
-                                        DeveloperTab.LOGS -> stringResource(R.string.developer_tab_logs)
-                                        DeveloperTab.TEST_DATA -> stringResource(R.string.developer_tab_testdata)
-                                    }
-                                )
-                            }
-                        )
-                    }
-                }
-
-                // Workspace button (only in single pane mode)
-                if (design.isSingle) {
-                    Spacer(modifier = Modifier.width(8.dp))
+            cutoutContent = if (design.isSingle) {
+                {
                     WorkspaceButton(
-                        buttonSize = 40.dp,
+                        buttonSize = WorkspaceButtonDefaults.sizeCompact,
                         currentWorkspaceId = workspaceId,
+                    )
+                }
+            } else null,
+            contentPadding = CutoutCardDefaults.contentPadding(8.dp),
+            colors = androidx.compose.material3.CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ),
+        ) {
+            CutoutAwareFlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                cutoutWidth = cutoutWidth,
+                cutoutHeight = cutoutHeight,
+                horizontalSpacing = 8.dp,
+                verticalSpacing = 4.dp,
+            ) {
+                DeveloperTab.entries.forEach { tab ->
+                    FilterChip(
+                        selected = state.selectedTab == tab,
+                        onClick = { onTabSelected(tab) },
+                        label = {
+                            Text(
+                                text = when (tab) {
+                                    DeveloperTab.SYSTEM -> stringResource(R.string.developer_tab_system)
+                                    DeveloperTab.OPTIONS -> stringResource(R.string.developer_tab_options)
+                                    DeveloperTab.LOGS -> stringResource(R.string.developer_tab_logs)
+                                    DeveloperTab.TEST_DATA -> stringResource(R.string.developer_tab_testdata)
+                                }
+                            )
+                        }
                     )
                 }
             }
