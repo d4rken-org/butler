@@ -88,10 +88,6 @@ fun DeveloperWorkspacePageHost(
             onNestedStructureToggled = { vm.toggleNestedStructure(it) },
             onTextFilesToggled = { vm.toggleTextFiles(it) },
             onGenerateTestData = { vm.generateTestData() },
-            onDeleteLargeFilesToggled = { vm.toggleDeleteLargeFiles(it) },
-            onDeleteNestedStructureToggled = { vm.toggleDeleteNestedStructure(it) },
-            onDeleteTextFilesToggled = { vm.toggleDeleteTextFiles(it) },
-            onDeleteTestData = { vm.deleteTestData() },
             onToggleDebugMode = { vm.toggleDebugMode(it) },
             onToggleTraceMode = { vm.toggleTraceMode(it) },
             onTestRoot = { vm.testRoot() },
@@ -134,10 +130,6 @@ fun DeveloperWorkspacePage(
     onNestedStructureToggled: (Boolean) -> Unit = {},
     onTextFilesToggled: (Boolean) -> Unit = {},
     onGenerateTestData: () -> Unit = {},
-    onDeleteLargeFilesToggled: (Boolean) -> Unit = {},
-    onDeleteNestedStructureToggled: (Boolean) -> Unit = {},
-    onDeleteTextFilesToggled: (Boolean) -> Unit = {},
-    onDeleteTestData: () -> Unit = {},
     onToggleDebugMode: (Boolean) -> Unit = {},
     onToggleTraceMode: (Boolean) -> Unit = {},
     onTestRoot: () -> Unit = {},
@@ -249,10 +241,6 @@ fun DeveloperWorkspacePage(
                     onNestedStructureToggled = onNestedStructureToggled,
                     onTextFilesToggled = onTextFilesToggled,
                     onGenerateTestData = onGenerateTestData,
-                    onDeleteLargeFilesToggled = onDeleteLargeFilesToggled,
-                    onDeleteNestedStructureToggled = onDeleteNestedStructureToggled,
-                    onDeleteTextFilesToggled = onDeleteTextFilesToggled,
-                    onDeleteTestData = onDeleteTestData,
                 )
             }
         }
@@ -318,10 +306,6 @@ private fun DeveloperWorkspacePagePreview() {
                     nestedStructureEnabled = false,
                     textFilesEnabled = true,
                     canGenerate = true,
-                    deleteLargeFilesEnabled = false,
-                    deleteNestedStructureEnabled = false,
-                    deleteTextFilesEnabled = true,
-                    canDelete = true,
                 ),
                 optionsState = OptionsState(
                     isDebugMode = true,

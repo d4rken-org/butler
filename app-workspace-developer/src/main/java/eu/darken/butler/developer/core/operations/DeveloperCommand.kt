@@ -21,11 +21,4 @@ sealed interface DeveloperCommand {
         val basePath: APath<*>,
         val folderName: String = "aButlerTextFiles",
     ) : DeveloperCommand
-
-    data class DeleteTestData(
-        val basePath: APath<*>,
-        val deleteLargeFiles: Boolean = false,
-        val deleteNestedStructure: Boolean = false,
-        val deleteTextFiles: Boolean = false,
-    ) : DeveloperCommand
 }

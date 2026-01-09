@@ -82,11 +82,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     private val nestedStructureEnabled = MutableStateFlow(false)
     private val textFilesEnabled = MutableStateFlow(true)
 
-    // Test data state - Delete
-    private val deleteLargeFilesEnabled = MutableStateFlow(false)
-    private val deleteNestedStructureEnabled = MutableStateFlow(false)
-    private val deleteTextFilesEnabled = MutableStateFlow(true)
-
     // Workspace and operations
     private val workspaceSource = workspaceProvider.retrieve(id)
         .map { it as? DeveloperWorkspace }
@@ -115,9 +110,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         largeFilesEnabled,
         nestedStructureEnabled,
         textFilesEnabled,
-        deleteLargeFilesEnabled,
-        deleteNestedStructureEnabled,
-        deleteTextFilesEnabled,
         operationsState,
         debugSettings.isDebugMode.flow,
         debugSettings.isTraceMode.flow,
@@ -127,7 +119,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         isShizukuTesting,
         developerSettings.isDeveloperModeUnlocked.flow,
     ) { tab, liveLogs, snapshot, paused, paths, largeFiles, nested, text,
-        delLargeFiles, delNested, delText, ops, isDebugMode, isTraceMode, rootResult,
+        ops, isDebugMode, isTraceMode, rootResult,
         rootTesting, shizukuResult, shizukuTesting, isDeveloperModeUnlocked ->
         val displayLogs = if (paused && snapshot != null) snapshot else liveLogs
         val systemInfo = getSystemInfo()
@@ -151,10 +143,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                 nestedStructureEnabled = nested,
                 textFilesEnabled = text,
                 canGenerate = pathInfos.isNotEmpty() && (largeFiles || nested || text),
-                deleteLargeFilesEnabled = delLargeFiles,
-                deleteNestedStructureEnabled = delNested,
-                deleteTextFilesEnabled = delText,
-                canDelete = pathInfos.isNotEmpty() && (delLargeFiles || delNested || delText),
             ),
             optionsState = OptionsState(
                 isDebugMode = isDebugMode,
@@ -244,18 +232,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         textFilesEnabled.value = enabled
     }
 
-    fun toggleDeleteLargeFiles(enabled: Boolean) {
-        deleteLargeFilesEnabled.value = enabled
-    }
-
-    fun toggleDeleteNestedStructure(enabled: Boolean) {
-        deleteNestedStructureEnabled.value = enabled
-    }
-
-    fun toggleDeleteTextFiles(enabled: Boolean) {
-        deleteTextFilesEnabled.value = enabled
-    }
-
     fun generateTestData() {
         val paths = targetPaths.value
         if (paths.isEmpty()) {
@@ -280,33 +256,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                 if (textFilesEnabled.value) {
                     workspace.execute(DeveloperCommand.GenerateTextFiles(path))
                 }
-            }
-        }
-    }
-
-    fun deleteTestData() {
-        val paths = targetPaths.value
-        if (paths.isEmpty()) {
-            log(tag, WARN) { "No target paths selected for deletion" }
-            return
-        }
-
-        log(tag) { "Starting test data deletion for ${paths.size} path(s)" }
-
-        launch {
-            val workspace = workspaceSource.first()
-
-            for (path in paths) {
-                log(tag) { "Deleting test data from: $path" }
-
-                workspace.execute(
-                    DeveloperCommand.DeleteTestData(
-                        basePath = path,
-                        deleteLargeFiles = deleteLargeFilesEnabled.value,
-                        deleteNestedStructure = deleteNestedStructureEnabled.value,
-                        deleteTextFiles = deleteTextFilesEnabled.value,
-                    )
-                )
             }
         }
     }
@@ -496,10 +445,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         val nestedStructureEnabled: Boolean,
         val textFilesEnabled: Boolean,
         val canGenerate: Boolean,
-        val deleteLargeFilesEnabled: Boolean,
-        val deleteNestedStructureEnabled: Boolean,
-        val deleteTextFilesEnabled: Boolean,
-        val canDelete: Boolean,
     )
 
     data class TargetPathInfo(
