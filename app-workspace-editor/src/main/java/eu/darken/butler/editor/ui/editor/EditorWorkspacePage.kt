@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.ui.editor
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -95,6 +96,11 @@ fun EditorWorkspacePage(
     val clipboardState by clipboardStateSource.collectAsState(EditorWorkspaceViewModel.ClipboardState())
 
     val state = stateOrNull ?: return
+
+    // Handle back button for selection mode - clear selection first
+    BackHandler(enabled = state.selectionRange != null) {
+        onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
+    }
 
     val hasClipboard by remember { derivedStateOf { clipboardState.entries.isNotEmpty() } }
     val hasActions = state.availableActions.isNotEmpty()

@@ -110,27 +110,9 @@ class EditorWorkspace @AssistedInject constructor(
             val initialPath = args?.filePath
             val initialContent = args?.initialContent
             log(tag, INFO) { "Creating initial engine with: ${initialPath?.name ?: "scratch buffer"}" }
-            editorEngineFactory.create(id, initialPath, initialContent).apply {
-                initialize().getOrThrow()
-
-                // Restore cursor and scroll position from saved arguments
-                // Only if file was loaded AND positions are within bounds
-                if (initialPath != null) {
-                    val lines = totalLines.value
-                    val cursorLine = args?.cursorLine
-                    val cursorColumn = args?.cursorColumn
-                    if (cursorLine != null && cursorColumn != null && cursorLine < lines) {
-                        log(tag, INFO) { "Restoring cursor position: line=$cursorLine, column=$cursorColumn" }
-                        setCursorPosition(TextPosition(offset = 0, line = cursorLine, column = cursorColumn))
-                    }
-                    val scrollLine = args?.scrollToLine
-                    if (scrollLine != null && scrollLine < lines) {
-                        val windowSize = 50
-                        log(tag, INFO) { "Restoring scroll position: line=$scrollLine" }
-                        updateVisibleRange(scrollLine, scrollLine + windowSize)
-                    }
-                }
-            }
+            // Create engine without initializing - initialization happens async in init block
+            // This allows the workspace to reach Ready state immediately, showing loading progress
+            editorEngineFactory.create(id, initialPath, initialContent)
         },
         onRelease = { engine ->
             launch {
@@ -281,6 +263,40 @@ class EditorWorkspace @AssistedInject constructor(
                 }
             }
             .launchIn(workspaceScope)
+
+        // Initialize engine asynchronously - allows workspace to reach Ready state immediately
+        // showing loading progress during file load instead of "Initializing tab"
+        workspaceScope.launch {
+            val engine = engineHolder.value()
+            val result = engine.initialize()
+
+            if (result.isFailure) {
+                val error = result.exceptionOrNull() ?: Exception("Engine initialization failed")
+                log(tag, ERROR) { "Engine initialization failed: ${error.asLog()}" }
+                _state.value = State.Error(error)
+                return@launch
+            }
+
+            // Restore cursor and scroll position from saved arguments
+            // Only if file was loaded AND positions are within bounds
+            val args = creationArguments as? EditorArguments.Default
+            val initialPath = args?.filePath
+            if (initialPath != null) {
+                val lines = engine.totalLines.value
+                val cursorLine = args.cursorLine
+                val cursorColumn = args.cursorColumn
+                if (cursorLine != null && cursorColumn != null && cursorLine < lines) {
+                    log(tag, INFO) { "Restoring cursor position: line=$cursorLine, column=$cursorColumn" }
+                    engine.setCursorPosition(TextPosition(offset = 0, line = cursorLine, column = cursorColumn))
+                }
+                val scrollLine = args.scrollToLine
+                if (scrollLine != null && scrollLine < lines) {
+                    val windowSize = 50
+                    log(tag, INFO) { "Restoring scroll position: line=$scrollLine" }
+                    engine.updateVisibleRange(scrollLine, scrollLine + windowSize)
+                }
+            }
+        }
     }
 
     fun updateTitle(fileName: String? = null) {
