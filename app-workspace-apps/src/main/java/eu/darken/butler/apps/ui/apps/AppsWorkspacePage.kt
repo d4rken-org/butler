@@ -1,5 +1,6 @@
 package eu.darken.butler.apps.ui.apps
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -63,6 +64,10 @@ private fun AppsWorkspacePage(
 
     // Only render when Ready - WorkspaceMapper handles Init/Error overlays
     val state = mainStateRaw as? AppsWorkspaceViewModel.State.Ready ?: return
+
+    BackHandler(enabled = state.isMultiSelectMode) {
+        onPageAction(AppsPageAction.Selection.Clear)
+    }
 
     val topBarStackState = rememberFloatingBarStackState(
         position = BarPosition.TOP,
