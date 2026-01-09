@@ -31,8 +31,6 @@ import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.destSetup
-import eu.darken.butler.common.navigation.settings
-import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.trash.TrashManager
 import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.common.ui.ViewModel4
@@ -73,7 +71,6 @@ import eu.darken.butler.explorer.ui.picker.ExplorerPickerHelper
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.permissions.core.SAFPickerGrant
 import eu.darken.butler.upgrade.UpgradeRepo
-import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
@@ -97,7 +94,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -176,7 +173,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val itemSorter = itemSorterFactory.create(id)
     private val currentSortSettings = MutableStateFlow(explorerSettings.sortSettings.valueBlocking)
     private suspend fun getWorkspace() = workspaceSource.filterNotNull().first()
-    private suspend fun getReadyState(): State.Ready = state.filterIsInstance<State.Ready>().first()
+    private suspend fun getState(): State = state.first()
 
     private val workspaceState: Flow<ExplorerWorkspace.State?> = workspaceSource.flatMapLatest { ws ->
         ws?.state ?: flowOf(null)
@@ -210,50 +207,44 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .launchInViewModel()
     }
 
-    sealed interface State {
-        data object Initializing : State
+    data class State(
+        internal val currentLocation: ExplorerLocation? = null,
+        val locationId: String? = null,
+        val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
+        val items: List<ExplorerItem>? = null,
+        val error: Throwable? = null,
+        val selectionState: ExplorerSelectionState = ExplorerSelectionState(),
+        val viewStyle: ExplorerViewStyle = ExplorerViewStyle.default(),
+        val canGoBack: Boolean = false,
+        val canGoForward: Boolean = false,
+        val availableActions: List<ExplorerActionBarItem> = emptyList(),
+        val dialogState: ExplorerDialogState = None,
+        val setupRequirements: PathRequirements = PathRequirements(),
+        val isPro: Boolean = false,
+        val filterState: FilterState = FilterState(),
+        val useRegexPatterns: Boolean = false,
+        val useBackButtonForNavigation: Boolean = false,
+        val pickerConfig: PickerConfig? = null,
+        val sortSettings: SortSettings = SortSettings(),
+        val trashEnabled: Boolean = false,
+        val saveAsFilename: String = "",
+        val disabledItems: Set<ExplorerItem> = emptySet(),
+        val canConfirmSelection: Boolean = true,
+        val highlightedItemIds: Set<String> = emptySet(),
+        val focusedItemIndex: Int? = null,
+    ) {
+        val progress = currentLocation?.progress
+        val info = currentLocation?.info
 
-        data class Error(val error: Throwable) : State
+        fun shouldShowSelection(item: ExplorerItem): Boolean {
+            // Must be selectable
+            if (item !in selectionState.selectableItems) return false
 
-        data class Ready(
-            internal val currentLocation: ExplorerLocation? = null,
-            val locationId: String? = null,
-            val breadcrumbs: List<ExplorerBreadcrumb> = emptyList(),
-            val items: List<ExplorerItem>? = null,
-            val error: Throwable? = null,
-            val selectionState: ExplorerSelectionState = ExplorerSelectionState(),
-            val viewStyle: ExplorerViewStyle = ExplorerViewStyle.default(),
-            val canGoBack: Boolean = false,
-            val canGoForward: Boolean = false,
-            val availableActions: List<ExplorerActionBarItem> = emptyList(),
-            val dialogState: ExplorerDialogState = None,
-            val setupRequirements: PathRequirements = PathRequirements(),
-            val isPro: Boolean = false,
-            val filterState: FilterState = FilterState(),
-            val useRegexPatterns: Boolean = false,
-            val useBackButtonForNavigation: Boolean = false,
-            val pickerConfig: PickerConfig? = null,
-            val sortSettings: SortSettings = SortSettings(),
-            val trashEnabled: Boolean = false,
-            val saveAsFilename: String = "",
-            val disabledItems: Set<ExplorerItem> = emptySet(),
-            val canConfirmSelection: Boolean = true,
-            val highlightedItemIds: Set<String> = emptySet(),
-            val focusedItemIndex: Int? = null,
-        ) : State {
-            val progress = currentLocation?.progress
-            val info = currentLocation?.info
+            // Show in multi-select picker modes (even before any items selected)
+            if (pickerConfig?.selection?.isMultiSelect == true) return true
 
-            fun shouldShowSelection(item: ExplorerItem): Boolean {
-                // Must be selectable
-                if (item !in selectionState.selectableItems) return false
-
-                // Show in multi-select picker modes (even before any items selected)
-                if (pickerConfig?.selection?.isMultiSelect == true) return true
-
-                // Show when in selection mode (normal browsing)
-                return selectionState.selectedItems.isNotEmpty()
-            }
+            // Show when in selection mode (normal browsing)
+            return selectionState.selectedItems.isNotEmpty()
         }
     }
 
@@ -282,100 +273,94 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     val state: Flow<State> = workspaceSource.flatMapLatest { ws ->
-        if (ws == null) {
-            flowOf(State.Initializing)
-        } else {
-            workspaceState.flatMapLatest { wsState ->
-                when (wsState) {
-                    null, is ExplorerWorkspace.State.Initializing -> flowOf(State.Initializing)
-                    is ExplorerWorkspace.State.Error -> flowOf(State.Error(wsState.error))
-                    is ExplorerWorkspace.State.Ready -> combine(
-                        flowOf(wsState),
-                        processedItemsFlow,
-                        derivedSelectionStateFlow,
-                        viewStyleFlow,
-                        dialogStateFlow,
-                        currentSortSettings,
-                        upgradeRepo.upgradeInfo,
-                        filterStateFlow,
-                        explorerSettings.useRegexPatterns.flow,
-                        explorerSettings.useBackButtonForNavigation.flow,
-                        pickerConfigFlow,
-                        trashManager.isEnabled,
-                        saveAsFilenameFlow,
-                        highlightedItemIds,
-                        focusedItemIndexFlow,
-                    ) { wsStateInner, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex ->
-                        // Items already filtered and sorted by processedItemsFlow
-                        // Selection state already computed by derivedSelectionStateFlow
+        if (ws == null) return@flatMapLatest emptyFlow()
 
-                        val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
+        workspaceState.flatMapLatest { wsState ->
+            when (wsState) {
+                null,
+                is ExplorerWorkspace.State.Initializing,
+                is ExplorerWorkspace.State.Error -> emptyFlow()
 
-                        // Compute whether picker confirm is allowed
-                        val canConfirmSelection = pickerHelper.canConfirmSelection(
-                            config = pickerConfig,
-                            currentLocation = wsStateInner.currentLocation,
-                            selectedItems = selectionState.selectedItems,
-                            saveAsFilename = saveAsFilename,
+                is ExplorerWorkspace.State.Ready -> combine(
+                    flowOf(wsState),
+                    processedItemsFlow,
+                    derivedSelectionStateFlow,
+                    viewStyleFlow,
+                    dialogStateFlow,
+                    currentSortSettings,
+                    upgradeRepo.upgradeInfo,
+                    filterStateFlow,
+                    explorerSettings.useRegexPatterns.flow,
+                    explorerSettings.useBackButtonForNavigation.flow,
+                    pickerConfigFlow,
+                    trashManager.isEnabled,
+                    saveAsFilenameFlow,
+                    highlightedItemIds,
+                    focusedItemIndexFlow,
+                ) { wsStateInner, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex ->
+                    val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
+
+                    val canConfirmSelection = pickerHelper.canConfirmSelection(
+                        config = pickerConfig,
+                        currentLocation = wsStateInner.currentLocation,
+                        selectedItems = selectionState.selectedItems,
+                        saveAsFilename = saveAsFilename,
+                    )
+
+                    val rawActions = wsStateInner.currentLocation?.let {
+                        actionProvider.getActions(
+                            location = it,
+                            selectionState = selectionState,
+                            viewStyle = viewStyle,
+                            trashEnabled = recycleBinEnabled,
                         )
+                    } ?: emptyList()
 
-                        val rawActions = wsStateInner.currentLocation?.let {
-                            actionProvider.getActions(
-                                location = it,
-                                selectionState = selectionState,
-                                viewStyle = viewStyle,
-                                trashEnabled = recycleBinEnabled,
-                            )
-                        } ?: emptyList()
+                    val availableActions = pickerHelper.filterActionsForPicker(rawActions, pickerConfig)
+                        .map { action ->
+                            if (action is ExplorerActionBarItem.Common.Filter) {
+                                val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
+                                    || filterState.includePattern.isNotBlank()
+                                    || filterState.excludePattern.isNotBlank()
 
-                        val availableActions = pickerHelper.filterActionsForPicker(rawActions, pickerConfig)
-                            .map { action ->
-                                // Add badge to Filter action if filters are active
-                                if (action is ExplorerActionBarItem.Common.Filter) {
-                                    val hasActiveFilters = filterState.fileTypeFilter != FileTypeFilter.ALL
-                                        || filterState.includePattern.isNotBlank()
-                                        || filterState.excludePattern.isNotBlank()
-
-                                    if (hasActiveFilters) {
-                                        action.copy(badge = true)
-                                    } else {
-                                        action
-                                    }
+                                if (hasActiveFilters) {
+                                    action.copy(badge = true)
                                 } else {
                                     action
                                 }
+                            } else {
+                                action
                             }
+                        }
 
-                        State.Ready(
-                            currentLocation = wsStateInner.currentLocation,
-                            locationId = wsStateInner.currentLocation?.locationId,
-                            breadcrumbs = wsStateInner.currentBreadcrumbs ?: emptyList(),
-                            items = items,
-                            error = wsStateInner.error,
-                            selectionState = selectionState,
-                            viewStyle = viewStyle,
-                            canGoBack = wsStateInner.canGoBack,
-                            canGoForward = wsStateInner.canGoForward,
-                            availableActions = availableActions,
-                            dialogState = dialogState,
-                            setupRequirements = wsStateInner.currentLocation?.setupRequirements ?: PathRequirements(),
-                            isPro = upgradeInfo.isUpgraded,
-                            filterState = filterState,
-                            useRegexPatterns = useRegexPatterns,
-                            useBackButtonForNavigation = useBackButtonForNavigation,
-                            pickerConfig = pickerConfig,
-                            sortSettings = sortSetting,
-                            trashEnabled = recycleBinEnabled,
-                            saveAsFilename = saveAsFilename,
-                            disabledItems = disabledItems,
-                            canConfirmSelection = canConfirmSelection,
-                            highlightedItemIds = highlightedItemIds,
-                            focusedItemIndex = focusedItemIndex?.let { idx ->
-                                // Adjust focus index if it's out of bounds (e.g., items were removed)
-                                items?.let { if (idx < it.size) idx else it.lastIndex.takeIf { it >= 0 } }
-                            },
-                        )
-                    }
+                    State(
+                        currentLocation = wsStateInner.currentLocation,
+                        locationId = wsStateInner.currentLocation?.locationId,
+                        breadcrumbs = wsStateInner.currentBreadcrumbs ?: emptyList(),
+                        items = items,
+                        error = wsStateInner.error,
+                        selectionState = selectionState,
+                        viewStyle = viewStyle,
+                        canGoBack = wsStateInner.canGoBack,
+                        canGoForward = wsStateInner.canGoForward,
+                        availableActions = availableActions,
+                        dialogState = dialogState,
+                        setupRequirements = wsStateInner.currentLocation?.setupRequirements ?: PathRequirements(),
+                        isPro = upgradeInfo.isUpgraded,
+                        filterState = filterState,
+                        useRegexPatterns = useRegexPatterns,
+                        useBackButtonForNavigation = useBackButtonForNavigation,
+                        pickerConfig = pickerConfig,
+                        sortSettings = sortSetting,
+                        trashEnabled = recycleBinEnabled,
+                        saveAsFilename = saveAsFilename,
+                        disabledItems = disabledItems,
+                        canConfirmSelection = canConfirmSelection,
+                        highlightedItemIds = highlightedItemIds,
+                        focusedItemIndex = focusedItemIndex?.let { idx ->
+                            items?.let { if (idx < it.size) idx else it.lastIndex.takeIf { it >= 0 } }
+                        },
+                    )
                 }
             }
         }
@@ -654,31 +639,31 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun selectAll() = launch {
-        val stateSnap = getReadyState()
+        val stateSnap = getState()
         selectedItemsFlow.value = stateSnap.selectionState.selectableItems
     }
 
     fun selectAllFolders() = launch {
-        val stateSnap = getReadyState()
+        val stateSnap = getState()
         val folders = stateSnap.selectionState.selectableItems.filter { item ->
             item is ExplorerItem.Directory ||
                 (item is ExplorerItem.Trash.Nested && item.isDirectory)
         }
-        selectedItemsFlow.value = selectedItemsFlow.value + folders
+        selectedItemsFlow.value += folders
     }
 
     fun selectAllFiles() = launch {
-        val stateSnap = getReadyState()
+        val stateSnap = getState()
         val files = stateSnap.selectionState.selectableItems.filter { item ->
             item is ExplorerItem.File ||
                 (item is ExplorerItem.Trash.Nested && item.isFile)
         }
-        selectedItemsFlow.value = selectedItemsFlow.value + files
+        selectedItemsFlow.value += files
     }
 
     // Focus navigation methods
     fun moveFocusUp() = launch {
-        val itemCount = getReadyState().items?.size ?: return@launch
+        val itemCount = getState().items?.size ?: return@launch
         if (itemCount == 0) return@launch
         focusedItemIndexFlow.value = when (val current = focusedItemIndexFlow.value) {
             null -> itemCount - 1
@@ -688,7 +673,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun moveFocusDown() = launch {
-        val itemCount = getReadyState().items?.size ?: return@launch
+        val itemCount = getState().items?.size ?: return@launch
         if (itemCount == 0) return@launch
         focusedItemIndexFlow.value = when (val current = focusedItemIndexFlow.value) {
             null -> 0
@@ -698,7 +683,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun moveFocusLeft(gridColumns: Int) = launch {
-        val itemCount = getReadyState().items?.size ?: return@launch
+        val itemCount = getState().items?.size ?: return@launch
         if (itemCount == 0) return@launch
         focusedItemIndexFlow.value = when {
             focusedItemIndexFlow.value == null -> itemCount - 1
@@ -708,7 +693,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun moveFocusRight(gridColumns: Int) = launch {
-        val itemCount = getReadyState().items?.size ?: return@launch
+        val itemCount = getState().items?.size ?: return@launch
         if (itemCount == 0) return@launch
         focusedItemIndexFlow.value = when {
             focusedItemIndexFlow.value == null -> 0
@@ -718,13 +703,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun moveFocusToFirst() = launch {
-        val itemCount = getReadyState().items?.size ?: return@launch
+        val itemCount = getState().items?.size ?: return@launch
         if (itemCount == 0) return@launch
         focusedItemIndexFlow.value = 0
     }
 
     fun moveFocusToLast() = launch {
-        val itemCount = getReadyState().items?.size ?: return@launch
+        val itemCount = getState().items?.size ?: return@launch
         if (itemCount == 0) return@launch
         focusedItemIndexFlow.value = itemCount - 1
     }
@@ -734,10 +719,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun deleteFocusedItem(forcePermDelete: Boolean = false) = launch {
-        val stateSnap = getReadyState()
+        val stateSnap = getState()
         val focusedIndex = stateSnap.focusedItemIndex ?: return@launch
         val focusedItem = stateSnap.items?.getOrNull(focusedIndex) as? ExplorerItem.Lookup ?: return@launch
-        val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory ?: return@launch
+        if (stateSnap.currentLocation !is ExplorerLocation.Directory) return@launch
 
         log(tag) { "deleteFocusedItem(forcePermDelete=$forcePermDelete): ${focusedItem.lookup.name}" }
         dialogEvents.emit(
@@ -749,10 +734,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun permanentDeleteSelectedItems() = launch {
-        val stateSnap = getReadyState()
+        val stateSnap = getState()
         val selectedItems = selectedItemsFlow.value
         if (selectedItems.isEmpty()) return@launch
-        val currentLocation = stateSnap.currentLocation as? ExplorerLocation.Directory ?: return@launch
+        if (stateSnap.currentLocation !is ExplorerLocation.Directory) return@launch
 
         val pathsToDelete = selectedItems
             .filterIsInstance<ExplorerItem.Lookup>()
@@ -772,7 +757,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun executeAction(action: ExplorerActionBarItem) = launch {
         log(tag) { "executeAction(${action::class.simpleName})" }
-        val stateSnap = getReadyState()
+        val stateSnap = getState()
         if (stateSnap.items == null) return@launch
 
         // File actions come from bottom sheets - always dismiss first
@@ -1082,7 +1067,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                                     errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
                                 } else {
                                     log(tag, ERROR) { "Failed to restore nested item" }
-                                    errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_error_restore_failed, item.displayName.get(context))))
+                                    errorEvents.emit(
+                                        Exception(
+                                            context.getString(
+                                                R.string.explorer_trash_nested_error_restore_failed,
+                                                item.displayName.get(context)
+                                            )
+                                        )
+                                    )
                                 }
                             }
                         }
@@ -1114,13 +1106,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                             }
 
                             for (item in items) {
-                                val deletedCount = trashManager.deleteNestedPermanently(parentRepoItem, item.relativePath)
+                                val deletedCount =
+                                    trashManager.deleteNestedPermanently(parentRepoItem, item.relativePath)
                                 if (deletedCount > 0) {
                                     totalDeleted += deletedCount
                                     log(tag, INFO) { "Successfully deleted nested item permanently" }
                                 } else {
                                     log(tag, ERROR) { "Failed to delete nested item permanently" }
-                                    errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_error_delete_failed, item.displayName.get(context))))
+                                    errorEvents.emit(
+                                        Exception(
+                                            context.getString(
+                                                R.string.explorer_trash_nested_error_delete_failed,
+                                                item.displayName.get(context)
+                                            )
+                                        )
+                                    )
                                 }
                             }
                         }
@@ -1213,7 +1213,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 log(tag) { "longPress deleteSelectedItems(): ${selectedItemsFlow.value.size} items (forcePermDelete)" }
                 val selectedItems = selectedItemsFlow.value
                 if (selectedItems.isNotEmpty()) {
-                    val currentLocation = getReadyState().currentLocation
+                    val currentLocation = getState().currentLocation
                     if (currentLocation is ExplorerLocation.Directory) {
                         val pathsToDelete = selectedItems
                             .filterIsInstance<ExplorerItem.Lookup>()
@@ -1305,7 +1305,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "onCreateItem($result)" }
         dialogStateFlow.value = None
 
-        val currentLocation = getReadyState().currentLocation
+        val currentLocation = getState().currentLocation
         if (currentLocation is ExplorerLocation.Directory) {
             val command = when (result.type) {
                 CreateItemType.FOLDER -> ExplorerCommand.Create(
@@ -1394,7 +1394,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "onRename($result)" }
         dialogStateFlow.value = None
 
-        val currentLocation = getReadyState().currentLocation as ExplorerLocation.Directory
+        val currentLocation = getState().currentLocation as ExplorerLocation.Directory
         getWorkspace().execute(
             ExplorerCommand.Move(
                 sources = setOf(result.item),
@@ -1425,7 +1425,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         dismissDialog()
         when (clip) {
             is ClipboardClip.Paths -> {
-                val currentLocation = getReadyState().currentLocation
+                val currentLocation = getState().currentLocation
                 if (currentLocation is ExplorerLocation.Directory) {
                     val command = when (clip.mode) {
                         ClipboardClip.Paths.Mode.COPY -> ExplorerCommand.Copy(
@@ -1461,7 +1461,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
             is ClipboardClip.Text -> {
                 // Show filename dialog for text snippet paste
-                dialogStateFlow.value = ExplorerDialogState.CreateFileFromText(clip)
+                dialogStateFlow.value = CreateFileFromText(clip)
             }
         }
     }
@@ -1470,7 +1470,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "onCreateFileFromText(filename=$filename)" }
         dismissDialog()
 
-        val currentLocation = getReadyState().currentLocation
+        val currentLocation = getState().currentLocation
         if (currentLocation is ExplorerLocation.Directory) {
             try {
                 val filePath = currentLocation.path.child(filename)
@@ -1584,7 +1584,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             dialogStateFlow.value = LocationStorageName(locationId, currentName = null)
 
             // Auto-refresh if currently viewing Device location to show new SAF storage immediately
-            val currentLocation = getReadyState().currentLocation
+            val currentLocation = getState().currentLocation
             if (currentLocation is ExplorerLocation.Device) {
                 log(tag) { "Auto-refreshing Device location to show new SAF storage" }
                 getWorkspace().navigate(ExplorerNavigation.Refresh)
@@ -1747,17 +1747,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         explorerSettings.defaultStartLocation.value(location)
     }
 
-    fun onButlerIconClick() = launch {
-        log(tag) { "onButlerIconClick()" }
-        if (upgradeRepo.isPro()) {
-            log(tag) { "User has Pro - opening settings" }
-            navTo(Nav.Main.settings())
-        } else {
-            log(tag) { "User doesn't have Pro - opening upgrade screen" }
-            navTo(Nav.Main.upgrade())
-        }
-    }
-
     fun shareNavigationError() = launch {
         log(tag) { "shareNavigationError()" }
         workspaceReadyState.first()?.error?.let { throwable ->
@@ -1768,22 +1757,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             val intent = errorReportTool.createShareChooserIntent(report)
             shareIntentEvent.tryEmit(intent)
         }
-    }
-
-    fun shareWorkspaceError() = launch {
-        log(tag) { "shareWorkspaceError()" }
-        val errorState = workspaceState.first() as? ExplorerWorkspace.State.Error ?: return@launch
-        val report = errorReportTool.buildReport(
-            throwable = errorState.error,
-            errorContext = "Workspace initialization failed: ${id.shortTag}",
-        )
-        val intent = errorReportTool.createShareChooserIntent(report)
-        shareIntentEvent.tryEmit(intent)
-    }
-
-    fun closeWorkspace() = launch {
-        log(tag) { "closeWorkspace()" }
-        workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
     fun retryNavigation() = launch {
@@ -1800,7 +1773,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun validateFilename(name: String): FilenameValidator.ValidationResult {
         val currentPath = runBlocking {
-            getReadyState().currentLocation?.let {
+            getState().currentLocation?.let {
                 when (it) {
                     is ExplorerLocation.Directory -> it.path
                     else -> null
@@ -1823,7 +1796,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             return@launch
         }
 
-        val stateSnap = getReadyState()
+        val stateSnap = getState()
         val selectedPaths = pickerHelper.extractSelectedPaths(
             config = config,
             currentLocation = stateSnap.currentLocation,

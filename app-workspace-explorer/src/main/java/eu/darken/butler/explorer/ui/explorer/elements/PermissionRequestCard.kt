@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.FlashOn
 import androidx.compose.material.icons.twotone.FolderOff
@@ -85,6 +87,7 @@ fun PermissionRequestCard(
     setupRequirements: PathRequirements,
     onNavigateToSetup: () -> Unit,
     modifier: Modifier = Modifier,
+    nestedScrollConnection: NestedScrollConnection? = null,
     onLaunchSAFPicker: ((SAFPickerGrant) -> Unit)? = null,
 ) {
     Card(
@@ -95,80 +98,86 @@ fun PermissionRequestCard(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
+                .then(
+                    if (nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection)
+                    else Modifier
+                )
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 24.dp),
+                .padding(horizontal = 16.dp, vertical = 24.dp)
+                .padding(bottom=128.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            // Icon
-            Icon(
-                imageVector = Icons.TwoTone.FolderOff,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(R.string.explorer_permission_required_title),
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // General explanation
-            Text(
-                text = stringResource(getDescriptionForRequirements(setupRequirements)),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Determine which setup options are needed
-            val allModules = setupRequirements.combos.flatten()
-            val needsStorage = SetupModule.Type.STORAGE in allModules
-            val needsRootOrShizuku = SetupModule.Type.ROOT in allModules || SetupModule.Type.SHIZUKU in allModules
-            val needsStorageOnly = needsStorage && !needsRootOrShizuku
-
-            // Show Quick Access option card if SAF picker available
-            if (setupRequirements.safPickerGrant != null && onLaunchSAFPicker != null) {
-                val grant = setupRequirements.safPickerGrant!!
-                PermissionOptionCard(
-                    icon = Icons.TwoTone.FlashOn,
-                    title = stringResource(R.string.explorer_permission_option_picker_title),
-                    description = stringResource(R.string.explorer_permission_option_picker_description),
-                    actionLabel = stringResource(R.string.explorer_permission_option_picker_action),
-                    onAction = { onLaunchSAFPicker(grant) },
+                // Icon
+                Icon(
+                    imageVector = Icons.TwoTone.FolderOff,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
 
-            // Show Storage Access option card if only storage permission needed
-            if (needsStorageOnly) {
-                PermissionOptionCard(
-                    icon = Icons.TwoTone.FolderOpen,
-                    title = stringResource(R.string.explorer_permission_option_storage_title),
-                    description = stringResource(R.string.explorer_permission_option_storage_description),
-                    actionLabel = stringResource(R.string.explorer_permission_option_storage_action),
-                    onAction = onNavigateToSetup,
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Show Full Access option card if Root/Shizuku needed
-            if (needsRootOrShizuku) {
-                PermissionOptionCard(
-                    icon = Icons.TwoTone.Settings,
-                    title = stringResource(R.string.explorer_permission_option_setup_title),
-                    description = stringResource(R.string.explorer_permission_option_setup_description),
-                    actionLabel = stringResource(R.string.explorer_permission_option_setup_action),
-                    onAction = onNavigateToSetup,
+                Text(
+                    text = stringResource(R.string.explorer_permission_required_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
                 )
-            }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // General explanation
+                Text(
+                    text = stringResource(getDescriptionForRequirements(setupRequirements)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Determine which setup options are needed
+                val allModules = setupRequirements.combos.flatten()
+                val needsStorage = SetupModule.Type.STORAGE in allModules
+                val needsRootOrShizuku = SetupModule.Type.ROOT in allModules || SetupModule.Type.SHIZUKU in allModules
+                val needsStorageOnly = needsStorage && !needsRootOrShizuku
+
+                // Show Quick Access option card if SAF picker available
+                if (setupRequirements.safPickerGrant != null && onLaunchSAFPicker != null) {
+                    val grant = setupRequirements.safPickerGrant!!
+                    PermissionOptionCard(
+                        icon = Icons.TwoTone.FlashOn,
+                        title = stringResource(R.string.explorer_permission_option_picker_title),
+                        description = stringResource(R.string.explorer_permission_option_picker_description),
+                        actionLabel = stringResource(R.string.explorer_permission_option_picker_action),
+                        onAction = { onLaunchSAFPicker(grant) },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // Show Storage Access option card if only storage permission needed
+                if (needsStorageOnly) {
+                    PermissionOptionCard(
+                        icon = Icons.TwoTone.FolderOpen,
+                        title = stringResource(R.string.explorer_permission_option_storage_title),
+                        description = stringResource(R.string.explorer_permission_option_storage_description),
+                        actionLabel = stringResource(R.string.explorer_permission_option_storage_action),
+                        onAction = onNavigateToSetup,
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // Show Full Access option card if Root/Shizuku needed
+                if (needsRootOrShizuku) {
+                    PermissionOptionCard(
+                        icon = Icons.TwoTone.Settings,
+                        title = stringResource(R.string.explorer_permission_option_setup_title),
+                        description = stringResource(R.string.explorer_permission_option_setup_description),
+                        actionLabel = stringResource(R.string.explorer_permission_option_setup_action),
+                        onAction = onNavigateToSetup,
+                    )
+                }
         }
     }
 }

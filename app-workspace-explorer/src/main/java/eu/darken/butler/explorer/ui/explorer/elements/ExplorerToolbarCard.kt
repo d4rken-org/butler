@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
@@ -75,12 +76,20 @@ fun ExplorerToolbarCard(
 ) {
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 8.dp else 16.dp,
+        targetValue = if (isCollapsed) 8.dp else 8.dp,
         label = "cardPadding",
     )
 
+    val minHeight by animateDpAsState(
+        targetValue = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault,
+        label = "minHeight",
+    )
+
     CutoutCard(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .requiredHeightIn(min = minHeight),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
         cutoutContent = if (design.isSingle && pickerSelection == null) {
             {
                 WorkspaceButton(
@@ -92,7 +101,6 @@ fun ExplorerToolbarCard(
         cutoutFullHeight = isCollapsed,
         gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
         contentPadding = CutoutCardDefaults.contentPadding(cardPadding),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         if (pickerSelection != null) {
             // Picker mode
@@ -150,7 +158,7 @@ private fun NormalToolbarContent(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(20.dp),
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface,
@@ -158,7 +166,7 @@ private fun NormalToolbarContent(
 
             Text(
                 text = label ?: stringResource(R.string.explorer_loading),
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.labelMedium,
                 color = if (label == null) {
                     MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 } else {
@@ -350,28 +358,28 @@ private fun getCollapsedBreadcrumbText(breadcrumbs: List<ExplorerBreadcrumb>): S
 }
 
 @Composable
-private fun getPickerButtonText(selection: PickerConfig.Selection, selectionCount: Int): String {
-    return when (selection) {
-        is PickerConfig.Selection.DirectorySingle -> stringResource(R.string.explorer_picker_select_this_folder_action)
-        is PickerConfig.Selection.SaveAs -> stringResource(R.string.explorer_picker_save_here_action)
-        is PickerConfig.Selection.DirectoryMulti,
-        is PickerConfig.Selection.MixedMulti -> {
-            if (selectionCount > 0) {
-                pluralStringResource(R.plurals.explorer_picker_select_count_action, selectionCount, selectionCount)
-            } else {
-                stringResource(R.string.explorer_picker_select_this_folder_action)
-            }
+private fun getPickerButtonText(
+    selection: PickerConfig.Selection,
+    selectionCount: Int
+): String = when (selection) {
+    is PickerConfig.Selection.DirectorySingle -> stringResource(R.string.explorer_picker_select_this_folder_action)
+    is PickerConfig.Selection.SaveAs -> stringResource(R.string.explorer_picker_save_here_action)
+    is PickerConfig.Selection.DirectoryMulti,
+    is PickerConfig.Selection.MixedMulti -> {
+        if (selectionCount > 0) {
+            pluralStringResource(R.plurals.explorer_picker_select_count_action, selectionCount, selectionCount)
+        } else {
+            stringResource(R.string.explorer_picker_select_this_folder_action)
         }
-        is PickerConfig.Selection.FileSingle -> stringResource(eu.darken.butler.common.R.string.general_done_action)
-        is PickerConfig.Selection.FileMulti -> pluralStringResource(
-            R.plurals.explorer_picker_select_count_action,
-            selectionCount,
-            selectionCount,
-        )
     }
+    is PickerConfig.Selection.FileSingle -> stringResource(eu.darken.butler.common.R.string.general_done_action)
+    is PickerConfig.Selection.FileMulti -> pluralStringResource(
+        R.plurals.explorer_picker_select_count_action,
+        selectionCount,
+        selectionCount,
+    )
 }
 
-// region Previews
 
 @Preview2
 @Composable
@@ -504,5 +512,3 @@ private fun ExplorerToolbarCardSaveAsCollapsedPreview() {
         )
     }
 }
-
-// endregion

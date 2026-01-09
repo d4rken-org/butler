@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import eu.darken.butler.common.ca.CaString
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
@@ -26,6 +25,7 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.R as CommonR
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.ui.InfoChip
 import eu.darken.butler.workspace.ui.WorkspaceInfoBar
 
@@ -282,113 +282,54 @@ fun ExplorerInfoBar(
 
 @Preview2
 @Composable
-private fun ExplorerInfoBarDirectoryPreview() {
-    PreviewWrapper {
-        ExplorerInfoBar(
-            info = ExplorerLocation.Directory.Info(
-                fileCount = 42,
-                directoryCount = 7,
-                totalSize = 1024L * 1024L * 512L,
-                volumeFreeSpace = 1024L * 1024L * 1024L * 25L,
-                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
-                isWritable = true,
-            ),
-            selectedCount = 0,
-        )
-    }
+private fun ExplorerInfoBarDirectoryPreview() = PreviewWrapper {
+    ExplorerInfoBar(
+        info = MockDataProvider.createMockDirectoryInfo(fileCount = 42, directoryCount = 7),
+    )
 }
 
 @Preview2
 @Composable
-private fun ExplorerInfoBarWithSelectionPreview() {
-    PreviewWrapper {
-        ExplorerInfoBar(
-            info = ExplorerLocation.Directory.Info(
-                fileCount = 42,
-                directoryCount = 7,
-                totalSize = 1024L * 1024L * 512L,
-                volumeFreeSpace = 1024L * 1024L * 1024L * 25L,
-                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
-                isWritable = true,
-            ),
-            selectedCount = 3,
-            selectedSize = 1024L * 1024L * 128L,
-        )
-    }
+private fun ExplorerInfoBarWithSelectionPreview() = PreviewWrapper {
+    ExplorerInfoBar(
+        info = MockDataProvider.createMockDirectoryInfo(fileCount = 42, directoryCount = 7),
+        selectedCount = 3,
+        selectedSize = MockDataProvider.MockSizes.mb(128),
+    )
 }
 
 @Preview2
 @Composable
-private fun ExplorerInfoBarEmptyFolderPreview() {
-    PreviewWrapper {
-        ExplorerInfoBar(
-            info = ExplorerLocation.Directory.Info(
-                fileCount = 0,
-                directoryCount = 0,
-                totalSize = 0L,
-                volumeFreeSpace = 1024L * 1024L * 1024L * 50L,
-                volumeTotalSpace = 1024L * 1024L * 1024L * 128L,
-                isWritable = true,
-            ),
-            selectedCount = 0,
-        )
-    }
+private fun ExplorerInfoBarEmptyFolderPreview() = PreviewWrapper {
+    ExplorerInfoBar(info = MockDataProvider.createMockEmptyDirectoryInfo())
 }
 
 @Preview2
 @Composable
-private fun ExplorerInfoBarHomePreview() {
-    PreviewWrapper {
-        ExplorerInfoBar(
-            info = ExplorerLocation.Home.Info(
-                shortcutCount = 5,
-                totalDeviceStorage = 1024L * 1024L * 1024L * 128L,
-                usedStorage = 1024L * 1024L * 1024L * 78L,
-            ),
-            selectedCount = 0,
-        )
-    }
+private fun ExplorerInfoBarHomePreview() = PreviewWrapper {
+    ExplorerInfoBar(info = MockDataProvider.createMockHomeInfo())
 }
 
 @Preview2
 @Composable
-private fun ExplorerInfoBarDevicePreview() {
-    PreviewWrapper {
-        ExplorerInfoBar(
-            info = ExplorerLocation.Device.Info(
-                locationCount = 2,
-                totalCapacity = 1024L * 1024L * 1024L * 256L,
-                usedSpace = 1024L * 1024L * 1024L * 120L,
-            ),
-            selectedCount = 0,
-        )
-    }
+private fun ExplorerInfoBarDevicePreview() = PreviewWrapper {
+    ExplorerInfoBar(info = MockDataProvider.createMockDeviceInfo())
 }
 
 @Preview2
 @Composable
-private fun ExplorerInfoBarLoadingWithCountPreview() {
-    PreviewWrapper {
-        ExplorerInfoBar(
-            info = null,
-            progress = Progress.Data(
-                secondary = "Loading folder content".toCaString(),
-                count = Progress.Count.Counter(42, 150),
-            ),
-        )
-    }
+private fun ExplorerInfoBarLoadingWithCountPreview() = PreviewWrapper {
+    ExplorerInfoBar(
+        info = null,
+        progress = MockDataProvider.createMockProgress(secondary = "Loading folder content", current = 42, total = 150),
+    )
 }
 
 @Preview2
 @Composable
-private fun ExplorerInfoBarLoadingIndeterminatePreview() {
-    PreviewWrapper {
-        ExplorerInfoBar(
-            info = null,
-            progress = Progress.Data(
-                secondary = "Checking permissions".toCaString(),
-                count = Progress.Count.Indeterminate(),
-            ),
-        )
-    }
+private fun ExplorerInfoBarLoadingIndeterminatePreview() = PreviewWrapper {
+    ExplorerInfoBar(
+        info = null,
+        progress = MockDataProvider.createMockIndeterminateProgress(secondary = "Checking permissions"),
+    )
 }
