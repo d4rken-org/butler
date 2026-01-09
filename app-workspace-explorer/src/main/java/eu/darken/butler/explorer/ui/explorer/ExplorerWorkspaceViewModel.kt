@@ -31,8 +31,6 @@ import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.destSetup
-import eu.darken.butler.common.navigation.settings
-import eu.darken.butler.common.navigation.upgrade
 import eu.darken.butler.common.trash.TrashManager
 import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.common.ui.ViewModel4
@@ -73,7 +71,6 @@ import eu.darken.butler.explorer.ui.picker.ExplorerPickerHelper
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.permissions.core.SAFPickerGrant
 import eu.darken.butler.upgrade.UpgradeRepo
-import eu.darken.butler.upgrade.isPro
 import eu.darken.butler.workspace.core.OpenInNewTabsUseCase
 import eu.darken.butler.workspace.core.ShareIntentUseCase
 import eu.darken.butler.workspace.core.Workspace
@@ -652,7 +649,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             item is ExplorerItem.Directory ||
                 (item is ExplorerItem.Trash.Nested && item.isDirectory)
         }
-        selectedItemsFlow.value = selectedItemsFlow.value + folders
+        selectedItemsFlow.value += folders
     }
 
     fun selectAllFiles() = launch {
@@ -661,7 +658,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             item is ExplorerItem.File ||
                 (item is ExplorerItem.Trash.Nested && item.isFile)
         }
-        selectedItemsFlow.value = selectedItemsFlow.value + files
+        selectedItemsFlow.value += files
     }
 
     // Focus navigation methods
@@ -725,7 +722,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val stateSnap = getState()
         val focusedIndex = stateSnap.focusedItemIndex ?: return@launch
         val focusedItem = stateSnap.items?.getOrNull(focusedIndex) as? ExplorerItem.Lookup ?: return@launch
-        stateSnap.currentLocation as? ExplorerLocation.Directory ?: return@launch
+        if (stateSnap.currentLocation !is ExplorerLocation.Directory) return@launch
 
         log(tag) { "deleteFocusedItem(forcePermDelete=$forcePermDelete): ${focusedItem.lookup.name}" }
         dialogEvents.emit(
@@ -740,7 +737,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val stateSnap = getState()
         val selectedItems = selectedItemsFlow.value
         if (selectedItems.isEmpty()) return@launch
-        stateSnap.currentLocation as? ExplorerLocation.Directory ?: return@launch
+        if (stateSnap.currentLocation !is ExplorerLocation.Directory) return@launch
 
         val pathsToDelete = selectedItems
             .filterIsInstance<ExplorerItem.Lookup>()
@@ -1737,17 +1734,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         explorerSettings.defaultStartLocation.value(location)
     }
 
-    fun onButlerIconClick() = launch {
-        log(tag) { "onButlerIconClick()" }
-        if (upgradeRepo.isPro()) {
-            log(tag) { "User has Pro - opening settings" }
-            navTo(Nav.Main.settings())
-        } else {
-            log(tag) { "User doesn't have Pro - opening upgrade screen" }
-            navTo(Nav.Main.upgrade())
-        }
-    }
-
     fun copyNavigationError() = launch {
         log(tag) { "copyNavigationError()" }
         workspaceReadyState.first()?.error?.let { throwable ->
@@ -1757,21 +1743,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             )
             errorReportTool.copyToClipboard(report)
         }
-    }
-
-    fun shareWorkspaceError() = launch {
-        log(tag) { "shareWorkspaceError()" }
-        val errorState = workspaceState.first() as? ExplorerWorkspace.State.Error ?: return@launch
-        val report = errorReportTool.buildReport(
-            throwable = errorState.error,
-            errorContext = "Workspace initialization failed: ${id.shortTag}",
-        )
-        errorReportTool.copyToClipboard(report)
-    }
-
-    fun closeWorkspace() = launch {
-        log(tag) { "closeWorkspace()" }
-        workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
     fun retryNavigation() = launch {
