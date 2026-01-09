@@ -1,5 +1,6 @@
 package eu.darken.butler.apps.ui.apps
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,6 +31,7 @@ import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
 import eu.darken.butler.apps.ui.apps.elements.AppsEmptyContent
 import eu.darken.butler.apps.ui.apps.elements.AppsInfoBar
 import eu.darken.butler.apps.ui.apps.elements.AppsLoadingContent
+import eu.darken.butler.apps.ui.apps.elements.AppsToolbarCard
 import eu.darken.butler.apps.ui.apps.items.AppGridItem
 import eu.darken.butler.apps.ui.apps.items.AppListItem
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
@@ -51,6 +53,7 @@ import kotlinx.coroutines.flow.flowOf
 
 @Composable
 private fun AppsWorkspacePage(
+    workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     stateSource: Flow<AppsWorkspaceViewModel.State>,
     onPageAction: (AppsPageAction) -> Unit = {},
@@ -61,6 +64,10 @@ private fun AppsWorkspacePage(
 
     // Only render when Ready - WorkspaceMapper handles Init/Error overlays
     val state = mainStateRaw as? AppsWorkspaceViewModel.State.Ready ?: return
+
+    BackHandler(enabled = state.isMultiSelectMode) {
+        onPageAction(AppsPageAction.Selection.Clear)
+    }
 
     val topBarStackState = rememberFloatingBarStackState(
         position = BarPosition.TOP,
@@ -195,12 +202,34 @@ private fun AppsWorkspacePage(
             }
         }
 
-        // Info bar - vanishes on scroll
+        // Top floating bars
         FloatingBarStack(
             state = topBarStackState,
             position = BarPosition.TOP,
             modifier = Modifier.align(Alignment.TopCenter),
             bars = {
+                // Toolbar card - collapses on scroll
+                FloatingBar(
+                    visible = true,
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
+                    animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    AppsToolbarCard(
+                        workspaceId = workspaceId,
+                        searchQuery = state.searchQuery,
+                        onSearchQueryChange = { onPageAction(AppsPageAction.Search.UpdateQuery(it)) },
+                        filterConfig = state.filterConfig,
+                        onFilterAdd = { onPageAction(AppsPageAction.Filter.OpenDialog) },
+                        onFilterRemove = { tag, isExcluded ->
+                            onPageAction(AppsPageAction.Filter.RemoveTag(tag, isExcluded))
+                        },
+                        design = design,
+                        collapsedFraction = collapsedFraction,
+                    )
+                }
+
+                // Info bar - vanishes on scroll
                 FloatingBar(
                     visible = showInfoBar,
                     scrollBehavior = BarScrollBehavior.VanishOnScroll,
@@ -243,6 +272,7 @@ private fun AppsWorkspacePage(
     // Dialog Host
     AppsDialogHost(
         dialogState = state.dialogState,
+        filterConfig = state.filterConfig,
         onDismiss = { onPageAction(AppsPageAction.Dialog.Dismiss) },
         onAction = { onPageAction(AppsPageAction.ActionBarClick(it)) },
         onFilterApply = { onPageAction(AppsPageAction.Dialog.ApplyFilter(it)) },
@@ -267,6 +297,7 @@ fun AppsWorkspacePageHost(
     NavigationEventHandler(vm)
 
     AppsWorkspacePage(
+        workspaceId = id,
         design = design,
         stateSource = vm.state,
         onPageAction = vm::onPageAction,
@@ -289,13 +320,13 @@ private fun AppsWorkspacePagePreview() {
         availableActions = listOf(
             AppsActionBarItem.Refresh,
             AppsActionBarItem.Sort,
-            AppsActionBarItem.Filter,
         ),
         isLoading = false,
     )
 
     PreviewWrapper {
         AppsWorkspacePage(
+            workspaceId = Workspace.Id(),
             design = WorkspaceDesign(),
             stateSource = flowOf(mockState),
         )
@@ -310,13 +341,13 @@ private fun AppsWorkspacePageEmptyPreview() {
         availableActions = listOf(
             AppsActionBarItem.Refresh,
             AppsActionBarItem.Sort,
-            AppsActionBarItem.Filter,
         ),
         isLoading = false,
     )
 
     PreviewWrapper {
         AppsWorkspacePage(
+            workspaceId = Workspace.Id(),
             design = WorkspaceDesign(),
             stateSource = flowOf(mockState),
         )
@@ -348,6 +379,7 @@ private fun AppsWorkspacePageWithSelectionPreview() {
 
     PreviewWrapper {
         AppsWorkspacePage(
+            workspaceId = Workspace.Id(),
             design = WorkspaceDesign(),
             stateSource = flowOf(mockState),
         )
