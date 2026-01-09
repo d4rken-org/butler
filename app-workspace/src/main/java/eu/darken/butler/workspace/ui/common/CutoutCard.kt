@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -84,7 +85,7 @@ fun CutoutCard(
 
     val density = LocalDensity.current
     val gapDistancePx = with(density) { gapDistance.roundToPx() }
-    val cornerRadiusPx = with(density) { cornerRadius.roundToPx() }
+    with(density) { cornerRadius.roundToPx() }
 
     SubcomposeLayout(modifier = modifier) { constraints ->
         // Phase 1: Measure cutout content to determine cutout size
@@ -104,15 +105,19 @@ fun CutoutCard(
         // Create scope with calculated dimensions
         val scope = CutoutCardScopeImpl(cutoutWidth = cutoutWidthDp, cutoutHeight = cutoutHeightDp)
 
+        // Calculate minimum height for card - should be at least as tall as cutout content
+        val cardMinHeightPx = maxOf(constraints.minHeight, cutoutContentHeight)
+        val cardMinHeightDp = with(density) { cardMinHeightPx.toDp() }
+
         // Phase 2: Measure content to determine if we need full-height mode
-        // Corner mode requires card height > cutoutHeight + cornerRadius for the shape to render correctly
+        // Corner mode requires at least cutoutHeight of space below the cutout for clean rendering
         val contentMeasurePlaceable = subcompose("content-measure") {
             Column(modifier = Modifier.padding(contentPadding)) {
                 scope.content()
             }
         }.first().measure(constraints)
 
-        val minHeightForCornerMode = cutoutHeight + cornerRadiusPx
+        val minHeightForCornerMode = cutoutHeight * 2
         val useFullHeightMode = cutoutFullHeight || contentMeasurePlaceable.height <= minHeightForCornerMode
 
         // Phase 3: Measure card with appropriate mode
@@ -133,8 +138,15 @@ fun CutoutCard(
                     shape = RoundedCornerShape(cornerRadius),
                     colors = colors,
                 ) {
-                    Column(modifier = Modifier.padding(contentPadding)) {
-                        scope.content()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = cardMinHeightDp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(modifier = Modifier.padding(contentPadding)) {
+                            scope.content()
+                        }
                     }
                 }
             } else {
@@ -163,16 +175,10 @@ fun CutoutCard(
             // Place the card
             cardPlaceable.placeRelative(0, 0)
 
-            // Place cutout content
+            // Place cutout content - always top-aligned for consistent appearance
             cutoutPlaceable?.placeRelative(
                 x = totalWidth - cutoutContentWidth,
-                y = if (useFullHeightMode) {
-                    // Center vertically for full-height mode
-                    (cardPlaceable.height - cutoutContentHeight) / 2
-                } else {
-                    // Flush with top for corner mode
-                    0
-                },
+                y = 0,
             )
         }
     }
@@ -289,7 +295,7 @@ private fun CutoutCardShortContentPreview() {
             modifier = Modifier.padding(16.dp),
             cutoutContent = { PreviewCutoutButton() },
         ) {
-            Text("Short content auto-switches to full")
+            Text("Short content auto-switches to fullheight abc lorem ipsum Short content auto-switches to fullheight abc lorem ipsum")
         }
     }
 }

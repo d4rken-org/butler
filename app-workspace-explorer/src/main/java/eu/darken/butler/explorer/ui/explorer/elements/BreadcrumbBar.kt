@@ -22,7 +22,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.ContentCopy
-import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -55,7 +54,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.BadgedIcon
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -221,7 +219,7 @@ fun BreadcrumbBar(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     // Non-editable clickable prefix showing root location
                     Row(
@@ -260,12 +258,12 @@ fun BreadcrumbBar(
                         )
                         Text(
                             text = pathInfo.prefixLabel,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = File.separator,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -286,7 +284,7 @@ fun BreadcrumbBar(
                                     false
                                 }
                             },
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                        textStyle = MaterialTheme.typography.labelLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface
                         ),
                         singleLine = true,
@@ -348,7 +346,7 @@ fun BreadcrumbBar(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = stringResource(R.string.explorer_loading),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -361,7 +359,7 @@ fun BreadcrumbBar(
                         .verticalScroll(scrollState),
                     cutoutWidth = cutoutWidth,
                     cutoutHeight = cutoutHeight,
-                    horizontalSpacing = 0.dp,
+                    horizontalSpacing = 2.dp,
                     verticalSpacing = 2.dp,
                 ) {
                     breadcrumbs.forEachIndexed { index, breadcrumb ->
@@ -432,10 +430,10 @@ fun BreadcrumbBar(
                                         badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
 
-                                        Text(
-                                            text = breadcrumb.label.get(context),
-                                            style = MaterialTheme.typography.labelMedium.copy(color = animatedColor),
-                                        )
+                                    Text(
+                                        text = breadcrumb.label.get(context),
+                                        style = MaterialTheme.typography.labelMedium.copy(color = animatedColor),
+                                    )
                                 }
 
                                 // Context menu for Home, Device, and Directory breadcrumbs
@@ -463,7 +461,8 @@ fun BreadcrumbBar(
                                         }
                                         // "Copy path" only available for Directory targets
                                         if (isDirectory && onCopyPath != null) {
-                                            val directoryTarget = breadcrumb.target as ExplorerNavigation.Target.Directory
+                                            val directoryTarget =
+                                                breadcrumb.target as ExplorerNavigation.Target.Directory
                                             DropdownMenuItem(
                                                 text = { Text(stringResource(R.string.explorer_breadcrumb_copy_path_action)) },
                                                 onClick = {
