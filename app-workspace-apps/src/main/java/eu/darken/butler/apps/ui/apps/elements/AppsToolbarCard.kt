@@ -33,6 +33,7 @@ import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.common.CutoutAwareColumn
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
@@ -112,7 +113,10 @@ fun AppsToolbarCard(
             }
         } else {
             // Expanded state - full search bar + filter chips
-            Column {
+            CutoutAwareColumn(
+                cutoutWidth = cutoutWidth,
+                cutoutHeight = cutoutHeight,
+            ) {
                 AppsSearchBar(
                     query = searchQuery,
                     onQueryChange = onSearchQueryChange,
