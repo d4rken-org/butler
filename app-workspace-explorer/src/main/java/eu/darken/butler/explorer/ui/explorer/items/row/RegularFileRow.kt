@@ -44,7 +44,7 @@ internal fun RegularFileRow(
             TintedAsyncImage(
                 model = item.lookup,
                 contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(32.dp),
             )
         },
         primaryText = primaryText,

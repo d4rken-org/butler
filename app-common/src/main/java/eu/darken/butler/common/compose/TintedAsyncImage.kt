@@ -10,9 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.rememberConstraintsSizeResolver
 import coil3.decode.DataSource
+import coil3.request.ImageRequest
 
 @Composable
 fun TintedAsyncImage(
@@ -23,7 +26,15 @@ fun TintedAsyncImage(
     alignment: Alignment = Alignment.Center,
     alpha: Float = DefaultAlpha,
 ) {
-    val painter = rememberAsyncImagePainter(model)
+    val context = LocalContext.current
+    val sizeResolver = rememberConstraintsSizeResolver()
+
+    val request = ImageRequest.Builder(context)
+        .data(model)
+        .size(sizeResolver)
+        .build()
+
+    val painter = rememberAsyncImagePainter(request)
     val state by painter.state.collectAsState()
 
     val shouldTint = (state as? AsyncImagePainter.State.Success)
@@ -32,7 +43,7 @@ fun TintedAsyncImage(
     Image(
         painter = painter,
         contentDescription = contentDescription,
-        modifier = modifier,
+        modifier = modifier.then(sizeResolver),
         contentScale = contentScale,
         alignment = alignment,
         alpha = alpha,

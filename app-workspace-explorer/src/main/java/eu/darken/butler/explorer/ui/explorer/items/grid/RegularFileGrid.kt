@@ -56,7 +56,7 @@ internal fun RegularFileGrid(
                 model = item.lookup,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
             )
         }
     )
