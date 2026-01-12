@@ -91,7 +91,10 @@ class BrowsingEngine @AssistedInject constructor(
                             .flowOn(dispatcherProvider.IO)
                             .catch {
                                 log(tag, ERROR) { "Browsing failed on $target\n${it.asLog()}" }
-                                _location.value = State(error = it)
+                                _location.value = _location.value.copy(
+                                    error = it,
+                                    location = null,
+                                )
                             }
                     }
             }
@@ -120,7 +123,7 @@ class BrowsingEngine @AssistedInject constructor(
                             pendingHints.forEach { event ->
                                 val current = _location.value.location as? ExplorerLocation.Directory ?: return@forEach
                                 val updated = applyIncrementalUpdate(current, event)
-                                _location.value = State(location = updated)
+                                _location.value = _location.value.copy(location = updated)
                             }
                             pendingHints.clear()
                         }
@@ -145,7 +148,7 @@ class BrowsingEngine @AssistedInject constructor(
         } else {
             log(tag) { "hint(): Applying incremental update" }
             val updated = applyIncrementalUpdate(current, event)
-            _location.value = State(location = updated)
+            _location.value = _location.value.copy(location = updated)
         }
     }
 
