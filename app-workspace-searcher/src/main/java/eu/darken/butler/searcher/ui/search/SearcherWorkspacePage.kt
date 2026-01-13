@@ -82,6 +82,7 @@ import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.delay
@@ -129,6 +130,7 @@ fun SearcherWorkspacePage(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val shortcutsFocusRequester = remember { FocusRequester() }
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
@@ -283,7 +285,7 @@ fun SearcherWorkspacePage(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .keyboardShortcuts(focusRequester = shortcutsFocusRequester) {
+            .keyboardShortcuts(focusRequester = shortcutsFocusRequester, enabled = isWorkspaceFocused) {
                 on(KeyboardShortcut.Copy) {
                     val selectedResults = currentState.selectionState.selectedResults
                     if (selectedResults.isNotEmpty()) {

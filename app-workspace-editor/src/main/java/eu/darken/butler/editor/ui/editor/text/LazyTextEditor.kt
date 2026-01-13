@@ -559,7 +559,7 @@ private fun DualColumnEditorContent(
             } else {
                 Modifier
                     .fillMaxSize()
-                    .propagateScrollAtBoundary(horizontalScrollState)
+                    .propagateScrollAtBoundary(horizontalScrollState, enabled = isWorkspaceFocused)
                     .horizontalScroll(horizontalScrollState)
             }
 
