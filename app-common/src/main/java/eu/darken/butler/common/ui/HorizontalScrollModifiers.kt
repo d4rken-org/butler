@@ -15,20 +15,19 @@ import androidx.compose.ui.unit.Velocity
  * Use this on horizontally scrollable content inside a HorizontalPager to prevent accidental
  * page changes while still allowing natural page swiping when the content is fully scrolled.
  *
- * Note: Fling velocity is always consumed (not propagated) to prevent "intensified" page flings.
- * When scrolling this content to its boundary and continuing to scroll, the fling velocity
- * includes the entire gesture history. Propagating this to the pager causes violent flings
- * and can skip pages when multiple pages have this modifier (intermediate pages compound velocity).
+ * Behavior depends on [enabled]:
+ * - When `enabled = true` (focused page): Scroll and fling propagate at boundaries only
+ * - When `enabled = false` (unfocused page): ALL scroll and fling are blocked to prevent
+ *   velocity leakage during pager swipes
  *
  * @param scrollState The ScrollState used by the horizontalScroll modifier on the same element
- * @param enabled When false, this modifier is a no-op (useful for non-focused pages in a pager)
+ * @param enabled When true, allows boundary propagation. When false, blocks ALL propagation
+ *                (use false for non-focused pages in a pager)
  */
 fun Modifier.propagateScrollAtBoundary(
     scrollState: ScrollState,
     enabled: Boolean = true,
 ): Modifier {
-    if (!enabled) return this
-
     val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
             // Don't consume - let horizontalScroll handle it first
@@ -40,6 +39,14 @@ fun Modifier.propagateScrollAtBoundary(
             available: Offset,
             source: NestedScrollSource,
         ): Offset {
+            // When disabled, consume ALL horizontal scroll to block propagation to pager.
+            // This prevents unfocused pages' horizontal scrolls from leaking velocity
+            // during pager swipe gestures.
+            if (!enabled) return Offset(available.x, 0f)
+
+            // If no horizontal scrolling is possible, don't interfere with pager at all
+            if (scrollState.maxValue <= 0) return Offset.Zero
+
             // available.x > 0 means scrolling left (trying to go to start)
             // available.x < 0 means scrolling right (trying to go to end)
             val atStart = scrollState.value == 0
@@ -62,11 +69,31 @@ fun Modifier.propagateScrollAtBoundary(
         }
 
         override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-            // Always consume fling velocity to prevent "intensified" pager flings.
-            // The pager calculates its own fling from its gesture tracking.
-            // Propagating velocity here adds this content's scrolling velocity to the pager,
-            // causing violent page flings and page skipping with multiple pages using this modifier.
-            return Velocity(available.x, 0f)
+            // When disabled (unfocused page), consume all fling to block propagation to pager.
+            // This prevents velocity leakage from unfocused pages during pager swipes.
+            if (!enabled) return Velocity(available.x, 0f)
+
+            // If no horizontal scrolling is possible, don't interfere with pager at all
+            if (scrollState.maxValue <= 0) return Velocity.Zero
+
+            // When enabled (focused page), propagate fling at boundaries so the pager can
+            // receive velocity for smooth page switching. Without this, the pager receives
+            // scroll but no fling, making page switches difficult from horizontally
+            // scrollable content.
+            val atStart = scrollState.value == 0
+            val atEnd = scrollState.value >= scrollState.maxValue
+
+            val shouldPropagate = when {
+                atStart && available.x > 0 -> true  // At start, flinging left
+                atEnd && available.x < 0 -> true    // At end, flinging right
+                else -> false
+            }
+
+            return if (shouldPropagate) {
+                Velocity.Zero // Let fling propagate to pager
+            } else {
+                Velocity(available.x, 0f) // Consume to block propagation
+            }
         }
     }
 
