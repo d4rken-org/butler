@@ -20,27 +20,21 @@ import testhelpers.ComposeTest
 class BreadcrumbBarTest : ComposeTest() {
 
     private val homeBreadcrumb = ExplorerBreadcrumb(
+        target = ExplorerNavigation.Target.Home,
         label = "Home".toCaString(),
         icon = Icons.TwoTone.Home,
-        target = ExplorerNavigation.Target.Home,
-        showIcon = true,
-        showText = true,
     )
 
     private val deviceBreadcrumb = ExplorerBreadcrumb(
+        target = ExplorerNavigation.Target.Device,
         label = "Device".toCaString(),
         icon = Icons.TwoTone.PhoneAndroid,
-        target = ExplorerNavigation.Target.Device,
-        showIcon = true,
-        showText = true,
     )
 
     private fun directoryBreadcrumb(name: String, path: String) = ExplorerBreadcrumb(
+        target = ExplorerNavigation.Target.Directory(LocalPath.build(path)),
         label = name.toCaString(),
         icon = Icons.TwoTone.FolderOpen,
-        target = ExplorerNavigation.Target.Directory(LocalPath.build(path)),
-        showIcon = false,
-        showText = true,
     )
 
     @Test
