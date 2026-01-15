@@ -248,9 +248,22 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    // Optimization: Process items separately - only re-sort when items/sort/filter actually change
+    /**
+     * Compares two item lists by ID and type, allowing phase transitions
+     * (Peek → Lookup) while filtering same-phase duplicates.
+     */
+    private fun List<ExplorerItem>?.hasSameItemsAs(other: List<ExplorerItem>?): Boolean {
+        if (this === other) return true
+        if (this == null || other == null) return false
+        if (size != other.size) return false
+        return zip(other).all { (a, b) -> a.id == b.id && a::class == b::class }
+    }
+
+    // Sorted/filtered items, shared to prevent duplicate processing
     private val processedItemsFlow: Flow<List<ExplorerItem>?> = combine(
-        workspaceReadyState.map { it?.currentLocation?.items }.distinctUntilChanged(),
+        workspaceReadyState
+            .map { it?.currentLocation?.items }
+            .distinctUntilChanged { old, new -> old.hasSameItemsAs(new) },
         currentSortSettings,
         filterStateFlow,
         explorerSettings.useRegexPatterns.flow,
@@ -258,7 +271,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         items
             ?.let { applyFilters(it, filterState, useRegexPatterns) }
             ?.let { itemSorter.sortItems(it, sortSetting) }
-    }
+    }.shareIn(vmScope, SharingStarted.Lazily, replay = 1)
 
     // Optimization: Selection state only updates when items or selection changes
     private val derivedSelectionStateFlow: Flow<ExplorerSelectionState> = combine(
