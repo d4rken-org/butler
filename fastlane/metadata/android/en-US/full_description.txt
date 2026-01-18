@@ -1,3 +1,16 @@
-<i>Butler - File Explorer</i> is a butler for your files.
+Butler is the file explorer for Android I always wanted, so I built it.
 
-// TODO
+Fast, private, open-source. A little whimsical. Built for power-users.
+
+Features include:
+
+- A browser-like tab system to use any of Butler's features in parallel.
+- File exploration with copy/move speed display and performance graphs.
+- Deletion with trash bin support.
+- Searching for and through files (with regex support).
+- Text editor that handles huge files.
+- App manager - browse, disable, export APKs, clear cache, uninstall.
+- Tablet support with multi-pane layouts.
+- Root & Shizuku support.
+- Material You theming - dynamic colors, dark mode, AMOLED.
+- No ads, no tracking - open source (GPL v3).
