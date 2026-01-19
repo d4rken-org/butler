@@ -123,7 +123,9 @@ sealed interface ExplorerItem {
 
     data class Peek(
         override val path: APath<*>,
-    ) : Path
+    ) : Path {
+        override val id: String get() = "peek:${path.path}"
+    }
 
     data class RegularDirectory(
         override val lookup: APathLookup<*>,
