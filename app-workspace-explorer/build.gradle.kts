@@ -47,7 +47,6 @@ dependencies {
     implementation(project(":app-common"))
     implementation(project(":app-common-io"))
     implementation(project(":app-workspace"))
-    implementation(project(":app-workspace-editor"))
 
     addAndroidCore()
     addAndroidUI()
@@ -58,7 +57,6 @@ dependencies {
     addIO()
     addTesting()
 
-    addNavigation3()
     addCoil()
 
     // Compose UI testing with Robolectric

@@ -28,6 +28,7 @@ import eu.darken.butler.common.formatFileSize
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import kotlin.time.toJavaInstant
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -97,7 +98,7 @@ fun AppInformationFields(
                 InfoField(
                     modifier = Modifier.weight(1f),
                     label = stringResource(R.string.apps_installed_label),
-                    value = dateFormatter.format(java.time.Instant.ofEpochMilli(it.toEpochMilliseconds())),
+                    value = dateFormatter.format(it.toJavaInstant()),
                 )
             }
 
@@ -107,7 +108,7 @@ fun AppInformationFields(
                     InfoField(
                         modifier = Modifier.weight(1f),
                         label = stringResource(R.string.apps_updated_label),
-                        value = dateFormatter.format(java.time.Instant.ofEpochMilli(it.toEpochMilliseconds())),
+                        value = dateFormatter.format(it.toJavaInstant()),
                     )
                 }
             } ?: run {

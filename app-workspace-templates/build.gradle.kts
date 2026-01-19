@@ -61,6 +61,5 @@ dependencies {
     addIO()
     addTesting()
 
-    addNavigation3()
     addCoil()
 }
