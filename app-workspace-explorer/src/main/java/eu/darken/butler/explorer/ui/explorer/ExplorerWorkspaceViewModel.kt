@@ -92,6 +92,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
@@ -103,7 +104,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -166,9 +166,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
     val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
-
-    // Scroll position tracking: Map<locationId, Pair<firstVisibleItemIndex, scrollOffset>>
-    private val scrollPositions = mutableMapOf<String, Pair<Int, Int>>()
 
     private val workspaceSource: Flow<ExplorerWorkspace?> =
         workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
@@ -567,17 +564,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "navigate($target)" }
         getWorkspace().navigate(target)
         clearSelection()
-    }
-
-    fun saveScrollPosition(locationId: String, firstVisibleItemIndex: Int, scrollOffset: Int) {
-        scrollPositions[locationId] = firstVisibleItemIndex to scrollOffset
-        log(tag) { "saveScrollPosition: locationId=$locationId, index=$firstVisibleItemIndex, offset=$scrollOffset" }
-    }
-
-    fun getScrollPosition(locationId: String): Pair<Int, Int>? {
-        val position = scrollPositions[locationId]
-        log(tag) { "getScrollPosition: locationId=$locationId -> $position" }
-        return position
     }
 
     fun toggleItemSelection(item: ExplorerItem) {
@@ -1871,9 +1857,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().updateSaveAsFilename(filename)
     }
 
-    fun goBack() {
+    fun goBack() = launch {
         log(tag) { "goBack()" }
-        navigate(ExplorerNavigation.Back)
+        // Capture current path before navigating back
+        val currentLocation = getState().currentLocation
+        val currentPath = (currentLocation as? ExplorerLocation.Directory)?.path
+
+        // Navigate back
+        getWorkspace().navigate(ExplorerNavigation.Back)
+        clearSelection()
+
+        // Reveal the directory we came from (if applicable)
+        if (currentPath != null) {
+            revealItems(listOf(currentPath), highlight = false)
+        }
     }
 
     fun revealItems(paths: List<APath<*>>, highlight: Boolean = true) = launch {

@@ -23,11 +23,11 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -153,9 +153,9 @@ fun ExplorerWorkspacePage(
     // Progress indicator delay state - shows after 200ms to avoid flickering
     val showProgress = rememberDelayedState(state.progress, delayMs = 200)
 
-    // List and grid scroll states
-    val listState = rememberLazyListState()
-    val gridState = rememberLazyGridState()
+    // List and grid scroll states - keyed on locationId for clean slate each navigation
+    val listState = key(state.locationId) { rememberLazyListState() }
+    val gridState = key(state.locationId) { rememberLazyGridState() }
 
     // Pull-to-refresh state
     var showPullToRefreshIndicator by remember { mutableStateOf(false) }
@@ -188,52 +188,6 @@ fun ExplorerWorkspacePage(
             vm?.retryNavigation()
             delay(200)
             showPullToRefreshIndicator = false
-        }
-    }
-
-    // Track previous location to detect actual navigation vs item updates
-    var previousLocationId by remember { mutableStateOf<String?>(null) }
-
-    // Save scroll position when navigating away from current location
-    DisposableEffect(state.locationId) {
-        val locationId = state.locationId
-        val viewStyle = state.viewStyle
-        onDispose {
-            if (locationId != null) {
-                val (index, offset) = when (viewStyle) {
-                    is ExplorerViewStyle.Grid -> gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
-                    is ExplorerViewStyle.List -> listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
-                }
-                vm?.saveScrollPosition(locationId, index, offset)
-            }
-        }
-    }
-
-    // Restore or reset scroll position when navigating to a different location
-    LaunchedEffect(state.locationId, hasItems) {
-        val scrollTag = logTag("Explorer", "Page", "ScrollRestore")
-        val locationId = state.locationId ?: return@LaunchedEffect
-
-        // Wait for items to be loaded before restoring scroll
-        if (!hasItems) return@LaunchedEffect
-
-        // Skip if this is the same location (items just updated, not navigation)
-        if (locationId == previousLocationId) return@LaunchedEffect
-        previousLocationId = locationId
-
-        log(scrollTag) { "Restoring scroll for $locationId" }
-        val savedPosition = vm?.getScrollPosition(locationId)
-
-        if (savedPosition != null) {
-            when (state.viewStyle) {
-                is ExplorerViewStyle.Grid -> gridState.scrollToItem(savedPosition.first, savedPosition.second)
-                is ExplorerViewStyle.List -> listState.scrollToItem(savedPosition.first, savedPosition.second)
-            }
-        } else {
-            when (state.viewStyle) {
-                is ExplorerViewStyle.Grid -> gridState.scrollToItem(0)
-                is ExplorerViewStyle.List -> listState.scrollToItem(0)
-            }
         }
     }
 
