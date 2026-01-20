@@ -1,4 +1,4 @@
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.dsl.CommonExtension
 import com.android.build.gradle.LibraryExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
@@ -33,14 +33,7 @@ fun LibraryExtension.setupLibraryDefaults(projectConfig: ProjectConfig) {
     }
 }
 
-fun com.android.build.api.dsl.CommonExtension<
-    com.android.build.api.dsl.LibraryBuildFeatures,
-    com.android.build.api.dsl.LibraryBuildType,
-    com.android.build.api.dsl.LibraryDefaultConfig,
-    com.android.build.api.dsl.LibraryProductFlavor,
-    *,
-    *
-    >.setupModuleBuildTypes() {
+fun LibraryExtension.setupModuleBuildTypes() {
     buildTypes {
         debug {
             consumerProguardFiles("consumer-rules.pro")
@@ -75,12 +68,10 @@ fun Project.setupKotlinOptions() {
     }
 }
 
-fun BaseExtension.setupCompileOptions() {
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
+fun CommonExtension.setupCompileOptions() {
+    compileOptions.isCoreLibraryDesugaringEnabled = true
+    compileOptions.sourceCompatibility = JavaVersion.VERSION_17
+    compileOptions.targetCompatibility = JavaVersion.VERSION_17
 }
 
 fun com.android.build.api.dsl.SigningConfig.setupCredentials(
