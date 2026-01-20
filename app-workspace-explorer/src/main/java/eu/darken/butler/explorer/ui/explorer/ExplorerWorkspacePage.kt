@@ -567,6 +567,7 @@ fun ExplorerWorkspacePage(
                         visible = true,
                         scrollBehavior = BarScrollBehavior.CollapseOnScroll(collapsedHeight = 44.dp),
                         animation = BarAnimation.Slide(),
+                        estimatedHeight = 64.dp,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     ) {
                         ExplorerToolbarCard(
@@ -594,6 +595,7 @@ fun ExplorerWorkspacePage(
                         visible = showInfoBar && !state.setupRequirements.needsAction,
                         scrollBehavior = BarScrollBehavior.Static,
                         animation = BarAnimation.Slide(),
+                        estimatedHeight = 32.dp,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     ) {
                         ExplorerInfoBar(
