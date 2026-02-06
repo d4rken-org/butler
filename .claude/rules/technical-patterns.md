@@ -37,6 +37,8 @@
 - Abstract path system (`APath`, `RawPath`).
     - `APath` offers path segment infos via `segments`. Use that instead of path splitting.
 - Gateway pattern for different file access methods.
+    - All file I/O must go through the gateway system (`APath` + `GatewaySwitch`). Never bypass the gateway by using `java.io.File`, `DocumentFile`, or other Android/Java I/O APIs directly.
+    - Before adding new methods to `FileSystemOps` or other gateway interfaces, check if existing gateway functions can accomplish the task. Only add new gateway methods when absolutely necessary or when there is significant upside (e.g., performance, seekability).
 - Support for root, ADB, and shell operations.
 
 ## Type Converters and Serialization
