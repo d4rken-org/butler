@@ -123,7 +123,9 @@ fun SearchToolbarCard(
         } else {
             // Expanded state - full interactive card with dual pattern fields
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = cutoutWidth),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {
