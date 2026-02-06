@@ -124,13 +124,15 @@ fun CutoutCard(
         val cardMinHeightPx = maxOf(constraints.minHeight, cutoutContentHeight)
         val cardMinHeightDp = with(density) { cardMinHeightPx.toDp() }
 
-        // Phase 2: Measure content to determine if we need full-height mode
-        // Corner mode requires at least cutoutHeight of space below the cutout for clean rendering
+        // Phase 2: Measure content as it would appear in full-height mode
+        // to determine if it extends enough below the cutout to justify corner mode
+        val fullHeightCardWidth = (constraints.maxWidth - cutoutWidth).coerceAtLeast(0)
+        val fullHeightScope = CutoutCardScopeImpl(cutoutWidth = 0.dp, cutoutHeight = 0.dp)
         val contentMeasurePlaceable = subcompose("content-measure") {
             Column(modifier = Modifier.padding(contentPadding)) {
-                scope.content()
+                fullHeightScope.content()
             }
-        }.first().measure(constraints)
+        }.first().measure(constraints.copy(minWidth = 0, maxWidth = fullHeightCardWidth))
 
         val minHeightForCornerMode = cutoutHeight * 2
         val useFullHeightMode = when (cutoutMode) {
