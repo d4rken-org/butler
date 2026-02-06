@@ -64,7 +64,7 @@ fun EditorToolbarCard(
     val isLoading = progress != null
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 8.dp else 16.dp,
+        targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding"
     )
 
