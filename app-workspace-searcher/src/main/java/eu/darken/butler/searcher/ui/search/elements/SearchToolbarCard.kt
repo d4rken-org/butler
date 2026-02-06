@@ -58,7 +58,7 @@ fun SearchToolbarCard(
 ) {
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 8.dp else 16.dp,
+        targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding"
     )
 
@@ -123,7 +123,9 @@ fun SearchToolbarCard(
         } else {
             // Expanded state - full interactive card with dual pattern fields
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = cutoutWidth),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {

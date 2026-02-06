@@ -210,23 +210,24 @@ object CutoutCardDefaults {
     val CornerRadius = 12.dp
     val GapDistanceExpanded = 8.dp
     val GapDistanceCollapsed = 8.dp
-    val ContentPadding = 16.dp
+    val ContentPaddingExpanded = 12.dp
+    val ContentPaddingCollapsed = 6.dp
     val ElevationDp = 6.dp
 
     fun contentPadding(
-        all: Dp = ContentPadding,
+        all: Dp = ContentPaddingExpanded,
     ): PaddingValues = PaddingValues(all)
 
     fun contentPadding(
-        horizontal: Dp = ContentPadding,
-        vertical: Dp = ContentPadding,
+        horizontal: Dp = ContentPaddingExpanded,
+        vertical: Dp = ContentPaddingExpanded,
     ): PaddingValues = PaddingValues(horizontal, vertical)
 
     fun contentPadding(
-        start: Dp = ContentPadding,
-        top: Dp = ContentPadding,
-        end: Dp = ContentPadding,
-        bottom: Dp = ContentPadding,
+        start: Dp = ContentPaddingExpanded,
+        top: Dp = ContentPaddingExpanded,
+        end: Dp = ContentPaddingExpanded,
+        bottom: Dp = ContentPaddingExpanded,
     ): PaddingValues = PaddingValues(start, top, end, bottom)
 }
 
