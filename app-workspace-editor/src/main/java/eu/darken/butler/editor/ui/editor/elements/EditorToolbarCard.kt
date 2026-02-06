@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Description
@@ -39,6 +39,7 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.ui.editor.EditorPageAction
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.common.CutoutAwareColumn
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
 import eu.darken.butler.workspace.ui.common.CutoutMode
@@ -64,12 +65,19 @@ fun EditorToolbarCard(
     val isLoading = progress != null
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 8.dp else 16.dp,
+        targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding"
     )
 
+    val minHeight by animateDpAsState(
+        targetValue = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault,
+        label = "minHeight",
+    )
+
     CutoutCard(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .requiredHeightIn(min = minHeight),
         cutoutContent = if (design.isSingle) {
             {
                 WorkspaceButton(
@@ -150,136 +158,143 @@ fun EditorToolbarCard(
             }
         } else {
             // Expanded state - full interactive card
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp),
-                ) {
-                    Text(
-                        text = title.asComposable(),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-
-                    Text(
-                        text = subTitle.asComposable(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-
-                // Show modified indicator (loading is shown in actions section below)
-                if (isModified && !isLoading) {
-                    Icon(
+            CutoutAwareColumn(
+                cutoutWidth = cutoutWidth,
+                cutoutHeight = cutoutHeight,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(
                         modifier = Modifier
-                            .padding(horizontal = 8.dp)
-                            .size(16.dp),
-                        imageVector = Icons.TwoTone.Edit,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
-                    )
-                }
-            }
-
-            // Actions section below (hidden during loading)
-            if (progress != null) {
-                // Loading progress row - replaces action buttons
-                // Layout: [🔄] Primary • Secondary    DisplayValue    [Cancel]
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                    Text(
-                        text = progress.primary.asComposable(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                    )
-                    val secondary = progress.secondary.asComposable()
-                    if (secondary.isNotEmpty()) {
+                            .weight(1f)
+                            .padding(start = 8.dp),
+                    ) {
                         Text(
-                            text = "•",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            text = title.asComposable(),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+
+                        Text(
+                            text = subTitle.asComposable(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+
+                    // Show modified indicator (loading is shown in actions section below)
+                    if (isModified && !isLoading) {
+                        Icon(
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .size(16.dp),
+                            imageVector = Icons.TwoTone.Edit,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
+                        )
+                    }
+                }
+
+                // Actions section below (hidden during loading)
+                if (progress != null) {
+                    // Loading progress row - replaces action buttons
+                    // Layout: [🔄] Primary • Secondary    DisplayValue    [Cancel]
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
                         )
                         Text(
-                            text = secondary,
+                            text = progress.primary.asComposable(),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
-                            modifier = Modifier.weight(1f, fill = false),
-                            overflow = TextOverflow.Ellipsis,
                         )
+                        val secondary = progress.secondary.asComposable()
+                        if (secondary.isNotEmpty()) {
+                            Text(
+                                text = "•",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            )
+                            Text(
+                                text = secondary,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f, fill = false),
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        val displayValue = progress.count.displayValue.asComposable()
+                        if (displayValue.isNotEmpty()) {
+                            Text(
+                                text = displayValue,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                            )
+                        }
+                        TextButton(onClick = { onAction(EditorPageAction.File.CancelOpen) }) {
+                            Text(stringResource(R.string.editor_action_cancel_loading))
+                        }
                     }
-                    Spacer(modifier = Modifier.weight(1f))
-                    val displayValue = progress.count.displayValue.asComposable()
-                    if (displayValue.isNotEmpty()) {
-                        Text(
-                            text = displayValue,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            maxLines = 1,
-                        )
-                    }
-                    TextButton(onClick = { onAction(EditorPageAction.File.CancelOpen) }) {
-                        Text(stringResource(R.string.editor_action_cancel_loading))
-                    }
-                }
-            } else {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    IconButton(onClick = { onAction(EditorPageAction.File.LaunchPicker) }) {
-                        Icon(
-                            Icons.TwoTone.Description,
-                            contentDescription = stringResource(R.string.editor_action_open)
-                        )
-                    }
-
-                    IconButton(
-                        onClick = { onAction(EditorPageAction.File.Save) },
-                        enabled = isModified
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 4.dp),
                     ) {
-                        Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
-                    }
-
-                    if (hasContent) {
-                        IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
+                        IconButton(onClick = { onAction(EditorPageAction.File.LaunchPicker) }) {
                             Icon(
-                                Icons.TwoTone.Close,
-                                contentDescription = stringResource(R.string.editor_action_close)
+                                Icons.TwoTone.Description,
+                                contentDescription = stringResource(R.string.editor_action_open)
                             )
                         }
-                    }
 
-                    if (canUndo) {
-                        IconButton(onClick = { onAction(EditorPageAction.Edit.Undo) }) {
-                            Icon(
-                                Icons.TwoTone.KeyboardArrowUp,
-                                contentDescription = stringResource(R.string.editor_action_undo)
-                            )
+                        IconButton(
+                            onClick = { onAction(EditorPageAction.File.Save) },
+                            enabled = isModified
+                        ) {
+                            Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
                         }
-                    }
 
-                    if (canRedo) {
-                        IconButton(onClick = { onAction(EditorPageAction.Edit.Redo) }) {
-                            Icon(
-                                Icons.TwoTone.KeyboardArrowDown,
-                                contentDescription = stringResource(R.string.editor_action_redo)
-                            )
+                        if (hasContent) {
+                            IconButton(onClick = { onAction(EditorPageAction.File.Close) }) {
+                                Icon(
+                                    Icons.TwoTone.Close,
+                                    contentDescription = stringResource(R.string.editor_action_close)
+                                )
+                            }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.weight(1f))
+                        if (canUndo) {
+                            IconButton(onClick = { onAction(EditorPageAction.Edit.Undo) }) {
+                                Icon(
+                                    Icons.TwoTone.KeyboardArrowUp,
+                                    contentDescription = stringResource(R.string.editor_action_undo)
+                                )
+                            }
+                        }
+
+                        if (canRedo) {
+                            IconButton(onClick = { onAction(EditorPageAction.Edit.Redo) }) {
+                                Icon(
+                                    Icons.TwoTone.KeyboardArrowDown,
+                                    contentDescription = stringResource(R.string.editor_action_redo)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
