@@ -117,8 +117,16 @@ fun CutoutCard(
             }
         }.first().measure(constraints)
 
-        val minHeightForCornerMode = cutoutHeight * 2
+        val minHeightForCornerMode = cutoutHeight * 1.8f
         val useFullHeightMode = cutoutFullHeight || contentMeasurePlaceable.height <= minHeightForCornerMode
+
+        // In full-height mode the card width is already reduced by cutoutWidth,
+        // so give content a zeroed-out scope to avoid double-penalizing row widths.
+        val renderScope = if (useFullHeightMode) {
+            CutoutCardScopeImpl(cutoutWidth = 0.dp, cutoutHeight = 0.dp)
+        } else {
+            scope
+        }
 
         // Phase 3: Measure card with appropriate mode
         val cardConstraints = if (useFullHeightMode) {
@@ -145,7 +153,7 @@ fun CutoutCard(
                         contentAlignment = Alignment.Center,
                     ) {
                         Column(modifier = Modifier.padding(contentPadding)) {
-                            scope.content()
+                            renderScope.content()
                         }
                     }
                 }
@@ -162,7 +170,7 @@ fun CutoutCard(
                     colors = colors,
                 ) {
                     Column(modifier = Modifier.padding(contentPadding)) {
-                        scope.content()
+                        renderScope.content()
                     }
                 }
             }

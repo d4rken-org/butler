@@ -683,6 +683,36 @@ object MockDataProvider {
                 target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0")),
                 icon = Icons.TwoTone.FolderOpen,
             ),
+            ExplorerBreadcrumb(
+                label = "Some".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Some")),
+                icon = Icons.TwoTone.FolderOpen,
+            ),
+            ExplorerBreadcrumb(
+                label = "FolderA".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Some/FolderA")),
+                icon = Icons.TwoTone.FolderOpen,
+            ),
+            ExplorerBreadcrumb(
+                label = "FolderB".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Some/FolderA/FolderB")),
+                icon = Icons.TwoTone.FolderOpen,
+            ),
+            ExplorerBreadcrumb(
+                label = "FolderC".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Some/FolderA/FolderB/FolderC")),
+                icon = Icons.TwoTone.FolderOpen,
+            ),
+            ExplorerBreadcrumb(
+                label = "FolderD".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Some/FolderA/FolderB/FolderC/FolderD")),
+                icon = Icons.TwoTone.FolderOpen,
+            ),
+            ExplorerBreadcrumb(
+                label = "FileA".toCaString(),
+                target = ExplorerNavigation.Target.Directory(LocalPath.build("/storage/emulated/0/Some/FolderA/FolderB/FolderC/FileA")),
+                icon = Icons.TwoTone.FolderOpen,
+            ),
         )
     }
 

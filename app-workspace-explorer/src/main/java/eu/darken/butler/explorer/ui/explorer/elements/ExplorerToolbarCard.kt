@@ -76,7 +76,7 @@ fun ExplorerToolbarCard(
 ) {
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 8.dp else 8.dp,
+        targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding",
     )
 

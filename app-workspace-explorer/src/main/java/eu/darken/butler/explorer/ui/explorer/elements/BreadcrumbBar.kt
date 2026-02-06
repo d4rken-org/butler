@@ -360,7 +360,7 @@ fun BreadcrumbBar(
                     cutoutWidth = cutoutWidth,
                     cutoutHeight = cutoutHeight,
                     horizontalSpacing = 2.dp,
-                    verticalSpacing = 2.dp,
+                    verticalSpacing = 4.dp,
                 ) {
                     breadcrumbs.forEachIndexed { index, breadcrumb ->
                         val isLast = index == breadcrumbs.lastIndex
