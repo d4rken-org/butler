@@ -29,6 +29,20 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
 /**
+ * Controls how [CutoutCard] renders the cutout area.
+ */
+enum class CutoutMode {
+    /** Automatically choose based on content height: corner mode if content is tall enough, full-height otherwise. */
+    Auto,
+
+    /** Force corner cutout with notch shape in top-right corner. */
+    Corner,
+
+    /** Force full-height cutout with the card narrower and cutout content beside it. */
+    FullHeight,
+}
+
+/**
  * A Card with an optional cutout that automatically sizes to fit the cutout content.
  *
  * The cutout content is measured first, and the card shape is adjusted to create a notch
@@ -42,8 +56,9 @@ import eu.darken.butler.common.compose.PreviewWrapper
  * [CutoutAwareFlowRow] inside content if cutout-aware width constraints are needed.
  *
  * @param cutoutContent Composable to render in the cutout area. If null, renders a regular card.
- * @param cutoutFullHeight If true, cutout spans full height of card (right-edge mode).
- *                         If false, cutout is in top-right corner.
+ * @param cutoutMode Controls the cutout rendering mode. [CutoutMode.Auto] (default) selects based
+ *                   on content height, [CutoutMode.Corner] forces notch shape, [CutoutMode.FullHeight]
+ *                   forces the card-beside-button layout.
  * @param gapDistance Gap between cutout content and card content. In corner mode, this gap is
  *                    applied to both the left and bottom edges of the cutout. In full-height mode,
  *                    only the horizontal gap (left of cutout) is applied since the cutout spans
@@ -62,7 +77,7 @@ fun CutoutCard(
     colors: CardColors = CardDefaults.cardColors(),
     elevation: CardElevation = CardDefaults.cardElevation(defaultElevation = CutoutCardDefaults.ElevationDp),
     cutoutContent: (@Composable () -> Unit)? = null,
-    cutoutFullHeight: Boolean = false,
+    cutoutMode: CutoutMode = CutoutMode.Auto,
     contentPadding: PaddingValues = CutoutCardDefaults.contentPadding(),
     gapDistance: Dp = CutoutCardDefaults.GapDistanceExpanded,
     content: @Composable CutoutCardScope.() -> Unit,
@@ -117,8 +132,12 @@ fun CutoutCard(
             }
         }.first().measure(constraints)
 
-        val minHeightForCornerMode = cutoutHeight * 1.8f
-        val useFullHeightMode = cutoutFullHeight || contentMeasurePlaceable.height <= minHeightForCornerMode
+        val minHeightForCornerMode = cutoutHeight * 2
+        val useFullHeightMode = when (cutoutMode) {
+            CutoutMode.FullHeight -> true
+            CutoutMode.Corner -> false
+            CutoutMode.Auto -> contentMeasurePlaceable.height < minHeightForCornerMode
+        }
 
         // In full-height mode the card width is already reduced by cutoutWidth,
         // so give content a zeroed-out scope to avoid double-penalizing row widths.
@@ -288,7 +307,7 @@ private fun CutoutCardFullHeightModePreview() {
         CutoutCard(
             modifier = Modifier.padding(16.dp),
             cutoutContent = { PreviewCutoutButton() },
-            cutoutFullHeight = true,
+            cutoutMode = CutoutMode.FullHeight,
         ) {
             Text("Full-height cutout mode")
             Text("Card width is reduced")

@@ -49,6 +49,7 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
+import eu.darken.butler.workspace.ui.common.CutoutMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -98,7 +99,7 @@ fun ExplorerToolbarCard(
                 )
             }
         } else null,
-        cutoutFullHeight = isCollapsed,
+        cutoutMode = if (isCollapsed) CutoutMode.FullHeight else CutoutMode.Auto,
         gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
         contentPadding = CutoutCardDefaults.contentPadding(cardPadding),
     ) {

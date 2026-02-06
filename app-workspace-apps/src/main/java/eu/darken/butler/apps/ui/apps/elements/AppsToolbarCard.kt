@@ -1,13 +1,11 @@
 package eu.darken.butler.apps.ui.apps.elements
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -36,6 +34,7 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.common.CutoutAwareColumn
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
+import eu.darken.butler.workspace.ui.common.CutoutMode
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceButtonDefaults
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -54,7 +53,7 @@ fun AppsToolbarCard(
 ) {
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
-        targetValue = if (isCollapsed) 8.dp else 16.dp,
+        targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "cardPadding",
     )
     val filterCount = filterConfig.includeTags.size + filterConfig.excludeTags.size
@@ -69,7 +68,7 @@ fun AppsToolbarCard(
                 )
             }
         } else null,
-        cutoutFullHeight = isCollapsed,
+        cutoutMode = if (isCollapsed) CutoutMode.FullHeight else CutoutMode.Corner,
         gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
         contentPadding = CutoutCardDefaults.contentPadding(cardPadding),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -117,26 +116,19 @@ fun AppsToolbarCard(
                 cutoutWidth = cutoutWidth,
                 cutoutHeight = cutoutHeight,
             ) {
-                AppsSearchBar(
-                    query = searchQuery,
-                    onQueryChange = onSearchQueryChange,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                AnimatedVisibility(
-                    visible = true,
-                    enter = expandVertically(),
-                    exit = shrinkVertically(),
-                ) {
-                    Column {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        AppsFilterChipBar(
-                            filterConfig = filterConfig,
-                            onTagRemove = onFilterRemove,
-                            onAddClick = onFilterAdd,
-                        )
-                    }
+                Column(modifier = Modifier.defaultMinSize(minHeight = cutoutHeight)) {
+                    AppsSearchBar(
+                        query = searchQuery,
+                        onQueryChange = onSearchQueryChange,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
+
+                AppsFilterChipBar(
+                    filterConfig = filterConfig,
+                    onTagRemove = onFilterRemove,
+                    onAddClick = onFilterAdd,
+                )
             }
         }
     }
