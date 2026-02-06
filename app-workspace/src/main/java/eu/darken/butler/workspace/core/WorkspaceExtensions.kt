@@ -5,7 +5,6 @@ import androidx.compose.material.icons.twotone.AccountTree
 import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Apps
 import androidx.compose.material.icons.twotone.BugReport
-import androidx.compose.material.icons.twotone.CleaningServices
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Search
@@ -17,7 +16,6 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.developer.core.arguments.DeveloperArguments
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
-import eu.darken.butler.sdmaid.core.arguments.SdMaidArguments
 import eu.darken.butler.searcher.core.arguments.SearcherArguments
 import eu.darken.butler.templates.core.arguments.TemplatesArguments
 import eu.darken.butler.workspace.R
@@ -31,7 +29,6 @@ val Workspace.Type.icon: ImageVector
         Workspace.Type.APPS -> Icons.TwoTone.Apps
         Workspace.Type.APP_DETAILS -> Icons.TwoTone.Android
         Workspace.Type.SAVER -> Icons.TwoTone.SaveAlt
-        Workspace.Type.SDMAID -> Icons.TwoTone.CleaningServices
         Workspace.Type.DEVELOPER -> Icons.TwoTone.BugReport
     }
 
@@ -44,7 +41,6 @@ val Workspace.Type.label: CaString
         Workspace.Type.APPS -> R.string.workspace_apps_label.toCaString()
         Workspace.Type.APP_DETAILS -> R.string.workspace_appdetails_label.toCaString()
         Workspace.Type.SAVER -> R.string.workspace_saver_label.toCaString()
-        Workspace.Type.SDMAID -> R.string.workspace_sdmaid_label.toCaString()
         Workspace.Type.DEVELOPER -> R.string.workspace_developer_label.toCaString()
     }
 
@@ -57,6 +53,5 @@ val Workspace.Type.defaultArguments: Workspace.Arguments
         Workspace.Type.APPS -> AppsArguments.Default()
         Workspace.Type.APP_DETAILS -> throw IllegalArgumentException("$this requires explicit arguments")
         Workspace.Type.SAVER -> throw IllegalArgumentException("$this requires explicit arguments")
-        Workspace.Type.SDMAID -> SdMaidArguments.Default()
         Workspace.Type.DEVELOPER -> DeveloperArguments.Default()
     }

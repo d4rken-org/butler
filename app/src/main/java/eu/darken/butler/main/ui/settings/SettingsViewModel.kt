@@ -9,7 +9,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.developer.DeveloperSettings
-import eu.darken.butler.common.pkgs.SDMaidTool
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.upgrade.UpgradeRepo
 import kotlinx.coroutines.flow.combine
@@ -20,7 +19,6 @@ class SettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val webpageTool: WebpageTool,
     private val upgradeRepo: UpgradeRepo,
-    private val sdMaidTool: SDMaidTool,
     private val developerSettings: DeveloperSettings,
 ) : ViewModel4(dispatcherProvider, logTag("Settings", "ViewModel")) {
 
@@ -31,7 +29,6 @@ class SettingsViewModel @Inject constructor(
         State(
             versionText = BuildConfigWrap.VERSION_DESCRIPTION,
             isUpgraded = upgradeInfo.isUpgraded,
-            isSDMaidInstalled = sdMaidTool.isInstalled(),
             isDeveloperModeUnlocked = isDeveloperUnlocked,
             canUnlockDeveloperMode = !isDeveloperUnlocked,
         )
@@ -42,11 +39,6 @@ class SettingsViewModel @Inject constructor(
         webpageTool.open(url)
     }
 
-    fun openSDMaidInstall() {
-        log(tag) { "openSDMaidInstall()" }
-        sdMaidTool.openInstallPage()
-    }
-
     fun unlockDeveloperMode() = launch {
         log(tag, INFO) { "Unlocking developer mode" }
         developerSettings.isDeveloperModeUnlocked.value(true)
@@ -55,7 +47,6 @@ class SettingsViewModel @Inject constructor(
     data class State(
         val versionText: String = BuildConfigWrap.VERSION_DESCRIPTION,
         val isUpgraded: Boolean = false,
-        val isSDMaidInstalled: Boolean = true,
         val isDeveloperModeUnlocked: Boolean = false,
         val canUnlockDeveloperMode: Boolean = false,
     )

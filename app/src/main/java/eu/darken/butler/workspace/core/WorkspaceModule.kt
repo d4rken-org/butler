@@ -11,7 +11,6 @@ import eu.darken.butler.developer.core.DeveloperWorkspace
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.saver.core.SaverWorkspace
-import eu.darken.butler.sdmaid.core.SdMaidWorkspace
 import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.templates.core.TemplatesWorkspace
 import javax.inject.Singleton
@@ -39,7 +38,6 @@ abstract class WorkspaceModule {
             appsWorkspaceFactory: AppsWorkspace.Factory,
             appDetailsWorkspaceFactory: AppDetailsWorkspace.Factory,
             saverWorkspaceFactory: SaverWorkspace.Factory,
-            sdMaidWorkspaceFactory: SdMaidWorkspace.Factory,
             developerWorkspaceFactory: DeveloperWorkspace.Factory,
         ): Map<Workspace.Type, @JvmSuppressWildcards WorkspaceFactory<*>> {
             return buildMap {
@@ -50,7 +48,6 @@ abstract class WorkspaceModule {
                 put(Workspace.Type.APPS, appsWorkspaceFactory)
                 put(Workspace.Type.APP_DETAILS, appDetailsWorkspaceFactory)
                 put(Workspace.Type.SAVER, saverWorkspaceFactory)
-                put(Workspace.Type.SDMAID, sdMaidWorkspaceFactory)
                 put(Workspace.Type.DEVELOPER, developerWorkspaceFactory)
             }
         }

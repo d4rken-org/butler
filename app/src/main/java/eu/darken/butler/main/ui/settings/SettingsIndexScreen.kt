@@ -33,9 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ButlerLinks
@@ -73,7 +71,6 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
             onNavigateUp = { vm.navUp() },
             onNavigateTo = { vm.navTo(it) },
             onOpenUrl = { vm.openUrl(it) },
-            onOpenSDMaidInstall = { vm.openSDMaidInstall() },
             onUnlockDeveloperMode = { vm.unlockDeveloperMode() },
         )
     }
@@ -85,7 +82,6 @@ fun SettingsIndexScreen(
     onNavigateUp: () -> Unit,
     onNavigateTo: (NavigationDestination) -> Unit,
     onOpenUrl: (String) -> Unit,
-    onOpenSDMaidInstall: () -> Unit,
     onUnlockDeveloperMode: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -305,19 +301,6 @@ fun SettingsIndexScreen(
                 )
             }
 
-            if (!state.isSDMaidInstalled) {
-                item {
-                    SettingsDivider()
-                    SettingsBaseItem(
-                        iconPainter = painterResource(R.drawable.sdmaid_mascot),
-                        iconTinted = false,
-                        iconSize = 32.dp,
-                        title = stringResource(R.string.settings_sdmaid_label),
-                        subtitle = stringResource(R.string.settings_sdmaid_description),
-                        onClick = onOpenSDMaidInstall,
-                    )
-                }
-            }
         }
     }
 }
@@ -329,12 +312,10 @@ private fun SettingsScreenPreview() {
         SettingsIndexScreen(
             state = SettingsViewModel.State(
                 isUpgraded = true,
-                isSDMaidInstalled = false,
             ),
             onNavigateUp = {},
             onNavigateTo = {},
             onOpenUrl = {},
-            onOpenSDMaidInstall = {},
             onUnlockDeveloperMode = {},
         )
     }
