@@ -86,7 +86,7 @@ fun EditorToolbarCard(
                 )
             }
         } else null,
-        cutoutMode = if (isCollapsed) CutoutMode.FullHeight else CutoutMode.Auto,
+        cutoutMode = if (isCollapsed) CutoutMode.FullHeight else CutoutMode.Corner,
         gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
         contentPadding = CutoutCardDefaults.contentPadding(
             start = cardPadding,
