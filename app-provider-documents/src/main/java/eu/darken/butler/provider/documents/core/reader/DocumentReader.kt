@@ -102,48 +102,41 @@ class DocumentReader @Inject constructor(
         }
     }
 
-    /**
-     * Open file for writing (truncate or append).
-     * Uses pipe pattern: client writes → pipe → background thread → GatewaySwitch.
-     */
     private suspend fun openForWrite(path: APath<*>, truncate: Boolean): ParcelFileDescriptor {
         log(TAG, VERBOSE) { "Opening for write (truncate=$truncate): $path" }
 
-        val pipe = ParcelFileDescriptor.createPipe()
-        val readSide = pipe[0]
-        val writeSide = pipe[1]
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                ParcelFileDescriptor.AutoCloseInputStream(readSide).use { input ->
-                    gatewaySwitch.openOutputStream(path, append = !truncate).use { output ->
-                        input.copyTo(output)
-                    }
-                }
-                log(TAG, VERBOSE) { "Write pipe transfer completed: $path" }
-            } catch (e: Exception) {
-                log(TAG, ERROR) { "Write pipe transfer failed: ${e.asLog()}" }
-                try {
-                    writeSide.closeWithError(e.message ?: "Write failed")
-                } catch (closeError: Exception) {
-                    log(TAG, ERROR) { "Failed to close write side with error: ${closeError.asLog()}" }
-                }
+        return try {
+            val fileHandle = gatewaySwitch.file(path, readWrite = true)
+            if (truncate) fileHandle.resize(0)
+            createSeekableFromFileHandle(fileHandle, mode = "w").also {
+                log(TAG, INFO) { "Using seekable ProxyPFD (w) for: $path" }
+            }
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Seekable PFD (w) failed, falling back to pipe: ${e.asLog()}" }
+            createPipeFromOutputStream(gatewaySwitch.openOutputStream(path, append = !truncate)).also {
+                log(TAG, INFO) { "Using pipe fallback (w) for: $path" }
             }
         }
-
-        return writeSide
     }
 
-    /**
-     * Open file for read-write.
-     * Currently treats read-write mode as write-only since most apps only need one direction.
-     */
     private suspend fun openForReadWrite(path: APath<*>, truncate: Boolean): ParcelFileDescriptor {
-        log(TAG, WARN) { "Read-write mode not fully optimized (using write-only for now): $path" }
-        return openForWrite(path, truncate)
+        log(TAG, VERBOSE) { "Opening for read-write (truncate=$truncate): $path" }
+
+        return try {
+            val fileHandle = gatewaySwitch.file(path, readWrite = true)
+            if (truncate) fileHandle.resize(0)
+            createSeekableFromFileHandle(fileHandle, mode = "rw").also {
+                log(TAG, INFO) { "Using seekable ProxyPFD (rw) for: $path" }
+            }
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Seekable PFD (rw) failed, falling back to write pipe: ${e.asLog()}" }
+            createPipeFromOutputStream(gatewaySwitch.openOutputStream(path, append = !truncate)).also {
+                log(TAG, INFO) { "Using pipe fallback (rw) for: $path" }
+            }
+        }
     }
 
-    private fun createSeekableFromFileHandle(fileHandle: FileHandle): ParcelFileDescriptor {
+    private fun createSeekableFromFileHandle(fileHandle: FileHandle, mode: String = "r"): ParcelFileDescriptor {
         val callback = object : android.os.ProxyFileDescriptorCallback() {
             override fun onGetSize(): Long = try {
                 fileHandle.size()
@@ -152,14 +145,27 @@ class DocumentReader @Inject constructor(
                 throw e.toProxyErrno("onGetSize")
             }
 
-            override fun onRead(offset: Long, size: Int, data: ByteArray): Int {
-                return try {
-                    val bytesRead = fileHandle.read(offset, data, 0, minOf(size, data.size))
-                    if (bytesRead < 0) 0 else bytesRead
-                } catch (e: Exception) {
-                    log(TAG, ERROR) { "Proxy onRead failed (offset=$offset, size=$size): ${e.asLog()}" }
-                    throw e.toProxyErrno("onRead")
-                }
+            override fun onRead(offset: Long, size: Int, data: ByteArray): Int = try {
+                val bytesRead = fileHandle.read(offset, data, 0, minOf(size, data.size))
+                if (bytesRead < 0) 0 else bytesRead
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Proxy onRead failed (offset=$offset, size=$size): ${e.asLog()}" }
+                throw e.toProxyErrno("onRead")
+            }
+
+            override fun onWrite(offset: Long, size: Int, data: ByteArray): Int = try {
+                fileHandle.write(offset, data, 0, minOf(size, data.size))
+                minOf(size, data.size)
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Proxy onWrite failed (offset=$offset, size=$size): ${e.asLog()}" }
+                throw e.toProxyErrno("onWrite")
+            }
+
+            override fun onFsync() = try {
+                fileHandle.flush()
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Proxy onFsync failed: ${e.asLog()}" }
+                throw e.toProxyErrno("onFsync")
             }
 
             override fun onRelease() {
@@ -172,7 +178,7 @@ class DocumentReader @Inject constructor(
         }
         return try {
             storageManager.openProxyFileDescriptor(
-                ParcelFileDescriptor.parseMode("r"),
+                ParcelFileDescriptor.parseMode(mode),
                 callback,
                 callbackHandler,
             )
@@ -191,10 +197,6 @@ class DocumentReader @Inject constructor(
         return ErrnoException(function, OsConstants.EIO).apply { initCause(this@toProxyErrno) }
     }
 
-    /**
-     * Create a ParcelFileDescriptor pipe from an InputStream.
-     * Data is transferred asynchronously from InputStream to pipe's write side.
-     */
     private fun createPipeFromInputStream(inputStream: InputStream): ParcelFileDescriptor {
         val pipe = ParcelFileDescriptor.createPipe()
         val readSide = pipe[0]
@@ -207,12 +209,12 @@ class DocumentReader @Inject constructor(
                         input.copyTo(output)
                     }
                 }
-                log(TAG, VERBOSE) { "Pipe transfer completed successfully" }
+                log(TAG, VERBOSE) { "Read pipe transfer completed" }
             } catch (e: Exception) {
                 if (e.causeChain.any { it is ErrnoException && it.errno == OsConstants.EPIPE }) {
                     log(TAG, WARN) { "Pipe closed by client (EPIPE)" }
                 } else {
-                    log(TAG, ERROR) { "Pipe transfer failed: ${e.asLog()}" }
+                    log(TAG, ERROR) { "Read pipe transfer failed: ${e.asLog()}" }
                 }
                 try {
                     readSide.closeWithError(e.message ?: "Transfer failed")
@@ -223,6 +225,36 @@ class DocumentReader @Inject constructor(
         }
 
         return readSide
+    }
+
+    private fun createPipeFromOutputStream(outputStream: java.io.OutputStream): ParcelFileDescriptor {
+        val pipe = ParcelFileDescriptor.createPipe()
+        val readSide = pipe[0]
+        val writeSide = pipe[1]
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                ParcelFileDescriptor.AutoCloseInputStream(readSide).use { input ->
+                    outputStream.use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                log(TAG, VERBOSE) { "Write pipe transfer completed" }
+            } catch (e: Exception) {
+                if (e.causeChain.any { it is ErrnoException && it.errno == OsConstants.EPIPE }) {
+                    log(TAG, WARN) { "Pipe closed by client (EPIPE)" }
+                } else {
+                    log(TAG, ERROR) { "Write pipe transfer failed: ${e.asLog()}" }
+                }
+                try {
+                    writeSide.closeWithError(e.message ?: "Write failed")
+                } catch (_: Exception) {
+                    // Write side already closed by client
+                }
+            }
+        }
+
+        return writeSide
     }
 
     companion object {
