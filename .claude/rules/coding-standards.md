@@ -15,9 +15,6 @@
             - Example: `SearcherWorkspacePage` should have previews showing different UI states
     - Place compose previews below the composable being previewed
     - Preview function naming: `ComponentNamePreview()` and mark as `private`
-- Write tests for web APIs and serialized data.
-- Compose UI tests supported via Robolectric (see development-commands.md for details).
-- Use FOSS debug flavor for local testing.
 - Don't add code comments for obvious code.
 - Write minimalistic and concise code (omit comments).
 - Prefer flow based solutions.
