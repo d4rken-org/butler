@@ -36,13 +36,14 @@ class RootQueryHandler @Inject constructor(
 
         if (!settings.isEnabled.value()) {
             log(TAG, WARN) { "Provider is disabled - returning empty cursor" }
-            val resolvedProjection = projection ?: DEFAULT_ROOT_PROJECTION
-            return MatrixCursor(resolvedProjection)
+            return MatrixCursor(DEFAULT_ROOT_PROJECTION)
         }
 
         val roots = listOf(ProviderLocation.Root.Butler)
 
-        val resolvedProjection = projection ?: DEFAULT_ROOT_PROJECTION
+        // Always use full projection: RowBuilder.add(String, Object) throws if column is missing.
+        // SAF clients handle extra columns gracefully. TODO: Consider per-column safe-add instead.
+        val resolvedProjection = DEFAULT_ROOT_PROJECTION
         val cursor = MatrixCursor(resolvedProjection)
 
         roots.forEach { root ->
@@ -71,7 +72,7 @@ class RootQueryHandler @Inject constructor(
          * Default projection for queryRoots() when none specified.
          * Includes all standard root columns.
          */
-        private val DEFAULT_ROOT_PROJECTION = arrayOf(
+        internal val DEFAULT_ROOT_PROJECTION = arrayOf(
             DocumentsContract.Root.COLUMN_ROOT_ID,
             DocumentsContract.Root.COLUMN_DOCUMENT_ID,
             DocumentsContract.Root.COLUMN_ICON,
