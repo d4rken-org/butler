@@ -49,17 +49,18 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument reads LocalPath via direct ParcelFileDescriptor`() = runBlocking {
-        val testFile = tempFolder.newFile("test.txt")
-        val testContent = "Direct local fd"
-        testFile.writeText(testContent)
-
-        val path = LocalPath.build(testFile.absolutePath)
+    fun `openDocument reads LocalPath via pipe fallback`() = runBlocking {
+        val testContent = "Hello DocumentsProvider"
+        val path = LocalPath.build("/some/file.txt")
         val documentId = "local|encoded"
 
         coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, false) } throws UnsupportedOperationException("No seekable access")
+        coEvery { gatewaySwitch.openInputStream(path) } returns testContent.byteInputStream()
 
         val pfd = reader.openDocument(documentId, "r", null)
+
+        Thread.sleep(1000)
 
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
             val content = inputStream.readBytes().toString(Charsets.UTF_8)
