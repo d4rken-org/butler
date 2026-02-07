@@ -2,18 +2,26 @@ package eu.darken.butler.provider.documents.core.reader
 
 import android.content.Context
 import android.os.CancellationSignal
+import android.os.Handler
+import android.os.HandlerThread
 import android.os.ParcelFileDescriptor
+import android.os.storage.StorageManager
+import android.system.ErrnoException
+import android.system.OsConstants
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okio.FileHandle
 import java.io.FileNotFoundException
 import java.io.InputStream
 import javax.inject.Inject
@@ -34,6 +42,10 @@ class DocumentReader @Inject constructor(
     private val codec: DocumentIdCodec,
     private val gatewaySwitch: GatewaySwitch,
 ) {
+
+    private val storageManager: StorageManager = context.getSystemService(StorageManager::class.java)
+    private val callbackThread = HandlerThread("DocumentReader-proxy").apply { start() }
+    private val callbackHandler = Handler(callbackThread.looper)
 
     /**
      * Open a document and return a ParcelFileDescriptor.
@@ -76,8 +88,30 @@ class DocumentReader @Inject constructor(
 
     private suspend fun openForRead(path: APath<*>): ParcelFileDescriptor {
         log(TAG, VERBOSE) { "Opening for read: $path" }
-        val inputStream = gatewaySwitch.openInputStream(path)
-        return createPipeFromInputStream(inputStream)
+
+        if (path is LocalPath) {
+            try {
+                log(TAG, VERBOSE) { "Trying direct local PFD for: $path" }
+                return ParcelFileDescriptor.open(path.file, ParcelFileDescriptor.MODE_READ_ONLY).also {
+                    log(TAG, INFO) { "Using direct local PFD for: $path" }
+                }
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Direct local PFD failed, trying gateway-backed reader: ${e.asLog()}" }
+            }
+        }
+
+        return try {
+            val fileHandle = gatewaySwitch.file(path, readWrite = false)
+            log(TAG, VERBOSE) { "Creating seekable ProxyPFD for: $path" }
+            createSeekableFromFileHandle(fileHandle).also {
+                log(TAG, INFO) { "Using seekable ProxyPFD for: $path" }
+            }
+        } catch (e: Exception) {
+            log(TAG, WARN) { "Seekable PFD failed, falling back to pipe: ${e.asLog()}" }
+            createPipeFromInputStream(gatewaySwitch.openInputStream(path)).also {
+                log(TAG, INFO) { "Using pipe fallback for: $path" }
+            }
+        }
     }
 
     /**
@@ -121,6 +155,54 @@ class DocumentReader @Inject constructor(
         return openForWrite(path, truncate)
     }
 
+    private fun createSeekableFromFileHandle(fileHandle: FileHandle): ParcelFileDescriptor {
+        val callback = object : android.os.ProxyFileDescriptorCallback() {
+            override fun onGetSize(): Long = try {
+                fileHandle.size()
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Proxy onGetSize failed: ${e.asLog()}" }
+                throw e.toProxyErrno("onGetSize")
+            }
+
+            override fun onRead(offset: Long, size: Int, data: ByteArray): Int {
+                return try {
+                    val bytesRead = fileHandle.read(offset, data, 0, minOf(size, data.size))
+                    if (bytesRead < 0) 0 else bytesRead
+                } catch (e: Exception) {
+                    log(TAG, ERROR) { "Proxy onRead failed (offset=$offset, size=$size): ${e.asLog()}" }
+                    throw e.toProxyErrno("onRead")
+                }
+            }
+
+            override fun onRelease() {
+                try {
+                    fileHandle.close()
+                } catch (e: Exception) {
+                    log(TAG, WARN) { "Proxy onRelease close failed: ${e.asLog()}" }
+                }
+            }
+        }
+        return try {
+            storageManager.openProxyFileDescriptor(
+                ParcelFileDescriptor.parseMode("r"),
+                callback,
+                callbackHandler,
+            )
+        } catch (e: Exception) {
+            try {
+                fileHandle.close()
+            } catch (_: Exception) {
+                // Best effort cleanup
+            }
+            throw e
+        }
+    }
+
+    private fun Throwable.toProxyErrno(function: String): ErrnoException {
+        if (this is ErrnoException) return this
+        return ErrnoException(function, OsConstants.EIO).apply { initCause(this@toProxyErrno) }
+    }
+
     /**
      * Create a ParcelFileDescriptor pipe from an InputStream.
      * Data is transferred asynchronously from InputStream to pipe's write side.
@@ -139,11 +221,15 @@ class DocumentReader @Inject constructor(
                 }
                 log(TAG, VERBOSE) { "Pipe transfer completed successfully" }
             } catch (e: Exception) {
-                log(TAG, ERROR) { "Pipe transfer failed: ${e.asLog()}" }
+                if (e.causeChain.any { it is ErrnoException && it.errno == OsConstants.EPIPE }) {
+                    log(TAG, WARN) { "Pipe closed by client (EPIPE)" }
+                } else {
+                    log(TAG, ERROR) { "Pipe transfer failed: ${e.asLog()}" }
+                }
                 try {
                     readSide.closeWithError(e.message ?: "Transfer failed")
-                } catch (closeError: Exception) {
-                    log(TAG, ERROR) { "Failed to close read side with error: ${closeError.asLog()}" }
+                } catch (_: Exception) {
+                    // Read side already closed by client
                 }
             }
         }

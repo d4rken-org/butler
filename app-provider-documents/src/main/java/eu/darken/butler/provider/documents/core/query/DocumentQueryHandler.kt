@@ -86,7 +86,7 @@ class DocumentQueryHandler @Inject constructor(
 
                 else -> {
                     val path = codec.decode(documentId)
-                    val lookup = gatewaySwitch.lookup(path, LookupOptions())
+                    val lookup = gatewaySwitch.lookup(path, LookupOptions(fetchSize = true, fetchModifiedAt = true))
                     cursor.addFilesystemDocument(documentId, lookup)
                 }
             }
