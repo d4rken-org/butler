@@ -86,6 +86,74 @@ class RemoteFileHandleExtensionsTest : BaseTest() {
     }
 
     @Test
+    fun `write delegates to remote`() {
+        val remote = createMockRemote()
+        val data = ByteArray(32)
+
+        val handle = remote.fileHandle(readWrite = true)
+        handle.write(0L, data, 0, 32)
+
+        verify { remote.write(0L, data, 0, 32) }
+    }
+
+    @Test
+    fun `write throws ServiceConnectionLostException on RemoteException`() {
+        val remote = createMockRemote()
+        val data = ByteArray(32)
+        every { remote.write(0L, data, 0, 32) } throws RemoteException("connection lost")
+
+        val handle = remote.fileHandle(readWrite = true)
+
+        shouldThrow<ServiceConnectionLostException> {
+            handle.write(0L, data, 0, 32)
+        }
+    }
+
+    @Test
+    fun `flush delegates to remote`() {
+        val remote = createMockRemote()
+
+        val handle = remote.fileHandle(readWrite = true)
+        handle.flush()
+
+        verify { remote.flush() }
+    }
+
+    @Test
+    fun `flush throws ServiceConnectionLostException on RemoteException`() {
+        val remote = createMockRemote()
+        every { remote.flush() } throws RemoteException("connection lost")
+
+        val handle = remote.fileHandle(readWrite = true)
+
+        shouldThrow<ServiceConnectionLostException> {
+            handle.flush()
+        }
+    }
+
+    @Test
+    fun `resize delegates to remote`() {
+        val remote = createMockRemote()
+
+        val handle = remote.fileHandle(readWrite = true)
+        handle.resize(2048L)
+
+        verify { remote.resize(2048L) }
+    }
+
+    @Test
+    fun `resize throws ServiceConnectionLostException on RemoteException`() {
+        val remote = createMockRemote()
+        every { remote.resize(2048L) } throws RemoteException("connection lost")
+
+        val handle = remote.fileHandle(readWrite = true)
+
+        shouldThrow<ServiceConnectionLostException> {
+            handle.resize(2048L)
+        }
+    }
+
+    @Test
     fun `close delegates to remote`() {
         val remote = createMockRemote()
 
