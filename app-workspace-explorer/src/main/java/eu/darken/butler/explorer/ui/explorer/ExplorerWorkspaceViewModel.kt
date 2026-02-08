@@ -1453,7 +1453,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     // Reveal all added items on success (scroll to first, highlight all)
                     if (completed.error == null) {
                         val addedPaths = completed.report?.affectedPaths
-                            ?.filter { it.change == Operation.Report.PathChange.Change.ADDED }
+                            ?.filter { it.change == Operation.Report.PathChange.Change.ADDED || it.change == Operation.Report.PathChange.Change.MOVED }
                             ?.map { it.path }
                             ?: emptyList()
                         revealItems(addedPaths)

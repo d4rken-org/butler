@@ -83,7 +83,7 @@ interface Operation {
             val change: Change,
         ) {
             enum class Change {
-                ADDED, REMOVED, MODIFIED, TRASHED
+                ADDED, REMOVED, MODIFIED, TRASHED, MOVED,
             }
         }
     }
