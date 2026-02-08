@@ -76,7 +76,10 @@ class BrowsingEngine @AssistedInject constructor(
             .flatMapLatest { target ->
                 refreshTrigger
                     .onStart { emit(Unit) }
-                    .onEach { log(tag) { "Loading/refreshing target: $target" } }
+                    .onEach {
+                        log(tag) { "Loading/refreshing target: $target" }
+                        hintMutex.withLock { pendingHints.clear() }
+                    }
                     .flatMapLatest {
                         when (target) {
                             is ExplorerNavigation.Target.Home -> homeLocationLoader.loadHome()
