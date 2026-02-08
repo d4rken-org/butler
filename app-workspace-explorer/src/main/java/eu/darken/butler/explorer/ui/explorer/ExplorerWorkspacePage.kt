@@ -57,6 +57,7 @@ import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.elements.EmptyDirectoryState
+import eu.darken.butler.explorer.ui.explorer.elements.EmptyFilteredState
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
@@ -414,7 +415,13 @@ fun ExplorerWorkspacePage(
                                             modifier = Modifier.fillParentMaxSize(),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            EmptyDirectoryState()
+                                            if (state.isFilteredEmpty) {
+                                                EmptyFilteredState(
+                                                    onResetFilters = { vm?.resetFilters() },
+                                                )
+                                            } else {
+                                                EmptyDirectoryState()
+                                            }
                                         }
                                     }
                                 } else {
@@ -459,7 +466,13 @@ fun ExplorerWorkspacePage(
                                             modifier = Modifier.fillMaxSize(),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            EmptyDirectoryState()
+                                            if (state.isFilteredEmpty) {
+                                                EmptyFilteredState(
+                                                    onResetFilters = { vm?.resetFilters() },
+                                                )
+                                            } else {
+                                                EmptyDirectoryState()
+                                            }
                                         }
                                     }
                                 } else {

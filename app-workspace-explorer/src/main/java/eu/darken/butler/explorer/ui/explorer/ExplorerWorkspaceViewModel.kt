@@ -231,9 +231,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val canConfirmSelection: Boolean = true,
         val highlightedItemIds: Set<String> = emptySet(),
         val focusedItemIndex: Int? = null,
+        val unfilteredItemCount: Int = 0,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
+
+        val isFilteredEmpty: Boolean
+            get() = items?.isEmpty() == true && unfilteredItemCount > 0
 
         fun shouldShowSelection(item: ExplorerItem): Boolean {
             // Must be selectable
@@ -350,6 +354,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         locationId = wsStateInner.currentLocation?.locationId,
                         breadcrumbs = wsStateInner.currentBreadcrumbs ?: emptyList(),
                         items = items,
+                        unfilteredItemCount = wsStateInner.currentLocation?.items?.size ?: 0,
                         error = wsStateInner.error,
                         selectionState = selectionState,
                         viewStyle = viewStyle,
@@ -1419,6 +1424,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             excludePattern = result.excludePattern,
             fileTypeFilter = result.fileTypeFilter,
         )
+    }
+
+    fun resetFilters() = launch {
+        log(tag) { "resetFilters()" }
+        filterStateFlow.value = FilterState()
     }
 
     fun pasteClipboard(clip: ClipboardClip) = launch {
