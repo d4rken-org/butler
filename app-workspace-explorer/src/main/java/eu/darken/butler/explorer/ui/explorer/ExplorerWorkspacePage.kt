@@ -173,7 +173,7 @@ fun ExplorerWorkspacePage(
     }
     val hasClipboard by derivedStateOf { clipboardState.entries.isNotEmpty() }
     val hasActions by derivedStateOf { state.availableActions.isNotEmpty() }
-    val isLoadingItems = state.items == null
+    val isLoadingItems = state.items == null && state.error == null
     val hasItems = state.items != null
 
     // Determine if info bar should be visible
@@ -406,8 +406,10 @@ fun ExplorerWorkspacePage(
                                 )
                             ) {
                                 if (state.items == null) {
-                                    items(10, key = { "skeleton-$it" }) {
-                                        SkeletonListItem()
+                                    if (state.error == null) {
+                                        items(10, key = { "skeleton-$it" }) {
+                                            SkeletonListItem()
+                                        }
                                     }
                                 } else if (state.items.isEmpty()) {
                                     item(key = "empty") {
@@ -457,8 +459,10 @@ fun ExplorerWorkspacePage(
                                 )
                             ) {
                                 if (state.items == null) {
-                                    items(12, key = { "skeleton-grid-$it" }) {
-                                        SkeletonGridItem()
+                                    if (state.error == null) {
+                                        items(12, key = { "skeleton-grid-$it" }) {
+                                            SkeletonGridItem()
+                                        }
                                     }
                                 } else if (state.items.isEmpty()) {
                                     item(span = { GridItemSpan(maxLineSpan) }, key = "empty") {

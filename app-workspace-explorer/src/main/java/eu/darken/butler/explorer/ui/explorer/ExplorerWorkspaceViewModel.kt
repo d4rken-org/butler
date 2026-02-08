@@ -1777,9 +1777,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun dismissNavigationError() = launch {
         log(tag) { "dismissNavigationError()" }
-        // Simply triggering any navigation request will clear the error state
-        // We use Cancel as it's the least intrusive option
-        getWorkspace().navigate(ExplorerNavigation.Back)
+        val workspace = getWorkspace()
+        if (getState().canGoBack) {
+            workspace.navigate(ExplorerNavigation.Back)
+        } else {
+            workspace.navigate(ExplorerNavigation.Target.Home)
+        }
     }
 
     fun validateFilename(name: String): FilenameValidator.ValidationResult {

@@ -904,28 +904,11 @@ object MockDataProvider {
     )
 
     fun createErrorState(
-        path: String = "/permission/denied",
         error: Throwable,
     ): ExplorerWorkspaceViewModel.State = ExplorerWorkspaceViewModel.State(
-        currentLocation = ExplorerLocation.Directory(
-            path = LocalPath.build(path),
-            items = emptyList(),
-            progress = null,
-        ),
-        breadcrumbs = listOf(
-            createHomeBreadcrumb(),
-            ExplorerBreadcrumb(
-                label = "permission".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission")),
-                icon = Icons.TwoTone.FolderOpen,
-            ),
-            ExplorerBreadcrumb(
-                label = "denied".toCaString(),
-                target = ExplorerNavigation.Target.Directory(LocalPath.build("/permission/denied")),
-                icon = Icons.TwoTone.FolderOpen,
-            ),
-        ),
-        items = emptyList(),
+        currentLocation = null,
+        breadcrumbs = emptyList(),
+        items = null,
         error = error,
     )
 
