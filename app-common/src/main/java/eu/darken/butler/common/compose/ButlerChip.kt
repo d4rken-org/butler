@@ -24,6 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -32,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 enum class ButlerChipSize(val height: Dp, val fontSize: TextUnit, val iconSize: Dp) {
+    Mini(16.dp, 8.sp, 10.dp),
     Compact(20.dp, 10.sp, 12.dp),
     Default(24.dp, 11.sp, 14.dp),
     Large(28.dp, 12.sp, 16.dp),
@@ -74,6 +78,19 @@ object ButlerChipDefaults {
     )
 
     @Composable
+    fun highlightColors(
+        containerColor: Color = MaterialTheme.colorScheme.primary,
+        contentColor: Color = MaterialTheme.colorScheme.onPrimary,
+        selectedContainerColor: Color = MaterialTheme.colorScheme.primary,
+        selectedContentColor: Color = MaterialTheme.colorScheme.onPrimary,
+    ): ButlerChipColors = ButlerChipColors(
+        containerColor = containerColor,
+        contentColor = contentColor,
+        selectedContainerColor = selectedContainerColor,
+        selectedContentColor = selectedContentColor,
+    )
+
+    @Composable
     fun errorColors(
         containerColor: Color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f),
         contentColor: Color = MaterialTheme.colorScheme.onErrorContainer,
@@ -99,13 +116,23 @@ fun ButlerChip(
     strikethrough: Boolean = false,
     size: ButlerChipSize = ButlerChipSize.Default,
     colors: ButlerChipColors = ButlerChipDefaults.colors(),
+    contentDescription: String? = null,
 ) {
     val containerColor = if (selected) colors.selectedContainerColor else colors.containerColor
     val contentColor = if (selected) colors.selectedContentColor else colors.contentColor
     val disabledAlpha = if (enabled) 1f else 0.38f
 
     Surface(
-        modifier = modifier.height(size.height),
+        modifier = modifier
+            .height(size.height)
+            .then(
+                if (contentDescription != null || onClick != null) {
+                    Modifier.semantics {
+                        if (contentDescription != null) this.contentDescription = contentDescription
+                        if (onClick != null) this.selected = selected
+                    }
+                } else Modifier
+            ),
         onClick = onClick ?: {},
         enabled = enabled && onClick != null,
         shape = MaterialTheme.shapes.small,
@@ -271,6 +298,31 @@ private fun ButlerChipRemovableWithIconPreview() {
             leadingIcon = Icons.TwoTone.Folder,
             onRemove = {},
             colors = ButlerChipDefaults.accentedColors(),
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ButlerChipMiniPreview() {
+    PreviewWrapper {
+        ButlerChip(
+            label = "System",
+            size = ButlerChipSize.Mini,
+            colors = ButlerChipDefaults.accentedColors(),
+        )
+    }
+}
+
+@Preview2
+@Composable
+private fun ButlerChipHighlightPreview() {
+    PreviewWrapper {
+        ButlerChip(
+            label = "3 selected",
+            leadingIcon = Icons.TwoTone.Star,
+            colors = ButlerChipDefaults.highlightColors(),
+            onClick = {},
         )
     }
 }

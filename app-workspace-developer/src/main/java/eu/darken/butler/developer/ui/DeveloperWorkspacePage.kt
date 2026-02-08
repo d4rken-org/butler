@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +20,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -179,19 +178,15 @@ fun DeveloperWorkspacePage(
                 verticalSpacing = 4.dp,
             ) {
                 DeveloperTab.entries.forEach { tab ->
-                    FilterChip(
+                    ButlerChip(
+                        label = when (tab) {
+                            DeveloperTab.SYSTEM -> stringResource(R.string.developer_tab_system)
+                            DeveloperTab.OPTIONS -> stringResource(R.string.developer_tab_options)
+                            DeveloperTab.LOGS -> stringResource(R.string.developer_tab_logs)
+                            DeveloperTab.TEST_DATA -> stringResource(R.string.developer_tab_testdata)
+                        },
                         selected = state.selectedTab == tab,
                         onClick = { onTabSelected(tab) },
-                        label = {
-                            Text(
-                                text = when (tab) {
-                                    DeveloperTab.SYSTEM -> stringResource(R.string.developer_tab_system)
-                                    DeveloperTab.OPTIONS -> stringResource(R.string.developer_tab_options)
-                                    DeveloperTab.LOGS -> stringResource(R.string.developer_tab_logs)
-                                    DeveloperTab.TEST_DATA -> stringResource(R.string.developer_tab_testdata)
-                                }
-                            )
-                        }
                     )
                 }
             }

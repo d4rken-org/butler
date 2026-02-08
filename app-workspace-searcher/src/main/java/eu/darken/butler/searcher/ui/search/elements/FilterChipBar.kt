@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerChip
+import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.metadata.FileType
@@ -57,16 +60,21 @@ fun FilterChipBar(
         // Display each condition as its own chip
         filter.conditions.forEach { condition ->
             val label = formatConditionLabel(condition, context)
-            CompactFilterChip(
+            ButlerChip(
                 label = label,
                 onClick = { onConditionClick(condition) },
                 onRemove = { onRemoveCondition(condition) },
+                colors = ButlerChipDefaults.colors(
+                    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    selectedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ),
+                selected = true,
             )
         }
 
         // Add filter button with dropdown
         Box {
-            CompactAssistChip(
+            ButlerChip(
                 label = stringResource(R.string.searcher_filter_add_action),
                 leadingIcon = Icons.TwoTone.Add,
                 onClick = { showAddMenu = true },

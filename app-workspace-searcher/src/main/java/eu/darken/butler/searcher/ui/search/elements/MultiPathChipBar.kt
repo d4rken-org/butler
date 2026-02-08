@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerChip
+import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -60,12 +62,16 @@ fun MultiPathChipBar(
         visiblePaths.forEach { target ->
             when (target) {
                 is SearchTarget.Path -> {
-                    CompactFilterChip(
+                    ButlerChip(
                         label = target.displayText.asComposable(),
                         selected = target.enabled,
                         enabled = !isSearching,
                         onClick = { if (!isSearching) onPathToggle(target) },
                         onRemove = { onPathRemove(target) },
+                        colors = ButlerChipDefaults.colors(
+                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            selectedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ),
                     )
                 }
             }
@@ -74,7 +80,7 @@ fun MultiPathChipBar(
         // Show more/fewer button
         if (hasMore) {
             val remainingCount = paths.size - visibleSize
-            CompactAssistChip(
+            ButlerChip(
                 label = if (isExpanded) {
                     stringResource(R.string.searcher_multipath_show_fewer_action)
                 } else {
@@ -90,7 +96,7 @@ fun MultiPathChipBar(
         }
 
         // Add button
-        CompactAssistChip(
+        ButlerChip(
             label = stringResource(R.string.searcher_add_path_action),
             leadingIcon = Icons.TwoTone.Add,
             enabled = !isSearching,
