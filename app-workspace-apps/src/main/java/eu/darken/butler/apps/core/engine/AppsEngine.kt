@@ -21,10 +21,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
+import eu.darken.butler.common.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
@@ -43,16 +42,22 @@ class AppsEngine @AssistedInject constructor(
     private val _state = MutableStateFlow(AppsState(isLoading = true))
     val state: StateFlow<AppsState> = _state
 
+    private val _filterConfig = MutableStateFlow(TagFilterConfig())
+    private val _sortSettings = MutableStateFlow(SortSettings())
+    private val _searchQuery = MutableStateFlow("")
+    private val _selectedAppIds = MutableStateFlow<Set<String>>(emptySet())
+
     init {
         log(tag, INFO) { "AppsEngine initialized for workspace ${workspaceId.shortTag}" }
 
         combine(
             pkgRepo.pkgs(),
             userManager.users,
-            _state.map { it.filterConfig },
-            _state.map { it.sortSettings },
-            _state.map { it.searchQuery },
-        ) { packages, userProfiles, filterConfig, sortSettings, searchQuery ->
+            _filterConfig,
+            _sortSettings,
+            _searchQuery,
+            _selectedAppIds,
+        ) { packages, userProfiles, filterConfig, sortSettings, searchQuery, selectedAppIds ->
             log(tag, DEBUG) { "Processing ${packages.size} packages" }
 
             // Build a map of user handles to profiles for efficient lookup
@@ -80,7 +85,7 @@ class AppsEngine @AssistedInject constructor(
                 filterConfig = filterConfig,
                 sortSettings = sortSettings,
                 searchQuery = searchQuery,
-                selectedAppIds = _state.value.selectedAppIds,
+                selectedAppIds = selectedAppIds,
                 isLoading = false,
                 error = null,
             )
@@ -103,38 +108,38 @@ class AppsEngine @AssistedInject constructor(
 
     suspend fun updateFilterConfig(config: TagFilterConfig) = withContext(dispatcherProvider.Default) {
         log(tag) { "Updating filter config: $config" }
-        _state.value = _state.value.copy(filterConfig = config)
+        _filterConfig.value = config
     }
 
     suspend fun updateSortSettings(sortSettings: SortSettings) = withContext(dispatcherProvider.Default) {
         log(tag) { "Updating sort settings: $sortSettings" }
-        _state.value = _state.value.copy(sortSettings = sortSettings)
+        _sortSettings.value = sortSettings
     }
 
     suspend fun updateSearchQuery(query: String) = withContext(dispatcherProvider.Default) {
         log(tag) { "Updating search query: $query" }
-        _state.value = _state.value.copy(searchQuery = query)
+        _searchQuery.value = query
     }
 
     suspend fun selectApp(packageName: String, selected: Boolean) = withContext(dispatcherProvider.Default) {
         val newSelection = if (selected) {
-            _state.value.selectedAppIds + packageName
+            _selectedAppIds.value + packageName
         } else {
-            _state.value.selectedAppIds - packageName
+            _selectedAppIds.value - packageName
         }
         log(tag) { "App selection updated: ${newSelection.size} selected" }
-        _state.value = _state.value.copy(selectedAppIds = newSelection)
+        _selectedAppIds.value = newSelection
     }
 
     suspend fun clearSelection() = withContext(dispatcherProvider.Default) {
         log(tag) { "Clearing selection" }
-        _state.value = _state.value.copy(selectedAppIds = emptySet())
+        _selectedAppIds.value = emptySet()
     }
 
     suspend fun selectAll() = withContext(dispatcherProvider.Default) {
         val allIds = _state.value.filteredApps.map { it.packageName }.toSet()
         log(tag) { "Selecting all ${allIds.size} visible apps" }
-        _state.value = _state.value.copy(selectedAppIds = allIds)
+        _selectedAppIds.value = allIds
     }
 
     suspend fun refresh() = withContext(dispatcherProvider.IO) {
