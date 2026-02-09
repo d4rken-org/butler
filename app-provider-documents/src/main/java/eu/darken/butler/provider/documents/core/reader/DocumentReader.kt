@@ -16,7 +16,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -88,15 +87,6 @@ class DocumentReader @Inject constructor(
 
     private suspend fun openForRead(path: APath<*>): ParcelFileDescriptor {
         log(TAG, VERBOSE) { "Opening for read: $path" }
-
-        if (path is LocalPath) {
-            try {
-                log(TAG, VERBOSE) { "Opening direct local PFD for: $path" }
-                return ParcelFileDescriptor.open(path.file, ParcelFileDescriptor.MODE_READ_ONLY)
-            } catch (e: Exception) {
-                log(TAG, WARN) { "Direct local PFD failed, trying gateway-backed reader: ${e.asLog()}" }
-            }
-        }
 
         return try {
             val fileHandle = gatewaySwitch.file(path, readWrite = false)
