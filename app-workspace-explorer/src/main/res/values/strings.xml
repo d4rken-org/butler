@@ -241,6 +241,8 @@
     <string name="explorer_empty_search_title">No search results</string>
     <string name="explorer_empty_search_caption">Try a different search term</string>
     <string name="explorer_empty_folder_label">Empty folder</string>
+    <string name="explorer_empty_filtered_title">No matching items</string>
+    <string name="explorer_empty_filtered_caption">Try adjusting your filters</string>
 
     <!-- Status Messages -->
     <string name="explorer_loading">Loading…</string>

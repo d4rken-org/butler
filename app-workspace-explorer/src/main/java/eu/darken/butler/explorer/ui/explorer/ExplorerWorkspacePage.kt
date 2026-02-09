@@ -57,6 +57,7 @@ import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.elements.EmptyDirectoryState
+import eu.darken.butler.explorer.ui.explorer.elements.EmptyFilteredState
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
@@ -172,7 +173,7 @@ fun ExplorerWorkspacePage(
     }
     val hasClipboard by derivedStateOf { clipboardState.entries.isNotEmpty() }
     val hasActions by derivedStateOf { state.availableActions.isNotEmpty() }
-    val isLoadingItems = state.items == null
+    val isLoadingItems = state.items == null && state.error == null
     val hasItems = state.items != null
 
     // Determine if info bar should be visible
@@ -405,8 +406,10 @@ fun ExplorerWorkspacePage(
                                 )
                             ) {
                                 if (state.items == null) {
-                                    items(10, key = { "skeleton-$it" }) {
-                                        SkeletonListItem()
+                                    if (state.error == null) {
+                                        items(10, key = { "skeleton-$it" }) {
+                                            SkeletonListItem()
+                                        }
                                     }
                                 } else if (state.items.isEmpty()) {
                                     item(key = "empty") {
@@ -414,7 +417,13 @@ fun ExplorerWorkspacePage(
                                             modifier = Modifier.fillParentMaxSize(),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            EmptyDirectoryState()
+                                            if (state.isFilteredEmpty) {
+                                                EmptyFilteredState(
+                                                    onResetFilters = { vm?.resetFilters() },
+                                                )
+                                            } else {
+                                                EmptyDirectoryState()
+                                            }
                                         }
                                     }
                                 } else {
@@ -450,8 +459,10 @@ fun ExplorerWorkspacePage(
                                 )
                             ) {
                                 if (state.items == null) {
-                                    items(12, key = { "skeleton-grid-$it" }) {
-                                        SkeletonGridItem()
+                                    if (state.error == null) {
+                                        items(12, key = { "skeleton-grid-$it" }) {
+                                            SkeletonGridItem()
+                                        }
                                     }
                                 } else if (state.items.isEmpty()) {
                                     item(span = { GridItemSpan(maxLineSpan) }, key = "empty") {
@@ -459,7 +470,13 @@ fun ExplorerWorkspacePage(
                                             modifier = Modifier.fillMaxSize(),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            EmptyDirectoryState()
+                                            if (state.isFilteredEmpty) {
+                                                EmptyFilteredState(
+                                                    onResetFilters = { vm?.resetFilters() },
+                                                )
+                                            } else {
+                                                EmptyDirectoryState()
+                                            }
                                         }
                                     }
                                 } else {

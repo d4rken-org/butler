@@ -105,10 +105,11 @@ internal fun OperationAffectedFilesSection(
                             ) {
                                 Text(
                                     text = when (pathChange.change) {
-                                        Operation.Report.PathChange.Change.ADDED -> stringResource(R.string.operations_details_path_added_marker)
-                                        Operation.Report.PathChange.Change.REMOVED -> stringResource(R.string.operations_details_path_removed_marker)
-                                        Operation.Report.PathChange.Change.MODIFIED -> stringResource(R.string.operations_details_path_modified_marker)
-                                        Operation.Report.PathChange.Change.TRASHED -> stringResource(R.string.operations_details_path_trashed_marker)
+                                        Operation.Report.PathChange.Change.ADDED -> "+"
+                                        Operation.Report.PathChange.Change.REMOVED -> "\u2212"
+                                        Operation.Report.PathChange.Change.MODIFIED -> "~"
+                                        Operation.Report.PathChange.Change.TRASHED -> "\u267B"
+                                        Operation.Report.PathChange.Change.MOVED -> "\u2192"
                                     },
                                     style = MaterialTheme.typography.labelSmall,
                                     fontFamily = FontFamily.Monospace,
@@ -117,6 +118,7 @@ internal fun OperationAffectedFilesSection(
                                         Operation.Report.PathChange.Change.REMOVED -> MaterialTheme.colorScheme.error
                                         Operation.Report.PathChange.Change.MODIFIED -> MaterialTheme.colorScheme.secondary
                                         Operation.Report.PathChange.Change.TRASHED -> MaterialTheme.colorScheme.tertiary
+                                        Operation.Report.PathChange.Change.MOVED -> MaterialTheme.colorScheme.primary
                                     },
                                     modifier = Modifier.width(16.dp)
                                 )

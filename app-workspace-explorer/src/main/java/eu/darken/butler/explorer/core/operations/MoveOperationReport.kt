@@ -67,12 +67,9 @@ data class MoveOperationReport(
         private var performanceHistory: PerformanceHistory? = null
 
         fun addMovedItems(sources: Collection<Pair<APathLookup<*>, APathLookup<*>>>) {
-            val affected = sources.flatMap { (source, destLookup) ->
+            val affected = sources.map { (source, destLookup) ->
                 if (destLookup.isDirectory) movedDirectories++ else movedFiles++
-                listOf(
-                    PathChange(source.lookedUp, PathChange.Change.REMOVED),
-                    PathChange(destLookup.lookedUp, PathChange.Change.ADDED),
-                )
+                PathChange(destLookup.lookedUp, PathChange.Change.MOVED)
             }
             affectedPaths.addAll(affected)
         }

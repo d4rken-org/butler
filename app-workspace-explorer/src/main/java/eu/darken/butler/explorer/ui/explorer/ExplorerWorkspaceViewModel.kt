@@ -231,9 +231,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val canConfirmSelection: Boolean = true,
         val highlightedItemIds: Set<String> = emptySet(),
         val focusedItemIndex: Int? = null,
+        val unfilteredItemCount: Int = 0,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
+
+        val isFilteredEmpty: Boolean
+            get() = items?.isEmpty() == true && unfilteredItemCount > 0
 
         fun shouldShowSelection(item: ExplorerItem): Boolean {
             // Must be selectable
@@ -350,6 +354,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         locationId = wsStateInner.currentLocation?.locationId,
                         breadcrumbs = wsStateInner.currentBreadcrumbs ?: emptyList(),
                         items = items,
+                        unfilteredItemCount = wsStateInner.currentLocation?.items?.size ?: 0,
                         error = wsStateInner.error,
                         selectionState = selectionState,
                         viewStyle = viewStyle,
@@ -1421,6 +1426,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
+    fun resetFilters() = launch {
+        log(tag) { "resetFilters()" }
+        filterStateFlow.value = FilterState()
+    }
+
     fun pasteClipboard(clip: ClipboardClip) = launch {
         log(tag) { "pasteClipboard($clip)" }
         dismissDialog()
@@ -1443,7 +1453,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     // Reveal all added items on success (scroll to first, highlight all)
                     if (completed.error == null) {
                         val addedPaths = completed.report?.affectedPaths
-                            ?.filter { it.change == Operation.Report.PathChange.Change.ADDED }
+                            ?.filter { it.change == Operation.Report.PathChange.Change.ADDED || it.change == Operation.Report.PathChange.Change.MOVED }
                             ?.map { it.path }
                             ?: emptyList()
                         revealItems(addedPaths)
@@ -1767,9 +1777,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun dismissNavigationError() = launch {
         log(tag) { "dismissNavigationError()" }
-        // Simply triggering any navigation request will clear the error state
-        // We use Cancel as it's the least intrusive option
-        getWorkspace().navigate(ExplorerNavigation.Back)
+        val workspace = getWorkspace()
+        if (getState().canGoBack) {
+            workspace.navigate(ExplorerNavigation.Back)
+        } else {
+            workspace.navigate(ExplorerNavigation.Target.Home)
+        }
     }
 
     fun validateFilename(name: String): FilenameValidator.ValidationResult {
