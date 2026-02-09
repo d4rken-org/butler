@@ -59,8 +59,9 @@ class DocumentQueryHandler @Inject constructor(
     suspend fun queryDocument(documentId: String, projection: Array<String>?): Cursor {
         log(TAG, INFO) { "queryDocument($documentId)" }
 
-        val resolvedProjection = projection ?: DEFAULT_DOCUMENT_PROJECTION
-        val cursor = MatrixCursor(resolvedProjection)
+        // Always use full projection: RowBuilder.add(String, Object) throws if column is missing.
+        // SAF clients handle extra columns gracefully. TODO: Consider per-column safe-add instead.
+        val cursor = MatrixCursor(DEFAULT_DOCUMENT_PROJECTION)
 
         try {
             when {
@@ -86,7 +87,7 @@ class DocumentQueryHandler @Inject constructor(
 
                 else -> {
                     val path = codec.decode(documentId)
-                    val lookup = gatewaySwitch.lookup(path, LookupOptions())
+                    val lookup = gatewaySwitch.lookup(path, LookupOptions(fetchSize = true, fetchModifiedAt = true))
                     cursor.addFilesystemDocument(documentId, lookup)
                 }
             }
@@ -113,8 +114,9 @@ class DocumentQueryHandler @Inject constructor(
     ): Cursor {
         log(TAG, INFO) { "queryChildDocuments($parentDocumentId)" }
 
-        val resolvedProjection = projection ?: DEFAULT_DOCUMENT_PROJECTION
-        val cursor = MatrixCursor(resolvedProjection)
+        // Always use full projection: RowBuilder.add(String, Object) throws if column is missing.
+        // SAF clients handle extra columns gracefully. TODO: Consider per-column safe-add instead.
+        val cursor = MatrixCursor(DEFAULT_DOCUMENT_PROJECTION)
 
         val notificationUri = DocumentsContract.buildChildDocumentsUri(
             ButlerDocumentsProvider.AUTHORITY,
@@ -146,9 +148,9 @@ class DocumentQueryHandler @Inject constructor(
                     if (requirements.needsAction) {
                         log(TAG, WARN) { "Path $path requires permissions (${requirements.combos}), returning error" }
                         val errorMessage = buildPermissionErrorMessage(requirements)
-                        return ErrorMatrixCursor(resolvedProjection, errorMessage)
+                        return ErrorMatrixCursor(DEFAULT_DOCUMENT_PROJECTION, errorMessage)
                     } else {
-                        val children = gatewaySwitch.lookupFiles(path, LookupOptions())
+                        val children = gatewaySwitch.lookupFiles(path, LookupOptions(fetchSize = true, fetchModifiedAt = true))
 
                         children.forEach { childLookup ->
                             val childDocumentId = codec.encode(childLookup.lookedUp)
@@ -161,7 +163,7 @@ class DocumentQueryHandler @Inject constructor(
             log(TAG, WARN) { "queryChildDocuments($parentDocumentId) failed: ${e.asLog()}" }
             // Return error cursor for user feedback
             return ErrorMatrixCursor(
-                resolvedProjection,
+                DEFAULT_DOCUMENT_PROJECTION,
                 context.getString(R.string.provider_documents_error_generic)
             )
         }
@@ -356,7 +358,7 @@ class DocumentQueryHandler @Inject constructor(
     companion object {
         private val TAG = logTag("Provider", "Documents", "DocumentQuery")
 
-        private val DEFAULT_DOCUMENT_PROJECTION = arrayOf(
+        internal val DEFAULT_DOCUMENT_PROJECTION = arrayOf(
             COLUMN_DOCUMENT_ID,
             COLUMN_DISPLAY_NAME,
             COLUMN_MIME_TYPE,
