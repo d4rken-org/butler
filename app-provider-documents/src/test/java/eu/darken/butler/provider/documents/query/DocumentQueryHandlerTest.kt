@@ -267,12 +267,26 @@ class DocumentQueryHandlerTest {
     }
 
     @Test
-    fun `queryDocument with custom projection returns only requested columns`() = runTest {
+    fun `queryDocument with custom projection still returns all columns and valid data`() = runTest {
         val projection = arrayOf(COLUMN_DOCUMENT_ID, COLUMN_DISPLAY_NAME)
 
         val cursor = handler.queryDocument(ProviderLocation.Root.Butler.rootDocumentId, projection)
 
-        cursor.columnNames shouldBe projection
+        // Custom projection is ignored to prevent MatrixCursor.RowBuilder.add crashes
+        cursor.columnNames shouldBe arrayOf(
+            COLUMN_DOCUMENT_ID,
+            COLUMN_DISPLAY_NAME,
+            COLUMN_MIME_TYPE,
+            COLUMN_FLAGS,
+            COLUMN_SIZE,
+            COLUMN_LAST_MODIFIED,
+            COLUMN_ICON,
+        )
+        cursor.count shouldBe 1
+
+        cursor.moveToFirst() shouldBe true
+        val docIdIndex = cursor.getColumnIndex(COLUMN_DOCUMENT_ID)
+        cursor.getString(docIdIndex) shouldBe ProviderLocation.Root.Butler.rootDocumentId
     }
 
     @Test

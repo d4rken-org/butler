@@ -13,7 +13,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.extensions.isAncestorOf
 import eu.darken.butler.provider.documents.core.query.DocumentQueryHandler
+import eu.darken.butler.provider.documents.core.query.DocumentQueryHandler.Companion.DEFAULT_DOCUMENT_PROJECTION
 import eu.darken.butler.provider.documents.core.query.RootQueryHandler
+import eu.darken.butler.provider.documents.core.query.RootQueryHandler.Companion.DEFAULT_ROOT_PROJECTION
 import eu.darken.butler.provider.documents.core.reader.DocumentReader
 import eu.darken.butler.provider.documents.core.writer.DocumentCreator
 import eu.darken.butler.provider.documents.core.writer.DocumentModifier
@@ -62,7 +64,7 @@ class ButlerDocumentsProvider : DocumentsProvider() {
             rootQueryHandler.queryRoots(projection)
         } catch (e: Exception) {
             log(TAG, ERROR) { "queryRoots failed: ${e.asLog()}" }
-            MatrixCursor(projection ?: arrayOf())
+            MatrixCursor(DEFAULT_ROOT_PROJECTION)
         }
     }
 
@@ -71,7 +73,7 @@ class ButlerDocumentsProvider : DocumentsProvider() {
             documentQueryHandler.queryDocument(documentId, projection)
         } catch (e: Exception) {
             log(TAG, ERROR) { "queryDocument($documentId) failed: ${e.asLog()}" }
-            MatrixCursor(projection ?: arrayOf())
+            MatrixCursor(DEFAULT_DOCUMENT_PROJECTION)
         }
     }
 
@@ -84,7 +86,7 @@ class ButlerDocumentsProvider : DocumentsProvider() {
             documentQueryHandler.queryChildDocuments(parentDocumentId, projection, sortOrder)
         } catch (e: Exception) {
             log(TAG, ERROR) { "queryChildDocuments($parentDocumentId) failed: ${e.asLog()}" }
-            MatrixCursor(projection ?: arrayOf())
+            MatrixCursor(DEFAULT_DOCUMENT_PROJECTION)
         }
     }
 

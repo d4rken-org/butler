@@ -105,7 +105,9 @@ internal fun RemoteFileHandle.fileHandle(readWrite: Boolean): FileHandle = objec
 
     @Throws(IOException::class)
     override fun protectedSize(): Long = try {
-        this@fileHandle.size()
+        this@fileHandle.size().also {
+            if (it == -2L) throw ServiceConnectionLostException()
+        }
     } catch (e: RemoteException) {
         throw ServiceConnectionLostException(e)
     }

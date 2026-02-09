@@ -25,8 +25,10 @@ import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.io.FileNotFoundException
+import java.io.FileOutputStream
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -61,6 +63,7 @@ class DocumentReaderTest {
 
         val pfd = reader.openDocument(documentId, "r", null)
 
+
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
             val content = inputStream.readBytes().toString(Charsets.UTF_8)
             content shouldBe testContent
@@ -75,8 +78,8 @@ class DocumentReaderTest {
         val documentId = "local|missing"
 
         coEvery { codec.decode(documentId) } returns path
-        coEvery { gatewaySwitch.file(path, false) } throws java.io.FileNotFoundException("File not found")
-        coEvery { gatewaySwitch.openInputStream(path) } throws java.io.FileNotFoundException("File not found")
+        coEvery { gatewaySwitch.file(path, false) } throws FileNotFoundException("File not found")
+        coEvery { gatewaySwitch.openInputStream(path) } throws FileNotFoundException("File not found")
 
         try {
             reader.openDocument(documentId, "r", null)
@@ -93,8 +96,8 @@ class DocumentReaderTest {
         val documentId = "local|dir"
 
         coEvery { codec.decode(documentId) } returns path
-        coEvery { gatewaySwitch.file(path, false) } throws java.io.FileNotFoundException("Not a file")
-        coEvery { gatewaySwitch.openInputStream(path) } throws java.io.FileNotFoundException("Not a file")
+        coEvery { gatewaySwitch.file(path, false) } throws FileNotFoundException("Not a file")
+        coEvery { gatewaySwitch.openInputStream(path) } throws FileNotFoundException("Not a file")
 
         try {
             reader.openDocument(documentId, "r", null)
@@ -291,5 +294,100 @@ class DocumentReaderTest {
         }
 
         pfd.close()
+    }
+
+    @Test
+    fun `openDocument writes via pipe fallback`(): Unit = runBlocking {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|write"
+        val outputStream = ByteArrayOutputStream()
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, true) } throws UnsupportedOperationException("No seekable access")
+        coEvery { gatewaySwitch.openOutputStream(path, append = false) } returns outputStream
+
+        val pfd = reader.openDocument(documentId, "w", null)
+
+        val testContent = "Written content"
+        FileOutputStream(pfd.fileDescriptor).use { it.write(testContent.toByteArray()) }
+        pfd.close()
+
+        Thread.sleep(1000)
+
+        outputStream.toString(Charsets.UTF_8.name()) shouldBe testContent
+    }
+
+    @Test
+    fun `openDocument writes append via pipe fallback`(): Unit = runBlocking {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|append"
+        val outputStream = ByteArrayOutputStream()
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, true) } throws UnsupportedOperationException("No seekable access")
+        coEvery { gatewaySwitch.openOutputStream(path, append = true) } returns outputStream
+
+        val pfd = reader.openDocument(documentId, "wa", null)
+
+        val testContent = "Appended content"
+        FileOutputStream(pfd.fileDescriptor).use { it.write(testContent.toByteArray()) }
+        pfd.close()
+
+        Thread.sleep(1000)
+
+        outputStream.toString(Charsets.UTF_8.name()) shouldBe testContent
+    }
+
+    @Test
+    fun `openDocument write throws for missing file`() = runTest {
+        val path = LocalPath.build("/nonexistent/file.txt")
+        val documentId = "local|write-missing"
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, true) } throws FileNotFoundException("File not found")
+        coEvery { gatewaySwitch.openOutputStream(path, append = false) } throws FileNotFoundException("File not found")
+
+        try {
+            reader.openDocument(documentId, "w", null)
+            throw AssertionError("Should have thrown FileNotFoundException")
+        } catch (e: FileNotFoundException) {
+            e.message shouldContain "File not found"
+        }
+    }
+
+    @Test
+    fun `openDocument read-write falls back to write pipe`(): Unit = runBlocking {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|rw"
+        val outputStream = ByteArrayOutputStream()
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, true) } throws UnsupportedOperationException("No seekable access")
+        coEvery { gatewaySwitch.openOutputStream(path, append = false) } returns outputStream
+
+        val pfd = reader.openDocument(documentId, "rw", null)
+
+        val testContent = "Read-write content"
+        FileOutputStream(pfd.fileDescriptor).use { it.write(testContent.toByteArray()) }
+        pfd.close()
+
+        Thread.sleep(1000)
+
+        outputStream.toString(Charsets.UTF_8.name()) shouldBe testContent
+    }
+
+    @Test
+    fun `openDocument throws for unsupported mode`() = runTest {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|unsupported"
+
+        coEvery { codec.decode(documentId) } returns path
+
+        try {
+            reader.openDocument(documentId, "x", null)
+            throw AssertionError("Should have thrown FileNotFoundException")
+        } catch (e: FileNotFoundException) {
+            e.message shouldContain "Cannot open document"
+        }
     }
 }

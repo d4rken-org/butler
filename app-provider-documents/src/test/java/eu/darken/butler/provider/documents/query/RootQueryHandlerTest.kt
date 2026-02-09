@@ -85,7 +85,7 @@ class RootQueryHandlerTest {
     }
 
     @Test
-    fun `queryRoots with custom projection returns only requested columns`() = runTest {
+    fun `queryRoots with custom projection still returns all columns and valid data`() = runTest {
         val projection = arrayOf(
             DocumentsContract.Root.COLUMN_ROOT_ID,
             DocumentsContract.Root.COLUMN_TITLE,
@@ -93,8 +93,21 @@ class RootQueryHandlerTest {
 
         val cursor = handler.queryRoots(projection)
 
-        cursor.columnNames shouldBe projection
+        // Custom projection is ignored to prevent MatrixCursor.RowBuilder.add crashes
+        cursor.columnNames shouldBe arrayOf(
+            DocumentsContract.Root.COLUMN_ROOT_ID,
+            DocumentsContract.Root.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Root.COLUMN_ICON,
+            DocumentsContract.Root.COLUMN_TITLE,
+            DocumentsContract.Root.COLUMN_SUMMARY,
+            DocumentsContract.Root.COLUMN_FLAGS,
+            DocumentsContract.Root.COLUMN_AVAILABLE_BYTES,
+        )
         cursor.count shouldBe 1
+
+        cursor.moveToFirst() shouldBe true
+        val rootIdIndex = cursor.getColumnIndex(DocumentsContract.Root.COLUMN_ROOT_ID)
+        cursor.getString(rootIdIndex) shouldBe ProviderLocation.Root.Butler.apiRootId
     }
 
     @Test
