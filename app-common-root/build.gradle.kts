@@ -26,16 +26,7 @@ android {
 
     setupKotlinOptions()
 
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
-        //noinspection WrongGradleMethod
-        tasks.withType<Test> {
-            useJUnitPlatform()
-            setupTestLogging()
-        }
-    }
+
 }
 
 dependencies {
@@ -48,6 +39,4 @@ dependencies {
     addCoroutines()
     addSerialization()
     addIO()
-
-    addTesting()
 }

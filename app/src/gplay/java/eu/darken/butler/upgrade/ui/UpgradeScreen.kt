@@ -143,7 +143,7 @@ fun UpgradeScreen(
                                 modifier = Modifier
                                     .graphicsLayer(alpha = toolbarAlpha)
                                     .size(32.dp),
-                                variant = ButlerMascotMode.Static.Happy,
+                                variant = ButlerMascotMode.Static.Happy(),
                             )
                             Spacer(modifier = Modifier.size(8.dp))
                             ColoredTitleText(
