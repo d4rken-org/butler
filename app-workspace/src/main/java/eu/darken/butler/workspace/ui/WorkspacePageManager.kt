@@ -141,8 +141,12 @@ class WorkspacePageManager @Inject constructor(
     suspend fun handleWorkspaceSelection(workspaceId: Workspace.Id) {
         log(TAG) { "handleWorkspaceSelection: workspaceId=$workspaceId" }
 
-        // Check if this is a sub-workspace (modal) - they only get focus, not pane assignment
-        val workspaceInfo = workspaceRemote.state.first().infos.find { it.id == workspaceId }
+        // Check if this is a sub-workspace (modal) - they only get focus, not pane assignment.
+        // Wait for the workspace to appear in state before checking isSubWorkspace to avoid
+        // acting on stale state (new workspaces may not have emitted their info flow yet).
+        val workspaceInfo = workspaceRemote.state
+            .first { repoState -> repoState.infos.any { it.id == workspaceId } }
+            .infos.find { it.id == workspaceId }
         val isSubWorkspace = workspaceInfo?.isSubWorkspace == true
 
         if (isSubWorkspace) {
@@ -358,8 +362,20 @@ class WorkspacePageManager @Inject constructor(
         }
     }
 
-    private fun handleWorkspaceCreated(workspaceId: Workspace.Id, replacedId: Workspace.Id?, autoFocus: Boolean) {
+    private suspend fun handleWorkspaceCreated(workspaceId: Workspace.Id, replacedId: Workspace.Id?, autoFocus: Boolean) {
         log(TAG) { "handleWorkspaceCreated: workspaceId=$workspaceId, replacedId=$replacedId, autoFocus=$autoFocus" }
+
+        // Wait until workspace is reflected in state for accurate isSubWorkspace check.
+        // Sub-workspaces render as modal overlays and must never be assigned to a pane.
+        val workspaceInfo = workspaceRemote.state
+            .first { repoState -> repoState.infos.any { it.id == workspaceId } }
+            .infos.find { it.id == workspaceId }
+
+        if (workspaceInfo?.isSubWorkspace == true) {
+            log(TAG) { "Sub-workspace $workspaceId created, skipping pane assignment" }
+            _state.update { it.copy(workspaceAccessTimes = it.workspaceAccessTimes + (workspaceId to Clock.System.now())) }
+            return
+        }
 
         _state.update { currentState ->
             // Update MRU timestamp for newly created workspace
