@@ -49,6 +49,8 @@ class DocumentModifier @Inject constructor(
     suspend fun renameDocument(documentId: String, displayName: String): String {
         log(TAG, INFO) { "renameDocument(doc=$documentId, newName=$displayName)" }
 
+        DocumentCreator.validateDisplayName(displayName)
+
         try {
             val sourcePath = codec.decode(documentId)
             log(TAG, INFO) { "Source path: $sourcePath" }

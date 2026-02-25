@@ -8,6 +8,7 @@ import android.provider.DocumentsContract.Document.*
 import android.webkit.MimeTypeMap
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -93,7 +94,10 @@ class DocumentQueryHandler @Inject constructor(
             }
         } catch (e: Exception) {
             log(TAG, WARN) { "queryDocument($documentId) failed: ${e.asLog()}" }
-            // Return empty cursor on error
+            return ErrorMatrixCursor(
+                DEFAULT_DOCUMENT_PROJECTION,
+                context.getString(R.string.provider_documents_error_generic),
+            )
         }
 
         return cursor
@@ -185,12 +189,14 @@ class DocumentQueryHandler @Inject constructor(
 
         if (!rootRequirements.needsAction) {
             log(TAG, INFO) { "Root filesystem accessible, adding to list" }
+            val rootSummary = getStorageSummary("/")
             cursor.addVirtualDocument(
                 documentId = codec.encode(rootPath),
                 displayName = context.getString(R.string.provider_documents_storage_root_label),
                 mimeType = MIME_TYPE_DIR,
                 flags = FLAG_DIR_SUPPORTS_CREATE,
                 icon = R.drawable.ic_folder_lock_24,
+                summary = rootSummary,
             )
         } else {
             log(TAG, INFO) { "Root filesystem requires permissions (${rootRequirements.combos}), filtering out" }
@@ -210,13 +216,17 @@ class DocumentQueryHandler @Inject constructor(
                         else -> context.getString(R.string.provider_documents_storage_sd_card_label)
                     }
 
-                log(TAG, INFO) { "Storage volume accessible: $displayName ($path)" }
+                val storagePath = volume.directory?.absolutePath ?: volume.path
+                val summary = storagePath?.let { getStorageSummary(it) }
+
+                log(TAG, INFO) { "Storage volume accessible: $displayName ($path), summary=$summary" }
                 cursor.addVirtualDocument(
                     documentId = codec.encode(path),
                     displayName = displayName,
                     mimeType = MIME_TYPE_DIR,
                     flags = FLAG_DIR_SUPPORTS_CREATE,
                     icon = R.drawable.ic_folder,
+                    summary = summary,
                 )
             } else {
                 log(TAG, INFO) { "Storage volume requires permissions: $path (${requirements.combos}), filtering out" }
@@ -246,10 +256,12 @@ class DocumentQueryHandler @Inject constructor(
         mimeType: String,
         flags: Int,
         icon: Int,
+        summary: String? = null,
     ) {
         newRow().apply {
             add(COLUMN_DOCUMENT_ID, documentId)
             add(COLUMN_DISPLAY_NAME, displayName)
+            add(COLUMN_SUMMARY, summary)
             add(COLUMN_MIME_TYPE, mimeType)
             add(COLUMN_FLAGS, flags)
             add(COLUMN_ICON, icon)
@@ -266,25 +278,37 @@ class DocumentQueryHandler @Inject constructor(
         documentId: String,
         lookup: APathLookup<*>
     ) {
-        val mimeType = when (lookup.fileType) {
-            FileType.DIRECTORY -> MIME_TYPE_DIR
-            FileType.FILE -> getMimeType(lookup.name)
-            FileType.SYMBOLIC_LINK -> resolveSymlinkMimeType(lookup)
-            FileType.UNKNOWN -> "application/octet-stream"
-        }
+        val mimeType: String
+        val flags: Int
 
-        val flags = when (lookup.fileType) {
-            FileType.DIRECTORY -> FLAG_DIR_SUPPORTS_CREATE or FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME or
-                FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
-            FileType.FILE -> FLAG_SUPPORTS_WRITE or FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME or
-                FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
-            FileType.SYMBOLIC_LINK -> 0
-            FileType.UNKNOWN -> 0
+        when (lookup.fileType) {
+            FileType.DIRECTORY -> {
+                mimeType = MIME_TYPE_DIR
+                flags = DIR_FLAGS
+            }
+            FileType.FILE -> {
+                mimeType = getMimeType(lookup.name)
+                flags = FILE_FLAGS
+            }
+            FileType.SYMBOLIC_LINK -> {
+                val resolution = resolveSymlink(lookup)
+                mimeType = resolution.mimeType
+                flags = when (resolution.resolvedFileType) {
+                    FileType.DIRECTORY -> DIR_FLAGS
+                    FileType.FILE, FileType.SYMBOLIC_LINK -> FILE_FLAGS
+                    FileType.UNKNOWN, null -> MANAGE_ONLY_FLAGS
+                }
+            }
+            FileType.UNKNOWN -> {
+                mimeType = "application/octet-stream"
+                flags = MANAGE_ONLY_FLAGS
+            }
         }
 
         newRow().apply {
             add(COLUMN_DOCUMENT_ID, documentId)
             add(COLUMN_DISPLAY_NAME, lookup.name)
+            add(COLUMN_SUMMARY, null)
             add(COLUMN_MIME_TYPE, mimeType)
             add(COLUMN_FLAGS, flags)
             add(COLUMN_SIZE, lookup.size)
@@ -303,21 +327,28 @@ class DocumentQueryHandler @Inject constructor(
         }
     }
 
+    private data class SymlinkResolution(
+        val mimeType: String,
+        val resolvedFileType: FileType?,
+    )
+
     /**
-     * Resolve symlink MIME type by looking up the target.
-     * Returns MIME_TYPE_DIR if target is a directory, otherwise infers from target filename.
-     * Falls back to inferring from symlink name if target is unavailable.
+     * Resolve symlink target to determine both MIME type and effective file type.
+     * Returns null resolvedFileType for broken/unresolvable symlinks.
      */
-    private suspend fun resolveSymlinkMimeType(lookup: APathLookup<*>): String {
+    private suspend fun resolveSymlink(lookup: APathLookup<*>): SymlinkResolution {
         val target = lookup.target
         if (target == null) {
             log(TAG, VERBOSE) { "Symlink ${lookup.path} has no target, using symlink name for MIME type" }
-            return getMimeType(lookup.name)
+            return SymlinkResolution(
+                mimeType = getMimeType(lookup.name),
+                resolvedFileType = null,
+            )
         }
 
         return try {
             val targetLookup = gatewaySwitch.lookup(target, LookupOptions())
-            when (targetLookup.fileType) {
+            val mimeType = when (targetLookup.fileType) {
                 FileType.DIRECTORY -> MIME_TYPE_DIR
                 FileType.FILE -> getMimeType(targetLookup.name)
                 FileType.SYMBOLIC_LINK -> {
@@ -326,9 +357,16 @@ class DocumentQueryHandler @Inject constructor(
                 }
                 FileType.UNKNOWN -> "application/octet-stream"
             }
+            SymlinkResolution(
+                mimeType = mimeType,
+                resolvedFileType = targetLookup.fileType,
+            )
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to resolve symlink ${lookup.path} target: ${e.asLog()}" }
-            getMimeType(lookup.name)
+            SymlinkResolution(
+                mimeType = getMimeType(lookup.name),
+                resolvedFileType = null,
+            )
         }
     }
 
@@ -355,12 +393,36 @@ class DocumentQueryHandler @Inject constructor(
         }
     }
 
+    private fun getStorageSummary(path: String): String? = try {
+        val statFs = android.os.StatFs(path)
+        val freeBytes = statFs.availableBlocksLong * statFs.blockSizeLong
+        log(TAG, INFO) { "getStorageSummary($path): freeBytes=$freeBytes" }
+        if (freeBytes > 0) {
+            formatFileSize(context, freeBytes) + " " + context.getString(R.string.provider_documents_storage_free_suffix)
+        } else {
+            null
+        }
+    } catch (e: Exception) {
+        log(TAG, WARN) { "getStorageSummary($path) failed: ${e.asLog()}" }
+        null
+    }
+
     companion object {
         private val TAG = logTag("Provider", "Documents", "DocumentQuery")
+
+        private const val DIR_FLAGS = FLAG_DIR_SUPPORTS_CREATE or FLAG_SUPPORTS_DELETE or
+            FLAG_SUPPORTS_RENAME or FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
+
+        private const val FILE_FLAGS = FLAG_SUPPORTS_WRITE or FLAG_SUPPORTS_DELETE or
+            FLAG_SUPPORTS_RENAME or FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
+
+        private const val MANAGE_ONLY_FLAGS = FLAG_SUPPORTS_DELETE or FLAG_SUPPORTS_RENAME or
+            FLAG_SUPPORTS_COPY or FLAG_SUPPORTS_MOVE
 
         internal val DEFAULT_DOCUMENT_PROJECTION = arrayOf(
             COLUMN_DOCUMENT_ID,
             COLUMN_DISPLAY_NAME,
+            COLUMN_SUMMARY,
             COLUMN_MIME_TYPE,
             COLUMN_FLAGS,
             COLUMN_SIZE,

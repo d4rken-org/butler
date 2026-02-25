@@ -307,4 +307,78 @@ class DocumentCreatorTest {
             contentResolver.notifyChange(any(), null)
         }
     }
+
+    // ========== Step 4: DisplayName validation tests ==========
+
+    @Test
+    fun `createDocument rejects empty displayName`() = runTest {
+        shouldThrow<IllegalArgumentException> {
+            creator.createDocument("local|parent", "text/plain", "")
+        }
+    }
+
+    @Test
+    fun `createDocument rejects blank displayName`() = runTest {
+        shouldThrow<IllegalArgumentException> {
+            creator.createDocument("local|parent", "text/plain", "   ")
+        }
+    }
+
+    @Test
+    fun `createDocument rejects displayName with path separator`() = runTest {
+        shouldThrow<IllegalArgumentException> {
+            creator.createDocument("local|parent", "text/plain", "../../../etc/passwd")
+        }
+    }
+
+    @Test
+    fun `createDocument rejects displayName dot`() = runTest {
+        shouldThrow<IllegalArgumentException> {
+            creator.createDocument("local|parent", "text/plain", ".")
+        }
+    }
+
+    @Test
+    fun `createDocument rejects displayName dotdot`() = runTest {
+        shouldThrow<IllegalArgumentException> {
+            creator.createDocument("local|parent", "text/plain", "..")
+        }
+    }
+
+    @Test
+    fun `createDocument accepts dotfile name like dotgitignore`() = runTest {
+        val parentId = "local|base64parent"
+        val parentPath = LocalPath.build("/storage/emulated/0/Documents")
+        val displayName = ".gitignore"
+        val createdId = "local|base64created"
+
+        every { codec.decode(parentId) } returns parentPath
+        coEvery { gatewaySwitch.exists(any()) } returns false
+        coEvery { gatewaySwitch.createFile(any(), any()) } returns Unit
+        every { codec.encode(parentPath) } returns parentId
+        every { codec.encode(parentPath.child(displayName)) } returns createdId
+
+        val result = creator.createDocument(parentId, "text/plain", displayName)
+        result shouldBe createdId
+    }
+
+    @Test
+    fun `createDocument accepts name with multiple dots like archive tar gz`() = runTest {
+        val parentId = "local|base64parent"
+        val parentPath = LocalPath.build("/storage/emulated/0/Documents")
+        val displayName = "archive.tar.gz"
+        val createdPath = parentPath.child(displayName)
+        val uniquePath = parentPath.child("archive.tar (1).gz")
+        val createdId = "local|base64unique"
+
+        every { codec.decode(parentId) } returns parentPath
+        coEvery { gatewaySwitch.exists(createdPath) } returns true  // Conflict
+        coEvery { gatewaySwitch.exists(uniquePath) } returns false
+        coEvery { gatewaySwitch.createFile(uniquePath, false) } returns Unit
+        every { codec.encode(uniquePath) } returns createdId
+        every { codec.encode(parentPath) } returns parentId
+
+        val result = creator.createDocument(parentId, "application/gzip", displayName)
+        result shouldBe createdId
+    }
 }

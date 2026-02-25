@@ -9,6 +9,7 @@ import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.storage.StorageManager2
 import eu.darken.butler.provider.documents.core.DocumentsProviderSettings
 import eu.darken.butler.provider.documents.core.ProviderLocation
 import javax.inject.Inject
@@ -23,6 +24,7 @@ import javax.inject.Singleton
 class RootQueryHandler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settings: DocumentsProviderSettings,
+    private val storageManager2: StorageManager2,
 ) {
 
     /**
@@ -57,7 +59,11 @@ class RootQueryHandler @Inject constructor(
 
                 // Optional columns
                 add(DocumentsContract.Root.COLUMN_SUMMARY, root.summary.get(context))
-                add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, null)
+                val availableBytes = storageManager2.storageVolumes
+                    .firstOrNull { it.isPrimary && it.isMounted }
+                    ?.directory
+                    ?.usableSpace
+                add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, availableBytes)
             }
         }
 

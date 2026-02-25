@@ -48,6 +48,8 @@ class DocumentCreator @Inject constructor(
     ): String {
         log(TAG, INFO) { "createDocument(parent=$parentDocumentId, mime=$mimeType, name=$displayName)" }
 
+        validateDisplayName(displayName)
+
         try {
             val parentPath = codec.decode(parentDocumentId)
             log(TAG, INFO) { "Parent path: $parentPath" }
@@ -134,5 +136,11 @@ class DocumentCreator @Inject constructor(
 
     companion object {
         private val TAG = logTag("Provider", "Documents", "Creator")
+
+        internal fun validateDisplayName(displayName: String) {
+            require(displayName.isNotBlank()) { "Display name must not be blank" }
+            require(!displayName.contains('/')) { "Display name must not contain path separators" }
+            require(displayName != "." && displayName != "..") { "Display name must not be '.' or '..'" }
+        }
     }
 }

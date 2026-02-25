@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.storage.StorageManager2
+import eu.darken.butler.common.storage.StorageVolumeX
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
@@ -34,6 +35,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 import kotlin.time.Instant
 
 @RunWith(RobolectricTestRunner::class)
@@ -241,15 +243,16 @@ class DocumentQueryHandlerTest {
     }
 
     @Test
-    fun `queryDocument handles exceptions gracefully`() = runTest {
+    fun `queryDocument returns ErrorMatrixCursor on exception`() = runTest {
         val documentId = "local|invalid"
 
         coEvery { codec.decode(documentId) } throws IllegalArgumentException("Invalid ID")
 
         val cursor = handler.queryDocument(documentId, null)
 
-        // Should return empty cursor on error
         cursor.count shouldBe 0
+        cursor.extras shouldNotBe null
+        cursor.extras.getString(DocumentsContract.EXTRA_ERROR) shouldNotBe null
     }
 
     @Test
@@ -276,6 +279,7 @@ class DocumentQueryHandlerTest {
         cursor.columnNames shouldBe arrayOf(
             COLUMN_DOCUMENT_ID,
             COLUMN_DISPLAY_NAME,
+            COLUMN_SUMMARY,
             COLUMN_MIME_TYPE,
             COLUMN_FLAGS,
             COLUMN_SIZE,
@@ -542,5 +546,445 @@ class DocumentQueryHandlerTest {
         val mimeIndex = cursor.getColumnIndex(COLUMN_MIME_TYPE)
         // Should fall back to using symlink's name
         cursor.getString(mimeIndex) shouldBe "text/plain"
+    }
+
+    // ========== Step 3: Symlink flag tests ==========
+
+    @Test
+    fun `queryDocument for symlink resolved to file has file flags`() = runTest {
+        val symlinkPath = LocalPath.build("/test/link.txt")
+        val targetPath = LocalPath.build("/test/target.txt")
+        val documentId = "local|symlink-file"
+
+        val targetLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns targetPath
+            coEvery { name } returns "target.txt"
+            coEvery { fileType } returns FileType.FILE
+        }
+
+        val symlinkLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns symlinkPath
+            coEvery { name } returns "link.txt"
+            coEvery { fileType } returns FileType.SYMBOLIC_LINK
+            coEvery { target } returns targetPath
+            coEvery { size } returns 100L
+            coEvery { modifiedAt } returns null
+        }
+
+        coEvery { codec.decode(documentId) } returns symlinkPath
+        coEvery { gatewaySwitch.lookup(symlinkPath, any()) } returns symlinkLookup
+        coEvery { gatewaySwitch.lookup(targetPath, any()) } returns targetLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+        cursor.moveToFirst() shouldBe true
+
+        val flagsIndex = cursor.getColumnIndex(COLUMN_FLAGS)
+        val flags = cursor.getInt(flagsIndex)
+
+        flags and FLAG_SUPPORTS_WRITE shouldNotBe 0
+        flags and FLAG_SUPPORTS_DELETE shouldNotBe 0
+        flags and FLAG_SUPPORTS_RENAME shouldNotBe 0
+        flags and FLAG_SUPPORTS_COPY shouldNotBe 0
+        flags and FLAG_SUPPORTS_MOVE shouldNotBe 0
+    }
+
+    @Test
+    fun `queryDocument for symlink resolved to directory has directory flags`() = runTest {
+        val symlinkPath = LocalPath.build("/test/link-dir")
+        val targetPath = LocalPath.build("/test/target-dir")
+        val documentId = "local|symlink-dir"
+
+        val targetLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns targetPath
+            coEvery { name } returns "target-dir"
+            coEvery { fileType } returns FileType.DIRECTORY
+        }
+
+        val symlinkLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns symlinkPath
+            coEvery { name } returns "link-dir"
+            coEvery { fileType } returns FileType.SYMBOLIC_LINK
+            coEvery { target } returns targetPath
+            coEvery { size } returns null
+            coEvery { modifiedAt } returns null
+        }
+
+        coEvery { codec.decode(documentId) } returns symlinkPath
+        coEvery { gatewaySwitch.lookup(symlinkPath, any()) } returns symlinkLookup
+        coEvery { gatewaySwitch.lookup(targetPath, any()) } returns targetLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+        cursor.moveToFirst() shouldBe true
+
+        val flagsIndex = cursor.getColumnIndex(COLUMN_FLAGS)
+        val flags = cursor.getInt(flagsIndex)
+
+        flags and FLAG_DIR_SUPPORTS_CREATE shouldNotBe 0
+        flags and FLAG_SUPPORTS_DELETE shouldNotBe 0
+        flags and FLAG_SUPPORTS_RENAME shouldNotBe 0
+        flags and FLAG_SUPPORTS_COPY shouldNotBe 0
+        flags and FLAG_SUPPORTS_MOVE shouldNotBe 0
+    }
+
+    @Test
+    fun `queryDocument for broken symlink has manage-only flags`() = runTest {
+        val symlinkPath = LocalPath.build("/test/broken-link")
+        val documentId = "local|symlink-broken"
+
+        val symlinkLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns symlinkPath
+            coEvery { name } returns "broken-link"
+            coEvery { fileType } returns FileType.SYMBOLIC_LINK
+            coEvery { target } returns null
+            coEvery { size } returns null
+            coEvery { modifiedAt } returns null
+        }
+
+        coEvery { codec.decode(documentId) } returns symlinkPath
+        coEvery { gatewaySwitch.lookup(symlinkPath, any()) } returns symlinkLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+        cursor.moveToFirst() shouldBe true
+
+        val flagsIndex = cursor.getColumnIndex(COLUMN_FLAGS)
+        val flags = cursor.getInt(flagsIndex)
+
+        flags and FLAG_SUPPORTS_DELETE shouldNotBe 0
+        flags and FLAG_SUPPORTS_RENAME shouldNotBe 0
+        flags and FLAG_SUPPORTS_COPY shouldNotBe 0
+        flags and FLAG_SUPPORTS_MOVE shouldNotBe 0
+        flags and FLAG_SUPPORTS_WRITE shouldBe 0
+        flags and FLAG_DIR_SUPPORTS_CREATE shouldBe 0
+    }
+
+    @Test
+    fun `queryDocument for UNKNOWN fileType has manage-only flags`() = runTest {
+        val path = LocalPath.build("/test/unknown")
+        val documentId = "local|unknown"
+
+        val mockLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns path
+            coEvery { name } returns "unknown"
+            coEvery { fileType } returns FileType.UNKNOWN
+            coEvery { size } returns null
+            coEvery { modifiedAt } returns null
+        }
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.lookup(path, any()) } returns mockLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+        cursor.moveToFirst() shouldBe true
+
+        val flagsIndex = cursor.getColumnIndex(COLUMN_FLAGS)
+        val flags = cursor.getInt(flagsIndex)
+
+        flags and FLAG_SUPPORTS_DELETE shouldNotBe 0
+        flags and FLAG_SUPPORTS_RENAME shouldNotBe 0
+        flags and FLAG_SUPPORTS_COPY shouldNotBe 0
+        flags and FLAG_SUPPORTS_MOVE shouldNotBe 0
+        flags and FLAG_SUPPORTS_WRITE shouldBe 0
+        flags and FLAG_DIR_SUPPORTS_CREATE shouldBe 0
+    }
+
+    @Test
+    fun `queryDocument sets correct flags for directories`() = runTest {
+        val path = LocalPath.build("/test/dir")
+        val documentId = "local|dir-flags"
+
+        val mockLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns path
+            coEvery { name } returns "dir"
+            coEvery { fileType } returns FileType.DIRECTORY
+            coEvery { size } returns null
+            coEvery { modifiedAt } returns null
+        }
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.lookup(path, any()) } returns mockLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+        cursor.moveToFirst() shouldBe true
+
+        val flagsIndex = cursor.getColumnIndex(COLUMN_FLAGS)
+        val flags = cursor.getInt(flagsIndex)
+
+        flags and FLAG_DIR_SUPPORTS_CREATE shouldNotBe 0
+        flags and FLAG_SUPPORTS_DELETE shouldNotBe 0
+        flags and FLAG_SUPPORTS_RENAME shouldNotBe 0
+        flags and FLAG_SUPPORTS_COPY shouldNotBe 0
+        flags and FLAG_SUPPORTS_MOVE shouldNotBe 0
+    }
+
+    @Test
+    fun `queryDocument sets correct flags for files`() = runTest {
+        val path = LocalPath.build("/test/file.txt")
+        val documentId = "local|file-flags"
+
+        val mockLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns path
+            coEvery { name } returns "file.txt"
+            coEvery { fileType } returns FileType.FILE
+            coEvery { size } returns 1024L
+            coEvery { modifiedAt } returns null
+        }
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.lookup(path, any()) } returns mockLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+        cursor.moveToFirst() shouldBe true
+
+        val flagsIndex = cursor.getColumnIndex(COLUMN_FLAGS)
+        val flags = cursor.getInt(flagsIndex)
+
+        flags and FLAG_SUPPORTS_WRITE shouldNotBe 0
+        flags and FLAG_SUPPORTS_DELETE shouldNotBe 0
+        flags and FLAG_SUPPORTS_RENAME shouldNotBe 0
+        flags and FLAG_SUPPORTS_COPY shouldNotBe 0
+        flags and FLAG_SUPPORTS_MOVE shouldNotBe 0
+    }
+
+    @Test
+    fun `queryChildDocuments with mixed file types returns correct flags per type`() = runTest {
+        val parentPath = LocalPath.build("/test")
+        val parentDocId = "local|parent"
+
+        val dirPath = LocalPath.build("/test/subdir")
+        val filePath = LocalPath.build("/test/file.txt")
+        val symlinkPath = LocalPath.build("/test/broken-link")
+
+        val dirLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns dirPath
+            coEvery { name } returns "subdir"
+            coEvery { fileType } returns FileType.DIRECTORY
+            coEvery { size } returns null
+            coEvery { modifiedAt } returns null
+        }
+        val fileLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns filePath
+            coEvery { name } returns "file.txt"
+            coEvery { fileType } returns FileType.FILE
+            coEvery { size } returns 100L
+            coEvery { modifiedAt } returns null
+        }
+        val symlinkLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns symlinkPath
+            coEvery { name } returns "broken-link"
+            coEvery { fileType } returns FileType.SYMBOLIC_LINK
+            coEvery { target } returns null
+            coEvery { size } returns null
+            coEvery { modifiedAt } returns null
+        }
+
+        coEvery { codec.decode(parentDocId) } returns parentPath
+        coEvery { gatewaySwitch.lookupFiles(parentPath, any()) } returns listOf(dirLookup, fileLookup, symlinkLookup)
+        coEvery { codec.encode(dirPath) } returns "local|dir"
+        coEvery { codec.encode(filePath) } returns "local|file"
+        coEvery { codec.encode(symlinkPath) } returns "local|symlink"
+
+        val cursor = handler.queryChildDocuments(parentDocId, null, null)
+
+        cursor.count shouldBe 3
+        val flagsIndex = cursor.getColumnIndex(COLUMN_FLAGS)
+
+        // Directory
+        cursor.moveToFirst() shouldBe true
+        val dirFlags = cursor.getInt(flagsIndex)
+        dirFlags and FLAG_DIR_SUPPORTS_CREATE shouldNotBe 0
+
+        // File
+        cursor.moveToNext() shouldBe true
+        val fileFlags = cursor.getInt(flagsIndex)
+        fileFlags and FLAG_SUPPORTS_WRITE shouldNotBe 0
+
+        // Broken symlink - manage-only
+        cursor.moveToNext() shouldBe true
+        val symlinkFlags = cursor.getInt(flagsIndex)
+        symlinkFlags and FLAG_SUPPORTS_DELETE shouldNotBe 0
+        symlinkFlags and FLAG_SUPPORTS_WRITE shouldBe 0
+        symlinkFlags and FLAG_DIR_SUPPORTS_CREATE shouldBe 0
+    }
+
+    // ========== COLUMN_SUMMARY tests ==========
+
+    @Test
+    fun `queryDocument for Butler root has null summary`() = runTest {
+        val cursor = handler.queryDocument(ProviderLocation.Root.Butler.rootDocumentId, null)
+
+        cursor.moveToFirst() shouldBe true
+        val summaryIndex = cursor.getColumnIndex(COLUMN_SUMMARY)
+        cursor.isNull(summaryIndex) shouldBe true
+    }
+
+    @Test
+    fun `queryChildDocuments storage volumes show free space summary`() = runTest {
+        val rootPath = LocalPath.build("/")
+        val internalDir = File("/storage/emulated/0")
+
+        // Configure Robolectric's ShadowStatFs for the storage path
+        org.robolectric.shadows.ShadowStatFs.registerStats(internalDir, 1000, 200, 500)
+
+        val internalVolume = mockk<StorageVolumeX> {
+            every { isPrimary } returns true
+            every { isMounted } returns true
+            every { directory } returns internalDir
+            every { path } returns internalDir.absolutePath
+            every { userLabel } returns null
+        }
+
+        every { storageManager2.storageVolumes } returns listOf(internalVolume)
+
+        val internalPath = LocalPath.build(internalDir)
+        coEvery { codec.encode(rootPath) } returns "local|root"
+        coEvery { codec.encode(internalPath) } returns "local|internal"
+
+        val cursor = handler.queryChildDocuments(
+            ProviderLocation.Home.Device.documentId,
+            null,
+            null,
+        )
+
+        val summaryIndex = cursor.getColumnIndex(COLUMN_SUMMARY)
+        summaryIndex shouldNotBe -1
+
+        // Internal storage entry (after root filesystem)
+        cursor.moveToPosition(1)
+        val summary = cursor.getString(summaryIndex)
+        summary shouldNotBe null
+        summary.contains("free") shouldBe true
+    }
+
+    @Test
+    fun `queryChildDocuments storage volume without directory has null summary`() = runTest {
+        val rootPath = LocalPath.build("/")
+
+        val volumeWithoutDir = mockk<StorageVolumeX> {
+            every { isPrimary } returns true
+            every { isMounted } returns true
+            every { directory } returns null
+            every { path } returns "/storage/emulated/0"
+            every { userLabel } returns null
+        }
+
+        every { storageManager2.storageVolumes } returns listOf(volumeWithoutDir)
+
+        val volumePath = LocalPath.build("/storage/emulated/0")
+        coEvery { codec.encode(rootPath) } returns "local|root"
+        coEvery { codec.encode(volumePath) } returns "local|internal"
+
+        val cursor = handler.queryChildDocuments(
+            ProviderLocation.Home.Device.documentId,
+            null,
+            null,
+        )
+
+        val summaryIndex = cursor.getColumnIndex(COLUMN_SUMMARY)
+
+        // Volume entry (after root filesystem)
+        cursor.moveToPosition(1)
+        cursor.isNull(summaryIndex) shouldBe true
+    }
+
+    @Test
+    fun `queryDocument for filesystem document has null summary`() = runTest {
+        val path = LocalPath.build("/test/file.txt")
+        val documentId = "local|file-summary"
+
+        val mockLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns path
+            coEvery { name } returns "file.txt"
+            coEvery { fileType } returns FileType.FILE
+            coEvery { size } returns 1024L
+            coEvery { modifiedAt } returns null
+        }
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.lookup(path, any()) } returns mockLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+        cursor.moveToFirst() shouldBe true
+
+        val summaryIndex = cursor.getColumnIndex(COLUMN_SUMMARY)
+        cursor.isNull(summaryIndex) shouldBe true
+    }
+
+    // ========== Step 8: Storage volume + SAF location tests ==========
+
+    @Test
+    fun `queryChildDocuments with storage volumes`() = runTest {
+        val rootPath = LocalPath.build("/")
+        val internalDir = File("/storage/emulated/0")
+        val sdCardDir = File("/storage/1234-5678")
+
+        val internalVolume = mockk<StorageVolumeX> {
+            every { isPrimary } returns true
+            every { isMounted } returns true
+            every { directory } returns internalDir
+            every { path } returns internalDir.absolutePath
+            every { userLabel } returns null
+        }
+        val sdCardVolume = mockk<StorageVolumeX> {
+            every { isPrimary } returns false
+            every { isMounted } returns true
+            every { directory } returns sdCardDir
+            every { path } returns sdCardDir.absolutePath
+            every { userLabel } returns "SD Card"
+        }
+
+        every { storageManager2.storageVolumes } returns listOf(internalVolume, sdCardVolume)
+
+        val internalPath = LocalPath.build(internalDir)
+        val sdCardPath = LocalPath.build(sdCardDir)
+        coEvery { codec.encode(rootPath) } returns "local|root"
+        coEvery { codec.encode(internalPath) } returns "local|internal"
+        coEvery { codec.encode(sdCardPath) } returns "local|sdcard"
+
+        val cursor = handler.queryChildDocuments(
+            ProviderLocation.Home.Device.documentId,
+            null,
+            null,
+        )
+
+        // Root filesystem + internal + SD card = 3
+        cursor.count shouldBe 3
+
+        val nameIndex = cursor.getColumnIndex(COLUMN_DISPLAY_NAME)
+
+        // Skip root filesystem entry
+        cursor.moveToPosition(1)
+        cursor.getString(nameIndex) shouldNotBe null
+
+        cursor.moveToNext()
+        cursor.getString(nameIndex) shouldBe "SD Card"
+    }
+
+    @Test
+    fun `queryChildDocuments with SAF locations`() = runTest {
+        val rootPath = LocalPath.build("/")
+
+        val safDisplayName = mockk<eu.darken.butler.common.ca.CaString>()
+        every { safDisplayName.get(any()) } returns "My USB Drive"
+        val safLocation = mockk<eu.darken.butler.common.files.saf.location.SAFLocation> {
+            every { displayName } returns safDisplayName
+            every { path } returns mockk()
+        }
+        every { safLocationManager.locations } returns flowOf(listOf(safLocation))
+
+        coEvery { codec.encode(rootPath) } returns "local|root"
+        coEvery { codec.encode(safLocation.path) } returns "saf|usb"
+
+        val cursor = handler.queryChildDocuments(
+            ProviderLocation.Home.Device.documentId,
+            null,
+            null,
+        )
+
+        // Root filesystem + SAF location = 2
+        cursor.count shouldBe 2
+
+        val nameIndex = cursor.getColumnIndex(COLUMN_DISPLAY_NAME)
+        cursor.moveToPosition(1)
+        cursor.getString(nameIndex) shouldBe "My USB Drive"
     }
 }

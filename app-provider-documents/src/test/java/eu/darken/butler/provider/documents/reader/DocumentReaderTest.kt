@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.CancellationSignal
 import android.os.OperationCanceledException
+import android.os.ParcelFileDescriptor
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.files.GatewaySwitch
@@ -11,13 +12,16 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import eu.darken.butler.provider.documents.core.reader.DocumentReader
+import eu.darken.butler.provider.documents.core.reader.ProxyPfdFactory
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import okio.FileHandle
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +44,7 @@ class DocumentReaderTest {
     private lateinit var context: Context
     private lateinit var codec: DocumentIdCodec
     private lateinit var gatewaySwitch: GatewaySwitch
+    private lateinit var proxyPfdFactory: ProxyPfdFactory
     private lateinit var reader: DocumentReader
 
     @Before
@@ -47,7 +52,8 @@ class DocumentReaderTest {
         context = ApplicationProvider.getApplicationContext()
         codec = mockk()
         gatewaySwitch = mockk()
-        reader = DocumentReader(context, codec, gatewaySwitch)
+        proxyPfdFactory = mockk()
+        reader = DocumentReader(context, codec, gatewaySwitch, proxyPfdFactory)
     }
 
     @Test
@@ -363,7 +369,7 @@ class DocumentReaderTest {
 
         coEvery { codec.decode(documentId) } returns path
         coEvery { gatewaySwitch.file(path, true) } throws UnsupportedOperationException("No seekable access")
-        coEvery { gatewaySwitch.openOutputStream(path, append = false) } returns outputStream
+        coEvery { gatewaySwitch.openOutputStream(path, append = true) } returns outputStream
 
         val pfd = reader.openDocument(documentId, "rw", null)
 
@@ -389,5 +395,130 @@ class DocumentReaderTest {
         } catch (e: FileNotFoundException) {
             e.message shouldContain "Cannot open document"
         }
+    }
+
+    // ========== Step 1: Mode semantics tests ==========
+
+    @Test
+    fun `openDocument rw mode does not truncate`() = runTest {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|rw"
+        val fileHandle = mockk<FileHandle>(relaxed = true)
+        val mockPfd = mockk<ParcelFileDescriptor>(relaxed = true)
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, true) } returns fileHandle
+        every { proxyPfdFactory.create(fileHandle, "rw") } returns mockPfd
+
+        reader.openDocument(documentId, "rw", null)
+
+        verify(exactly = 0) { fileHandle.resize(any()) }
+    }
+
+    @Test
+    fun `openDocument rwt mode truncates`() = runTest {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|rwt"
+        val fileHandle = mockk<FileHandle>(relaxed = true)
+        val mockPfd = mockk<ParcelFileDescriptor>(relaxed = true)
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, true) } returns fileHandle
+        every { proxyPfdFactory.create(fileHandle, "rw") } returns mockPfd
+
+        reader.openDocument(documentId, "rwt", null)
+
+        verify(exactly = 1) { fileHandle.resize(0) }
+    }
+
+    @Test
+    fun `openDocument wa mode does not truncate`() = runTest {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|wa"
+        val fileHandle = mockk<FileHandle>(relaxed = true)
+        val mockPfd = mockk<ParcelFileDescriptor>(relaxed = true)
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, true) } returns fileHandle
+        every { proxyPfdFactory.create(fileHandle, "wa") } returns mockPfd
+
+        reader.openDocument(documentId, "wa", null)
+
+        verify(exactly = 0) { fileHandle.resize(any()) }
+    }
+
+    // ========== Step 2: Seekable ProxyPFD tests ==========
+
+    @Test
+    fun `openDocument reads via seekable ProxyPFD when file() succeeds`() = runTest {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|seekable-read"
+        val fileHandle = mockk<FileHandle>(relaxed = true)
+        val mockPfd = mockk<ParcelFileDescriptor>(relaxed = true)
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, false) } returns fileHandle
+        every { proxyPfdFactory.create(fileHandle, "r") } returns mockPfd
+
+        val result = reader.openDocument(documentId, "r", null)
+
+        result shouldBe mockPfd
+        verify(exactly = 1) { proxyPfdFactory.create(fileHandle, "r") }
+    }
+
+    @Test
+    fun `openDocument writes via seekable ProxyPFD`() = runTest {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|seekable-write"
+        val fileHandle = mockk<FileHandle>(relaxed = true)
+        val mockPfd = mockk<ParcelFileDescriptor>(relaxed = true)
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, true) } returns fileHandle
+        every { proxyPfdFactory.create(fileHandle, "w") } returns mockPfd
+
+        val result = reader.openDocument(documentId, "w", null)
+
+        result shouldBe mockPfd
+        verify(exactly = 1) { proxyPfdFactory.create(fileHandle, "w") }
+    }
+
+    @Test
+    fun `openDocument seekable ProxyPFD cleans up FileHandle on factory failure`() = runTest {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|seekable-cleanup"
+        val fileHandle = mockk<FileHandle>(relaxed = true)
+        val outputStream = ByteArrayOutputStream()
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, true) } returns fileHandle
+        every { proxyPfdFactory.create(fileHandle, "w") } throws RuntimeException("Proxy creation failed")
+        coEvery { gatewaySwitch.openOutputStream(path, append = false) } returns outputStream
+
+        // Should fall back to pipe without crashing
+        reader.openDocument(documentId, "w", null)
+
+        // Factory was attempted
+        verify(exactly = 1) { proxyPfdFactory.create(fileHandle, "w") }
+    }
+
+    @Test
+    fun `openDocument seekable ProxyPFD reports correct size via factory`() = runTest {
+        val path = LocalPath.build("/some/file.txt")
+        val documentId = "local|seekable-size"
+        val fileHandle = mockk<FileHandle>(relaxed = true) {
+            every { size() } returns 42L
+        }
+        val mockPfd = mockk<ParcelFileDescriptor>(relaxed = true)
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.file(path, false) } returns fileHandle
+        every { proxyPfdFactory.create(fileHandle, "r") } returns mockPfd
+
+        val result = reader.openDocument(documentId, "r", null)
+
+        result shouldBe mockPfd
+        // Factory receives the FileHandle that has size information
+        verify(exactly = 1) { proxyPfdFactory.create(fileHandle, "r") }
     }
 }
