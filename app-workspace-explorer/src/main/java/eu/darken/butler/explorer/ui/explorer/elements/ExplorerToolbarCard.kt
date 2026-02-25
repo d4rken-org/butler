@@ -99,7 +99,7 @@ fun ExplorerToolbarCard(
                 )
             }
         } else null,
-        cutoutMode = if (isCollapsed) CutoutMode.FullHeight else CutoutMode.Auto,
+        cutoutMode = CutoutMode.FullHeight,
         gapDistance = if (isCollapsed) CutoutCardDefaults.GapDistanceCollapsed else CutoutCardDefaults.GapDistanceExpanded,
         contentPadding = CutoutCardDefaults.contentPadding(cardPadding),
     ) {
@@ -123,7 +123,6 @@ fun ExplorerToolbarCard(
                 breadcrumbs = breadcrumbs,
                 isCollapsed = isCollapsed,
                 cutoutWidth = cutoutWidth,
-                cutoutHeight = cutoutHeight,
                 onBreadcrumbClick = onBreadcrumbClick,
                 onNavigateToPath = onNavigateToPath,
                 onSetAsHome = onSetAsHome,
@@ -139,7 +138,6 @@ private fun NormalToolbarContent(
     breadcrumbs: List<ExplorerBreadcrumb>,
     isCollapsed: Boolean,
     cutoutWidth: Dp,
-    cutoutHeight: Dp,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: (APath<*>) -> Unit,
     onSetAsHome: ((ExplorerNavigation.Target) -> Unit)?,
@@ -188,7 +186,6 @@ private fun NormalToolbarContent(
             safLocationManager = safLocationManager,
             showBackground = false,
             cutoutWidth = cutoutWidth,
-            cutoutHeight = cutoutHeight,
         )
     }
 }
