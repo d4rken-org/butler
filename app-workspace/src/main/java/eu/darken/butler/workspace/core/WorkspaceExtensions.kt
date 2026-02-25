@@ -44,14 +44,14 @@ val Workspace.Type.label: CaString
         Workspace.Type.DEVELOPER -> R.string.workspace_developer_label.toCaString()
     }
 
-val Workspace.Type.defaultArguments: Workspace.Arguments
+val Workspace.Type.defaultArguments: Workspace.Arguments?
     get() = when (this) {
         Workspace.Type.TEMPLATES -> TemplatesArguments.Default()
         Workspace.Type.EXPLORER -> ExplorerArguments.Default()
         Workspace.Type.SEARCHER -> SearcherArguments.Default()
         Workspace.Type.EDITOR -> EditorArguments.Default()
         Workspace.Type.APPS -> AppsArguments.Default()
-        Workspace.Type.APP_DETAILS -> throw IllegalArgumentException("$this requires explicit arguments")
-        Workspace.Type.SAVER -> throw IllegalArgumentException("$this requires explicit arguments")
+        Workspace.Type.APP_DETAILS -> null
+        Workspace.Type.SAVER -> null
         Workspace.Type.DEVELOPER -> DeveloperArguments.Default()
     }

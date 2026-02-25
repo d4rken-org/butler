@@ -41,6 +41,9 @@ interface SearchHistoryDao {
     @Query("SELECT COUNT(*) FROM search_history")
     suspend fun getCount(): Int
 
+    @Query("SELECT COUNT(*) FROM search_history")
+    fun observeCount(): Flow<Int>
+
     @Query("DELETE FROM search_history WHERE id IN (SELECT id FROM search_history ORDER BY searchedAt ASC LIMIT :count)")
     suspend fun deleteOldest(count: Int)
 

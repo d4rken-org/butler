@@ -70,8 +70,9 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.workspace.ui.operations.OperationDisplay
-import eu.darken.butler.workspace.ui.operations.toDisplayModel
+import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
+import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
+import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -308,43 +309,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
     }
 
-    @Stable
-    data class ClipboardState(
-        val entries: List<ClipboardClip> = emptyList(),
-    )
-
     val clipboard = clipboardRepo.state
-        .map { repoState -> ClipboardState(entries = repoState.entries) }
+        .map { repoState -> ClipboardDisplayState(entries = repoState.entries) }
         .asStateFlow()
-
-    @Stable
-    data class OperationsState(
-        val operations: List<OperationDisplay> = emptyList(),
-    )
 
     val operations = workspaceSource
         .filterNotNull()
         .flatMapLatest { it.operations }
-        .map { opsState ->
-            val ops = opsState.operations
-                .map { it.toDisplayModel() }
-                .sortedWith(
-                    compareBy<OperationDisplay> { op ->
-                        // Priority: Running > Waiting > Queued > Others
-                        when (op.state) {
-                            is OperationDisplay.State.Running -> 0
-                            is OperationDisplay.State.Waiting -> 1
-                            is OperationDisplay.State.Queued -> 2
-                            is OperationDisplay.State.Failed -> 3
-                            is OperationDisplay.State.Cancelled -> 4
-                            is OperationDisplay.State.Completed -> 5
-                        }
-                    }.thenByDescending { it.startedAt } // Newest first within each group
-                )
-            OperationsState(operations = ops)
-        }
-        .onStart { emit(OperationsState()) }
-        .distinctUntilChanged()
+        .map { opsState -> opsState.operations }
+        .toOperationsDisplayState()
         .asStateFlow()
 
     // Flow for Ready state - only emits when workspace is initialized
@@ -392,7 +365,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 }
 
                 // Delete
-                add(SearcherActionBarItem.Delete(updatedSelectionState.selectedResults, trashSettings.enabled.value()))
+                add(SearcherActionBarItem.Delete(updatedSelectionState.selectedResults, trashEnabled))
             }
         } else if (sortedResults.isNotEmpty()) {
             buildList {
@@ -880,6 +853,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is WorkspaceAction.CreateBatch.Result.Cancelled -> {
                 log(TAG, INFO) { "Batch creation cancelled by user" }
+            }
+            is WorkspaceAction.CreateBatch.Result.AwaitingConfirmation -> {
+                log(TAG, INFO) { "Batch creation awaiting confirmation" }
             }
         }
 

@@ -114,7 +114,7 @@ internal fun SaverActionArea(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onRetry,
                 ) {
-                    Text(stringResource(R.string.saver_save_action))
+                    Text(stringResource(R.string.saver_retry_action))
                 }
             }
         }

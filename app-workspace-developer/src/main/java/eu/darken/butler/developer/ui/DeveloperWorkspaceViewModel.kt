@@ -30,7 +30,6 @@ import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.common.flow.throttleLatest
 import eu.darken.butler.common.formatFileSize
-import eu.darken.butler.common.navigation.NavigationController
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.developer.core.DeveloperLogRepo
@@ -44,7 +43,8 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
-import eu.darken.butler.workspace.ui.operations.toDisplayModel
+import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
+import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -58,7 +58,6 @@ import kotlin.time.Duration.Companion.milliseconds
 class DeveloperWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     private val dispatchers: DispatcherProvider,
-    navCtrl: NavigationController,
     @ApplicationContext private val context: Context,
     private val developerLogRepo: DeveloperLogRepo,
     private val debugSettings: DebugSettings,
@@ -89,11 +88,8 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
 
     private val operationsState = workspaceSource
         .flatMapLatest { it.operations }
-        .map { opsState ->
-            OperationsState(
-                operations = opsState.operations.map { it.toDisplayModel() }
-            )
-        }
+        .map { opsState -> opsState.operations }
+        .toOperationsDisplayState()
 
     // Options state
     private val rootTestResult = MutableStateFlow<RootTestResult?>(null)
@@ -436,7 +432,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         val isLogPaused: Boolean,
         val testDataState: TestDataState,
         val optionsState: OptionsState,
-        val operationsState: OperationsState,
+        val operationsState: OperationsDisplayState,
     )
 
     data class TestDataState(
@@ -450,10 +446,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     data class TargetPathInfo(
         val path: APath<*>,
         val displayPath: String,
-    )
-
-    data class OperationsState(
-        val operations: List<OperationDisplay> = emptyList(),
     )
 
     data class SystemInfo(

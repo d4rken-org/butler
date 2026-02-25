@@ -1,5 +1,6 @@
 package eu.darken.butler.saver.ui.saver
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
@@ -51,6 +53,13 @@ fun SaverWorkspacePageHost(
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
+    val context = LocalContext.current
+    LaunchedEffect(vm) {
+        vm.shareIntentEvent.collect { intent ->
+            context.startActivity(intent)
+        }
+    }
+
     SaverWorkspacePage(
         workspaceId = id,
         design = design,
@@ -60,7 +69,7 @@ fun SaverWorkspacePageHost(
 }
 
 @Composable
-private fun SaverWorkspacePage(
+internal fun SaverWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     stateSource: Flow<SaverWorkspaceViewModel.State>,
@@ -136,7 +145,7 @@ private fun SaverWorkspacePage(
             operations = listOfNotNull(state.operationDisplay),
             onDismissDialog = { operationDialogState = OperationDialogState.None },
             onCancelOperation = { operationDialogState = OperationDialogState.None },
-            onShareError = { /* TODO: implement if needed */ },
+            onShareError = { vm?.shareError(it) },
             onHandleIssue = { operationId ->
                 vm?.showConflictSheet(operationId)
             },

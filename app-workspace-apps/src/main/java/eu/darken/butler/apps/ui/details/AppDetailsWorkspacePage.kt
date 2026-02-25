@@ -70,7 +70,7 @@ fun AppDetailsWorkspacePageHost(
     vm: AppDetailsWorkspaceViewModel = hiltViewModel(
         key = id.longTag,
         creationCallback = { factory: AppDetailsWorkspaceViewModel.Factory ->
-            factory.create(id = id, arguments = null)
+            factory.create(id = id)
         }
     ),
 ) {

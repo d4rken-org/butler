@@ -10,8 +10,6 @@ import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.history.SearchHistory
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -24,21 +22,13 @@ constructor(
     private val searchHistory: SearchHistory,
 ) : ViewModel4(dispatcherProvider, logTag("Searcher", "Settings")) {
 
-    // Create a flow for history count that refreshes periodically
-    private val historyCountFlow = flow {
-        while (true) {
-            emit(searchHistory.getHistoryCount())
-            kotlinx.coroutines.delay(1000) // Refresh every second
-        }
-    }.onStart { emit(0) } // Start with 0 while loading
-
     // Combine all settings into the final state
     val state = combine(
         searcherSettings.maxSearchResults.flow,
         searcherSettings.maxHistoryItems.flow,
         searcherSettings.saveHistory.flow,
         searcherSettings.contentSearchBinaries.flow,
-        historyCountFlow,
+        searchHistory.observeHistoryCount(),
     ) { maxSearchResults, maxHistoryItems, saveHistory, contentSearchBinaries, historyCount ->
         State(
             maxSearchResults = maxSearchResults,

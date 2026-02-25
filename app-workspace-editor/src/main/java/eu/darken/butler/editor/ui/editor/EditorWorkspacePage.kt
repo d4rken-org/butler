@@ -36,6 +36,7 @@ import eu.darken.butler.editor.ui.editor.elements.EditorToolbarCard
 import eu.darken.butler.editor.ui.editor.text.LazyTextEditor
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
@@ -85,7 +86,7 @@ fun EditorWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     mainStateSource: Flow<EditorWorkspaceViewModel.State>,
-    clipboardStateSource: Flow<EditorWorkspaceViewModel.ClipboardState> = flowOf(EditorWorkspaceViewModel.ClipboardState()),
+    clipboardStateSource: Flow<ClipboardDisplayState> = flowOf(ClipboardDisplayState()),
     clipboardInfoClip: ClipboardClip? = null,
     onPageAction: (EditorPageAction) -> Unit,
     onActionExecute: (EditorActionBarItem) -> Unit = {},
@@ -93,7 +94,7 @@ fun EditorWorkspacePage(
 ) {
     // Page is hidden by WorkspaceMapper during Init/Error states, so nothing to render until Ready
     val stateOrNull by mainStateSource.collectAsState(null)
-    val clipboardState by clipboardStateSource.collectAsState(EditorWorkspaceViewModel.ClipboardState())
+    val clipboardState by clipboardStateSource.collectAsState(ClipboardDisplayState())
 
     val state = stateOrNull ?: return
 
@@ -125,8 +126,7 @@ fun EditorWorkspacePage(
         FloatingBarStack(
             modifier = Modifier
                 .zIndex(1f)
-                .align(Alignment.TopCenter)
-                .fillMaxWidth(),
+                .align(Alignment.TopCenter),
             position = BarPosition.TOP,
             state = topBarStackState,
             bars = {
@@ -173,8 +173,7 @@ fun EditorWorkspacePage(
         FloatingBarStack(
             modifier = Modifier
                 .zIndex(1f)
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth(),
+                .align(Alignment.BottomCenter),
             position = BarPosition.BOTTOM,
             state = bottomBarStackState,
             bars = {

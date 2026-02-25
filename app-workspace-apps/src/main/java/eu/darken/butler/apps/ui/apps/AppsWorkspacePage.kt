@@ -52,7 +52,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
-private fun AppsWorkspacePage(
+internal fun AppsWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     stateSource: Flow<AppsWorkspaceViewModel.State>,

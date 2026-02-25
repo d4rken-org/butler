@@ -80,7 +80,9 @@ import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
@@ -94,14 +96,14 @@ fun SearcherWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     stateSource: Flow<SearcherWorkspaceViewModel.State>,
-    clipboardStateSource: Flow<SearcherWorkspaceViewModel.ClipboardState>,
-    operationsStateSource: Flow<SearcherWorkspaceViewModel.OperationsState>,
+    clipboardStateSource: Flow<ClipboardDisplayState>,
+    operationsStateSource: Flow<OperationsDisplayState>,
     vm: SearcherWorkspaceViewModel? = null,
     onPageAction: (SearcherPageAction) -> Unit = {},
 ) {
     val mainState by stateSource.collectAsState(initial = SearcherWorkspaceViewModel.State.Initializing)
-    val clipboardState by clipboardStateSource.collectAsState(initial = SearcherWorkspaceViewModel.ClipboardState())
-    val operationsState by operationsStateSource.collectAsState(initial = SearcherWorkspaceViewModel.OperationsState())
+    val clipboardState by clipboardStateSource.collectAsState(initial = ClipboardDisplayState())
+    val operationsState by operationsStateSource.collectAsState(initial = OperationsDisplayState())
 
     // Setup and remember blocks at top level
     val topBarStackState = rememberFloatingBarStackState(
@@ -826,8 +828,8 @@ private fun SearcherWorkspacePageEmptyPreview() {
         SearcherWorkspacePage(
             workspaceId = workspaceId,
             stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState()),
-            clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
+            clipboardStateSource = flowOf(ClipboardDisplayState()),
+            operationsStateSource = flowOf(OperationsDisplayState()),
             onPageAction = {},
         )
     }
@@ -841,8 +843,8 @@ private fun SearcherWorkspacePageWithHistoryPreview() {
         SearcherWorkspacePage(
             workspaceId = workspaceId,
             stateSource = flowOf(SearcherMockDataProvider.createMockHistoryState()),
-            clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
+            clipboardStateSource = flowOf(ClipboardDisplayState()),
+            operationsStateSource = flowOf(OperationsDisplayState()),
             onPageAction = {},
         )
     }
@@ -856,8 +858,8 @@ private fun SearcherWorkspacePageWithResultsPreview() {
         SearcherWorkspacePage(
             workspaceId = workspaceId,
             stateSource = flowOf(SearcherMockDataProvider.createMockResultsState()),
-            clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
+            clipboardStateSource = flowOf(ClipboardDisplayState()),
+            operationsStateSource = flowOf(OperationsDisplayState()),
             onPageAction = {},
         )
     }
@@ -871,8 +873,8 @@ private fun SearcherWorkspacePageSearchingWithProgressPreview() {
         SearcherWorkspacePage(
             workspaceId = workspaceId,
             stateSource = flowOf(SearcherMockDataProvider.createMockSearchingWithProgressState()),
-            clipboardStateSource = flowOf(SearcherWorkspaceViewModel.ClipboardState()),
-            operationsStateSource = flowOf(SearcherWorkspaceViewModel.OperationsState()),
+            clipboardStateSource = flowOf(ClipboardDisplayState()),
+            operationsStateSource = flowOf(OperationsDisplayState()),
             onPageAction = {},
         )
     }

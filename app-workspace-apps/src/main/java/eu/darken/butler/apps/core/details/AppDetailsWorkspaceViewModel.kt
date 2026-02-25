@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.map
 @HiltViewModel(assistedFactory = AppDetailsWorkspaceViewModel.Factory::class)
 class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
-    @Assisted arguments: Workspace.Arguments?,
     @ApplicationContext private val context: Context,
     dispatchers: DispatcherProvider,
     workspaceProvider: WorkspaceProvider,
@@ -139,6 +138,6 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(id: Workspace.Id, arguments: Workspace.Arguments?): AppDetailsWorkspaceViewModel
+        fun create(id: Workspace.Id): AppDetailsWorkspaceViewModel
     }
 }

@@ -36,7 +36,9 @@ import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import java.io.IOException
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -368,7 +370,7 @@ object MockDataProvider {
         runningCount: Int = 1,
         completedCount: Int = 2,
         failedCount: Int = 0
-    ): ExplorerWorkspaceViewModel.OperationsState {
+    ): OperationsDisplayState {
         val operations = mutableListOf<OperationDisplay>()
 
         repeat(runningCount) { index ->
@@ -402,7 +404,7 @@ object MockDataProvider {
             )
         }
 
-        return ExplorerWorkspaceViewModel.OperationsState(operations = operations)
+        return OperationsDisplayState(operations = operations)
     }
 
     // MARK: - Clipboard State Factories
@@ -436,7 +438,7 @@ object MockDataProvider {
     fun createMockClipboardState(
         copyCount: Int = 1,
         cutCount: Int = 1
-    ): ExplorerWorkspaceViewModel.ClipboardState {
+    ): ClipboardDisplayState {
         val entries = mutableListOf<ClipboardClip.Paths>()
 
         repeat(copyCount) { index ->
@@ -469,7 +471,7 @@ object MockDataProvider {
             )
         }
 
-        return ExplorerWorkspaceViewModel.ClipboardState(entries = entries)
+        return ClipboardDisplayState(entries = entries)
     }
 
     // MARK: - Storage and Shortcut Factories

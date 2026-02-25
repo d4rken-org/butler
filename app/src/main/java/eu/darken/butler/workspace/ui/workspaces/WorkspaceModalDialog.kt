@@ -7,17 +7,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import eu.darken.butler.apps.ui.apps.AppsWorkspacePageHost
-import eu.darken.butler.apps.ui.details.AppDetailsWorkspacePageHost
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
-import eu.darken.butler.developer.ui.DeveloperWorkspacePageHost
-import eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost
-import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
-import eu.darken.butler.saver.ui.saver.SaverWorkspacePageHost
-import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
-import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
@@ -70,57 +62,7 @@ fun WorkspaceModalContent(
     workspace: Workspace.Info,
     design: WorkspaceDesign = WorkspaceDesign(),
 ) {
-    // Render workspace based on type
-    when (workspace.type) {
-        Workspace.Type.EXPLORER -> {
-            ExplorerWorkspacePageHost(
-                id = workspace.id,
-                design = design,
-            )
-        }
-        Workspace.Type.SEARCHER -> {
-            SearcherWorkspacePageHost(
-                id = workspace.id,
-                design = design,
-            )
-        }
-        Workspace.Type.EDITOR -> {
-            EditorWorkspacePageHost(
-                id = workspace.id,
-                design = design,
-            )
-        }
-        Workspace.Type.TEMPLATES -> {
-            TemplatesWorkspacePageHost(
-                id = workspace.id,
-                design = design,
-            )
-        }
-        Workspace.Type.APPS -> {
-            AppsWorkspacePageHost(
-                id = workspace.id,
-                design = design,
-            )
-        }
-        Workspace.Type.APP_DETAILS -> {
-            AppDetailsWorkspacePageHost(
-                id = workspace.id,
-                design = design,
-            )
-        }
-        Workspace.Type.SAVER -> {
-            SaverWorkspacePageHost(
-                id = workspace.id,
-                design = design,
-            )
-        }
-        Workspace.Type.DEVELOPER -> {
-            DeveloperWorkspacePageHost(
-                id = workspace.id,
-                design = design,
-            )
-        }
-    }
+    WorkspacePageHostDispatcher(id = workspace.id, type = workspace.type, design = design)
 }
 
 @Preview2
