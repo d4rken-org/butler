@@ -4,6 +4,8 @@ import android.content.Context
 import android.provider.DocumentsContract
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.datastore.DataStoreValue
+import eu.darken.butler.common.storage.StorageManager2
+import eu.darken.butler.common.storage.StorageVolumeX
 import eu.darken.butler.provider.documents.core.DocumentsProviderSettings
 import eu.darken.butler.provider.documents.core.ProviderLocation
 import eu.darken.butler.provider.documents.core.query.RootQueryHandler
@@ -18,6 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [29])
@@ -25,6 +28,7 @@ class RootQueryHandlerTest {
 
     private lateinit var context: Context
     private lateinit var settings: DocumentsProviderSettings
+    private lateinit var storageManager2: StorageManager2
     private lateinit var handler: RootQueryHandler
 
     @Before
@@ -37,7 +41,10 @@ class RootQueryHandlerTest {
         settings = mockk {
             every { isEnabled } returns isEnabledValue
         }
-        handler = RootQueryHandler(context, settings)
+        storageManager2 = mockk {
+            every { storageVolumes } returns emptyList()
+        }
+        handler = RootQueryHandler(context, settings, storageManager2)
     }
 
     @Test
@@ -151,7 +158,7 @@ class RootQueryHandlerTest {
         val disabledSettings = mockk<DocumentsProviderSettings> {
             every { isEnabled } returns disabledIsEnabledValue
         }
-        val disabledHandler = RootQueryHandler(context, disabledSettings)
+        val disabledHandler = RootQueryHandler(context, disabledSettings, storageManager2)
 
         val cursor = disabledHandler.queryRoots(null)
 
@@ -165,5 +172,58 @@ class RootQueryHandlerTest {
             DocumentsContract.Root.COLUMN_FLAGS,
             DocumentsContract.Root.COLUMN_AVAILABLE_BYTES,
         )
+    }
+
+    // ========== Step 5: Available bytes tests ==========
+
+    @Test
+    fun `queryRoots returns available bytes from primary volume`() = runTest {
+        val mockDir = mockk<File> {
+            every { usableSpace } returns 1024L * 1024L * 500L // 500MB
+        }
+        val primaryVolume = mockk<StorageVolumeX> {
+            every { isPrimary } returns true
+            every { isMounted } returns true
+            every { directory } returns mockDir
+        }
+        every { storageManager2.storageVolumes } returns listOf(primaryVolume)
+
+        val cursor = handler.queryRoots(null)
+        cursor.moveToFirst() shouldBe true
+
+        val bytesIndex = cursor.getColumnIndex(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES)
+        cursor.getLong(bytesIndex) shouldBe 1024L * 1024L * 500L
+    }
+
+    @Test
+    fun `queryRoots returns null available bytes when no primary volume`() = runTest {
+        val nonPrimaryVolume = mockk<StorageVolumeX> {
+            every { isPrimary } returns false
+            every { isMounted } returns true
+            every { directory } returns mockk()
+        }
+        every { storageManager2.storageVolumes } returns listOf(nonPrimaryVolume)
+
+        val cursor = handler.queryRoots(null)
+        cursor.moveToFirst() shouldBe true
+
+        val bytesIndex = cursor.getColumnIndex(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES)
+        cursor.isNull(bytesIndex) shouldBe true
+    }
+
+    @Test
+    fun `queryRoots returns null available bytes when primary volume has no directory`() = runTest {
+        val primaryVolume = mockk<StorageVolumeX> {
+            every { isPrimary } returns true
+            every { isMounted } returns true
+            every { directory } returns null
+        }
+        every { storageManager2.storageVolumes } returns listOf(primaryVolume)
+
+        val cursor = handler.queryRoots(null)
+        cursor.moveToFirst() shouldBe true
+
+        val bytesIndex = cursor.getColumnIndex(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES)
+        cursor.isNull(bytesIndex) shouldBe true
     }
 }

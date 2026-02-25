@@ -145,27 +145,6 @@ class DocumentModifierTest {
     }
 
     @Test
-    fun `renameDocument handles cross-directory rename as move`() = runTest {
-        // Given
-        val documentId = "local|base64doc"
-        val sourcePath = LocalPath.build("/storage/emulated/0/Documents/test.txt")
-        val newName = "../Downloads/test.txt"
-        val newDocumentId = "local|base64new"
-
-        every { codec.decode(documentId) } returns sourcePath
-        coEvery { gatewaySwitch.exists(any()) } returns false
-        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns true
-        every { codec.encode(any()) } returns newDocumentId
-
-        // When
-        val result = modifier.renameDocument(documentId, newName)
-
-        // Then
-        result shouldBe newDocumentId
-        coVerify { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) }
-    }
-
-    @Test
     fun `renameDocument returns same ID when name unchanged`() = runTest {
         // Given
         val documentId = "local|base64doc"
@@ -432,6 +411,117 @@ class DocumentModifierTest {
         // Then - Verify notification was sent for old location, new location, and parent
         verify(atLeast = 3) {
             contentResolver.notifyChange(any<Uri>(), null)
+        }
+    }
+
+    // ========== Step 4: DisplayName validation tests ==========
+
+    @Test
+    fun `renameDocument rejects empty displayName`() = runTest {
+        shouldThrow<IllegalArgumentException> {
+            modifier.renameDocument("local|base64doc", "")
+        }
+    }
+
+    @Test
+    fun `renameDocument rejects displayName with path separator`() = runTest {
+        shouldThrow<IllegalArgumentException> {
+            modifier.renameDocument("local|base64doc", "../../../etc/passwd")
+        }
+    }
+
+    @Test
+    fun `renameDocument rejects displayName dot`() = runTest {
+        shouldThrow<IllegalArgumentException> {
+            modifier.renameDocument("local|base64doc", ".")
+        }
+    }
+
+    @Test
+    fun `renameDocument rejects displayName dotdot`() = runTest {
+        shouldThrow<IllegalArgumentException> {
+            modifier.renameDocument("local|base64doc", "..")
+        }
+    }
+
+    @Test
+    fun `renameDocument accepts dotfile name like dotgitignore`() = runTest {
+        val documentId = "local|base64doc"
+        val sourcePath = LocalPath.build("/storage/emulated/0/Documents/old.txt")
+        val newName = ".gitignore"
+        val destinationPath = LocalPath.build("/storage/emulated/0/Documents/.gitignore")
+        val newDocumentId = "local|base64new"
+        val parentPath = LocalPath.build("/storage/emulated/0/Documents")
+        val parentId = "local|base64parent"
+
+        every { codec.decode(documentId) } returns sourcePath
+        coEvery { gatewaySwitch.exists(destinationPath) } returns false
+        coEvery { gatewaySwitch.move(sourcePath, destinationPath) } returns true
+        every { codec.encode(destinationPath) } returns newDocumentId
+        every { codec.encode(parentPath) } returns parentId
+
+        val result = modifier.renameDocument(documentId, newName)
+        result shouldBe newDocumentId
+    }
+
+    // ========== Step 8: Edge case tests ==========
+
+    @Test
+    fun `deleteDocument where lookup succeeds but delete throws FileNotFoundException`() = runTest {
+        val documentId = "local|base64doc"
+        val path = LocalPath.build("/storage/emulated/0/Documents/race-condition.txt")
+        val parentPath = LocalPath.build("/storage/emulated/0/Documents")
+        val parentId = "local|base64parent"
+        val lookup = mockk<APathLookup<APath<*>>> {
+            every { fileType } returns FileType.FILE
+            every { lookedUp } returns path
+        }
+
+        every { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.lookup(path, any()) } returns lookup
+        coEvery { gatewaySwitch.delete(path, recursive = true) } throws java.io.FileNotFoundException("Race condition")
+        every { codec.encode(path) } returns documentId
+        every { codec.encode(parentPath) } returns parentId
+
+        // Should not throw - delete is idempotent for FileNotFoundException
+        modifier.deleteDocument(documentId)
+    }
+
+    @Test
+    fun `deleteDocument where lookupFiles fails during recursive permission revocation`() = runTest {
+        val documentId = "local|base64doc"
+        val path = LocalPath.build("/storage/emulated/0/Documents/Folder")
+        val parentPath = LocalPath.build("/storage/emulated/0/Documents")
+        val parentId = "local|base64parent"
+        val lookup = mockk<APathLookup<APath<*>>> {
+            every { fileType } returns FileType.DIRECTORY
+            every { lookedUp } returns path
+        }
+
+        every { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.lookup(path, any()) } returns lookup
+        coEvery { gatewaySwitch.lookupFiles(path, any()) } throws RuntimeException("Permission denied")
+        coEvery { gatewaySwitch.delete(path, recursive = true) } returns true
+        every { codec.encode(path) } returns documentId
+        every { codec.encode(parentPath) } returns parentId
+
+        // Should still proceed with delete even if permission revocation fails for children
+        modifier.deleteDocument(documentId)
+
+        coVerify { gatewaySwitch.delete(path, recursive = true) }
+        // Still revokes the parent document's permissions
+        verify { context.revokeUriPermission(any<Uri>(), any()) }
+    }
+
+    @Test
+    fun `renameDocument throws for root path with no parent`() = runTest {
+        val documentId = "local|base64root"
+        val rootPath = LocalPath.build("/")
+
+        every { codec.decode(documentId) } returns rootPath
+
+        shouldThrow<IllegalArgumentException> {
+            modifier.renameDocument(documentId, "newname")
         }
     }
 }
