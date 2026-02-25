@@ -64,6 +64,9 @@ sealed interface AppsPageAction {
         data class ApplySort(val settings: SortSettings) : Dialog
         data class ConfirmEnable(val apps: List<AppItem>) : Dialog
         data class ConfirmDisable(val apps: List<AppItem>) : Dialog
+        data class ConfirmUninstall(val apps: List<AppItem>) : Dialog
+        data class ConfirmClearCache(val apps: List<AppItem>) : Dialog
+        data class ConfirmClearData(val apps: List<AppItem>) : Dialog
     }
 
     /**

@@ -130,6 +130,22 @@ class PkgOpsClient @AssistedInject constructor(
         }
     }
 
+    fun uninstallPackage(id: InstallId): Boolean = try {
+        connection.uninstallPackage(id.pkgId.name, id.userHandle.handleId)
+    } catch (e: Exception) {
+        throw e.refineException().also {
+            log(TAG, ERROR) { "uninstallPackage(id=$id) failed: ${it.asLog()}" }
+        }
+    }
+
+    fun clearData(id: InstallId): Boolean = try {
+        connection.clearData(id.pkgId.name, id.userHandle.handleId)
+    } catch (e: Exception) {
+        throw e.refineException().also {
+            log(TAG, ERROR) { "clearData(id=$id) failed: ${it.asLog()}" }
+        }
+    }
+
     @AssistedFactory
     interface Factory {
         fun create(connection: PkgOpsConnection): PkgOpsClient

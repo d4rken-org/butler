@@ -135,7 +135,7 @@ private fun AppsWorkspacePage(
                                 ) { appItem ->
                                     AppListItem(
                                         item = appItem,
-                                        isSelected = appItem.packageName in state.selectedAppIds,
+                                        isSelected = appItem.pkg.installId in state.selectedAppIds,
                                         onClick = { onPageAction(AppsPageAction.Apps.Click(appItem)) },
                                         onLongClick = { onPageAction(AppsPageAction.Apps.LongClick(appItem)) },
                                         showSelection = state.isMultiSelectMode,
@@ -189,7 +189,7 @@ private fun AppsWorkspacePage(
                                 ) { appItem ->
                                     AppGridItem(
                                         item = appItem,
-                                        isSelected = appItem.packageName in state.selectedAppIds,
+                                        isSelected = appItem.pkg.installId in state.selectedAppIds,
                                         onClick = { onPageAction(AppsPageAction.Apps.Click(appItem)) },
                                         onLongClick = { onPageAction(AppsPageAction.Apps.LongClick(appItem)) },
                                         showSelection = state.isMultiSelectMode,
@@ -279,6 +279,9 @@ private fun AppsWorkspacePage(
         onSortApply = { onPageAction(AppsPageAction.Dialog.ApplySort(it)) },
         onConfirmEnable = { onPageAction(AppsPageAction.Dialog.ConfirmEnable(it)) },
         onConfirmDisable = { onPageAction(AppsPageAction.Dialog.ConfirmDisable(it)) },
+        onConfirmUninstall = { onPageAction(AppsPageAction.Dialog.ConfirmUninstall(it)) },
+        onConfirmClearCache = { onPageAction(AppsPageAction.Dialog.ConfirmClearCache(it)) },
+        onConfirmClearData = { onPageAction(AppsPageAction.Dialog.ConfirmClearData(it)) },
         bottomInset = navBarInset,
     )
 }
@@ -366,7 +369,10 @@ private fun AppsWorkspacePageWithSelectionPreview() {
 
     val mockState = AppsWorkspaceViewModel.State.Ready(
         apps = mockApps,
-        selectedAppIds = setOf("com.android.chrome", "com.example.notes"),
+        selectedAppIds = setOf(
+            AppsMockDataProvider.Presets.chromeItem.pkg.installId,
+            AppsMockDataProvider.Presets.notesItem.pkg.installId,
+        ),
         availableActions = listOf(
             AppsActionBarItem.DeselectAll,
             AppsActionBarItem.SelectAll,

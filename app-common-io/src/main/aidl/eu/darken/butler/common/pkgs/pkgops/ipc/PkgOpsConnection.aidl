@@ -32,4 +32,8 @@ interface PkgOpsConnection {
     boolean revokePermission(String packageName, int handleId, String permissionId);
 
     boolean setAppOps(String packageName, int handleId, String key, String value);
+
+    boolean uninstallPackage(String packageName, int handleId);
+
+    boolean clearData(String packageName, int handleId);
 }

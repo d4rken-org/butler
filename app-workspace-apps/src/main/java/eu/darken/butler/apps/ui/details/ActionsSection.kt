@@ -113,13 +113,11 @@ sealed class ActionGroup {
         override val color: @Composable () -> Color = { MaterialTheme.colorScheme.primary }
     }
 
-    data class Management(val isEnabled: Boolean) : ActionGroup() {
+    data class Management(
+        val isEnabled: Boolean,
+        override val actions: List<AppAction>,
+    ) : ActionGroup() {
         override val titleRes = R.string.apps_actions_group_management
-        override val actions = listOf(
-            AppAction.EnableDisable(isEnabled),
-            AppAction.ForceStop,
-            AppAction.ClearCache
-        )
         override val color: @Composable () -> Color = { MaterialTheme.colorScheme.primary }
     }
 
@@ -129,9 +127,8 @@ sealed class ActionGroup {
         override val color: @Composable () -> Color = { MaterialTheme.colorScheme.primary }
     }
 
-    data object Destructive : ActionGroup() {
+    data class Destructive(override val actions: List<AppAction>) : ActionGroup() {
         override val titleRes = R.string.apps_actions_group_destructive
-        override val actions = listOf(AppAction.ClearData, AppAction.Uninstall)
         override val color: @Composable () -> Color = { MaterialTheme.colorScheme.error }
     }
 }
@@ -149,15 +146,30 @@ fun ActionsSection(
     onForceStop: () -> Unit = {},
     onClearCache: () -> Unit = {},
     onClearData: () -> Unit = {},
+    canEnableDisable: Boolean = true,
+    canForceStop: Boolean = true,
+    canClearCache: Boolean = true,
+    canClearData: Boolean = true,
 ) {
     if (app == null) return
 
-    val actionGroups = listOf(
-        ActionGroup.Primary,
-        ActionGroup.Management(app.isEnabled),
-        ActionGroup.Export,
-        ActionGroup.Destructive
-    )
+    val managementActions = buildList {
+        if (canEnableDisable) add(AppAction.EnableDisable(app.isEnabled))
+        if (canForceStop) add(AppAction.ForceStop)
+        if (canClearCache) add(AppAction.ClearCache)
+    }
+
+    val destructiveActions = buildList {
+        if (canClearData) add(AppAction.ClearData)
+        add(AppAction.Uninstall)
+    }
+
+    val actionGroups = buildList {
+        add(ActionGroup.Primary)
+        if (managementActions.isNotEmpty()) add(ActionGroup.Management(app.isEnabled, managementActions))
+        add(ActionGroup.Export)
+        add(ActionGroup.Destructive(destructiveActions))
+    }
 
     val actionHandlers = mapOf<AppAction, () -> Unit>(
         AppAction.Launch to onLaunchApp,
@@ -168,7 +180,7 @@ fun ActionsSection(
         AppAction.ExportApk to onExportApk,
         AppAction.ShareApk to onShareApk,
         AppAction.ClearData to onClearData,
-        AppAction.Uninstall to onUninstall
+        AppAction.Uninstall to onUninstall,
     )
 
     Column(
@@ -179,7 +191,7 @@ fun ActionsSection(
             ActionGroupSection(
                 group = group,
                 actionHandlers = actionHandlers,
-                showDivider = index < actionGroups.size - 1
+                showDivider = index < actionGroups.size - 1,
             )
         }
     }

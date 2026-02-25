@@ -20,6 +20,9 @@ fun AppsDialogHost(
     onSortApply: (SortSettings) -> Unit,
     onConfirmEnable: (List<AppItem>) -> Unit,
     onConfirmDisable: (List<AppItem>) -> Unit,
+    onConfirmUninstall: (List<AppItem>) -> Unit,
+    onConfirmClearCache: (List<AppItem>) -> Unit,
+    onConfirmClearData: (List<AppItem>) -> Unit,
     bottomInset: Dp = 0.dp,
 ) {
     when (dialogState) {
@@ -91,9 +94,7 @@ fun AppsDialogHost(
                 apps = dialogState.apps,
                 confirmButtonText = "Uninstall",
                 isDestructive = true,
-                onConfirm = {
-                    // TODO: Implement actual uninstall operation
-                },
+                onConfirm = { onConfirmUninstall(dialogState.apps) },
                 onDismiss = onDismiss,
                 modifier = modifier,
             )
@@ -106,9 +107,7 @@ fun AppsDialogHost(
                 apps = dialogState.apps,
                 confirmButtonText = "Clear cache",
                 isDestructive = false,
-                onConfirm = {
-                    // TODO: Implement actual clear cache operation
-                },
+                onConfirm = { onConfirmClearCache(dialogState.apps) },
                 onDismiss = onDismiss,
                 modifier = modifier,
             )
@@ -121,9 +120,7 @@ fun AppsDialogHost(
                 apps = dialogState.apps,
                 confirmButtonText = "Clear data",
                 isDestructive = true,
-                onConfirm = {
-                    // TODO: Implement actual clear data operation
-                },
+                onConfirm = { onConfirmClearData(dialogState.apps) },
                 onDismiss = onDismiss,
                 modifier = modifier,
             )

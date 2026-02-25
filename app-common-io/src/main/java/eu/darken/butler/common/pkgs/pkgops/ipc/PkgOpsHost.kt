@@ -184,6 +184,38 @@ class PkgOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
+    override fun uninstallPackage(packageName: String, handleId: Int): Boolean = try {
+        log(TAG, VERBOSE) { "uninstallPackage($packageName, $handleId)..." }
+        val result = runBlocking {
+            sharedShell.useRes {
+                FlowCmd("pm uninstall --user $handleId $packageName").execute(it)
+            }
+        }
+        if (result.exitCode != FlowProcess.ExitCode.OK) {
+            log(TAG, WARN) { "uninstallPackage($packageName, $handleId) failed: output=${result.output}, errors=${result.errors}" }
+        }
+        result.exitCode == FlowProcess.ExitCode.OK
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "uninstallPackage($packageName, $handleId) failed: ${e.asLog()}" }
+        throw e.wrapToPropagate()
+    }
+
+    override fun clearData(packageName: String, handleId: Int): Boolean = try {
+        log(TAG, VERBOSE) { "clearData($packageName, $handleId)..." }
+        val result = runBlocking {
+            sharedShell.useRes {
+                FlowCmd("pm clear --user $handleId $packageName").execute(it)
+            }
+        }
+        if (result.exitCode != FlowProcess.ExitCode.OK) {
+            log(TAG, WARN) { "clearData($packageName, $handleId) failed: output=${result.output}, errors=${result.errors}" }
+        }
+        result.exitCode == FlowProcess.ExitCode.OK
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "clearData($packageName, $handleId) failed: ${e.asLog()}" }
+        throw e.wrapToPropagate()
+    }
+
     companion object {
         val TAG = logTag("Pkg", "Ops", "Service", "Host", Bugs.processTag)
     }

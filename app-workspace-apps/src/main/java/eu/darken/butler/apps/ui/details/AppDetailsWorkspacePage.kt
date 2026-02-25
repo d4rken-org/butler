@@ -61,6 +61,9 @@ sealed interface AppDetailsPageAction {
     data class ExportApk(val app: AppInfo) : AppDetailsPageAction
     data class ShareApk(val app: AppInfo) : AppDetailsPageAction
     data class LaunchActivity(val activity: ActivityInfo) : AppDetailsPageAction
+    data class ForceStop(val app: AppInfo) : AppDetailsPageAction
+    data class ClearCache(val app: AppInfo) : AppDetailsPageAction
+    data class ClearData(val app: AppInfo) : AppDetailsPageAction
 }
 
 @Composable
@@ -95,6 +98,9 @@ fun AppDetailsWorkspacePageHost(
                     is AppDetailsPageAction.ExportApk -> vm.onExportApk(action.app)
                     is AppDetailsPageAction.ShareApk -> vm.onShareApk(action.app)
                     is AppDetailsPageAction.LaunchActivity -> vm.onLaunchActivity(action.activity)
+                    is AppDetailsPageAction.ForceStop -> vm.onForceStop(action.app)
+                    is AppDetailsPageAction.ClearCache -> vm.onClearCache(action.app)
+                    is AppDetailsPageAction.ClearData -> vm.onClearData(action.app)
                 }
             },
         )
@@ -245,9 +251,13 @@ fun AppDetailsWorkspacePage(
                                 onUninstall = { onPageAction(AppDetailsPageAction.Uninstall(appInfo)) },
                                 onExportApk = { onPageAction(AppDetailsPageAction.ExportApk(appInfo)) },
                                 onShareApk = { onPageAction(AppDetailsPageAction.ShareApk(appInfo)) },
-                                onForceStop = { /* TODO: Not implemented yet */ },
-                                onClearCache = { /* TODO: Not implemented yet */ },
-                                onClearData = { /* TODO: Not implemented yet */ },
+                                onForceStop = { onPageAction(AppDetailsPageAction.ForceStop(appInfo)) },
+                                onClearCache = { onPageAction(AppDetailsPageAction.ClearCache(appInfo)) },
+                                onClearData = { onPageAction(AppDetailsPageAction.ClearData(appInfo)) },
+                                canEnableDisable = state.canEnableDisable,
+                                canForceStop = state.canForceStop,
+                                canClearCache = state.canClearCache,
+                                canClearData = state.canClearData,
                             )
                         }
                     }

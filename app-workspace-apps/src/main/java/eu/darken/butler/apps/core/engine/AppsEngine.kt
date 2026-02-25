@@ -13,6 +13,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.pkgs.PkgRepo
+import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.common.pkgs.pkgs
 import eu.darken.butler.common.user.UserManager2
 import eu.darken.butler.common.user.UserProfile2
@@ -45,7 +46,7 @@ class AppsEngine @AssistedInject constructor(
     private val _filterConfig = MutableStateFlow(TagFilterConfig())
     private val _sortSettings = MutableStateFlow(SortSettings())
     private val _searchQuery = MutableStateFlow("")
-    private val _selectedAppIds = MutableStateFlow<Set<String>>(emptySet())
+    private val _selectedAppIds = MutableStateFlow<Set<InstallId>>(emptySet())
 
     init {
         log(tag, INFO) { "AppsEngine initialized for workspace ${workspaceId.shortTag}" }
@@ -121,11 +122,11 @@ class AppsEngine @AssistedInject constructor(
         _searchQuery.value = query
     }
 
-    suspend fun selectApp(packageName: String, selected: Boolean) = withContext(dispatcherProvider.Default) {
+    suspend fun selectApp(installId: InstallId, selected: Boolean) = withContext(dispatcherProvider.Default) {
         val newSelection = if (selected) {
-            _selectedAppIds.value + packageName
+            _selectedAppIds.value + installId
         } else {
-            _selectedAppIds.value - packageName
+            _selectedAppIds.value - installId
         }
         log(tag) { "App selection updated: ${newSelection.size} selected" }
         _selectedAppIds.value = newSelection
@@ -137,7 +138,7 @@ class AppsEngine @AssistedInject constructor(
     }
 
     suspend fun selectAll() = withContext(dispatcherProvider.Default) {
-        val allIds = _state.value.filteredApps.map { it.packageName }.toSet()
+        val allIds = _state.value.filteredApps.map { it.pkg.installId }.toSet()
         log(tag) { "Selecting all ${allIds.size} visible apps" }
         _selectedAppIds.value = allIds
     }
