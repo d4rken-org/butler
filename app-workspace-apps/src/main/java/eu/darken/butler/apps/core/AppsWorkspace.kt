@@ -16,7 +16,9 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
+import eu.darken.butler.common.pkgs.pkgops.PkgOpsException
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
@@ -78,14 +80,19 @@ class AppsWorkspace @AssistedInject constructor(
             val sortSettings: SortSettings = SortSettings(),
             val searchQuery: String = "",
             val viewStyle: AppsViewStyle = AppsViewStyle.default(),
-            val selectedAppIds: Set<String> = emptySet(),
-            val hasElevatedAccess: Boolean = false,
+            val selectedAppIds: Set<InstallId> = emptySet(),
+            val hasRoot: Boolean = false,
+            val hasAdb: Boolean = false,
             val isLoading: Boolean = false,
             val error: Throwable? = null,
         ) : State {
             val isMultiSelectMode: Boolean get() = selectedAppIds.isNotEmpty()
             val selectionCount: Int get() = selectedAppIds.size
-            val selectedApps: List<AppItem> get() = filteredApps.filter { it.packageName in selectedAppIds }
+            val selectedApps: List<AppItem> get() = filteredApps.filter { it.pkg.installId in selectedAppIds }
+
+            val canEnableDisable: Boolean get() = hasRoot || hasAdb
+            val canClearCache: Boolean get() = hasRoot
+            val canClearData: Boolean get() = hasRoot || hasAdb
         }
 
         data class Error(val error: Throwable) : State
@@ -178,7 +185,8 @@ class AppsWorkspace @AssistedInject constructor(
                     searchQuery = engineState.searchQuery,
                     viewStyle = viewStyle ?: this.viewStyle,
                     selectedAppIds = engineState.selectedAppIds,
-                    hasElevatedAccess = hasRoot || hasAdb,
+                    hasRoot = hasRoot,
+                    hasAdb = hasAdb,
                     isLoading = engineState.isLoading,
                     error = engineState.error,
                 )
@@ -203,8 +211,8 @@ class AppsWorkspace @AssistedInject constructor(
         _viewStyle.value = style
     }
 
-    suspend fun selectApp(packageName: String, selected: Boolean) {
-        appsEngine.selectApp(packageName, selected)
+    suspend fun selectApp(installId: InstallId, selected: Boolean) {
+        appsEngine.selectApp(installId, selected)
     }
 
     suspend fun clearSelection() {
@@ -221,20 +229,107 @@ class AppsWorkspace @AssistedInject constructor(
 
     suspend fun enableApps(apps: List<AppItem>) {
         log(tag) { "Enabling ${apps.size} apps" }
-        apps.forEach { app ->
-            pkgOps.changePackageState(app.id, enabled = true)
+        val failures = mutableListOf<Pair<AppItem, Exception>>()
+        try {
+            apps.forEach { app ->
+                try {
+                    pkgOps.changePackageState(app.id, enabled = true)
+                } catch (e: Exception) {
+                    log(tag, WARN) { "Failed to enable ${app.packageName}: $e" }
+                    failures.add(app to e)
+                }
+            }
+            if (failures.isNotEmpty()) {
+                throw PkgOpsException("Failed to enable ${failures.size}/${apps.size} apps", failures.first().second)
+            }
+        } finally {
+            appsEngine.refresh()
+            appsEngine.clearSelection()
         }
-        appsEngine.refresh()
-        appsEngine.clearSelection()
     }
 
     suspend fun disableApps(apps: List<AppItem>) {
         log(tag) { "Disabling ${apps.size} apps" }
-        apps.forEach { app ->
-            pkgOps.changePackageState(app.id, enabled = false)
+        val failures = mutableListOf<Pair<AppItem, Exception>>()
+        try {
+            apps.forEach { app ->
+                try {
+                    pkgOps.changePackageState(app.id, enabled = false)
+                } catch (e: Exception) {
+                    log(tag, WARN) { "Failed to disable ${app.packageName}: $e" }
+                    failures.add(app to e)
+                }
+            }
+            if (failures.isNotEmpty()) {
+                throw PkgOpsException("Failed to disable ${failures.size}/${apps.size} apps", failures.first().second)
+            }
+        } finally {
+            appsEngine.refresh()
+            appsEngine.clearSelection()
         }
-        appsEngine.refresh()
-        appsEngine.clearSelection()
+    }
+
+    suspend fun uninstallApps(apps: List<AppItem>) {
+        log(tag) { "Uninstalling ${apps.size} apps" }
+        val failures = mutableListOf<Pair<AppItem, Exception>>()
+        try {
+            apps.forEach { app ->
+                try {
+                    pkgOps.uninstall(app.pkg.installId)
+                } catch (e: Exception) {
+                    log(tag, WARN) { "Failed to uninstall ${app.packageName}: $e" }
+                    failures.add(app to e)
+                }
+            }
+            if (failures.isNotEmpty()) {
+                throw PkgOpsException("Failed to uninstall ${failures.size}/${apps.size} apps", failures.first().second)
+            }
+        } finally {
+            appsEngine.refresh()
+            appsEngine.clearSelection()
+        }
+    }
+
+    suspend fun clearCacheApps(apps: List<AppItem>) {
+        log(tag) { "Clearing cache for ${apps.size} apps" }
+        val failures = mutableListOf<Pair<AppItem, Exception>>()
+        try {
+            apps.forEach { app ->
+                try {
+                    pkgOps.clearCache(app.pkg.installId)
+                } catch (e: Exception) {
+                    log(tag, WARN) { "Failed to clear cache for ${app.packageName}: $e" }
+                    failures.add(app to e)
+                }
+            }
+            if (failures.isNotEmpty()) {
+                throw PkgOpsException("Failed to clear cache for ${failures.size}/${apps.size} apps", failures.first().second)
+            }
+        } finally {
+            appsEngine.refresh()
+            appsEngine.clearSelection()
+        }
+    }
+
+    suspend fun clearDataApps(apps: List<AppItem>) {
+        log(tag) { "Clearing data for ${apps.size} apps" }
+        val failures = mutableListOf<Pair<AppItem, Exception>>()
+        try {
+            apps.forEach { app ->
+                try {
+                    pkgOps.clearData(app.pkg.installId)
+                } catch (e: Exception) {
+                    log(tag, WARN) { "Failed to clear data for ${app.packageName}: $e" }
+                    failures.add(app to e)
+                }
+            }
+            if (failures.isNotEmpty()) {
+                throw PkgOpsException("Failed to clear data for ${failures.size}/${apps.size} apps", failures.first().second)
+            }
+        } finally {
+            appsEngine.refresh()
+            appsEngine.clearSelection()
+        }
     }
 
     override suspend fun release() {

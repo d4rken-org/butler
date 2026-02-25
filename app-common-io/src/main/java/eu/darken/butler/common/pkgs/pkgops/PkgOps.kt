@@ -322,6 +322,66 @@ class PkgOps @Inject constructor(
         }
     }
 
+    suspend fun uninstall(id: InstallId, mode: Mode = Mode.AUTO): Boolean {
+        log(TAG, VERBOSE) { "uninstall($id, mode=$mode)" }
+        try {
+            if (mode == Mode.NORMAL) throw PkgOpsException("uninstall($id) does not support mode=NORMAL")
+
+            val opsAction = { opsClient: PkgOpsClient ->
+                opsClient.uninstallPackage(id)
+            }
+
+            if (adbManager.canUseAdbNow() && (mode == Mode.AUTO || mode == Mode.ADB)) {
+                log(TAG) { "uninstall($id, $mode->ADB)" }
+                return adbOps { opsAction(it) }
+            }
+
+            if (rootManager.canUseRootNow() && (mode == Mode.AUTO || mode == Mode.ROOT)) {
+                log(TAG) { "uninstall($id, $mode->ROOT)" }
+                return rootOps { opsAction(it) }
+            }
+
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
+        } catch (e: Exception) {
+            if (e is ElevatedAccessUnavailableException) {
+                log(TAG, DEBUG) { "uninstall(...): $mode unavailable for $id" }
+            } else {
+                log(TAG, WARN) { "uninstall($id, mode=$mode) failed: $e" }
+            }
+            throw PkgOpsException(message = "uninstall($id, $mode) failed", cause = e)
+        }
+    }
+
+    suspend fun clearData(id: InstallId, mode: Mode = Mode.AUTO): Boolean {
+        log(TAG, VERBOSE) { "clearData($id, mode=$mode)" }
+        try {
+            if (mode == Mode.NORMAL) throw PkgOpsException("clearData($id) does not support mode=NORMAL")
+
+            val opsAction = { opsClient: PkgOpsClient ->
+                opsClient.clearData(id)
+            }
+
+            if (adbManager.canUseAdbNow() && (mode == Mode.AUTO || mode == Mode.ADB)) {
+                log(TAG) { "clearData($id, $mode->ADB)" }
+                return adbOps { opsAction(it) }
+            }
+
+            if (rootManager.canUseRootNow() && (mode == Mode.AUTO || mode == Mode.ROOT)) {
+                log(TAG) { "clearData($id, $mode->ROOT)" }
+                return rootOps { opsAction(it) }
+            }
+
+            throw ElevatedAccessUnavailableException("Mode $mode is unavailable")
+        } catch (e: Exception) {
+            if (e is ElevatedAccessUnavailableException) {
+                log(TAG, DEBUG) { "clearData(...): $mode unavailable for $id" }
+            } else {
+                log(TAG, WARN) { "clearData($id, mode=$mode) failed: $e" }
+            }
+            throw PkgOpsException(message = "clearData($id, $mode) failed", cause = e)
+        }
+    }
+
     suspend fun trimCaches(
         desiredBytes: Long,
         storageId: String? = null,

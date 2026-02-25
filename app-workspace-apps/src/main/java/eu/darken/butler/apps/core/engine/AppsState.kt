@@ -3,6 +3,7 @@ package eu.darken.butler.apps.core.engine
 import eu.darken.butler.apps.core.AppTag
 import eu.darken.butler.apps.core.SortSettings
 import eu.darken.butler.apps.core.TagFilterConfig
+import eu.darken.butler.common.pkgs.features.InstallId
 
 data class AppsState(
     val apps: List<AppItem> = emptyList(),
@@ -10,7 +11,7 @@ data class AppsState(
     val filterConfig: TagFilterConfig = TagFilterConfig(),
     val sortSettings: SortSettings = SortSettings(),
     val searchQuery: String = "",
-    val selectedAppIds: Set<String> = emptySet(),
+    val selectedAppIds: Set<InstallId> = emptySet(),
     val isLoading: Boolean = false,
     val error: Throwable? = null,
 ) {

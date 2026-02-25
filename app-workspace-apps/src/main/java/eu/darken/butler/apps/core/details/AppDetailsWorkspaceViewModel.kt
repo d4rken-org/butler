@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.net.Uri
 import android.provider.Settings
 import androidx.core.net.toUri
 import dagger.assisted.Assisted
@@ -12,12 +13,15 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.apps.core.arguments.DetailTab
+import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.pkgs.features.AppStore
 import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.pkgs.isEnabled
+import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.saver.core.arguments.SaverArguments
@@ -39,6 +43,7 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
+    private val pkgOps: PkgOps,
 ) : ViewModel4(dispatchers, logTag("AppDetails", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<AppDetailsWorkspace?> =
@@ -87,8 +92,23 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
 
     fun onUninstall(app: AppInfo) = launch {
         log(tag) { "Uninstalling app: ${app.packageName}" }
-        // TODO: Implement uninstall operation
-        log(tag, WARN) { "Uninstall not implemented yet" }
+        try {
+            pkgOps.uninstall(app.installId)
+            // Don't close here — auto-close in AppDetailsWorkspace handles it reactively
+        } catch (e: Exception) {
+            val isElevatedUnavailable = generateSequence<Throwable>(e) { it.cause }
+                .any { it is ElevatedAccessUnavailableException }
+            if (isElevatedUnavailable) {
+                log(tag) { "Elevated access unavailable, falling back to system uninstall intent" }
+                val intent = Intent(Intent.ACTION_DELETE).apply {
+                    data = Uri.parse("package:${app.packageName}")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+            } else {
+                throw e
+            }
+        }
     }
 
     fun onExportApk(app: AppInfo) = launch {
@@ -108,15 +128,38 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun onShareApk(app: AppInfo) = launch {
-        log(tag) { "Sharing APK: ${app.packageName}" }
-        // TODO: Implement APK sharing
-        log(tag, WARN) { "Share APK not implemented yet" }
+        log(tag) { "Sharing app info: ${app.packageName}" }
+        val shareText = buildString {
+            val version = app.versionName ?: app.versionCode.toString()
+            append("- **${app.label.get(context)}** (${app.packageName}) v$version")
+
+            app.installerInfo?.installer?.let { installer ->
+                val appStore = installer as? AppStore
+                val url = appStore?.urlGenerator?.invoke(app.id)
+                append("\n  Source: ")
+                if (url != null) {
+                    append("[${installer.label?.get(context) ?: installer.id.name}]($url)")
+                } else {
+                    append(installer.label?.get(context) ?: installer.id.name)
+                }
+            }
+        }
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(
+            Intent.createChooser(intent, null).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        )
     }
 
     fun onEnableDisable(app: AppInfo) = launch {
         log(tag) { "Toggle enable/disable: ${app.packageName}, current=${app.install.isEnabled}" }
-        // TODO: Implement enable/disable operation
-        log(tag, WARN) { "Enable/disable not implemented yet" }
+        pkgOps.changePackageState(app.id, enabled = !app.isEnabled)
     }
 
     fun onLaunchActivity(activityInfo: ActivityInfo) {
@@ -130,6 +173,21 @@ class AppDetailsWorkspaceViewModel @AssistedInject constructor(
         } catch (e: Exception) {
             log(tag, WARN) { "Failed to launch activity ${activityInfo.name}: $e" }
         }
+    }
+
+    fun onForceStop(app: AppInfo) = launch {
+        log(tag) { "Force stopping: ${app.packageName}" }
+        pkgOps.forceStop(app.id)
+    }
+
+    fun onClearCache(app: AppInfo) = launch {
+        log(tag) { "Clearing cache: ${app.packageName}" }
+        pkgOps.clearCache(app.installId)
+    }
+
+    fun onClearData(app: AppInfo) = launch {
+        log(tag) { "Clearing data: ${app.packageName}" }
+        pkgOps.clearData(app.installId)
     }
 
     fun close() = launch {

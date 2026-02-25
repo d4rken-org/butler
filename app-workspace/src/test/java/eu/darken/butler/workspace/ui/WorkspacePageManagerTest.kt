@@ -60,11 +60,6 @@ class WorkspacePageManagerTest : BaseTest() {
         val explorer2 = Workspace.Id()
         val appDetails = Workspace.Id()
 
-        pageManager.setPaneCount(3)
-        pageManager.handleWorkspaceSelection(explorer1)
-        pageManager.handleWorkspaceSelection(apps)
-        pageManager.handleWorkspaceSelection(explorer2)
-
         stateFlow.value = WorkspaceRemote.State(
             infos = listOf(
                 createWorkspaceInfo(id = explorer1),
@@ -73,6 +68,11 @@ class WorkspacePageManagerTest : BaseTest() {
                 createWorkspaceInfo(id = appDetails, callerWorkspaceId = apps),
             )
         )
+
+        pageManager.setPaneCount(3)
+        pageManager.handleWorkspaceSelection(explorer1)
+        pageManager.handleWorkspaceSelection(apps)
+        pageManager.handleWorkspaceSelection(explorer2)
 
         val selectionsBefore = pageManager.state.value.selectedWorkspaces.toMap()
 
@@ -211,6 +211,7 @@ class WorkspacePageManagerTest : BaseTest() {
         stateFlow.value = WorkspaceRemote.State(
             infos = listOf(
                 createWorkspaceInfo(id = callerWorkspace),
+                createWorkspaceInfo(id = subWorkspace, callerWorkspaceId = callerWorkspace),
             )
         )
 
@@ -227,6 +228,71 @@ class WorkspacePageManagerTest : BaseTest() {
         testScope.testScheduler.advanceUntilIdle()
 
         pageManager.state.value.focusedWorkspaceId shouldBe callerWorkspace
+    }
+
+    @Test
+    fun `sub-workspace does not replace pane when all panes are full`() = runTest {
+        val ws1 = Workspace.Id()
+        val ws2 = Workspace.Id()
+        val ws3 = Workspace.Id()
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+                createWorkspaceInfo(id = ws3),
+            )
+        )
+        pageManager.setPaneCount(3)
+        pageManager.handleWorkspaceSelection(ws1)
+        pageManager.handleWorkspaceSelection(ws2)
+        pageManager.handleWorkspaceSelection(ws3)
+
+        val subWs = Workspace.Id()
+        // Emit Created — handleWorkspaceCreated suspends waiting for subWs in state
+        eventsFlow.emit(WorkspaceEvent.Created(subWs))
+        // Add subWs to state — unblocks handleWorkspaceCreated which sees isSubWorkspace=true
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+                createWorkspaceInfo(id = ws3),
+                createWorkspaceInfo(id = subWs, callerWorkspaceId = ws1),
+            )
+        )
+        eventsFlow.emit(WorkspaceEvent.SelectionRequested(subWs))
+        testScope.testScheduler.advanceUntilIdle()
+
+        pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to ws1, 1 to ws2, 2 to ws3)
+        pageManager.state.value.focusedWorkspaceId shouldBe subWs
+    }
+
+    @Test
+    fun `sub-workspace is not assigned to empty pane`() = runTest {
+        val ws1 = Workspace.Id()
+        val ws2 = Workspace.Id()
+        val subWs = Workspace.Id()
+        pageManager.setPaneCount(3)
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+            )
+        )
+        pageManager.handleWorkspaceSelection(ws1)
+        pageManager.handleWorkspaceSelection(ws2)
+        // Pane 2 is empty
+
+        eventsFlow.emit(WorkspaceEvent.Created(subWs))
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+                createWorkspaceInfo(id = subWs, callerWorkspaceId = ws1),
+            )
+        )
+        testScope.testScheduler.advanceUntilIdle()
+
+        pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to ws1, 1 to ws2)
     }
 
     @Test

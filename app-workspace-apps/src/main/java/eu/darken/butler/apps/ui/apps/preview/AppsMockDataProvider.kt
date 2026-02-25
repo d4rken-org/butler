@@ -181,7 +181,7 @@ object AppsMockDataProvider {
 
     fun createMockAppsState(
         apps: List<AppItem> = emptyList(),
-        selectedIds: Set<String> = emptySet(),
+        selectedIds: Set<eu.darken.butler.common.pkgs.features.InstallId> = emptySet(),
     ): AppsState {
         return AppsState(
             apps = apps,
