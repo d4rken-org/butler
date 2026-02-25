@@ -254,14 +254,20 @@ class EditorWorkspace @AssistedInject constructor(
 
             val engine = editorEngineFactory.create(id, initialPath, initialContent)
             _engine.value = engine
+            pendingEngine = engine
 
-            val result = engine.initialize()
+            try {
+                val result = engine.initialize()
 
-            if (result.isFailure) {
-                val error = result.exceptionOrNull() ?: Exception("Engine initialization failed")
-                log(tag, ERROR) { "Engine initialization failed: ${error.asLog()}" }
-                _state.value = State.Error(error)
-                return@launch
+                if (result.isFailure) {
+                    val error = result.exceptionOrNull() ?: Exception("Engine initialization failed")
+                    if (error is CancellationException) return@launch
+                    log(tag, ERROR) { "Engine initialization failed: ${error.asLog()}" }
+                    _state.value = State.Error(error)
+                    return@launch
+                }
+            } finally {
+                pendingEngine = null
             }
 
             // Restore cursor and scroll position from saved arguments
@@ -319,24 +325,24 @@ class EditorWorkspace @AssistedInject constructor(
         val newEngine = editorEngineFactory.create(id, newFilePath)
         pendingEngine = newEngine
 
+        // Swap engine before initialize so progress flows through editorStateInternal
+        val oldEngine = engineMutex.withLock {
+            val old = _engine.value
+            _engine.value = newEngine
+            old
+        }
+
         try {
             val initResult = newEngine.initialize()
 
             if (initResult.isFailure) {
-                newEngine.release()
                 val error = initResult.exceptionOrNull() ?: Exception("Failed to initialize engine")
+                if (error is CancellationException) throw error
                 log(tag, ERROR) { "Failed to switch engine: ${error.asLog()}" }
                 throw error
             }
 
-            // Atomically swap engines
-            val oldEngine = engineMutex.withLock {
-                val old = _engine.value
-                _engine.value = newEngine
-                old
-            }
-
-            // Release old engine after swap
+            // Release old engine after successful init
             oldEngine?.let { old ->
                 try {
                     old.release()
@@ -348,6 +354,8 @@ class EditorWorkspace @AssistedInject constructor(
             log(tag, DEBUG) { "Engine switched successfully" }
         } catch (e: CancellationException) {
             log(tag, INFO) { "Engine switch cancelled" }
+            // Restore old engine on cancellation
+            engineMutex.withLock { _engine.value = oldEngine }
             try {
                 newEngine.release()
             } catch (releaseError: Exception) {
@@ -355,6 +363,8 @@ class EditorWorkspace @AssistedInject constructor(
             }
             throw e
         } catch (e: Exception) {
+            // Restore old engine on failure
+            engineMutex.withLock { _engine.value = oldEngine }
             try {
                 newEngine.release()
             } catch (releaseError: Exception) {
