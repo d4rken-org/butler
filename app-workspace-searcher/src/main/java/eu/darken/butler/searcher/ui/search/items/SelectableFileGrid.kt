@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.Folder
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -82,6 +84,14 @@ fun SelectableFileGrid(
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
+            // Preview/thumbnail background
+            TintedAsyncImage(
+                model = result.lookup,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+
             // Top overlay bar with icon and file size
             Row(
                 modifier = Modifier

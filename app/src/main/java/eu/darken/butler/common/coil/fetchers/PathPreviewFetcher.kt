@@ -111,7 +111,7 @@ class PathPreviewFetcher @Inject constructor(
                 } ?: fallbackIcon
             }
 
-            textPreviewGenerator.isTextPreviewable(mimeType) -> {
+            textPreviewGenerator.isTextPreviewable(mimeType, data.lookedUp.extension) -> {
                 // Generate cache key
                 val cacheKey = keyer.key(data, options)
 

@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.withTranslation
 import coil3.request.Options
+import eu.darken.butler.common.MimeTypes
 import coil3.size.Dimension
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -76,13 +77,42 @@ class TextPreviewGenerator @Inject constructor(
             }
         )
 
-    fun isTextPreviewable(mimeType: String): Boolean {
-        return mimeType.startsWith("text/") ||
-            mimeType in setOf(
+    fun isTextPreviewable(mimeType: String, extension: String? = null): Boolean =
+        mimeType.startsWith("text/")
+            || mimeType in TEXT_MIME_TYPES
+            || (mimeType == MimeTypes.Unknown.value && extension in TEXT_EXTENSIONS)
+
+    companion object {
+        private val TAG = logTag("Coil", "Fetcher", "Path", "Text")
+
+        private val TEXT_MIME_TYPES = setOf(
             "application/json",
             "application/xml",
             "application/x-sh",
-            "application/x-shellscript"
+            "application/x-shellscript",
+            "application/javascript",
+            "application/x-httpd-php",
+            "application/sql",
+            "application/x-yaml",
+            "application/toml",
+            "application/x-perl",
+            "application/x-ruby",
+        )
+
+        /**
+         * Extensions for text files that Android's MimeTypeMap doesn't recognize,
+         * returning `application/octet-stream` instead.
+         */
+        val TEXT_EXTENSIONS = setOf(
+            "kt", "kts",
+            "gradle",
+            "rs", "go", "rb", "lua", "swift", "dart",
+            "toml", "ini", "cfg", "conf",
+            "properties",
+            "bat", "cmd", "ps1",
+            "dockerfile",
+            "gitignore", "gitattributes", "editorconfig",
+            "pro", "svg",
         )
     }
 
@@ -173,13 +203,13 @@ class TextPreviewGenerator @Inject constructor(
         // Setup text paint with theme color
         val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.LINEAR_TEXT_FLAG).apply {
             color = textColor
-            textSize = 8 * context.resources.displayMetrics.scaledDensity
+            textSize = 6 * context.resources.displayMetrics.scaledDensity
             typeface = Typeface.MONOSPACE
             isAntiAlias = true
         }
 
         // Calculate usable area with padding
-        val paddingPx = 12 * context.resources.displayMetrics.density
+        val paddingPx = 2 * context.resources.displayMetrics.density
         val textWidth = width - (paddingPx * 2).toInt()
         val textHeight = height - (paddingPx * 2).toInt()
 
@@ -192,7 +222,7 @@ class TextPreviewGenerator @Inject constructor(
             textWidth
         )
             .setAlignment(Layout.Alignment.ALIGN_NORMAL)
-            .setLineSpacing(0f, 1.2f)
+            .setLineSpacing(0f, 1.1f)
             .setIncludePad(true)
             .build()
 
@@ -209,7 +239,4 @@ class TextPreviewGenerator @Inject constructor(
         return bitmap
     }
 
-    companion object {
-        private val TAG = logTag("Coil", "Fetcher", "Path", "Text")
-    }
 }

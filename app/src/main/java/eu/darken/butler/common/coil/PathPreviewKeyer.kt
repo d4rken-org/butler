@@ -2,6 +2,7 @@ package eu.darken.butler.common.coil
 
 import coil3.key.Keyer
 import coil3.request.Options
+import coil3.size.Dimension
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.main.core.GeneralSettings
@@ -22,8 +23,11 @@ class PathPreviewKeyer @Inject constructor(
         // Get current theme state synchronously
         val themeState = runBlocking { generalSettings.themeState.first() }
 
-        // Include path and theme in cache key
-        // Format: "path-preview-<path-hash>-<mode>-<style>-<color>"
+        val sizeWidth = (options.size.width as? Dimension.Pixels)?.px ?: 0
+        val sizeHeight = (options.size.height as? Dimension.Pixels)?.px ?: 0
+
+        // Include path, theme, and size in cache key
+        // Format: "path-preview-<path-hash>-<mode>-<style>-<color>-<w>x<h>"
         return buildString {
             append("path-preview-")
             append(data.path.hashCode())
@@ -33,6 +37,10 @@ class PathPreviewKeyer @Inject constructor(
             append(themeState.style.name.lowercase())
             append("-")
             append(themeState.color.name.lowercase())
+            append("-")
+            append(sizeWidth)
+            append("x")
+            append(sizeHeight)
         }
     }
 }

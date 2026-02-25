@@ -271,6 +271,62 @@ class TextPreviewGeneratorTest : BaseTest() {
         bitmap.height shouldBe 512
     }
 
+    @Test
+    fun `isTextPreviewable matches text MIME types`() {
+        textPreviewGenerator.isTextPreviewable("text/plain") shouldBe true
+        textPreviewGenerator.isTextPreviewable("text/html") shouldBe true
+        textPreviewGenerator.isTextPreviewable("text/css") shouldBe true
+        textPreviewGenerator.isTextPreviewable("text/x-java-source") shouldBe true
+        textPreviewGenerator.isTextPreviewable("text/markdown") shouldBe true
+    }
+
+    @Test
+    fun `isTextPreviewable matches application MIME types`() {
+        textPreviewGenerator.isTextPreviewable("application/json") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/xml") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/javascript") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/x-sh") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/x-shellscript") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/sql") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/x-yaml") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/x-httpd-php") shouldBe true
+    }
+
+    @Test
+    fun `isTextPreviewable rejects non-text types`() {
+        textPreviewGenerator.isTextPreviewable("image/png") shouldBe false
+        textPreviewGenerator.isTextPreviewable("video/mp4") shouldBe false
+        textPreviewGenerator.isTextPreviewable("application/pdf") shouldBe false
+        textPreviewGenerator.isTextPreviewable("application/zip") shouldBe false
+        textPreviewGenerator.isTextPreviewable("application/octet-stream") shouldBe false
+    }
+
+    @Test
+    fun `isTextPreviewable falls back to extension for unknown MIME type`() {
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", "kt") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", "kts") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", "gradle") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", "rs") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", "go") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", "properties") shouldBe true
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", "gitignore") shouldBe true
+    }
+
+    @Test
+    fun `isTextPreviewable extension fallback only applies to unknown MIME type`() {
+        // Extension fallback should NOT activate for known non-text MIME types
+        textPreviewGenerator.isTextPreviewable("application/zip", "kt") shouldBe false
+        textPreviewGenerator.isTextPreviewable("image/png", "rs") shouldBe false
+    }
+
+    @Test
+    fun `isTextPreviewable rejects unknown extensions`() {
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", "apk") shouldBe false
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", "so") shouldBe false
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", "dex") shouldBe false
+        textPreviewGenerator.isTextPreviewable("application/octet-stream", null) shouldBe false
+    }
+
     // Helper functions
 
     private fun createMockLookup(path: String, size: Long): APathLookup<*> {

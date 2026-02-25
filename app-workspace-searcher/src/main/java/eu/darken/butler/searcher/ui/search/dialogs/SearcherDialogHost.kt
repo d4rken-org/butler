@@ -15,6 +15,8 @@ import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog
+import eu.darken.butler.workspace.ui.dialogs.FileInfo
+import eu.darken.butler.workspace.ui.dialogs.FileInfoBottomSheet
 
 @Composable
 fun SearcherDialogHost(
@@ -79,6 +81,18 @@ fun SearcherDialogHost(
                 onRemove = { onRemoveClipboardEntry(dialogState.clip) },
                 onCopyPath = onCopyToClipboard,
                 bottomInset = bottomInset,
+            )
+        }
+        is SearcherDialogState.ShowItemProperties -> {
+            FileInfoBottomSheet(
+                fileInfo = FileInfo(
+                    lookup = dialogState.result.lookup,
+                    ownership = dialogState.result.lookup.ownership,
+                    permissions = dialogState.result.lookup.permissions,
+                    createdAt = dialogState.result.lookup.createdAt,
+                ),
+                onDismiss = onDismiss,
+                onCopyToClipboard = onCopyToClipboard,
             )
         }
         // Non-destructive dialogs handled by pane-scoped bottom sheets below
