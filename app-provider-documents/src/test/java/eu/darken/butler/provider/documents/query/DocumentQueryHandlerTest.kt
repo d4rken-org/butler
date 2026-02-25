@@ -279,6 +279,7 @@ class DocumentQueryHandlerTest {
         cursor.columnNames shouldBe arrayOf(
             COLUMN_DOCUMENT_ID,
             COLUMN_DISPLAY_NAME,
+            COLUMN_SUMMARY,
             COLUMN_MIME_TYPE,
             COLUMN_FLAGS,
             COLUMN_SIZE,
@@ -803,6 +804,109 @@ class DocumentQueryHandlerTest {
         symlinkFlags and FLAG_SUPPORTS_DELETE shouldNotBe 0
         symlinkFlags and FLAG_SUPPORTS_WRITE shouldBe 0
         symlinkFlags and FLAG_DIR_SUPPORTS_CREATE shouldBe 0
+    }
+
+    // ========== COLUMN_SUMMARY tests ==========
+
+    @Test
+    fun `queryDocument for Butler root has null summary`() = runTest {
+        val cursor = handler.queryDocument(ProviderLocation.Root.Butler.rootDocumentId, null)
+
+        cursor.moveToFirst() shouldBe true
+        val summaryIndex = cursor.getColumnIndex(COLUMN_SUMMARY)
+        cursor.isNull(summaryIndex) shouldBe true
+    }
+
+    @Test
+    fun `queryChildDocuments storage volumes show free space summary`() = runTest {
+        val rootPath = LocalPath.build("/")
+        val internalDir = File("/storage/emulated/0")
+
+        // Configure Robolectric's ShadowStatFs for the storage path
+        org.robolectric.shadows.ShadowStatFs.registerStats(internalDir, 1000, 200, 500)
+
+        val internalVolume = mockk<StorageVolumeX> {
+            every { isPrimary } returns true
+            every { isMounted } returns true
+            every { directory } returns internalDir
+            every { path } returns internalDir.absolutePath
+            every { userLabel } returns null
+        }
+
+        every { storageManager2.storageVolumes } returns listOf(internalVolume)
+
+        val internalPath = LocalPath.build(internalDir)
+        coEvery { codec.encode(rootPath) } returns "local|root"
+        coEvery { codec.encode(internalPath) } returns "local|internal"
+
+        val cursor = handler.queryChildDocuments(
+            ProviderLocation.Home.Device.documentId,
+            null,
+            null,
+        )
+
+        val summaryIndex = cursor.getColumnIndex(COLUMN_SUMMARY)
+        summaryIndex shouldNotBe -1
+
+        // Internal storage entry (after root filesystem)
+        cursor.moveToPosition(1)
+        val summary = cursor.getString(summaryIndex)
+        summary shouldNotBe null
+        summary.contains("free") shouldBe true
+    }
+
+    @Test
+    fun `queryChildDocuments storage volume without directory has null summary`() = runTest {
+        val rootPath = LocalPath.build("/")
+
+        val volumeWithoutDir = mockk<StorageVolumeX> {
+            every { isPrimary } returns true
+            every { isMounted } returns true
+            every { directory } returns null
+            every { path } returns "/storage/emulated/0"
+            every { userLabel } returns null
+        }
+
+        every { storageManager2.storageVolumes } returns listOf(volumeWithoutDir)
+
+        val volumePath = LocalPath.build("/storage/emulated/0")
+        coEvery { codec.encode(rootPath) } returns "local|root"
+        coEvery { codec.encode(volumePath) } returns "local|internal"
+
+        val cursor = handler.queryChildDocuments(
+            ProviderLocation.Home.Device.documentId,
+            null,
+            null,
+        )
+
+        val summaryIndex = cursor.getColumnIndex(COLUMN_SUMMARY)
+
+        // Volume entry (after root filesystem)
+        cursor.moveToPosition(1)
+        cursor.isNull(summaryIndex) shouldBe true
+    }
+
+    @Test
+    fun `queryDocument for filesystem document has null summary`() = runTest {
+        val path = LocalPath.build("/test/file.txt")
+        val documentId = "local|file-summary"
+
+        val mockLookup = mockk<APathLookup<APath<*>>> {
+            coEvery { lookedUp } returns path
+            coEvery { name } returns "file.txt"
+            coEvery { fileType } returns FileType.FILE
+            coEvery { size } returns 1024L
+            coEvery { modifiedAt } returns null
+        }
+
+        coEvery { codec.decode(documentId) } returns path
+        coEvery { gatewaySwitch.lookup(path, any()) } returns mockLookup
+
+        val cursor = handler.queryDocument(documentId, null)
+        cursor.moveToFirst() shouldBe true
+
+        val summaryIndex = cursor.getColumnIndex(COLUMN_SUMMARY)
+        cursor.isNull(summaryIndex) shouldBe true
     }
 
     // ========== Step 8: Storage volume + SAF location tests ==========

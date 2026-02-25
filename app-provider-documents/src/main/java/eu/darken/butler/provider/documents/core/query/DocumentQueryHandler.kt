@@ -8,6 +8,7 @@ import android.provider.DocumentsContract.Document.*
 import android.webkit.MimeTypeMap
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -188,12 +189,14 @@ class DocumentQueryHandler @Inject constructor(
 
         if (!rootRequirements.needsAction) {
             log(TAG, INFO) { "Root filesystem accessible, adding to list" }
+            val rootSummary = getStorageSummary("/")
             cursor.addVirtualDocument(
                 documentId = codec.encode(rootPath),
                 displayName = context.getString(R.string.provider_documents_storage_root_label),
                 mimeType = MIME_TYPE_DIR,
                 flags = FLAG_DIR_SUPPORTS_CREATE,
                 icon = R.drawable.ic_folder_lock_24,
+                summary = rootSummary,
             )
         } else {
             log(TAG, INFO) { "Root filesystem requires permissions (${rootRequirements.combos}), filtering out" }
@@ -213,13 +216,17 @@ class DocumentQueryHandler @Inject constructor(
                         else -> context.getString(R.string.provider_documents_storage_sd_card_label)
                     }
 
-                log(TAG, INFO) { "Storage volume accessible: $displayName ($path)" }
+                val storagePath = volume.directory?.absolutePath ?: volume.path
+                val summary = storagePath?.let { getStorageSummary(it) }
+
+                log(TAG, INFO) { "Storage volume accessible: $displayName ($path), summary=$summary" }
                 cursor.addVirtualDocument(
                     documentId = codec.encode(path),
                     displayName = displayName,
                     mimeType = MIME_TYPE_DIR,
                     flags = FLAG_DIR_SUPPORTS_CREATE,
                     icon = R.drawable.ic_folder,
+                    summary = summary,
                 )
             } else {
                 log(TAG, INFO) { "Storage volume requires permissions: $path (${requirements.combos}), filtering out" }
@@ -249,10 +256,12 @@ class DocumentQueryHandler @Inject constructor(
         mimeType: String,
         flags: Int,
         icon: Int,
+        summary: String? = null,
     ) {
         newRow().apply {
             add(COLUMN_DOCUMENT_ID, documentId)
             add(COLUMN_DISPLAY_NAME, displayName)
+            add(COLUMN_SUMMARY, summary)
             add(COLUMN_MIME_TYPE, mimeType)
             add(COLUMN_FLAGS, flags)
             add(COLUMN_ICON, icon)
@@ -299,6 +308,7 @@ class DocumentQueryHandler @Inject constructor(
         newRow().apply {
             add(COLUMN_DOCUMENT_ID, documentId)
             add(COLUMN_DISPLAY_NAME, lookup.name)
+            add(COLUMN_SUMMARY, null)
             add(COLUMN_MIME_TYPE, mimeType)
             add(COLUMN_FLAGS, flags)
             add(COLUMN_SIZE, lookup.size)
@@ -383,6 +393,20 @@ class DocumentQueryHandler @Inject constructor(
         }
     }
 
+    private fun getStorageSummary(path: String): String? = try {
+        val statFs = android.os.StatFs(path)
+        val freeBytes = statFs.availableBlocksLong * statFs.blockSizeLong
+        log(TAG, INFO) { "getStorageSummary($path): freeBytes=$freeBytes" }
+        if (freeBytes > 0) {
+            formatFileSize(context, freeBytes) + " " + context.getString(R.string.provider_documents_storage_free_suffix)
+        } else {
+            null
+        }
+    } catch (e: Exception) {
+        log(TAG, WARN) { "getStorageSummary($path) failed: ${e.asLog()}" }
+        null
+    }
+
     companion object {
         private val TAG = logTag("Provider", "Documents", "DocumentQuery")
 
@@ -398,6 +422,7 @@ class DocumentQueryHandler @Inject constructor(
         internal val DEFAULT_DOCUMENT_PROJECTION = arrayOf(
             COLUMN_DOCUMENT_ID,
             COLUMN_DISPLAY_NAME,
+            COLUMN_SUMMARY,
             COLUMN_MIME_TYPE,
             COLUMN_FLAGS,
             COLUMN_SIZE,

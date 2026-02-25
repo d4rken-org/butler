@@ -13,6 +13,7 @@
     <string name="provider_documents_storage_internal_label">Internal storage</string>
     <string name="provider_documents_storage_sd_card_label">SD card</string>
     <string name="provider_documents_storage_saf_label">SAF location</string>
+    <string name="provider_documents_storage_free_suffix">free</string>
 
     <!-- Error Messages - Phase 1 -->
     <string name="provider_documents_error_requires_root">Root access required to browse this location. Enable root access in Butler app settings.</string>
