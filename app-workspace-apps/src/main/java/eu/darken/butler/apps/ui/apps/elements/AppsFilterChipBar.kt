@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
+import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
@@ -63,7 +64,7 @@ fun AppsFilterChipBar(
         // Add chip
         ButlerChip(
             label = stringResource(R.string.apps_filter_add_action),
-            leadingIcon = Icons.TwoTone.Add,
+            leadingIcon = if (filterConfig.isEmpty) Icons.TwoTone.Add else Icons.TwoTone.Edit,
             onClick = onAddClick,
         )
     }
