@@ -11,7 +11,6 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
@@ -46,7 +45,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -102,36 +102,16 @@ class EditorWorkspace @AssistedInject constructor(
     @Volatile
     private var pendingEngine: EditorEngine? = null
 
-    private val engineHolder = DynamicStateFlow<EditorEngine>(
-        loggingTag = tag,
-        parentScope = workspaceScope,
-        startValueProvider = {
-            val args = creationArguments as? EditorArguments.Default
-            val initialPath = args?.filePath
-            val initialContent = args?.initialContent
-            log(tag, INFO) { "Creating initial engine with: ${initialPath?.name ?: "scratch buffer"}" }
-            // Create engine without initializing - initialization happens async in init block
-            // This allows the workspace to reach Ready state immediately, showing loading progress
-            editorEngineFactory.create(id, initialPath, initialContent)
-        },
-        onRelease = { engine ->
-            launch {
-                try {
-                    log(tag, VERBOSE) { "DynamicStateFlow releasing engine" }
-                    engine.release()
-                } catch (e: Exception) {
-                    log(tag, ERROR) { "Failed to release engine in onRelease: ${e.asLog()}" }
-                }
-            }
-        }
-    )
+    private val engineMutex = Mutex()
+    private val _engine = MutableStateFlow<EditorEngine?>(null)
 
     // Unified workspace state - emits Initializing immediately
     private val _state = MutableStateFlow<State>(State.Initializing)
     val state: StateFlow<State> = _state.asStateFlow()
 
     // Combined editor state for internal use
-    private val editorStateInternal: Flow<EditorState> = engineHolder.flow.flatMapLatest { engine ->
+    private val editorStateInternal: Flow<EditorState> = _engine.flatMapLatest { engine ->
+        if (engine == null) return@flatMapLatest emptyFlow()
         combine(
             engine.contentSource,
             engine.totalLines,
@@ -228,8 +208,8 @@ class EditorWorkspace @AssistedInject constructor(
 
         // Update title based on content source
         workspaceScope.launch {
-            engineHolder.flow.flatMapLatest { engine ->
-                engine.contentSource
+            _engine.flatMapLatest { engine ->
+                engine?.contentSource ?: emptyFlow()
             }.collect { source ->
                 updateContentSource(source)
             }
@@ -267,20 +247,31 @@ class EditorWorkspace @AssistedInject constructor(
         // Initialize engine asynchronously - allows workspace to reach Ready state immediately
         // showing loading progress during file load instead of "Initializing tab"
         workspaceScope.launch {
-            val engine = engineHolder.value()
-            val result = engine.initialize()
+            val args = creationArguments as? EditorArguments.Default
+            val initialPath = args?.filePath
+            val initialContent = args?.initialContent
+            log(tag, INFO) { "Creating initial engine with: ${initialPath?.name ?: "scratch buffer"}" }
 
-            if (result.isFailure) {
-                val error = result.exceptionOrNull() ?: Exception("Engine initialization failed")
-                log(tag, ERROR) { "Engine initialization failed: ${error.asLog()}" }
-                _state.value = State.Error(error)
-                return@launch
+            val engine = editorEngineFactory.create(id, initialPath, initialContent)
+            _engine.value = engine
+            pendingEngine = engine
+
+            try {
+                val result = engine.initialize()
+
+                if (result.isFailure) {
+                    val error = result.exceptionOrNull() ?: Exception("Engine initialization failed")
+                    if (error is CancellationException) return@launch
+                    log(tag, ERROR) { "Engine initialization failed: ${error.asLog()}" }
+                    _state.value = State.Error(error)
+                    return@launch
+                }
+            } finally {
+                pendingEngine = null
             }
 
             // Restore cursor and scroll position from saved arguments
             // Only if file was loaded AND positions are within bounds
-            val args = creationArguments as? EditorArguments.Default
-            val initialPath = args?.filePath
             if (initialPath != null) {
                 val lines = engine.totalLines.value
                 val cursorLine = args.cursorLine
@@ -331,27 +322,55 @@ class EditorWorkspace @AssistedInject constructor(
     private suspend fun switchEngine(newFilePath: APath<*>?) {
         log(tag, INFO) { "Switching engine to: ${newFilePath?.name ?: "scratch buffer"}" }
 
-        // Create new engine outside updateBlocking so we can track it for cancellation
         val newEngine = editorEngineFactory.create(id, newFilePath)
         pendingEngine = newEngine
 
+        // Swap engine before initialize so progress flows through editorStateInternal
+        val oldEngine = engineMutex.withLock {
+            val old = _engine.value
+            _engine.value = newEngine
+            old
+        }
+
         try {
-            engineHolder.updateBlocking {
-                // 'this' is the old engine (receiver of extension function)
-                // Progress is emitted via engine's progress StateFlow
-                val initResult = newEngine.initialize()
+            val initResult = newEngine.initialize()
 
-                if (initResult.isFailure) {
-                    newEngine.release()
-                    val error = initResult.exceptionOrNull() ?: Exception("Failed to initialize engine")
-                    log(tag, ERROR) { "Failed to switch engine: ${error.asLog()}" }
-                    throw error
-                }
-
-                log(tag, DEBUG) { "Engine switched successfully" }
-                // Old engine (this) cleanup happens automatically via onRelease callback
-                newEngine
+            if (initResult.isFailure) {
+                val error = initResult.exceptionOrNull() ?: Exception("Failed to initialize engine")
+                if (error is CancellationException) throw error
+                log(tag, ERROR) { "Failed to switch engine: ${error.asLog()}" }
+                throw error
             }
+
+            // Release old engine after successful init
+            oldEngine?.let { old ->
+                try {
+                    old.release()
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "Failed to release old engine: ${e.asLog()}" }
+                }
+            }
+
+            log(tag, DEBUG) { "Engine switched successfully" }
+        } catch (e: CancellationException) {
+            log(tag, INFO) { "Engine switch cancelled" }
+            // Restore old engine on cancellation
+            engineMutex.withLock { _engine.value = oldEngine }
+            try {
+                newEngine.release()
+            } catch (releaseError: Exception) {
+                log(tag, ERROR) { "Failed to release cancelled engine: ${releaseError.asLog()}" }
+            }
+            throw e
+        } catch (e: Exception) {
+            // Restore old engine on failure
+            engineMutex.withLock { _engine.value = oldEngine }
+            try {
+                newEngine.release()
+            } catch (releaseError: Exception) {
+                log(tag, ERROR) { "Failed to release failed engine: ${releaseError.asLog()}" }
+            }
+            throw e
         } finally {
             pendingEngine = null
         }
@@ -376,13 +395,16 @@ class EditorWorkspace @AssistedInject constructor(
         }
     }
 
+    private fun currentEngine(): EditorEngine =
+        _engine.value ?: throw IllegalStateException("No engine available")
+
     suspend fun saveFile() {
         // Progress is emitted by EditorEngine during save
-        engineHolder.value().saveFile()
+        currentEngine().saveFile()
     }
 
     suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> {
-        val engine = engineHolder.value()
+        val engine = currentEngine()
 
         return try {
             log(tag) { "Saving as: ${newFilePath.name}" }
@@ -412,35 +434,35 @@ class EditorWorkspace @AssistedInject constructor(
     }
 
     suspend fun search(query: String, options: SearchOptions = SearchOptions()) =
-        engineHolder.value().search(query, options)
+        currentEngine().search(query, options)
 
-    suspend fun goToLine(lineNumber: Int) = engineHolder.value().goToLine(lineNumber)
-    suspend fun undo() = engineHolder.value().undo()
-    suspend fun redo() = engineHolder.value().redo()
-    suspend fun deleteSelection() = engineHolder.value().deleteSelection()
-    suspend fun deleteAtCursor(count: Int) = engineHolder.value().deleteAtCursor(count)
-    suspend fun copySelection() = engineHolder.value().copySelection()
-    suspend fun selectAll() = engineHolder.value().selectAll()
+    suspend fun goToLine(lineNumber: Int) = currentEngine().goToLine(lineNumber)
+    suspend fun undo() = currentEngine().undo()
+    suspend fun redo() = currentEngine().redo()
+    suspend fun deleteSelection() = currentEngine().deleteSelection()
+    suspend fun deleteAtCursor(count: Int) = currentEngine().deleteAtCursor(count)
+    suspend fun copySelection() = currentEngine().copySelection()
+    suspend fun selectAll() = currentEngine().selectAll()
 
-    suspend fun insertText(text: String) = engineHolder.value().insertText(text)
-    suspend fun setCursorPosition(position: TextPosition) = engineHolder.value().setCursorPosition(position)
-    suspend fun setSelection(start: TextPosition, end: TextPosition) = engineHolder.value().setSelection(start, end)
+    suspend fun insertText(text: String) = currentEngine().insertText(text)
+    suspend fun setCursorPosition(position: TextPosition) = currentEngine().setCursorPosition(position)
+    suspend fun setSelection(start: TextPosition, end: TextPosition) = currentEngine().setSelection(start, end)
     suspend fun updateVisibleRange(startLine: Int, endLine: Int) =
-        engineHolder.value().updateVisibleRange(startLine, endLine)
+        currentEngine().updateVisibleRange(startLine, endLine)
 
     suspend fun moveCursor(direction: CursorDirection, extendSelection: Boolean) {
         log(tag) { "moveCursor(direction=$direction, extendSelection=$extendSelection)" }
-        engineHolder.value().moveCursor(direction, extendSelection)
+        currentEngine().moveCursor(direction, extendSelection)
     }
 
     suspend fun deleteForward() {
         log(tag) { "deleteForward()" }
-        engineHolder.value().deleteForward()
+        currentEngine().deleteForward()
     }
 
-    fun clearError() = runBlocking { engineHolder.value().clearError() }
-    fun canUndo() = runBlocking { engineHolder.value().canUndo() }
-    fun canRedo() = runBlocking { engineHolder.value().canRedo() }
+    fun clearError() = _engine.value?.clearError()
+    fun canUndo() = _engine.value?.canUndo() ?: false
+    fun canRedo() = _engine.value?.canRedo() ?: false
 
     /**
      * Reads file content for pasting from clipboard.
@@ -488,7 +510,11 @@ class EditorWorkspace @AssistedInject constructor(
     override suspend fun release() {
         log(tag, INFO) { "release()" }
         workspaceScope.cancel()
-        // DynamicStateFlow's onRelease callback handles engine cleanup automatically
+        try {
+            _engine.value?.release()
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to release engine: ${e.asLog()}" }
+        }
     }
 
     data class EditorState(

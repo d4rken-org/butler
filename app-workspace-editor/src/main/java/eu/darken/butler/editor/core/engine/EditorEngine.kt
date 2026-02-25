@@ -18,6 +18,7 @@ import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -227,6 +228,12 @@ class EditorEngine @AssistedInject constructor(
             _progress.value = null
             Result.success(Unit)
 
+        } catch (e: CancellationException) {
+            log(tag, INFO) { "Engine initialization cancelled: ${filePath?.name}" }
+            _state.value = EditorState.Empty
+            initializationJob = null
+            _progress.value = null
+            Result.failure(e)
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to initialize engine: ${filePath?.name} - ${e.asLog()}" }
             _state.value = EditorState.Error(e, _state.value)
