@@ -41,6 +41,9 @@ import kotlin.math.abs
  * @param initialEdgePaddingPx Space from screen edge to first bar (updated via [updateConfig]).
  * @param initialContentGapPx Space after last bar before content (updated via [updateConfig]).
  * @param initialSystemBarInsetPx System bar height - status bar for TOP, nav bar for BOTTOM.
+ * @param initialEstimatedContentPaddingPx Estimated total content padding for first-frame rendering.
+ *        Used when bars haven't registered yet (e.g. screenshot tests, first composition frame).
+ *        Once bars register, the actual calculated padding takes over.
  */
 @Stable
 class FloatingBarStackState(
@@ -49,12 +52,14 @@ class FloatingBarStackState(
     initialEdgePaddingPx: Float = 0f,
     initialContentGapPx: Float = 0f,
     initialSystemBarInsetPx: Float = 0f,
+    initialEstimatedContentPaddingPx: Float = 0f,
 ) {
     // Make these mutableState so derivedStateOf can observe changes when updateConfig() is called
     private var defaultSpacingPx by mutableFloatStateOf(initialDefaultSpacingPx)
     private var edgePaddingPx by mutableFloatStateOf(initialEdgePaddingPx)
     private var contentGapPx by mutableFloatStateOf(initialContentGapPx)
     private var systemBarInsetPx by mutableFloatStateOf(initialSystemBarInsetPx)
+    private var estimatedContentPaddingPx by mutableFloatStateOf(initialEstimatedContentPaddingPx)
 
     internal val barStates = mutableStateListOf<FloatingBarState>()
 
@@ -71,7 +76,10 @@ class FloatingBarStackState(
         // Start with system bar inset (status bar for TOP, nav bar for BOTTOM)
         var totalHeight = systemBarInsetPx + edgePaddingPx
 
-        if (barStates.isEmpty()) return@derivedStateOf totalHeight
+        if (barStates.isEmpty()) {
+            // Use estimate before bars register (first frame / screenshot rendering)
+            return@derivedStateOf if (estimatedContentPaddingPx > 0f) estimatedContentPaddingPx else totalHeight
+        }
 
         var hasVisibleBars = false
         barStates.forEachIndexed { index, bar ->
@@ -181,11 +189,13 @@ class FloatingBarStackState(
         edgePaddingPx: Float,
         contentGapPx: Float,
         systemBarInsetPx: Float,
+        estimatedContentPaddingPx: Float = this.estimatedContentPaddingPx,
     ) {
         this.defaultSpacingPx = defaultSpacingPx
         this.edgePaddingPx = edgePaddingPx
         this.contentGapPx = contentGapPx
         this.systemBarInsetPx = systemBarInsetPx
+        this.estimatedContentPaddingPx = estimatedContentPaddingPx
     }
 
     /**
@@ -268,6 +278,9 @@ class FloatingBarStackState(
  * @param contentPadding Padding between the last bar and content.
  * @param includeSystemBarInset Whether to include the relevant system bar inset
  *        (status bar for TOP position, navigation bar for BOTTOM position).
+ * @param estimatedContentPadding Estimated total content padding for first-frame rendering.
+ *        Used when bars haven't registered yet (e.g. screenshot tests, first composition frame).
+ *        Once bars register, the actual calculated padding takes over.
  */
 @Composable
 fun rememberFloatingBarStackState(
@@ -276,11 +289,17 @@ fun rememberFloatingBarStackState(
     edgePadding: Dp = 8.dp,
     contentPadding: Dp = 0.dp,
     includeSystemBarInset: Boolean = true,
+    estimatedContentPadding: Dp = Dp.Unspecified,
 ): FloatingBarStackState {
     val density = LocalDensity.current
     val defaultSpacingPx = with(density) { defaultSpacing.toPx() }
     val edgePaddingPx = with(density) { edgePadding.toPx() }
     val contentGapPx = with(density) { contentPadding.toPx() }
+    val estimatedContentPaddingPx = if (estimatedContentPadding != Dp.Unspecified) {
+        with(density) { estimatedContentPadding.toPx() }
+    } else {
+        0f
+    }
 
     // Get system bar inset based on position (status bar for TOP, nav bar + IME for BOTTOM)
     val systemBarInsetPx = if (includeSystemBarInset) {
@@ -301,9 +320,10 @@ fun rememberFloatingBarStackState(
             initialEdgePaddingPx = edgePaddingPx,
             initialContentGapPx = contentGapPx,
             initialSystemBarInsetPx = systemBarInsetPx,
+            initialEstimatedContentPaddingPx = estimatedContentPaddingPx,
         )
     }.also {
-        it.updateConfig(defaultSpacingPx, edgePaddingPx, contentGapPx, systemBarInsetPx)
+        it.updateConfig(defaultSpacingPx, edgePaddingPx, contentGapPx, systemBarInsetPx, estimatedContentPaddingPx)
         it.animationScope = scope
     }
 }

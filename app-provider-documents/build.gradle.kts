@@ -7,7 +7,6 @@ plugins {
     id("projectConfig")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jetbrains.kotlin.plugin.compose")
-    id("kotlin-kapt")
 }
 
 apply(plugin = "dagger.hilt.android.plugin")

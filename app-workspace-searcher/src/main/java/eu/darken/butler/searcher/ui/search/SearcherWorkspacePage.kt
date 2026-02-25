@@ -87,6 +87,7 @@ import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
@@ -99,7 +100,10 @@ fun SearcherWorkspacePage(
     vm: SearcherWorkspaceViewModel? = null,
     onPageAction: (SearcherPageAction) -> Unit = {},
 ) {
-    val mainState by stateSource.collectAsState(initial = SearcherWorkspaceViewModel.State.Initializing)
+    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
+    val mainState by stateSource.collectAsState(
+        initial = (stateSource as? StateFlow)?.value ?: SearcherWorkspaceViewModel.State.Initializing
+    )
     val clipboardState by clipboardStateSource.collectAsState(initial = SearcherWorkspaceViewModel.ClipboardState())
     val operationsState by operationsStateSource.collectAsState(initial = SearcherWorkspaceViewModel.OperationsState())
 
@@ -110,6 +114,7 @@ fun SearcherWorkspacePage(
         edgePadding = 8.dp,
         contentPadding = 8.dp,
         includeSystemBarInset = design.paneEdges.touchesTop,
+        estimatedContentPadding = 192.dp,
     )
     val bottomBarStackState = rememberFloatingBarStackState(
         position = BarPosition.BOTTOM,
@@ -117,6 +122,7 @@ fun SearcherWorkspacePage(
         edgePadding = 8.dp,
         contentPadding = 16.dp,
         includeSystemBarInset = design.paneEdges.touchesBottom,
+        estimatedContentPadding = 80.dp,
     )
     val density = LocalDensity.current
     val navBarInset = if (design.paneEdges.touchesBottom) {

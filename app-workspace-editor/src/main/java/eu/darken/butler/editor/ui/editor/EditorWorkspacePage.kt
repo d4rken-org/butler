@@ -46,6 +46,7 @@ import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
@@ -92,7 +93,8 @@ fun EditorWorkspacePage(
     onActionLongClick: (EditorActionBarItem) -> Unit = {},
 ) {
     // Page is hidden by WorkspaceMapper during Init/Error states, so nothing to render until Ready
-    val stateOrNull by mainStateSource.collectAsState(null)
+    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
+    val stateOrNull by mainStateSource.collectAsState(initial = (mainStateSource as? StateFlow)?.value)
     val clipboardState by clipboardStateSource.collectAsState(EditorWorkspaceViewModel.ClipboardState())
 
     val state = stateOrNull ?: return
@@ -111,6 +113,7 @@ fun EditorWorkspacePage(
         edgePadding = 8.dp,
         contentPadding = 8.dp,
         includeSystemBarInset = design.paneEdges.touchesTop,
+        estimatedContentPadding = 184.dp,
     )
     val bottomBarStackState = rememberFloatingBarStackState(
         position = BarPosition.BOTTOM,
@@ -118,6 +121,7 @@ fun EditorWorkspacePage(
         edgePadding = 8.dp,
         contentPadding = 16.dp,
         includeSystemBarInset = design.paneEdges.touchesBottom,
+        estimatedContentPadding = 80.dp,
     )
 
     Box(modifier = Modifier.fillMaxSize()) {

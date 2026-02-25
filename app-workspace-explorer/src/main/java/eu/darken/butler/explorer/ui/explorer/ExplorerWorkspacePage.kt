@@ -88,6 +88,7 @@ import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -109,7 +110,8 @@ fun ExplorerWorkspacePage(
     initialClipboardExpanded: Boolean = false,
 ) {
     // Early return - don't render until state is available (mapper shows loading)
-    val nullableState by mainStateSource.collectAsState(initial = null)
+    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
+    val nullableState by mainStateSource.collectAsState(initial = (mainStateSource as? StateFlow)?.value)
     val state = nullableState ?: return
 
     val coroutineScope = rememberCoroutineScope()
@@ -123,6 +125,7 @@ fun ExplorerWorkspacePage(
         edgePadding = 8.dp,
         contentPadding = 8.dp,
         includeSystemBarInset = design.paneEdges.touchesTop,
+        estimatedContentPadding = 196.dp,
     )
     val bottomBarStackState = rememberFloatingBarStackState(
         position = BarPosition.BOTTOM,
@@ -130,6 +133,7 @@ fun ExplorerWorkspacePage(
         edgePadding = 8.dp,
         contentPadding = 16.dp,
         includeSystemBarInset = design.paneEdges.touchesBottom,
+        estimatedContentPadding = 80.dp,
     )
     val density = LocalDensity.current
     val navBarInset = if (design.paneEdges.touchesBottom) {

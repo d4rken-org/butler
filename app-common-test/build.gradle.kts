@@ -4,7 +4,6 @@ plugins {
     id("kotlin-android")
     id("com.google.devtools.ksp")
     id("projectConfig")
-    id("kotlin-kapt")
 }
 
 android {

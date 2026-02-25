@@ -4,7 +4,7 @@ plugins {
     id("kotlin-android")
     id("kotlin-parcelize")
     id("projectConfig")
-    id("kotlin-kapt")
+    id("com.google.devtools.ksp")
 }
 
 apply(plugin = "dagger.hilt.android.plugin")

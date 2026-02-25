@@ -6,7 +6,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("kotlin-kapt")
+    id("com.android.compose.screenshot") version "0.0.1-alpha13"
 }
 apply(plugin = "dagger.hilt.android.plugin")
 
@@ -126,6 +126,8 @@ android {
         compose = true
     }
 
+    experimentalProperties["android.experimental.enableScreenshotTest"] = true
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
@@ -229,4 +231,9 @@ dependencies {
     implementation("sh.calvin.reorderable:reorderable:2.5.1")
 
     addCoil()
+
+    // Compose Preview Screenshot Testing
+    "screenshotTestImplementation"(platform("androidx.compose:compose-bom:2025.06.01"))
+    "screenshotTestImplementation"("com.android.tools.screenshot:screenshot-validation-api:0.0.1-alpha13")
+    "screenshotTestImplementation"("androidx.compose.ui:ui-tooling")
 }

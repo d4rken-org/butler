@@ -49,17 +49,19 @@ import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
-private fun AppsWorkspacePage(
+fun AppsWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign,
     stateSource: Flow<AppsWorkspaceViewModel.State>,
     onPageAction: (AppsPageAction) -> Unit = {},
 ) {
+    // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
     val mainStateRaw by stateSource.collectAsState(
-        initial = AppsWorkspaceViewModel.State.Initializing
+        initial = (stateSource as? StateFlow)?.value ?: AppsWorkspaceViewModel.State.Initializing
     )
 
     // Only render when Ready - WorkspaceMapper handles Init/Error overlays
@@ -75,6 +77,7 @@ private fun AppsWorkspacePage(
         edgePadding = 8.dp,
         contentPadding = 8.dp,
         includeSystemBarInset = design.paneEdges.touchesTop,
+        estimatedContentPadding = 156.dp,
     )
 
     val bottomBarStackState = rememberFloatingBarStackState(
@@ -83,6 +86,7 @@ private fun AppsWorkspacePage(
         edgePadding = 8.dp,
         contentPadding = 16.dp,
         includeSystemBarInset = design.paneEdges.touchesBottom,
+        estimatedContentPadding = 80.dp,
     )
 
     val density = LocalDensity.current
