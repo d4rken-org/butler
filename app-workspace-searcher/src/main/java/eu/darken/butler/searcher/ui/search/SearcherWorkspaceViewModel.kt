@@ -786,6 +786,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 log(TAG, INFO) { "Copying path to system clipboard: ${action.result.path.path}" }
                 systemClipboardHelper.copyToClipboard(action.result.path.path)
             }
+            is SearcherActionBarItem.ShowProperties -> {
+                dialogStateFlow.value = SearcherDialogState.ShowItemProperties(action.result)
+            }
             is SearcherActionBarItem.SelectAll -> selectAll()
             is SearcherActionBarItem.SelectAllFolders -> selectAllFolders()
             is SearcherActionBarItem.SelectAllFiles -> selectAllFiles()

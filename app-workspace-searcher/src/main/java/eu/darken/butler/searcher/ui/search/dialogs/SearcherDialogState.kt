@@ -2,6 +2,7 @@ package eu.darken.butler.searcher.ui.search.dialogs
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.searcher.core.FilterCondition
+import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchSortSettings
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 
@@ -37,4 +38,6 @@ sealed interface SearcherDialogState {
     data class EditTypeCondition(
         val existing: FilterCondition.Type? = null,
     ) : SearcherDialogState
+
+    data class ShowItemProperties(val result: SearchItem) : SearcherDialogState
 }

@@ -236,6 +236,11 @@ fun SearchResultItemDetails(
                     onClick = onAction
                 )
 
+                QuickActionItem(
+                    action = SearcherActionBarItem.ShowProperties(result),
+                    onClick = onAction
+                )
+
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
