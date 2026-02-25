@@ -18,7 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.ContentCopy
@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,10 +66,11 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
-import eu.darken.butler.workspace.ui.common.CutoutAwareFlowRow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import java.io.File
 
 @Composable
@@ -82,7 +84,6 @@ fun BreadcrumbBar(
     safLocationManager: SAFLocationManager? = null,
     showBackground: Boolean = true,
     cutoutWidth: Dp = 0.dp,
-    cutoutHeight: Dp = 0.dp,
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -162,8 +163,9 @@ fun BreadcrumbBar(
         }
     }
 
-    LaunchedEffect(breadcrumbs.size) {
+    LaunchedEffect(breadcrumbs) {
         if (breadcrumbs.isNotEmpty() && !isEditMode) {
+            snapshotFlow { scrollState.maxValue }.first { it > 0 }
             scrollState.animateScrollTo(scrollState.maxValue)
         }
     }
@@ -353,14 +355,14 @@ fun BreadcrumbBar(
                 }
             } else {
                 // Show actual breadcrumbs
-                CutoutAwareFlowRow(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .verticalScroll(scrollState),
-                    cutoutWidth = cutoutWidth,
-                    cutoutHeight = cutoutHeight,
-                    horizontalSpacing = 2.dp,
-                    verticalSpacing = 4.dp,
+                        .propagateScrollAtBoundary(scrollState, enabled = isWorkspaceFocused)
+                        .horizontalScroll(scrollState)
+                        .padding(end = cutoutWidth),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
                     breadcrumbs.forEachIndexed { index, breadcrumb ->
                         val isLast = index == breadcrumbs.lastIndex

@@ -155,7 +155,11 @@ fun CutoutCard(
             val cardWidth = (constraints.maxWidth - cutoutWidth).coerceAtLeast(0)
             constraints.copy(minWidth = cardWidth, maxWidth = cardWidth)
         } else {
-            constraints
+            // Corner mode: enforce minimum height for CutoutTopRightCornerShape geometry.
+            // Shape needs: cutoutHeight (notch) + cornerRadius * 3 (transition arc + bottom corner)
+            val cornerRadiusPx = with(density) { cornerRadius.roundToPx() }
+            val cornerMinHeight = cutoutHeight + cornerRadiusPx * 3
+            constraints.copy(minHeight = maxOf(constraints.minHeight, cornerMinHeight))
         }
 
         val cardPlaceable = subcompose("card") {
