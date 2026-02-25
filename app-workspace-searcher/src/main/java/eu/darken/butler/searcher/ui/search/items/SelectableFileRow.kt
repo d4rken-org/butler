@@ -72,7 +72,7 @@ fun SelectableFileRow(
         ) {
             // Leading content - either checkbox OR icon
             Box(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(64.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 if (isSelectionMode) {
@@ -84,7 +84,7 @@ fun SelectableFileRow(
                     TintedAsyncImage(
                         model = result.lookup,
                         contentDescription = result.fileType.name,
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(64.dp),
                     )
                 }
             }
