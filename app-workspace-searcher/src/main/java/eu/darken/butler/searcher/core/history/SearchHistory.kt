@@ -132,6 +132,8 @@ class SearchHistory @Inject constructor(
         return searchHistoryDao.getCount()
     }
 
+    fun observeHistoryCount(): Flow<Int> = searchHistoryDao.observeCount()
+
     suspend fun trimToMax(maxItems: Int) {
         val currentCount = searchHistoryDao.getCount()
         if (currentCount > maxItems) {

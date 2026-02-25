@@ -21,9 +21,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.uuid.Uuid
@@ -46,7 +47,7 @@ class WorkspaceRepo @Inject constructor(
         .setupCommonEventHandlers(TAG, enabled = Bugs.isDebug) { "PendingConfirmations" }
         .replayingShare(appScope)
 
-    private val confirmationContinuations = mutableMapOf<String, kotlin.coroutines.Continuation<Boolean>>()
+    private val pendingActions = ConcurrentHashMap<String, suspend () -> Unit>()
     private val infos: Flow<List<Workspace.Info>> = _workspaces.flatMapLatest { workspaces ->
         if (workspaces.isEmpty()) {
             flowOf(emptyList())
@@ -107,14 +108,6 @@ class WorkspaceRepo @Inject constructor(
 
         _workspaces.value = wip
 
-        // Track parent-child relationship for sub-workspaces
-        if (arguments is Workspace.ArgumentsForResult) {
-            val callerId = arguments.callerWorkspaceId
-            if (callerId != null) {
-                log(TAG) { "Created sub-workspace: ${newWorkspace.id} -> caller: $callerId" }
-            }
-        }
-
         return newWorkspace.id
     }
 
@@ -126,10 +119,13 @@ class WorkspaceRepo @Inject constructor(
 
     fun resolveConfirmation(confirmationId: String, confirmed: Boolean) {
         log(TAG, INFO) { "resolveConfirmation($confirmationId, confirmed=$confirmed)" }
-        confirmationContinuations.remove(confirmationId)?.let { continuation ->
-            continuation.resumeWith(Result.success(confirmed))
-        } ?: log(TAG, WARN) { "No continuation found for confirmation $confirmationId" }
         _pendingConfirmations.update { it - confirmationId }
+        val action = pendingActions.remove(confirmationId)
+        if (confirmed && action != null) {
+            appScope.launch {
+                lock.withLock { action() }
+            }
+        }
     }
 
     override suspend fun execute(action: WorkspaceAction): WorkspaceAction.Result = lock.withLock {
@@ -141,7 +137,7 @@ class WorkspaceRepo @Inject constructor(
                 // Check workspace limit for non-pro users
                 if (!canCreateWorkspace(action)) {
                     log(TAG, INFO) { "Workspace limit reached, showing upgrade dialog" }
-                    showWorkspaceLimitDialog()
+                    postLimitDialog()
                     return@withLock WorkspaceAction.Create.Result.LimitReached
                 }
 
@@ -180,7 +176,7 @@ class WorkspaceRepo @Inject constructor(
 
                     if (remainingSlots == 0) {
                         log(TAG, INFO) { "Workspace limit reached, no slots available for batch creation" }
-                        showWorkspaceLimitDialog()
+                        postLimitDialog()
                         return@withLock WorkspaceAction.CreateBatch.Result.Success(
                             results = emptyMap(),
                             skippedCount = action.requests.size,
@@ -193,84 +189,37 @@ class WorkspaceRepo @Inject constructor(
                 val limitSkipped = action.requests.size - allowedRequests.size
                 if (limitSkipped > 0) {
                     log(TAG, INFO) { "Workspace limit: allowing ${allowedRequests.size}, skipping $limitSkipped" }
-                    showWorkspaceLimitDialog()
+                    postLimitDialog()
                 }
 
                 // Check if confirmation is needed
                 val needsConfirmation = allowedRequests.size >= CONFIRMATION_THRESHOLD
 
                 if (needsConfirmation) {
-                    log(
-                        TAG,
-                        INFO
-                    ) { "Batch size (${allowedRequests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation" }
-                    val confirmationId = kotlin.uuid.Uuid.random().toString()
+                    log(TAG, INFO) {
+                        "Batch size (${allowedRequests.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation"
+                    }
+                    val confirmationId = Uuid.random().toString()
 
-                    val confirmed = suspendCancellableCoroutine { continuation ->
-                        confirmationContinuations[confirmationId] = continuation
-                        _pendingConfirmations.update {
-                            it + (confirmationId to PendingWorkspaceConfirmation(
-                                id = confirmationId,
-                                sourceWorkspaceId = action.sourceWorkspaceId,
-                                data = PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation(
-                                    totalCount = allowedRequests.size,
-                                    skippedCount = limitSkipped,
-                                ),
-                            ))
-                        }
+                    pendingActions[confirmationId] = {
+                        executeBatchCreation(allowedRequests, limitSkipped, action.sourceWorkspaceId)
                     }
 
-                    if (!confirmed) {
-                        log(TAG, INFO) { "Confirmation cancelled by user" }
-                        return@withLock WorkspaceAction.CreateBatch.Result.Cancelled
+                    _pendingConfirmations.update {
+                        it + (confirmationId to PendingWorkspaceConfirmation(
+                            id = confirmationId,
+                            sourceWorkspaceId = action.sourceWorkspaceId,
+                            data = PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation(
+                                totalCount = allowedRequests.size,
+                                skippedCount = limitSkipped,
+                            ),
+                        ))
                     }
-                    log(TAG, INFO) { "Confirmation approved by user" }
+
+                    return@withLock WorkspaceAction.CreateBatch.Result.AwaitingConfirmation
                 }
 
-                // Execute batch creation
-                val results = mutableMapOf<WorkspaceAction.Create, WorkspaceAction.CreateBatch.CreationResult>()
-
-                allowedRequests.forEach { createRequest ->
-                    try {
-                        log(TAG) { "Creating workspace: ${createRequest.type}" }
-                        val newId = create(
-                            type = createRequest.type,
-                            arguments = createRequest.arguments,
-                            idToReplace = createRequest.replace
-                        )
-                        _events.emit(
-                            WorkspaceEvent.Created(
-                                workspaceId = newId,
-                                replacedId = createRequest.replace
-                            )
-                        )
-                        results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Success(newId)
-                        log(TAG) { "Batch creation succeeded for ${createRequest.type}: $newId" }
-                    } catch (e: Exception) {
-                        log(TAG, ERROR) { "Batch creation failed for ${createRequest.type}: ${e.asLog()}" }
-                        results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Failure(e)
-                    }
-                }
-
-                val successCount = results.values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success }
-                val failureCount = results.values.count { it is WorkspaceAction.CreateBatch.CreationResult.Failure }
-
-                log(TAG, INFO) { "Batch creation completed: $successCount succeeded, $failureCount failed" }
-
-                // Emit event for banner feedback
-                _events.emit(
-                    WorkspaceEvent.BatchCreationCompleted(
-                        successCount = successCount,
-                        failureCount = failureCount,
-                        skippedCount = limitSkipped,
-                        sourceWorkspaceId = action.sourceWorkspaceId,
-                    )
-                )
-
-                WorkspaceAction.CreateBatch.Result.Success(
-                    results = results,
-                    skippedCount = limitSkipped,
-                )
+                executeBatchCreation(allowedRequests, limitSkipped, action.sourceWorkspaceId)
             }
 
             is WorkspaceAction.Close -> {
@@ -285,58 +234,29 @@ class WorkspaceRepo @Inject constructor(
                     }
 
                     val workspaceInfo = workspace.info.first()
-                    val confirmationId = kotlin.uuid.Uuid.random().toString()
+                    val confirmationId = Uuid.random().toString()
 
                     log(TAG, INFO) { "Requesting confirmation to close workspace: ${workspaceInfo.title}" }
 
-                    val confirmed = suspendCancellableCoroutine { continuation ->
-                        confirmationContinuations[confirmationId] = continuation
-                        _pendingConfirmations.update {
-                            it + (confirmationId to PendingWorkspaceConfirmation(
-                                id = confirmationId,
-                                sourceWorkspaceId = action.id,
-                                data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
-                                    workspaceId = action.id,
-                                    workspaceTitle = workspaceInfo.title,
-                                ),
-                            ))
-                        }
+                    pendingActions[confirmationId] = {
+                        executeClose(action.id)
                     }
 
-                    if (!confirmed) {
-                        log(TAG, INFO) { "Close confirmation cancelled by user" }
-                        return@withLock WorkspaceAction.Close.Result
+                    _pendingConfirmations.update {
+                        it + (confirmationId to PendingWorkspaceConfirmation(
+                            id = confirmationId,
+                            sourceWorkspaceId = action.id,
+                            data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
+                                workspaceId = action.id,
+                                workspaceTitle = workspaceInfo.title,
+                            ),
+                        ))
                     }
-                    log(TAG, INFO) { "Close confirmation approved by user" }
+
+                    return@withLock WorkspaceAction.Close.Result
                 }
 
-                // Cancel any pending confirmations for this workspace
-                _pendingConfirmations.value
-                    .filter { (_, confirmation) -> confirmation.sourceWorkspaceId == action.id }
-                    .forEach { (confirmationId, _) ->
-                        log(TAG, INFO) { "Workspace closing, cancelling confirmation $confirmationId" }
-                        resolveConfirmation(confirmationId, confirmed = false)
-                    }
-
-                // Find and close all child workspaces owned by this workspace
-                val childWorkspaces = _workspaces.value.filter { ws ->
-                    val info = ws.info.first()
-                    info.callerWorkspaceId == action.id
-                }
-                if (childWorkspaces.isNotEmpty()) {
-                    log(TAG) { "Auto-closing ${childWorkspaces.size} child workspace(s)" }
-                    childWorkspaces.forEach { childWs ->
-                        _workspaces.value = _workspaces.value.filter { it.id != childWs.id }
-                        _events.emit(WorkspaceEvent.Closed(workspaceId = childWs.id))
-                    }
-                }
-
-                // Get caller workspace ID before removal (for returning to caller)
-                val closingWorkspace = _workspaces.value.find { it.id == action.id }
-                val callerWorkspaceId = closingWorkspace?.info?.first()?.callerWorkspaceId
-
-                _workspaces.value = _workspaces.value.filter { it.id != action.id }
-                _events.emit(WorkspaceEvent.Closed(workspaceId = action.id, callerWorkspaceId = callerWorkspaceId))
+                executeClose(action.id)
 
                 WorkspaceAction.Close.Result
             }
@@ -396,26 +316,107 @@ class WorkspaceRepo @Inject constructor(
         return currentTabCount < FREE_TIER_WORKSPACE_LIMIT
     }
 
-    private suspend fun showWorkspaceLimitDialog() {
+    private suspend fun postLimitDialog() {
         val confirmationId = Uuid.random().toString()
         val currentCount = _workspaces.value.count { ws ->
             val info = ws.info.first()
             !info.isSubWorkspace
         }
 
-        suspendCancellableCoroutine { continuation ->
-            confirmationContinuations[confirmationId] = continuation
-            _pendingConfirmations.update {
-                it + (confirmationId to PendingWorkspaceConfirmation(
-                    id = confirmationId,
-                    sourceWorkspaceId = null,
-                    data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceLimitReached(
-                        currentCount = currentCount,
-                        limit = FREE_TIER_WORKSPACE_LIMIT,
-                    ),
-                ))
+        _pendingConfirmations.update {
+            it + (confirmationId to PendingWorkspaceConfirmation(
+                id = confirmationId,
+                sourceWorkspaceId = null,
+                data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceLimitReached(
+                    currentCount = currentCount,
+                    limit = FREE_TIER_WORKSPACE_LIMIT,
+                ),
+            ))
+        }
+    }
+
+    private suspend fun executeBatchCreation(
+        requests: List<WorkspaceAction.Create>,
+        limitSkipped: Int,
+        sourceWorkspaceId: Workspace.Id?,
+    ): WorkspaceAction.CreateBatch.Result.Success {
+        val results = mutableMapOf<WorkspaceAction.Create, WorkspaceAction.CreateBatch.CreationResult>()
+
+        requests.forEach { createRequest ->
+            try {
+                log(TAG) { "Creating workspace: ${createRequest.type}" }
+                val newId = create(
+                    type = createRequest.type,
+                    arguments = createRequest.arguments,
+                    idToReplace = createRequest.replace,
+                )
+                _events.emit(
+                    WorkspaceEvent.Created(
+                        workspaceId = newId,
+                        replacedId = createRequest.replace,
+                    )
+                )
+                results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Success(newId)
+                log(TAG) { "Batch creation succeeded for ${createRequest.type}: $newId" }
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Batch creation failed for ${createRequest.type}: ${e.asLog()}" }
+                results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Failure(e)
             }
         }
+
+        val successCount = results.values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success }
+        val failureCount = results.values.count { it is WorkspaceAction.CreateBatch.CreationResult.Failure }
+
+        log(TAG, INFO) { "Batch creation completed: $successCount succeeded, $failureCount failed" }
+
+        _events.emit(
+            WorkspaceEvent.BatchCreationCompleted(
+                successCount = successCount,
+                failureCount = failureCount,
+                skippedCount = limitSkipped,
+                sourceWorkspaceId = sourceWorkspaceId,
+            )
+        )
+
+        return WorkspaceAction.CreateBatch.Result.Success(
+            results = results,
+            skippedCount = limitSkipped,
+        )
+    }
+
+    private suspend fun executeClose(workspaceId: Workspace.Id) {
+        // Cancel any pending confirmations for this workspace
+        _pendingConfirmations.value
+            .filter { (_, confirmation) -> confirmation.sourceWorkspaceId == workspaceId }
+            .forEach { (confirmationId, _) ->
+                log(TAG, INFO) { "Workspace closing, cancelling confirmation $confirmationId" }
+                _pendingConfirmations.update { it - confirmationId }
+                pendingActions.remove(confirmationId)
+            }
+
+        // Find and close all child workspaces owned by this workspace
+        val childWorkspaces = _workspaces.value.filter { ws ->
+            val info = ws.info.first()
+            info.callerWorkspaceId == workspaceId
+        }
+        if (childWorkspaces.isNotEmpty()) {
+            log(TAG) { "Auto-closing ${childWorkspaces.size} child workspace(s)" }
+            childWorkspaces.forEach { childWs ->
+                childWs.release()
+                operationsManager.removeWorkspace(childWs.id)
+                _workspaces.value = _workspaces.value.filter { it.id != childWs.id }
+                _events.emit(WorkspaceEvent.Closed(workspaceId = childWs.id))
+            }
+        }
+
+        // Get caller workspace ID before removal (for returning to caller)
+        val closingWorkspace = _workspaces.value.find { it.id == workspaceId }
+        val callerWorkspaceId = closingWorkspace?.info?.first()?.callerWorkspaceId
+
+        closingWorkspace?.release()
+        closingWorkspace?.let { operationsManager.removeWorkspace(it.id) }
+        _workspaces.value = _workspaces.value.filter { it.id != workspaceId }
+        _events.emit(WorkspaceEvent.Closed(workspaceId = workspaceId, callerWorkspaceId = callerWorkspaceId))
     }
 
     companion object {

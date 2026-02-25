@@ -4,13 +4,18 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import android.content.Context
+import android.content.Intent
+import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.navigation.NavEvent
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.issue.Issue
@@ -49,9 +54,11 @@ import kotlin.time.Instant
 class SaverWorkspaceViewModel @AssistedInject constructor(
     @Assisted private val id: Workspace.Id,
     dispatchers: DispatcherProvider,
+    @ApplicationContext private val context: Context,
     workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val storageEnvironment: StorageEnvironment,
+    private val errorReportTool: ErrorReportTool,
 ) : ViewModel4(dispatchers, logTag("Saver", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<SaverWorkspace?> =
@@ -59,6 +66,8 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
             .map { workspace: Workspace<out Workspace.Arguments>? -> workspace as? SaverWorkspace }
 
     private suspend fun getWorkspace(): SaverWorkspace = workspaceSource.filterNotNull().first()
+
+    val shareIntentEvent = SingleEventFlow<Intent>()
 
     // Issue handling state
     private val issueStateFlow = MutableStateFlow<Issue?>(null)
@@ -274,6 +283,26 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         } else {
             log(tag, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
         }
+    }
+
+    fun shareError(operationId: Operation.Id) = launch {
+        log(tag) { "shareError($operationId)" }
+        val workspace = getWorkspace()
+        val managedOp = workspace.currentOperation.first()
+        if (managedOp == null || managedOp.id != operationId) {
+            log(tag, ERROR) { "Operation $operationId not found" }
+            return@launch
+        }
+        val opState = managedOp.state.value as? Operation.State.Completed ?: return@launch
+        val error = opState.error ?: return@launch
+
+        val report = errorReportTool.buildReport(
+            throwable = error,
+            message = "${managedOp.operation.metadata.title.get(context)}\n${managedOp.operation.metadata.description.get(context)}",
+            errorContext = "Operation error in workspace ${id.shortTag}",
+        )
+        val intent = errorReportTool.createShareChooserIntent(report)
+        shareIntentEvent.tryEmit(intent)
     }
 
     @AssistedFactory

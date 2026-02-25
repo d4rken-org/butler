@@ -31,6 +31,7 @@ import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
+import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import kotlinx.coroutines.CancellationException
@@ -708,12 +709,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             }
     }
 
-    data class ClipboardState(
-        val entries: List<ClipboardClip> = emptyList(),
-    )
-
-    val clipboard: Flow<ClipboardState> = clipboardRepo.state.map { state ->
-        ClipboardState(entries = state.entries)
+    val clipboard: Flow<ClipboardDisplayState> = clipboardRepo.state.map { state ->
+        ClipboardDisplayState(entries = state.entries)
     }
 
     val clipboardInfoClip: Flow<ClipboardClip?> = _clipboardInfoClip

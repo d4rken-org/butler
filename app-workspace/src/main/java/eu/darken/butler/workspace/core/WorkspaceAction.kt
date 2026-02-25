@@ -28,6 +28,8 @@ sealed interface WorkspaceAction {
             ) : Result
 
             data object Cancelled : Result
+
+            data object AwaitingConfirmation : Result
         }
 
         sealed interface CreationResult {

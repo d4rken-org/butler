@@ -222,7 +222,10 @@ class WorkspaceSessionManager @Inject constructor(
                     factory.deserialize(json, json.parseToJsonElement(entity.arguments))
                 } catch (e: Exception) {
                     log(TAG, ERROR) { "Failed to deserialize arguments: ${e.asLog()}" }
-                    type.defaultArguments
+                    type.defaultArguments ?: run {
+                        log(TAG, WARN) { "No default arguments for $type, skipping" }
+                        return@forEach
+                    }
                 }
 
                 workspaceRepo.execute(
@@ -355,6 +358,5 @@ class WorkspaceSessionManager @Inject constructor(
 
     companion object {
         private val TAG = logTag("Workspace", "Session", "Manager")
-        private const val CURRENT_SESSION_VERSION = 1
     }
 }

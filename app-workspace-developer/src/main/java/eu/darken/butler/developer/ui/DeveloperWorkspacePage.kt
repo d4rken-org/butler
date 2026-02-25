@@ -24,13 +24,14 @@ import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.developer.R
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.DeveloperTab
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.Factory
-import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.OperationsState
+import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.OptionsState
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.State
 import eu.darken.butler.developer.ui.DeveloperWorkspaceViewModel.StorageVolumeInfo
@@ -59,6 +60,7 @@ fun DeveloperWorkspacePageHost(
     ),
 ) {
     ErrorEventHandler(vm)
+    NavigationEventHandler(vm)
 
     val state by waitForState(vm.state)
 
@@ -303,7 +305,7 @@ private fun DeveloperWorkspacePagePreview() {
                     isShizukuTesting = false,
                     canHideDeveloperMode = false,
                 ),
-                operationsState = OperationsState(),
+                operationsState = OperationsDisplayState(),
             ),
         )
     }

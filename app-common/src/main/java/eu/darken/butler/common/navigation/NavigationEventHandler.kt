@@ -4,12 +4,17 @@ import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 
 @Composable
 fun NavigationEventHandler(vararg sources: NavigationEventSource) {
-    val navController = LocalNavigationController.current ?: return
+    val navController = LocalNavigationController.current
+    if (navController == null) {
+        log(TAG, WARN) { "NavigationController is unavailable" }
+        return
+    }
     val context = LocalContext.current
     val activity = context as? Activity
 
@@ -23,8 +28,8 @@ fun NavigationEventHandler(vararg sources: NavigationEventSource) {
                         popUpTo = event.popUpTo,
                         inclusive = event.inclusive,
                     )
-                    NavEvent.Up -> navController.up()
-                    NavEvent.Finish -> {
+                    is NavEvent.Up -> navController.up()
+                    is NavEvent.Finish -> {
                         log(TAG) { "Finish event received, closing activity" }
                         activity?.finish()
                     }
@@ -34,4 +39,4 @@ fun NavigationEventHandler(vararg sources: NavigationEventSource) {
     }
 }
 
-private val TAG = logTag("NavigationEventHandler")
+private val TAG = logTag("Navigation", "EventHandler")

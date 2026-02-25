@@ -70,6 +70,7 @@ import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
 import eu.darken.butler.workspace.ui.clipboard.bar.ClipboardBar
 import eu.darken.butler.workspace.ui.error.ErrorCard
@@ -82,6 +83,7 @@ import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.issues.IssuesBottomSheet
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
+import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.operations.details.CancelOperationConfirmationDialog
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
@@ -103,8 +105,8 @@ fun ExplorerWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     mainStateSource: Flow<ExplorerWorkspaceViewModel.State>,
-    operationsStateSource: Flow<ExplorerWorkspaceViewModel.OperationsState>,
-    clipboardStateSource: Flow<ExplorerWorkspaceViewModel.ClipboardState>,
+    operationsStateSource: Flow<OperationsDisplayState>,
+    clipboardStateSource: Flow<ClipboardDisplayState>,
     vm: ExplorerWorkspaceViewModel? = null,
     initialOperationsExpanded: Boolean = false,
     initialClipboardExpanded: Boolean = false,
@@ -115,8 +117,8 @@ fun ExplorerWorkspacePage(
     val state = nullableState ?: return
 
     val coroutineScope = rememberCoroutineScope()
-    val operationsState by operationsStateSource.collectAsState(ExplorerWorkspaceViewModel.OperationsState())
-    val clipboardState by clipboardStateSource.collectAsState(ExplorerWorkspaceViewModel.ClipboardState())
+    val operationsState by operationsStateSource.collectAsState(OperationsDisplayState())
+    val clipboardState by clipboardStateSource.collectAsState(ClipboardDisplayState())
     val isWorkspaceFocused = LocalWorkspaceFocused.current
 
     val topBarStackState = rememberFloatingBarStackState(
@@ -746,8 +748,8 @@ fun ExplorerWorkspacePageHost(
 @Composable
 private fun ExplorerWorkspacePagePreviewBase(
     mockState: ExplorerWorkspaceViewModel.State,
-    clipboardState: ExplorerWorkspaceViewModel.ClipboardState = ExplorerWorkspaceViewModel.ClipboardState(),
-    operationsState: ExplorerWorkspaceViewModel.OperationsState = ExplorerWorkspaceViewModel.OperationsState(),
+    clipboardState: ClipboardDisplayState = ClipboardDisplayState(),
+    operationsState: OperationsDisplayState = OperationsDisplayState(),
 ) = PreviewWrapper {
     ExplorerWorkspacePage(
         workspaceId = Workspace.Id(),

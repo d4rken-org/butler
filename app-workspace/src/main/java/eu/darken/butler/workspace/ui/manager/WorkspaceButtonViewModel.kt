@@ -23,7 +23,7 @@ class WorkspaceButtonViewModel @Inject constructor(
 ) : ViewModel4(dispatchers, logTag("Workspace", "Button", "VM")), WorkspaceButtonProvider {
 
     init {
-        log(TAG) { "init(): $this" }
+        log(tag) { "init(): $this" }
     }
 
     override val state: Flow<State> = workspaceRemote.state.map {
@@ -60,7 +60,4 @@ class WorkspaceButtonViewModel @Inject constructor(
         val attentionCount: Int = 0,
     )
 
-    companion object {
-        private val TAG = logTag("Workspace", "Button")
-    }
 }

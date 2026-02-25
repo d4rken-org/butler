@@ -98,7 +98,8 @@ class WorkspaceManagerViewModel @Inject constructor(
 
     fun createWorkspace(type: Workspace.Type) = launch {
         log(tag) { "createWorkspace($type)" }
-        when (val result = workspaceRepo.execute(WorkspaceAction.Create(type, type.defaultArguments))) {
+        val args = type.defaultArguments ?: return@launch
+        when (val result = workspaceRepo.execute(WorkspaceAction.Create(type, args))) {
             is WorkspaceAction.Create.Result.Success -> {
                 log(tag) { "Workspace created: ${result.newId}" }
             }

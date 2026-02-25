@@ -86,8 +86,9 @@ import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.returnResult
-import eu.darken.butler.workspace.ui.operations.OperationDisplay
-import eu.darken.butler.workspace.ui.operations.toDisplayModel
+import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
+import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
+import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -104,7 +105,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
@@ -184,6 +184,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     // Picker configuration (null for non-picker workspaces)
     private val pickerConfigFlow: Flow<PickerConfig?> = workspaceSource.map { it?.pickerConfig }
+    @Volatile private var cachedPickerConfig: PickerConfig? = null
+    @Volatile private var cachedUseRegexPatterns: Boolean = explorerSettings.useRegexPatterns.valueBlocking
+    @Volatile private var cachedCurrentLocation: ExplorerLocation? = null
 
     // SaveAs filename (only used in SaveAs picker mode)
     private val saveAsFilenameFlow: Flow<String> = workspaceSource.flatMapLatest { ws ->
@@ -191,6 +194,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     init {
+        pickerConfigFlow
+            .onEach { cachedPickerConfig = it }
+            .launchInViewModel()
+
+        explorerSettings.useRegexPatterns.flow
+            .onEach { cachedUseRegexPatterns = it }
+            .launchInViewModel()
+
+        workspaceReadyState
+            .map { it?.currentLocation }
+            .onEach { cachedCurrentLocation = it }
+            .launchInViewModel()
         // Handle dialog events
         dialogEvents
             .onEach { event ->
@@ -434,41 +449,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     val clipboard = clipboardRepo.state
-        .map { repoState -> ClipboardState(entries = repoState.entries) }
+        .map { repoState -> ClipboardDisplayState(entries = repoState.entries) }
         .distinctUntilChanged()
         .asStateFlow()
-
-    data class ClipboardState(
-        val entries: List<ClipboardClip> = emptyList(),
-    )
-
-    data class OperationsState(
-        val operations: List<OperationDisplay> = emptyList(),
-    )
 
     val operations = workspaceSource
         .filterNotNull()
         .flatMapLatest { it.operations }
-        .map { opsState ->
-            val ops = opsState.operations
-                .map { it.toDisplayModel() }
-                .sortedWith(
-                    compareBy<OperationDisplay> { op ->
-                        // Priority: Running > Waiting (was running, needs input) > Queued > Others
-                        when (op.state) {
-                            is OperationDisplay.State.Running -> 0
-                            is OperationDisplay.State.Waiting -> 1  // Higher priority than queued
-                            is OperationDisplay.State.Queued -> 2
-                            is OperationDisplay.State.Failed -> 3
-                            is OperationDisplay.State.Cancelled -> 4
-                            is OperationDisplay.State.Completed -> 5
-                        }
-                    }.thenByDescending { it.startedAt } // Newest first within each group
-                )
-            OperationsState(operations = ops)
-        }
-        .onStart { emit(OperationsState()) }
-        .distinctUntilChanged()
+        .map { opsState -> opsState.operations }
+        .toOperationsDisplayState()
         .asStateFlow()
 
     fun navigate(item: ExplorerItem) = launch {
@@ -576,7 +565,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
             return
         }
-        val pickerConfig = runBlocking { workspaceSource.first()?.pickerConfig }
+        val pickerConfig = cachedPickerConfig
         val currentSelection = selectedItemsFlow.value
 
         // In DirectorySingle mode with Storage items, enforce single selection (radio button behavior)
@@ -625,7 +614,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onItemLongClick(item: ExplorerItem) {
         log(tag) { "onItemLongClick($item)" }
-        val pickerConfig = runBlocking { workspaceSource.first()?.pickerConfig }
+        val pickerConfig = cachedPickerConfig
 
         // Enable long-press selection in:
         // - Normal mode (no picker)
@@ -923,7 +912,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     includePattern = filterState.includePattern,
                     excludePattern = filterState.excludePattern,
                     fileTypeFilter = filterState.fileTypeFilter,
-                    useRegexPatterns = explorerSettings.useRegexPatterns.valueBlocking,
+                    useRegexPatterns = cachedUseRegexPatterns,
                 )
             }
             is ExplorerActionBarItem.Common.UpdateViewStyle -> {
@@ -1270,6 +1259,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is WorkspaceAction.CreateBatch.Result.Cancelled -> {
                 log(tag, INFO) { "Batch creation cancelled by user" }
             }
+            is WorkspaceAction.CreateBatch.Result.AwaitingConfirmation -> {
+                log(tag, INFO) { "Batch creation awaiting confirmation" }
+            }
         }
 
         clearSelection()
@@ -1294,7 +1286,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     includePattern = filterState.includePattern,
                     excludePattern = filterState.excludePattern,
                     fileTypeFilter = filterState.fileTypeFilter,
-                    useRegexPatterns = explorerSettings.useRegexPatterns.valueBlocking,
+                    useRegexPatterns = cachedUseRegexPatterns,
                 )
             }
             is ExplorerDialogEvent.Dismiss -> {
@@ -1786,12 +1778,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun validateFilename(name: String): FilenameValidator.ValidationResult {
-        val currentPath = runBlocking {
-            getState().currentLocation?.let {
-                when (it) {
-                    is ExplorerLocation.Directory -> it.path
-                    else -> null
-                }
+        val currentPath = cachedCurrentLocation?.let {
+            when (it) {
+                is ExplorerLocation.Directory -> it.path
+                else -> null
             }
         }
         return if (currentPath != null) {
