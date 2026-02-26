@@ -25,11 +25,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -279,5 +282,55 @@ private fun SearchToolbarCardCollapsedPreview() {
             collapsedFraction = 1f,
             onAction = {},
         )
+    }
+}
+
+@Preview2
+@Composable
+private fun SearchToolbarCardRtlPreview() {
+    PreviewWrapper {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            SearchToolbarCard(
+                modifier = Modifier.padding(16.dp),
+                workspaceId = Workspace.Id(),
+                state = SearcherWorkspaceViewModel.State.Ready(
+                    searchTargets = listOf(
+                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+                    ),
+                    filenameQuery = "*.kt",
+                    contentQuery = "TODO",
+                    filenameOptions = FilenameQuery(useRegex = true),
+                    contentOptions = ContentQuery(wholeWord = true),
+                    contentSearchEnabled = true,
+                ),
+                design = WorkspaceDesign(),
+                onAction = {},
+            )
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun SearchToolbarCardCollapsedRtlPreview() {
+    PreviewWrapper {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            SearchToolbarCard(
+                modifier = Modifier.padding(16.dp),
+                workspaceId = Workspace.Id(),
+                state = SearcherWorkspaceViewModel.State.Ready(
+                    searchTargets = listOf(
+                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+                    ),
+                    filenameQuery = "*.kt",
+                    contentQuery = "TODO",
+                ),
+                design = WorkspaceDesign(),
+                collapsedFraction = 1f,
+                onAction = {},
+            )
+        }
     }
 }

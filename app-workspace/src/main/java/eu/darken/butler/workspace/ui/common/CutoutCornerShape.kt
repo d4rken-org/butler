@@ -1,10 +1,12 @@
 package eu.darken.butler.workspace.ui.common
 
+import android.graphics.Matrix
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -124,6 +126,12 @@ class CutoutTopRightCornerShape(
             )
 
             close()
+        }
+
+        if (layoutDirection == LayoutDirection.Rtl) {
+            val matrix = Matrix()
+            matrix.setScale(-1f, 1f, size.width / 2f, 0f)
+            path.asAndroidPath().transform(matrix)
         }
 
         return Outline.Generic(path)
