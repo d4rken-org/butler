@@ -49,6 +49,24 @@ This aligns with the "Agent instructions" principle of maintaining focused conte
 ./gradlew lint
 ```
 
+## Play Store Screenshots
+
+Generate localized screenshots using Compose Preview Screenshot Testing. See `.claude/rules/screenshots.md` for full details.
+
+```bash
+# Smoke test (6 locales, fast iteration)
+./fastlane/generate_screenshots.sh --smoke
+
+# Full generation (76 locales)
+./fastlane/generate_screenshots.sh
+
+# Copy to fastlane metadata directories
+./fastlane/copy_screenshots.sh
+
+# Direct Gradle (no batching)
+./gradlew :app:updateGplayDebugScreenshotTest --no-daemon
+```
+
 ## Debugging
 
 ### Taking Screenshots via ADB

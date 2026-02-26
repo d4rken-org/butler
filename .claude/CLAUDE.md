@@ -25,6 +25,7 @@ Butler uses a workspace concept similar to browser tabs with 4 main workspace ty
 | UI, theming | `.claude/rules/ui-guidelines.md` |
 | Localization | `.claude/rules/localization.md` |
 | DI, logging, serialization | `.claude/rules/technical-patterns.md` |
+| Screenshots | `.claude/rules/screenshots.md` |
 | Agent delegation | `.claude/rules/agent-instructions.md` |
 | Commit messages | `.claude/rules/commit-guidelines.md` |
 
@@ -59,6 +60,13 @@ See `.claude/rules/development-commands.md` for complete command reference.
 - `buildSrc/src/main/java/Versions.kt`: Dependency versions
 - `buildSrc/build.gradle.kts`: Build plugin versions
 - `.github/workflows/code-checks.yml`: CI configuration
+
+### Screenshots
+- `app/src/screenshotTest/kotlin/.../screenshots/`: Compose screenshot test definitions
+- `app/src/debug/java/.../screenshots/ScreenshotContent.kt`: Mock content for screenshots
+- `fastlane/generate_screenshots.sh`: Batch screenshot generation script
+- `fastlane/copy_screenshots.sh`: Copies screenshots to fastlane metadata
+- `fastlane/metadata/android/{locale}/images/phoneScreenshots/`: Play Store screenshots
 
 ### Build Flavors
 - **FOSS**: Open source version without Google Play dependencies
