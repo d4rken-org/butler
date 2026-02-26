@@ -21,9 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -330,6 +333,71 @@ private fun CutoutCardShortContentPreview() {
             cutoutContent = { PreviewCutoutButton() },
         ) {
             Text("Short content auto-switches to fullheight abc lorem ipsum Short content auto-switches to fullheight abc lorem ipsum")
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun CutoutCardNoCutoutRtlPreview() {
+    PreviewWrapper {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            CutoutCard(
+                modifier = Modifier.padding(16.dp),
+            ) {
+                Text("Regular card without cutout RTL")
+                Text("Second line of content")
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun CutoutCardCornerModeRtlPreview() {
+    PreviewWrapper {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            CutoutCard(
+                modifier = Modifier.padding(16.dp),
+                cutoutContent = { PreviewCutoutButton() },
+            ) {
+                Text("Corner cutout mode RTL")
+                Text("Content flows around the cutout")
+                Text("Third line extends full width")
+                Text("Fourth line also full width")
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun CutoutCardFullHeightModeRtlPreview() {
+    PreviewWrapper {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            CutoutCard(
+                modifier = Modifier.padding(16.dp),
+                cutoutContent = { PreviewCutoutButton() },
+                cutoutMode = CutoutMode.FullHeight,
+            ) {
+                Text("Full-height cutout mode RTL")
+                Text("Card width is reduced")
+            }
+        }
+    }
+}
+
+@Preview2
+@Composable
+private fun CutoutCardShortContentRtlPreview() {
+    PreviewWrapper {
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+            CutoutCard(
+                modifier = Modifier.padding(16.dp),
+                cutoutContent = { PreviewCutoutButton() },
+            ) {
+                Text("Short content auto-switches to fullheight abc lorem ipsum Short content auto-switches to fullheight abc lorem ipsum")
+            }
         }
     }
 }
