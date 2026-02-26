@@ -20,6 +20,8 @@ import eu.darken.butler.searcher.ui.search.SearcherWorkspacePage
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
+import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
@@ -40,8 +42,8 @@ internal fun ExplorerHomeContent() = PreviewWrapper {
                 items = homeLocation.items,
             )
         ),
-        operationsStateSource = MutableStateFlow(ExplorerWorkspaceViewModel.OperationsState()),
-        clipboardStateSource = MutableStateFlow(ExplorerWorkspaceViewModel.ClipboardState()),
+        operationsStateSource = MutableStateFlow(OperationsDisplayState()),
+        clipboardStateSource = MutableStateFlow(ClipboardDisplayState()),
     )
 }
 
@@ -50,8 +52,8 @@ internal fun ExplorerDirectoryContent() = PreviewWrapper {
     ExplorerWorkspacePage(
         workspaceId = Workspace.Id(),
         mainStateSource = MutableStateFlow(MockDataProvider.createReadyState()),
-        operationsStateSource = MutableStateFlow(ExplorerWorkspaceViewModel.OperationsState()),
-        clipboardStateSource = MutableStateFlow(ExplorerWorkspaceViewModel.ClipboardState()),
+        operationsStateSource = MutableStateFlow(OperationsDisplayState()),
+        clipboardStateSource = MutableStateFlow(ClipboardDisplayState()),
     )
 }
 
@@ -60,8 +62,8 @@ internal fun SearcherResultsContent() = PreviewWrapper {
     SearcherWorkspacePage(
         workspaceId = Workspace.Id(),
         stateSource = MutableStateFlow(SearcherMockDataProvider.createMockResultsState()),
-        clipboardStateSource = MutableStateFlow(SearcherWorkspaceViewModel.ClipboardState()),
-        operationsStateSource = MutableStateFlow(SearcherWorkspaceViewModel.OperationsState()),
+        clipboardStateSource = MutableStateFlow(ClipboardDisplayState()),
+        operationsStateSource = MutableStateFlow(OperationsDisplayState()),
     )
 }
 
