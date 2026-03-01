@@ -17,7 +17,7 @@ import eu.darken.butler.common.compose.SampleContent
 import eu.darken.butler.common.hasApiLevel
 
 @Composable
-fun MyAppTheme(state: ThemeState = ThemeState(), content: @Composable () -> Unit) {
+fun ButlerTheme(state: ThemeState = ThemeState(), content: @Composable () -> Unit) {
     val dynamicColors = when (state.style) {
         ThemeStyle.MATERIAL_YOU -> hasApiLevel(31)
         else -> false
@@ -56,9 +56,9 @@ fun MyAppTheme(state: ThemeState = ThemeState(), content: @Composable () -> Unit
 @Preview(showBackground = true, name = "AMOLED Light")
 @Composable
 fun AmoledLightPreview() =
-    MyAppTheme(ThemeState(ThemeMode.LIGHT, ThemeStyle.DEFAULT, ThemeColor.AMOLED)) { SampleContent() }
+    ButlerTheme(ThemeState(ThemeMode.LIGHT, ThemeStyle.DEFAULT, ThemeColor.AMOLED)) { SampleContent() }
 
 @Preview(showBackground = true, name = "AMOLED Dark")
 @Composable
 fun AmoledDarkPreview() =
-    MyAppTheme(ThemeState(ThemeMode.DARK, ThemeStyle.DEFAULT, ThemeColor.AMOLED)) { SampleContent() }
+    ButlerTheme(ThemeState(ThemeMode.DARK, ThemeStyle.DEFAULT, ThemeColor.AMOLED)) { SampleContent() }

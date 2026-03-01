@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.theming.MyAppTheme
+import eu.darken.butler.common.theming.ButlerTheme
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.themeState
@@ -42,7 +42,7 @@ class RecorderActivity : Activity2() {
         setContent {
             val themeState by generalSettings.themeState.collectAsState(null)
             themeState?.let { theme ->
-                MyAppTheme(state = theme) {
+                ButlerTheme(state = theme) {
                     Surface(
                         color = MaterialTheme.colorScheme.background,
                         modifier = Modifier.fillMaxSize()

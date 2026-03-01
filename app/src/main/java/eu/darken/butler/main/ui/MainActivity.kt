@@ -43,7 +43,7 @@ import eu.darken.butler.common.navigation.NavigationDestination
 import eu.darken.butler.common.navigation.NavigationEntry
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.onboarding
-import eu.darken.butler.common.theming.MyAppTheme
+import eu.darken.butler.common.theming.ButlerTheme
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
@@ -102,7 +102,7 @@ class MainActivity : Activity2() {
             LaunchedEffect(themeState) {
                 log(TAG) { "Theme state: $themeState" }
             }
-            MyAppTheme(state = themeState) {
+            ButlerTheme(state = themeState) {
                 // Set window background to match the current theme
                 val backgroundColor = MaterialTheme.colorScheme.background
                 LaunchedEffect(backgroundColor) {

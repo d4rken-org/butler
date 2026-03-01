@@ -18,7 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.theming.MyAppTheme
+import eu.darken.butler.common.theming.ButlerTheme
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
@@ -67,7 +67,7 @@ fun PreviewWrapper(
     theme: ThemeState = ThemeState(ThemeMode.SYSTEM, style = ThemeStyle.DEFAULT),
     content: @Composable () -> Unit
 ) {
-    MyAppTheme(
+    ButlerTheme(
         state = theme,
     ) {
         Surface(

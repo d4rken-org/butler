@@ -10,7 +10,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.theming.MyAppTheme
+import eu.darken.butler.common.theming.ButlerTheme
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.themeStateBlocking
 import eu.darken.butler.workspace.core.Workspace
@@ -53,7 +53,7 @@ class WorkspacePreviewCaptureService @Inject constructor(
             ) {
                 // Disable focus during preview capture to prevent keyboard from showing
                 CompositionLocalProvider(LocalWorkspaceFocused provides false) {
-                    MyAppTheme(state = themeState) {
+                    ButlerTheme(state = themeState) {
                         WorkspaceMapper(
                             info = WorkspacePaneInfo(
                                 id = workspaceId,
