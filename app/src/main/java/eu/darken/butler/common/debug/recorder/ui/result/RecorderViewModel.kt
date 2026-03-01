@@ -3,7 +3,6 @@ package eu.darken.butler.common.debug.recorder.ui.result
 import android.content.Context
 import android.content.Intent
 import android.text.format.Formatter
-import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -11,10 +10,10 @@ import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.ButlerLinks
 import eu.darken.butler.common.WebpageTool
-import eu.darken.butler.common.compression.Zipper
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.debug.recorder.core.DebugLogZipper
 import eu.darken.butler.common.files.core.local.deleteAll
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -29,6 +28,7 @@ class RecorderViewModel @Inject constructor(
     handle: SavedStateHandle,
     @ApplicationContext private val context: Context,
     private val webpageTool: WebpageTool,
+    private val debugLogZipper: DebugLogZipper,
 ) : ViewModel4(dispatchers, logTag("Debug", "Recorder", "Screen", "VM")) {
 
     private val sessionPath = handle.get<String>(RecorderActivity.RECORD_PATH)?.let { File(it) }
@@ -59,28 +59,23 @@ class RecorderViewModel @Inject constructor(
             stater.updateBlocking { copy(logEntries = entries) }
 
             log(TAG) { "Compressing log files..." }
-            val zipFile = zipPath ?: throw IllegalStateException("No zip path found")
-            log(TAG) { "Writing zip file to $zipFile" }
-            Zipper().zip(
-                entries.map { it.path.path },
-                zipFile.path
-            )
-            val zippedSize = zipFile.length()
-            log(TAG) { "Zip file created ${zippedSize}B at $zipFile" }
-            stater.updateBlocking { copy(compressedFile = zipFile, compressedSize = zippedSize, isWorking = false) }
+            val uri = debugLogZipper.zipAndGetUri(sessionPath)
+            if (uri != null) {
+                val zippedSize = zipPath?.length() ?: 0L
+                log(TAG) { "Zip created ${zippedSize}B, uri=$uri" }
+                stater.updateBlocking { copy(compressedFile = zipPath, compressedSize = zippedSize, isWorking = false) }
+            } else {
+                log(TAG) { "No log files to compress in $sessionPath" }
+                stater.updateBlocking { copy(isWorking = false) }
+            }
         }
     }
 
     fun share() = launch {
         val file = stater.value().compressedFile ?: throw IllegalStateException("compressedFile is null")
+        val uri = debugLogZipper.getUriForZip(file)
 
         val intent = Intent(Intent.ACTION_SEND).apply {
-            val uri = FileProvider.getUriForFile(
-                context,
-                BuildConfigWrap.APPLICATION_ID + ".provider",
-                file
-            )
-
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)

@@ -10,19 +10,22 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.storage.DocumentUriResolver
-import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.main.core.themeState
+import eu.darken.butler.main.core.themeStateBlocking
 import eu.darken.butler.saver.core.arguments.SaverArguments
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -38,7 +41,11 @@ class MainViewModel @Inject constructor(
     private val documentUriResolver: DocumentUriResolver,
 ) : ViewModel4(dispatcherProvider, logTag("Main", "Screen", "VM")) {
 
-    val themeState = generalSettings.themeState.asStateFlow()
+    val themeState = generalSettings.themeState.stateIn(
+        vmScope,
+        SharingStarted.Eagerly,
+        generalSettings.themeStateBlocking,
+    )
 
     val state = generalSettings.isOnboardingCompleted.flow
         .combine(flowOf(Unit)) { onBoardingComplete, _ ->

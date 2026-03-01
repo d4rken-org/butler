@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -43,7 +44,6 @@ import eu.darken.butler.common.navigation.NavigationEntry
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.onboarding
 import eu.darken.butler.common.theming.MyAppTheme
-import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
@@ -60,7 +60,6 @@ class MainActivity : Activity2() {
     @Inject lateinit var curriculumVitae: CurriculumVitae
     @Inject lateinit var navCtrl: NavigationController
     @Inject lateinit var navigationEntries: Set<@JvmSuppressWildcards NavigationEntry>
-    @Inject lateinit var generalSettings: GeneralSettings
     @Inject lateinit var shortcutManager: DynamicShortcutManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,34 +94,30 @@ class MainActivity : Activity2() {
                 log(TAG) { "WindowInsets primed: $primedInsets" }
             }
 
-
-            val themeState by produceState<ThemeState?>(initialValue = null) {
-                vm.themeState.collect { value = it }
-            }
+            val themeState by vm.themeState.collectAsState()
             val vmState by produceState<MainViewModel.State?>(initialValue = null) {
                 vm.state.collect { value = it }
             }
-            themeState?.let { themeState ->
-                LaunchedEffect(themeState) {
-                    log(TAG) { "Theme state: $themeState" }
+
+            LaunchedEffect(themeState) {
+                log(TAG) { "Theme state: $themeState" }
+            }
+            MyAppTheme(state = themeState) {
+                // Set window background to match the current theme
+                val backgroundColor = MaterialTheme.colorScheme.background
+                LaunchedEffect(backgroundColor) {
+                    window.decorView.setBackgroundColor(backgroundColor.toArgb())
                 }
-                MyAppTheme(state = themeState) {
-                    // Set window background to match the current theme
-                    val backgroundColor = MaterialTheme.colorScheme.background
-                    LaunchedEffect(backgroundColor) {
-                        window.decorView.setBackgroundColor(backgroundColor.toArgb())
-                    }
 
-                    CompositionLocalProvider(LocalNavigationController provides navCtrl) {
-                        ErrorEventHandler(vm)
-                        NavigationEventHandler(vm)
+                CompositionLocalProvider(LocalNavigationController provides navCtrl) {
+                    ErrorEventHandler(vm)
+                    NavigationEventHandler(vm)
 
-                        vmState?.let { mainState ->
-                            LaunchedEffect(mainState) {
-                                log(TAG) { "Main state: $mainState" }
-                            }
-                            Navigation(mainState)
+                    vmState?.let { mainState ->
+                        LaunchedEffect(mainState) {
+                            log(TAG) { "Main state: $mainState" }
                         }
+                        Navigation(mainState)
                     }
                 }
             }

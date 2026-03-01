@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.debug.recorder.ui.ShortRecordingDialog
 import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -34,6 +35,13 @@ fun RecordingBannerHost(
         } else {
             elapsedTime = Duration.ZERO
         }
+    }
+
+    if (currentState.showShortRecordingWarning) {
+        ShortRecordingDialog(
+            onKeepRecording = { vm.dismissShortRecordingWarning() },
+            onStopAnyway = { vm.forceStopRecording() },
+        )
     }
 
     RecordingBanner(

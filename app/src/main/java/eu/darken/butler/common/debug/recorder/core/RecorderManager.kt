@@ -21,7 +21,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.debug.recorder.ui.result.RecorderActivity
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.getPackageInfo
-import eu.darken.butler.common.startServiceCompat
+
 import eu.darken.butler.main.core.CurriculumVitae
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -35,12 +35,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
@@ -93,8 +95,6 @@ class RecorderManager @Inject constructor(
 
                         logInfos()
 
-                        context.startServiceCompat(Intent(context, RecorderService::class.java))
-
                         // Start periodic log size updates
                         startLogSizeUpdates(logDir)
 
@@ -138,10 +138,12 @@ class RecorderManager @Inject constructor(
                             log(TAG, ERROR) { "Failed to delete trigger file" }
                         }
 
-                        val intent = RecorderActivity.getLaunchIntent(context, currentLogDir!!.path).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        if (showResultScreen) {
+                            val intent = RecorderActivity.getLaunchIntent(context, currentLogDir!!.path).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
                         }
-                        context.startActivity(intent)
 
                         copy(
                             recorder = null,
@@ -158,6 +160,22 @@ class RecorderManager @Inject constructor(
             .launchIn(appScope)
     }
 
+    private fun resolveLogRoot(): File {
+        return try {
+            File(context.externalCacheDir, "debug/logs")
+        } catch (e: Exception) {
+            log(TAG, WARN) { "External cache not available, falling back to internal: ${e.message}" }
+            File(context.cacheDir, "debug/logs")
+        }
+    }
+
+    fun getLogDirectories(): List<File> {
+        return listOfNotNull(
+            try { File(context.externalCacheDir, "debug/logs") } catch (_: Exception) { null },
+            File(context.cacheDir, "debug/logs"),
+        ).filter { it.exists() }
+    }
+
     private fun createRecordingDir(): File {
         val pkg = BuildConfigWrap.APPLICATION_ID
         val version = BuildConfigWrap.VERSION_CODE
@@ -166,7 +184,7 @@ class RecorderManager @Inject constructor(
             .withZone(ZoneId.systemDefault())
             .format(Clock.System.now().toJavaInstant())
         @Suppress("SetWorldWritable", "SetWorldReadable")
-        return File(File(context.externalCacheDir, "debug/logs"), "${pkg}_${version}_${timestamp}").apply {
+        return File(resolveLogRoot(), "${pkg}_${version}_${timestamp}").apply {
             mkdirs()
             if (setReadable(true, false)) log(TAG) { "Session dir is readable" }
             if (setWritable(true, false)) log(TAG) { "Session dir is writeable" }
@@ -180,13 +198,35 @@ class RecorderManager @Inject constructor(
         return internalState.flow.filter { it.isRecording }.first().currentLogDir!!
     }
 
-    suspend fun stopRecorder(): File? {
-        val currentPath = internalState.value().currentLogDir ?: return null
-        internalState.updateBlocking {
-            copy(shouldRecord = false)
+    suspend fun stopRecorder(showResult: Boolean = true, force: Boolean = false): File? {
+        val current = internalState.value()
+        val currentPath = current.currentLogDir ?: return null
+
+        if (!force && current.recordingStartTime != null) {
+            val elapsed = Clock.System.now() - current.recordingStartTime
+            if (elapsed < SHORT_RECORDING_THRESHOLD) {
+                log(TAG) { "Recording is short (${elapsed}), requesting confirmation" }
+                internalState.updateBlocking {
+                    copy(showShortRecordingWarning = true, pendingShowResult = showResult)
+                }
+                return null
+            }
         }
-        internalState.flow.filter { !it.isRecording }.first()
+
+        val effectiveShowResult = if (force) current.pendingShowResult else showResult
+        internalState.updateBlocking {
+            copy(shouldRecord = false, showResultScreen = effectiveShowResult, showShortRecordingWarning = false)
+        }
+        withTimeout(10.seconds) {
+            internalState.flow.filter { !it.isRecording }.first()
+        }
         return currentPath
+    }
+
+    suspend fun dismissShortRecordingWarning() {
+        internalState.updateBlocking {
+            copy(showShortRecordingWarning = false)
+        }
     }
 
     private fun startLogSizeUpdates(logDir: File) {
@@ -237,6 +277,9 @@ class RecorderManager @Inject constructor(
         val lastLogDir: File? = null,
         val recordingStartTime: Instant? = null,
         val currentLogSize: Long = 0L,
+        val showResultScreen: Boolean = true,
+        val showShortRecordingWarning: Boolean = false,
+        val pendingShowResult: Boolean = true,
     ) {
         val isRecording: Boolean
             get() = recorder != null
@@ -246,5 +289,6 @@ class RecorderManager @Inject constructor(
         internal val TAG = logTag("Debug", "Log", "Recorder", "Manager")
         private const val FORCE_FILE = "force_debug_run"
         private const val LOG_SIZE_UPDATE_INTERVAL_MS = 5000L
+        private val SHORT_RECORDING_THRESHOLD = 5.seconds
     }
 }

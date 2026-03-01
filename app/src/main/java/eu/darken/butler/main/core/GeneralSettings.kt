@@ -7,15 +7,19 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.datastore.PreferenceScreenData
+import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
+import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
 import eu.darken.butler.common.updater.UpdateChecker
 import eu.darken.butler.main.core.motd.MotdSettings
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,7 +30,7 @@ class GeneralSettings @Inject constructor(
     debugSettings: DebugSettings,
     json: Json,
     motdSettings: MotdSettings,
-    updateChecker: UpdateChecker
+    updateChecker: UpdateChecker,
 ) : PreferenceScreenData {
 
     private val Context.dataStore by preferencesDataStore(name = "settings_core")
@@ -73,3 +77,11 @@ class GeneralSettings @Inject constructor(
         internal val TAG = logTag("Core", "Settings")
     }
 }
+
+val GeneralSettings.themeState: Flow<ThemeState>
+    get() = combine(themeMode.flow, themeStyle.flow, themeColor.flow) { mode, style, color ->
+        ThemeState(mode, style, color)
+    }
+
+val GeneralSettings.themeStateBlocking: ThemeState
+    get() = ThemeState(themeMode.valueBlocking, themeStyle.valueBlocking, themeColor.valueBlocking)

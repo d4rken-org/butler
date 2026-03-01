@@ -21,6 +21,7 @@ class RecordingBannerViewModel @Inject constructor(
             isRecording = recState.isRecording,
             recordingStartTime = recState.recordingStartTime,
             currentLogSize = recState.currentLogSize,
+            showShortRecordingWarning = recState.showShortRecordingWarning,
         )
     }
 
@@ -29,10 +30,21 @@ class RecordingBannerViewModel @Inject constructor(
         recorderManager.stopRecorder()
     }
 
+    fun dismissShortRecordingWarning() = launch {
+        log(TAG) { "Dismissing short recording warning" }
+        recorderManager.dismissShortRecordingWarning()
+    }
+
+    fun forceStopRecording() = launch {
+        log(TAG) { "Force stopping debug log recording from banner" }
+        recorderManager.stopRecorder(force = true)
+    }
+
     data class State(
         val isRecording: Boolean,
         val recordingStartTime: Instant?,
         val currentLogSize: Long,
+        val showShortRecordingWarning: Boolean = false,
     )
 
     companion object {

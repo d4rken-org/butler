@@ -17,9 +17,9 @@ import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeState
 import eu.darken.butler.common.theming.ThemeStyle
-import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.main.core.themeState
 import eu.darken.butler.main.core.motd.MotdSettings
 import eu.darken.butler.provider.documents.core.DocumentsProviderSettings
 import eu.darken.butler.upgrade.UpgradeRepo

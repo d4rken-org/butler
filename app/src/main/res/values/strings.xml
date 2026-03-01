@@ -110,6 +110,9 @@
     <string name="debug_banner_label_expanded">Recording logfile</string>
     <string name="debug_banner_stop_action">Stop</string>
     <string name="debug_banner_explanation">Recording app activity. Stop when done, then share the log when reporting bugs.</string>
+    <string name="debug_log_short_recording_title">Recording is very short</string>
+    <string name="debug_log_short_recording_message">Debug logs capture what happens while recording is active. Start recording, reproduce the issue, then stop. This recording may not contain useful information.</string>
+    <string name="debug_log_short_recording_keep_action">Keep recording</string>
 
     <string name="settings_label">Settings</string>
     <string name="settings_category_tools_label">Tools</string>
@@ -338,5 +341,41 @@
         <item quantity="one">%d step away from Developer Mode</item>
         <item quantity="other">%d steps away from Developer Mode</item>
     </plurals>
+
+    <!-- Support: Contact Form -->
+    <string name="support_contact_label">Contact developer</string>
+    <string name="support_contact_description">Send a question, feature request, or bug report.</string>
+    <string name="support_contact_no_email_app">No email app found</string>
+    <string name="support_contact_category_label">Category</string>
+    <string name="support_contact_category_question">Question</string>
+    <string name="support_contact_category_feature">Feature request</string>
+    <string name="support_contact_category_bug">Bug report</string>
+    <string name="support_contact_workspace_label">Related area</string>
+    <string name="support_contact_workspace_general">General</string>
+    <string name="support_contact_workspace_explorer">Explorer</string>
+    <string name="support_contact_workspace_searcher">Searcher</string>
+    <string name="support_contact_workspace_editor">Editor</string>
+    <string name="support_contact_description_label">Description</string>
+    <string name="support_contact_description_question_hint">Describe your question in detail. Please be specific (minimum 20 words).</string>
+    <string name="support_contact_description_feature_hint">Describe the feature you would like to see. Please be specific (minimum 20 words).</string>
+    <string name="support_contact_description_bug_hint">Describe what happened and how to reproduce the issue. Please be specific (minimum 20 words).</string>
+    <string name="support_contact_expected_label">Expected behavior</string>
+    <string name="support_contact_expected_hint">Describe what you expected to happen (minimum 10 words).</string>
+    <string name="support_contact_word_count">%1$d / %2$d words</string>
+    <string name="support_contact_debuglog_label">Debug log</string>
+    <string name="support_contact_debuglog_empty">No debug logs found. Record one first.</string>
+    <string name="support_contact_debuglog_picker_hint">Attach an existing debug log, or record a new one.</string>
+    <string name="support_contact_send_action">Open email app</string>
+    <string name="support_contact_welcome">I read every message myself and do my best to reply. Since I handle development, bug fixes, and support on my own, it can take a little time. Thanks for your patience.</string>
+    <string name="support_contact_footer">Your message will be sent via email. Device and setup information is attached automatically. You can attach screenshots or a video to the email.</string>
+
+    <!-- Support: Debug Log Storage -->
+    <string name="support_debuglog_storage_label">Debug log storage</string>
+    <string name="support_debuglog_storage_description">%1$d log sessions, %2$s</string>
+    <string name="support_debuglog_storage_empty">No debug logs stored</string>
+    <string name="support_debuglog_delete_action">Delete all debug logs</string>
+    <string name="support_debuglog_delete_description">Remove all recorded debug log files</string>
+    <string name="support_debuglog_delete_confirm_title">Delete all debug logs?</string>
+    <string name="support_debuglog_delete_confirm_message">This will permanently delete all recorded debug log sessions. Active recordings will not be affected.</string>
 
 </resources>

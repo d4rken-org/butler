@@ -11,14 +11,13 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.theming.MyAppTheme
-import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.main.core.themeStateBlocking
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -44,7 +43,7 @@ class WorkspacePreviewCaptureService @Inject constructor(
     ): Bitmap? = try {
         log(TAG, INFO) { "Capturing preview for workspace ${workspaceId.shortTag} (${workspaceType})" }
 
-        val themeState = generalSettings.themeState.first()
+        val themeState = generalSettings.themeStateBlocking
 
         withContext(dispatcherProvider.Main) {
             composableBitmapRenderer.renderToBitmap(

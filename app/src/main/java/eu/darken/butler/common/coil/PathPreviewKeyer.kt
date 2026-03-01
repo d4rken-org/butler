@@ -4,10 +4,8 @@ import coil3.key.Keyer
 import coil3.request.Options
 import coil3.size.Dimension
 import eu.darken.butler.common.files.APathLookup
-import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.main.core.GeneralSettings
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import eu.darken.butler.main.core.themeStateBlocking
 import javax.inject.Inject
 
 /**
@@ -20,8 +18,7 @@ class PathPreviewKeyer @Inject constructor(
 ) : Keyer<APathLookup<*>> {
 
     override fun key(data: APathLookup<*>, options: Options): String {
-        // Get current theme state synchronously
-        val themeState = runBlocking { generalSettings.themeState.first() }
+        val themeState = generalSettings.themeStateBlocking
 
         val sizeWidth = (options.size.width as? Dimension.Pixels)?.px ?: 0
         val sizeHeight = (options.size.height as? Dimension.Pixels)?.px ?: 0

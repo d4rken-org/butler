@@ -26,8 +26,8 @@ import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeColorProvider
 import eu.darken.butler.common.theming.ThemeMode
 import eu.darken.butler.common.theming.ThemeStyle
-import eu.darken.butler.common.theming.themeState
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.main.core.themeState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted

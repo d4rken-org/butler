@@ -19,6 +19,7 @@ import eu.darken.butler.main.ui.settings.general.GeneralSettingsScreenHost
 import eu.darken.butler.main.ui.settings.previews.PreviewsSettingsScreenHost
 import eu.darken.butler.main.ui.settings.shortcuts.ShortcutsSettingsScreenHost
 import eu.darken.butler.main.ui.settings.support.SupportScreenHost
+import eu.darken.butler.main.ui.settings.support.contactform.SupportContactFormScreenHost
 import eu.darken.butler.searcher.ui.DestinationSearcherSettings
 import eu.darken.butler.searcher.ui.settings.SearcherSettingsScreenHost
 import eu.darken.butler.upgrade.ui.UpgradeStatusScreenHost
@@ -63,6 +64,9 @@ class SettingsNavigation @Inject constructor() : NavigationEntry {
         }
         entry<DestinationSettingsClipboard> {
             ClipboardSettingsScreenHost()
+        }
+        entry<DestinationSettingsContactForm> {
+            SupportContactFormScreenHost()
         }
     }
 

@@ -52,3 +52,11 @@ data object DestinationSettingsClipboard : NavigationDestination {
 
 @Suppress("UnusedReceiverParameter")
 fun Nav.Settings.clipboard(): NavigationDestination = DestinationSettingsClipboard
+
+@Serializable
+data object DestinationSettingsContactForm : NavigationDestination {
+    private fun readResolve(): Any = DestinationSettingsContactForm
+}
+
+@Suppress("UnusedReceiverParameter")
+fun Nav.Settings.contactForm(): NavigationDestination = DestinationSettingsContactForm
