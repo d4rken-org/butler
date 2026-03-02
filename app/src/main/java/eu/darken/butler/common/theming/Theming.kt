@@ -76,7 +76,7 @@ constructor(
             generalSettings.themeStyle.flow,
         ) { newThemeMode, newThemeStyle ->
             log(TAG) { "oldThemeMode=$oldThemeMode, newThemeMode=$newThemeMode" }
-            log(TAG) { "oldThemeStyle=$oldThemeStyle, newhemeStyle=$newThemeStyle" }
+            log(TAG) { "oldThemeStyle=$oldThemeStyle, newThemeStyle=$newThemeStyle" }
 
             withContext(dispatcherProvider.Main) { newThemeMode.applyMode() }
 
@@ -96,7 +96,7 @@ constructor(
             .setupCommonEventHandlers(TAG) { "setup" }
             .launchIn(appScope)
 
-        // Before any Activity is created, to reprevent unnecessary Activity recreation
+        // Before any Activity is created, to prevent unnecessary Activity recreation
         generalSettings.themeMode.valueBlocking.let {
             log(TAG) { "Applying initial themeMode setting: $it" }
             it.applyMode()
@@ -118,14 +118,6 @@ constructor(
 
     private fun ThemeStyle.applyStyle(activities: Set<Activity> = emptySet()) =
         when (this) {
-            ThemeStyle.DEFAULT -> {
-                activities.forEach { activity ->
-                    log(TAG) { "Applying DEFAULT to $activity" }
-                    // NOOP This should only be called on fresh activities, and for DEFAULT we
-                    // just do nothing
-                }
-            }
-
             ThemeStyle.MATERIAL_YOU -> {
                 // We don't use DynamicColors.applyToActivitiesIfAvailable() because we can't
                 // remove it again
@@ -135,19 +127,7 @@ constructor(
                 }
             }
 
-            ThemeStyle.MEDIUM_CONTRAST -> {
-                activities.forEach { activity ->
-                    log(TAG) { "Applying MEDIUM_CONTRAST to $activity" }
-                    // NOOP This should only be called on fresh activities, and for contrast themes we just do nothing
-                }
-            }
-
-            ThemeStyle.HIGH_CONTRAST -> {
-                activities.forEach { activity ->
-                    log(TAG) { "Applying HIGH_CONTRAST to $activity" }
-                    // NOOP This should only be called on fresh activities, and for contrast themes we just do nothing
-                }
-            }
+            else -> Unit // Only MATERIAL_YOU needs activity-level setup
         }
 
     companion object {
