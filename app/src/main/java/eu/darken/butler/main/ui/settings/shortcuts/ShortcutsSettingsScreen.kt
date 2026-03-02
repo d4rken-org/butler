@@ -45,14 +45,14 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
-import eu.darken.butler.common.ui.waitForState
+import androidx.compose.runtime.collectAsState
 
 @Composable
 fun ShortcutsSettingsScreenHost(vm: ShortcutsSettingsViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
-    val state by waitForState(vm.state)
+    val state by vm.state.collectAsState(initial = null)
 
     state?.let { state ->
         ShortcutsSettingsScreen(

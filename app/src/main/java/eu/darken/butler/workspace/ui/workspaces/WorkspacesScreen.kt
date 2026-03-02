@@ -25,7 +25,6 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.common.ui.waitForState
 import eu.darken.butler.main.ui.motd.MotdCard
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -188,7 +187,7 @@ fun WorkspacesScreenHost(
     val showClearSessionConfirmation by vm.showClearSessionConfirmation.collectAsState(initial = false)
     val managerDialogs by vm.managerDialogs.collectAsState()
     val pageManagerState by vm.workspacePageManager.state.collectAsState()
-    val managerState by waitForState(managerVm.state)
+    val managerState by managerVm.state.collectAsState(initial = null)
 
     // Derive dialog states from unified registry
     val managerDialogStates = remember(managerDialogs) {
@@ -219,7 +218,7 @@ fun WorkspacesScreenHost(
         vm.workspacePageManager.hideManagerOverlay()
     }
 
-    val state by waitForState(vm.state)
+    val state by vm.state.collectAsState(initial = null)
 
     CompositionLocalProvider(LocalWorkspaceButtonProvider provides workspaceButtonVm) {
         state?.let { state ->

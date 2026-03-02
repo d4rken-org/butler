@@ -42,7 +42,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.common.ui.waitForState
+import androidx.compose.runtime.collectAsState
 import eu.darken.butler.setup.core.SetupAction
 import eu.darken.butler.setup.core.SetupModule
 import eu.darken.butler.setup.ui.items.SetupCard
@@ -177,7 +177,7 @@ fun SetupScreenHost(
         }
     }
 
-    val state by waitForState(vm.state)
+    val state by vm.state.collectAsState(initial = null)
 
     // Auto-close when all required permissions are granted
     if (options.autoCloseWhenComplete && !options.isOnboarding) {

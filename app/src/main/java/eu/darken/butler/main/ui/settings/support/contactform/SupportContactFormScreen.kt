@@ -59,7 +59,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.recorder.ui.result.RecorderConsentDialog
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.common.ui.waitForState
+import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -91,7 +91,7 @@ fun SupportContactFormScreenHost(
         onPauseOrDispose {}
     }
 
-    val state by waitForState(vm.state)
+    val state by vm.state.collectAsState(initial = null)
 
     state?.let { currentState ->
         SupportContactFormScreen(

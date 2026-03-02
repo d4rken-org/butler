@@ -54,7 +54,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.settings
-import eu.darken.butler.common.ui.waitForState
+import androidx.compose.runtime.collectAsState
 import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
 import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
@@ -77,7 +77,7 @@ fun TemplatesWorkspacePageHost(
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
-    val state by waitForState(vm.state)
+    val state by vm.state.collectAsState(initial = null)
 
     state?.let { state ->
         TemplatesWorkspacePage(

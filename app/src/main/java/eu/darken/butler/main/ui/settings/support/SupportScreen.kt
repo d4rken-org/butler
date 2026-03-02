@@ -42,7 +42,7 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
-import eu.darken.butler.common.ui.waitForState
+import androidx.compose.runtime.collectAsState
 import java.io.File
 
 @Composable
@@ -55,7 +55,7 @@ fun SupportScreenHost(vm: SupportScreenViewModel = hiltViewModel()) {
         onPauseOrDispose {}
     }
 
-    val state by waitForState(vm.state)
+    val state by vm.state.collectAsState(initial = null)
 
     state?.let { vmState ->
         SupportScreen(

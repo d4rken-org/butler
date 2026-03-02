@@ -59,7 +59,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import eu.darken.butler.common.ui.waitForState
+import androidx.compose.runtime.collectAsState
 
 
 @Composable
@@ -70,7 +70,7 @@ fun UpgradeScreenHost(vm: UpgradeViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
-    val state by waitForState(vm.state)
+    val state by vm.state.collectAsState(initial = null)
     log(vm.tag) { "Screen state: $state" }
     log(vm.tag) { "showRestoreFailedDialog: $showRestoreFailedDialog" }
 

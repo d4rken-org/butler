@@ -21,7 +21,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -95,9 +94,7 @@ class MainActivity : Activity2() {
             }
 
             val themeState by vm.themeState.collectAsState()
-            val vmState by produceState<MainViewModel.State?>(initialValue = null) {
-                vm.state.collect { value = it }
-            }
+            val vmState by vm.state.collectAsState(initial = null)
 
             LaunchedEffect(themeState) {
                 log(TAG) { "Theme state: $themeState" }

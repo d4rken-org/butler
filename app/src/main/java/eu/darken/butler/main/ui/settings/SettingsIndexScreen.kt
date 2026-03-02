@@ -48,7 +48,7 @@ import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.settings.SettingsBaseItem
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
-import eu.darken.butler.common.ui.waitForState
+import androidx.compose.runtime.collectAsState
 import eu.darken.butler.editor.ui.editor
 import eu.darken.butler.explorer.ui.explorer
 import eu.darken.butler.searcher.ui.searcher
@@ -63,7 +63,7 @@ fun SettingsIndexScreenHost(vm: SettingsViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
-    val state by waitForState(vm.state)
+    val state by vm.state.collectAsState(initial = null)
 
     state?.let { state ->
         SettingsIndexScreen(
