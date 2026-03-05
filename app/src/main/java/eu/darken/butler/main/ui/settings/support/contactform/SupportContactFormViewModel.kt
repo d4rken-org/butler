@@ -6,45 +6,54 @@ import android.os.Build
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.BuildWrap
+import eu.darken.butler.common.ButlerLinks
 import eu.darken.butler.common.EmailTool
+import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.debug.recorder.core.DebugLogZipper
-import eu.darken.butler.common.debug.recorder.core.RecorderManager
+import eu.darken.butler.common.debug.recorder.core.DebugSession
+import eu.darken.butler.common.debug.recorder.core.DebugSessionManager
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.ui.ViewModel4
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class SupportContactFormViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
-    private val recorderManager: RecorderManager,
+    private val sessionManager: DebugSessionManager,
     private val emailTool: EmailTool,
     private val debugLogZipper: DebugLogZipper,
+    private val webpageTool: WebpageTool,
 ) : ViewModel4(dispatcherProvider, logTag("Settings", "Support", "ContactForm", "ViewModel")) {
 
     private val formState = MutableStateFlow(FormState())
-    private val logPickerState = MutableStateFlow(LogPickerState())
+    private val selectedSession = MutableStateFlow<DebugSession.Completed?>(null)
 
     val emailEvent = SingleEventFlow<Intent>()
 
     val state: Flow<State> = combine(
         formState,
-        logPickerState,
-        recorderManager.state,
-    ) { form, picker, recState ->
+        selectedSession,
+        sessionManager.state,
+    ) { form, selected, sessState ->
+        val validSelected = selected?.takeIf { sel -> sessState.completedSessions.any { it == sel } }
         State(
             form = form,
-            logPicker = picker.copy(isRecording = recState.isRecording),
-            canSend = canSend(form, recState.isRecording),
+            logPicker = LogPickerState(
+                isRecording = sessState.activeSession != null,
+                sessions = sessState.completedSessions,
+                selectedSession = validSelected,
+            ),
+            canSend = canSend(form, sessState.activeSession != null),
+            showShortRecordingWarning = sessState.shortRecordingWarning?.origin == WARNING_ORIGIN,
         )
     }
 
@@ -64,50 +73,56 @@ class SupportContactFormViewModel @Inject constructor(
         formState.value = formState.value.copy(expectedBehavior = text.take(MAX_CHARS))
     }
 
-    fun selectLogSession(file: File?) {
-        logPickerState.value = logPickerState.value.copy(selectedZip = file)
+    fun selectLogSession(session: DebugSession.Completed?) {
+        selectedSession.value = session
     }
 
     fun toggleRecording() = launch {
-        val isRecording = recorderManager.state.first().isRecording
+        val isRecording = sessionManager.state.first().activeSession != null
         if (isRecording) {
             log(tag) { "Stopping recorder from contact form" }
-            recorderManager.stopRecorder(showResult = false)
-            scanLogSessions()
+            val sessionDir = sessionManager.stopRecording(showResult = false, warningOrigin = WARNING_ORIGIN)
+            zipAndSelect(sessionDir)
         } else {
             log(tag) { "Starting recorder from contact form" }
-            recorderManager.startRecorder()
+            sessionManager.startRecording()
         }
     }
 
-    fun deleteLogSession(file: File) = launch {
-        log(tag) { "Deleting log session: $file" }
-        try {
-            file.delete()
-            val dir = File(file.parentFile, file.nameWithoutExtension)
-            if (dir.exists()) dir.deleteRecursively()
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to delete log session: ${e.asLog()}" }
-        }
-        if (logPickerState.value.selectedZip == file) {
-            logPickerState.value = logPickerState.value.copy(selectedZip = null)
-        }
-        scanLogSessions()
+    fun dismissShortRecordingWarning() = launch {
+        sessionManager.dismissShortRecordingWarning()
     }
 
-    fun scanLogSessions() = launch {
-        log(tag) { "Scanning log sessions" }
-        val dirs = recorderManager.getLogDirectories()
-        val zips = dirs.flatMap { dir ->
-            dir.listFiles()?.filter { it.isFile && it.extension == "zip" }?.toList() ?: emptyList()
-        }.sortedByDescending { it.lastModified() }
+    fun forceStopRecording() = launch {
+        log(tag) { "Force stopping recorder from contact form" }
+        val sessionDir = sessionManager.stopRecording(showResult = false, force = true)
+        zipAndSelect(sessionDir)
+    }
 
-        val current = logPickerState.value
-        val selectedStillExists = current.selectedZip?.let { sel -> zips.any { it == sel } } ?: false
-        logPickerState.value = current.copy(
-            sessions = zips,
-            selectedZip = if (selectedStillExists) current.selectedZip else null,
-        )
+    private suspend fun zipAndSelect(sessionDir: java.io.File?) {
+        if (sessionDir != null) {
+            log(tag) { "Zipping session dir: $sessionDir" }
+            val completed = sessionManager.zipSession(sessionDir)
+            selectedSession.value = completed
+        } else {
+            sessionManager.refreshSessions()
+        }
+    }
+
+    fun openPrivacyPolicy() {
+        webpageTool.open(ButlerLinks.PRIVACY_POLICY)
+    }
+
+    fun deleteLogSession(session: DebugSession.Completed) = launch {
+        log(tag) { "Deleting log session: $session" }
+        if (selectedSession.value == session) {
+            selectedSession.value = null
+        }
+        sessionManager.deleteSession(session)
+    }
+
+    fun refreshSessions() = launch {
+        sessionManager.refreshSessions()
     }
 
     fun send() = launch {
@@ -159,10 +174,10 @@ class SupportContactFormViewModel @Inject constructor(
     }
 
     private fun buildAttachment(): Uri? {
-        val selectedZip = logPickerState.value.selectedZip ?: return null
-        if (!selectedZip.exists()) return null
+        val zip = selectedSession.value?.zipFile ?: return null
+        if (!zip.exists()) return null
         return try {
-            debugLogZipper.getUriForZip(selectedZip)
+            debugLogZipper.getUriForZip(zip)
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to get URI for zip: ${e.asLog()}" }
             null
@@ -200,21 +215,23 @@ class SupportContactFormViewModel @Inject constructor(
 
     data class LogPickerState(
         val isRecording: Boolean = false,
-        val sessions: List<File> = emptyList(),
-        val selectedZip: File? = null,
+        val sessions: List<DebugSession.Completed> = emptyList(),
+        val selectedSession: DebugSession.Completed? = null,
     )
 
     data class State(
         val form: FormState = FormState(),
         val logPicker: LogPickerState = LogPickerState(),
         val canSend: Boolean = false,
+        val showShortRecordingWarning: Boolean = false,
     )
 
     companion object {
+        private const val WARNING_ORIGIN = "contact_form"
         private const val SUPPORT_EMAIL = "support@darken.eu"
-        private const val MAX_CHARS = 5000
-        private const val MIN_DESCRIPTION_WORDS = 20
-        private const val MIN_EXPECTED_WORDS = 10
+        const val MAX_CHARS = 5000
+        const val MIN_DESCRIPTION_WORDS = 20
+        const val MIN_EXPECTED_WORDS = 10
 
         fun wordCount(text: String): Int = text.trim().split("\\s+".toRegex()).count { it.isNotBlank() }
     }

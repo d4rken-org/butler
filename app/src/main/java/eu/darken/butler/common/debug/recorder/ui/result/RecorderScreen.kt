@@ -59,6 +59,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
@@ -83,6 +84,7 @@ fun RecorderScreenHost(
         RecorderScreen(
             state = currentState,
             onCancelClick = { viewModel.discard() },
+            onSaveClick = { viewModel.save() },
             onShareClick = { viewModel.share() },
             onPrivacyPolicyClick = { viewModel.goPrivacyPolicy() }
         )
@@ -93,6 +95,7 @@ fun RecorderScreenHost(
 private fun RecorderScreen(
     state: RecorderViewModel.State,
     onCancelClick: () -> Unit,
+    onSaveClick: () -> Unit,
     onShareClick: () -> Unit,
     onPrivacyPolicyClick: () -> Unit
 ) {
@@ -122,6 +125,7 @@ private fun RecorderScreen(
                     ActionButtons(
                         loading = state.isWorking,
                         onCancelClick = onCancelClick,
+                        onSaveClick = onSaveClick,
                         onShareClick = onShareClick,
                         modifier = Modifier
                             .navigationBarsPadding()
@@ -304,7 +308,8 @@ private fun WarningCard(onPrivacyPolicyClick: () -> Unit) {
                 Text(
                     text = stringResource(R.string.settings_privacy_policy_label),
                     style = MaterialTheme.typography.labelLarge.copy(
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        textDecoration = TextDecoration.Underline,
                     )
                 )
             }
@@ -502,8 +507,9 @@ private fun LogFileItem(logFile: RecorderViewModel.LogFileItem) {
 private fun ActionButtons(
     loading: Boolean,
     onCancelClick: () -> Unit,
+    onSaveClick: () -> Unit,
     onShareClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -524,7 +530,20 @@ private fun ActionButtons(
             )
         }
 
-        Box(modifier = Modifier.weight(2f)) {
+        FilledTonalButton(
+            onClick = onSaveClick,
+            enabled = !loading,
+            modifier = Modifier.weight(1f),
+        ) {
+            Text(
+                text = stringResource(eu.darken.butler.common.R.string.general_save_action),
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Medium
+                )
+            )
+        }
+
+        Box(modifier = Modifier.weight(1f)) {
             FilledTonalButton(
                 onClick = onShareClick,
                 enabled = !loading,
@@ -584,6 +603,7 @@ private fun RecorderScreenPreview() {
         RecorderScreen(
             state = mockState,
             onCancelClick = {},
+            onSaveClick = {},
             onShareClick = {},
             onPrivacyPolicyClick = {}
         )

@@ -16,15 +16,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.twotone.Send
 import androidx.compose.material.icons.automirrored.twotone.ContactSupport
+import androidx.compose.material.icons.automirrored.twotone.Send
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.FiberManualRecord
 import androidx.compose.material.icons.twotone.Stop
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,10 +35,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,10 +56,11 @@ import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipSize
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.debug.recorder.core.DebugSession
+import eu.darken.butler.common.debug.recorder.ui.ShortRecordingDialog
 import eu.darken.butler.common.debug.recorder.ui.result.RecorderConsentDialog
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
-import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -87,7 +88,7 @@ fun SupportContactFormScreenHost(
     }
 
     LifecycleResumeEffect(Unit) {
-        vm.scanLogSessions()
+        vm.refreshSessions()
         onPauseOrDispose {}
     }
 
@@ -103,9 +104,12 @@ fun SupportContactFormScreenHost(
             onDescriptionChanged = { vm.updateDescription(it) },
             onExpectedBehaviorChanged = { vm.updateExpectedBehavior(it) },
             onToggleRecording = { vm.toggleRecording() },
+            onDismissShortRecordingWarning = { vm.dismissShortRecordingWarning() },
+            onForceStopRecording = { vm.forceStopRecording() },
             onSelectLogSession = { vm.selectLogSession(it) },
             onDeleteLogSession = { vm.deleteLogSession(it) },
             onSend = { vm.send() },
+            onOpenPrivacyPolicy = { vm.openPrivacyPolicy() },
         )
     }
 }
@@ -121,9 +125,12 @@ fun SupportContactFormScreen(
     onDescriptionChanged: (String) -> Unit = {},
     onExpectedBehaviorChanged: (String) -> Unit = {},
     onToggleRecording: () -> Unit = {},
-    onSelectLogSession: (File?) -> Unit = {},
-    onDeleteLogSession: (File) -> Unit = {},
+    onDismissShortRecordingWarning: () -> Unit = {},
+    onForceStopRecording: () -> Unit = {},
+    onSelectLogSession: (DebugSession.Completed?) -> Unit = {},
+    onDeleteLogSession: (DebugSession.Completed) -> Unit = {},
     onSend: () -> Unit = {},
+    onOpenPrivacyPolicy: () -> Unit = {},
 ) {
     var showConsentDialog by remember { mutableStateOf(false) }
 
@@ -134,7 +141,14 @@ fun SupportContactFormScreen(
                 showConsentDialog = false
                 onToggleRecording()
             },
-            onOpenPrivacyPolicy = {},
+            onOpenPrivacyPolicy = onOpenPrivacyPolicy,
+        )
+    }
+
+    if (state.showShortRecordingWarning) {
+        ShortRecordingDialog(
+            onKeepRecording = onDismissShortRecordingWarning,
+            onStopAnyway = onForceStopRecording,
         )
     }
 
@@ -196,83 +210,88 @@ fun SupportContactFormScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        TextButton(onClick = {
-                            if (state.logPicker.isRecording) {
-                                onToggleRecording()
-                            } else {
-                                showConsentDialog = true
-                            }
-                        }) {
-                            Icon(
-                                imageVector = if (state.logPicker.isRecording) {
-                                    Icons.TwoTone.Stop
-                                } else {
-                                    Icons.TwoTone.FiberManualRecord
-                                },
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                                tint = if (state.logPicker.isRecording) {
-                                    MaterialTheme.colorScheme.error
-                                } else {
-                                    MaterialTheme.colorScheme.primary
-                                },
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (state.logPicker.isRecording) {
-                                    stringResource(R.string.debug_log_stop_action)
-                                } else {
-                                    stringResource(R.string.debug_log_record_action)
+                        OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                if (state.logPicker.sessions.isEmpty() && !state.logPicker.isRecording) {
+                                    Text(
+                                        text = stringResource(R.string.support_contact_debuglog_empty),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(start = 8.dp, top = 4.dp),
+                                    )
                                 }
-                            )
-                        }
 
-                        if (state.logPicker.sessions.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.support_contact_debuglog_empty),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 8.dp, top = 4.dp),
-                            )
-                        }
-                    }
-                }
-            }
+                                state.logPicker.sessions.forEach { session ->
+                                    val context = LocalContext.current
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        RadioButton(
+                                            selected = state.logPicker.selectedSession == session,
+                                            onClick = {
+                                                onSelectLogSession(
+                                                    if (state.logPicker.selectedSession == session) null else session
+                                                )
+                                            },
+                                        )
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = session.zipFile.nameWithoutExtension,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                maxLines = 1,
+                                            )
+                                            Text(
+                                                text = Formatter.formatShortFileSize(context, session.zipSize),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                        IconButton(onClick = { onDeleteLogSession(session) }) {
+                                            Icon(
+                                                imageVector = Icons.TwoTone.Delete,
+                                                contentDescription = stringResource(R.string.support_debuglog_delete_action),
+                                            )
+                                        }
+                                    }
+                                }
 
-            if (state.form.category == SupportContactFormViewModel.Category.BUG &&
-                state.logPicker.sessions.isNotEmpty()
-            ) {
-                items(state.logPicker.sessions, key = { it.absolutePath }) { zipFile ->
-                    val context = LocalContext.current
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(
-                            selected = state.logPicker.selectedZip == zipFile,
-                            onClick = {
-                                onSelectLogSession(
-                                    if (state.logPicker.selectedZip == zipFile) null else zipFile
-                                )
-                            },
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = zipFile.nameWithoutExtension,
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                            )
-                            Text(
-                                text = Formatter.formatShortFileSize(context, zipFile.length()),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        IconButton(onClick = { onDeleteLogSession(zipFile) }) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Delete,
-                                contentDescription = stringResource(R.string.support_debuglog_delete_action),
-                            )
+                                FilledTonalButton(
+                                    onClick = {
+                                        if (state.logPicker.isRecording) {
+                                            onToggleRecording()
+                                        } else {
+                                            showConsentDialog = true
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = if (state.logPicker.isRecording) {
+                                            Icons.TwoTone.Stop
+                                        } else {
+                                            Icons.TwoTone.FiberManualRecord
+                                        },
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = if (state.logPicker.isRecording) {
+                                            MaterialTheme.colorScheme.error
+                                        } else {
+                                            MaterialTheme.colorScheme.primary
+                                        },
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = if (state.logPicker.isRecording) {
+                                            stringResource(R.string.debug_log_stop_action)
+                                        } else {
+                                            stringResource(R.string.debug_log_record_full_action)
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -300,10 +319,10 @@ fun SupportContactFormScreen(
             // 4. Description field (with category-specific hint)
             item {
                 val descWordCount = SupportContactFormViewModel.wordCount(state.form.description)
-                val descColor = when {
+                val descWordColor = when {
                     descWordCount == 0 -> MaterialTheme.colorScheme.onSurfaceVariant
-                    descWordCount < 20 -> MaterialTheme.colorScheme.error
-                    else -> MaterialTheme.colorScheme.primary
+                    descWordCount < SupportContactFormViewModel.MIN_DESCRIPTION_WORDS -> MaterialTheme.colorScheme.error
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
                 }
                 OutlinedTextField(
                     value = state.form.description,
@@ -315,8 +334,11 @@ fun SupportContactFormScreen(
                     maxLines = 10,
                     supportingText = {
                         Text(
-                            text = stringResource(R.string.support_contact_word_count, descWordCount, 20),
-                            color = descColor,
+                            text = stringResource(
+                                R.string.support_contact_word_count,
+                                SupportContactFormViewModel.MIN_DESCRIPTION_WORDS,
+                            ),
+                            color = descWordColor,
                         )
                     },
                 )
@@ -327,10 +349,10 @@ fun SupportContactFormScreen(
                 AnimatedVisibility(visible = state.form.category == SupportContactFormViewModel.Category.BUG) {
                     Column {
                         val expWordCount = SupportContactFormViewModel.wordCount(state.form.expectedBehavior)
-                        val expColor = when {
+                        val expWordColor = when {
                             expWordCount == 0 -> MaterialTheme.colorScheme.onSurfaceVariant
-                            expWordCount < 10 -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.primary
+                            expWordCount < SupportContactFormViewModel.MIN_EXPECTED_WORDS -> MaterialTheme.colorScheme.error
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
                         }
                         OutlinedTextField(
                             value = state.form.expectedBehavior,
@@ -342,8 +364,11 @@ fun SupportContactFormScreen(
                             maxLines = 8,
                             supportingText = {
                                 Text(
-                                    text = stringResource(R.string.support_contact_word_count, expWordCount, 10),
-                                    color = expColor,
+                                    text = stringResource(
+                                        R.string.support_contact_word_count,
+                                        SupportContactFormViewModel.MIN_EXPECTED_WORDS,
+                                    ),
+                                    color = expWordColor,
                                 )
                             },
                         )
@@ -457,10 +482,19 @@ private fun SupportContactFormBugPreview() {
                 ),
                 logPicker = SupportContactFormViewModel.LogPickerState(
                     sessions = listOf(
-                        File("/cache/debug/logs/eu.darken.butler_100_2024-01-15_10-30-00-000.zip"),
-                        File("/cache/debug/logs/eu.darken.butler_100_2024-01-14_09-15-00-000.zip"),
+                        DebugSession.Completed(
+                            zipFile = File("/cache/debug/logs/eu.darken.butler_100_2024-01-15_10-30-00-000.zip"),
+                            zipSize = 1_200_000L,
+                        ),
+                        DebugSession.Completed(
+                            zipFile = File("/cache/debug/logs/eu.darken.butler_100_2024-01-14_09-15-00-000.zip"),
+                            zipSize = 800_000L,
+                        ),
                     ),
-                    selectedZip = File("/cache/debug/logs/eu.darken.butler_100_2024-01-15_10-30-00-000.zip"),
+                    selectedSession = DebugSession.Completed(
+                        zipFile = File("/cache/debug/logs/eu.darken.butler_100_2024-01-15_10-30-00-000.zip"),
+                        zipSize = 1_200_000L,
+                    ),
                 ),
                 canSend = true,
             ),

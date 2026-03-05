@@ -198,7 +198,7 @@ class RecorderManager @Inject constructor(
         return internalState.flow.filter { it.isRecording }.first().currentLogDir!!
     }
 
-    suspend fun stopRecorder(showResult: Boolean = true, force: Boolean = false): File? {
+    suspend fun stopRecorder(showResult: Boolean = true, force: Boolean = false, warningOrigin: String? = null): File? {
         val current = internalState.value()
         val currentPath = current.currentLogDir ?: return null
 
@@ -207,15 +207,25 @@ class RecorderManager @Inject constructor(
             if (elapsed < SHORT_RECORDING_THRESHOLD) {
                 log(TAG) { "Recording is short (${elapsed}), requesting confirmation" }
                 internalState.updateBlocking {
-                    copy(showShortRecordingWarning = true, pendingShowResult = showResult)
+                    copy(
+                        showShortRecordingWarning = true,
+                        shortRecordingWarningOrigin = warningOrigin,
+                        pendingShowResult = showResult,
+                    )
                 }
                 return null
             }
         }
 
-        val effectiveShowResult = if (force) current.pendingShowResult else showResult
+        val effectiveShowResult =
+            if (force && current.showShortRecordingWarning) current.pendingShowResult else showResult
         internalState.updateBlocking {
-            copy(shouldRecord = false, showResultScreen = effectiveShowResult, showShortRecordingWarning = false)
+            copy(
+                shouldRecord = false,
+                showResultScreen = effectiveShowResult,
+                showShortRecordingWarning = false,
+                shortRecordingWarningOrigin = null,
+            )
         }
         withTimeout(10.seconds) {
             internalState.flow.filter { !it.isRecording }.first()
@@ -225,7 +235,7 @@ class RecorderManager @Inject constructor(
 
     suspend fun dismissShortRecordingWarning() {
         internalState.updateBlocking {
-            copy(showShortRecordingWarning = false)
+            copy(showShortRecordingWarning = false, shortRecordingWarningOrigin = null)
         }
     }
 
@@ -279,6 +289,7 @@ class RecorderManager @Inject constructor(
         val currentLogSize: Long = 0L,
         val showResultScreen: Boolean = true,
         val showShortRecordingWarning: Boolean = false,
+        val shortRecordingWarningOrigin: String? = null,
         val pendingShowResult: Boolean = true,
     ) {
         val isRecording: Boolean

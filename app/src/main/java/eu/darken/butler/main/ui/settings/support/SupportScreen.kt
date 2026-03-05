@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +43,6 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.settings.SettingsCategoryHeader
 import eu.darken.butler.common.settings.SettingsDivider
 import eu.darken.butler.common.settings.SettingsPreferenceItem
-import androidx.compose.runtime.collectAsState
 import java.io.File
 
 @Composable
@@ -51,7 +51,7 @@ fun SupportScreenHost(vm: SupportScreenViewModel = hiltViewModel()) {
     NavigationEventHandler(vm)
 
     LifecycleResumeEffect(Unit) {
-        vm.refreshDebugLogFolderStats()
+        vm.refreshSessions()
         onPauseOrDispose {}
     }
 
@@ -144,15 +144,7 @@ fun SupportScreen(
                 .padding(paddingValues),
             verticalArrangement = Arrangement.Top
         ) {
-            item {
-                SettingsPreferenceItem(
-                    icon = Icons.TwoTone.Email,
-                    title = stringResource(R.string.support_contact_label),
-                    subtitle = stringResource(R.string.support_contact_description),
-                    onClick = onContactSupport,
-                )
-                SettingsDivider()
-            }
+            item { SettingsCategoryHeader(stringResource(R.string.settings_support_category_help_label)) }
 
             item {
                 SettingsPreferenceItem(
@@ -168,8 +160,7 @@ fun SupportScreen(
                 SettingsPreferenceItem(
                     icon = Icons.TwoTone.BugReport,
                     title = stringResource(R.string.settings_support_issue_tracker_label),
-                    subtitle =
-                        stringResource(R.string.settings_support_issue_tracker_description),
+                    subtitle = stringResource(R.string.settings_support_issue_tracker_description),
                     onClick = { onOpenUrl(ButlerLinks.ISSUES) }
                 )
                 SettingsDivider()
@@ -181,6 +172,16 @@ fun SupportScreen(
                     title = stringResource(R.string.settings_support_discord_label),
                     subtitle = stringResource(R.string.settings_support_discord_description),
                     onClick = { onOpenUrl("https://discord.gg/ktMbDBAp4K") }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.Email,
+                    title = stringResource(R.string.support_contact_label),
+                    subtitle = stringResource(R.string.support_contact_description),
+                    onClick = onContactSupport,
                 )
                 SettingsDivider()
             }
@@ -216,7 +217,7 @@ fun SupportScreen(
             item {
                 val context = LocalContext.current
                 val stats = state.debugLogFolderStats
-                val subtitle = if (stats != null && stats.fileCount > 0) {
+                val subtitle = if (stats.fileCount > 0) {
                     stringResource(
                         R.string.support_debuglog_storage_description,
                         stats.fileCount,
@@ -235,7 +236,7 @@ fun SupportScreen(
             }
 
             item {
-                val hasLogs = (state.debugLogFolderStats?.fileCount ?: 0) > 0
+                val hasLogs = state.debugLogFolderStats.fileCount > 0
                 SettingsPreferenceItem(
                     icon = Icons.TwoTone.Delete,
                     title = stringResource(R.string.support_debuglog_delete_action),

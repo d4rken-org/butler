@@ -23,7 +23,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.debug.recorder.core.RecorderManager
+import eu.darken.butler.common.debug.recorder.core.DebugSessionManager
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.theming.Theming
 import eu.darken.butler.common.trash.TrashCleanupScheduler
@@ -51,7 +51,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var bugReporter: AutomaticBugReporter
     @Inject lateinit var generalSettings: GeneralSettings
-    @Inject lateinit var recorderManager: RecorderManager
+    @Inject lateinit var sessionManager: DebugSessionManager
     @Inject lateinit var debugSettings: DebugSettings
     @Inject lateinit var curriculumVitae: CurriculumVitae
     @Inject lateinit var updateService: UpdateService
@@ -84,9 +84,9 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         combine(
             debugSettings.isDebugMode.flow,
             debugSettings.isTraceMode.flow,
-            recorderManager.state,
-        ) { isDebug, isTrace, recorder ->
-            log(TAG) { "isDebug=$isDebug, isTrace=$isTrace, recorder=$recorder" }
+            sessionManager.state,
+        ) { isDebug, isTrace, sessState ->
+            log(TAG) { "isDebug=$isDebug, isTrace=$isTrace, activeSession=${sessState.activeSession != null}" }
 
             if (isDebug) {
                 Logging.install(logCatLogger)
@@ -94,14 +94,14 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
                 Logging.remove(logCatLogger)
             }
 
-            Bugs.isDebug = isDebug || recorder.isRecording
+            Bugs.isDebug = isDebug || sessState.activeSession != null
             Bugs.isTrace = isDebug && isTrace
         }.launchIn(appScope)
 
         bugReporter.setup(this)
 
-        recorderManager.state
-            .onEach { log(TAG) { "RecorderModule: $it" } }
+        sessionManager.state
+            .onEach { log(TAG) { "SessionManager: $it" } }
             .launchIn(appScope)
 
         theming.setup()

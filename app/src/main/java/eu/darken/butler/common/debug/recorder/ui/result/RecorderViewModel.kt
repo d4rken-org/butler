@@ -14,6 +14,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.debug.recorder.core.DebugLogZipper
+import eu.darken.butler.common.debug.recorder.core.DebugSessionManager
 import eu.darken.butler.common.files.core.local.deleteAll
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -29,6 +30,7 @@ class RecorderViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val webpageTool: WebpageTool,
     private val debugLogZipper: DebugLogZipper,
+    private val sessionManager: DebugSessionManager,
 ) : ViewModel4(dispatchers, logTag("Debug", "Recorder", "Screen", "VM")) {
 
     private val sessionPath = handle.get<String>(RecorderActivity.RECORD_PATH)?.let { File(it) }
@@ -63,6 +65,7 @@ class RecorderViewModel @Inject constructor(
             if (uri != null) {
                 val zippedSize = zipPath?.length() ?: 0L
                 log(TAG) { "Zip created ${zippedSize}B, uri=$uri" }
+                sessionManager.refreshSessions()
                 stater.updateBlocking { copy(compressedFile = zipPath, compressedSize = zippedSize, isWorking = false) }
             } else {
                 log(TAG) { "No log files to compress in $sessionPath" }
@@ -100,7 +103,16 @@ class RecorderViewModel @Inject constructor(
 
     fun discard() = launch {
         stater.updateBlocking { copy(isWorking = true) }
+        zipPath?.let { if (it.exists()) it.delete() }
         sessionPath?.deleteAll()
+        sessionManager.refreshSessions()
+        closeEvent.emit(Unit)
+    }
+
+    fun save() = launch {
+        stater.updateBlocking { copy(isWorking = true) }
+        sessionPath?.deleteAll()
+        sessionManager.refreshSessions()
         closeEvent.emit(Unit)
     }
 
