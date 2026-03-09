@@ -1,9 +1,12 @@
 package eu.darken.butler.main.ui.settings.support.contactform
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.BuildWrap
 import eu.darken.butler.common.ButlerLinks
@@ -14,126 +17,147 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.debug.recorder.core.DebugLogZipper
 import eu.darken.butler.common.debug.recorder.core.DebugSession
 import eu.darken.butler.common.debug.recorder.core.DebugSessionManager
+import eu.darken.butler.common.debug.recorder.core.RecorderManager
+import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.ui.ViewModel4
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import javax.inject.Inject
 
 @HiltViewModel
 class SupportContactFormViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
+    @ApplicationContext private val context: Context,
     private val sessionManager: DebugSessionManager,
     private val emailTool: EmailTool,
-    private val debugLogZipper: DebugLogZipper,
     private val webpageTool: WebpageTool,
 ) : ViewModel4(dispatcherProvider, logTag("Settings", "Support", "ContactForm", "ViewModel")) {
 
-    private val formState = MutableStateFlow(FormState())
-    private val selectedSession = MutableStateFlow<DebugSession.Completed?>(null)
-
-    val emailEvent = SingleEventFlow<Intent>()
-
-    val state: Flow<State> = combine(
-        formState,
-        selectedSession,
-        sessionManager.state,
-    ) { form, selected, sessState ->
-        val validSelected = selected?.takeIf { sel -> sessState.completedSessions.any { it == sel } }
-        State(
-            form = form,
-            logPicker = LogPickerState(
-                isRecording = sessState.activeSession != null,
-                sessions = sessState.completedSessions,
-                selectedSession = validSelected,
-            ),
-            canSend = canSend(form, sessState.activeSession != null),
-            showShortRecordingWarning = sessState.shortRecordingWarning?.origin == WARNING_ORIGIN,
-        )
+    sealed interface Event {
+        data class OpenEmail(val intent: Intent) : Event
+        data class ShowSnackbar(val message: String) : Event
+        data object ShowConsentDialog : Event
+        data object ShowShortRecordingWarning : Event
     }
 
-    fun updateCategory(category: Category) {
-        formState.value = formState.value.copy(category = category)
+    val events = SingleEventFlow<Event>()
+
+    private val stater = DynamicStateFlow(tag, vmScope) { State() }
+    val state = stater.flow
+
+    private val autoSelectSessionId = java.util.concurrent.atomic.AtomicReference<String?>(null)
+
+    init {
+        combine(
+            sessionManager.recorderState,
+            sessionManager.sessions,
+        ) { recorderState, allSessions ->
+            val completed = allSessions.filterIsInstance<DebugSession.Ready>().take(MAX_PICKER_SESSIONS)
+            stater.updateBlocking {
+                val pendingAutoSelect = autoSelectSessionId.getAndSet(null)
+                val newSelectedId = when {
+                    pendingAutoSelect != null && completed.any { it.id == pendingAutoSelect } -> pendingAutoSelect
+                    selectedSessionId != null
+                        && completed.none { it.id == selectedSessionId }
+                        && allSessions.none { it.id == selectedSessionId && it is DebugSession.Compressing }
+                        -> null
+                    else -> selectedSessionId
+                }
+                copy(
+                    isRecording = recorderState.isRecording,
+                    recordingStartedAt = recorderState.recordingStartedAt,
+                    sessions = completed,
+                    selectedSessionId = newSelectedId,
+                )
+            }
+        }.launchIn(vmScope)
     }
 
-    fun updateWorkspaceType(type: WorkspaceType) {
-        formState.value = formState.value.copy(workspaceType = type)
+    fun updateCategory(category: Category) = launch {
+        stater.updateBlocking { copy(category = category) }
     }
 
-    fun updateDescription(text: String) {
-        formState.value = formState.value.copy(description = text.take(MAX_CHARS))
+    fun updateWorkspaceType(type: WorkspaceType) = launch {
+        stater.updateBlocking { copy(workspaceType = type) }
     }
 
-    fun updateExpectedBehavior(text: String) {
-        formState.value = formState.value.copy(expectedBehavior = text.take(MAX_CHARS))
-    }
-
-    fun selectLogSession(session: DebugSession.Completed?) {
-        selectedSession.value = session
-    }
-
-    fun toggleRecording() = launch {
-        val isRecording = sessionManager.state.first().activeSession != null
-        if (isRecording) {
-            log(tag) { "Stopping recorder from contact form" }
-            val sessionDir = sessionManager.stopRecording(showResult = false, warningOrigin = WARNING_ORIGIN)
-            zipAndSelect(sessionDir)
-        } else {
-            log(tag) { "Starting recorder from contact form" }
-            sessionManager.startRecording()
+    fun updateDescription(text: String) = launch {
+        if (text.length <= MAX_CHARS) {
+            stater.updateBlocking { copy(description = text) }
         }
     }
 
-    fun dismissShortRecordingWarning() = launch {
-        sessionManager.dismissShortRecordingWarning()
+    fun updateExpectedBehavior(text: String) = launch {
+        if (text.length <= MAX_CHARS) {
+            stater.updateBlocking { copy(expectedBehavior = text) }
+        }
+    }
+
+    fun selectLogSession(id: String) = launch {
+        stater.updateBlocking { copy(selectedSessionId = id) }
+    }
+
+    fun deleteLogSession(id: String) = launch {
+        log(tag) { "deleteLogSession($id)" }
+        sessionManager.deleteSession(id)
+    }
+
+    fun refreshSessions() = launch {
+        sessionManager.refresh()
+    }
+
+    fun startRecording() {
+        events.tryEmit(Event.ShowConsentDialog)
+    }
+
+    fun doStartRecording() = launch {
+        log(tag) { "doStartRecording()" }
+        sessionManager.startRecording()
+    }
+
+    fun stopRecording() = launch {
+        when (val result = sessionManager.requestStopRecording()) {
+            is RecorderManager.StopResult.TooShort -> events.tryEmit(Event.ShowShortRecordingWarning)
+            is RecorderManager.StopResult.Stopped -> {
+                log(tag) { "stopRecording() -> ${result.sessionId}" }
+                autoSelectSessionId.set(result.sessionId)
+            }
+            is RecorderManager.StopResult.NotRecording -> {}
+        }
     }
 
     fun forceStopRecording() = launch {
-        log(tag) { "Force stopping recorder from contact form" }
-        val sessionDir = sessionManager.stopRecording(showResult = false, force = true)
-        zipAndSelect(sessionDir)
-    }
-
-    private suspend fun zipAndSelect(sessionDir: java.io.File?) {
-        if (sessionDir != null) {
-            log(tag) { "Zipping session dir: $sessionDir" }
-            val completed = sessionManager.zipSession(sessionDir)
-            selectedSession.value = completed
-        } else {
-            sessionManager.refreshSessions()
-        }
+        log(tag) { "forceStopRecording()" }
+        val result = sessionManager.forceStopRecording()
+        if (result != null) autoSelectSessionId.set(result.sessionId)
     }
 
     fun openPrivacyPolicy() {
         webpageTool.open(ButlerLinks.PRIVACY_POLICY)
     }
 
-    fun deleteLogSession(session: DebugSession.Completed) = launch {
-        log(tag) { "Deleting log session: $session" }
-        if (selectedSession.value == session) {
-            selectedSession.value = null
+    fun confirmSent() = launch {
+        val selectedId = stater.value().selectedSessionId
+        if (selectedId != null) {
+            log(tag) { "confirmSent() deleting session $selectedId" }
+            sessionManager.deleteSession(selectedId)
         }
-        sessionManager.deleteSession(session)
-    }
-
-    fun refreshSessions() = launch {
-        sessionManager.refreshSessions()
+        navUp()
     }
 
     fun send() = launch {
-        val form = formState.value
-        if (form.isSending) return@launch
+        val currentState = stater.value()
+        if (!currentState.canSend) return@launch
 
-        formState.value = form.copy(isSending = true)
+        stater.updateBlocking { copy(isSending = true) }
+
         try {
-            val subject = buildSubject(form)
-            val body = buildBody(form)
-            val attachment = buildAttachment()
+            val subject = buildSubject(currentState)
+            val body = buildBody(currentState)
+            val attachment = buildAttachment(currentState.selectedSessionId)
 
             val email = EmailTool.Email(
                 recipients = listOf(SUPPORT_EMAIL),
@@ -143,26 +167,27 @@ class SupportContactFormViewModel @Inject constructor(
             )
 
             val intent = emailTool.build(email, offerChooser = true)
-            emailEvent.emit(intent)
+            events.tryEmit(Event.OpenEmail(intent))
         } finally {
-            formState.value = formState.value.copy(isSending = false)
+            stater.updateBlocking { copy(isSending = false) }
         }
     }
 
-    private fun buildSubject(form: FormState): String {
-        val categoryTag = form.category.tag
-        val wsTag = form.workspaceType.tag
-        val preview = form.description.split("\\s+".toRegex()).take(8).joinToString(" ")
+    private fun buildSubject(state: State): String {
+        val categoryTag = state.category.tag
+        val wsTag = state.workspaceType.tag
+        val preview = state.description.trim().split("\\s+".toRegex()).take(8).joinToString(" ")
         return "[BUTLER][$categoryTag][$wsTag] $preview"
     }
 
-    private fun buildBody(form: FormState): String = buildString {
-        appendLine(form.description)
+    // Section headers are intentionally non-localizable — developer reads English
+    private fun buildBody(state: State): String = buildString {
+        appendLine(state.description.trim())
 
-        if (form.category == Category.BUG && form.expectedBehavior.isNotBlank()) {
+        if (state.isBug && state.expectedBehavior.isNotBlank()) {
             appendLine()
             appendLine("--- Expected behavior ---")
-            appendLine(form.expectedBehavior)
+            appendLine(state.expectedBehavior.trim())
         }
 
         appendLine()
@@ -173,23 +198,17 @@ class SupportContactFormViewModel @Inject constructor(
         appendLine("Fingerprint: ${BuildWrap.FINGERPRINT}")
     }
 
-    private fun buildAttachment(): Uri? {
-        val zip = selectedSession.value?.zipFile ?: return null
-        if (!zip.exists()) return null
+    private suspend fun buildAttachment(sessionId: String?): Uri? {
+        if (sessionId == null) return null
         return try {
-            debugLogZipper.getUriForZip(zip)
+            sessionManager.getZipUri(sessionId)
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to get URI for zip: ${e.asLog()}" }
+            log(tag, ERROR) { "Failed to prepare attachment: ${e.asLog()}" }
+            events.tryEmit(
+                Event.ShowSnackbar(context.getString(R.string.support_contact_debuglog_zip_error))
+            )
             null
         }
-    }
-
-    private fun canSend(form: FormState, isRecording: Boolean): Boolean {
-        if (form.isSending) return false
-        if (isRecording) return false
-        if (wordCount(form.description) < MIN_DESCRIPTION_WORDS) return false
-        if (form.category == Category.BUG && wordCount(form.expectedBehavior) < MIN_EXPECTED_WORDS) return false
-        return true
     }
 
     enum class Category(val tag: String) {
@@ -205,34 +224,37 @@ class SupportContactFormViewModel @Inject constructor(
         EDITOR("EDITOR"),
     }
 
-    data class FormState(
+    data class State(
         val category: Category = Category.QUESTION,
         val workspaceType: WorkspaceType = WorkspaceType.GENERAL,
         val description: String = "",
         val expectedBehavior: String = "",
         val isSending: Boolean = false,
-    )
-
-    data class LogPickerState(
         val isRecording: Boolean = false,
-        val sessions: List<DebugSession.Completed> = emptyList(),
-        val selectedSession: DebugSession.Completed? = null,
-    )
+        val recordingStartedAt: Long = 0L,
+        val sessions: List<DebugSession.Ready> = emptyList(),
+        val selectedSessionId: String? = null,
+    ) {
+        val isBug: Boolean get() = category == Category.BUG
 
-    data class State(
-        val form: FormState = FormState(),
-        val logPicker: LogPickerState = LogPickerState(),
-        val canSend: Boolean = false,
-        val showShortRecordingWarning: Boolean = false,
-    )
+        val descriptionWords: Int
+            get() = description.trim().split("\\s+".toRegex()).filter { it.isNotEmpty() }.size
+
+        val expectedWords: Int
+            get() = expectedBehavior.trim().split("\\s+".toRegex()).filter { it.isNotEmpty() }.size
+
+        val canSend: Boolean
+            get() = descriptionWords >= MIN_DESCRIPTION_WORDS
+                    && (!isBug || expectedWords >= MIN_EXPECTED_WORDS)
+                    && !isSending
+                    && !isRecording
+    }
 
     companion object {
-        private const val WARNING_ORIGIN = "contact_form"
         private const val SUPPORT_EMAIL = "support@darken.eu"
         const val MAX_CHARS = 5000
         const val MIN_DESCRIPTION_WORDS = 20
         const val MIN_EXPECTED_WORDS = 10
-
-        fun wordCount(text: String): Int = text.trim().split("\\s+".toRegex()).count { it.isNotBlank() }
+        private const val MAX_PICKER_SESSIONS = 3
     }
 }

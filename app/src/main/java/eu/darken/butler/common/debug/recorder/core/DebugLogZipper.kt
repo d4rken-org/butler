@@ -17,18 +17,40 @@ import javax.inject.Inject
 class DebugLogZipper @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    fun zipAndGetUri(logDir: File): Uri? {
+
+    fun zip(logDir: File): File {
         val zipFile = File(logDir.parentFile, "${logDir.name}.zip")
+        val tmpFile = File(logDir.parentFile, "${logDir.name}.zip.tmp")
         log(TAG) { "Zipping $logDir to $zipFile" }
 
+        try {
+            val logFiles = logDir.listFiles()?.toList()
+            require(!logFiles.isNullOrEmpty()) { "No log files found in $logDir" }
+
+            Zipper().zip(logFiles.map { it.path }, tmpFile.path)
+            require(tmpFile.length() > 0) { "Zip file is empty: $tmpFile" }
+
+            if (!tmpFile.renameTo(zipFile)) {
+                tmpFile.copyTo(zipFile, overwrite = true)
+                tmpFile.delete()
+            }
+
+            log(TAG) { "Zip created: ${zipFile.length()}B at $zipFile" }
+            return zipFile
+        } catch (e: Exception) {
+            tmpFile.delete()
+            zipFile.delete()
+            throw e
+        }
+    }
+
+    fun zipAndGetUri(logDir: File): Uri? {
         val logFiles = logDir.listFiles()?.toList()
         if (logFiles.isNullOrEmpty()) {
             log(TAG, WARN) { "No log files found in $logDir" }
             return null
         }
-        Zipper().zip(logFiles.map { it.path }, zipFile.path)
-
-        log(TAG) { "Zip created: ${zipFile.length()}B at $zipFile" }
+        val zipFile = zip(logDir)
         return getUriForZip(zipFile)
     }
 

@@ -20,8 +20,6 @@ import eu.darken.butler.common.theming.ButlerTheme
 import eu.darken.butler.common.ui.Activity2
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.themeState
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -34,7 +32,9 @@ class RecorderActivity : Activity2() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        if (intent.getStringExtra(RECORD_PATH) == null) {
+        val hasSession = intent.getStringExtra(RECORD_SESSION_ID) != null
+        val hasPath = intent.getStringExtra(RECORD_PATH) != null
+        if (!hasSession && !hasPath) {
             finish()
             return
         }
@@ -50,7 +50,12 @@ class RecorderActivity : Activity2() {
                         ErrorEventHandler(vm)
 
                         LaunchedEffect(Unit) {
-                            vm.closeEvent.onEach { finish() }.launchIn(this)
+                            vm.events.collect { event ->
+                                when (event) {
+                                    is RecorderViewModel.Event.ShareIntent -> startActivity(event.intent)
+                                    is RecorderViewModel.Event.Finish -> finish()
+                                }
+                            }
                         }
 
                         RecorderScreenHost(
@@ -64,12 +69,14 @@ class RecorderActivity : Activity2() {
 
     companion object {
         internal val TAG = logTag("Debug", "Log", "RecorderActivity")
+        const val RECORD_SESSION_ID = "sessionId"
         const val RECORD_PATH = "logPath"
 
-        fun getLaunchIntent(context: Context, path: String): Intent {
-            val intent = Intent(context, RecorderActivity::class.java)
-            intent.putExtra(RECORD_PATH, path)
-            return intent
+        fun getLaunchIntent(context: Context, sessionId: String, legacyPath: String? = null): Intent {
+            return Intent(context, RecorderActivity::class.java).apply {
+                putExtra(RECORD_SESSION_ID, sessionId)
+                if (legacyPath != null) putExtra(RECORD_PATH, legacyPath)
+            }
         }
     }
 }

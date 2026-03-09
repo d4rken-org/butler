@@ -1,5 +1,6 @@
 package eu.darken.butler.common.debug.recorder.ui.banner
 
+import eu.darken.butler.common.debug.recorder.core.DebugSessionManager
 import eu.darken.butler.common.debug.recorder.core.RecorderManager
 import io.kotest.matchers.shouldBe
 import io.mockk.coVerify
@@ -12,31 +13,30 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
-import kotlin.time.Clock
 
 class RecordingBannerViewModelTest : BaseTest() {
 
-    private lateinit var recorderManager: RecorderManager
-    private lateinit var managerStateFlow: MutableStateFlow<RecorderManager.State>
+    private lateinit var sessionManager: DebugSessionManager
+    private lateinit var recorderStateFlow: MutableStateFlow<RecorderManager.State>
 
     @BeforeEach
     fun setup() {
-        managerStateFlow = MutableStateFlow(RecorderManager.State())
-        recorderManager = mockk(relaxed = true) {
-            every { state } returns managerStateFlow
+        recorderStateFlow = MutableStateFlow(RecorderManager.State())
+        sessionManager = mockk(relaxed = true) {
+            every { recorderState } returns recorderStateFlow
         }
     }
 
     private fun createViewModel(): RecordingBannerViewModel {
         return RecordingBannerViewModel(
             dispatcherProvider = TestDispatcherProvider(),
-            recorderManager = recorderManager,
+            sessionManager = sessionManager,
         )
     }
 
     @Test
     fun `state maps isRecording correctly when not recording`() = runTest {
-        managerStateFlow.value = RecorderManager.State(
+        recorderStateFlow.value = RecorderManager.State(
             shouldRecord = false,
             recorder = null,
         )
@@ -50,7 +50,7 @@ class RecordingBannerViewModelTest : BaseTest() {
     @Test
     fun `state maps isRecording correctly when recording`() = runTest {
         val mockRecorder = mockk<eu.darken.butler.common.debug.recorder.core.Recorder>()
-        managerStateFlow.value = RecorderManager.State(
+        recorderStateFlow.value = RecorderManager.State(
             shouldRecord = true,
             recorder = mockRecorder,
         )
@@ -62,25 +62,25 @@ class RecordingBannerViewModelTest : BaseTest() {
     }
 
     @Test
-    fun `state maps recordingStartTime correctly`() = runTest {
-        val startTime = Clock.System.now()
+    fun `state maps recordingStartedAt correctly`() = runTest {
+        val startedAt = System.currentTimeMillis()
         val mockRecorder = mockk<eu.darken.butler.common.debug.recorder.core.Recorder>()
-        managerStateFlow.value = RecorderManager.State(
+        recorderStateFlow.value = RecorderManager.State(
             shouldRecord = true,
             recorder = mockRecorder,
-            recordingStartTime = startTime,
+            recordingStartedAt = startedAt,
         )
 
         val viewModel = createViewModel()
         val state = viewModel.state.first()
 
-        state.recordingStartTime shouldBe startTime
+        state.recordingStartedAt shouldBe startedAt
     }
 
     @Test
     fun `state maps currentLogSize correctly`() = runTest {
         val mockRecorder = mockk<eu.darken.butler.common.debug.recorder.core.Recorder>()
-        managerStateFlow.value = RecorderManager.State(
+        recorderStateFlow.value = RecorderManager.State(
             shouldRecord = true,
             recorder = mockRecorder,
             currentLogSize = 12345L,
@@ -97,13 +97,13 @@ class RecordingBannerViewModelTest : BaseTest() {
         val viewModel = createViewModel()
 
         // Initial state - not recording
-        managerStateFlow.value = RecorderManager.State()
+        recorderStateFlow.value = RecorderManager.State()
         var state = viewModel.state.first()
         state.isRecording shouldBe false
 
         // Start recording
         val mockRecorder = mockk<eu.darken.butler.common.debug.recorder.core.Recorder>()
-        managerStateFlow.value = RecorderManager.State(
+        recorderStateFlow.value = RecorderManager.State(
             shouldRecord = true,
             recorder = mockRecorder,
             currentLogSize = 100L,
@@ -113,17 +113,17 @@ class RecordingBannerViewModelTest : BaseTest() {
         state.currentLogSize shouldBe 100L
 
         // Update log size
-        managerStateFlow.value = managerStateFlow.value.copy(currentLogSize = 200L)
+        recorderStateFlow.value = recorderStateFlow.value.copy(currentLogSize = 200L)
         state = viewModel.state.first()
         state.currentLogSize shouldBe 200L
     }
 
     @Test
-    fun `stopRecording calls recorderManager stopRecorder`() = runTest {
+    fun `stopRecording calls sessionManager requestStopRecording`() = runTest {
         val viewModel = createViewModel()
 
         viewModel.stopRecording()
 
-        coVerify { recorderManager.stopRecorder() }
+        coVerify { sessionManager.requestStopRecording() }
     }
 }

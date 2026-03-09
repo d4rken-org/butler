@@ -14,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 @Composable
 fun RecordingBannerHost(
@@ -24,12 +25,24 @@ fun RecordingBannerHost(
     val currentState = state ?: return
 
     var elapsedTime by remember { mutableStateOf(Duration.ZERO) }
+    var showShortRecordingWarning by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        vm.events.collect { event ->
+            when (event) {
+                RecordingBannerViewModel.Event.ShowShortRecordingWarning -> {
+                    showShortRecordingWarning = true
+                }
+            }
+        }
+    }
 
     // Update elapsed time every second while recording
-    LaunchedEffect(currentState.isRecording, currentState.recordingStartTime) {
-        if (currentState.isRecording && currentState.recordingStartTime != null) {
+    LaunchedEffect(currentState.isRecording, currentState.recordingStartedAt) {
+        if (currentState.isRecording && currentState.recordingStartedAt > 0L) {
+            val startTime = Instant.fromEpochMilliseconds(currentState.recordingStartedAt)
             while (true) {
-                elapsedTime = Clock.System.now() - currentState.recordingStartTime
+                elapsedTime = Clock.System.now() - startTime
                 delay(1.seconds)
             }
         } else {
@@ -37,10 +50,13 @@ fun RecordingBannerHost(
         }
     }
 
-    if (currentState.showShortRecordingWarning) {
+    if (showShortRecordingWarning) {
         ShortRecordingDialog(
-            onKeepRecording = { vm.dismissShortRecordingWarning() },
-            onStopAnyway = { vm.forceStopRecording() },
+            onKeepRecording = { showShortRecordingWarning = false },
+            onStopAnyway = {
+                showShortRecordingWarning = false
+                vm.forceStopRecording()
+            },
         )
     }
 

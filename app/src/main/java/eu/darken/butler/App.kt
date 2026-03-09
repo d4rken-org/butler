@@ -84,9 +84,9 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         combine(
             debugSettings.isDebugMode.flow,
             debugSettings.isTraceMode.flow,
-            sessionManager.state,
-        ) { isDebug, isTrace, sessState ->
-            log(TAG) { "isDebug=$isDebug, isTrace=$isTrace, activeSession=${sessState.activeSession != null}" }
+            sessionManager.recorderState,
+        ) { isDebug, isTrace, recorderState ->
+            log(TAG) { "isDebug=$isDebug, isTrace=$isTrace, isRecording=${recorderState.isRecording}" }
 
             if (isDebug) {
                 Logging.install(logCatLogger)
@@ -94,14 +94,14 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
                 Logging.remove(logCatLogger)
             }
 
-            Bugs.isDebug = isDebug || sessState.activeSession != null
+            Bugs.isDebug = isDebug || recorderState.isRecording
             Bugs.isTrace = isDebug && isTrace
         }.launchIn(appScope)
 
         bugReporter.setup(this)
 
-        sessionManager.state
-            .onEach { log(TAG) { "SessionManager: $it" } }
+        sessionManager.recorderState
+            .onEach { log(TAG) { "RecorderState: $it" } }
             .launchIn(appScope)
 
         theming.setup()

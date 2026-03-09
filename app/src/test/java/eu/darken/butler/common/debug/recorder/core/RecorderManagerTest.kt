@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import java.io.File
-import kotlin.time.Clock
 
 class RecorderManagerTest : BaseTest() {
 
@@ -67,8 +66,7 @@ class RecorderManagerTest : BaseTest() {
             state.shouldRecord shouldBe false
             state.recorder.shouldBeNull()
             state.currentLogDir.shouldBeNull()
-            state.lastLogDir.shouldBeNull()
-            state.recordingStartTime.shouldBeNull()
+            state.recordingStartedAt shouldBe 0L
             state.currentLogSize shouldBe 0L
             state.isRecording shouldBe false
         }
@@ -77,23 +75,20 @@ class RecorderManagerTest : BaseTest() {
         fun `state preserves all properties`(@TempDir tempDir: File) {
             val mockRecorder = mockk<Recorder>()
             val currentDir = File(tempDir, "current")
-            val lastDir = File(tempDir, "last")
-            val startTime = Clock.System.now()
+            val startedAt = System.currentTimeMillis()
 
             val state = RecorderManager.State(
                 shouldRecord = true,
                 recorder = mockRecorder,
                 currentLogDir = currentDir,
-                lastLogDir = lastDir,
-                recordingStartTime = startTime,
+                recordingStartedAt = startedAt,
                 currentLogSize = 12345L,
             )
 
             state.shouldRecord shouldBe true
             state.recorder shouldBe mockRecorder
             state.currentLogDir shouldBe currentDir
-            state.lastLogDir shouldBe lastDir
-            state.recordingStartTime shouldBe startTime
+            state.recordingStartedAt shouldBe startedAt
             state.currentLogSize shouldBe 12345L
         }
     }
@@ -105,13 +100,13 @@ class RecorderManagerTest : BaseTest() {
         fun `state copy with shouldRecord change preserves other fields`(@TempDir tempDir: File) {
             val mockRecorder = mockk<Recorder>()
             val logDir = File(tempDir, "logs")
-            val startTime = Clock.System.now()
+            val startedAt = System.currentTimeMillis()
 
             val state = RecorderManager.State(
                 shouldRecord = true,
                 recorder = mockRecorder,
                 currentLogDir = logDir,
-                recordingStartTime = startTime,
+                recordingStartedAt = startedAt,
                 currentLogSize = 1000L,
             )
 
@@ -120,7 +115,7 @@ class RecorderManagerTest : BaseTest() {
             newState.shouldRecord shouldBe false
             newState.recorder shouldBe mockRecorder
             newState.currentLogDir shouldBe logDir
-            newState.recordingStartTime shouldBe startTime
+            newState.recordingStartedAt shouldBe startedAt
             newState.currentLogSize shouldBe 1000L
         }
 
@@ -139,7 +134,7 @@ class RecorderManagerTest : BaseTest() {
                 shouldRecord = true,
                 recorder = mockRecorder,
                 currentLogDir = logDir,
-                recordingStartTime = Clock.System.now(),
+                recordingStartedAt = System.currentTimeMillis(),
             )
 
             recordingState.isRecording shouldBe true
@@ -155,7 +150,7 @@ class RecorderManagerTest : BaseTest() {
                 shouldRecord = true,
                 recorder = mockRecorder,
                 currentLogDir = logDir,
-                recordingStartTime = Clock.System.now(),
+                recordingStartedAt = System.currentTimeMillis(),
                 currentLogSize = 5000L,
             )
 
@@ -164,14 +159,12 @@ class RecorderManagerTest : BaseTest() {
             val stoppedState = recordingState.copy(
                 shouldRecord = false,
                 recorder = null,
-                lastLogDir = logDir,
                 currentLogDir = null,
-                recordingStartTime = null,
+                recordingStartedAt = 0L,
                 currentLogSize = 0L,
             )
 
             stoppedState.isRecording shouldBe false
-            stoppedState.lastLogDir shouldBe logDir
             stoppedState.currentLogDir.shouldBeNull()
         }
     }
@@ -199,39 +192,39 @@ class RecorderManagerTest : BaseTest() {
     }
 
     @Nested
-    inner class RecordingStartTime {
+    inner class RecordingStartedAt {
 
         @Test
-        fun `state tracks recording start time`() {
+        fun `state tracks recording started at`() {
             val mockRecorder = mockk<Recorder>()
-            val startTime = Clock.System.now()
+            val startedAt = System.currentTimeMillis()
 
             val state = RecorderManager.State(
                 shouldRecord = true,
                 recorder = mockRecorder,
-                recordingStartTime = startTime,
+                recordingStartedAt = startedAt,
             )
 
-            state.recordingStartTime shouldBe startTime
+            state.recordingStartedAt shouldBe startedAt
         }
 
         @Test
-        fun `state clears recording start time when stopped`() {
+        fun `state clears recording started at when stopped`() {
             val mockRecorder = mockk<Recorder>()
-            val startTime = Clock.System.now()
+            val startedAt = System.currentTimeMillis()
 
             val recordingState = RecorderManager.State(
                 shouldRecord = true,
                 recorder = mockRecorder,
-                recordingStartTime = startTime,
+                recordingStartedAt = startedAt,
             )
 
             val stoppedState = recordingState.copy(
                 recorder = null,
-                recordingStartTime = null,
+                recordingStartedAt = 0L,
             )
 
-            stoppedState.recordingStartTime.shouldBeNull()
+            stoppedState.recordingStartedAt shouldBe 0L
         }
     }
 }

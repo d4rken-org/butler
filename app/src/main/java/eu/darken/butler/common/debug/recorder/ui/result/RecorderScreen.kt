@@ -45,7 +45,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -72,19 +71,12 @@ fun RecorderScreenHost(
     viewModel: RecorderViewModel,
 ) {
     val state by viewModel.state.collectAsState(null)
-    val context = LocalContext.current
-
-    LaunchedEffect(viewModel.shareEvent) {
-        viewModel.shareEvent.collect { intent ->
-            context.startActivity(intent)
-        }
-    }
 
     state?.let { currentState ->
         RecorderScreen(
             state = currentState,
             onCancelClick = { viewModel.discard() },
-            onSaveClick = { viewModel.save() },
+            onSaveClick = { viewModel.keep() },
             onShareClick = { viewModel.share() },
             onPrivacyPolicyClick = { viewModel.goPrivacyPolicy() }
         )
@@ -174,7 +166,11 @@ private fun RecorderScreen(
                 ) {
                     LogFilesHeader(
                         logEntries = state.logEntries,
-                        formattedSize = state.getFormattedCompressedSize(context) ?: ""
+                        formattedSize = if (state.compressedSize >= 0) {
+                            android.text.format.Formatter.formatShortFileSize(context, state.compressedSize)
+                        } else {
+                            "..."
+                        }
                     )
                 }
             }
@@ -240,7 +236,7 @@ private fun HeroSection() {
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Export debug information for troubleshooting",
+            text = stringResource(R.string.debug_log_screen_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -274,7 +270,7 @@ private fun WarningCard(onPrivacyPolicyClick: () -> Unit) {
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
-                    text = "Sensitive Information",
+                    text = stringResource(R.string.debug_log_screen_sensitive_information_title),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
@@ -374,7 +370,7 @@ private fun SessionInfoCard(logDir: File?) {
 
 @Composable
 private fun LogFilesHeader(
-    logEntries: List<RecorderViewModel.LogFileItem>,
+    logEntries: List<RecorderViewModel.LogEntry>,
     formattedSize: String
 ) {
     ElevatedCard(
@@ -434,7 +430,7 @@ private fun LogFilesHeader(
 }
 
 @Composable
-private fun LogFileItem(logFile: RecorderViewModel.LogFileItem) {
+private fun LogFileItem(logFile: RecorderViewModel.LogEntry) {
     val context = LocalContext.current
 
     Row(
@@ -462,7 +458,7 @@ private fun LogFileItem(logFile: RecorderViewModel.LogFileItem) {
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = logFile.path.name,
+                text = logFile.file.name,
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.Medium
                 ),
@@ -474,7 +470,7 @@ private fun LogFileItem(logFile: RecorderViewModel.LogFileItem) {
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = logFile.path.path,
+                text = logFile.file.path,
                 style = MaterialTheme.typography.bodySmall.copy(
                     fontFamily = FontFamily.Monospace
                 ),
@@ -484,20 +480,18 @@ private fun LogFileItem(logFile: RecorderViewModel.LogFileItem) {
             )
         }
 
-        logFile.getFormattedSize(context)?.let { size ->
-            Surface(
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    text = size,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Medium
-                    ),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
+        Surface(
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(
+                text = android.text.format.Formatter.formatShortFileSize(context, logFile.size),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Medium
+                ),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            )
         }
     }
 }
@@ -583,21 +577,14 @@ private fun RecorderScreenPreview() {
         val mockState = RecorderViewModel.State(
             logDir = File("/storage/emulated/0/Android/data/eu.darken.butler/cache/debug/logs/session_123"),
             logEntries = listOf(
-                RecorderViewModel.LogFileItem(
-                    path = File("/storage/emulated/0/Android/data/eu.darken.butler/cache/debug/logs/session_123/app.log"),
-                    size = 1024 * 1024
+                RecorderViewModel.LogEntry(
+                    file = File("/storage/emulated/0/Android/data/eu.darken.butler/cache/debug/logs/session_123/core.log"),
+                    size = 6400L,
                 ),
-                RecorderViewModel.LogFileItem(
-                    path = File("/storage/emulated/0/Android/data/eu.darken.butler/cache/debug/logs/session_123/system.log"),
-                    size = 512 * 1024
-                ),
-                RecorderViewModel.LogFileItem(
-                    path = File("/storage/emulated/0/Android/data/eu.darken.butler/cache/debug/logs/session_123/crash.log"),
-                    size = 256 * 1024
-                )
             ),
-            compressedFile = File("/storage/emulated/0/Android/data/eu.darken.butler/cache/debug/logs/session_123.zip"),
-            compressedSize = 1024 * 768
+            compressedSize = 1200L,
+            recordingDurationSecs = 3,
+            isWorking = false,
         )
 
         RecorderScreen(

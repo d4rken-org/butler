@@ -5,12 +5,17 @@ import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.debug.recorder.core.DebugSession
 import eu.darken.butler.common.debug.recorder.core.DebugSessionManager
+import eu.darken.butler.common.debug.recorder.core.RecorderManager
+import eu.darken.butler.common.flow.DynamicStateFlow
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.ui.settings.contactForm
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.launchIn
 import java.io.File
 import javax.inject.Inject
 
@@ -21,31 +26,44 @@ class SupportScreenViewModel @Inject constructor(
     private val sessionManager: DebugSessionManager,
 ) : ViewModel4(dispatcherProvider, logTag("Settings", "Support", "ViewModel")) {
 
-    val state = sessionManager.state.map { sessState ->
-        State(
-            isRecording = sessState.activeSession != null,
-            logPath = sessState.activeSession?.logDir,
-            debugLogFolderStats = DebugLogFolderStats(
-                fileCount = sessState.completedSessions.size + sessState.failedSessions.size,
-                totalSizeBytes = sessState.completedSessions.sumOf { it.zipSize }
-                    + sessState.failedSessions.sumOf { it.dirSize },
-            ),
-        )
+    data class State(
+        val isRecording: Boolean = false,
+        val currentLogPath: File? = null,
+        val recordingStartedAt: Long = 0L,
+        val sessions: List<DebugSession> = emptyList(),
+    ) {
+        val logSessionCount: Int get() = sessions.count { it !is DebugSession.Recording }
+        val logFolderSize: Long get() = sessions.sumOf { it.diskSize }
     }
 
-    fun debugLog() = launch {
-        val isRecording = sessionManager.state.map { it.activeSession != null }.first()
-        if (isRecording) {
-            log(tag) { "Stopping debug log recording" }
-            sessionManager.stopRecording()
-        } else {
-            log(tag) { "Starting debug log recording" }
-            sessionManager.startRecording()
-        }
+    sealed interface Event {
+        data object ShowConsentDialog : Event
+        data object ShowShortRecordingWarning : Event
+        data class OpenRecorderActivity(val sessionId: String, val legacyPath: String?) : Event
     }
 
-    fun openUrl(url: String) = launch {
-        log(tag) { "Opening URL: $url" }
+    val events = SingleEventFlow<Event>()
+
+    private val stater = DynamicStateFlow(tag, vmScope) { State() }
+    val state = stater.flow
+
+    init {
+        combine(
+            sessionManager.recorderState,
+            sessionManager.sessions,
+        ) { recorderState, sessions ->
+            stater.updateBlocking {
+                copy(
+                    isRecording = recorderState.isRecording,
+                    currentLogPath = recorderState.currentLogDir,
+                    recordingStartedAt = recorderState.recordingStartedAt,
+                    sessions = sessions,
+                )
+            }
+        }.launchIn(vmScope)
+    }
+
+    fun openUrl(url: String) {
         webpageTool.open(url)
     }
 
@@ -53,23 +71,55 @@ class SupportScreenViewModel @Inject constructor(
         navTo(Nav.Settings.contactForm())
     }
 
-    fun refreshSessions() = launch {
-        sessionManager.refreshSessions()
+    fun onDebugLogToggle() = launch {
+        if (stater.value().isRecording) {
+            doStopDebugLog()
+        } else {
+            events.tryEmit(Event.ShowConsentDialog)
+        }
     }
 
-    fun deleteAllDebugLogs() = launch {
-        log(tag) { "Deleting all debug logs" }
+    fun startDebugLog() = launch {
+        log(tag) { "startDebugLog()" }
+        sessionManager.startRecording()
+    }
+
+    private suspend fun doStopDebugLog() {
+        when (val result = sessionManager.requestStopRecording()) {
+            is RecorderManager.StopResult.TooShort -> events.tryEmit(Event.ShowShortRecordingWarning)
+            is RecorderManager.StopResult.Stopped -> {
+                log(tag) { "stopDebugLog() -> ${result.sessionId}" }
+                events.tryEmit(Event.OpenRecorderActivity(result.sessionId, result.logDir.path))
+            }
+            is RecorderManager.StopResult.NotRecording -> {}
+        }
+    }
+
+    fun forceStopDebugLog() = launch {
+        log(tag) { "forceStopDebugLog()" }
+        val result = sessionManager.forceStopRecording()
+        if (result != null) {
+            events.tryEmit(Event.OpenRecorderActivity(result.sessionId, result.logDir.path))
+        }
+    }
+
+    fun clearDebugLogs() = launch {
+        log(tag) { "clearDebugLogs()" }
         sessionManager.deleteAllSessions()
     }
 
-    data class DebugLogFolderStats(
-        val fileCount: Int,
-        val totalSizeBytes: Long,
-    )
+    fun openSession(sessionId: String) = launch {
+        val session = sessionManager.sessions.first().firstOrNull { it.id == sessionId } ?: return@launch
+        val legacyPath = (session as? DebugSession.Ready)?.logDir?.path
+        events.tryEmit(Event.OpenRecorderActivity(sessionId, legacyPath))
+    }
 
-    data class State(
-        val isRecording: Boolean,
-        val logPath: File?,
-        val debugLogFolderStats: DebugLogFolderStats = DebugLogFolderStats(0, 0L),
-    )
+    fun refreshSessions() = launch {
+        sessionManager.refresh()
+    }
+
+    fun deleteSession(id: String) = launch {
+        log(tag) { "deleteSession($id)" }
+        sessionManager.deleteSession(id)
+    }
 }
