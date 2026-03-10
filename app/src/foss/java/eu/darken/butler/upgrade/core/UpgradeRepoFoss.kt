@@ -1,17 +1,14 @@
 package eu.darken.butler.upgrade.core
 
 import eu.darken.butler.common.WebpageTool
-import eu.darken.butler.common.coroutine.AppScope
-import eu.darken.butler.common.datastore.valueBlocking
+import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.upgrade.UpgradeRepo
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Clock
@@ -20,7 +17,6 @@ import kotlin.uuid.Uuid
 
 @Singleton
 class UpgradeRepoFoss @Inject constructor(
-    @AppScope private val appScope: CoroutineScope,
     private val fossCache: FossCache,
     private val webpageTool: WebpageTool,
 ) : UpgradeRepo {
@@ -45,13 +41,19 @@ class UpgradeRepoFoss @Inject constructor(
     }
         .setupCommonEventHandlers(TAG) { "upgradeInfo" }
 
-    fun launchGithubSponsorsUpgrade() = appScope.launch {
-        log(TAG) { "launchGithubSponsorsUpgrade()" }
-        fossCache.upgrade.valueBlocking = FossUpgrade(
-            upgradedAt = Clock.System.now(),
-            upgradeType = FossUpgrade.Type.GITHUB_SPONSORS
-        )
+    fun openSponsorPage() {
+        log(TAG) { "openSponsorPage()" }
         webpageTool.open(mainWebsite)
+    }
+
+    suspend fun applyUpgrade() {
+        log(TAG) { "applyUpgrade()" }
+        fossCache.upgrade.value(
+            FossUpgrade(
+                upgradedAt = Clock.System.now(),
+                upgradeType = FossUpgrade.Type.GITHUB_SPONSORS,
+            )
+        )
     }
 
     override suspend fun refresh() {

@@ -22,14 +22,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
@@ -39,23 +46,43 @@ import eu.darken.butler.common.compose.Preview2Tablet
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
+import kotlinx.coroutines.launch
 
 @Composable
 fun UpgradeScreenHost(vm: UpgradeViewModel = hiltViewModel()) {
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        vm.snackbarEvent.collect { stringResId ->
+            scope.launch { snackbarHostState.showSnackbar(context.getString(stringResId)) }
+        }
+    }
+
+    LifecycleResumeEffect(Unit) {
+        vm.onAppResumed()
+        onPauseOrDispose {}
+    }
+
     UpgradeScreen(
+        snackbarHostState = snackbarHostState,
         onNavigateBack = { vm.navUp() },
-        onSponsorClick = { vm.openSponsor() }
+        onSponsorClick = { vm.openSponsor() },
     )
 }
 
 @Composable
 fun UpgradeScreen(
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onNavigateBack: () -> Unit,
-    onSponsorClick: () -> Unit
+    onSponsorClick: () -> Unit,
 ) {
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
