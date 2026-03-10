@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -52,11 +51,11 @@ abstract class ViewModel2(
         .setupCommonEventHandlers(tag) { "launchInViewModel()" }
         .launchIn(vmScope)
 
-    fun <T> Flow<T>.asStateFlow(defaultValue: T? = null): Flow<T> = stateIn(
+    fun <T> Flow<T>.asStateFlow(defaultValue: T? = null): Flow<T?> = stateIn(
         vmScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = defaultValue,
-    ).mapNotNull { it }
+    )
 
     companion object {
         private fun defaultTag(): String = this::class.simpleName ?: "VM2"

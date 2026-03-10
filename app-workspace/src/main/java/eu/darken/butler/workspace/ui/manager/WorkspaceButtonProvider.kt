@@ -4,7 +4,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import kotlinx.coroutines.flow.Flow
 
 interface WorkspaceButtonProvider : WorkspaceActionHandler {
-    val state: Flow<WorkspaceButtonViewModel.State>
+    val state: Flow<WorkspaceButtonViewModel.State?>
 }
 
 val LocalWorkspaceButtonProvider = staticCompositionLocalOf<WorkspaceButtonProvider?> { null }

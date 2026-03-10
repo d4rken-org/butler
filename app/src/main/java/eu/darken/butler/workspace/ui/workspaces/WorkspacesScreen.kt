@@ -183,8 +183,10 @@ fun WorkspacesScreenHost(
 
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    val bannerStates by vm.bannerStates.collectAsState(initial = emptyMap())
-    val showClearSessionConfirmation by vm.showClearSessionConfirmation.collectAsState(initial = false)
+    val bannerStatesRaw by vm.bannerStates.collectAsState(initial = emptyMap())
+    val bannerStates = bannerStatesRaw ?: emptyMap()
+    val showClearSessionConfirmationRaw by vm.showClearSessionConfirmation.collectAsState(initial = false)
+    val showClearSessionConfirmation = showClearSessionConfirmationRaw ?: false
     val managerDialogs by vm.managerDialogs.collectAsState()
     val pageManagerState by vm.workspacePageManager.state.collectAsState()
     val managerState by managerVm.state.collectAsState(initial = null)

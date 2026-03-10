@@ -172,7 +172,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val itemSorter = itemSorterFactory.create(id)
     private val currentSortSettings = MutableStateFlow(explorerSettings.sortSettings.valueBlocking)
     private suspend fun getWorkspace() = workspaceSource.filterNotNull().first()
-    private suspend fun getState(): State = state.first()
+    private suspend fun getState(): State = state.filterNotNull().first()
 
     private val workspaceState: Flow<ExplorerWorkspace.State?> = workspaceSource.flatMapLatest { ws ->
         ws?.state ?: flowOf(null)
@@ -303,7 +303,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
-    val state: Flow<State> = workspaceSource.flatMapLatest { ws ->
+    val state: Flow<State?> = workspaceSource.flatMapLatest { ws ->
         if (ws == null) return@flatMapLatest emptyFlow()
 
         workspaceState.flatMapLatest { wsState ->

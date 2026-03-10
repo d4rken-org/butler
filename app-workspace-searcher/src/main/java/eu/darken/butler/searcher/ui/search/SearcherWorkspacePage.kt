@@ -97,8 +97,8 @@ fun SearcherWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     stateSource: Flow<SearcherWorkspaceViewModel.State>,
-    clipboardStateSource: Flow<ClipboardDisplayState>,
-    operationsStateSource: Flow<OperationsDisplayState>,
+    clipboardStateSource: Flow<ClipboardDisplayState?>,
+    operationsStateSource: Flow<OperationsDisplayState?>,
     vm: SearcherWorkspaceViewModel? = null,
     onPageAction: (SearcherPageAction) -> Unit = {},
 ) {
@@ -106,8 +106,10 @@ fun SearcherWorkspacePage(
     val mainState by stateSource.collectAsState(
         initial = (stateSource as? StateFlow)?.value ?: SearcherWorkspaceViewModel.State.Initializing
     )
-    val clipboardState by clipboardStateSource.collectAsState(initial = ClipboardDisplayState())
-    val operationsState by operationsStateSource.collectAsState(initial = OperationsDisplayState())
+    val clipboardStateRaw by clipboardStateSource.collectAsState(initial = null)
+    val clipboardState = clipboardStateRaw ?: ClipboardDisplayState()
+    val operationsStateRaw by operationsStateSource.collectAsState(initial = null)
+    val operationsState = operationsStateRaw ?: OperationsDisplayState()
 
     // Setup and remember blocks at top level
     val topBarStackState = rememberFloatingBarStackState(

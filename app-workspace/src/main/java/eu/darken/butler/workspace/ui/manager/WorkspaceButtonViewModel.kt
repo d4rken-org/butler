@@ -26,7 +26,7 @@ class WorkspaceButtonViewModel @Inject constructor(
         log(tag) { "init(): $this" }
     }
 
-    override val state: Flow<State> = workspaceRemote.state.map {
+    override val state: Flow<State?> = workspaceRemote.state.map {
         State(
             workspaceCount = it.workspaceCount,
             operationsCount = it.operationCount,

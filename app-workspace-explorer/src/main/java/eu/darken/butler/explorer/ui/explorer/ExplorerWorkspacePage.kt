@@ -104,9 +104,9 @@ import kotlin.time.Duration.Companion.seconds
 fun ExplorerWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
-    mainStateSource: Flow<ExplorerWorkspaceViewModel.State>,
-    operationsStateSource: Flow<OperationsDisplayState>,
-    clipboardStateSource: Flow<ClipboardDisplayState>,
+    mainStateSource: Flow<ExplorerWorkspaceViewModel.State?>,
+    operationsStateSource: Flow<OperationsDisplayState?>,
+    clipboardStateSource: Flow<ClipboardDisplayState?>,
     vm: ExplorerWorkspaceViewModel? = null,
     initialOperationsExpanded: Boolean = false,
     initialClipboardExpanded: Boolean = false,
@@ -117,8 +117,10 @@ fun ExplorerWorkspacePage(
     val state = nullableState ?: return
 
     val coroutineScope = rememberCoroutineScope()
-    val operationsState by operationsStateSource.collectAsState(OperationsDisplayState())
-    val clipboardState by clipboardStateSource.collectAsState(ClipboardDisplayState())
+    val operationsStateRaw by operationsStateSource.collectAsState(initial = null)
+    val operationsState = operationsStateRaw ?: OperationsDisplayState()
+    val clipboardStateRaw by clipboardStateSource.collectAsState(initial = null)
+    val clipboardState = clipboardStateRaw ?: ClipboardDisplayState()
     val isWorkspaceFocused = LocalWorkspaceFocused.current
 
     val topBarStackState = rememberFloatingBarStackState(
@@ -238,6 +240,7 @@ fun ExplorerWorkspacePage(
             log(tag) { "Received reveal request for path: ${request.path.path}" }
             val result = mainStateSource
                 .mapNotNull { emittedState ->
+                    emittedState ?: return@mapNotNull null
                     val items = emittedState.items
                     log(tag) { "State emission: ${items?.size ?: 0} items" }
                     val index = items?.indexOfFirst { item ->
