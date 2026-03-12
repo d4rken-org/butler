@@ -49,8 +49,8 @@ class WorkspaceSessionManager @Inject constructor(
     private val _state = MutableStateFlow<State>(State.Restoring)
     val state: StateFlow<State> = _state.asStateFlow()
 
-    // Track last saved workspace arguments for incremental updates
-    private val lastSavedWorkspaces = mutableMapOf<Workspace.Id, Int>() // ID -> arguments hash
+    // Track last saved workspace state for incremental updates
+    private val lastSavedWorkspaces = mutableMapOf<Workspace.Id, Pair<Int, Int>>() // ID -> (argsHash, orderIndex)
 
     init {
         appScope.launch {
@@ -162,8 +162,9 @@ class WorkspaceSessionManager @Inject constructor(
                     val serializedArgs = factory.serialize(json, currentArgs)
                     val argsHash = serializedArgs.hashCode()
 
-                    // Check if changed
-                    if (lastSavedWorkspaces[info.id] != argsHash) {
+                    // Check if changed (arguments or position)
+                    val lastSaved = lastSavedWorkspaces[info.id]
+                    if (lastSaved == null || lastSaved.first != argsHash || lastSaved.second != index) {
                         // Preserve original createdAt for existing workspaces
                         val existingEntity = storage.dao.getWorkspaceById(info.id)
                         val createdAt = existingEntity?.createdAt ?: now
@@ -179,7 +180,7 @@ class WorkspaceSessionManager @Inject constructor(
                                 arguments = serializedArgs.toString(),
                             )
                         )
-                        lastSavedWorkspaces[info.id] = argsHash
+                        lastSavedWorkspaces[info.id] = argsHash to index
                         changedCount++
                     }
                 } catch (e: Exception) {

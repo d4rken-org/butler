@@ -1,22 +1,33 @@
 package eu.darken.butler.workspace.ui.session
 
+import androidx.room.withTransaction
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.WorkspaceRepo
 import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.session.WorkspaceSessionStorage
+import eu.darken.butler.workspace.core.session.db.WorkspaceInstanceEntity
+import eu.darken.butler.workspace.core.session.db.WorkspaceSessionDatabase
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.slot
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 
@@ -203,5 +214,230 @@ class WorkspaceSessionManagerTest : BaseTest() {
         capturedSelections.values.toSet() shouldBe setOf(wsA, wsB)
         // No duplicates
         capturedSelections.values.toSet().size shouldBe capturedSelections.values.size
+    }
+
+    @Nested
+    inner class SaveSession {
+
+        private val wsIdA = Workspace.Id()
+        private val wsIdB = Workspace.Id()
+        private val wsIdC = Workspace.Id()
+
+        private val repoStateFlow = MutableStateFlow(WorkspaceRemote.State())
+        private val upsertedEntities = mutableListOf<WorkspaceInstanceEntity>()
+        private val deletedIds = mutableListOf<List<Workspace.Id>>()
+
+        private lateinit var mockFactory: WorkspaceFactory<Workspace.Arguments>
+
+        // Per-workspace arguments, mutable so tests can change them
+        private val workspaceArgs = mutableMapOf<Workspace.Id, Workspace.Arguments>()
+        private val defaultArgs = mockk<Workspace.Arguments>().also {
+            every { it.type } returns Workspace.Type.EXPLORER
+        }
+
+        // Track IDs the DAO reports as existing (for removed workspace detection)
+        private var existingDaoIds = listOf<Workspace.Id>()
+
+        @BeforeEach
+        fun setupSave() {
+            mockkStatic("androidx.room.RoomDatabaseKt")
+
+            val mockDatabase = mockk<WorkspaceSessionDatabase>(relaxed = true)
+            every { storage.database } returns mockDatabase
+            coEvery { mockDatabase.withTransaction(any<suspend () -> Any?>()) } coAnswers {
+                @Suppress("UNCHECKED_CAST")
+                val block = args[1] as suspend () -> Any?
+                block()
+            }
+
+            // Capture upserted workspace entities
+            coEvery { storage.dao.upsertWorkspace(any()) } coAnswers {
+                upsertedEntities.add(firstArg())
+            }
+
+            // Capture deleted workspace IDs
+            coEvery { storage.dao.deleteWorkspacesByIds(any()) } coAnswers {
+                deletedIds.add(firstArg())
+            }
+
+            // Return existing IDs for removed workspace detection
+            coEvery { storage.dao.getWorkspaceIds(any()) } coAnswers { existingDaoIds }
+
+            // Mock repo state
+            every { workspaceRepo.state } returns repoStateFlow
+
+            // Mock factory for serialization (uses args identity for distinct hashes)
+            @Suppress("UNCHECKED_CAST")
+            mockFactory = mockk<WorkspaceFactory<Workspace.Arguments>>()
+            every { mockFactory.serialize(any(), any()) } answers {
+                JsonPrimitive(secondArg<Workspace.Arguments>().hashCode().toString())
+            }
+
+            // Register default workspaces
+            registerWorkspace(wsIdA)
+            registerWorkspace(wsIdB)
+            registerWorkspace(wsIdC)
+
+            factoryMap = mapOf(Workspace.Type.EXPLORER to mockFactory)
+            sessionManager = WorkspaceSessionManager(
+                appScope = testScope,
+                workspaceSettings = workspaceSettings,
+                workspaceRepo = workspaceRepo,
+                workspacePageManager = workspacePageManager,
+                storage = storage,
+                json = json,
+                factoryMap = factoryMap,
+            )
+        }
+
+        private fun registerWorkspace(id: Workspace.Id, args: Workspace.Arguments = defaultArgs) {
+            workspaceArgs[id] = args
+            val ws = mockk<Workspace<Workspace.Arguments>>()
+            every { ws.id } returns id
+            coEvery { ws.createArguments() } answers { workspaceArgs[id]!! }
+            every { workspaceRepo.retrieve(id) } returns flowOf(ws)
+        }
+
+        @AfterEach
+        fun teardownSave() {
+            upsertedEntities.clear()
+            deletedIds.clear()
+        }
+
+        private fun makeInfo(
+            id: Workspace.Id,
+            callerWorkspaceId: Workspace.Id? = null,
+        ) = Workspace.Info(
+            id = id,
+            type = Workspace.Type.EXPLORER,
+            title = "Workspace".toCaString(),
+            callerWorkspaceId = callerWorkspaceId,
+        )
+
+        @Test
+        fun `reorder updates orderIndex even when arguments unchanged`() = runTest {
+            // Initial order: A, B, C
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA), makeInfo(wsIdB), makeInfo(wsIdC)),
+            )
+            sessionManager.saveSession()
+
+            upsertedEntities.size shouldBe 3
+            upsertedEntities.single { it.workspaceId == wsIdA }.orderIndex shouldBe 0
+            upsertedEntities.single { it.workspaceId == wsIdB }.orderIndex shouldBe 1
+            upsertedEntities.single { it.workspaceId == wsIdC }.orderIndex shouldBe 2
+
+            upsertedEntities.clear()
+
+            // Reorder to: B, A, C (only position changed, arguments identical)
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdB), makeInfo(wsIdA), makeInfo(wsIdC)),
+            )
+            sessionManager.saveSession()
+
+            // A and B should be re-saved with new orderIndex, C unchanged
+            upsertedEntities.size shouldBe 2
+            upsertedEntities.single { it.workspaceId == wsIdB }.orderIndex shouldBe 0
+            upsertedEntities.single { it.workspaceId == wsIdA }.orderIndex shouldBe 1
+        }
+
+        @Test
+        fun `unchanged state does not trigger unnecessary upserts`() = runTest {
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA), makeInfo(wsIdB)),
+            )
+            sessionManager.saveSession()
+            upsertedEntities.size shouldBe 2
+
+            upsertedEntities.clear()
+
+            // Save again with identical state
+            sessionManager.saveSession()
+            upsertedEntities.size shouldBe 0
+        }
+
+        @Test
+        fun `argument change triggers upsert for affected workspace only`() = runTest {
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA), makeInfo(wsIdB)),
+            )
+            sessionManager.saveSession()
+            upsertedEntities.size shouldBe 2
+
+            upsertedEntities.clear()
+
+            // Change arguments for workspace B only
+            val newArgs = mockk<Workspace.Arguments>()
+            every { newArgs.type } returns Workspace.Type.EXPLORER
+            workspaceArgs[wsIdB] = newArgs
+
+            sessionManager.saveSession()
+
+            upsertedEntities.size shouldBe 1
+            upsertedEntities.single().workspaceId shouldBe wsIdB
+            upsertedEntities.single().orderIndex shouldBe 1
+        }
+
+        @Test
+        fun `sub-workspaces are excluded from save`() = runTest {
+            val subWsId = Workspace.Id()
+            registerWorkspace(subWsId)
+
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(
+                    makeInfo(wsIdA),
+                    makeInfo(subWsId, callerWorkspaceId = wsIdA),
+                    makeInfo(wsIdB),
+                ),
+            )
+            sessionManager.saveSession()
+
+            // Only A and B saved, sub-workspace excluded
+            upsertedEntities.size shouldBe 2
+            upsertedEntities.map { it.workspaceId }.toSet() shouldBe setOf(wsIdA, wsIdB)
+            // B should be at index 1 (sub-workspace doesn't count)
+            upsertedEntities.single { it.workspaceId == wsIdB }.orderIndex shouldBe 1
+        }
+
+        @Test
+        fun `removed workspace is deleted from database`() = runTest {
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA), makeInfo(wsIdB), makeInfo(wsIdC)),
+            )
+            sessionManager.saveSession()
+
+            upsertedEntities.clear()
+
+            // Simulate: DAO reports A, B, C exist, but current state only has A, C
+            existingDaoIds = listOf(wsIdA, wsIdB, wsIdC)
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA), makeInfo(wsIdC)),
+            )
+            sessionManager.saveSession()
+
+            // B should be deleted
+            deletedIds.size shouldBe 1
+            deletedIds.single() shouldBe listOf(wsIdB)
+
+            // A unchanged (same args, same index), C re-saved (index changed from 2 to 1)
+            upsertedEntities.size shouldBe 1
+            upsertedEntities.single { it.workspaceId == wsIdC }.orderIndex shouldBe 1
+        }
+
+        @Test
+        fun `disappeared workspace during save is skipped gracefully`() = runTest {
+            repoStateFlow.value = WorkspaceRemote.State(
+                infos = listOf(makeInfo(wsIdA), makeInfo(wsIdB)),
+            )
+
+            // Workspace B disappears between state read and retrieve
+            every { workspaceRepo.retrieve(wsIdB) } returns flowOf(null)
+
+            sessionManager.saveSession()
+
+            // Only A should be saved
+            upsertedEntities.size shouldBe 1
+            upsertedEntities.single().workspaceId shouldBe wsIdA
+        }
     }
 }
