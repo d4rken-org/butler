@@ -1,33 +1,30 @@
 package eu.darken.butler.workspace.ui.manager.rows
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.CheckCircle
+import androidx.compose.material.icons.twotone.Sync
+import androidx.compose.material.icons.twotone.Tab
+import androidx.compose.material.icons.twotone.Warning
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.ButlerChip
+import eu.darken.butler.common.compose.ButlerChipDefaults
+import eu.darken.butler.common.compose.ButlerChipSize
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun WorkspaceStatusCard(
     workspaceCount: Int,
@@ -40,142 +37,70 @@ fun WorkspaceStatusCard(
     onOperationsClick: () -> Unit = {},
     onAttentionClick: () -> Unit = {},
 ) {
-    Card(
+    val tabsLabel = if (workspaceCount == 1) {
+        stringResource(R.string.workspace_status_tab_singular)
+    } else {
+        stringResource(R.string.workspace_status_tab_plural)
+    }
+    val operationsLabel = if (operationsCount == 1) {
+        stringResource(R.string.workspace_status_operation_singular)
+    } else {
+        stringResource(R.string.workspace_status_operation_plural)
+    }
+    val attentionLabel = stringResource(R.string.workspace_status_attention_label)
+    val tabsDesc = stringResource(R.string.workspace_status_filter_tabs_desc)
+    val operationsDesc = stringResource(R.string.workspace_status_filter_operations_desc)
+    val attentionDesc = stringResource(R.string.workspace_status_filter_attention_desc)
+
+    FlowRow(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Workspace count
-            StatusItem(
-                count = workspaceCount,
-                label = if (workspaceCount == 1) stringResource(R.string.workspace_status_tab_singular) else stringResource(
-                    R.string.workspace_status_tab_plural
-                ),
-                isActive = true,
-                isPrimary = true,
-                isFilterActive = false,
-                onClick = onTabsClick,
-                contentDesc = stringResource(R.string.workspace_status_filter_tabs_desc),
-            )
+        ButlerChip(
+            modifier = Modifier.semantics { contentDescription = tabsDesc },
+            label = "$workspaceCount $tabsLabel",
+            leadingIcon = Icons.TwoTone.Tab,
+            size = ButlerChipSize.Large,
+            onClick = onTabsClick,
+        )
 
-            // Operations count
-            StatusItem(
-                count = operationsCount,
-                label = if (operationsCount == 1) stringResource(R.string.workspace_status_operation_singular) else stringResource(
-                    R.string.workspace_status_operation_plural
-                ),
-                isActive = operationsCount > 0,
-                isPrimary = true,
-                isFilterActive = isOperationsFilterActive,
-                onClick = onOperationsClick,
-                contentDesc = stringResource(R.string.workspace_status_filter_operations_desc),
-            )
+        ButlerChip(
+            modifier = Modifier.semantics { contentDescription = operationsDesc },
+            label = "$operationsCount $operationsLabel",
+            leadingIcon = if (isOperationsFilterActive) Icons.TwoTone.CheckCircle else Icons.TwoTone.Sync,
+            size = ButlerChipSize.Large,
+            enabled = operationsCount > 0,
+            selected = isOperationsFilterActive,
+            colors = if (isOperationsFilterActive) {
+                ButlerChipDefaults.highlightColors()
+            } else if (operationsCount > 0) {
+                ButlerChipDefaults.accentedColors()
+            } else {
+                ButlerChipDefaults.colors()
+            },
+            onClick = onOperationsClick,
+        )
 
-            // Attention count
-            StatusItem(
-                count = attentionCount,
-                label = stringResource(R.string.workspace_status_attention_label),
-                isActive = attentionCount > 0,
-                isPrimary = false,
-                isFilterActive = isAttentionFilterActive,
-                onClick = onAttentionClick,
-                contentDesc = stringResource(R.string.workspace_status_filter_attention_desc),
-            )
-        }
-    }
-}
-
-@Composable
-private fun StatusItem(
-    count: Int,
-    label: String,
-    isActive: Boolean,
-    isPrimary: Boolean,
-    isFilterActive: Boolean = false,
-    onClick: () -> Unit = {},
-    contentDesc: String? = null,
-) {
-    Box(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .then(
-                if (contentDesc != null) {
-                    Modifier.semantics { contentDescription = contentDesc }
-                } else {
-                    Modifier
-                }
-            )
-            .background(
-                color = if (isFilterActive) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    Color.Transparent
-                },
-                shape = RoundedCornerShape(12.dp)
-            )
-            .border(
-                width = 2.dp,
-                color = if (isFilterActive) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    Color.Transparent
-                },
-                shape = RoundedCornerShape(12.dp)
-            )
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .background(
-                        color = when {
-                            isFilterActive -> MaterialTheme.colorScheme.primary
-                            !isActive -> MaterialTheme.colorScheme.surfaceVariant
-                            isPrimary -> MaterialTheme.colorScheme.primaryContainer
-                            else -> MaterialTheme.colorScheme.errorContainer
-                        },
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = count.toString(),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = when {
-                        isFilterActive -> MaterialTheme.colorScheme.onPrimary
-                        !isActive -> MaterialTheme.colorScheme.onSurfaceVariant
-                        isPrimary -> MaterialTheme.colorScheme.onPrimaryContainer
-                        else -> MaterialTheme.colorScheme.error
-                    }
-                )
-            }
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = if (isFilterActive) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
-        }
+        ButlerChip(
+            modifier = Modifier.semantics { contentDescription = attentionDesc },
+            label = "$attentionCount $attentionLabel",
+            leadingIcon = if (isAttentionFilterActive) Icons.TwoTone.CheckCircle else Icons.TwoTone.Warning,
+            size = ButlerChipSize.Large,
+            enabled = attentionCount > 0,
+            selected = isAttentionFilterActive,
+            colors = if (isAttentionFilterActive) {
+                ButlerChipDefaults.errorColors()
+            } else if (attentionCount > 0) {
+                ButlerChipDefaults.accentedColors()
+            } else {
+                ButlerChipDefaults.colors()
+            },
+            onClick = onAttentionClick,
+        )
     }
 }
 
@@ -186,7 +111,7 @@ private fun WorkspaceStatusCardPreview() {
         WorkspaceStatusCard(
             workspaceCount = 5,
             operationsCount = 3,
-            attentionCount = 2
+            attentionCount = 2,
         )
     }
 }
@@ -198,7 +123,28 @@ private fun WorkspaceStatusCardEmptyPreview() {
         WorkspaceStatusCard(
             workspaceCount = 1,
             operationsCount = 0,
-            attentionCount = 0
+            attentionCount = 0,
         )
+    }
+}
+
+@Preview2
+@Composable
+private fun WorkspaceStatusCardFilterActivePreview() {
+    PreviewWrapper {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            WorkspaceStatusCard(
+                workspaceCount = 5,
+                operationsCount = 3,
+                attentionCount = 2,
+                isOperationsFilterActive = true,
+            )
+            WorkspaceStatusCard(
+                workspaceCount = 5,
+                operationsCount = 3,
+                attentionCount = 2,
+                isAttentionFilterActive = true,
+            )
+        }
     }
 }
