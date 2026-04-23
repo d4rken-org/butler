@@ -44,7 +44,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
@@ -394,358 +396,347 @@ private fun createSearchProgress(scanned: Int, found: Int) =
     )
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardMixedPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = listOf(
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
-                    "/sdcard",
-                    1542,
-                    12
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/storage/emulated/0",
-                    823,
-                    3
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
-                    "/mnt/usb_storage",
-                    0,
-                    0
-                ),
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                "/sdcard",
+                1542,
+                12
             ),
-            overallProgress = createSearchProgress(2365, 15),
-            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = true
-        )
-    }
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/storage/emulated/0",
+                823,
+                3
+            ),
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                "/mnt/usb_storage",
+                0,
+                0
+            ),
+        ),
+        overallProgress = createSearchProgress(2365, 15),
+        searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = true
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardAllSearchingPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = listOf(
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
-                    "/sdcard",
-                    2400,
-                    18
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
-                    "/storage/emulated/0",
-                    1200,
-                    8
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
-                    "/mnt/usb_storage",
-                    500,
-                    2
-                ),
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                "/sdcard",
+                2400,
+                18
             ),
-            overallProgress = createSearchProgress(4100, 28),
-            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = true
-        )
-    }
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                "/storage/emulated/0",
+                1200,
+                8
+            ),
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                "/mnt/usb_storage",
+                500,
+                2
+            ),
+        ),
+        overallProgress = createSearchProgress(4100, 28),
+        searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = true
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardWithErrorsPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = listOf(
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/sdcard",
-                    3200,
-                    25
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.ERROR,
-                    "/storage/usb",
-                    150,
-                    0,
-                    exception = SecurityException("Permission denied: READ_EXTERNAL_STORAGE required")
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
-                    "/mnt/external",
-                    800,
-                    5
-                ),
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/sdcard",
+                3200,
+                25
             ),
-            overallProgress = createSearchProgress(4150, 30),
-            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = true
-        )
-    }
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.ERROR,
+                "/storage/usb",
+                150,
+                0,
+                exception = SecurityException("Permission denied: READ_EXTERNAL_STORAGE required")
+            ),
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                "/mnt/external",
+                800,
+                5
+            ),
+        ),
+        overallProgress = createSearchProgress(4150, 30),
+        searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = true
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardCancelledPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = listOf(
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/sdcard/Documents",
-                    1500,
-                    12
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.CANCELLED,
-                    "/storage/emulated/0",
-                    400,
-                    3
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.CANCELLED,
-                    "/mnt/usb_storage",
-                    0,
-                    0
-                ),
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/sdcard/Documents",
+                1500,
+                12
             ),
-            overallProgress = createSearchProgress(1900, 15),
-            searchStatus = SearcherWorkspace.State.SearchStatus.CANCELLED,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = true
-        )
-    }
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.CANCELLED,
+                "/storage/emulated/0",
+                400,
+                3
+            ),
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.CANCELLED,
+                "/mnt/usb_storage",
+                0,
+                0
+            ),
+        ),
+        overallProgress = createSearchProgress(1900, 15),
+        searchStatus = SearcherWorkspace.State.SearchStatus.CANCELLED,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = true
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardSinglePathPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = listOf(
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
-                    "/sdcard",
-                    5420,
-                    42
-                ),
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                "/sdcard",
+                5420,
+                42
             ),
-            overallProgress = createSearchProgress(5420, 42),
-            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = true
-        )
-    }
+        ),
+        overallProgress = createSearchProgress(5420, 42),
+        searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = true
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardCompletedPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = listOf(
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/sdcard",
-                    3200,
-                    25
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/storage/emulated/0",
-                    1850,
-                    14
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/mnt/usb_storage",
-                    920,
-                    6
-                ),
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/sdcard",
+                3200,
+                25
             ),
-            overallProgress = createSearchProgress(5970, 45),
-            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = true
-        )
-    }
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/storage/emulated/0",
+                1850,
+                14
+            ),
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/mnt/usb_storage",
+                920,
+                6
+            ),
+        ),
+        overallProgress = createSearchProgress(5970, 45),
+        searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = true
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardCompletedWithErrorsPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = listOf(
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/sdcard",
-                    3200,
-                    25
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.ERROR,
-                    "/storage/usb",
-                    150,
-                    0,
-                    exception = IOException("I/O error: Device not accessible")
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/mnt/external",
-                    1850,
-                    14
-                ),
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/sdcard",
+                3200,
+                25
             ),
-            overallProgress = createSearchProgress(5200, 39),
-            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = true
-        )
-    }
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.ERROR,
+                "/storage/usb",
+                150,
+                0,
+                exception = IOException("I/O error: Device not accessible")
+            ),
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/mnt/external",
+                1850,
+                14
+            ),
+        ),
+        overallProgress = createSearchProgress(5200, 39),
+        searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = true
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardEmptyPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = emptyList(),
-            overallProgress = null,
-            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = true
-        )
-    }
+    SearchProgressCard(
+        targetProgress = emptyList(),
+        overallProgress = null,
+        searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = true
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardCompletedCollapsedPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = listOf(
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/sdcard",
-                    3200,
-                    25
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/storage/emulated/0",
-                    1850,
-                    14
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/mnt/usb_storage",
-                    920,
-                    6
-                ),
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/sdcard",
+                3200,
+                25
             ),
-            overallProgress = createSearchProgress(5970, 45),
-            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = false
-        )
-    }
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/storage/emulated/0",
+                1850,
+                14
+            ),
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/mnt/usb_storage",
+                920,
+                6
+            ),
+        ),
+        overallProgress = createSearchProgress(5970, 45),
+        searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = false
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardCompletedWithErrorsCollapsedPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = listOf(
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/sdcard",
-                    3200,
-                    25
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.ERROR,
-                    "/storage/usb",
-                    150,
-                    0,
-                    exception = IOException("I/O error: Device not accessible")
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.COMPLETED,
-                    "/mnt/external",
-                    1850,
-                    14
-                ),
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/sdcard",
+                3200,
+                25
             ),
-            overallProgress = createSearchProgress(5200, 39),
-            searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = false
-        )
-    }
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.ERROR,
+                "/storage/usb",
+                150,
+                0,
+                exception = IOException("I/O error: Device not accessible")
+            ),
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/mnt/external",
+                1850,
+                14
+            ),
+        ),
+        overallProgress = createSearchProgress(5200, 39),
+        searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = false
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchProgressCardSearchingCollapsedPreview() {
-    PreviewWrapper {
-        SearchProgressCard(
-            targetProgress = listOf(
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
-                    "/sdcard",
-                    2400,
-                    18
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
-                    "/storage/emulated/0",
-                    1200,
-                    8
-                ),
-                createSearchTargetProgress(
-                    SearchEngine.SearchTargetProgress.Status.SEARCHING,
-                    "/mnt/usb_storage",
-                    500,
-                    2
-                ),
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                "/sdcard",
+                2400,
+                18
             ),
-            overallProgress = createSearchProgress(4100, 28),
-            searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
-            onCancel = {},
-            onClear = {},
-            onErrorClick = { _, _ -> },
-            initiallyExpanded = false
-        )
-    }
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                "/storage/emulated/0",
+                1200,
+                8
+            ),
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.SEARCHING,
+                "/mnt/usb_storage",
+                500,
+                2
+            ),
+        ),
+        overallProgress = createSearchProgress(4100, 28),
+        searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = false
+    )
 }

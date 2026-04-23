@@ -37,9 +37,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.progress.Progress
@@ -256,54 +258,54 @@ fun OperationsBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationsBarPreview() {
-    PreviewWrapper {
-        val operations = listOf(
-            OperationDisplay(
-                id = Operation.Id(),
-                title = "Deleting files".toCaString(),
-                description = "3 files remaining".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Running(
-                    primaryProgress = Progress.Data(
-                        primary = "Deleting files".toCaString(),
-                        secondary = "Processing files...".toCaString(),
-                        count = Progress.Count.Percent(6, 10)
-                    )
-                ),
-                canCancel = true,
-                startedAt = Clock.System.now(),
+    val operations = listOf(
+        OperationDisplay(
+            id = Operation.Id(),
+            title = "Deleting files".toCaString(),
+            description = "3 files remaining".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Running(
+                primaryProgress = Progress.Data(
+                    primary = "Deleting files".toCaString(),
+                    secondary = "Processing files...".toCaString(),
+                    count = Progress.Count.Percent(6, 10)
+                )
             ),
-            OperationDisplay(
-                id = Operation.Id(),
-                title = "Copy operation".toCaString(),
-                description = "Copy operation description".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Completed(
-                    summary = "Success".toCaString(),
-                    completedAt = Clock.System.now(),
-                    report = object : Operation.Report {
-                        override val summary = "Success".toCaString()
-                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
-                    }
-                ),
-                canCancel = false,
-                startedAt = Clock.System.now(),
+            canCancel = true,
+            startedAt = Clock.System.now(),
+        ),
+        OperationDisplay(
+            id = Operation.Id(),
+            title = "Copy operation".toCaString(),
+            description = "Copy operation description".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Completed(
+                summary = "Success".toCaString(),
+                completedAt = Clock.System.now(),
+                report = object : Operation.Report {
+                    override val summary = "Success".toCaString()
+                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                }
             ),
-        )
+            canCancel = false,
+            startedAt = Clock.System.now(),
+        ),
+    )
 
-        OperationsBar(
-            operations = operations,
-            onCancelOperation = {},
-            onDismissOperation = {},
-            onOperationClick = {},
-            onClearCompleted = {},
-        )
-    }
+    OperationsBar(
+        operations = operations,
+        onCancelOperation = {},
+        onDismissOperation = {},
+        onOperationClick = {},
+        onClearCompleted = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationsBarSingleItemPreview() {
     val singleOperation = OperationDisplay(
@@ -340,6 +342,7 @@ private fun OperationsBarSingleItemPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationsBarExpandedPreview() {
     val operations = listOf(

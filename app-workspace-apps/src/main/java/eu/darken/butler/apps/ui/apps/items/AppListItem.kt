@@ -19,10 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
@@ -119,71 +121,66 @@ fun AppListItem(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppListItemPreview() {
-    PreviewWrapper {
-        AppListItem(
-            item = AppsMockDataProvider.Presets.chromeItem,
-            isSelected = false,
-            onClick = {},
-            onLongClick = {},
-            showSelection = false,
-        )
-    }
+    AppListItem(
+        item = AppsMockDataProvider.Presets.chromeItem,
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppListItemSelectedPreview() {
-    PreviewWrapper {
-        AppListItem(
-            item = AppsMockDataProvider.Presets.settingsItem,
-            isSelected = true,
-            onClick = {},
-            onLongClick = {},
-            showSelection = true,
-        )
-    }
+    AppListItem(
+        item = AppsMockDataProvider.Presets.settingsItem,
+        isSelected = true,
+        onClick = {},
+        onLongClick = {},
+        showSelection = true,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppListItemDisabledPreview() {
-    PreviewWrapper {
-        AppListItem(
-            item = AppsMockDataProvider.Presets.disabledAppItem,
-            isSelected = false,
-            onClick = {},
-            onLongClick = {},
-            showSelection = false,
-        )
-    }
+    AppListItem(
+        item = AppsMockDataProvider.Presets.disabledAppItem,
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppListItemWithTagsPreview() {
-    PreviewWrapper {
-        AppListItem(
-            item = AppsMockDataProvider.Presets.multiTagAppItem,
-            isSelected = false,
-            onClick = {},
-            onLongClick = {},
-            showSelection = false,
-        )
-    }
+    AppListItem(
+        item = AppsMockDataProvider.Presets.multiTagAppItem,
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppListItemSplitApkPreview() {
-    PreviewWrapper {
-        AppListItem(
-            item = AppsMockDataProvider.Presets.updatedSystemItem,
-            isSelected = false,
-            onClick = {},
-            onLongClick = {},
-            showSelection = false,
-        )
-    }
+    AppListItem(
+        item = AppsMockDataProvider.Presets.updatedSystemItem,
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
 }

@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -66,17 +68,16 @@ fun WorkspaceModalContent(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceModalContentPreview() {
-    PreviewWrapper {
-        // Preview with a mock sub-workspace (picker)
-        WorkspaceModalContent(
-            workspace = Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.EXPLORER,
-                title = "Select Folder".toCaString(),
-                callerWorkspaceId = Workspace.Id(), // Mock parent workspace
-            ),
-        )
-    }
+    // Preview with a mock sub-workspace (picker)
+    WorkspaceModalContent(
+        workspace = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "Select Folder".toCaString(),
+            callerWorkspaceId = Workspace.Id(), // Mock parent workspace
+        ),
+    )
 }

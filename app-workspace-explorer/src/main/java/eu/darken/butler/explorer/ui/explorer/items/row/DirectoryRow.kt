@@ -5,7 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatDate
@@ -74,6 +76,7 @@ internal fun DirectoryRow(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DirectoryRowPreview() {
     DirectoryRow(
@@ -86,6 +89,7 @@ private fun DirectoryRowPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DirectoryRowSelectedPreview() {
     DirectoryRow(
@@ -98,6 +102,7 @@ private fun DirectoryRowSelectedPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DirectoryRowTrailingWhitespacePreview() {
     DirectoryRow(
@@ -110,6 +115,7 @@ private fun DirectoryRowTrailingWhitespacePreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DirectoryRowWhitespaceSelectedPreview() {
     DirectoryRow(
@@ -122,6 +128,7 @@ private fun DirectoryRowWhitespaceSelectedPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DirectoryRowHighlightedPreview() {
     DirectoryRow(

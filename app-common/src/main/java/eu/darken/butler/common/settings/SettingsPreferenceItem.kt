@@ -8,7 +8,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -45,16 +47,15 @@ fun SettingsPreferenceItem(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SettingsPreferenceItemPreview() {
-    PreviewWrapper {
-        SettingsPreferenceItem(
-            icon = Icons.TwoTone.Settings,
-            title = "Settings",
-            subtitle = "General settings",
-            onClick = {},
-            modifier = Modifier,
-            value = "Value"
-        )
-    }
+    SettingsPreferenceItem(
+        icon = Icons.TwoTone.Settings,
+        title = "Settings",
+        subtitle = "General settings",
+        onClick = {},
+        modifier = Modifier,
+        value = "Value"
+    )
 }

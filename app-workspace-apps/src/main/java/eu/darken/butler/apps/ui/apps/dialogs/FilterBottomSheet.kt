@@ -15,6 +15,7 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
@@ -24,6 +25,7 @@ import eu.darken.butler.apps.core.engine.FilterState
 import eu.darken.butler.apps.core.engine.getTagState
 import eu.darken.butler.apps.core.engine.standardTags
 import eu.darken.butler.apps.core.engine.withTagState
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
@@ -100,45 +102,42 @@ fun FilterBottomSheet(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FilterBottomSheetEmptyPreview() {
-    PreviewWrapper {
-        FilterBottomSheet(
-            filterConfig = TagFilterConfig(),
-            availableTags = AppTag.standardTags,
-            onFilterChange = {},
-            onDismiss = {},
-        )
-    }
+    FilterBottomSheet(
+        filterConfig = TagFilterConfig(),
+        availableTags = AppTag.standardTags,
+        onFilterChange = {},
+        onDismiss = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FilterBottomSheetWithFiltersPreview() {
-    PreviewWrapper {
-        FilterBottomSheet(
-            filterConfig = TagFilterConfig(
-                includeTags = setOf(AppTag.UserApp, AppTag.Enabled),
-                excludeTags = setOf(AppTag.Debug),
-            ),
-            availableTags = AppTag.standardTags,
-            onFilterChange = {},
-            onDismiss = {},
-        )
-    }
+    FilterBottomSheet(
+        filterConfig = TagFilterConfig(
+            includeTags = setOf(AppTag.UserApp, AppTag.Enabled),
+            excludeTags = setOf(AppTag.Debug),
+        ),
+        availableTags = AppTag.standardTags,
+        onFilterChange = {},
+        onDismiss = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FilterBottomSheetWithUserTagPreview() {
-    PreviewWrapper {
-        FilterBottomSheet(
-            filterConfig = TagFilterConfig(
-                includeTags = setOf(AppTag.User(handleId = 10, label = "Work")),
-            ),
-            availableTags = AppTag.standardTags + AppTag.User(handleId = 10, label = "Work"),
-            onFilterChange = {},
-            onDismiss = {},
-        )
-    }
+    FilterBottomSheet(
+        filterConfig = TagFilterConfig(
+            includeTags = setOf(AppTag.User(handleId = 10, label = "Work")),
+        ),
+        availableTags = AppTag.standardTags + AppTag.User(handleId = 10, label = "Work"),
+        onFilterChange = {},
+        onDismiss = {},
+    )
 }

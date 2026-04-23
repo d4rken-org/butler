@@ -50,9 +50,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -451,92 +453,90 @@ private fun WorkspaceRailItem(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceNavigationRailPreview() {
-    PreviewWrapper {
-        val tabs = listOf(
-            Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.EXPLORER,
-                title = "Explorer 1234".toCaString(),
-            ),
-            Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.SEARCHER,
-                title = "Search 1234".toCaString(),
-            ),
-            Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.EDITOR,
-                title = "Editor 1234".toCaString(),
-            ),
-        )
-        WorkspaceNavigationRail(
-            workspaces = tabs,
-            selected = mapOf(0 to tabs[0].asPaneInfo(), 1 to tabs[1].asPaneInfo()),
-            focusedId = tabs[0].id,
-            onTabAction = {},
-            onPaneAssignment = { _, _ -> },
-            onPaneMenuToggle = {},
-        )
-    }
+    val tabs = listOf(
+        Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "Explorer 1234".toCaString(),
+        ),
+        Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.SEARCHER,
+            title = "Search 1234".toCaString(),
+        ),
+        Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EDITOR,
+            title = "Editor 1234".toCaString(),
+        ),
+    )
+    WorkspaceNavigationRail(
+        workspaces = tabs,
+        selected = mapOf(0 to tabs[0].asPaneInfo(), 1 to tabs[1].asPaneInfo()),
+        focusedId = tabs[0].id,
+        onTabAction = {},
+        onPaneAssignment = { _, _ -> },
+        onPaneMenuToggle = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PaneMenuPreview() {
-    PreviewWrapper {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        DropdownMenu(
+            expanded = true,
+            onDismissRequest = {},
         ) {
-            DropdownMenu(
-                expanded = true,
-                onDismissRequest = {},
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_assign_action, 1)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.TwoTone.LooksOne,
-                            contentDescription = null,
-                        )
-                    },
-                    onClick = {},
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_assign_action, 2)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.TwoTone.LooksTwo,
-                            contentDescription = null,
-                        )
-                    },
-                    onClick = {},
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_assign_action, 3)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.TwoTone.Looks3,
-                            contentDescription = null,
-                        )
-                    },
-                    onClick = {},
-                )
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.workspace_pane_close_action)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.TwoTone.Close,
-                            contentDescription = null,
-                        )
-                    },
-                    onClick = {},
-                )
-            }
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.workspace_pane_assign_action, 1)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.LooksOne,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {},
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.workspace_pane_assign_action, 2)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.LooksTwo,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {},
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.workspace_pane_assign_action, 3)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Looks3,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {},
+            )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.workspace_pane_close_action)) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Close,
+                        contentDescription = null,
+                    )
+                },
+                onClick = {},
+            )
         }
     }
 }

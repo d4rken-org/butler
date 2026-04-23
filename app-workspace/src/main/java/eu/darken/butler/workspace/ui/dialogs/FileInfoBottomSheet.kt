@@ -31,7 +31,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APathLookup
@@ -418,59 +420,56 @@ private fun InfoRow(
 // Previews
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FileInfoBottomSheetPreviewFile() {
-    PreviewWrapper {
-        val mockLookup = LocalPathLookup(
-            lookedUp = LocalPath.build("/storage/emulated/0/Documents/test.txt"),
-            fileType = FileType.FILE,
-            size = 1024L * 50,
-            modifiedAt = Clock.System.now()
-        )
+    val mockLookup = LocalPathLookup(
+        lookedUp = LocalPath.build("/storage/emulated/0/Documents/test.txt"),
+        fileType = FileType.FILE,
+        size = 1024L * 50,
+        modifiedAt = Clock.System.now()
+    )
 
-        FileInfoBottomSheet(
-            fileInfo = FileInfo(
-                lookup = mockLookup,
-                mimeInfo = MimeInfo("text/plain"),
-            ),
-            onDismiss = {},
-            onCopyToClipboard = {},
-        )
-    }
+    FileInfoBottomSheet(
+        fileInfo = FileInfo(
+            lookup = mockLookup,
+            mimeInfo = MimeInfo("text/plain"),
+        ),
+        onDismiss = {},
+        onCopyToClipboard = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FileInfoBottomSheetPreviewDirectory() {
-    PreviewWrapper {
-        val mockLookup = LocalPathLookup(
-            lookedUp = LocalPath.build("/storage/emulated/0/Documents"),
-            fileType = FileType.DIRECTORY,
-            size = 0,
-            modifiedAt = Clock.System.now()
-        )
+    val mockLookup = LocalPathLookup(
+        lookedUp = LocalPath.build("/storage/emulated/0/Documents"),
+        fileType = FileType.DIRECTORY,
+        size = 0,
+        modifiedAt = Clock.System.now()
+    )
 
-        FileInfoBottomSheet(
-            fileInfo = FileInfo(
-                lookup = mockLookup,
-                childCount = 42,
-            ),
-            onDismiss = {},
-            onCopyToClipboard = {},
-        )
-    }
+    FileInfoBottomSheet(
+        fileInfo = FileInfo(
+            lookup = mockLookup,
+            childCount = 42,
+        ),
+        onDismiss = {},
+        onCopyToClipboard = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun MultipleItemsInfoBottomSheetPreview() {
-    PreviewWrapper {
-        MultipleItemsInfoBottomSheet(
-            totalCount = 15,
-            fileCount = 12,
-            directoryCount = 3,
-            totalSize = 1024L * 1024 * 50,
-            onDismiss = {}
-        )
-    }
+    MultipleItemsInfoBottomSheet(
+        totalCount = 15,
+        fileCount = 12,
+        directoryCount = 3,
+        totalSize = 1024L * 1024 * 50,
+        onDismiss = {}
+    )
 }

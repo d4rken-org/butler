@@ -15,8 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 
 @Composable
 fun BadgedIcon(
@@ -50,26 +52,24 @@ fun BadgedIcon(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun BadgedIconPreview() {
-    PreviewWrapper {
-        BadgedIcon(
-            icon = Icons.TwoTone.Folder,
-            badge = Icons.TwoTone.PauseCircle,
-            iconSize = 32.dp,
-            badgeSize = 14.dp,
-        )
-    }
+    BadgedIcon(
+        icon = Icons.TwoTone.Folder,
+        badge = Icons.TwoTone.PauseCircle,
+        iconSize = 32.dp,
+        badgeSize = 14.dp,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun BadgedIconNoBadgePreview() {
-    PreviewWrapper {
-        BadgedIcon(
-            icon = Icons.TwoTone.Folder,
-            badge = null,
-            iconSize = 32.dp,
-        )
-    }
+    BadgedIcon(
+        icon = Icons.TwoTone.Folder,
+        badge = null,
+        iconSize = 32.dp,
+    )
 }

@@ -21,7 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -112,16 +114,15 @@ fun TrashSizeLimitIssueSheet(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TrashSizeLimitIssueSheetPreview() {
-    PreviewWrapper {
-        TrashSizeLimitIssueSheet(
-            issue = PathActionIssue.TrashSizeLimitExceeded(
-                totalSize = 3L * 1024 * 1024 * 1024,
-                itemCount = 5,
-                trashMaxSize = 2L * 1024 * 1024 * 1024,
-            ),
-            onResolution = {},
-        )
-    }
+    TrashSizeLimitIssueSheet(
+        issue = PathActionIssue.TrashSizeLimitExceeded(
+            totalSize = 3L * 1024 * 1024 * 1024,
+            itemCount = 5,
+            trashMaxSize = 2L * 1024 * 1024 * 1024,
+        ),
+        onResolution = {},
+    )
 }

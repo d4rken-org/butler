@@ -24,8 +24,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -166,17 +168,16 @@ fun SizeInputDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SizeInputDialogPreview() {
-    PreviewWrapper {
-        SizeInputDialog(
-            title = "Maximum size per storage",
-            currentSize = 500L * MB_MULTIPLIER,
-            minimumSize = 1L * MB_MULTIPLIER,
-            maximumSize = 10L * 1024L * MB_MULTIPLIER,
-            defaultSize = 500L * MB_MULTIPLIER,
-            onDismiss = {},
-            onConfirm = {},
-        )
-    }
+    SizeInputDialog(
+        title = "Maximum size per storage",
+        currentSize = 500L * MB_MULTIPLIER,
+        minimumSize = 1L * MB_MULTIPLIER,
+        maximumSize = 10L * 1024L * MB_MULTIPLIER,
+        defaultSize = 500L * MB_MULTIPLIER,
+        onDismiss = {},
+        onConfirm = {},
+    )
 }

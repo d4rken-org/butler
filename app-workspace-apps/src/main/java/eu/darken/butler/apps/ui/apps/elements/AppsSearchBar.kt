@@ -26,8 +26,10 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -108,25 +110,23 @@ fun AppsSearchBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsSearchBarPreview() {
-    PreviewWrapper {
-        AppsSearchBar(
-            query = TextFieldValue("Gmail"),
-            onQueryChange = {},
-            modifier = Modifier.padding(16.dp)
-        )
-    }
+    AppsSearchBar(
+        query = TextFieldValue("Gmail"),
+        onQueryChange = {},
+        modifier = Modifier.padding(16.dp)
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsSearchBarEmptyPreview() {
-    PreviewWrapper {
-        AppsSearchBar(
-            query = TextFieldValue(""),
-            onQueryChange = {},
-            modifier = Modifier.padding(16.dp)
-        )
-    }
+    AppsSearchBar(
+        query = TextFieldValue(""),
+        onQueryChange = {},
+        modifier = Modifier.padding(16.dp)
+    )
 }

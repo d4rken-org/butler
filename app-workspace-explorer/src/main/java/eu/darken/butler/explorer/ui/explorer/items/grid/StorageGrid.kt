@@ -18,7 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.saf.location.SAFLocation
@@ -123,89 +125,85 @@ fun StorageGrid(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun StorageGridLocalPreview() {
-    PreviewWrapper {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(3) {
-                StorageGrid(
-                    item = MockDataProvider.createMockStorageLocal(),
-                    onClick = {}
-                )
-            }
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(3) {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageLocal(),
+                onClick = {}
+            )
         }
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun StorageGridSAFPreview() {
-    PreviewWrapper {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(3) {
-                StorageGrid(
-                    item = MockDataProvider.createMockStorageSAF(),
-                    onClick = {}
-                )
-            }
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(3) {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageSAF(),
+                onClick = {}
+            )
         }
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun StorageGridSAFReadOnlyPreview() {
-    PreviewWrapper {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(3) {
-                StorageGrid(
-                    item = MockDataProvider.createMockStorageSAF(
-                        name = "SD Card (Read-only)",
-                        hasReadPermission = true,
-                        hasWritePermission = false
-                    ),
-                    onClick = {}
-                )
-            }
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(3) {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageSAF(
+                    name = "SD Card (Read-only)",
+                    hasReadPermission = true,
+                    hasWritePermission = false
+                ),
+                onClick = {}
+            )
         }
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun StorageGridSAFWriteOnlyPreview() {
-    PreviewWrapper {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(3) {
-                StorageGrid(
-                    item = MockDataProvider.createMockStorageSAF(
-                        name = "SD Card (Write-only)",
-                        hasReadPermission = false,
-                        hasWritePermission = true
-                    ),
-                    onClick = {}
-                )
-            }
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(3) {
+            StorageGrid(
+                item = MockDataProvider.createMockStorageSAF(
+                    name = "SD Card (Write-only)",
+                    hasReadPermission = false,
+                    hasWritePermission = true
+                ),
+                onClick = {}
+            )
         }
     }
 }

@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 
 @Composable
 fun ToggleFilterChip(
@@ -28,15 +30,14 @@ fun ToggleFilterChip(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ToggleFilterChipPreview() {
-    PreviewWrapper {
-        ToggleFilterChip(
-            selected = true,
-            onClick = {},
-            labelRes = android.R.string.ok,
-            iconVector = Icons.TwoTone.CheckCircle,
-            contentDescriptionRes = android.R.string.ok,
-        )
-    }
+    ToggleFilterChip(
+        selected = true,
+        onClick = {},
+        labelRes = android.R.string.ok,
+        iconVector = Icons.TwoTone.CheckCircle,
+        contentDescriptionRes = android.R.string.ok,
+    )
 }

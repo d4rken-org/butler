@@ -41,10 +41,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
@@ -356,24 +358,23 @@ private fun FileActionRow(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FileOptionsBottomSheetPreview() {
-    PreviewWrapper {
-        val mockItem = ExplorerItem.RegularFile(
-            lookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/Documents/test.txt"),
-                fileType = FileType.FILE,
-                size = 1024L * 50, // 50 KB
-                modifiedAt = kotlin.time.Clock.System.now()
-            ),
-            mimeType = MimeInfo("text/plain")
-        )
+    val mockItem = ExplorerItem.RegularFile(
+        lookup = LocalPathLookup(
+            lookedUp = LocalPath.build("/storage/emulated/0/Documents/test.txt"),
+            fileType = FileType.FILE,
+            size = 1024L * 50, // 50 KB
+            modifiedAt = kotlin.time.Clock.System.now()
+        ),
+        mimeType = MimeInfo("text/plain")
+    )
 
-        FileOptionsBottomSheet(
-            item = mockItem,
-            trashEnabled = true,
-            onDismiss = {},
-            onAction = {},
-        )
-    }
+    FileOptionsBottomSheet(
+        item = mockItem,
+        trashEnabled = true,
+        onDismiss = {},
+        onAction = {},
+    )
 }

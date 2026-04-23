@@ -39,7 +39,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -234,40 +236,37 @@ fun ErrorCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ErrorCardWithRetryPreview() {
-    PreviewWrapper {
-        ErrorCard(
-            title = "Navigation Failed",
-            error = IOException("Failed to read directory: Permission denied"),
-            onShareError = {},
-            onRetry = {},
-            onDismiss = {},
-        )
-    }
+    ErrorCard(
+        title = "Navigation Failed",
+        error = IOException("Failed to read directory: Permission denied"),
+        onShareError = {},
+        onRetry = {},
+        onDismiss = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ErrorCardNoRetryPreview() {
-    PreviewWrapper {
-        ErrorCard(
-            title = "Search Error",
-            error = RuntimeException("Unexpected error occurred while searching"),
-            onShareError = {},
-            onDismiss = null,
-        )
-    }
+    ErrorCard(
+        title = "Search Error",
+        error = RuntimeException("Unexpected error occurred while searching"),
+        onShareError = {},
+        onDismiss = null,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ErrorCardMinimalPreview() {
-    PreviewWrapper {
-        ErrorCard(
-            title = "Error",
-            error = NullPointerException("Path lookup returned null"),
-            onShareError = {},
-        )
-    }
+    ErrorCard(
+        title = "Error",
+        error = NullPointerException("Path lookup returned null"),
+        onShareError = {},
+    )
 }

@@ -24,8 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.saver.R
@@ -79,41 +81,38 @@ internal fun FilePreviewCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FilePreviewCardLoadingPreview() {
-    PreviewWrapper {
-        FilePreviewCard(sourceInfo = null)
-    }
+    FilePreviewCard(sourceInfo = null)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FilePreviewCardImagePreview() {
-    PreviewWrapper {
-        FilePreviewCard(
-            sourceInfo = ContentUriHelper.SourceInfo(
-                uri = Uri.parse("content://example/image.jpg"),
-                displayName = "image.jpg",
-                mimeType = "image/jpeg",
-                size = 1024 * 1024,
-                isAccessible = true,
-            )
+    FilePreviewCard(
+        sourceInfo = ContentUriHelper.SourceInfo(
+            uri = Uri.parse("content://example/image.jpg"),
+            displayName = "image.jpg",
+            mimeType = "image/jpeg",
+            size = 1024 * 1024,
+            isAccessible = true,
         )
-    }
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FilePreviewCardNonImagePreview() {
-    PreviewWrapper {
-        FilePreviewCard(
-            sourceInfo = ContentUriHelper.SourceInfo(
-                uri = Uri.parse("content://example/document.pdf"),
-                displayName = "document.pdf",
-                mimeType = "application/pdf",
-                size = 2 * 1024 * 1024,
-                isAccessible = true,
-            )
+    FilePreviewCard(
+        sourceInfo = ContentUriHelper.SourceInfo(
+            uri = Uri.parse("content://example/document.pdf"),
+            displayName = "document.pdf",
+            mimeType = "application/pdf",
+            size = 2 * 1024 * 1024,
+            isAccessible = true,
         )
-    }
+    )
 }

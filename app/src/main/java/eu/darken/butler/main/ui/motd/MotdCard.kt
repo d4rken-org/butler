@@ -34,7 +34,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.main.core.motd.MotdApi
@@ -170,45 +172,43 @@ fun MotdCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun MotdCardPreview() {
-    PreviewWrapper {
-        MotdCard(
-            motd = MotdState(
-                motd = MotdApi.Motd(
-                    id = Uuid.random(),
-                    message = "This is a message of the day. It can contain important information about updates, new features, or announcements.",
-                    primaryLink = "https://example.com",
-                    minimumVersion = null,
-                    maximumVersion = null,
-                ),
-                locale = java.util.Locale.ENGLISH,
+    MotdCard(
+        motd = MotdState(
+            motd = MotdApi.Motd(
+                id = Uuid.random(),
+                message = "This is a message of the day. It can contain important information about updates, new features, or announcements.",
+                primaryLink = "https://example.com",
+                minimumVersion = null,
+                maximumVersion = null,
             ),
-            onHide = {},
-            onMarkAsRead = {},
-            onLinkClick = {},
-        )
-    }
+            locale = java.util.Locale.ENGLISH,
+        ),
+        onHide = {},
+        onMarkAsRead = {},
+        onLinkClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun MotdCardNoLinkPreview() {
-    PreviewWrapper {
-        MotdCard(
-            motd = MotdState(
-                motd = MotdApi.Motd(
-                    id = Uuid.random(),
-                    message = "This is a shorter MOTD without a link.",
-                    primaryLink = null,
-                    minimumVersion = null,
-                    maximumVersion = null,
-                ),
-                locale = java.util.Locale.ENGLISH,
+    MotdCard(
+        motd = MotdState(
+            motd = MotdApi.Motd(
+                id = Uuid.random(),
+                message = "This is a shorter MOTD without a link.",
+                primaryLink = null,
+                minimumVersion = null,
+                maximumVersion = null,
             ),
-            onHide = {},
-            onMarkAsRead = {},
-            onLinkClick = {},
-        )
-    }
+            locale = java.util.Locale.ENGLISH,
+        ),
+        onHide = {},
+        onMarkAsRead = {},
+        onLinkClick = {},
+    )
 }

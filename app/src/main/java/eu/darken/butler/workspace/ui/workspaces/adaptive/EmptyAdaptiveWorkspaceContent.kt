@@ -28,11 +28,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerAppTitle
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.ButlerTip
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.Preview2Tablet
@@ -126,35 +128,32 @@ internal fun EmptyAdaptiveWorkspaceContent(
     }
 }
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EmptyWorkspaceContentPreview() {
-    PreviewWrapper {
-        EmptyAdaptiveWorkspaceContent(
-            paneNumber = 2,
-            onAddWorkspace = {},
-        )
-    }
+    EmptyAdaptiveWorkspaceContent(
+        paneNumber = 2,
+        onAddWorkspace = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EmptyWorkspaceContentUpgradedPreview() {
-    PreviewWrapper {
-        EmptyAdaptiveWorkspaceContent(
-            paneNumber = 2,
-            isUpgraded = true,
-            onAddWorkspace = {},
-        )
-    }
+    EmptyAdaptiveWorkspaceContent(
+        paneNumber = 2,
+        isUpgraded = true,
+        onAddWorkspace = {},
+    )
 }
 
 @Preview2Tablet
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EmptyWorkspaceContentPreviewTablet() {
-    PreviewWrapper {
-        EmptyAdaptiveWorkspaceContent(
-            paneNumber = 2,
-            onAddWorkspace = {},
-        )
-    }
+    EmptyAdaptiveWorkspaceContent(
+        paneNumber = 2,
+        onAddWorkspace = {},
+    )
 }

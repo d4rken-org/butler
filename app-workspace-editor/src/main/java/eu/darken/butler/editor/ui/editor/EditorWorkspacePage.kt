@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.ca.caString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -341,24 +343,23 @@ fun EditorWorkspacePage(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorPagePreview() {
-    PreviewWrapper {
-        EditorWorkspacePage(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            mainStateSource = flowOf(
-                EditorWorkspaceViewModel.State(
-                    id = Workspace.Id(),
-                    title = caString("test.txt"),
-                    subTitle = caString("/some/storage/test.txt"),
-                    totalLines = 1000,
-                    isModified = true,
-                    currentContent = "Sample text content\nLine 2\nLine 3",
-                )
-            ),
-            onPageAction = {},
-        )
-    }
+    EditorWorkspacePage(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        mainStateSource = flowOf(
+            EditorWorkspaceViewModel.State(
+                id = Workspace.Id(),
+                title = caString("test.txt"),
+                subTitle = caString("/some/storage/test.txt"),
+                totalLines = 1000,
+                isModified = true,
+                currentContent = "Sample text content\nLine 2\nLine 3",
+            )
+        ),
+        onPageAction = {},
+    )
 }
 

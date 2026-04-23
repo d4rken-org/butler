@@ -32,8 +32,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.main.ui.onboarding.components.OnboardingContentWrapper
@@ -169,11 +171,10 @@ internal fun BetaPage(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun BetaPagePreview() {
-    PreviewWrapper {
-        BetaPage(
-            initiallyVisible = true
-        )
-    }
+    BetaPage(
+        initiallyVisible = true
+    )
 }

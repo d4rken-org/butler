@@ -23,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -169,50 +171,48 @@ fun TrashMoveFailedIssueSheet(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TrashMoveFailedIssueSheetPreview() {
-    PreviewWrapper {
-        TrashMoveFailedIssueSheet(
-            issue = PathActionIssue.TrashMoveFailed(
-                failedItems = listOf(
-                    LocalPathLookup(
-                        lookedUp = LocalPath.build("/storage/emulated/0/Download/file1.txt"),
-                        fileType = FileType.FILE,
-                        size = 1024L,
-                        modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
-                        target = null,
-                    ),
-                    LocalPathLookup(
-                        lookedUp = LocalPath.build("/storage/emulated/0/Download/file2.pdf"),
-                        fileType = FileType.FILE,
-                        size = 2048L,
-                        modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 7200000),
-                        target = null,
-                    ),
+    TrashMoveFailedIssueSheet(
+        issue = PathActionIssue.TrashMoveFailed(
+            failedItems = listOf(
+                LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Download/file1.txt"),
+                    fileType = FileType.FILE,
+                    size = 1024L,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                    target = null,
+                ),
+                LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Download/file2.pdf"),
+                    fileType = FileType.FILE,
+                    size = 2048L,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 7200000),
+                    target = null,
                 ),
             ),
-            onResolution = {},
-        )
-    }
+        ),
+        onResolution = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TrashMoveFailedIssueSheetManyItemsPreview() {
-    PreviewWrapper {
-        TrashMoveFailedIssueSheet(
-            issue = PathActionIssue.TrashMoveFailed(
-                failedItems = (1..10).map { i ->
-                    LocalPathLookup(
-                        lookedUp = LocalPath.build("/storage/emulated/0/Download/file$i.txt"),
-                        fileType = FileType.FILE,
-                        size = 1024L * i,
-                        modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000L * i),
-                        target = null,
-                    )
-                },
-            ),
-            onResolution = {},
-        )
-    }
+    TrashMoveFailedIssueSheet(
+        issue = PathActionIssue.TrashMoveFailed(
+            failedItems = (1..10).map { i ->
+                LocalPathLookup(
+                    lookedUp = LocalPath.build("/storage/emulated/0/Download/file$i.txt"),
+                    fileType = FileType.FILE,
+                    size = 1024L * i,
+                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000L * i),
+                    target = null,
+                )
+            },
+        ),
+        onResolution = {},
+    )
 }

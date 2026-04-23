@@ -6,7 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.common.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 
 @Composable
 fun ButlerAppTitle(
@@ -32,17 +34,15 @@ fun ButlerAppTitle(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerAppTitlePreview() {
-    PreviewWrapper {
-        ButlerAppTitle(isUpgraded = false)
-    }
+    ButlerAppTitle(isUpgraded = false)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerAppTitleUpgradedPreview() {
-    PreviewWrapper {
-        ButlerAppTitle(isUpgraded = true)
-    }
+    ButlerAppTitle(isUpgraded = true)
 }

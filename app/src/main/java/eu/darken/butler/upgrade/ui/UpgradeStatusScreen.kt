@@ -27,11 +27,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -261,35 +263,33 @@ fun UpgradeStatusScreen(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun UpgradeStatusScreenPreview() {
-    PreviewWrapper {
-        UpgradeStatusScreen(
-            state = UpgradeStatusViewModel.State(
-                isUpgraded = false,
-                upgradeType = UpgradeRepo.Type.GPLAY,
-                upgradedAt = null,
-                upgradedAtFormatted = null
-            ),
-            onNavigateUp = {},
-            onUpgradeClick = {}
-        )
-    }
+    UpgradeStatusScreen(
+        state = UpgradeStatusViewModel.State(
+            isUpgraded = false,
+            upgradeType = UpgradeRepo.Type.GPLAY,
+            upgradedAt = null,
+            upgradedAtFormatted = null
+        ),
+        onNavigateUp = {},
+        onUpgradeClick = {}
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun UpgradeStatusScreenUpgradedPreview() {
-    PreviewWrapper {
-        UpgradeStatusScreen(
-            state = UpgradeStatusViewModel.State(
-                isUpgraded = true,
-                upgradeType = UpgradeRepo.Type.GPLAY,
-                upgradedAt = Clock.System.now(),
-                upgradedAtFormatted = "January 15, 2024"
-            ),
-            onNavigateUp = {},
-            onUpgradeClick = {}
-        )
-    }
+    UpgradeStatusScreen(
+        state = UpgradeStatusViewModel.State(
+            isUpgraded = true,
+            upgradeType = UpgradeRepo.Type.GPLAY,
+            upgradedAt = Clock.System.now(),
+            upgradedAtFormatted = "January 15, 2024"
+        ),
+        onNavigateUp = {},
+        onUpgradeClick = {}
+    )
 }

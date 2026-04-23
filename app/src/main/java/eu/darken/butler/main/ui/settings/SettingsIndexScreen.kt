@@ -34,9 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.ButlerLinks
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -306,17 +308,16 @@ fun SettingsIndexScreen(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SettingsScreenPreview() {
-    PreviewWrapper {
-        SettingsIndexScreen(
-            state = SettingsViewModel.State(
-                isUpgraded = true,
-            ),
-            onNavigateUp = {},
-            onNavigateTo = {},
-            onOpenUrl = {},
-            onUnlockDeveloperMode = {},
-        )
-    }
+    SettingsIndexScreen(
+        state = SettingsViewModel.State(
+            isUpgraded = true,
+        ),
+        onNavigateUp = {},
+        onNavigateTo = {},
+        onOpenUrl = {},
+        onUnlockDeveloperMode = {},
+    )
 }

@@ -10,6 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
@@ -56,13 +58,12 @@ fun GoToLineDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun GoToLineDialogPreview() {
-    PreviewWrapper {
-        GoToLineDialog(
-            totalLines = 1000,
-            onGoToLine = {},
-            onDismiss = {},
-        )
-    }
+    GoToLineDialog(
+        totalLines = 1000,
+        onGoToLine = {},
+        onDismiss = {},
+    )
 }

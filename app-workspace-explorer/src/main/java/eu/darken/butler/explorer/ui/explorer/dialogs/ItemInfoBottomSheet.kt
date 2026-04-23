@@ -21,10 +21,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.SafUri
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
@@ -431,54 +433,52 @@ private fun HomeViewInfo(
 // InfoCard, InfoRow, and InfoValueStyle are now in InfoComponents.kt
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ItemInfoBottomSheetPreviewSingleFile() {
-    PreviewWrapper {
-        val mockFile = ExplorerItem.RegularFile(
-            lookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/Documents/test.txt"),
-                fileType = FileType.FILE,
-                size = 1024L * 50,
-                modifiedAt = Clock.System.now()
-            ),
-            mimeType = MimeInfo("text/plain")
-        )
+    val mockFile = ExplorerItem.RegularFile(
+        lookup = LocalPathLookup(
+            lookedUp = LocalPath.build("/storage/emulated/0/Documents/test.txt"),
+            fileType = FileType.FILE,
+            size = 1024L * 50,
+            modifiedAt = Clock.System.now()
+        ),
+        mimeType = MimeInfo("text/plain")
+    )
 
-        ItemInfoBottomSheet(
-            context = ExplorerDialogState.ItemInfo.InfoContext.SingleFile(mockFile),
-            onDismiss = {},
-            onCopyToClipboard = {}
-        )
-    }
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleFile(mockFile),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ItemInfoBottomSheetPreviewSAF() {
-    PreviewWrapper {
-        val uriString = "content://com.android.externalstorage.documents/tree/primary"
-        val mockUri = SafUri.parse(uriString)
-        val mockPath = SAFPath.build(uriString)
+    val uriString = "content://com.android.externalstorage.documents/tree/primary"
+    val mockUri = SafUri.parse(uriString)
+    val mockPath = SAFPath.build(uriString)
 
-        val mockSAF = ExplorerItem.Storage.SAF(
-            location = SAFLocation(
-                id = "test-id",
-                treeUri = mockUri,
-                path = mockPath,
-                hasReadPermission = true,
-                hasWritePermission = true,
-                grantedAt = Clock.System.now(),
-                userLabel = "My SD Card"
-            ),
-            displayName = "My SD Card".toCaString(),
-            displayIcon = Icons.TwoTone.FolderShared,
-            target = eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory(mockPath)
-        )
+    val mockSAF = ExplorerItem.Storage.SAF(
+        location = SAFLocation(
+            id = "test-id",
+            treeUri = mockUri,
+            path = mockPath,
+            hasReadPermission = true,
+            hasWritePermission = true,
+            grantedAt = Clock.System.now(),
+            userLabel = "My SD Card"
+        ),
+        displayName = "My SD Card".toCaString(),
+        displayIcon = Icons.TwoTone.FolderShared,
+        target = eu.darken.butler.explorer.core.ExplorerNavigation.Target.Directory(mockPath)
+    )
 
-        ItemInfoBottomSheet(
-            context = ExplorerDialogState.ItemInfo.InfoContext.SingleSAF(mockSAF),
-            onDismiss = {},
-            onCopyToClipboard = {}
-        )
-    }
+    ItemInfoBottomSheet(
+        context = ExplorerDialogState.ItemInfo.InfoContext.SingleSAF(mockSAF),
+        onDismiss = {},
+        onCopyToClipboard = {}
+    )
 }

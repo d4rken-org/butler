@@ -47,11 +47,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.Preview2Tablet
@@ -584,90 +586,87 @@ private fun RestorePurchaseSection(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun UpgradeScreenPreview() {
-    PreviewWrapper {
-        UpgradeScreen(
-            state = UpgradeViewModel.State(
-                isLoadingPrices = false,
-                iapState = UpgradeViewModel.State.Iap(
-                    available = true,
-                    formattedPrice = "$4.99",
-                ),
-                subState = UpgradeViewModel.State.Sub(
-                    available = true,
-                    formattedPrice = "$2.99",
-                ),
-                trialState = UpgradeViewModel.State.Trial(
-                    available = true,
-                    formattedPrice = "$2.99"
-                ),
+    UpgradeScreen(
+        state = UpgradeViewModel.State(
+            isLoadingPrices = false,
+            iapState = UpgradeViewModel.State.Iap(
+                available = true,
+                formattedPrice = "$4.99",
             ),
-            onNavigateBack = {},
-            onGoIap = {},
-            onGoSubscription = {},
-            onGoSubscriptionTrial = {},
-            onRestorePurchase = {},
-        )
-    }
+            subState = UpgradeViewModel.State.Sub(
+                available = true,
+                formattedPrice = "$2.99",
+            ),
+            trialState = UpgradeViewModel.State.Trial(
+                available = true,
+                formattedPrice = "$2.99"
+            ),
+        ),
+        onNavigateBack = {},
+        onGoIap = {},
+        onGoSubscription = {},
+        onGoSubscriptionTrial = {},
+        onRestorePurchase = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun UpgradeScreenLoadingPreview() {
-    PreviewWrapper {
-        UpgradeScreen(
-            state = UpgradeViewModel.State(
-                isLoadingPrices = true,
-                iapState = UpgradeViewModel.State.Iap(
-                    available = false,
-                    formattedPrice = null,
-                ),
-                subState = UpgradeViewModel.State.Sub(
-                    available = false,
-                    formattedPrice = null,
-                ),
-                trialState = UpgradeViewModel.State.Trial(
-                    available = false,
-                    formattedPrice = null
-                ),
+    UpgradeScreen(
+        state = UpgradeViewModel.State(
+            isLoadingPrices = true,
+            iapState = UpgradeViewModel.State.Iap(
+                available = false,
+                formattedPrice = null,
             ),
-            onNavigateBack = {},
-            onGoIap = {},
-            onGoSubscription = {},
-            onGoSubscriptionTrial = {},
-            onRestorePurchase = {},
-        )
-    }
+            subState = UpgradeViewModel.State.Sub(
+                available = false,
+                formattedPrice = null,
+            ),
+            trialState = UpgradeViewModel.State.Trial(
+                available = false,
+                formattedPrice = null
+            ),
+        ),
+        onNavigateBack = {},
+        onGoIap = {},
+        onGoSubscription = {},
+        onGoSubscriptionTrial = {},
+        onRestorePurchase = {},
+    )
 }
 
 @Preview2Tablet
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun UpgradeScreenTabletPreview() {
-    PreviewWrapper {
-        UpgradeScreen(
-            state = UpgradeViewModel.State(
-                isLoadingPrices = false,
-                iapState = UpgradeViewModel.State.Iap(
-                    available = true,
-                    formattedPrice = "$4.99",
-                ),
-                subState = UpgradeViewModel.State.Sub(
-                    available = true,
-                    formattedPrice = "$2.99",
-                ),
-                trialState = UpgradeViewModel.State.Trial(
-                    available = true,
-                    formattedPrice = "$2.99"
-                ),
+    UpgradeScreen(
+        state = UpgradeViewModel.State(
+            isLoadingPrices = false,
+            iapState = UpgradeViewModel.State.Iap(
+                available = true,
+                formattedPrice = "$4.99",
             ),
-            onNavigateBack = {},
-            onGoIap = {},
-            onGoSubscription = {},
-            onGoSubscriptionTrial = {},
-            onRestorePurchase = {},
-        )
-    }
+            subState = UpgradeViewModel.State.Sub(
+                available = true,
+                formattedPrice = "$2.99",
+            ),
+            trialState = UpgradeViewModel.State.Trial(
+                available = true,
+                formattedPrice = "$2.99"
+            ),
+        ),
+        onNavigateBack = {},
+        onGoIap = {},
+        onGoSubscription = {},
+        onGoSubscriptionTrial = {},
+        onRestorePurchase = {},
+    )
 }
 
 @Composable
@@ -704,11 +703,10 @@ fun RestoreFailedDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 fun RestoreFailedDialogPreview() {
-    PreviewWrapper {
-        RestoreFailedDialog(
-            onDismiss = {}
-        )
-    }
+    RestoreFailedDialog(
+        onDismiss = {}
+    )
 }

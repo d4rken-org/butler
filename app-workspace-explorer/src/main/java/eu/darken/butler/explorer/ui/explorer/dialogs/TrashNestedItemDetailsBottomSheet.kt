@@ -24,8 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
@@ -247,25 +249,23 @@ private fun TrashNestedItemOptionsContent(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TrashNestedItemOptionsBottomSheetPreview() {
-    PreviewWrapper {
-        TrashNestedItemOptionsContent(
-            item = MockDataProvider.createMockTrashNestedItem(),
-            onAction = {},
-            onCopyToClipboard = {},
-        )
-    }
+    TrashNestedItemOptionsContent(
+        item = MockDataProvider.createMockTrashNestedItem(),
+        onAction = {},
+        onCopyToClipboard = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TrashNestedItemOptionsBottomSheetDirectoryPreview() {
-    PreviewWrapper {
-        TrashNestedItemOptionsContent(
-            item = MockDataProvider.createMockTrashNestedDirectory(),
-            onAction = {},
-            onCopyToClipboard = {},
-        )
-    }
+    TrashNestedItemOptionsContent(
+        item = MockDataProvider.createMockTrashNestedDirectory(),
+        onAction = {},
+        onCopyToClipboard = {},
+    )
 }

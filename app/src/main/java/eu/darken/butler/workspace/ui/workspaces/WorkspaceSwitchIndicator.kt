@@ -30,8 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -142,69 +144,65 @@ fun WorkspaceSwitchIndicator(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceSwitchIndicatorExplorerPreview() {
-    PreviewWrapper {
-        WorkspaceSwitchIndicator(
-            info = Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.EXPLORER,
-                title = "/storage/emulated/0/Download".toCaString(),
-                subtitle = "File browser".toCaString(),
-            ),
-            position = 2,
-            totalWorkspaces = 5,
-        )
-    }
+    WorkspaceSwitchIndicator(
+        info = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "/storage/emulated/0/Download".toCaString(),
+            subtitle = "File browser".toCaString(),
+        ),
+        position = 2,
+        totalWorkspaces = 5,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceSwitchIndicatorSearcherPreview() {
-    PreviewWrapper {
-        WorkspaceSwitchIndicator(
-            info = Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.SEARCHER,
-                title = "*.mp3".toCaString(),
-                subtitle = "Searching in /sdcard".toCaString(),
-            ),
-            position = 1,
-            totalWorkspaces = 3,
-        )
-    }
+    WorkspaceSwitchIndicator(
+        info = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.SEARCHER,
+            title = "*.mp3".toCaString(),
+            subtitle = "Searching in /sdcard".toCaString(),
+        ),
+        position = 1,
+        totalWorkspaces = 3,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceSwitchIndicatorEditorNoSubtitlePreview() {
-    PreviewWrapper {
-        WorkspaceSwitchIndicator(
-            info = Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.EDITOR,
-                title = "config.json".toCaString(),
-                subtitle = null,
-            ),
-            position = 3,
-            totalWorkspaces = 10,
-        )
-    }
+    WorkspaceSwitchIndicator(
+        info = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EDITOR,
+            title = "config.json".toCaString(),
+            subtitle = null,
+        ),
+        position = 3,
+        totalWorkspaces = 10,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceSwitchIndicatorLongTitlePreview() {
-    PreviewWrapper {
-        WorkspaceSwitchIndicator(
-            info = Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.EXPLORER,
-                title = "/storage/emulated/0/Android/data/com.example.app/files/documents/reports".toCaString(),
-                subtitle = "Very long subtitle that should be truncated with ellipsis".toCaString(),
-            ),
-            position = 5,
-            totalWorkspaces = 8,
-        )
-    }
+    WorkspaceSwitchIndicator(
+        info = Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "/storage/emulated/0/Android/data/com.example.app/files/documents/reports".toCaString(),
+            subtitle = "Very long subtitle that should be truncated with ellipsis".toCaString(),
+        ),
+        position = 5,
+        totalWorkspaces = 8,
+    )
 }

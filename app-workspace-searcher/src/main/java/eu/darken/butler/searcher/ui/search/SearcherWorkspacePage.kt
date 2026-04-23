@@ -38,8 +38,10 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -829,61 +831,57 @@ fun SearcherWorkspacePageHost(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearcherWorkspacePageEmptyPreview() {
-    PreviewWrapper {
-        val workspaceId = Workspace.Id()
-        SearcherWorkspacePage(
-            workspaceId = workspaceId,
-            stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState()),
-            clipboardStateSource = flowOf(ClipboardDisplayState()),
-            operationsStateSource = flowOf(OperationsDisplayState()),
-            onPageAction = {},
-        )
-    }
+    val workspaceId = Workspace.Id()
+    SearcherWorkspacePage(
+        workspaceId = workspaceId,
+        stateSource = flowOf(SearcherMockDataProvider.createMockEmptyState()),
+        clipboardStateSource = flowOf(ClipboardDisplayState()),
+        operationsStateSource = flowOf(OperationsDisplayState()),
+        onPageAction = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearcherWorkspacePageWithHistoryPreview() {
-    PreviewWrapper {
-        val workspaceId = Workspace.Id()
-        SearcherWorkspacePage(
-            workspaceId = workspaceId,
-            stateSource = flowOf(SearcherMockDataProvider.createMockHistoryState()),
-            clipboardStateSource = flowOf(ClipboardDisplayState()),
-            operationsStateSource = flowOf(OperationsDisplayState()),
-            onPageAction = {},
-        )
-    }
+    val workspaceId = Workspace.Id()
+    SearcherWorkspacePage(
+        workspaceId = workspaceId,
+        stateSource = flowOf(SearcherMockDataProvider.createMockHistoryState()),
+        clipboardStateSource = flowOf(ClipboardDisplayState()),
+        operationsStateSource = flowOf(OperationsDisplayState()),
+        onPageAction = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearcherWorkspacePageWithResultsPreview() {
-    PreviewWrapper {
-        val workspaceId = Workspace.Id()
-        SearcherWorkspacePage(
-            workspaceId = workspaceId,
-            stateSource = flowOf(SearcherMockDataProvider.createMockResultsState()),
-            clipboardStateSource = flowOf(ClipboardDisplayState()),
-            operationsStateSource = flowOf(OperationsDisplayState()),
-            onPageAction = {},
-        )
-    }
+    val workspaceId = Workspace.Id()
+    SearcherWorkspacePage(
+        workspaceId = workspaceId,
+        stateSource = flowOf(SearcherMockDataProvider.createMockResultsState()),
+        clipboardStateSource = flowOf(ClipboardDisplayState()),
+        operationsStateSource = flowOf(OperationsDisplayState()),
+        onPageAction = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearcherWorkspacePageSearchingWithProgressPreview() {
-    PreviewWrapper {
-        val workspaceId = Workspace.Id()
-        SearcherWorkspacePage(
-            workspaceId = workspaceId,
-            stateSource = flowOf(SearcherMockDataProvider.createMockSearchingWithProgressState()),
-            clipboardStateSource = flowOf(ClipboardDisplayState()),
-            operationsStateSource = flowOf(OperationsDisplayState()),
-            onPageAction = {},
-        )
-    }
+    val workspaceId = Workspace.Id()
+    SearcherWorkspacePage(
+        workspaceId = workspaceId,
+        stateSource = flowOf(SearcherMockDataProvider.createMockSearchingWithProgressState()),
+        clipboardStateSource = flowOf(ClipboardDisplayState()),
+        operationsStateSource = flowOf(OperationsDisplayState()),
+        onPageAction = {},
+    )
 }

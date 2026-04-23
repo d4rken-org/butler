@@ -22,10 +22,12 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppTag
 import eu.darken.butler.apps.core.TagFilterConfig
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -134,94 +136,89 @@ fun AppsToolbarCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsToolbarCardPreview() {
-    PreviewWrapper {
-        AppsToolbarCard(
-            modifier = Modifier.padding(16.dp),
-            workspaceId = Workspace.Id(),
-            searchQuery = TextFieldValue(""),
-            onSearchQueryChange = {},
-            filterConfig = TagFilterConfig(),
-            onFilterAdd = {},
-            onFilterRemove = { _, _ -> },
-            design = WorkspaceDesign(),
-        )
-    }
+    AppsToolbarCard(
+        modifier = Modifier.padding(16.dp),
+        workspaceId = Workspace.Id(),
+        searchQuery = TextFieldValue(""),
+        onSearchQueryChange = {},
+        filterConfig = TagFilterConfig(),
+        onFilterAdd = {},
+        onFilterRemove = { _, _ -> },
+        design = WorkspaceDesign(),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsToolbarCardWithQueryPreview() {
-    PreviewWrapper {
-        AppsToolbarCard(
-            modifier = Modifier.padding(16.dp),
-            workspaceId = Workspace.Id(),
-            searchQuery = TextFieldValue("Chrome"),
-            onSearchQueryChange = {},
-            filterConfig = TagFilterConfig(),
-            onFilterAdd = {},
-            onFilterRemove = { _, _ -> },
-            design = WorkspaceDesign(),
-        )
-    }
+    AppsToolbarCard(
+        modifier = Modifier.padding(16.dp),
+        workspaceId = Workspace.Id(),
+        searchQuery = TextFieldValue("Chrome"),
+        onSearchQueryChange = {},
+        filterConfig = TagFilterConfig(),
+        onFilterAdd = {},
+        onFilterRemove = { _, _ -> },
+        design = WorkspaceDesign(),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsToolbarCardWithFiltersPreview() {
-    PreviewWrapper {
-        AppsToolbarCard(
-            modifier = Modifier.padding(16.dp),
-            workspaceId = Workspace.Id(),
-            searchQuery = TextFieldValue(""),
-            onSearchQueryChange = {},
-            filterConfig = TagFilterConfig(
-                includeTags = setOf(AppTag.UserApp, AppTag.Enabled),
-                excludeTags = setOf(AppTag.Disabled),
-            ),
-            onFilterAdd = {},
-            onFilterRemove = { _, _ -> },
-            design = WorkspaceDesign(),
-        )
-    }
+    AppsToolbarCard(
+        modifier = Modifier.padding(16.dp),
+        workspaceId = Workspace.Id(),
+        searchQuery = TextFieldValue(""),
+        onSearchQueryChange = {},
+        filterConfig = TagFilterConfig(
+            includeTags = setOf(AppTag.UserApp, AppTag.Enabled),
+            excludeTags = setOf(AppTag.Disabled),
+        ),
+        onFilterAdd = {},
+        onFilterRemove = { _, _ -> },
+        design = WorkspaceDesign(),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsToolbarCardCollapsedPreview() {
-    PreviewWrapper {
-        AppsToolbarCard(
-            modifier = Modifier.padding(16.dp),
-            workspaceId = Workspace.Id(),
-            searchQuery = TextFieldValue("Chrome"),
-            onSearchQueryChange = {},
-            filterConfig = TagFilterConfig(),
-            onFilterAdd = {},
-            onFilterRemove = { _, _ -> },
-            design = WorkspaceDesign(),
-            collapsedFraction = 1f,
-        )
-    }
+    AppsToolbarCard(
+        modifier = Modifier.padding(16.dp),
+        workspaceId = Workspace.Id(),
+        searchQuery = TextFieldValue("Chrome"),
+        onSearchQueryChange = {},
+        filterConfig = TagFilterConfig(),
+        onFilterAdd = {},
+        onFilterRemove = { _, _ -> },
+        design = WorkspaceDesign(),
+        collapsedFraction = 1f,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsToolbarCardCollapsedWithFiltersPreview() {
-    PreviewWrapper {
-        AppsToolbarCard(
-            modifier = Modifier.padding(16.dp),
-            workspaceId = Workspace.Id(),
-            searchQuery = TextFieldValue("Chrome"),
-            onSearchQueryChange = {},
-            filterConfig = TagFilterConfig(
-                includeTags = setOf(AppTag.UserApp, AppTag.Enabled),
-                excludeTags = setOf(AppTag.System),
-            ),
-            onFilterAdd = {},
-            onFilterRemove = { _, _ -> },
-            design = WorkspaceDesign(),
-            collapsedFraction = 1f,
-        )
-    }
+    AppsToolbarCard(
+        modifier = Modifier.padding(16.dp),
+        workspaceId = Workspace.Id(),
+        searchQuery = TextFieldValue("Chrome"),
+        onSearchQueryChange = {},
+        filterConfig = TagFilterConfig(
+            includeTags = setOf(AppTag.UserApp, AppTag.Enabled),
+            excludeTags = setOf(AppTag.System),
+        ),
+        onFilterAdd = {},
+        onFilterRemove = { _, _ -> },
+        design = WorkspaceDesign(),
+        collapsedFraction = 1f,
+    )
 }

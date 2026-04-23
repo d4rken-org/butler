@@ -24,7 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -96,23 +98,21 @@ fun WorkspaceBanner(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceBannerSuccessPreview() {
-    PreviewWrapper {
-        WorkspaceBanner(
-            state = BannerState.Success(count = 5),
-            onDismiss = {}
-        )
-    }
+    WorkspaceBanner(
+        state = BannerState.Success(count = 5),
+        onDismiss = {}
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceBannerPartialPreview() {
-    PreviewWrapper {
-        WorkspaceBanner(
-            state = BannerState.Partial(success = 3, failed = 1, skipped = 2),
-            onDismiss = {}
-        )
-    }
+    WorkspaceBanner(
+        state = BannerState.Partial(success = 3, failed = 1, skipped = 2),
+        onDismiss = {}
+    )
 }

@@ -30,9 +30,11 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.core.engine.TextPosition
@@ -195,71 +197,70 @@ internal fun SelectionHandle(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SelectionHandlePreview() {
-    PreviewWrapper {
-        val textMeasurer = rememberTextMeasurer()
-        val fontSize = 14
-        val actualCharWidth = remember(fontSize) {
-            val measured = textMeasurer.measure(
-                text = "M",
-                style = TextStyle(
-                    fontSize = fontSize.sp,
-                    fontFamily = FontFamily.Monospace
-                )
+    val textMeasurer = rememberTextMeasurer()
+    val fontSize = 14
+    val actualCharWidth = remember(fontSize) {
+        val measured = textMeasurer.measure(
+            text = "M",
+            style = TextStyle(
+                fontSize = fontSize.sp,
+                fontFamily = FontFamily.Monospace
             )
-            measured.size.width.toFloat()
+        )
+        measured.size.width.toFloat()
+    }
+
+    val contentListState = rememberLazyListState()
+    val lines = listOf(
+        "fun calculateSum(a: Int, b: Int): Int {",
+        "    return a + b",
+        "}",
+        "",
+        "fun main() {",
+        "    val result = calculateSum(5, 3)",
+        "    println(\"Result: \$result\")",
+        "}"
+    )
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Background content (LazyColumn) so SelectionHandle can position itself
+        LazyColumn(
+            state = contentListState,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(count = lines.size) { index ->
+                Text(
+                    text = lines[index].ifEmpty { " " },
+                    style = TextStyle(
+                        fontSize = fontSize.sp,
+                        fontFamily = FontFamily.Monospace
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
 
-        val contentListState = rememberLazyListState()
-        val lines = listOf(
-            "fun calculateSum(a: Int, b: Int): Int {",
-            "    return a + b",
-            "}",
-            "",
-            "fun main() {",
-            "    val result = calculateSum(5, 3)",
-            "    println(\"Result: \$result\")",
-            "}"
+        // Overlay selection handles on line 1, column 10
+        SelectionHandle(
+            position = TextPosition(offset = 0, line = 1, column = 10),
+            contentListState = contentListState,
+            lineNumberWidth = 0.dp,
+            horizontalScrollState = rememberScrollState(),
+            actualCharWidth = actualCharWidth,
+            onDrag = {}
         )
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Background content (LazyColumn) so SelectionHandle can position itself
-            LazyColumn(
-                state = contentListState,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(count = lines.size) { index ->
-                    Text(
-                        text = lines[index].ifEmpty { " " },
-                        style = TextStyle(
-                            fontSize = fontSize.sp,
-                            fontFamily = FontFamily.Monospace
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-            // Overlay selection handles on line 1, column 10
-            SelectionHandle(
-                position = TextPosition(offset = 0, line = 1, column = 10),
-                contentListState = contentListState,
-                lineNumberWidth = 0.dp,
-                horizontalScrollState = rememberScrollState(),
-                actualCharWidth = actualCharWidth,
-                onDrag = {}
-            )
-
-            // End handle
-            SelectionHandle(
-                position = TextPosition(offset = 0, line = 1, column = 16),
-                contentListState = contentListState,
-                lineNumberWidth = 0.dp,
-                horizontalScrollState = rememberScrollState(),
-                actualCharWidth = actualCharWidth,
-                onDrag = {}
-            )
-        }
+        // End handle
+        SelectionHandle(
+            position = TextPosition(offset = 0, line = 1, column = 16),
+            contentListState = contentListState,
+            lineNumberWidth = 0.dp,
+            horizontalScrollState = rememberScrollState(),
+            actualCharWidth = actualCharWidth,
+            onDrag = {}
+        )
     }
 }

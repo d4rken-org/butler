@@ -8,6 +8,8 @@ import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
@@ -68,66 +70,62 @@ fun SearcherInfoBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearcherInfoBarWithResultsPreview() {
-    PreviewWrapper {
-        SearcherInfoBar(
-            foldersCount = 12,
-            filesCount = 30,
-            totalSize = 1024L * 1024L * 512L,
-            selectedCount = 0,
-            onSelectAllFolders = {},
-            onSelectAllFiles = {},
-            onClearSelection = {},
-        )
-    }
+    SearcherInfoBar(
+        foldersCount = 12,
+        filesCount = 30,
+        totalSize = 1024L * 1024L * 512L,
+        selectedCount = 0,
+        onSelectAllFolders = {},
+        onSelectAllFiles = {},
+        onClearSelection = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearcherInfoBarWithSelectionPreview() {
-    PreviewWrapper {
-        SearcherInfoBar(
-            foldersCount = 12,
-            filesCount = 30,
-            totalSize = 1024L * 1024L * 512L,
-            selectedCount = 3,
-            selectedSize = 1024L * 1024L * 100L,
-            onSelectAllFolders = {},
-            onSelectAllFiles = {},
-            onClearSelection = {},
-        )
-    }
+    SearcherInfoBar(
+        foldersCount = 12,
+        filesCount = 30,
+        totalSize = 1024L * 1024L * 512L,
+        selectedCount = 3,
+        selectedSize = 1024L * 1024L * 100L,
+        onSelectAllFolders = {},
+        onSelectAllFiles = {},
+        onClearSelection = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearcherInfoBarOnlyFoldersPreview() {
-    PreviewWrapper {
-        SearcherInfoBar(
-            foldersCount = 5,
-            filesCount = 0,
-            totalSize = 1024L * 1024L * 256L,
-            selectedCount = 0,
-            onSelectAllFolders = {},
-            onSelectAllFiles = {},
-            onClearSelection = {},
-        )
-    }
+    SearcherInfoBar(
+        foldersCount = 5,
+        filesCount = 0,
+        totalSize = 1024L * 1024L * 256L,
+        selectedCount = 0,
+        onSelectAllFolders = {},
+        onSelectAllFiles = {},
+        onClearSelection = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearcherInfoBarOnlyFilesPreview() {
-    PreviewWrapper {
-        SearcherInfoBar(
-            foldersCount = 0,
-            filesCount = 25,
-            totalSize = 1024L * 1024L * 128L,
-            selectedCount = 0,
-            onSelectAllFolders = {},
-            onSelectAllFiles = {},
-            onClearSelection = {},
-        )
-    }
+    SearcherInfoBar(
+        foldersCount = 0,
+        filesCount = 25,
+        totalSize = 1024L * 1024L * 128L,
+        selectedCount = 0,
+        onSelectAllFolders = {},
+        onSelectAllFiles = {},
+        onClearSelection = {},
+    )
 }

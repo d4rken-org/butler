@@ -15,9 +15,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.log
@@ -170,152 +172,148 @@ fun WorkspaceManagerGridLayout(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerGridLayoutPreview() {
-    PreviewWrapper {
-        Box(modifier = Modifier.size(600.dp, 500.dp)) {
-            WorkspaceManagerGridLayout(
-                state = WorkspaceManagerViewModel.State(
-                    workspaces = listOf(
-                        WorkspaceManagerViewModel.WorkspaceItem(
-                            id = Workspace.Id(),
-                            type = Workspace.Type.TEMPLATES,
-                            title = "Templates".toCaString(),
-                            subtitle = "Workspace templates".toCaString(),
-                            isFocused = true,
-                            isSelected = true,
-                        ),
-                        WorkspaceManagerViewModel.WorkspaceItem(
-                            id = Workspace.Id(),
-                            type = Workspace.Type.EXPLORER,
-                            title = "Explorer".toCaString(),
-                            subtitle = "File explorer".toCaString(),
-                        )
+    Box(modifier = Modifier.size(600.dp, 500.dp)) {
+        WorkspaceManagerGridLayout(
+            state = WorkspaceManagerViewModel.State(
+                workspaces = listOf(
+                    WorkspaceManagerViewModel.WorkspaceItem(
+                        id = Workspace.Id(),
+                        type = Workspace.Type.TEMPLATES,
+                        title = "Templates".toCaString(),
+                        subtitle = "Workspace templates".toCaString(),
+                        isFocused = true,
+                        isSelected = true,
                     ),
-                    operationsCount = 2,
-                    attentionCount = 1,
-                    currentPaneCount = 1,
+                    WorkspaceManagerViewModel.WorkspaceItem(
+                        id = Workspace.Id(),
+                        type = Workspace.Type.EXPLORER,
+                        title = "Explorer".toCaString(),
+                        subtitle = "File explorer".toCaString(),
+                    )
                 ),
-                paddingValues = PaddingValues(),
-                screenWidth = 600.dp,
-                onCloseWorkspace = {},
-                onReorderWorkspaces = {},
-                onSelectWorkspace = {},
-                onDismissBadgeExplanation = {}
-            )
-        }
+                operationsCount = 2,
+                attentionCount = 1,
+                currentPaneCount = 1,
+            ),
+            paddingValues = PaddingValues(),
+            screenWidth = 600.dp,
+            onCloseWorkspace = {},
+            onReorderWorkspaces = {},
+            onSelectWorkspace = {},
+            onDismissBadgeExplanation = {}
+        )
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerGridLayoutTabletPreview() {
-    PreviewWrapper {
-        Box(modifier = Modifier.size(900.dp, 600.dp)) {
-            WorkspaceManagerGridLayout(
-                state = WorkspaceManagerViewModel.State(
-                    workspaces = listOf(
-                        WorkspaceManagerViewModel.WorkspaceItem(
-                            id = Workspace.Id(),
-                            type = Workspace.Type.TEMPLATES,
-                            title = "Templates".toCaString(),
-                            subtitle = "Workspace templates".toCaString(),
-                            isFocused = true,
-                            isSelected = true,
-                            paneNumber = 0,
-                        ),
-                        WorkspaceManagerViewModel.WorkspaceItem(
-                            id = Workspace.Id(),
-                            type = Workspace.Type.EXPLORER,
-                            title = "Explorer".toCaString(),
-                            subtitle = "File explorer for browsing".toCaString(),
-                            isSelected = true,
-                            paneNumber = 1,
-                        ),
-                        WorkspaceManagerViewModel.WorkspaceItem(
-                            id = Workspace.Id(),
-                            type = Workspace.Type.SEARCHER,
-                            title = "Search".toCaString(),
-                            subtitle = "Search for files and folders".toCaString(),
-                            paneNumber = null,
-                        ),
-                        WorkspaceManagerViewModel.WorkspaceItem(
-                            id = Workspace.Id(),
-                            type = Workspace.Type.EDITOR,
-                            title = "Editor".toCaString(),
-                            subtitle = "Text editor".toCaString(),
-                            paneNumber = null,
-                        )
+    Box(modifier = Modifier.size(900.dp, 600.dp)) {
+        WorkspaceManagerGridLayout(
+            state = WorkspaceManagerViewModel.State(
+                workspaces = listOf(
+                    WorkspaceManagerViewModel.WorkspaceItem(
+                        id = Workspace.Id(),
+                        type = Workspace.Type.TEMPLATES,
+                        title = "Templates".toCaString(),
+                        subtitle = "Workspace templates".toCaString(),
+                        isFocused = true,
+                        isSelected = true,
+                        paneNumber = 0,
                     ),
-                    operationsCount = 2,
-                    attentionCount = 1,
-                    currentPaneCount = 2,
+                    WorkspaceManagerViewModel.WorkspaceItem(
+                        id = Workspace.Id(),
+                        type = Workspace.Type.EXPLORER,
+                        title = "Explorer".toCaString(),
+                        subtitle = "File explorer for browsing".toCaString(),
+                        isSelected = true,
+                        paneNumber = 1,
+                    ),
+                    WorkspaceManagerViewModel.WorkspaceItem(
+                        id = Workspace.Id(),
+                        type = Workspace.Type.SEARCHER,
+                        title = "Search".toCaString(),
+                        subtitle = "Search for files and folders".toCaString(),
+                        paneNumber = null,
+                    ),
+                    WorkspaceManagerViewModel.WorkspaceItem(
+                        id = Workspace.Id(),
+                        type = Workspace.Type.EDITOR,
+                        title = "Editor".toCaString(),
+                        subtitle = "Text editor".toCaString(),
+                        paneNumber = null,
+                    )
                 ),
-                paddingValues = PaddingValues(),
-                screenWidth = 900.dp,
-                onCloseWorkspace = {},
-                onReorderWorkspaces = {},
-                onSelectWorkspace = {},
-                onDismissBadgeExplanation = {}
-            )
-        }
+                operationsCount = 2,
+                attentionCount = 1,
+                currentPaneCount = 2,
+            ),
+            paddingValues = PaddingValues(),
+            screenWidth = 900.dp,
+            onCloseWorkspace = {},
+            onReorderWorkspaces = {},
+            onSelectWorkspace = {},
+            onDismissBadgeExplanation = {}
+        )
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerGridLayoutEmptyPreview() {
-    PreviewWrapper {
-        Box(modifier = Modifier.size(600.dp, 400.dp)) {
-            WorkspaceManagerGridLayout(
-                state = WorkspaceManagerViewModel.State(
-                    workspaces = emptyList(),
-                    operationsCount = 0,
-                    attentionCount = 0
-                ),
-                paddingValues = PaddingValues(),
-                screenWidth = 600.dp,
-                onCloseWorkspace = {},
-                onReorderWorkspaces = {},
-                onSelectWorkspace = {},
-                onDismissBadgeExplanation = {}
-            )
-        }
+    Box(modifier = Modifier.size(600.dp, 400.dp)) {
+        WorkspaceManagerGridLayout(
+            state = WorkspaceManagerViewModel.State(
+                workspaces = emptyList(),
+                operationsCount = 0,
+                attentionCount = 0
+            ),
+            paddingValues = PaddingValues(),
+            screenWidth = 600.dp,
+            onCloseWorkspace = {},
+            onReorderWorkspaces = {},
+            onSelectWorkspace = {},
+            onDismissBadgeExplanation = {}
+        )
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerGridLayoutWithExplanationsPreview() {
-    PreviewWrapper {
-        Box(modifier = Modifier.size(900.dp, 700.dp)) {
-            WorkspaceManagerGridLayout(
-                state = WorkspaceManagerViewModel.State(
-                    workspaces = listOf(
-                        WorkspaceManagerViewModel.WorkspaceItem(
-                            id = Workspace.Id(),
-                            type = Workspace.Type.EXPLORER,
-                            title = "Explorer".toCaString(),
-                            subtitle = "File explorer".toCaString(),
-                        ),
-                        WorkspaceManagerViewModel.WorkspaceItem(
-                            id = Workspace.Id(),
-                            type = Workspace.Type.SEARCHER,
-                            title = "Search".toCaString(),
-                            subtitle = "File search".toCaString(),
-                        )
+    Box(modifier = Modifier.size(900.dp, 700.dp)) {
+        WorkspaceManagerGridLayout(
+            state = WorkspaceManagerViewModel.State(
+                workspaces = listOf(
+                    WorkspaceManagerViewModel.WorkspaceItem(
+                        id = Workspace.Id(),
+                        type = Workspace.Type.EXPLORER,
+                        title = "Explorer".toCaString(),
+                        subtitle = "File explorer".toCaString(),
                     ),
-                    operationsCount = 2,
-                    attentionCount = 1,
-                    showBadgeExplanation = true
+                    WorkspaceManagerViewModel.WorkspaceItem(
+                        id = Workspace.Id(),
+                        type = Workspace.Type.SEARCHER,
+                        title = "Search".toCaString(),
+                        subtitle = "File search".toCaString(),
+                    )
                 ),
-                paddingValues = PaddingValues(),
-                screenWidth = 900.dp,
-                onCloseWorkspace = {},
-                onReorderWorkspaces = {},
-                onSelectWorkspace = {},
-                onDismissBadgeExplanation = {}
-            )
-        }
+                operationsCount = 2,
+                attentionCount = 1,
+                showBadgeExplanation = true
+            ),
+            paddingValues = PaddingValues(),
+            screenWidth = 900.dp,
+            onCloseWorkspace = {},
+            onReorderWorkspaces = {},
+            onSelectWorkspace = {},
+            onDismissBadgeExplanation = {}
+        )
     }
 }

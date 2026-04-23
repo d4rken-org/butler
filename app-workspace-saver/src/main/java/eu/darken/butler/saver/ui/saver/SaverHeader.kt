@@ -10,6 +10,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.saver.R
@@ -65,37 +67,34 @@ internal fun SaverHeader(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverHeaderPreview() {
-    PreviewWrapper {
-        SaverHeader(
-            callerLabel = "Telegram",
-            createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-            workspaceId = Workspace.Id(),
-        )
-    }
+    SaverHeader(
+        callerLabel = "Telegram",
+        createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+        workspaceId = Workspace.Id(),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverHeaderNoCallerPreview() {
-    PreviewWrapper {
-        SaverHeader(
-            callerLabel = null,
-            createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-            workspaceId = Workspace.Id(),
-        )
-    }
+    SaverHeader(
+        callerLabel = null,
+        createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+        workspaceId = Workspace.Id(),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverHeaderUnknownCallerPreview() {
-    PreviewWrapper {
-        SaverHeader(
-            callerLabel = "?",
-            createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-            workspaceId = Workspace.Id(),
-        )
-    }
+    SaverHeader(
+        callerLabel = "?",
+        createdAt = Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+        workspaceId = Workspace.Id(),
+    )
 }

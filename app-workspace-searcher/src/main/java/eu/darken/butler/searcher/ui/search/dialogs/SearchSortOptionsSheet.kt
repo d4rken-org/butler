@@ -25,8 +25,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.R
@@ -181,17 +183,16 @@ data class SearchSortOptionsResult(
 )
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchSortOptionsSheetPreview() {
-    PreviewWrapper {
-        SearchSortOptionsSheet(
-            visible = true,
-            currentSortSettings = SearchSortSettings(
-                mode = SearchSortSettings.Mode.NAME,
-                reversed = false,
-            ),
-            onDismiss = {},
-            onConfirm = {},
-        )
-    }
+    SearchSortOptionsSheet(
+        visible = true,
+        currentSortSettings = SearchSortSettings(
+            mode = SearchSortSettings.Mode.NAME,
+            reversed = false,
+        ),
+        onDismiss = {},
+        onConfirm = {},
+    )
 }

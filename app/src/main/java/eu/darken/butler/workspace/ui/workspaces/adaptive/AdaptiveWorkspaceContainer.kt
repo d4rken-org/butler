@@ -14,8 +14,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.IntSize
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -171,47 +173,46 @@ fun AdaptiveWorkspaceContainer(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AdaptiveWorkspaceContainerPreview() {
-    PreviewWrapper {
-        val tabs = listOf(
-            Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.EXPLORER,
-                title = "Explorer".toCaString(),
-            ),
-            Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.SEARCHER,
-                title = "Search".toCaString(),
-            ),
-            Workspace.Info(
-                id = Workspace.Id(),
-                type = Workspace.Type.EDITOR,
-                title = "Editor".toCaString(),
-            ),
-        )
-        var dividerPositions by remember { mutableStateOf(DividerPositions()) }
-        AdaptiveWorkspaceContainer(
-            selected = tabs.take(2).mapIndexed { index, info -> index to info.asPaneInfo() }.toMap(),
-            design = WorkspaceDesign(
-                layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
-            ),
-            focusedTabId = tabs[0].id,
-            dividerPositions = dividerPositions,
-            onDividerPositionsChange = { dividerPositions = it },
-            onTabFocus = {},
-            showPaneNumbers = true,
-            paneContent = { info, paneNumber ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(info?.let { "${it.type} - ${it.id.shortTag}" } ?: "Empty Pane $paneNumber")
-                }
+    val tabs = listOf(
+        Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "Explorer".toCaString(),
+        ),
+        Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.SEARCHER,
+            title = "Search".toCaString(),
+        ),
+        Workspace.Info(
+            id = Workspace.Id(),
+            type = Workspace.Type.EDITOR,
+            title = "Editor".toCaString(),
+        ),
+    )
+    var dividerPositions by remember { mutableStateOf(DividerPositions()) }
+    AdaptiveWorkspaceContainer(
+        selected = tabs.take(2).mapIndexed { index, info -> index to info.asPaneInfo() }.toMap(),
+        design = WorkspaceDesign(
+            layout = WorkspaceDesign.Layout.DUAL_VERTICAL,
+        ),
+        focusedTabId = tabs[0].id,
+        dividerPositions = dividerPositions,
+        onDividerPositionsChange = { dividerPositions = it },
+        onTabFocus = {},
+        showPaneNumbers = true,
+        paneContent = { info, paneNumber ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(info?.let { "${it.type} - ${it.id.shortTag}" } ?: "Empty Pane $paneNumber")
             }
-        )
-    }
+        }
+    )
 }

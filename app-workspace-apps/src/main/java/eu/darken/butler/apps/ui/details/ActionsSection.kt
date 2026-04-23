@@ -29,10 +29,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -295,20 +297,19 @@ private fun ActionItem(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ActionsSectionPreview() {
-    PreviewWrapper {
-        ActionsSection(
-            app = null,
-            onLaunchApp = {},
-            onShowAppInfo = {},
-            onEnableDisable = {},
-            onUninstall = {},
-            onExportApk = {},
-            onShareApk = {},
-            onForceStop = {},
-            onClearCache = {},
-            onClearData = {},
-        )
-    }
+    ActionsSection(
+        app = null,
+        onLaunchApp = {},
+        onShowAppInfo = {},
+        onEnableDisable = {},
+        onUninstall = {},
+        onExportApk = {},
+        onShareApk = {},
+        onForceStop = {},
+        onClearCache = {},
+        onClearData = {},
+    )
 }

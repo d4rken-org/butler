@@ -19,8 +19,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -100,28 +102,27 @@ fun SettingsBaseItem(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SettingsBaseItemPreview() {
-    PreviewWrapper {
-        Column {
-            SettingsBaseItem(
-                title = "Simple Item",
-                subtitle = "This is a simple item without icon",
-                onClick = {}
-            )
-            SettingsBaseItem(
-                title = "Base Item",
-                subtitle = "This is a base settings item",
-                onClick = {},
-                icon = Icons.TwoTone.Settings,
-                trailingContent = {
-                    Text(
-                        text = "Trailing",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
-            )
-        }
+    Column {
+        SettingsBaseItem(
+            title = "Simple Item",
+            subtitle = "This is a simple item without icon",
+            onClick = {}
+        )
+        SettingsBaseItem(
+            title = "Base Item",
+            subtitle = "This is a base settings item",
+            onClick = {},
+            icon = Icons.TwoTone.Settings,
+            trailingContent = {
+                Text(
+                    text = "Trailing",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+        )
     }
 }

@@ -8,8 +8,10 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -38,11 +40,10 @@ fun OnboardingContentWrapper(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OnboardingContentWrapperPreview() {
-    PreviewWrapper {
-        OnboardingContentWrapper {
-            Text("Content goes here")
-        }
+    OnboardingContentWrapper {
+        Text("Content goes here")
     }
 }

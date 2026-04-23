@@ -16,11 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.common.compose.ButlerChipSize
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -105,46 +107,43 @@ fun WorkspaceStatusCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceStatusCardPreview() {
-    PreviewWrapper {
+    WorkspaceStatusCard(
+        workspaceCount = 5,
+        operationsCount = 3,
+        attentionCount = 2,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceStatusCardEmptyPreview() {
+    WorkspaceStatusCard(
+        workspaceCount = 1,
+        operationsCount = 0,
+        attentionCount = 0,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceStatusCardFilterActivePreview() {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         WorkspaceStatusCard(
             workspaceCount = 5,
             operationsCount = 3,
             attentionCount = 2,
+            isOperationsFilterActive = true,
         )
-    }
-}
-
-@Preview2
-@Composable
-private fun WorkspaceStatusCardEmptyPreview() {
-    PreviewWrapper {
         WorkspaceStatusCard(
-            workspaceCount = 1,
-            operationsCount = 0,
-            attentionCount = 0,
+            workspaceCount = 5,
+            operationsCount = 3,
+            attentionCount = 2,
+            isAttentionFilterActive = true,
         )
-    }
-}
-
-@Preview2
-@Composable
-private fun WorkspaceStatusCardFilterActivePreview() {
-    PreviewWrapper {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            WorkspaceStatusCard(
-                workspaceCount = 5,
-                operationsCount = 3,
-                attentionCount = 2,
-                isOperationsFilterActive = true,
-            )
-            WorkspaceStatusCard(
-                workspaceCount = 5,
-                operationsCount = 3,
-                attentionCount = 2,
-                isAttentionFilterActive = true,
-            )
-        }
     }
 }

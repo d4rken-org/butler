@@ -21,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -129,21 +131,20 @@ fun InsufficientSpaceIssueSheet(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun InsufficientSpaceIssueSheetPreview() {
-    PreviewWrapper {
-        InsufficientSpaceIssueSheet(
-            issue = PathActionIssue.InsufficientSpace(
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/large_file.mp4"),
-                    fileType = FileType.FILE,
-                    size = 2L * 1024 * 1024 * 1024, // 2GB
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
-                    target = null,
-                ),
-                destinationPath = LocalPath.build("/storage/sdcard/large_file.mp4"),
+    InsufficientSpaceIssueSheet(
+        issue = PathActionIssue.InsufficientSpace(
+            source = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/large_file.mp4"),
+                fileType = FileType.FILE,
+                size = 2L * 1024 * 1024 * 1024, // 2GB
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                target = null,
             ),
-            onResolution = {},
-        )
-    }
+            destinationPath = LocalPath.build("/storage/sdcard/large_file.mp4"),
+        ),
+        onResolution = {},
+    )
 }

@@ -21,8 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.developer.R
@@ -92,48 +94,45 @@ internal fun LogsSection(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun LogsSectionEmptyPreview() {
-    PreviewWrapper {
-        LogsSection(
-            logs = emptyList(),
-            isPaused = false,
-            onTogglePause = {},
-            onClear = {},
-        )
-    }
+    LogsSection(
+        logs = emptyList(),
+        isPaused = false,
+        onTogglePause = {},
+        onClear = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun LogsSectionWithLogsPreview() {
-    PreviewWrapper {
-        LogsSection(
-            logs = listOf(
-                "2024-01-15 10:23:45.123 D/BUTLER:Explorer: Opening directory /storage/emulated/0",
-                "2024-01-15 10:23:45.456 D/BUTLER:Explorer: Found 42 items",
-                "2024-01-15 10:23:46.789 I/BUTLER:Workspace: Switched to Explorer workspace",
-                "2024-01-15 10:23:47.012 D/BUTLER:IO: Reading file metadata",
-                "2024-01-15 10:23:47.345 W/BUTLER:Permissions: Storage permission not granted",
-            ),
-            isPaused = false,
-            onTogglePause = {},
-            onClear = {},
-        )
-    }
+    LogsSection(
+        logs = listOf(
+            "2024-01-15 10:23:45.123 D/BUTLER:Explorer: Opening directory /storage/emulated/0",
+            "2024-01-15 10:23:45.456 D/BUTLER:Explorer: Found 42 items",
+            "2024-01-15 10:23:46.789 I/BUTLER:Workspace: Switched to Explorer workspace",
+            "2024-01-15 10:23:47.012 D/BUTLER:IO: Reading file metadata",
+            "2024-01-15 10:23:47.345 W/BUTLER:Permissions: Storage permission not granted",
+        ),
+        isPaused = false,
+        onTogglePause = {},
+        onClear = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun LogsSectionPausedPreview() {
-    PreviewWrapper {
-        LogsSection(
-            logs = listOf(
-                "2024-01-15 10:23:45.123 D/BUTLER:Explorer: Paused log output",
-            ),
-            isPaused = true,
-            onTogglePause = {},
-            onClear = {},
-        )
-    }
+    LogsSection(
+        logs = listOf(
+            "2024-01-15 10:23:45.123 D/BUTLER:Explorer: Paused log output",
+        ),
+        isPaused = true,
+        onTogglePause = {},
+        onClear = {},
+    )
 }

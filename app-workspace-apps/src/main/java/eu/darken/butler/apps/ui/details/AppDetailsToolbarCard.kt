@@ -27,10 +27,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
@@ -148,46 +150,43 @@ fun AppDetailsToolbarCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppDetailsToolbarCardExpandedPreview() {
-    PreviewWrapper {
-        AppDetailsToolbarCard(
-            app = AppsMockDataProvider.Presets.chrome,
-            design = WorkspaceDesign(),
-            isModal = false,
-            collapsedFraction = 0f,
-            onBackClick = {},
-            modifier = Modifier.padding(16.dp)
-        )
-    }
+    AppDetailsToolbarCard(
+        app = AppsMockDataProvider.Presets.chrome,
+        design = WorkspaceDesign(),
+        isModal = false,
+        collapsedFraction = 0f,
+        onBackClick = {},
+        modifier = Modifier.padding(16.dp)
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppDetailsToolbarCardCollapsedPreview() {
-    PreviewWrapper {
-        AppDetailsToolbarCard(
-            app = AppsMockDataProvider.Presets.largeApp,
-            design = WorkspaceDesign(),
-            isModal = false,
-            collapsedFraction = 1f,
-            onBackClick = {},
-            modifier = Modifier.padding(16.dp)
-        )
-    }
+    AppDetailsToolbarCard(
+        app = AppsMockDataProvider.Presets.largeApp,
+        design = WorkspaceDesign(),
+        isModal = false,
+        collapsedFraction = 1f,
+        onBackClick = {},
+        modifier = Modifier.padding(16.dp)
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppDetailsToolbarCardModalPreview() {
-    PreviewWrapper {
-        AppDetailsToolbarCard(
-            app = AppsMockDataProvider.Presets.disabledApp,
-            design = WorkspaceDesign(),
-            isModal = true,
-            collapsedFraction = 0f,
-            onBackClick = {},
-            modifier = Modifier.padding(16.dp)
-        )
-    }
+    AppDetailsToolbarCard(
+        app = AppsMockDataProvider.Presets.disabledApp,
+        design = WorkspaceDesign(),
+        isModal = true,
+        collapsedFraction = 0f,
+        onBackClick = {},
+        modifier = Modifier.padding(16.dp)
+    )
 }

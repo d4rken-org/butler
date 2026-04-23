@@ -38,11 +38,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.LongClickableDropdownMenuItem
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -279,91 +281,87 @@ object WorkspaceButtonDefaults {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceButtonSizesPreview() {
-    PreviewWrapper {
-        CompositionLocalProvider(
-            LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
-                WorkspaceButtonViewModel.State(
-                    workspaceCount = 3,
-                    operationsCount = 2,
-                    attentionCount = 1,
-                )
+    CompositionLocalProvider(
+        LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+            WorkspaceButtonViewModel.State(
+                workspaceCount = 3,
+                operationsCount = 2,
+                attentionCount = 1,
             )
+        )
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(16.dp),
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(16.dp),
-            ) {
-                WorkspaceButton(buttonSize = 32.dp)
-                WorkspaceButton(buttonSize = sizeCompact)
-                WorkspaceButton(buttonSize = sizeDefault)
-                WorkspaceButton(buttonSize = 72.dp)
-            }
+            WorkspaceButton(buttonSize = 32.dp)
+            WorkspaceButton(buttonSize = sizeCompact)
+            WorkspaceButton(buttonSize = sizeDefault)
+            WorkspaceButton(buttonSize = 72.dp)
         }
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceButtonEmptyBadgesPreview() {
-    PreviewWrapper {
-        CompositionLocalProvider(
-            LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
-                WorkspaceButtonViewModel.State(
-                    workspaceCount = 0,
-                    operationsCount = 0,
-                    attentionCount = 0,
-                )
+    CompositionLocalProvider(
+        LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+            WorkspaceButtonViewModel.State(
+                workspaceCount = 0,
+                operationsCount = 0,
+                attentionCount = 0,
             )
-        ) {
-            WorkspaceButton(modifier = Modifier.padding(16.dp))
-        }
+        )
+    ) {
+        WorkspaceButton(modifier = Modifier.padding(16.dp))
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceButtonOverflowBadgesPreview() {
-    PreviewWrapper {
-        CompositionLocalProvider(
-            LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
-                WorkspaceButtonViewModel.State(
-                    workspaceCount = 12,
-                    operationsCount = 15,
-                    attentionCount = 10,
-                )
+    CompositionLocalProvider(
+        LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+            WorkspaceButtonViewModel.State(
+                workspaceCount = 12,
+                operationsCount = 15,
+                attentionCount = 10,
             )
-        ) {
-            WorkspaceButton(modifier = Modifier.padding(16.dp))
-        }
+        )
+    ) {
+        WorkspaceButton(modifier = Modifier.padding(16.dp))
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceButtonPositionedPreview() {
-    PreviewWrapper {
-        CompositionLocalProvider(
-            LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
-                WorkspaceButtonViewModel.State(
-                    workspaceCount = 5,
-                    operationsCount = 7,
-                    attentionCount = 1,
-                )
+    CompositionLocalProvider(
+        LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider(
+            WorkspaceButtonViewModel.State(
+                workspaceCount = 5,
+                operationsCount = 7,
+                attentionCount = 1,
             )
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .width(128.dp)
+                .height(128.dp)
         ) {
-            Box(
+            WorkspaceButton(
                 modifier = Modifier
-                    .width(128.dp)
-                    .height(128.dp)
-            ) {
-                WorkspaceButton(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(top = 16.dp, end = 16.dp),
-                )
-            }
+                    .align(Alignment.TopEnd)
+                    .padding(top = 16.dp, end = 16.dp),
+            )
         }
     }
 }

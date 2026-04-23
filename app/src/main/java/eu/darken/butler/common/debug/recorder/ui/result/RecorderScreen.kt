@@ -60,8 +60,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import java.io.File
@@ -571,28 +573,27 @@ private fun ActionButtons(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun RecorderScreenPreview() {
-    PreviewWrapper {
-        val mockState = RecorderViewModel.State(
-            logDir = File("/storage/emulated/0/Android/data/eu.darken.butler/cache/debug/logs/session_123"),
-            logEntries = listOf(
-                RecorderViewModel.LogEntry(
-                    file = File("/storage/emulated/0/Android/data/eu.darken.butler/cache/debug/logs/session_123/core.log"),
-                    size = 6400L,
-                ),
+    val mockState = RecorderViewModel.State(
+        logDir = File("/storage/emulated/0/Android/data/eu.darken.butler/cache/debug/logs/session_123"),
+        logEntries = listOf(
+            RecorderViewModel.LogEntry(
+                file = File("/storage/emulated/0/Android/data/eu.darken.butler/cache/debug/logs/session_123/core.log"),
+                size = 6400L,
             ),
-            compressedSize = 1200L,
-            recordingDurationSecs = 3,
-            isWorking = false,
-        )
+        ),
+        compressedSize = 1200L,
+        recordingDurationSecs = 3,
+        isWorking = false,
+    )
 
-        RecorderScreen(
-            state = mockState,
-            onCancelClick = {},
-            onSaveClick = {},
-            onShareClick = {},
-            onPrivacyPolicyClick = {}
-        )
-    }
+    RecorderScreen(
+        state = mockState,
+        onCancelClick = {},
+        onSaveClick = {},
+        onShareClick = {},
+        onPrivacyPolicyClick = {}
+    )
 }

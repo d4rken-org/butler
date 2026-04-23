@@ -7,7 +7,9 @@ import androidx.compose.material.icons.twotone.Person
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.apps.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.InfoChip
@@ -51,37 +53,34 @@ fun AppsInfoBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsInfoBarPreview() {
-    PreviewWrapper {
-        AppsInfoBar(
-            userAppsCount = 25,
-            systemAppsCount = 142,
-            selectedCount = 0,
-        )
-    }
+    AppsInfoBar(
+        userAppsCount = 25,
+        systemAppsCount = 142,
+        selectedCount = 0,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsInfoBarWithSelectionPreview() {
-    PreviewWrapper {
-        AppsInfoBar(
-            userAppsCount = 25,
-            systemAppsCount = 142,
-            selectedCount = 5,
-        )
-    }
+    AppsInfoBar(
+        userAppsCount = 25,
+        systemAppsCount = 142,
+        selectedCount = 5,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsInfoBarEmptyPreview() {
-    PreviewWrapper {
-        AppsInfoBar(
-            userAppsCount = 0,
-            systemAppsCount = 0,
-            selectedCount = 0,
-        )
-    }
+    AppsInfoBar(
+        userAppsCount = 0,
+        systemAppsCount = 0,
+        selectedCount = 0,
+    )
 }

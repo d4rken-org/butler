@@ -48,8 +48,10 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -798,6 +800,7 @@ private fun getPathIcon(path: APath<*>): ImageVector {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardInfoBottomSheetPreview() {
     val mockClip = ClipboardClip.Paths(
@@ -824,6 +827,7 @@ private fun ClipboardInfoBottomSheetPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardInfoSingleFilePreview() {
     val mockClip = ClipboardClip.Paths(
@@ -847,6 +851,7 @@ private fun ClipboardInfoSingleFilePreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardInfoTextPreview() {
     val mockClip = ClipboardClip.Text(

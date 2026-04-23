@@ -32,8 +32,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
@@ -240,9 +242,54 @@ fun SearchToolbarCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchToolbarCardPreview() {
-    PreviewWrapper {
+    SearchToolbarCard(
+        modifier = Modifier.padding(16.dp),
+        workspaceId = Workspace.Id(),
+        state = SearcherWorkspaceViewModel.State.Ready(
+            searchTargets = listOf(
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+            ),
+            filenameQuery = "*.kt",
+            contentQuery = "TODO",
+            filenameOptions = FilenameQuery(useRegex = true),
+            contentOptions = ContentQuery(wholeWord = true),
+            contentSearchEnabled = true,
+        ),
+        design = WorkspaceDesign(),
+        onAction = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearchToolbarCardCollapsedPreview() {
+    SearchToolbarCard(
+        modifier = Modifier.padding(16.dp),
+        workspaceId = Workspace.Id(),
+        state = SearcherWorkspaceViewModel.State.Ready(
+            searchTargets = listOf(
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+            ),
+            filenameQuery = "*.kt",
+            contentQuery = "TODO",
+        ),
+        design = WorkspaceDesign(),
+        collapsedFraction = 1f,
+        onAction = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearchToolbarCardRtlPreview() {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         SearchToolbarCard(
             modifier = Modifier.padding(16.dp),
             workspaceId = Workspace.Id(),
@@ -264,9 +311,10 @@ private fun SearchToolbarCardPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun SearchToolbarCardCollapsedPreview() {
-    PreviewWrapper {
+private fun SearchToolbarCardCollapsedRtlPreview() {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         SearchToolbarCard(
             modifier = Modifier.padding(16.dp),
             workspaceId = Workspace.Id(),
@@ -282,55 +330,5 @@ private fun SearchToolbarCardCollapsedPreview() {
             collapsedFraction = 1f,
             onAction = {},
         )
-    }
-}
-
-@Preview2
-@Composable
-private fun SearchToolbarCardRtlPreview() {
-    PreviewWrapper {
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-            SearchToolbarCard(
-                modifier = Modifier.padding(16.dp),
-                workspaceId = Workspace.Id(),
-                state = SearcherWorkspaceViewModel.State.Ready(
-                    searchTargets = listOf(
-                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
-                    ),
-                    filenameQuery = "*.kt",
-                    contentQuery = "TODO",
-                    filenameOptions = FilenameQuery(useRegex = true),
-                    contentOptions = ContentQuery(wholeWord = true),
-                    contentSearchEnabled = true,
-                ),
-                design = WorkspaceDesign(),
-                onAction = {},
-            )
-        }
-    }
-}
-
-@Preview2
-@Composable
-private fun SearchToolbarCardCollapsedRtlPreview() {
-    PreviewWrapper {
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-            SearchToolbarCard(
-                modifier = Modifier.padding(16.dp),
-                workspaceId = Workspace.Id(),
-                state = SearcherWorkspaceViewModel.State.Ready(
-                    searchTargets = listOf(
-                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
-                    ),
-                    filenameQuery = "*.kt",
-                    contentQuery = "TODO",
-                ),
-                design = WorkspaceDesign(),
-                collapsedFraction = 1f,
-                onAction = {},
-            )
-        }
     }
 }

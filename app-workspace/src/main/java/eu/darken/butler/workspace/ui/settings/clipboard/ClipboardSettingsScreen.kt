@@ -28,8 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -150,19 +152,18 @@ private fun MaxItemsDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardSettingsScreenPreview() {
-    PreviewWrapper {
-        ClipboardSettingsScreen(
-            state = ClipboardSettingsViewModel.State(
-                removeOnPaste = false,
-                maxItems = 3,
-            ),
-            onNavigateUp = {},
-            onToggleRemoveOnPaste = {},
-            onSetMaxItems = {},
-        )
-    }
+    ClipboardSettingsScreen(
+        state = ClipboardSettingsViewModel.State(
+            removeOnPaste = false,
+            maxItems = 3,
+        ),
+        onNavigateUp = {},
+        onToggleRemoveOnPaste = {},
+        onSetMaxItems = {},
+    )
 }
 
 @Composable

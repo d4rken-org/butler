@@ -40,9 +40,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import kotlinx.coroutines.launch
@@ -208,56 +210,54 @@ private fun DefaultDragHandle() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PaneScopedBottomSheetPreview() {
-    PreviewWrapper {
-        PaneScopedBottomSheet(
-            visible = true,
-            onDismiss = {},
+    PaneScopedBottomSheet(
+        visible = true,
+        onDismiss = {},
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Bottom Sheet Title",
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                Text(
-                    text = "This is sample content for the pane-scoped bottom sheet.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-            }
+            Text(
+                text = "Bottom Sheet Title",
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                text = "This is sample content for the pane-scoped bottom sheet.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PaneScopedBottomSheetNoDragHandlePreview() {
-    PreviewWrapper {
-        PaneScopedBottomSheet(
-            visible = true,
-            onDismiss = {},
-            dragHandle = null,
+    PaneScopedBottomSheet(
+        visible = true,
+        onDismiss = {},
+        dragHandle = null,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "No Drag Handle",
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                Text(
-                    text = "This sheet has no drag handle but can still be dragged.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-            }
+            Text(
+                text = "No Drag Handle",
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Text(
+                text = "This sheet has no drag handle but can still be dragged.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
     }
 }

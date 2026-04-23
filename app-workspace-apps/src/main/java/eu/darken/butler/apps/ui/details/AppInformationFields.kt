@@ -17,11 +17,13 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
@@ -252,31 +254,28 @@ private fun getAndroidVersionName(apiLevel: Int): String = when (apiLevel) {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppInformationFieldsPreview() {
-    PreviewWrapper {
-        AppInformationFields(
-            app = AppsMockDataProvider.Presets.chrome
-        )
-    }
+    AppInformationFields(
+        app = AppsMockDataProvider.Presets.chrome
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppInformationFieldsSystemAppPreview() {
-    PreviewWrapper {
-        AppInformationFields(
-            app = AppsMockDataProvider.Presets.settings
-        )
-    }
+    AppInformationFields(
+        app = AppsMockDataProvider.Presets.settings
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppInformationFieldsDisabledPreview() {
-    PreviewWrapper {
-        AppInformationFields(
-            app = AppsMockDataProvider.Presets.disabledApp
-        )
-    }
+    AppInformationFields(
+        app = AppsMockDataProvider.Presets.disabledApp
+    )
 }

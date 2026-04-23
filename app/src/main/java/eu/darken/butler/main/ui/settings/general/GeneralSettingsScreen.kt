@@ -30,8 +30,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -324,25 +326,24 @@ fun GeneralSettingsScreen(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun GeneralSettingsScreenPreview() {
-    PreviewWrapper {
-        GeneralSettingsScreen(
-            state = GeneralSettingsViewModel.State(),
-            onNavigateUp = {},
-            onLanguageSwitcher = {},
-            onThemeModeSelected = {},
-            onThemeStyleSelected = {},
-            onThemeColorSelected = {},
-            onUpdateCheckEnabledChange = {},
-            onMotdEnabledChange = {},
-            onConfirmExitEnabledChange = {},
-            onDocumentsProviderEnabledChange = {},
-            onNavigateToPreviews = {},
-            onNavigateToShortcuts = {},
-            onUpgradeButler = {},
-        )
-    }
+    GeneralSettingsScreen(
+        state = GeneralSettingsViewModel.State(),
+        onNavigateUp = {},
+        onLanguageSwitcher = {},
+        onThemeModeSelected = {},
+        onThemeStyleSelected = {},
+        onThemeColorSelected = {},
+        onUpdateCheckEnabledChange = {},
+        onMotdEnabledChange = {},
+        onConfirmExitEnabledChange = {},
+        onDocumentsProviderEnabledChange = {},
+        onNavigateToPreviews = {},
+        onNavigateToShortcuts = {},
+        onUpgradeButler = {},
+    )
 }
 
 @Composable

@@ -10,9 +10,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -81,45 +83,44 @@ internal fun DualVerticalLayout(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DualVerticalLayoutPreview() {
-    PreviewWrapper {
-        val workspace1 = Workspace.Info(
-            id = Workspace.Id(),
-            type = Workspace.Type.EXPLORER,
-            title = "Explorer".toCaString(),
-        )
-        val workspace2 = Workspace.Info(
-            id = Workspace.Id(),
-            type = Workspace.Type.SEARCHER,
-            title = "Search".toCaString(),
-        )
+    val workspace1 = Workspace.Info(
+        id = Workspace.Id(),
+        type = Workspace.Type.EXPLORER,
+        title = "Explorer".toCaString(),
+    )
+    val workspace2 = Workspace.Info(
+        id = Workspace.Id(),
+        type = Workspace.Type.SEARCHER,
+        title = "Search".toCaString(),
+    )
 
-        DualVerticalLayout(
-            selected = mapOf(0 to workspace1.asPaneInfo(), 1 to workspace2.asPaneInfo()),
-            focusedTabId = workspace1.id,
-            dividerPositions = DividerPositions(),
-            containerSize = IntSize(800, 600),
-            showPaneNumbers = true,
-            showPaneOverlay = false,
-            onTabFocus = {},
-            onDividerPositionsChange = { },
-        ) { ws, paneIdx ->
-            // Preview content placeholder
-            Surface(
+    DualVerticalLayout(
+        selected = mapOf(0 to workspace1.asPaneInfo(), 1 to workspace2.asPaneInfo()),
+        focusedTabId = workspace1.id,
+        dividerPositions = DividerPositions(),
+        containerSize = IntSize(800, 600),
+        showPaneNumbers = true,
+        showPaneOverlay = false,
+        onTabFocus = {},
+        onDividerPositionsChange = { },
+    ) { ws, paneIdx ->
+        // Preview content placeholder
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 2.dp,
+        ) {
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "${ws?.type} - ${ws?.id?.shortTag ?: "Empty"} - Pane $paneIdx",
-                        style = MaterialTheme.typography.headlineSmall,
-                    )
-                }
+                Text(
+                    text = "${ws?.type} - ${ws?.id?.shortTag ?: "Empty"} - Pane $paneIdx",
+                    style = MaterialTheme.typography.headlineSmall,
+                )
             }
         }
     }

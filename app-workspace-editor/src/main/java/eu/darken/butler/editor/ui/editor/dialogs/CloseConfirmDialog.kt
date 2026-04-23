@@ -5,6 +5,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
@@ -32,12 +34,11 @@ fun CloseConfirmDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun CloseConfirmDialogPreview() {
-    PreviewWrapper {
-        CloseConfirmDialog(
-            onConfirm = {},
-            onDismiss = {},
-        )
-    }
+    CloseConfirmDialog(
+        onConfirm = {},
+        onDismiss = {},
+    )
 }

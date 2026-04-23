@@ -12,8 +12,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.developer.R
@@ -115,36 +117,35 @@ private fun InfoRow(label: String, value: String) {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SystemInfoSectionPreview() {
-    PreviewWrapper {
-        SystemInfoSection(
-            systemInfo = SystemInfo(
-                deviceModel = "Pixel 8 Pro",
-                deviceManufacturer = "Google",
-                apiLevel = 34,
-                versionName = "1.0.0-dev",
-                versionCode = 100,
-                flavor = "FOSS",
-                buildType = "DEBUG",
-                gitSha = "abc123def",
-                memoryAvailable = "4.2 GB",
-                memoryTotal = "8.0 GB",
-                storageVolumes = listOf(
-                    StorageVolumeInfo(
-                        name = "Internal Storage",
-                        path = "/storage/emulated/0",
-                        freeSpace = "64 GB",
-                        totalSpace = "128 GB",
-                    ),
-                    StorageVolumeInfo(
-                        name = "SD Card",
-                        path = "/storage/1234-5678",
-                        freeSpace = "28 GB",
-                        totalSpace = "32 GB",
-                    ),
+    SystemInfoSection(
+        systemInfo = SystemInfo(
+            deviceModel = "Pixel 8 Pro",
+            deviceManufacturer = "Google",
+            apiLevel = 34,
+            versionName = "1.0.0-dev",
+            versionCode = 100,
+            flavor = "FOSS",
+            buildType = "DEBUG",
+            gitSha = "abc123def",
+            memoryAvailable = "4.2 GB",
+            memoryTotal = "8.0 GB",
+            storageVolumes = listOf(
+                StorageVolumeInfo(
+                    name = "Internal Storage",
+                    path = "/storage/emulated/0",
+                    freeSpace = "64 GB",
+                    totalSpace = "128 GB",
+                ),
+                StorageVolumeInfo(
+                    name = "SD Card",
+                    path = "/storage/1234-5678",
+                    freeSpace = "28 GB",
+                    totalSpace = "32 GB",
                 ),
             ),
-        )
-    }
+        ),
+    )
 }

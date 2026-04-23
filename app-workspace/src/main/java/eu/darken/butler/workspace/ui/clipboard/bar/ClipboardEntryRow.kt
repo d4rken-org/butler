@@ -26,7 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -343,81 +345,77 @@ fun ClipboardEntryRow(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardEntryRowCollapsedPreview() {
-    PreviewWrapper {
-        ClipboardEntryRow(
-            entry = ClipboardClip.Paths(
-                origin = Workspace.Id(Uuid.random()),
-                mode = ClipboardClip.Paths.Mode.COPY,
-                paths = listOf(
-                    LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
-                    LocalPath.build("/storage/emulated/0/Pictures/photo2.jpg"),
-                    LocalPath.build("/storage/emulated/0/Pictures/photo3.jpg"),
-                ),
-                clippedAt = Clock.System.now() - 5.minutes,
+    ClipboardEntryRow(
+        entry = ClipboardClip.Paths(
+            origin = Workspace.Id(Uuid.random()),
+            mode = ClipboardClip.Paths.Mode.COPY,
+            paths = listOf(
+                LocalPath.build("/storage/emulated/0/Pictures/photo1.jpg"),
+                LocalPath.build("/storage/emulated/0/Pictures/photo2.jpg"),
+                LocalPath.build("/storage/emulated/0/Pictures/photo3.jpg"),
             ),
-            workspaceType = Workspace.Type.EXPLORER,
-            onPasteClick = {},
-            onEntryClick = {},
-            showOrigin = false,
-        )
-    }
+            clippedAt = Clock.System.now() - 5.minutes,
+        ),
+        workspaceType = Workspace.Type.EXPLORER,
+        onPasteClick = {},
+        onEntryClick = {},
+        showOrigin = false,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardEntryRowExpandedPreview() {
-    PreviewWrapper {
-        ClipboardEntryRow(
-            entry = ClipboardClip.Paths(
-                origin = Workspace.Id(Uuid.random()),
-                mode = ClipboardClip.Paths.Mode.CUT,
-                paths = listOf(
-                    LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
-                ),
-                clippedAt = Clock.System.now() - 2.minutes,
+    ClipboardEntryRow(
+        entry = ClipboardClip.Paths(
+            origin = Workspace.Id(Uuid.random()),
+            mode = ClipboardClip.Paths.Mode.CUT,
+            paths = listOf(
+                LocalPath.build("/storage/emulated/0/Documents/report.pdf"),
             ),
-            workspaceType = Workspace.Type.SEARCHER,
-            onPasteClick = {},
-            onEntryClick = {},
-            showOrigin = true,
-        )
-    }
+            clippedAt = Clock.System.now() - 2.minutes,
+        ),
+        workspaceType = Workspace.Type.SEARCHER,
+        onPasteClick = {},
+        onEntryClick = {},
+        showOrigin = true,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardEntryRowTextCollapsedPreview() {
-    PreviewWrapper {
-        ClipboardEntryRow(
-            entry = ClipboardClip.Text(
-                origin = Workspace.Id(Uuid.random()),
-                content = "Hello, this is a sample text snippet that was copied from the editor.",
-                clippedAt = Clock.System.now() - 3.minutes,
-            ),
-            workspaceType = Workspace.Type.EXPLORER,
-            onPasteClick = {},
-            onEntryClick = {},
-            showOrigin = false,
-        )
-    }
+    ClipboardEntryRow(
+        entry = ClipboardClip.Text(
+            origin = Workspace.Id(Uuid.random()),
+            content = "Hello, this is a sample text snippet that was copied from the editor.",
+            clippedAt = Clock.System.now() - 3.minutes,
+        ),
+        workspaceType = Workspace.Type.EXPLORER,
+        onPasteClick = {},
+        onEntryClick = {},
+        showOrigin = false,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardEntryRowTextExpandedPreview() {
-    PreviewWrapper {
-        ClipboardEntryRow(
-            entry = ClipboardClip.Text(
-                origin = Workspace.Id(Uuid.random()),
-                content = "function greet(name) {\n  return `Hello, \${name}!`;\n}",
-                clippedAt = Clock.System.now() - 1.minutes,
-            ),
-            workspaceType = Workspace.Type.EXPLORER,
-            onPasteClick = {},
-            onEntryClick = {},
-            showOrigin = true,
-        )
-    }
+    ClipboardEntryRow(
+        entry = ClipboardClip.Text(
+            origin = Workspace.Id(Uuid.random()),
+            content = "function greet(name) {\n  return `Hello, \${name}!`;\n}",
+            clippedAt = Clock.System.now() - 1.minutes,
+        ),
+        workspaceType = Workspace.Type.EXPLORER,
+        onPasteClick = {},
+        onEntryClick = {},
+        showOrigin = true,
+    )
 }

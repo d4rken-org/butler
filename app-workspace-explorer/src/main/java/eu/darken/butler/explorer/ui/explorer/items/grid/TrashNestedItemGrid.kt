@@ -12,7 +12,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
@@ -64,33 +66,30 @@ fun TrashNestedItemGrid(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TrashNestedItemGridPreview() {
-    PreviewWrapper {
-        TrashNestedItemGrid(
-            item = MockDataProvider.createMockTrashNestedItem(),
-        )
-    }
+    TrashNestedItemGrid(
+        item = MockDataProvider.createMockTrashNestedItem(),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TrashNestedItemGridSelectedPreview() {
-    PreviewWrapper {
-        TrashNestedItemGrid(
-            item = MockDataProvider.createMockTrashNestedItem("photo.jpg"),
-            isSelected = true,
-            showSelection = true,
-        )
-    }
+    TrashNestedItemGrid(
+        item = MockDataProvider.createMockTrashNestedItem("photo.jpg"),
+        isSelected = true,
+        showSelection = true,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TrashNestedItemGridDirectoryPreview() {
-    PreviewWrapper {
-        TrashNestedItemGrid(
-            item = MockDataProvider.createMockTrashNestedDirectory(),
-        )
-    }
+    TrashNestedItemGrid(
+        item = MockDataProvider.createMockTrashNestedDirectory(),
+    )
 }

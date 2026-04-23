@@ -23,7 +23,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -125,25 +127,23 @@ fun SkeletonGridItem(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SkeletonListItemPreview() {
-    PreviewWrapper {
-        Column {
-            repeat(5) {
-                SkeletonListItem()
-            }
+    Column {
+        repeat(5) {
+            SkeletonListItem()
         }
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SkeletonGridItemPreview() {
-    PreviewWrapper {
-        Row {
-            repeat(3) {
-                SkeletonGridItem()
-            }
+    Row {
+        repeat(3) {
+            SkeletonGridItem()
         }
     }
 }

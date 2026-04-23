@@ -18,9 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerChip
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -253,60 +255,59 @@ fun DeveloperWorkspacePage(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DeveloperWorkspacePagePreview() {
-    PreviewWrapper {
-        val workspaceId = Workspace.Id()
-        DeveloperWorkspacePage(
-            workspaceId = workspaceId,
-            state = State(
-                id = workspaceId,
-                selectedTab = DeveloperTab.SYSTEM,
-                systemInfo = SystemInfo(
-                    deviceModel = "Pixel 8 Pro",
-                    deviceManufacturer = "Google",
-                    apiLevel = 34,
-                    versionName = "1.0.0-dev",
-                    versionCode = 100,
-                    flavor = "FOSS",
-                    buildType = "DEV",
-                    gitSha = "abc123",
-                    memoryAvailable = "4.2 GB",
-                    memoryTotal = "8.0 GB",
-                    storageVolumes = listOf(
-                        StorageVolumeInfo(
-                            name = "Internal Storage",
-                            path = "/storage/emulated/0",
-                            freeSpace = "64 GB",
-                            totalSpace = "128 GB",
-                        )
-                    ),
+    val workspaceId = Workspace.Id()
+    DeveloperWorkspacePage(
+        workspaceId = workspaceId,
+        state = State(
+            id = workspaceId,
+            selectedTab = DeveloperTab.SYSTEM,
+            systemInfo = SystemInfo(
+                deviceModel = "Pixel 8 Pro",
+                deviceManufacturer = "Google",
+                apiLevel = 34,
+                versionName = "1.0.0-dev",
+                versionCode = 100,
+                flavor = "FOSS",
+                buildType = "DEV",
+                gitSha = "abc123",
+                memoryAvailable = "4.2 GB",
+                memoryTotal = "8.0 GB",
+                storageVolumes = listOf(
+                    StorageVolumeInfo(
+                        name = "Internal Storage",
+                        path = "/storage/emulated/0",
+                        freeSpace = "64 GB",
+                        totalSpace = "128 GB",
+                    )
                 ),
-                logLines = emptyList(),
-                isLogPaused = false,
-                testDataState = TestDataState(
-                    targetPaths = listOf(
-                        TargetPathInfo(
-                            path = LocalPath.build("/storage/emulated/0"),
-                            displayPath = "/storage/emulated/0",
-                        ),
-                    ),
-                    largeFilesEnabled = false,
-                    nestedStructureEnabled = false,
-                    textFilesEnabled = true,
-                    canGenerate = true,
-                ),
-                optionsState = OptionsState(
-                    isDebugMode = true,
-                    isTraceMode = false,
-                    rootTestResult = null,
-                    isRootTesting = false,
-                    shizukuTestResult = null,
-                    isShizukuTesting = false,
-                    canHideDeveloperMode = false,
-                ),
-                operationsState = OperationsDisplayState(),
             ),
-        )
-    }
+            logLines = emptyList(),
+            isLogPaused = false,
+            testDataState = TestDataState(
+                targetPaths = listOf(
+                    TargetPathInfo(
+                        path = LocalPath.build("/storage/emulated/0"),
+                        displayPath = "/storage/emulated/0",
+                    ),
+                ),
+                largeFilesEnabled = false,
+                nestedStructureEnabled = false,
+                textFilesEnabled = true,
+                canGenerate = true,
+            ),
+            optionsState = OptionsState(
+                isDebugMode = true,
+                isTraceMode = false,
+                rootTestResult = null,
+                isRootTesting = false,
+                shizukuTestResult = null,
+                isShizukuTesting = false,
+                canHideDeveloperMode = false,
+            ),
+            operationsState = OperationsDisplayState(),
+        ),
+    )
 }

@@ -23,7 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
@@ -100,41 +102,38 @@ internal fun SourceFileCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SourceFileCardLoadingPreview() {
-    PreviewWrapper {
-        SourceFileCard(sourceInfo = null)
-    }
+    SourceFileCard(sourceInfo = null)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SourceFileCardAccessiblePreview() {
-    PreviewWrapper {
-        SourceFileCard(
-            sourceInfo = ContentUriHelper.SourceInfo(
-                uri = Uri.parse("content://example/image.jpg"),
-                displayName = "vacation_photo_2024.jpg",
-                mimeType = "image/jpeg",
-                size = 3_500_000,
-                isAccessible = true,
-            )
+    SourceFileCard(
+        sourceInfo = ContentUriHelper.SourceInfo(
+            uri = Uri.parse("content://example/image.jpg"),
+            displayName = "vacation_photo_2024.jpg",
+            mimeType = "image/jpeg",
+            size = 3_500_000,
+            isAccessible = true,
         )
-    }
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SourceFileCardInaccessiblePreview() {
-    PreviewWrapper {
-        SourceFileCard(
-            sourceInfo = ContentUriHelper.SourceInfo(
-                uri = Uri.parse("content://example/document.pdf"),
-                displayName = "important_document.pdf",
-                mimeType = "application/pdf",
-                size = 1_200_000,
-                isAccessible = false,
-            )
+    SourceFileCard(
+        sourceInfo = ContentUriHelper.SourceInfo(
+            uri = Uri.parse("content://example/document.pdf"),
+            displayName = "important_document.pdf",
+            mimeType = "application/pdf",
+            size = 1_200_000,
+            isAccessible = false,
         )
-    }
+    )
 }

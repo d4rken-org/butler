@@ -63,8 +63,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -801,38 +803,37 @@ private fun DualColumnEditorContent(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun LazyTextEditorPreview() {
-    PreviewWrapper {
-        val sampleContent = $$"""
-            fun calculateSum(a: Int, b: Int): Int {
-                return a + b
-            }
+    val sampleContent = $$"""
+        fun calculateSum(a: Int, b: Int): Int {
+            return a + b
+        }
 
-            fun main() {
-                val result = calculateSum(5, 3)
-                println("Result: $result")
-            }
-        """.trimIndent()
+        fun main() {
+            val result = calculateSum(5, 3)
+            println("Result: $result")
+        }
+    """.trimIndent()
 
-        LazyTextEditor(
-            content = sampleContent,
-            totalLines = sampleContent.split('\n').size,
-            cursorPosition = TextPosition(offset = 50, line = 1, column = 10),
-            selection = null,
-            visibleRange = 0..7,
-            showLineNumbers = true,
-            wordWrap = false,
-            fontSize = 14,
-            tabSize = 4,
-            onTextChange = {},
-            onTextDelete = {},
-            onCursorPositionChange = {},
-            onSelectionChange = {},
-            onVisibleRangeChange = {},
-            onCursorMove = { _, _ -> },
-            onForwardDelete = {},
-            modifier = Modifier.fillMaxSize()
-        )
-    }
+    LazyTextEditor(
+        content = sampleContent,
+        totalLines = sampleContent.split('\n').size,
+        cursorPosition = TextPosition(offset = 50, line = 1, column = 10),
+        selection = null,
+        visibleRange = 0..7,
+        showLineNumbers = true,
+        wordWrap = false,
+        fontSize = 14,
+        tabSize = 4,
+        onTextChange = {},
+        onTextDelete = {},
+        onCursorPositionChange = {},
+        onSelectionChange = {},
+        onVisibleRangeChange = {},
+        onCursorMove = { _, _ -> },
+        onForwardDelete = {},
+        modifier = Modifier.fillMaxSize()
+    )
 }

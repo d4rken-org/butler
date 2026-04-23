@@ -50,12 +50,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipSize
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.recorder.core.DebugSession
@@ -532,60 +534,57 @@ private val SupportContactFormViewModel.WorkspaceType.labelRes: Int
     }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SupportContactFormQuestionPreview() {
-    PreviewWrapper {
-        SupportContactFormScreen(
-            state = SupportContactFormViewModel.State(
-                category = SupportContactFormViewModel.Category.QUESTION,
-                description = "I have a question about how workspaces work in Butler and how I can use them to improve my workflow significantly",
-            ),
-        )
-    }
+    SupportContactFormScreen(
+        state = SupportContactFormViewModel.State(
+            category = SupportContactFormViewModel.Category.QUESTION,
+            description = "I have a question about how workspaces work in Butler and how I can use them to improve my workflow significantly",
+        ),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SupportContactFormBugPreview() {
-    PreviewWrapper {
-        SupportContactFormScreen(
-            state = SupportContactFormViewModel.State(
-                category = SupportContactFormViewModel.Category.BUG,
-                workspaceType = SupportContactFormViewModel.WorkspaceType.EXPLORER,
-                description = "When I navigate to a folder with many files and then try to scroll the file list crashes and I have to restart the app completely to continue using it",
-                expectedBehavior = "The file list should scroll smoothly without crashing even with many files in the directory",
-                sessions = listOf(
-                    DebugSession.Ready(
-                        id = "cache:eu.darken.butler_100_2024-01-15_10-30-00-000",
-                        displayName = "eu.darken.butler_100_2024-01-15_10-30-00-000",
-                        createdAt = Instant.fromEpochMilliseconds(1705312200000L),
-                        diskSize = 1_200_000L,
-                        logDir = null,
-                        zipFile = File("/cache/debug/logs/eu.darken.butler_100_2024-01-15_10-30-00-000.zip"),
-                        compressedSize = 1_200_000L,
-                    ),
-                    DebugSession.Ready(
-                        id = "cache:eu.darken.butler_100_2024-01-14_09-15-00-000",
-                        displayName = "eu.darken.butler_100_2024-01-14_09-15-00-000",
-                        createdAt = Instant.fromEpochMilliseconds(1705221300000L),
-                        diskSize = 800_000L,
-                        logDir = null,
-                        zipFile = File("/cache/debug/logs/eu.darken.butler_100_2024-01-14_09-15-00-000.zip"),
-                        compressedSize = 800_000L,
-                    ),
+    SupportContactFormScreen(
+        state = SupportContactFormViewModel.State(
+            category = SupportContactFormViewModel.Category.BUG,
+            workspaceType = SupportContactFormViewModel.WorkspaceType.EXPLORER,
+            description = "When I navigate to a folder with many files and then try to scroll the file list crashes and I have to restart the app completely to continue using it",
+            expectedBehavior = "The file list should scroll smoothly without crashing even with many files in the directory",
+            sessions = listOf(
+                DebugSession.Ready(
+                    id = "cache:eu.darken.butler_100_2024-01-15_10-30-00-000",
+                    displayName = "eu.darken.butler_100_2024-01-15_10-30-00-000",
+                    createdAt = Instant.fromEpochMilliseconds(1705312200000L),
+                    diskSize = 1_200_000L,
+                    logDir = null,
+                    zipFile = File("/cache/debug/logs/eu.darken.butler_100_2024-01-15_10-30-00-000.zip"),
+                    compressedSize = 1_200_000L,
                 ),
-                selectedSessionId = "cache:eu.darken.butler_100_2024-01-15_10-30-00-000",
+                DebugSession.Ready(
+                    id = "cache:eu.darken.butler_100_2024-01-14_09-15-00-000",
+                    displayName = "eu.darken.butler_100_2024-01-14_09-15-00-000",
+                    createdAt = Instant.fromEpochMilliseconds(1705221300000L),
+                    diskSize = 800_000L,
+                    logDir = null,
+                    zipFile = File("/cache/debug/logs/eu.darken.butler_100_2024-01-14_09-15-00-000.zip"),
+                    compressedSize = 800_000L,
+                ),
             ),
-        )
-    }
+            selectedSessionId = "cache:eu.darken.butler_100_2024-01-15_10-30-00-000",
+        ),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SupportContactFormEmptyPreview() {
-    PreviewWrapper {
-        SupportContactFormScreen(
-            state = SupportContactFormViewModel.State(),
-        )
-    }
+    SupportContactFormScreen(
+        state = SupportContactFormViewModel.State(),
+    )
 }

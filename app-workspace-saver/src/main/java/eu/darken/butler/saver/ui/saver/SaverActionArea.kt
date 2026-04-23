@@ -14,8 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
@@ -122,85 +124,83 @@ internal fun SaverActionArea(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverActionAreaIdlePreview() {
-    PreviewWrapper {
-        SaverActionArea(
-            state = SaverWorkspaceViewModel.State(
-                destination = LocalPath.build("/sdcard/Download"),
-                filename = "file.txt",
-                sourceInfos = listOf(
-                    ContentUriHelper.SourceInfo(
-                        uri = Uri.parse("content://example/file"),
-                        displayName = "file.txt",
-                        mimeType = "text/plain",
-                        size = 1024,
-                        isAccessible = true,
-                    )
-                ),
+    SaverActionArea(
+        state = SaverWorkspaceViewModel.State(
+            destination = LocalPath.build("/sdcard/Download"),
+            filename = "file.txt",
+            sourceInfos = listOf(
+                ContentUriHelper.SourceInfo(
+                    uri = Uri.parse("content://example/file"),
+                    displayName = "file.txt",
+                    mimeType = "text/plain",
+                    size = 1024,
+                    isAccessible = true,
+                )
             ),
-            operationDisplay = null,
-            onSave = {},
-            onOpenSaved = {},
-            onSaveAgain = {},
-            onFinishApp = {},
-            onRetry = {},
-        )
-    }
+        ),
+        operationDisplay = null,
+        onSave = {},
+        onOpenSaved = {},
+        onSaveAgain = {},
+        onFinishApp = {},
+        onRetry = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverActionAreaIdleDisabledPreview() {
-    PreviewWrapper {
-        SaverActionArea(
-            state = SaverWorkspaceViewModel.State(),
-            operationDisplay = null,
-            onSave = {},
-            onOpenSaved = {},
-            onSaveAgain = {},
-            onFinishApp = {},
-            onRetry = {},
-        )
-    }
+    SaverActionArea(
+        state = SaverWorkspaceViewModel.State(),
+        operationDisplay = null,
+        onSave = {},
+        onOpenSaved = {},
+        onSaveAgain = {},
+        onFinishApp = {},
+        onRetry = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverActionAreaSavingPreview() {
-    PreviewWrapper {
-        SaverActionArea(
-            state = SaverWorkspaceViewModel.State(
-                saveState = SaverWorkspace.SaveState.Saving(
-                    currentFile = 2,
-                    totalFiles = 5,
-                    currentFilename = "photo_003.jpg",
+    SaverActionArea(
+        state = SaverWorkspaceViewModel.State(
+            saveState = SaverWorkspace.SaveState.Saving(
+                currentFile = 2,
+                totalFiles = 5,
+                currentFilename = "photo_003.jpg",
+            ),
+        ),
+        operationDisplay = OperationDisplay(
+            id = Operation.Id(),
+            startedAt = Clock.System.now(),
+            icon = Icons.TwoTone.Save,
+            title = "Saving files".toCaString(),
+            description = "Saving to Downloads".toCaString(),
+            state = OperationDisplay.State.Running(
+                primaryProgress = Progress.Data(
+                    primary = "Saving files".toCaString(),
+                    secondary = "photo_003.jpg".toCaString(),
+                    count = Progress.Count.Counter(2, 5),
                 ),
             ),
-            operationDisplay = OperationDisplay(
-                id = Operation.Id(),
-                startedAt = Clock.System.now(),
-                icon = Icons.TwoTone.Save,
-                title = "Saving files".toCaString(),
-                description = "Saving to Downloads".toCaString(),
-                state = OperationDisplay.State.Running(
-                    primaryProgress = Progress.Data(
-                        primary = "Saving files".toCaString(),
-                        secondary = "photo_003.jpg".toCaString(),
-                        count = Progress.Count.Counter(2, 5),
-                    ),
-                ),
-            ),
-            onSave = {},
-            onOpenSaved = {},
-            onSaveAgain = {},
-            onFinishApp = {},
-            onRetry = {},
-        )
-    }
+        ),
+        onSave = {},
+        onOpenSaved = {},
+        onSaveAgain = {},
+        onFinishApp = {},
+        onRetry = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverActionAreaSuccessPreview() {
     val report = SaveFilesReport(
@@ -239,6 +239,7 @@ private fun SaverActionAreaSuccessPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverActionAreaBatchSuccessPreview() {
     val report = SaveFilesReport(
@@ -277,6 +278,7 @@ private fun SaverActionAreaBatchSuccessPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverActionAreaPartialSuccessPreview() {
     val report = SaveFilesReport(
@@ -319,41 +321,40 @@ private fun SaverActionAreaPartialSuccessPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverActionAreaErrorPreview() {
-    PreviewWrapper {
-        SaverActionArea(
-            state = SaverWorkspaceViewModel.State(
-                saveState = SaverWorkspace.SaveState.Error(SecurityException("Permission denied")),
-                destination = LocalPath.build("/sdcard/Download"),
-                filename = "file.txt",
-                sourceInfos = listOf(
-                    ContentUriHelper.SourceInfo(
-                        uri = Uri.parse("content://example/file"),
-                        displayName = "file.txt",
-                        mimeType = "text/plain",
-                        size = 1024,
-                        isAccessible = true,
-                    )
-                ),
+    SaverActionArea(
+        state = SaverWorkspaceViewModel.State(
+            saveState = SaverWorkspace.SaveState.Error(SecurityException("Permission denied")),
+            destination = LocalPath.build("/sdcard/Download"),
+            filename = "file.txt",
+            sourceInfos = listOf(
+                ContentUriHelper.SourceInfo(
+                    uri = Uri.parse("content://example/file"),
+                    displayName = "file.txt",
+                    mimeType = "text/plain",
+                    size = 1024,
+                    isAccessible = true,
+                )
             ),
-            operationDisplay = OperationDisplay(
-                id = Operation.Id(),
-                startedAt = Clock.System.now(),
-                icon = Icons.TwoTone.Save,
-                title = "Saving files".toCaString(),
-                description = "".toCaString(),
-                state = OperationDisplay.State.Failed(
-                    summary = "Permission denied".toCaString(),
-                    completedAt = Clock.System.now(),
-                    report = null,
-                ),
+        ),
+        operationDisplay = OperationDisplay(
+            id = Operation.Id(),
+            startedAt = Clock.System.now(),
+            icon = Icons.TwoTone.Save,
+            title = "Saving files".toCaString(),
+            description = "".toCaString(),
+            state = OperationDisplay.State.Failed(
+                summary = "Permission denied".toCaString(),
+                completedAt = Clock.System.now(),
+                report = null,
             ),
-            onSave = {},
-            onOpenSaved = {},
-            onSaveAgain = {},
-            onFinishApp = {},
-            onRetry = {},
-        )
-    }
+        ),
+        onSave = {},
+        onOpenSaved = {},
+        onSaveAgain = {},
+        onFinishApp = {},
+        onRetry = {},
+    )
 }

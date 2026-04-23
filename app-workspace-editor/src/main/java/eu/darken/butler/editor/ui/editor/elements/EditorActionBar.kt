@@ -2,6 +2,8 @@ package eu.darken.butler.editor.ui.editor.elements
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBar
@@ -22,8 +24,9 @@ fun EditorActionBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun EditorActionBarPreview() = PreviewWrapper {
+private fun EditorActionBarPreview() {
     EditorActionBar(
         actions = listOf(
             EditorActionBarItem.Cut,

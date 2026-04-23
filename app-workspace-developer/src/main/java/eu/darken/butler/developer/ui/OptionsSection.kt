@@ -22,8 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.developer.R
@@ -282,56 +284,54 @@ private fun Boolean?.toResultString(): String = when (this) {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OptionsSectionPreview() {
-    PreviewWrapper {
-        OptionsSection(
-            optionsState = OptionsState(
-                isDebugMode = false,
-                isTraceMode = false,
-                rootTestResult = null,
-                isRootTesting = false,
-                shizukuTestResult = null,
-                isShizukuTesting = false,
-                canHideDeveloperMode = false,
-            ),
-            onToggleDebugMode = {},
-            onToggleTraceMode = {},
-            onTestRoot = {},
-            onTestShizuku = {},
-            onHideDeveloperMode = {},
-        )
-    }
+    OptionsSection(
+        optionsState = OptionsState(
+            isDebugMode = false,
+            isTraceMode = false,
+            rootTestResult = null,
+            isRootTesting = false,
+            shizukuTestResult = null,
+            isShizukuTesting = false,
+            canHideDeveloperMode = false,
+        ),
+        onToggleDebugMode = {},
+        onToggleTraceMode = {},
+        onTestRoot = {},
+        onTestShizuku = {},
+        onHideDeveloperMode = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OptionsSectionWithResultsPreview() {
-    PreviewWrapper {
-        OptionsSection(
-            optionsState = OptionsState(
-                isDebugMode = true,
-                isTraceMode = true,
-                rootTestResult = RootTestResult(
-                    isInstalled = true,
-                    isRooted = true,
-                    baseCheck = "Magisk 26.1",
-                ),
-                isRootTesting = false,
-                shizukuTestResult = ShizukuTestResult(
-                    isInstalled = true,
-                    isGranted = false,
-                    isCompatible = true,
-                    isServiceAvailable = false,
-                ),
-                isShizukuTesting = false,
-                canHideDeveloperMode = true,
+    OptionsSection(
+        optionsState = OptionsState(
+            isDebugMode = true,
+            isTraceMode = true,
+            rootTestResult = RootTestResult(
+                isInstalled = true,
+                isRooted = true,
+                baseCheck = "Magisk 26.1",
             ),
-            onToggleDebugMode = {},
-            onToggleTraceMode = {},
-            onTestRoot = {},
-            onTestShizuku = {},
-            onHideDeveloperMode = {},
-        )
-    }
+            isRootTesting = false,
+            shizukuTestResult = ShizukuTestResult(
+                isInstalled = true,
+                isGranted = false,
+                isCompatible = true,
+                isServiceAvailable = false,
+            ),
+            isShizukuTesting = false,
+            canHideDeveloperMode = true,
+        ),
+        onToggleDebugMode = {},
+        onToggleTraceMode = {},
+        onTestRoot = {},
+        onTestShizuku = {},
+        onHideDeveloperMode = {},
+    )
 }

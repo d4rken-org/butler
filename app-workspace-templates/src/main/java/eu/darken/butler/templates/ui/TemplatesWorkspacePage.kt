@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,6 +47,7 @@ import eu.darken.butler.apps.ui.AppsWorkspaceTemplate
 import eu.darken.butler.common.Slogans
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.ColoredTitleText
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -366,24 +368,23 @@ private fun GradientFade(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TemplatesWorkspacePagePreview() {
-    PreviewWrapper {
-        val workspaceId = Workspace.Id()
-        TemplatesWorkspacePage(
-            workspaceId = workspaceId,
-            state = TemplatesWorkspaceViewModel.State(
-                id = workspaceId,
-                templates = listOf(
-                    ExplorerWorkspaceTemplate(),
-                    SearcherWorkspaceTemplate(),
-                    EditorWorkspaceTemplate(),
-                    AppsWorkspaceTemplate(),
-                ),
-                isUpgraded = true,
-                versionDescription = "1.0.0-preview",
+    val workspaceId = Workspace.Id()
+    TemplatesWorkspacePage(
+        workspaceId = workspaceId,
+        state = TemplatesWorkspaceViewModel.State(
+            id = workspaceId,
+            templates = listOf(
+                ExplorerWorkspaceTemplate(),
+                SearcherWorkspaceTemplate(),
+                EditorWorkspaceTemplate(),
+                AppsWorkspaceTemplate(),
             ),
-            onNavToSettings = {},
-        )
-    }
+            isUpgraded = true,
+            versionDescription = "1.0.0-preview",
+        ),
+        onNavToSettings = {},
+    )
 }

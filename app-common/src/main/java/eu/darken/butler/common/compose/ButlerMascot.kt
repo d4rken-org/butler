@@ -14,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.LottieComposition
 import com.airbnb.lottie.compose.LottieAnimation
@@ -23,6 +24,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import eu.darken.butler.common.Occasions
 import eu.darken.butler.common.R
 import eu.darken.butler.common.compose.ButlerMascotMode.*
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -345,66 +347,63 @@ sealed interface ButlerMascotMode {
 
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerMascotStaticPreview() {
-    PreviewWrapper {
-        Column {
-            ButlerMascot(
-                Modifier.size(96.dp),
-                variant = Static.Normal(hat = Hat.AUTO)
-            )
-            ButlerMascot(
-                Modifier.size(96.dp),
-                variant = Static.Happy(hat = Hat.NO_HAT)
-            )
-            ButlerMascot(
-                Modifier.size(96.dp),
-                variant = Static.Sad(hat = Hat.PARTY)
-            )
-            ButlerMascot(
-                Modifier.size(96.dp),
-                variant = Static.Ko(hat = Hat.XMAS)
-            )
-        }
+    Column {
+        ButlerMascot(
+            Modifier.size(96.dp),
+            variant = Static.Normal(hat = Hat.AUTO)
+        )
+        ButlerMascot(
+            Modifier.size(96.dp),
+            variant = Static.Happy(hat = Hat.NO_HAT)
+        )
+        ButlerMascot(
+            Modifier.size(96.dp),
+            variant = Static.Sad(hat = Hat.PARTY)
+        )
+        ButlerMascot(
+            Modifier.size(96.dp),
+            variant = Static.Ko(hat = Hat.XMAS)
+        )
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerMascotAnimatedPreview() {
-    PreviewWrapper {
-        ButlerMascot(Modifier.size(96.dp), variant = Animated.RandomCycling())
-        ButlerMascot(Modifier.size(96.dp), variant = Animated.Wink())
-        ButlerMascot(Modifier.size(96.dp), variant = Animated.Greeting())
-        ButlerMascot(Modifier.size(96.dp), variant = Animated.Drink())
-        ButlerMascot(Modifier.size(96.dp), variant = Animated.MoustacheStroke())
-        ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.EyesClose())
-        ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.Snoring())
-        ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.WakeUp())
-    }
+    ButlerMascot(Modifier.size(96.dp), variant = Animated.RandomCycling())
+    ButlerMascot(Modifier.size(96.dp), variant = Animated.Wink())
+    ButlerMascot(Modifier.size(96.dp), variant = Animated.Greeting())
+    ButlerMascot(Modifier.size(96.dp), variant = Animated.Drink())
+    ButlerMascot(Modifier.size(96.dp), variant = Animated.MoustacheStroke())
+    ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.EyesClose())
+    ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.Snoring())
+    ButlerMascot(Modifier.size(96.dp), variant = Animated.Sleep.WakeUp())
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerMascotOccasionHatsPreview() {
-    PreviewWrapper {
-        Column {
-            ButlerMascot(
-                Modifier.size(96.dp),
-                variant = Static.Normal(hat = Hat.HALLOWEEN),
-            )
-            ButlerMascot(
-                Modifier.size(96.dp),
-                variant = Static.Normal(hat = Hat.ST_PATRICKS),
-            )
-            ButlerMascot(
-                Modifier.size(96.dp),
-                variant = Static.Normal(hat = Hat.APRIL_FOOLS),
-            )
-            ButlerMascot(
-                Modifier.size(96.dp),
-                variant = Static.Normal(hat = Hat.OKTOBERFEST),
-            )
-        }
+    Column {
+        ButlerMascot(
+            Modifier.size(96.dp),
+            variant = Static.Normal(hat = Hat.HALLOWEEN),
+        )
+        ButlerMascot(
+            Modifier.size(96.dp),
+            variant = Static.Normal(hat = Hat.ST_PATRICKS),
+        )
+        ButlerMascot(
+            Modifier.size(96.dp),
+            variant = Static.Normal(hat = Hat.APRIL_FOOLS),
+        )
+        ButlerMascot(
+            Modifier.size(96.dp),
+            variant = Static.Normal(hat = Hat.OKTOBERFEST),
+        )
     }
 }

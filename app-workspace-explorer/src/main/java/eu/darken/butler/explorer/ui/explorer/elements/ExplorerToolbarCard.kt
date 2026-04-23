@@ -37,9 +37,11 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -383,25 +385,152 @@ private fun getPickerButtonText(
 
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ExplorerToolbarCardExpandedPreview() {
-    PreviewWrapper {
-        ExplorerToolbarCard(
-            workspaceId = Workspace.Id(),
-            breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
-            design = WorkspaceDesign(),
-            collapsedFraction = 0f,
-            onBreadcrumbClick = {},
-            onNavigateToPath = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
+    ExplorerToolbarCard(
+        workspaceId = Workspace.Id(),
+        breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
+        design = WorkspaceDesign(),
+        collapsedFraction = 0f,
+        onBreadcrumbClick = {},
+        onNavigateToPath = {},
+        modifier = Modifier.padding(16.dp),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ExplorerToolbarCardCollapsedPreview() {
-    PreviewWrapper {
+    ExplorerToolbarCard(
+        workspaceId = Workspace.Id(),
+        breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
+        design = WorkspaceDesign(),
+        collapsedFraction = 1f,
+        onBreadcrumbClick = {},
+        onNavigateToPath = {},
+        modifier = Modifier.padding(16.dp),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerToolbarCardLoadingPreview() {
+    ExplorerToolbarCard(
+        workspaceId = Workspace.Id(),
+        breadcrumbs = emptyList(),
+        design = WorkspaceDesign(),
+        collapsedFraction = 0f,
+        onBreadcrumbClick = {},
+        onNavigateToPath = {},
+        modifier = Modifier.padding(16.dp),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerToolbarCardPickerExpandedPreview() {
+    ExplorerToolbarCard(
+        workspaceId = Workspace.Id(),
+        breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
+        design = WorkspaceDesign(),
+        collapsedFraction = 0f,
+        onBreadcrumbClick = {},
+        onNavigateToPath = {},
+        pickerSelection = PickerConfig.Selection.DirectorySingle,
+        selectionCount = 0,
+        onCancel = {},
+        onConfirm = {},
+        modifier = Modifier.padding(16.dp),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerToolbarCardPickerCollapsedPreview() {
+    ExplorerToolbarCard(
+        workspaceId = Workspace.Id(),
+        breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
+        design = WorkspaceDesign(),
+        collapsedFraction = 1f,
+        onBreadcrumbClick = {},
+        onNavigateToPath = {},
+        pickerSelection = PickerConfig.Selection.DirectorySingle,
+        selectionCount = 0,
+        onCancel = {},
+        onConfirm = {},
+        modifier = Modifier.padding(16.dp),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerToolbarCardSaveAsExpandedPreview() {
+    ExplorerToolbarCard(
+        workspaceId = Workspace.Id(),
+        breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
+        design = WorkspaceDesign(),
+        collapsedFraction = 0f,
+        onBreadcrumbClick = {},
+        onNavigateToPath = {},
+        pickerSelection = PickerConfig.Selection.SaveAs(suggestedFilename = "shared_file.pdf"),
+        selectionCount = 0,
+        saveAsFilename = "shared_file.pdf",
+        onSaveAsFilenameChange = {},
+        onCancel = {},
+        onConfirm = {},
+        modifier = Modifier.padding(16.dp),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerToolbarCardSaveAsCollapsedPreview() {
+    ExplorerToolbarCard(
+        workspaceId = Workspace.Id(),
+        breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
+        design = WorkspaceDesign(),
+        collapsedFraction = 1f,
+        onBreadcrumbClick = {},
+        onNavigateToPath = {},
+        pickerSelection = PickerConfig.Selection.SaveAs(suggestedFilename = "shared_file.pdf"),
+        selectionCount = 0,
+        saveAsFilename = "shared_file.pdf",
+        onSaveAsFilenameChange = {},
+        onCancel = {},
+        onConfirm = {},
+        modifier = Modifier.padding(16.dp),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerToolbarCardExpandedRtlPreview() {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        ExplorerToolbarCard(
+            workspaceId = Workspace.Id(),
+            breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
+            design = WorkspaceDesign(),
+            collapsedFraction = 0f,
+            onBreadcrumbClick = {},
+            onNavigateToPath = {},
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerToolbarCardCollapsedRtlPreview() {
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         ExplorerToolbarCard(
             workspaceId = Workspace.Id(),
             breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
@@ -411,141 +540,5 @@ private fun ExplorerToolbarCardCollapsedPreview() {
             onNavigateToPath = {},
             modifier = Modifier.padding(16.dp),
         )
-    }
-}
-
-@Preview2
-@Composable
-private fun ExplorerToolbarCardLoadingPreview() {
-    PreviewWrapper {
-        ExplorerToolbarCard(
-            workspaceId = Workspace.Id(),
-            breadcrumbs = emptyList(),
-            design = WorkspaceDesign(),
-            collapsedFraction = 0f,
-            onBreadcrumbClick = {},
-            onNavigateToPath = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun ExplorerToolbarCardPickerExpandedPreview() {
-    PreviewWrapper {
-        ExplorerToolbarCard(
-            workspaceId = Workspace.Id(),
-            breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
-            design = WorkspaceDesign(),
-            collapsedFraction = 0f,
-            onBreadcrumbClick = {},
-            onNavigateToPath = {},
-            pickerSelection = PickerConfig.Selection.DirectorySingle,
-            selectionCount = 0,
-            onCancel = {},
-            onConfirm = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun ExplorerToolbarCardPickerCollapsedPreview() {
-    PreviewWrapper {
-        ExplorerToolbarCard(
-            workspaceId = Workspace.Id(),
-            breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
-            design = WorkspaceDesign(),
-            collapsedFraction = 1f,
-            onBreadcrumbClick = {},
-            onNavigateToPath = {},
-            pickerSelection = PickerConfig.Selection.DirectorySingle,
-            selectionCount = 0,
-            onCancel = {},
-            onConfirm = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun ExplorerToolbarCardSaveAsExpandedPreview() {
-    PreviewWrapper {
-        ExplorerToolbarCard(
-            workspaceId = Workspace.Id(),
-            breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
-            design = WorkspaceDesign(),
-            collapsedFraction = 0f,
-            onBreadcrumbClick = {},
-            onNavigateToPath = {},
-            pickerSelection = PickerConfig.Selection.SaveAs(suggestedFilename = "shared_file.pdf"),
-            selectionCount = 0,
-            saveAsFilename = "shared_file.pdf",
-            onSaveAsFilenameChange = {},
-            onCancel = {},
-            onConfirm = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun ExplorerToolbarCardSaveAsCollapsedPreview() {
-    PreviewWrapper {
-        ExplorerToolbarCard(
-            workspaceId = Workspace.Id(),
-            breadcrumbs = MockDataProvider.createDownloadBreadcrumbs(),
-            design = WorkspaceDesign(),
-            collapsedFraction = 1f,
-            onBreadcrumbClick = {},
-            onNavigateToPath = {},
-            pickerSelection = PickerConfig.Selection.SaveAs(suggestedFilename = "shared_file.pdf"),
-            selectionCount = 0,
-            saveAsFilename = "shared_file.pdf",
-            onSaveAsFilenameChange = {},
-            onCancel = {},
-            onConfirm = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun ExplorerToolbarCardExpandedRtlPreview() {
-    PreviewWrapper {
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-            ExplorerToolbarCard(
-                workspaceId = Workspace.Id(),
-                breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
-                design = WorkspaceDesign(),
-                collapsedFraction = 0f,
-                onBreadcrumbClick = {},
-                onNavigateToPath = {},
-                modifier = Modifier.padding(16.dp),
-            )
-        }
-    }
-}
-
-@Preview2
-@Composable
-private fun ExplorerToolbarCardCollapsedRtlPreview() {
-    PreviewWrapper {
-        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-            ExplorerToolbarCard(
-                workspaceId = Workspace.Id(),
-                breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
-                design = WorkspaceDesign(),
-                collapsedFraction = 1f,
-                onBreadcrumbClick = {},
-                onNavigateToPath = {},
-                modifier = Modifier.padding(16.dp),
-            )
-        }
     }
 }

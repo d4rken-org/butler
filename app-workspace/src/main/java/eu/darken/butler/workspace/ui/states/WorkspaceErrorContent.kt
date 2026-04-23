@@ -43,9 +43,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode.*
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -251,32 +253,30 @@ fun WorkspaceErrorContent(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceErrorContentPreview() {
-    PreviewWrapper {
-        CompositionLocalProvider(
-            LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider()
-        ) {
-            WorkspaceErrorContent(
-                error = IOException("Failed to initialize workspace: Permission denied"),
-                onShareError = {},
-                onCloseWorkspace = {},
-            )
-        }
+    CompositionLocalProvider(
+        LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider()
+    ) {
+        WorkspaceErrorContent(
+            error = IOException("Failed to initialize workspace: Permission denied"),
+            onShareError = {},
+            onCloseWorkspace = {},
+        )
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceErrorContentNoClosePreview() {
-    PreviewWrapper {
-        CompositionLocalProvider(
-            LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider()
-        ) {
-            WorkspaceErrorContent(
-                error = RuntimeException("Unexpected initialization error"),
-                onShareError = {},
-            )
-        }
+    CompositionLocalProvider(
+        LocalWorkspaceButtonProvider provides FakeWorkspaceButtonProvider()
+    ) {
+        WorkspaceErrorContent(
+            error = RuntimeException("Unexpected initialization error"),
+            onShareError = {},
+        )
     }
 }

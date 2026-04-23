@@ -32,8 +32,10 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.core.engine.SearchResult
@@ -504,41 +506,39 @@ internal fun SelectableText(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TextLineItemPreview() {
-    PreviewWrapper {
-        TextLineItem(
-            lineIndex = 0,
-            lineContent = "fun calculateSum(a: Int, b: Int): Int {",
-            cursorPosition = TextPosition(offset = 15, line = 0, column = 15),
-            selection = null,
-            isCurrentLine = true,
-            isFocused = true,
-            wordWrap = false,
-            fontSize = 14,
-            tabSize = 4,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
+    TextLineItem(
+        lineIndex = 0,
+        lineContent = "fun calculateSum(a: Int, b: Int): Int {",
+        cursorPosition = TextPosition(offset = 15, line = 0, column = 15),
+        selection = null,
+        isCurrentLine = true,
+        isFocused = true,
+        wordWrap = false,
+        fontSize = 14,
+        tabSize = 4,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SelectableTextPreview() {
-    PreviewWrapper {
-        SelectableText(
-            text = "fun calculateSum(a: Int, b: Int): Int {",
-            lineIndex = 0,
-            cursorPosition = TextPosition(offset = 15, line = 0, column = 15),
-            selection = TextPosition(offset = 4, line = 0, column = 4) to TextPosition(
-                offset = 16,
-                line = 0,
-                column = 16
-            ),
-            wordWrap = false,
-            fontSize = 14,
-            onTextLayout = {},
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
+    SelectableText(
+        text = "fun calculateSum(a: Int, b: Int): Int {",
+        lineIndex = 0,
+        cursorPosition = TextPosition(offset = 15, line = 0, column = 15),
+        selection = TextPosition(offset = 4, line = 0, column = 4) to TextPosition(
+            offset = 16,
+            line = 0,
+            column = 16
+        ),
+        wordWrap = false,
+        fontSize = 14,
+        onTextLayout = {},
+        modifier = Modifier.fillMaxWidth()
+    )
 }

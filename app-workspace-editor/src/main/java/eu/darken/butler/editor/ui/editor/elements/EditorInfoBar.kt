@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
@@ -74,37 +76,34 @@ fun EditorInfoBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorInfoBarWithFilePreview() {
-    PreviewWrapper {
-        EditorInfoBar(
-            fileSize = 1024L * 512L,
-            totalLines = 42,
-            cursorLine = 10,
-            cursorColumn = 5,
-        )
-    }
+    EditorInfoBar(
+        fileSize = 1024L * 512L,
+        totalLines = 42,
+        cursorLine = 10,
+        cursorColumn = 5,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorInfoBarWithSelectionPreview() {
-    PreviewWrapper {
-        EditorInfoBar(
-            fileSize = 1024L * 512L,
-            totalLines = 42,
-            cursorLine = 10,
-            cursorColumn = 5,
-            selectedLineCount = 10,
-            selectedCharacterCount = 150,
-        )
-    }
+    EditorInfoBar(
+        fileSize = 1024L * 512L,
+        totalLines = 42,
+        cursorLine = 10,
+        cursorColumn = 5,
+        selectedLineCount = 10,
+        selectedCharacterCount = 150,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorInfoBarNoFilePreview() {
-    PreviewWrapper {
-        EditorInfoBar()
-    }
+    EditorInfoBar()
 }

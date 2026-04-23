@@ -28,8 +28,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -266,19 +268,18 @@ private fun CacheSizeSelectionDialog(
 private fun getString(resId: Int): String = stringResource(resId)
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PreviewsSettingsScreenPreview() {
-    PreviewWrapper {
-        PreviewsSettingsScreen(
-            state = PreviewsSettingsViewModel.State(
-                previewDiskCacheSize = 125_300_100,
-                previewMemoryCacheSize = 45_200_000,
-            ),
-            onNavigateUp = {},
-            onClearDiskCache = {},
-            onClearMemoryCache = {},
-            onClearAllCaches = {},
-            onRefreshStats = {},
-        )
-    }
+    PreviewsSettingsScreen(
+        state = PreviewsSettingsViewModel.State(
+            previewDiskCacheSize = 125_300_100,
+            previewMemoryCacheSize = 45_200_000,
+        ),
+        onNavigateUp = {},
+        onClearDiskCache = {},
+        onClearMemoryCache = {},
+        onClearAllCaches = {},
+        onRefreshStats = {},
+    )
 }

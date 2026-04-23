@@ -31,7 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -223,25 +225,24 @@ fun SearcherSettingsScreen(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearcherSettingsScreenPreview() {
-    PreviewWrapper {
-        SearcherSettingsScreen(
-            state = SearcherSettingsViewModel.State(
-                maxSearchResults = 1000,
-                maxHistoryItems = 15,
-                saveHistory = true,
-                contentSearchBinaries = false,
-                currentHistoryCount = 7
-            ),
-            onNavigateUp = {},
-            onMaxSearchResultsChange = {},
-            onMaxHistoryItemsChange = {},
-            onSaveHistoryChange = {},
-            onContentSearchBinariesChange = {},
-            onClearSearchHistory = {},
-        )
-    }
+    SearcherSettingsScreen(
+        state = SearcherSettingsViewModel.State(
+            maxSearchResults = 1000,
+            maxHistoryItems = 15,
+            saveHistory = true,
+            contentSearchBinaries = false,
+            currentHistoryCount = 7
+        ),
+        onNavigateUp = {},
+        onMaxSearchResultsChange = {},
+        onMaxHistoryItemsChange = {},
+        onSaveHistoryChange = {},
+        onContentSearchBinariesChange = {},
+        onClearSearchHistory = {},
+    )
 }
 
 @Composable

@@ -29,7 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.theming.onScrim
@@ -186,6 +188,7 @@ fun SelectableFileGrid(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SelectableFileGridPreview() {
     val searchResult = SearcherMockDataProvider.createMockTextFile(
@@ -205,6 +208,7 @@ private fun SelectableFileGridPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SelectableFileGridSelectedPreview() {
     val searchResult = SearcherMockDataProvider.createMockTextFile(
@@ -224,6 +228,7 @@ private fun SelectableFileGridSelectedPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SelectableFileGridDirectoryPreview() {
     val searchResult = SearcherMockDataProvider.createMockDirectory(

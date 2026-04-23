@@ -29,10 +29,12 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 
 enum class ButlerChipSize(val height: Dp, val fontSize: TextUnit, val iconSize: Dp) {
     Mini(16.dp, 8.sp, 10.dp),
@@ -182,147 +184,135 @@ fun ButlerChip(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipDefaultPreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "Default Chip",
-            onClick = {},
-        )
-    }
+    ButlerChip(
+        label = "Default Chip",
+        onClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipWithLeadingIconPreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "42 items",
-            leadingIcon = Icons.TwoTone.Folder,
-            onClick = {},
-        )
-    }
+    ButlerChip(
+        label = "42 items",
+        leadingIcon = Icons.TwoTone.Folder,
+        onClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipRemovablePreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "System",
-            onRemove = {},
-        )
-    }
+    ButlerChip(
+        label = "System",
+        onRemove = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipSelectedPreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "Enabled",
-            selected = true,
-            onClick = {},
-        )
-    }
+    ButlerChip(
+        label = "Enabled",
+        selected = true,
+        onClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipAddActionPreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "Filter",
-            leadingIcon = Icons.TwoTone.Add,
-            onClick = {},
-        )
-    }
+    ButlerChip(
+        label = "Filter",
+        leadingIcon = Icons.TwoTone.Add,
+        onClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipCompactPreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "Debug",
-            size = ButlerChipSize.Compact,
-            colors = ButlerChipDefaults.accentedColors(),
-        )
-    }
+    ButlerChip(
+        label = "Debug",
+        size = ButlerChipSize.Compact,
+        colors = ButlerChipDefaults.accentedColors(),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipLargePreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "Large Chip",
-            leadingIcon = Icons.TwoTone.Star,
-            size = ButlerChipSize.Large,
-            onClick = {},
-        )
-    }
+    ButlerChip(
+        label = "Large Chip",
+        leadingIcon = Icons.TwoTone.Star,
+        size = ButlerChipSize.Large,
+        onClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipErrorPreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "Excluded",
-            strikethrough = true,
-            onRemove = {},
-            colors = ButlerChipDefaults.errorColors(),
-        )
-    }
+    ButlerChip(
+        label = "Excluded",
+        strikethrough = true,
+        onRemove = {},
+        colors = ButlerChipDefaults.errorColors(),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipDisabledPreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "Disabled",
-            enabled = false,
-            onClick = {},
-        )
-    }
+    ButlerChip(
+        label = "Disabled",
+        enabled = false,
+        onClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipRemovableWithIconPreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "Category",
-            leadingIcon = Icons.TwoTone.Folder,
-            onRemove = {},
-            colors = ButlerChipDefaults.accentedColors(),
-        )
-    }
+    ButlerChip(
+        label = "Category",
+        leadingIcon = Icons.TwoTone.Folder,
+        onRemove = {},
+        colors = ButlerChipDefaults.accentedColors(),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipMiniPreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "System",
-            size = ButlerChipSize.Mini,
-            colors = ButlerChipDefaults.accentedColors(),
-        )
-    }
+    ButlerChip(
+        label = "System",
+        size = ButlerChipSize.Mini,
+        colors = ButlerChipDefaults.accentedColors(),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ButlerChipHighlightPreview() {
-    PreviewWrapper {
-        ButlerChip(
-            label = "3 selected",
-            leadingIcon = Icons.TwoTone.Star,
-            colors = ButlerChipDefaults.highlightColors(),
-            onClick = {},
-        )
-    }
+    ButlerChip(
+        label = "3 selected",
+        leadingIcon = Icons.TwoTone.Star,
+        colors = ButlerChipDefaults.highlightColors(),
+        onClick = {},
+    )
 }

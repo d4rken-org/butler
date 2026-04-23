@@ -29,9 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -302,106 +304,101 @@ fun EditorToolbarCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorToolbarCardPreview() {
-    PreviewWrapper {
-        EditorToolbarCard(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            title = "example.txt".toCaString(),
-            subTitle = "/storage/emulated/0/Documents".toCaString(),
-            isModified = true,
-            progress = null,
-            hasContent = true,
-            canUndo = true,
-            canRedo = false,
-            onAction = {},
-        )
-    }
+    EditorToolbarCard(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        title = "example.txt".toCaString(),
+        subTitle = "/storage/emulated/0/Documents".toCaString(),
+        isModified = true,
+        progress = null,
+        hasContent = true,
+        canUndo = true,
+        canRedo = false,
+        onAction = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorToolbarCardCollapsedPreview() {
-    PreviewWrapper {
-        EditorToolbarCard(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            title = "example.txt".toCaString(),
-            subTitle = "/storage/emulated/0/Documents".toCaString(),
-            isModified = true,
-            progress = null,
-            hasContent = true,
-            canUndo = true,
-            canRedo = false,
-            onAction = {},
-            collapsedFraction = 1f,
-        )
-    }
+    EditorToolbarCard(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        title = "example.txt".toCaString(),
+        subTitle = "/storage/emulated/0/Documents".toCaString(),
+        isModified = true,
+        progress = null,
+        hasContent = true,
+        canUndo = true,
+        canRedo = false,
+        onAction = {},
+        collapsedFraction = 1f,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorToolbarCardLoadingPreview() {
-    PreviewWrapper {
-        EditorToolbarCard(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            title = "example.txt".toCaString(),
-            subTitle = "/storage/emulated/0/Documents".toCaString(),
-            isModified = false,
-            progress = Progress.Data(
-                primary = R.string.editor_progress_opening.toCaString(),
-                secondary = "Processing chunk 5 of 20".toCaString(),
-                count = Progress.Count.Counter(5, 20),
-            ),
-            hasContent = false,
-            canUndo = false,
-            canRedo = false,
-            onAction = {},
-        )
-    }
+    EditorToolbarCard(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        title = "example.txt".toCaString(),
+        subTitle = "/storage/emulated/0/Documents".toCaString(),
+        isModified = false,
+        progress = Progress.Data(
+            primary = R.string.editor_progress_opening.toCaString(),
+            secondary = "Processing chunk 5 of 20".toCaString(),
+            count = Progress.Count.Counter(5, 20),
+        ),
+        hasContent = false,
+        canUndo = false,
+        canRedo = false,
+        onAction = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorToolbarCardLoadingCollapsedPreview() {
-    PreviewWrapper {
-        EditorToolbarCard(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            title = "example.txt".toCaString(),
-            subTitle = "/storage/emulated/0/Documents".toCaString(),
-            isModified = false,
-            progress = Progress.Data(
-                primary = R.string.editor_progress_opening.toCaString(),
-                secondary = "Processing chunk 5 of 20".toCaString(),
-                count = Progress.Count.Counter(5, 20),
-            ),
-            hasContent = false,
-            canUndo = false,
-            canRedo = false,
-            onAction = {},
-            collapsedFraction = 1f,
-        )
-    }
+    EditorToolbarCard(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        title = "example.txt".toCaString(),
+        subTitle = "/storage/emulated/0/Documents".toCaString(),
+        isModified = false,
+        progress = Progress.Data(
+            primary = R.string.editor_progress_opening.toCaString(),
+            secondary = "Processing chunk 5 of 20".toCaString(),
+            count = Progress.Count.Counter(5, 20),
+        ),
+        hasContent = false,
+        canUndo = false,
+        canRedo = false,
+        onAction = {},
+        collapsedFraction = 1f,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorToolbarCardMultiPanePreview() {
-    PreviewWrapper {
-        EditorToolbarCard(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
-            title = "example.txt".toCaString(),
-            subTitle = "/storage/emulated/0/Documents".toCaString(),
-            isModified = true,
-            progress = null,
-            hasContent = true,
-            canUndo = true,
-            canRedo = false,
-            onAction = {},
-        )
-    }
+    EditorToolbarCard(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(layout = WorkspaceDesign.Layout.DUAL_VERTICAL),
+        title = "example.txt".toCaString(),
+        subTitle = "/storage/emulated/0/Documents".toCaString(),
+        isModified = true,
+        progress = null,
+        hasContent = true,
+        canUndo = true,
+        canRedo = false,
+        onAction = {},
+    )
 }

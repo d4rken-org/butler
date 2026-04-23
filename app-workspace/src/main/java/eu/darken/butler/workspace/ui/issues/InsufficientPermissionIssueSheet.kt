@@ -27,7 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -163,22 +165,21 @@ fun InsufficientPermissionIssueSheet(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun InsufficientPermissionConflictSheetPreview() {
-    PreviewWrapper {
-        InsufficientPermissionIssueSheet(
-            issue = PathActionIssue.InsufficientPermission(
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
-                    fileType = FileType.FILE,
-                    size = 1024 * 1024 * 5, // 5MB
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
-                    target = null,
-                ),
-                destinationPath = LocalPath.build("/system/protected/document.pdf"),
-                canSkip = true,
+    InsufficientPermissionIssueSheet(
+        issue = PathActionIssue.InsufficientPermission(
+            source = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
+                fileType = FileType.FILE,
+                size = 1024 * 1024 * 5, // 5MB
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000), // 1 hour ago
+                target = null,
             ),
-            onResolution = {},
-        )
-    }
+            destinationPath = LocalPath.build("/system/protected/document.pdf"),
+            canSkip = true,
+        ),
+        onResolution = {},
+    )
 }

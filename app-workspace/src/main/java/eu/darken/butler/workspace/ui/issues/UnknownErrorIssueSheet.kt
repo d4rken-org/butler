@@ -41,7 +41,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -294,64 +296,61 @@ fun UnknownErrorIssueSheet(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun UnknownErrorIssueSheetIOErrorPreview() {
-    PreviewWrapper {
-        UnknownErrorIssueSheet(
-            issue = PathActionIssue.UnknownError(
-                exception = IOException("Failed to read file: corrupted_file.pdf"),
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/corrupted_file.pdf"),
-                    fileType = FileType.FILE,
-                    size = 1 * 1024 * 1024,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
-                    target = null,
-                ),
-                destinationPath = LocalPath.build("/storage/emulated/0/Backup/corrupted_file.pdf"),
-                canRetry = true,
-                canSkip = true,
+    UnknownErrorIssueSheet(
+        issue = PathActionIssue.UnknownError(
+            exception = IOException("Failed to read file: corrupted_file.pdf"),
+            source = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/corrupted_file.pdf"),
+                fileType = FileType.FILE,
+                size = 1 * 1024 * 1024,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+                target = null,
             ),
-            onResolution = {},
-        )
-    }
+            destinationPath = LocalPath.build("/storage/emulated/0/Backup/corrupted_file.pdf"),
+            canRetry = true,
+            canSkip = true,
+        ),
+        onResolution = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun UnknownErrorIssueSheetSecurityErrorPreview() {
-    PreviewWrapper {
-        UnknownErrorIssueSheet(
-            issue = PathActionIssue.UnknownError(
-                exception = SecurityException("Access denied: /data/data/com.example.app/files/sensitive.dat"),
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/data/data/com.example.app/files/sensitive.dat"),
-                    fileType = FileType.FILE,
-                    size = 256 * 1024,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
-                    target = null,
-                ),
-                destinationPath = null,
-                canRetry = false,
-                canSkip = true,
+    UnknownErrorIssueSheet(
+        issue = PathActionIssue.UnknownError(
+            exception = SecurityException("Access denied: /data/data/com.example.app/files/sensitive.dat"),
+            source = LocalPathLookup(
+                lookedUp = LocalPath.build("/data/data/com.example.app/files/sensitive.dat"),
+                fileType = FileType.FILE,
+                size = 256 * 1024,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+                target = null,
             ),
-            onResolution = {},
-        )
-    }
+            destinationPath = null,
+            canRetry = false,
+            canSkip = true,
+        ),
+        onResolution = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun UnknownErrorIssueSheetUnknownErrorPreview() {
-    PreviewWrapper {
-        UnknownErrorIssueSheet(
-            issue = PathActionIssue.UnknownError(
-                exception = RuntimeException("Unknown error occurred during operation"),
-                source = null,
-                destinationPath = null,
-                canRetry = true,
-                canSkip = true,
-            ),
-            onResolution = {},
-        )
-    }
+    UnknownErrorIssueSheet(
+        issue = PathActionIssue.UnknownError(
+            exception = RuntimeException("Unknown error occurred during operation"),
+            source = null,
+            destinationPath = null,
+            canRetry = true,
+            canSkip = true,
+        ),
+        onResolution = {},
+    )
 }

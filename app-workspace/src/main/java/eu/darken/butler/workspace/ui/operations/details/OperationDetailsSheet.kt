@@ -24,9 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -210,141 +212,137 @@ private fun createMockReport(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationDetailsSheetRunningPreview() {
-    PreviewWrapper {
-        OperationDetailsSheet(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Deleting files".toCaString(),
-                description = "Removing selected items".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Running(
-                    primaryProgress = Progress.Data(
-                        primary = "Deleting selected items".toCaString(),
-                        secondary = "Processing folder contents".toCaString(),
-                        count = Progress.Count.Counter(3, 5)
-                    ),
-                    secondaryProgress = Progress.Data(
-                        primary = "Items in Documents folder".toCaString(),
-                        secondary = "/storage/emulated/0/Documents/report.pdf".toCaString(),
-                        count = Progress.Count.Counter(12, 45)
-                    )
+    OperationDetailsSheet(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Deleting files".toCaString(),
+            description = "Removing selected items".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Running(
+                primaryProgress = Progress.Data(
+                    primary = "Deleting selected items".toCaString(),
+                    secondary = "Processing folder contents".toCaString(),
+                    count = Progress.Count.Counter(3, 5)
                 ),
-                startedAt = Clock.System.now() - 2.minutes,
+                secondaryProgress = Progress.Data(
+                    primary = "Items in Documents folder".toCaString(),
+                    secondary = "/storage/emulated/0/Documents/report.pdf".toCaString(),
+                    count = Progress.Count.Counter(12, 45)
+                )
             ),
-            onDismiss = {},
-            onCancel = {},
-        )
-    }
+            startedAt = Clock.System.now() - 2.minutes,
+        ),
+        onDismiss = {},
+        onCancel = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationDetailsSheetFailedPreview() {
-    PreviewWrapper {
-        OperationDetailsSheet(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Copy operation".toCaString(),
-                description = "Failed to copy files".toCaString(),
-                icon = Icons.TwoTone.ContentCopy,
-                state = OperationDisplay.State.Failed(
-                    summary = "Insufficient space".toCaString(),
-                    completedAt = Clock.System.now(),
-                    report = createMockReport()
-                ),
-                startedAt = Clock.System.now() - 5.minutes,
+    OperationDetailsSheet(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Copy operation".toCaString(),
+            description = "Failed to copy files".toCaString(),
+            icon = Icons.TwoTone.ContentCopy,
+            state = OperationDisplay.State.Failed(
+                summary = "Insufficient space".toCaString(),
+                completedAt = Clock.System.now(),
+                report = createMockReport()
             ),
-            onDismiss = {},
-            onShareError = {},
-        )
-    }
+            startedAt = Clock.System.now() - 5.minutes,
+        ),
+        onDismiss = {},
+        onShareError = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationDetailsSheetWaitingPreview() {
-    PreviewWrapper {
-        OperationDetailsSheet(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Copy operation".toCaString(),
-                description = "Copying files to destination".toCaString(),
-                icon = Icons.TwoTone.ContentCopy,
-                state = OperationDisplay.State.Waiting(
-                    reason = "File already exists".toCaString(),
-                ),
-                startedAt = Clock.System.now() - 1.minutes,
+    OperationDetailsSheet(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Copy operation".toCaString(),
+            description = "Copying files to destination".toCaString(),
+            icon = Icons.TwoTone.ContentCopy,
+            state = OperationDisplay.State.Waiting(
+                reason = "File already exists".toCaString(),
             ),
-            onDismiss = {},
-            onHandleIssue = {},
-        )
-    }
+            startedAt = Clock.System.now() - 1.minutes,
+        ),
+        onDismiss = {},
+        onHandleIssue = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationDetailsSheetCompletedWithFilesPreview() {
-    PreviewWrapper {
-        OperationDetailsSheet(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Delete operation".toCaString(),
-                description = "Completed successfully".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Completed(
-                    summary = "Successfully deleted 15 items".toCaString(),
-                    completedAt = Clock.System.now(),
-                    report = createMockReport(
-                        affectedPaths = listOf(
-                            Operation.Report.PathChange(
-                                path = LocalPath.build("/home", "user", "documents", "file1.txt"),
-                                change = Operation.Report.PathChange.Change.REMOVED
+    OperationDetailsSheet(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Delete operation".toCaString(),
+            description = "Completed successfully".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Completed(
+                summary = "Successfully deleted 15 items".toCaString(),
+                completedAt = Clock.System.now(),
+                report = createMockReport(
+                    affectedPaths = listOf(
+                        Operation.Report.PathChange(
+                            path = LocalPath.build("/home", "user", "documents", "file1.txt"),
+                            change = Operation.Report.PathChange.Change.REMOVED
+                        ),
+                        Operation.Report.PathChange(
+                            path = LocalPath.build("/home", "user", "documents", "file2.pdf"),
+                            change = Operation.Report.PathChange.Change.REMOVED
+                        ),
+                        Operation.Report.PathChange(
+                            path = LocalPath.build("/home", "user", "downloads", "temp"),
+                            change = Operation.Report.PathChange.Change.REMOVED
+                        ),
+                        Operation.Report.PathChange(
+                            path = LocalPath.build("/home", "user", "backup", "copy1.txt"),
+                            change = Operation.Report.PathChange.Change.ADDED
+                        ),
+                        Operation.Report.PathChange(
+                            path = LocalPath.build("/home", "user", "config.xml"),
+                            change = Operation.Report.PathChange.Change.MODIFIED
+                        ),
+                        Operation.Report.PathChange(
+                            path = LocalPath.build("/home", "user", "old", "archive.zip"),
+                            change = Operation.Report.PathChange.Change.REMOVED
+                        ),
+                        Operation.Report.PathChange(
+                            path = LocalPath.build(
+                                "/storage",
+                                "emulated",
+                                "0",
+                                "Android",
+                                "data",
+                                "com.example.app",
+                                "cache",
+                                "temp.log"
                             ),
-                            Operation.Report.PathChange(
-                                path = LocalPath.build("/home", "user", "documents", "file2.pdf"),
-                                change = Operation.Report.PathChange.Change.REMOVED
-                            ),
-                            Operation.Report.PathChange(
-                                path = LocalPath.build("/home", "user", "downloads", "temp"),
-                                change = Operation.Report.PathChange.Change.REMOVED
-                            ),
-                            Operation.Report.PathChange(
-                                path = LocalPath.build("/home", "user", "backup", "copy1.txt"),
-                                change = Operation.Report.PathChange.Change.ADDED
-                            ),
-                            Operation.Report.PathChange(
-                                path = LocalPath.build("/home", "user", "config.xml"),
-                                change = Operation.Report.PathChange.Change.MODIFIED
-                            ),
-                            Operation.Report.PathChange(
-                                path = LocalPath.build("/home", "user", "old", "archive.zip"),
-                                change = Operation.Report.PathChange.Change.REMOVED
-                            ),
-                            Operation.Report.PathChange(
-                                path = LocalPath.build(
-                                    "/storage",
-                                    "emulated",
-                                    "0",
-                                    "Android",
-                                    "data",
-                                    "com.example.app",
-                                    "cache",
-                                    "temp.log"
-                                ),
-                                change = Operation.Report.PathChange.Change.REMOVED
-                            ),
-                            Operation.Report.PathChange(
-                                path = LocalPath.build("/sdcard", "Pictures", "Screenshots", "screenshot_1.png"),
-                                change = Operation.Report.PathChange.Change.REMOVED
-                            ),
-                        )
+                            change = Operation.Report.PathChange.Change.REMOVED
+                        ),
+                        Operation.Report.PathChange(
+                            path = LocalPath.build("/sdcard", "Pictures", "Screenshots", "screenshot_1.png"),
+                            change = Operation.Report.PathChange.Change.REMOVED
+                        ),
                     )
-                ),
-                startedAt = Clock.System.now() - 3.minutes,
+                )
             ),
-            onDismiss = {},
-        )
-    }
+            startedAt = Clock.System.now() - 3.minutes,
+        ),
+        onDismiss = {},
+    )
 }

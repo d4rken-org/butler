@@ -18,7 +18,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
@@ -64,21 +66,19 @@ internal fun PeekGrid(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PeekGridPreview() {
-    PreviewWrapper {
-        PeekGrid(
-            item = MockDataProvider.createMockPeek()
-        )
-    }
+    PeekGrid(
+        item = MockDataProvider.createMockPeek()
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PeekGridSelectedPreview() {
-    PreviewWrapper {
-        PeekGrid(
-            item = MockDataProvider.createMockPeek("loading.txt")
-        )
-    }
+    PeekGrid(
+        item = MockDataProvider.createMockPeek("loading.txt")
+    )
 }

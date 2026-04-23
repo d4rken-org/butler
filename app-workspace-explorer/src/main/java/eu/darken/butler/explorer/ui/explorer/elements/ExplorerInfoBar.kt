@@ -17,7 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
@@ -281,16 +283,18 @@ fun ExplorerInfoBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun ExplorerInfoBarDirectoryPreview() = PreviewWrapper {
+private fun ExplorerInfoBarDirectoryPreview() {
     ExplorerInfoBar(
         info = MockDataProvider.createMockDirectoryInfo(fileCount = 42, directoryCount = 7),
     )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun ExplorerInfoBarWithSelectionPreview() = PreviewWrapper {
+private fun ExplorerInfoBarWithSelectionPreview() {
     ExplorerInfoBar(
         info = MockDataProvider.createMockDirectoryInfo(fileCount = 42, directoryCount = 7),
         selectedCount = 3,
@@ -299,26 +303,30 @@ private fun ExplorerInfoBarWithSelectionPreview() = PreviewWrapper {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun ExplorerInfoBarEmptyFolderPreview() = PreviewWrapper {
+private fun ExplorerInfoBarEmptyFolderPreview() {
     ExplorerInfoBar(info = MockDataProvider.createMockEmptyDirectoryInfo())
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun ExplorerInfoBarHomePreview() = PreviewWrapper {
+private fun ExplorerInfoBarHomePreview() {
     ExplorerInfoBar(info = MockDataProvider.createMockHomeInfo())
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun ExplorerInfoBarDevicePreview() = PreviewWrapper {
+private fun ExplorerInfoBarDevicePreview() {
     ExplorerInfoBar(info = MockDataProvider.createMockDeviceInfo())
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun ExplorerInfoBarLoadingWithCountPreview() = PreviewWrapper {
+private fun ExplorerInfoBarLoadingWithCountPreview() {
     ExplorerInfoBar(
         info = null,
         progress = MockDataProvider.createMockProgress(secondary = "Loading folder content", current = 42, total = 150),
@@ -326,8 +334,9 @@ private fun ExplorerInfoBarLoadingWithCountPreview() = PreviewWrapper {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun ExplorerInfoBarLoadingIndeterminatePreview() = PreviewWrapper {
+private fun ExplorerInfoBarLoadingIndeterminatePreview() {
     ExplorerInfoBar(
         info = null,
         progress = MockDataProvider.createMockIndeterminateProgress(secondary = "Checking permissions"),

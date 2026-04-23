@@ -42,7 +42,9 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
@@ -266,101 +268,97 @@ fun EditorSearchBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorSearchBarEmptyPreview() {
-    PreviewWrapper {
-        EditorSearchBar(
-            searchQuery = TextFieldValue(""),
-            searchResults = emptyList(),
-            currentIndex = 0,
-            caseSensitive = false,
-            regexEnabled = false,
-            wholeWord = false,
-            onSearchQueryChange = {},
-            onCaseSensitiveToggle = {},
-            onRegexToggle = {},
-            onWholeWordToggle = {},
-            onPrevious = {},
-            onNext = {},
-            onClose = {},
-        )
-    }
+    EditorSearchBar(
+        searchQuery = TextFieldValue(""),
+        searchResults = emptyList(),
+        currentIndex = 0,
+        caseSensitive = false,
+        regexEnabled = false,
+        wholeWord = false,
+        onSearchQueryChange = {},
+        onCaseSensitiveToggle = {},
+        onRegexToggle = {},
+        onWholeWordToggle = {},
+        onPrevious = {},
+        onNext = {},
+        onClose = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorSearchBarWithQueryPreview() {
-    PreviewWrapper {
-        EditorSearchBar(
-            searchQuery = TextFieldValue("test"),
-            searchResults = emptyList(),
-            currentIndex = 0,
-            caseSensitive = false,
-            regexEnabled = false,
-            wholeWord = false,
-            onSearchQueryChange = {},
-            onCaseSensitiveToggle = {},
-            onRegexToggle = {},
-            onWholeWordToggle = {},
-            onPrevious = {},
-            onNext = {},
-            onClose = {},
-        )
-    }
+    EditorSearchBar(
+        searchQuery = TextFieldValue("test"),
+        searchResults = emptyList(),
+        currentIndex = 0,
+        caseSensitive = false,
+        regexEnabled = false,
+        wholeWord = false,
+        onSearchQueryChange = {},
+        onCaseSensitiveToggle = {},
+        onRegexToggle = {},
+        onWholeWordToggle = {},
+        onPrevious = {},
+        onNext = {},
+        onClose = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorSearchBarWithResultsPreview() {
-    PreviewWrapper {
-        EditorSearchBar(
-            searchQuery = TextFieldValue("test"),
-            searchResults = List(10) {
-                SearchResult(
-                    position = eu.darken.butler.editor.core.engine.TextPosition.ZERO,
-                    matchText = "test",
-                    chunkId = eu.darken.butler.editor.core.engine.TextChunk.ChunkId("0")
-                )
-            },
-            currentIndex = 2,
-            caseSensitive = false,
-            regexEnabled = false,
-            wholeWord = false,
-            onSearchQueryChange = {},
-            onCaseSensitiveToggle = {},
-            onRegexToggle = {},
-            onWholeWordToggle = {},
-            onPrevious = {},
-            onNext = {},
-            onClose = {},
-        )
-    }
+    EditorSearchBar(
+        searchQuery = TextFieldValue("test"),
+        searchResults = List(10) {
+            SearchResult(
+                position = eu.darken.butler.editor.core.engine.TextPosition.ZERO,
+                matchText = "test",
+                chunkId = eu.darken.butler.editor.core.engine.TextChunk.ChunkId("0")
+            )
+        },
+        currentIndex = 2,
+        caseSensitive = false,
+        regexEnabled = false,
+        wholeWord = false,
+        onSearchQueryChange = {},
+        onCaseSensitiveToggle = {},
+        onRegexToggle = {},
+        onWholeWordToggle = {},
+        onPrevious = {},
+        onNext = {},
+        onClose = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EditorSearchBarWithOptionsPreview() {
-    PreviewWrapper {
-        EditorSearchBar(
-            searchQuery = TextFieldValue("Test"),
-            searchResults = List(5) {
-                SearchResult(
-                    position = eu.darken.butler.editor.core.engine.TextPosition.ZERO,
-                    matchText = "Test",
-                    chunkId = eu.darken.butler.editor.core.engine.TextChunk.ChunkId("0")
-                )
-            },
-            currentIndex = 0,
-            caseSensitive = true,
-            regexEnabled = false,
-            wholeWord = true,
-            onSearchQueryChange = {},
-            onCaseSensitiveToggle = {},
-            onRegexToggle = {},
-            onWholeWordToggle = {},
-            onPrevious = {},
-            onNext = {},
-            onClose = {},
-        )
-    }
+    EditorSearchBar(
+        searchQuery = TextFieldValue("Test"),
+        searchResults = List(5) {
+            SearchResult(
+                position = eu.darken.butler.editor.core.engine.TextPosition.ZERO,
+                matchText = "Test",
+                chunkId = eu.darken.butler.editor.core.engine.TextChunk.ChunkId("0")
+            )
+        },
+        currentIndex = 0,
+        caseSensitive = true,
+        regexEnabled = false,
+        wholeWord = true,
+        onSearchQueryChange = {},
+        onCaseSensitiveToggle = {},
+        onRegexToggle = {},
+        onWholeWordToggle = {},
+        onPrevious = {},
+        onNext = {},
+        onClose = {},
+    )
 }

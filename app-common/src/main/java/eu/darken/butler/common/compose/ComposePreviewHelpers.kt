@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapperProvider
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.theming.ButlerTheme
 import eu.darken.butler.common.theming.ThemeMode
@@ -75,5 +76,12 @@ fun PreviewWrapper(
         ) {
             content()
         }
+    }
+}
+
+class ButlerPreviewWrapper : PreviewWrapperProvider {
+    @Composable
+    override fun Wrap(content: @Composable () -> Unit) {
+        PreviewWrapper { content() }
     }
 }

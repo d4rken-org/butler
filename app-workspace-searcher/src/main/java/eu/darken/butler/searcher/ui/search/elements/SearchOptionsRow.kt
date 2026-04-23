@@ -11,7 +11,9 @@ import androidx.compose.material.icons.twotone.FormatQuote
 import androidx.compose.material.icons.twotone.TextFormat
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.ToggleFilterChip
@@ -70,19 +72,18 @@ fun SearchOptionsRow(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchOptionsRowPreview() {
-    PreviewWrapper {
-        SearchOptionsRow(
-            caseSensitive = true,
-            wholeWord = false,
-            useRegex = false,
-            searchContent = false,
-            onToggleCaseSensitive = {},
-            onToggleWholeWord = {},
-            onToggleRegex = {},
-            onToggleSearchContent = {},
-            modifier = Modifier.padding(8.dp)
-        )
-    }
+    SearchOptionsRow(
+        caseSensitive = true,
+        wholeWord = false,
+        useRegex = false,
+        searchContent = false,
+        onToggleCaseSensitive = {},
+        onToggleWholeWord = {},
+        onToggleRegex = {},
+        onToggleSearchContent = {},
+        modifier = Modifier.padding(8.dp)
+    )
 }

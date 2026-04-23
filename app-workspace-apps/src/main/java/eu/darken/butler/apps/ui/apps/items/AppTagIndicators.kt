@@ -12,9 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.apps.core.AppTag
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -63,39 +65,36 @@ private fun AppTagDot(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagIndicatorsSinglePreview() {
-    PreviewWrapper {
-        AppTagIndicators(tags = listOf(AppTag.System))
-    }
+    AppTagIndicators(tags = listOf(AppTag.System))
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagIndicatorsMultiplePreview() {
-    PreviewWrapper {
-        AppTagIndicators(
-            tags = listOf(
-                AppTag.Disabled,
-                AppTag.System,
-                AppTag.SplitApk,
-            )
+    AppTagIndicators(
+        tags = listOf(
+            AppTag.Disabled,
+            AppTag.System,
+            AppTag.SplitApk,
         )
-    }
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagIndicatorsOverflowPreview() {
-    PreviewWrapper {
-        AppTagIndicators(
-            tags = listOf(
-                AppTag.Disabled,
-                AppTag.System,
-                AppTag.Sideloaded,
-                AppTag.Debug,
-                AppTag.SplitApk,
-            )
+    AppTagIndicators(
+        tags = listOf(
+            AppTag.Disabled,
+            AppTag.System,
+            AppTag.Sideloaded,
+            AppTag.Debug,
+            AppTag.SplitApk,
         )
-    }
+    )
 }

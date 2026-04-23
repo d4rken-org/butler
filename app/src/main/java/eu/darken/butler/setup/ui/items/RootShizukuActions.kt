@@ -13,8 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.pkgs.toPkgId
@@ -129,47 +131,45 @@ fun RootShizukuActions(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun RootActionsEnabledPreview() {
-    PreviewWrapper {
-        RootShizukuActions(
-            item = SetupItem(
-                type = SetupModule.Type.ROOT,
-                state = RootSetupModule.Result(
-                    useRoot = true,
-                    isInstalled = true,
-                    ourService = true,
-                ),
-                isRequired = true,
-                priority = 5,
+    RootShizukuActions(
+        item = SetupItem(
+            type = SetupModule.Type.ROOT,
+            state = RootSetupModule.Result(
+                useRoot = true,
+                isInstalled = true,
+                ourService = true,
             ),
-            onExecuteAction = {},
-            switchLabel = "Use Root"
-        )
-    }
+            isRequired = true,
+            priority = 5,
+        ),
+        onExecuteAction = {},
+        switchLabel = "Use Root"
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ShizukuActionsNotConnectedPreview() {
-    PreviewWrapper {
-        RootShizukuActions(
-            item = SetupItem(
-                type = SetupModule.Type.SHIZUKU,
-                state = ShizukuSetupModule.Result(
-                    pkg = "moe.shizuku.privileged.api".toPkgId(),
-                    useShizuku = true,
-                    isCompatible = true,
-                    isInstalled = true,
-                    basicService = false,
-                    ourService = false,
-                    alsoHasRoot = false,
-                ),
-                isRequired = false,
-                priority = 6,
+    RootShizukuActions(
+        item = SetupItem(
+            type = SetupModule.Type.SHIZUKU,
+            state = ShizukuSetupModule.Result(
+                pkg = "moe.shizuku.privileged.api".toPkgId(),
+                useShizuku = true,
+                isCompatible = true,
+                isInstalled = true,
+                basicService = false,
+                ourService = false,
+                alsoHasRoot = false,
             ),
-            onExecuteAction = {},
-            switchLabel = "Use Shizuku"
-        )
-    }
+            isRequired = false,
+            priority = 6,
+        ),
+        onExecuteAction = {},
+        switchLabel = "Use Shizuku"
+    )
 }

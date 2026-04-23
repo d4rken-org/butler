@@ -35,7 +35,9 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
@@ -160,23 +162,21 @@ private fun getFunnyCaption(): String {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EmptyDirectoryStatePreview() {
-    PreviewWrapper {
-        EmptyDirectoryState(
-            initiallyVisible = true
-        )
-    }
+    EmptyDirectoryState(
+        initiallyVisible = true
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EmptyDirectoryStateCustomPreview() {
-    PreviewWrapper {
-        EmptyDirectoryState(
-            title = stringResource(R.string.explorer_empty_search_title),
-            caption = stringResource(R.string.explorer_empty_search_caption),
-            initiallyVisible = true
-        )
-    }
+    EmptyDirectoryState(
+        title = stringResource(R.string.explorer_empty_search_title),
+        caption = stringResource(R.string.explorer_empty_search_caption),
+        initiallyVisible = true
+    )
 }

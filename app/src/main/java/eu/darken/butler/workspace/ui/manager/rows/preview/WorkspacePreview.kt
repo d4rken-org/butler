@@ -16,8 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -109,47 +111,43 @@ fun WorkspacePreview(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspacePreviewExplorerPreview() {
-    PreviewWrapper {
-        WorkspacePreview(
-            workspaceId = Workspace.Id(),
-            type = Workspace.Type.EXPLORER,
-            shouldShowBadge = true,
-            paneNumber = 1,
-        )
-    }
+    WorkspacePreview(
+        workspaceId = Workspace.Id(),
+        type = Workspace.Type.EXPLORER,
+        shouldShowBadge = true,
+        paneNumber = 1,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspacePreviewSearcherPreview() {
-    PreviewWrapper {
-        WorkspacePreview(
-            workspaceId = Workspace.Id(),
-            type = Workspace.Type.SEARCHER,
-        )
-    }
+    WorkspacePreview(
+        workspaceId = Workspace.Id(),
+        type = Workspace.Type.SEARCHER,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspacePreviewEditorPreview() {
-    PreviewWrapper {
-        WorkspacePreview(
-            workspaceId = Workspace.Id(),
-            type = Workspace.Type.EDITOR,
-        )
-    }
+    WorkspacePreview(
+        workspaceId = Workspace.Id(),
+        type = Workspace.Type.EDITOR,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspacePreviewTemplatesPreview() {
-    PreviewWrapper {
-        WorkspacePreview(
-            workspaceId = Workspace.Id(),
-            type = Workspace.Type.TEMPLATES,
-        )
-    }
+    WorkspacePreview(
+        workspaceId = Workspace.Id(),
+        type = Workspace.Type.TEMPLATES,
+    )
 }

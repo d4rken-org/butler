@@ -33,10 +33,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.details.AppInfo
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -361,12 +363,11 @@ fun launchActivity(context: Context, activityInfo: ActivityInfo) {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ComponentsSectionPreview() {
-    PreviewWrapper {
-        ComponentsSection(
-            app = null,
-            onLaunchActivity = {},
-        )
-    }
+    ComponentsSection(
+        app = null,
+        onLaunchActivity = {},
+    )
 }

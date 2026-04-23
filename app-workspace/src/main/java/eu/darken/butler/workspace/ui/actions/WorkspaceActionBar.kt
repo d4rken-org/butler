@@ -44,9 +44,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -254,84 +256,83 @@ fun WorkspaceActionBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceActionBarPreview() {
-    PreviewWrapper {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(16.dp)
-        ) {
-            // Sample action implementation for preview
-            data class SampleActionBarItem(
-                override val icon: ImageVector,
-                override val label: CaString,
-                override val isVisible: Boolean = true,
-                override val isEnabled: Boolean = true,
-                override val isDestructive: Boolean = false,
-                override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
-                override val badge: Boolean = false,
-            ) : WorkspaceActionBarItem
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(16.dp)
+    ) {
+        // Sample action implementation for preview
+        data class SampleActionBarItem(
+            override val icon: ImageVector,
+            override val label: CaString,
+            override val isVisible: Boolean = true,
+            override val isEnabled: Boolean = true,
+            override val isDestructive: Boolean = false,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+            override val badge: Boolean = false,
+        ) : WorkspaceActionBarItem
 
-            // Basic action bar with a few actions
-            WorkspaceActionBar(
-                actions = listOf(
-                    SampleActionBarItem(Icons.TwoTone.Share, CommonR.string.general_share_action.toCaString()),
-                    SampleActionBarItem(Icons.TwoTone.Edit, CommonR.string.general_edit_action.toCaString()),
-                    SampleActionBarItem(
-                        Icons.TwoTone.Delete,
-                        CommonR.string.general_delete_action.toCaString(),
-                        isDestructive = true
-                    ),
+        // Basic action bar with a few actions
+        WorkspaceActionBar(
+            actions = listOf(
+                SampleActionBarItem(Icons.TwoTone.Share, CommonR.string.general_share_action.toCaString()),
+                SampleActionBarItem(Icons.TwoTone.Edit, CommonR.string.general_edit_action.toCaString()),
+                SampleActionBarItem(
+                    Icons.TwoTone.Delete,
+                    CommonR.string.general_delete_action.toCaString(),
+                    isDestructive = true
                 ),
-                onActionClick = {},
-            )
+            ),
+            onActionClick = {},
+        )
 
-            // With overflow menu (more actions than fit)
-            WorkspaceActionBar(
-                actions = listOf(
-                    SampleActionBarItem(Icons.TwoTone.Share, CommonR.string.general_share_action.toCaString()),
-                    SampleActionBarItem(Icons.TwoTone.Edit, CommonR.string.general_edit_action.toCaString()),
-                    SampleActionBarItem(Icons.TwoTone.ContentCopy, CommonR.string.general_copy_action.toCaString()),
-                    SampleActionBarItem(
-                        Icons.TwoTone.Star,
-                        CommonR.string.general_view_action.toCaString(),
-                        group = WorkspaceActionBarItem.Group.SECONDARY
-                    ),
-                    SampleActionBarItem(
-                        Icons.TwoTone.Refresh,
-                        CommonR.string.general_refresh_action.toCaString(),
-                        group = WorkspaceActionBarItem.Group.SECONDARY
-                    ),
-                    SampleActionBarItem(
-                        Icons.TwoTone.Delete,
-                        CommonR.string.general_delete_action.toCaString(),
-                        isDestructive = true
-                    ),
+        // With overflow menu (more actions than fit)
+        WorkspaceActionBar(
+            actions = listOf(
+                SampleActionBarItem(Icons.TwoTone.Share, CommonR.string.general_share_action.toCaString()),
+                SampleActionBarItem(Icons.TwoTone.Edit, CommonR.string.general_edit_action.toCaString()),
+                SampleActionBarItem(Icons.TwoTone.ContentCopy, CommonR.string.general_copy_action.toCaString()),
+                SampleActionBarItem(
+                    Icons.TwoTone.Star,
+                    CommonR.string.general_view_action.toCaString(),
+                    group = WorkspaceActionBarItem.Group.SECONDARY
                 ),
-                onActionClick = {},
-            )
+                SampleActionBarItem(
+                    Icons.TwoTone.Refresh,
+                    CommonR.string.general_refresh_action.toCaString(),
+                    group = WorkspaceActionBarItem.Group.SECONDARY
+                ),
+                SampleActionBarItem(
+                    Icons.TwoTone.Delete,
+                    CommonR.string.general_delete_action.toCaString(),
+                    isDestructive = true
+                ),
+            ),
+            onActionClick = {},
+        )
 
-            // With badges and disabled action
-            WorkspaceActionBar(
-                actions = listOf(
-                    SampleActionBarItem(
-                        Icons.TwoTone.Refresh,
-                        CommonR.string.general_refresh_action.toCaString(),
-                        badge = true
-                    ),
-                    SampleActionBarItem(
-                        Icons.TwoTone.Edit,
-                        CommonR.string.general_edit_action.toCaString(),
-                        isEnabled = false
-                    ),
-                    SampleActionBarItem(
-                        Icons.TwoTone.Delete,
-                        CommonR.string.general_delete_action.toCaString(),
-                        isDestructive = true
-                    ),
+        // With badges and disabled action
+        WorkspaceActionBar(
+            actions = listOf(
+                SampleActionBarItem(
+                    Icons.TwoTone.Refresh,
+                    CommonR.string.general_refresh_action.toCaString(),
+                    badge = true
                 ),
-                onActionClick = {},
-            )
-        }
+                SampleActionBarItem(
+                    Icons.TwoTone.Edit,
+                    CommonR.string.general_edit_action.toCaString(),
+                    isEnabled = false
+                ),
+                SampleActionBarItem(
+                    Icons.TwoTone.Delete,
+                    CommonR.string.general_delete_action.toCaString(),
+                    isDestructive = true
+                ),
+            ),
+            onActionClick = {},
+        )
     }
 }

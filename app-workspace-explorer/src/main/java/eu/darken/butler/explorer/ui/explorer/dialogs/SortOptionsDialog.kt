@@ -23,7 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
@@ -130,16 +132,15 @@ private fun getSortModeLabel(mode: SortSettings.Mode): Int = when (mode) {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SortOptionsDialogPreview() {
-    PreviewWrapper {
-        SortOptionsDialog(
-            currentSortSettings = SortSettings(
-                mode = SortSettings.Mode.NAME,
-                reversed = false
-            ),
-            onDismiss = {},
-            onConfirm = {}
-        )
-    }
+    SortOptionsDialog(
+        currentSortSettings = SortSettings(
+            mode = SortSettings.Mode.NAME,
+            reversed = false
+        ),
+        onDismiss = {},
+        onConfirm = {}
+    )
 }

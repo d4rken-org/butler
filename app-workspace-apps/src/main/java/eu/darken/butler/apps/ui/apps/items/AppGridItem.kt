@@ -27,10 +27,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -163,71 +165,66 @@ fun AppGridItem(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppGridItemPreview() {
-    PreviewWrapper {
-        AppGridItem(
-            item = AppsMockDataProvider.Presets.chromeItem,
-            isSelected = false,
-            onClick = {},
-            onLongClick = {},
-            showSelection = false,
-        )
-    }
+    AppGridItem(
+        item = AppsMockDataProvider.Presets.chromeItem,
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppGridItemSelectedPreview() {
-    PreviewWrapper {
-        AppGridItem(
-            item = AppsMockDataProvider.Presets.settingsItem,
-            isSelected = true,
-            onClick = {},
-            onLongClick = {},
-            showSelection = true,
-        )
-    }
+    AppGridItem(
+        item = AppsMockDataProvider.Presets.settingsItem,
+        isSelected = true,
+        onClick = {},
+        onLongClick = {},
+        showSelection = true,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppGridItemDisabledPreview() {
-    PreviewWrapper {
-        AppGridItem(
-            item = AppsMockDataProvider.Presets.disabledAppItem,
-            isSelected = false,
-            onClick = {},
-            onLongClick = {},
-            showSelection = false,
-        )
-    }
+    AppGridItem(
+        item = AppsMockDataProvider.Presets.disabledAppItem,
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppGridItemWithTagsPreview() {
-    PreviewWrapper {
-        AppGridItem(
-            item = AppsMockDataProvider.Presets.multiTagAppItem,
-            isSelected = false,
-            onClick = {},
-            onLongClick = {},
-            showSelection = false,
-        )
-    }
+    AppGridItem(
+        item = AppsMockDataProvider.Presets.multiTagAppItem,
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppGridItemSplitApkPreview() {
-    PreviewWrapper {
-        AppGridItem(
-            item = AppsMockDataProvider.Presets.splitApkItem,
-            isSelected = false,
-            onClick = {},
-            onLongClick = {},
-            showSelection = false,
-        )
-    }
+    AppGridItem(
+        item = AppsMockDataProvider.Presets.splitApkItem,
+        isSelected = false,
+        onClick = {},
+        onLongClick = {},
+        showSelection = false,
+    )
 }

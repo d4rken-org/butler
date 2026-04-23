@@ -19,9 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipDefaults
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -106,70 +108,66 @@ fun MultiPathChipBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun MultiPathChipBarMultiplePreview() {
-    PreviewWrapper {
-        MultiPathChipBar(
-            paths = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/DCIM")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Music"))
-            ),
-            onPathRemove = {},
-            onPathToggle = {},
-            onAddPathClick = {},
-        )
-    }
+    MultiPathChipBar(
+        paths = listOf(
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/DCIM")),
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Music"))
+        ),
+        onPathRemove = {},
+        onPathToggle = {},
+        onAddPathClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun MultiPathChipBarEmptyPreview() {
-    PreviewWrapper {
-        MultiPathChipBar(
-            paths = emptyList(),
-            onPathRemove = {},
-            onPathToggle = {},
-            onAddPathClick = {},
-        )
-    }
+    MultiPathChipBar(
+        paths = emptyList(),
+        onPathRemove = {},
+        onPathToggle = {},
+        onAddPathClick = {},
+    )
 }
 
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun MultiPathChipBarSinglePreview() {
-    PreviewWrapper {
-        MultiPathChipBar(
-            paths = listOf(SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))),
-            onPathRemove = {},
-            onPathToggle = {},
-            onAddPathClick = {},
-        )
-    }
+    MultiPathChipBar(
+        paths = listOf(SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))),
+        onPathRemove = {},
+        onPathToggle = {},
+        onAddPathClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun MultiPathChipBarManyPathsPreview() {
-    PreviewWrapper {
-        MultiPathChipBar(
-            paths = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/aaatest1")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/aaatrestdir")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Android")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/DCIM")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Music")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Pictures")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                SearchTarget.Path.from(LocalPath.build("/storage/4BBD-D3E7")),
-                SearchTarget.Path.from(LocalPath.build("/[primary]/Android/data")),
-            ),
-            onPathRemove = {},
-            onPathToggle = {},
-            onAddPathClick = {},
-        )
-    }
+    MultiPathChipBar(
+        paths = listOf(
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/aaatest1")),
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/aaatrestdir")),
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Android")),
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/DCIM")),
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Music")),
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Pictures")),
+            SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+            SearchTarget.Path.from(LocalPath.build("/storage/4BBD-D3E7")),
+            SearchTarget.Path.from(LocalPath.build("/[primary]/Android/data")),
+        ),
+        onPathRemove = {},
+        onPathToggle = {},
+        onAddPathClick = {},
+    )
 }
 

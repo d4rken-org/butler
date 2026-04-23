@@ -19,8 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -280,25 +282,24 @@ fun WorkspacesScreenHost(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspacesScreenPreview() {
-    PreviewWrapper {
-        val state = WorkspacesViewModel.State(
-            state = WorkspaceRemote.State(
-                infos = emptyList(), // No workspaces
-                portraitPanelMode = WorkspacePanelMode.AUTO,
-                landscapePanelMode = WorkspacePanelMode.AUTO,
-            ),
-            focusedWorkspace = null,
-            selectedWorkspaces = emptyMap(), // No selected workspaces
-            isUpgraded = true,
-            swipeGesturesEnabled = true,
-        )
+    val state = WorkspacesViewModel.State(
+        state = WorkspaceRemote.State(
+            infos = emptyList(), // No workspaces
+            portraitPanelMode = WorkspacePanelMode.AUTO,
+            landscapePanelMode = WorkspacePanelMode.AUTO,
+        ),
+        focusedWorkspace = null,
+        selectedWorkspaces = emptyMap(), // No selected workspaces
+        isUpgraded = true,
+        swipeGesturesEnabled = true,
+    )
 
-        WorkspacesScreenPreviewContent(
-            state = state,
-        )
-    }
+    WorkspacesScreenPreviewContent(
+        state = state,
+    )
 }
 
 @Composable

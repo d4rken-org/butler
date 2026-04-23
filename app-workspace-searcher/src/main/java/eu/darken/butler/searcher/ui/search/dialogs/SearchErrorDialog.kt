@@ -27,7 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import java.io.IOException
@@ -107,27 +109,25 @@ fun SearchErrorDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchErrorDialogPreview() {
-    PreviewWrapper {
-        SearchErrorDialog(
-            path = "/storage/emulated/0",
-            exception = SecurityException("Permission denied: READ_EXTERNAL_STORAGE required"),
-            onShareError = {},
-            onDismiss = {}
-        )
-    }
+    SearchErrorDialog(
+        path = "/storage/emulated/0",
+        exception = SecurityException("Permission denied: READ_EXTERNAL_STORAGE required"),
+        onShareError = {},
+        onDismiss = {}
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchErrorDialogLongMessagePreview() {
-    PreviewWrapper {
-        SearchErrorDialog(
-            path = "/data/data/com.example.app",
-            exception = IOException("I/O error occurred while trying to access the directory: Operation not permitted due to insufficient file system permissions"),
-            onShareError = {},
-            onDismiss = {}
-        )
-    }
+    SearchErrorDialog(
+        path = "/data/data/com.example.app",
+        exception = IOException("I/O error occurred while trying to access the directory: Operation not permitted due to insufficient file system permissions"),
+        onShareError = {},
+        onDismiss = {}
+    )
 }

@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.apps.R
@@ -35,6 +36,7 @@ import eu.darken.butler.apps.core.details.AppDetailsWorkspaceViewModel
 import eu.darken.butler.apps.core.details.AppInfo
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -325,30 +327,29 @@ fun AppDetailsWorkspacePage(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppDetailsWorkspacePagePreview() {
-    PreviewWrapper {
-        AppDetailsWorkspacePage(
-            design = WorkspaceDesign(),
-            state = AppDetailsWorkspace.State(
-                app = AppsMockDataProvider.Presets.chrome,
-                availablePaths = listOf(
-                    AppPath(
-                        label = "App Data".toCaString(),
-                        path = LocalPath.build("/data/data/com.android.chrome"),
-                    ),
-                    AppPath(
-                        label = "External Storage".toCaString(),
-                        path = LocalPath.build("/storage/emulated/0/Android/data/com.android.chrome"),
-                    ),
-                    AppPath(
-                        label = "Cache".toCaString(),
-                        path = LocalPath.build("/data/data/com.android.chrome/cache"),
-                    ),
+    AppDetailsWorkspacePage(
+        design = WorkspaceDesign(),
+        state = AppDetailsWorkspace.State(
+            app = AppsMockDataProvider.Presets.chrome,
+            availablePaths = listOf(
+                AppPath(
+                    label = "App Data".toCaString(),
+                    path = LocalPath.build("/data/data/com.android.chrome"),
+                ),
+                AppPath(
+                    label = "External Storage".toCaString(),
+                    path = LocalPath.build("/storage/emulated/0/Android/data/com.android.chrome"),
+                ),
+                AppPath(
+                    label = "Cache".toCaString(),
+                    path = LocalPath.build("/data/data/com.android.chrome/cache"),
                 ),
             ),
-            onPageAction = {},
-        )
-    }
+        ),
+        onPageAction = {},
+    )
 }
 

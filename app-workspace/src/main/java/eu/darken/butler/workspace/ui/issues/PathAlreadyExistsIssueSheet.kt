@@ -32,7 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -344,92 +346,89 @@ fun PathAlreadyExistsIssueSheet(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PathAlreadyExistsIssueSheetFilePreview() {
-    PreviewWrapper {
-        PathAlreadyExistsIssueSheet(
-            issue = PathActionIssue.PathAlreadyExists(
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Desktop/document.pdf"),
-                    fileType = FileType.FILE,
-                    size = 5 * 1024 * 1024,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
-                    target = null,
-                ),
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
-                    fileType = FileType.FILE,
-                    size = 3 * 1024 * 1024,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
-                    target = null,
-                ),
-                canSkip = true,
-                canOverwrite = true,
-                canRenameSource = false,
-                canRenameDestination = false,
+    PathAlreadyExistsIssueSheet(
+        issue = PathActionIssue.PathAlreadyExists(
+            source = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Desktop/document.pdf"),
+                fileType = FileType.FILE,
+                size = 5 * 1024 * 1024,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                target = null,
             ),
-            onResolution = {},
-        )
-    }
+            destination = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
+                fileType = FileType.FILE,
+                size = 3 * 1024 * 1024,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+                target = null,
+            ),
+            canSkip = true,
+            canOverwrite = true,
+            canRenameSource = false,
+            canRenameDestination = false,
+        ),
+        onResolution = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PathAlreadyExistsIssueSheetRenameOptionsPreview() {
-    PreviewWrapper {
-        PathAlreadyExistsIssueSheet(
-            issue = PathActionIssue.PathAlreadyExists(
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
-                    fileType = FileType.FILE,
-                    size = 2 * 1024 * 1024,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
-                    target = null,
-                ),
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Desktop/document.pdf"),
-                    fileType = FileType.FILE,
-                    size = 3 * 1024 * 1024,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
-                    target = null,
-                ),
-                canSkip = true,
-                canOverwrite = true,
-                canRenameSource = true,
-                canRenameDestination = true,
+    PathAlreadyExistsIssueSheet(
+        issue = PathActionIssue.PathAlreadyExists(
+            destination = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Download/document.pdf"),
+                fileType = FileType.FILE,
+                size = 2 * 1024 * 1024,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+                target = null,
             ),
-            onResolution = {},
-        )
-    }
+            source = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Desktop/document.pdf"),
+                fileType = FileType.FILE,
+                size = 3 * 1024 * 1024,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                target = null,
+            ),
+            canSkip = true,
+            canOverwrite = true,
+            canRenameSource = true,
+            canRenameDestination = true,
+        ),
+        onResolution = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PathAlreadyExistsIssueSheetFolderPreview() {
-    PreviewWrapper {
-        PathAlreadyExistsIssueSheet(
-            issue = PathActionIssue.PathAlreadyExists(
-                destination = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Vacation"),
-                    fileType = FileType.DIRECTORY,
-                    size = 0,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 604800000), // 1 week
-                    target = null,
-                ),
-                source = LocalPathLookup(
-                    lookedUp = LocalPath.build("/storage/emulated/0/Desktop/Vacation"),
-                    fileType = FileType.DIRECTORY,
-                    size = 0,
-                    modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
-                    target = null,
-                ),
-                canSkip = true,
-                canMerge = true,
-                canOverwrite = true,
-                canRenameSource = true,
-                canRenameDestination = true,
+    PathAlreadyExistsIssueSheet(
+        issue = PathActionIssue.PathAlreadyExists(
+            destination = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Vacation"),
+                fileType = FileType.DIRECTORY,
+                size = 0,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 604800000), // 1 week
+                target = null,
             ),
-            onResolution = {},
-        )
-    }
+            source = LocalPathLookup(
+                lookedUp = LocalPath.build("/storage/emulated/0/Desktop/Vacation"),
+                fileType = FileType.DIRECTORY,
+                size = 0,
+                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+                target = null,
+            ),
+            canSkip = true,
+            canMerge = true,
+            canOverwrite = true,
+            canRenameSource = true,
+            canRenameDestination = true,
+        ),
+        onResolution = {},
+    )
 }

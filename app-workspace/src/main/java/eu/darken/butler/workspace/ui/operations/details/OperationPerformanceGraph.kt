@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
@@ -38,6 +39,7 @@ import com.patrykandpatrick.vico.core.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.core.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.core.common.Fill
 import com.patrykandpatrick.vico.core.common.data.ExtraStore
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -390,96 +392,93 @@ fun OperationPerformanceGraph(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationPerformanceGraphNoDataPreview() {
-    PreviewWrapper {
-        // Not enough samples - should not render
-        val history = remember {
-            val now = kotlin.time.Clock.System.now()
-            PerformanceHistory(
-                samples = listOf(
-                    PerformanceSample(
-                        timestamp = now,
-                        bytesPerSecond = 150_000_000,
-                        itemsPerSecond = 2.5f,
-                        totalBytesProcessed = 50_000_000,
-                        totalItemsProcessed = 5,
-                    )
-                ),
-                startTime = now,
-                totalBytes = 1_000_000_000,
-            )
-        }
-        OperationPerformanceGraph(performanceHistory = history)
+    // Not enough samples - should not render
+    val history = remember {
+        val now = kotlin.time.Clock.System.now()
+        PerformanceHistory(
+            samples = listOf(
+                PerformanceSample(
+                    timestamp = now,
+                    bytesPerSecond = 150_000_000,
+                    itemsPerSecond = 2.5f,
+                    totalBytesProcessed = 50_000_000,
+                    totalItemsProcessed = 5,
+                )
+            ),
+            startTime = now,
+            totalBytes = 1_000_000_000,
+        )
     }
+    OperationPerformanceGraph(performanceHistory = history)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationPerformanceGraphHalfDataPreview() {
-    PreviewWrapper {
-        // 50% completion with varying speeds (many small files scenario)
-        val history = remember {
-            val baseTime = kotlin.time.Clock.System.now()
-            val totalBytes = 1_000_000_000L
+    // 50% completion with varying speeds (many small files scenario)
+    val history = remember {
+        val baseTime = kotlin.time.Clock.System.now()
+        val totalBytes = 1_000_000_000L
 
-            val samples = (0..50).map { i ->
-                val progress = i / 100f
-                val speed = (150_000_000 + (kotlin.math.sin(i * 0.3) * 100_000_000)).toLong()
-                // Items/s varies independently - simulates many small files
-                val items = (15.0 + (kotlin.math.sin(i * 0.5) * 10.0)).coerceAtLeast(5.0).toFloat()
-                PerformanceSample(
-                    timestamp = baseTime + (i * 250).milliseconds,
-                    bytesPerSecond = speed.coerceAtLeast(50_000_000),
-                    itemsPerSecond = items,
-                    totalBytesProcessed = (totalBytes * progress).toLong(),
-                    totalItemsProcessed = (progress * 1000).toInt(),
-                )
-            }
-
-            PerformanceHistory(
-                samples = samples,
-                startTime = baseTime,
-                totalBytes = totalBytes,
+        val samples = (0..50).map { i ->
+            val progress = i / 100f
+            val speed = (150_000_000 + (kotlin.math.sin(i * 0.3) * 100_000_000)).toLong()
+            // Items/s varies independently - simulates many small files
+            val items = (15.0 + (kotlin.math.sin(i * 0.5) * 10.0)).coerceAtLeast(5.0).toFloat()
+            PerformanceSample(
+                timestamp = baseTime + (i * 250).milliseconds,
+                bytesPerSecond = speed.coerceAtLeast(50_000_000),
+                itemsPerSecond = items,
+                totalBytesProcessed = (totalBytes * progress).toLong(),
+                totalItemsProcessed = (progress * 1000).toInt(),
             )
         }
-        OperationPerformanceGraph(performanceHistory = history)
+
+        PerformanceHistory(
+            samples = samples,
+            startTime = baseTime,
+            totalBytes = totalBytes,
+        )
     }
+    OperationPerformanceGraph(performanceHistory = history)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationPerformanceGraphFullDataPreview() {
-    PreviewWrapper {
-        // 100% completion with varying speeds (mixed file sizes scenario)
-        val history = remember {
-            val baseTime = kotlin.time.Clock.System.now()
-            val totalBytes = 1_000_000_000L
+    // 100% completion with varying speeds (mixed file sizes scenario)
+    val history = remember {
+        val baseTime = kotlin.time.Clock.System.now()
+        val totalBytes = 1_000_000_000L
 
-            val samples = (0..100).map { i ->
-                val progress = i / 100f
-                val speed = (200_000_000 + (kotlin.math.sin(i * 0.2) * 150_000_000)).toLong()
-                // Items/s shows different pattern - starts high (small files), drops (large files), rises again
-                val items = when {
-                    i < 30 -> (25.0 + (kotlin.math.sin(i * 0.4) * 8.0)).coerceAtLeast(10.0).toFloat()
-                    i < 70 -> (8.0 + (kotlin.math.sin(i * 0.3) * 3.0)).coerceAtLeast(3.0).toFloat()
-                    else -> (18.0 + (kotlin.math.sin(i * 0.5) * 7.0)).coerceAtLeast(8.0).toFloat()
-                }
-                PerformanceSample(
-                    timestamp = baseTime + (i * 250).milliseconds,
-                    bytesPerSecond = speed.coerceAtLeast(50_000_000),
-                    itemsPerSecond = items,
-                    totalBytesProcessed = (totalBytes * progress).toLong(),
-                    totalItemsProcessed = (progress * 1000).toInt(),
-                )
+        val samples = (0..100).map { i ->
+            val progress = i / 100f
+            val speed = (200_000_000 + (kotlin.math.sin(i * 0.2) * 150_000_000)).toLong()
+            // Items/s shows different pattern - starts high (small files), drops (large files), rises again
+            val items = when {
+                i < 30 -> (25.0 + (kotlin.math.sin(i * 0.4) * 8.0)).coerceAtLeast(10.0).toFloat()
+                i < 70 -> (8.0 + (kotlin.math.sin(i * 0.3) * 3.0)).coerceAtLeast(3.0).toFloat()
+                else -> (18.0 + (kotlin.math.sin(i * 0.5) * 7.0)).coerceAtLeast(8.0).toFloat()
             }
-
-            PerformanceHistory(
-                samples = samples,
-                startTime = baseTime,
-                totalBytes = totalBytes,
+            PerformanceSample(
+                timestamp = baseTime + (i * 250).milliseconds,
+                bytesPerSecond = speed.coerceAtLeast(50_000_000),
+                itemsPerSecond = items,
+                totalBytesProcessed = (totalBytes * progress).toLong(),
+                totalItemsProcessed = (progress * 1000).toInt(),
             )
         }
-        OperationPerformanceGraph(performanceHistory = history)
+
+        PerformanceHistory(
+            samples = samples,
+            startTime = baseTime,
+            totalBytes = totalBytes,
+        )
     }
+    OperationPerformanceGraph(performanceHistory = history)
 }

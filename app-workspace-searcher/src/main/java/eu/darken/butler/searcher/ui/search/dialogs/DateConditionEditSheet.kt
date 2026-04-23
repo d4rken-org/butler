@@ -28,8 +28,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.R
@@ -213,30 +215,28 @@ private fun DateConditionEditContent(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DateConditionEditSheetNewPreview() {
-    PreviewWrapper {
-        DateConditionEditSheet(
-            visible = true,
-            existingCondition = null,
-            onDismiss = {},
-            onApply = {},
-        )
-    }
+    DateConditionEditSheet(
+        visible = true,
+        existingCondition = null,
+        onDismiss = {},
+        onApply = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DateConditionEditSheetEditingPreview() {
-    PreviewWrapper {
-        DateConditionEditSheet(
-            visible = true,
-            existingCondition = FilterCondition.ModifiedDate(
-                comparator = FilterComparator.GT,
-                instant = Clock.System.now() - 7.days,
-            ),
-            onDismiss = {},
-            onApply = {},
-        )
-    }
+    DateConditionEditSheet(
+        visible = true,
+        existingCondition = FilterCondition.ModifiedDate(
+            comparator = FilterComparator.GT,
+            instant = Clock.System.now() - 7.days,
+        ),
+        onDismiss = {},
+        onApply = {},
+    )
 }

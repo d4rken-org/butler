@@ -19,9 +19,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipDefaults
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.metadata.FileType
@@ -173,82 +175,78 @@ enum class DateFilterPreset(
 
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FilterChipBarEmptyPreview() {
-    PreviewWrapper {
-        FilterChipBar(
-            filter = SearchFilter(),
-            onConditionClick = {},
-            onAddSizeCondition = {},
-            onAddDateCondition = {},
-            onAddTypeCondition = {},
-            onRemoveCondition = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
+    FilterChipBar(
+        filter = SearchFilter(),
+        onConditionClick = {},
+        onAddSizeCondition = {},
+        onAddDateCondition = {},
+        onAddTypeCondition = {},
+        onRemoveCondition = {},
+        modifier = Modifier.padding(16.dp),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FilterChipBarSingleConditionPreview() {
-    PreviewWrapper {
-        FilterChipBar(
-            filter = SearchFilter(
-                conditions = listOf(
-                    FilterCondition.Size(FilterComparator.GTE, 100L * 1024 * 1024),
-                ),
+    FilterChipBar(
+        filter = SearchFilter(
+            conditions = listOf(
+                FilterCondition.Size(FilterComparator.GTE, 100L * 1024 * 1024),
             ),
-            onConditionClick = {},
-            onAddSizeCondition = {},
-            onAddDateCondition = {},
-            onAddTypeCondition = {},
-            onRemoveCondition = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
+        ),
+        onConditionClick = {},
+        onAddSizeCondition = {},
+        onAddDateCondition = {},
+        onAddTypeCondition = {},
+        onRemoveCondition = {},
+        modifier = Modifier.padding(16.dp),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FilterChipBarMultipleConditionsPreview() {
-    PreviewWrapper {
-        FilterChipBar(
-            filter = SearchFilter(
-                conditions = listOf(
-                    FilterCondition.Size(FilterComparator.GTE, 100L * 1024 * 1024),
-                    FilterCondition.Size(FilterComparator.LTE, 500L * 1024 * 1024),
-                    FilterCondition.ModifiedDate(FilterComparator.GT, Clock.System.now() - 7.days),
-                ),
+    FilterChipBar(
+        filter = SearchFilter(
+            conditions = listOf(
+                FilterCondition.Size(FilterComparator.GTE, 100L * 1024 * 1024),
+                FilterCondition.Size(FilterComparator.LTE, 500L * 1024 * 1024),
+                FilterCondition.ModifiedDate(FilterComparator.GT, Clock.System.now() - 7.days),
             ),
-            onConditionClick = {},
-            onAddSizeCondition = {},
-            onAddDateCondition = {},
-            onAddTypeCondition = {},
-            onRemoveCondition = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
+        ),
+        onConditionClick = {},
+        onAddSizeCondition = {},
+        onAddDateCondition = {},
+        onAddTypeCondition = {},
+        onRemoveCondition = {},
+        modifier = Modifier.padding(16.dp),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FilterChipBarAllTypesPreview() {
-    PreviewWrapper {
-        FilterChipBar(
-            filter = SearchFilter(
-                conditions = listOf(
-                    FilterCondition.Size(FilterComparator.GT, 50L * 1024 * 1024),
-                    FilterCondition.Size(FilterComparator.LT, 1024L * 1024 * 1024),
-                    FilterCondition.ModifiedDate(FilterComparator.GT, Clock.System.now() - 30.days),
-                    FilterCondition.Type(FileType.FILE),
-                ),
+    FilterChipBar(
+        filter = SearchFilter(
+            conditions = listOf(
+                FilterCondition.Size(FilterComparator.GT, 50L * 1024 * 1024),
+                FilterCondition.Size(FilterComparator.LT, 1024L * 1024 * 1024),
+                FilterCondition.ModifiedDate(FilterComparator.GT, Clock.System.now() - 30.days),
+                FilterCondition.Type(FileType.FILE),
             ),
-            onConditionClick = {},
-            onAddSizeCondition = {},
-            onAddDateCondition = {},
-            onAddTypeCondition = {},
-            onRemoveCondition = {},
-            modifier = Modifier.padding(16.dp),
-        )
-    }
+        ),
+        onConditionClick = {},
+        onAddSizeCondition = {},
+        onAddDateCondition = {},
+        onAddTypeCondition = {},
+        onRemoveCondition = {},
+        modifier = Modifier.padding(16.dp),
+    )
 }

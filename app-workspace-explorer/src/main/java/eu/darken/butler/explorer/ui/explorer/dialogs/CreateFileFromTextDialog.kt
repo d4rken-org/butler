@@ -28,7 +28,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -163,16 +165,15 @@ fun CreateFileFromTextDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun CreateFileFromTextDialogPreview() {
-    PreviewWrapper {
-        CreateFileFromTextDialog(
-            clip = ClipboardClip.Text(
-                origin = eu.darken.butler.workspace.core.Workspace.Id(),
-                content = "Hello World!\nThis is a sample text snippet that will be saved to a file.",
-            ),
-            onDismiss = {},
-            onConfirm = { _, _ -> }
-        )
-    }
+    CreateFileFromTextDialog(
+        clip = ClipboardClip.Text(
+            origin = eu.darken.butler.workspace.core.Workspace.Id(),
+            content = "Hello World!\nThis is a sample text snippet that will be saved to a file.",
+        ),
+        onDismiss = {},
+        onConfirm = { _, _ -> }
+    )
 }

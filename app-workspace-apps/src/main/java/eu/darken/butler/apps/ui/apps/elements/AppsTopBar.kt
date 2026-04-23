@@ -9,8 +9,10 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -43,13 +45,12 @@ fun AppsTopBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsTopBarPreview() {
-    PreviewWrapper {
-        AppsTopBar(
-            workspaceId = Workspace.Id(),
-            scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(),
-            showWorkspaceButton = true,
-        )
-    }
+    AppsTopBar(
+        workspaceId = Workspace.Id(),
+        scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(),
+        showWorkspaceButton = true,
+    )
 }

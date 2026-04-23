@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppTag
@@ -19,6 +20,7 @@ import eu.darken.butler.apps.ui.apps.items.label
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipColors
 import eu.darken.butler.common.compose.ButlerChipDefaults
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -71,60 +73,56 @@ fun AppsFilterChipBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsFilterChipBarEmptyPreview() {
-    PreviewWrapper {
-        AppsFilterChipBar(
-            modifier = Modifier.padding(16.dp),
-            filterConfig = TagFilterConfig(),
-            onTagRemove = { _, _ -> },
-            onAddClick = {},
-        )
-    }
+    AppsFilterChipBar(
+        modifier = Modifier.padding(16.dp),
+        filterConfig = TagFilterConfig(),
+        onTagRemove = { _, _ -> },
+        onAddClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsFilterChipBarIncludeOnlyPreview() {
-    PreviewWrapper {
-        AppsFilterChipBar(
-            modifier = Modifier.padding(16.dp),
-            filterConfig = TagFilterConfig(
-                includeTags = setOf(AppTag.System, AppTag.Disabled),
-            ),
-            onTagRemove = { _, _ -> },
-            onAddClick = {},
-        )
-    }
+    AppsFilterChipBar(
+        modifier = Modifier.padding(16.dp),
+        filterConfig = TagFilterConfig(
+            includeTags = setOf(AppTag.System, AppTag.Disabled),
+        ),
+        onTagRemove = { _, _ -> },
+        onAddClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsFilterChipBarExcludeOnlyPreview() {
-    PreviewWrapper {
-        AppsFilterChipBar(
-            modifier = Modifier.padding(16.dp),
-            filterConfig = TagFilterConfig(
-                excludeTags = setOf(AppTag.System, AppTag.Disabled),
-            ),
-            onTagRemove = { _, _ -> },
-            onAddClick = {},
-        )
-    }
+    AppsFilterChipBar(
+        modifier = Modifier.padding(16.dp),
+        filterConfig = TagFilterConfig(
+            excludeTags = setOf(AppTag.System, AppTag.Disabled),
+        ),
+        onTagRemove = { _, _ -> },
+        onAddClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsFilterChipBarMixedPreview() {
-    PreviewWrapper {
-        AppsFilterChipBar(
-            modifier = Modifier.padding(16.dp),
-            filterConfig = TagFilterConfig(
-                includeTags = setOf(AppTag.UserApp, AppTag.Enabled),
-                excludeTags = setOf(AppTag.System, AppTag.Disabled),
-            ),
-            onTagRemove = { _, _ -> },
-            onAddClick = {},
-        )
-    }
+    AppsFilterChipBar(
+        modifier = Modifier.padding(16.dp),
+        filterConfig = TagFilterConfig(
+            includeTags = setOf(AppTag.UserApp, AppTag.Enabled),
+            excludeTags = setOf(AppTag.System, AppTag.Disabled),
+        ),
+        onTagRemove = { _, _ -> },
+        onAddClick = {},
+    )
 }

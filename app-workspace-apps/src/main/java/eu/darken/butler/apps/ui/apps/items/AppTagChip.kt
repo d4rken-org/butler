@@ -2,10 +2,12 @@ package eu.darken.butler.apps.ui.apps.items
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.apps.core.AppTag
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipColors
 import eu.darken.butler.common.compose.ButlerChipSize
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -30,53 +32,47 @@ fun AppTagChip(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagChipSystemPreview() {
-    PreviewWrapper {
-        AppTagChip(tag = AppTag.System)
-    }
+    AppTagChip(tag = AppTag.System)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagChipDisabledPreview() {
-    PreviewWrapper {
-        AppTagChip(tag = AppTag.Disabled)
-    }
+    AppTagChip(tag = AppTag.Disabled)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagChipSideloadedPreview() {
-    PreviewWrapper {
-        AppTagChip(tag = AppTag.Sideloaded)
-    }
+    AppTagChip(tag = AppTag.Sideloaded)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagChipSplitApkPreview() {
-    PreviewWrapper {
-        AppTagChip(tag = AppTag.SplitApk)
-    }
+    AppTagChip(tag = AppTag.SplitApk)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagChipUserWithLabelPreview() {
-    PreviewWrapper {
-        AppTagChip(
-            tag = AppTag.User(handleId = 10, label = "Work")
-        )
-    }
+    AppTagChip(
+        tag = AppTag.User(handleId = 10, label = "Work")
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagChipUserWithoutLabelPreview() {
-    PreviewWrapper {
-        AppTagChip(
-            tag = AppTag.User(handleId = 10)
-        )
-    }
+    AppTagChip(
+        tag = AppTag.User(handleId = 10)
+    )
 }

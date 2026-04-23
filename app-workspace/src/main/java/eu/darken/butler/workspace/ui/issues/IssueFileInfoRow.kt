@@ -21,7 +21,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -163,60 +165,56 @@ fun PathIssueFileComparisonCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PathIssueFileComparisonCardPathOnlyPreview() {
-    PreviewWrapper {
-        PathIssueFileComparisonCard(
-            path = LocalPath.build("/storage/emulated/0/Backup/document.pdf"),
-        )
-    }
+    PathIssueFileComparisonCard(
+        path = LocalPath.build("/storage/emulated/0/Backup/document.pdf"),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PathIssueFileComparisonCardFilePreview() {
-    PreviewWrapper {
-        PathIssueFileComparisonCard(
-            lookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/Download/documentname.pdf"),
-                fileType = FileType.FILE,
-                size = 5 * 1024 * 1024,
-                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
-                target = null,
-            ),
-        )
-    }
+    PathIssueFileComparisonCard(
+        lookup = LocalPathLookup(
+            lookedUp = LocalPath.build("/storage/emulated/0/Download/documentname.pdf"),
+            fileType = FileType.FILE,
+            size = 5 * 1024 * 1024,
+            modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+            target = null,
+        ),
+    )
 }
 
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PathIssueFileComparisonCardEmptyFilePreview() {
-    PreviewWrapper {
-        PathIssueFileComparisonCard(
-            lookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/Download/very-long-documentname-that-ellipsizes.pdf"),
-                fileType = FileType.FILE,
-                size = 0,
-                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
-                target = null,
-            ),
-        )
-    }
+    PathIssueFileComparisonCard(
+        lookup = LocalPathLookup(
+            lookedUp = LocalPath.build("/storage/emulated/0/Download/very-long-documentname-that-ellipsizes.pdf"),
+            fileType = FileType.FILE,
+            size = 0,
+            modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86400000),
+            target = null,
+        ),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PathIssueFileComparisonCardFolderPreview() {
-    PreviewWrapper {
-        PathIssueFileComparisonCard(
-            lookup = LocalPathLookup(
-                lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Vacation"),
-                fileType = FileType.DIRECTORY,
-                size = 0,
-                modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
-                target = null,
-            ),
-        )
-    }
+    PathIssueFileComparisonCard(
+        lookup = LocalPathLookup(
+            lookedUp = LocalPath.build("/storage/emulated/0/Pictures/Vacation"),
+            fileType = FileType.DIRECTORY,
+            size = 0,
+            modifiedAt = Instant.fromEpochMilliseconds(System.currentTimeMillis() - 3600000),
+            target = null,
+        ),
+    )
 }

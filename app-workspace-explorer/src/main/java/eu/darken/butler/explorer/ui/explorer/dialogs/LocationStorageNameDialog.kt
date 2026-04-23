@@ -22,6 +22,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
@@ -94,25 +96,23 @@ fun LocationStorageNameDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun LocationStorageNameDialogPreview() {
-    PreviewWrapper {
-        LocationStorageNameDialog(
-            currentName = null,
-            onDismiss = {},
-            onConfirm = {}
-        )
-    }
+    LocationStorageNameDialog(
+        currentName = null,
+        onDismiss = {},
+        onConfirm = {}
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun LocationStorageNameDialogRenamePreview() {
-    PreviewWrapper {
-        LocationStorageNameDialog(
-            currentName = "My SD Card",
-            onDismiss = {},
-            onConfirm = {}
-        )
-    }
+    LocationStorageNameDialog(
+        currentName = "My SD Card",
+        onDismiss = {},
+        onConfirm = {}
+    )
 }

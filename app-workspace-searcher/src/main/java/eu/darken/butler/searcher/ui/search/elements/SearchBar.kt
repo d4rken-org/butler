@@ -37,7 +37,9 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.R
@@ -173,46 +175,43 @@ fun SearchBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchBarPreview() {
-    PreviewWrapper {
-        Column {
-            SearchBar(
-                query = TextFieldValue("example query"),
-                onQueryChange = {},
-                onSearch = {},
-                isSearching = false,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-    }
-}
-
-@Preview2
-@Composable
-private fun SearchBarSearchingPreview() {
-    PreviewWrapper {
+    Column {
         SearchBar(
-            query = TextFieldValue("searching…"),
-            onQueryChange = {},
-            onSearch = {},
-            isSearching = true,
-            onCancel = {},
-            modifier = Modifier.padding(16.dp)
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun SearchBarEmptyPreview() {
-    PreviewWrapper {
-        SearchBar(
-            query = TextFieldValue(""),
+            query = TextFieldValue("example query"),
             onQueryChange = {},
             onSearch = {},
             isSearching = false,
             modifier = Modifier.padding(16.dp)
         )
     }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearchBarSearchingPreview() {
+    SearchBar(
+        query = TextFieldValue("searching…"),
+        onQueryChange = {},
+        onSearch = {},
+        isSearching = true,
+        onCancel = {},
+        modifier = Modifier.padding(16.dp)
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearchBarEmptyPreview() {
+    SearchBar(
+        query = TextFieldValue(""),
+        onQueryChange = {},
+        onSearch = {},
+        isSearching = false,
+        modifier = Modifier.padding(16.dp)
+    )
 }

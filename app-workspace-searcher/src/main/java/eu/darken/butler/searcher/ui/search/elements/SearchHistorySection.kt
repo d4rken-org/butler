@@ -30,7 +30,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -237,99 +239,96 @@ fun SearchHistoryItem(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchHistoryItemPreview() {
-    PreviewWrapper {
-        SearchHistoryItem(
-            historyItem = SearchHistory.SearchHistoryItem(
-                id = "preview-1",
-                baseQuery = "gradle build",
-                searchQuery = SearchQuery.create(
-                    paths = listOf(
-                        LocalPath.build("/storage/emulated/0/Documents"),
-                        LocalPath.build("/storage/emulated/0/Download"),
-                        LocalPath.build("/storage/emulated/0/Music"),
-                    ),
-                    filenameQuery = FilenameQuery(pattern = "gradle build"),
+    SearchHistoryItem(
+        historyItem = SearchHistory.SearchHistoryItem(
+            id = "preview-1",
+            baseQuery = "gradle build",
+            searchQuery = SearchQuery.create(
+                paths = listOf(
+                    LocalPath.build("/storage/emulated/0/Documents"),
+                    LocalPath.build("/storage/emulated/0/Download"),
+                    LocalPath.build("/storage/emulated/0/Music"),
                 ),
-                searchedAt = Clock.System.now() - 30.minutes,
-                resultCount = 42
+                filenameQuery = FilenameQuery(pattern = "gradle build"),
             ),
-            onItemClick = {},
-            onItemRemove = {}
-        )
-    }
+            searchedAt = Clock.System.now() - 30.minutes,
+            resultCount = 42
+        ),
+        onItemClick = {},
+        onItemRemove = {}
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchHistoryItemNoResultsPreview() {
-    PreviewWrapper {
-        SearchHistoryItem(
-            historyItem = SearchHistory.SearchHistoryItem(
-                id = "preview-2",
-                baseQuery = "nonexistent",
-                searchQuery = SearchQuery.create(
-                    paths = listOf(LocalPath.build("/storage/emulated/0")),
-                    filenameQuery = FilenameQuery(pattern = "nonexistent", caseSensitive = true, wholeWord = true),
-                ),
-                searchedAt = Clock.System.now() - 2.hours,
-                resultCount = 0
+    SearchHistoryItem(
+        historyItem = SearchHistory.SearchHistoryItem(
+            id = "preview-2",
+            baseQuery = "nonexistent",
+            searchQuery = SearchQuery.create(
+                paths = listOf(LocalPath.build("/storage/emulated/0")),
+                filenameQuery = FilenameQuery(pattern = "nonexistent", caseSensitive = true, wholeWord = true),
             ),
-            onItemClick = {},
-            onItemRemove = {}
-        )
-    }
+            searchedAt = Clock.System.now() - 2.hours,
+            resultCount = 0
+        ),
+        onItemClick = {},
+        onItemRemove = {}
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SearchHistorySectionPreview() {
-    PreviewWrapper {
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            searchHistorySection(
-                searchHistory = listOf(
-                    SearchHistory.SearchHistoryItem(
-                        id = "preview-1",
-                        baseQuery = "gradle build",
-                        searchQuery = SearchQuery.create(
-                            paths = listOf(LocalPath.build("/home/user/projects")),
-                            filenameQuery = FilenameQuery(pattern = "gradle build"),
-                        ),
-                        searchedAt = Clock.System.now() - 30.minutes,
-                        resultCount = 42,
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        searchHistorySection(
+            searchHistory = listOf(
+                SearchHistory.SearchHistoryItem(
+                    id = "preview-1",
+                    baseQuery = "gradle build",
+                    searchQuery = SearchQuery.create(
+                        paths = listOf(LocalPath.build("/home/user/projects")),
+                        filenameQuery = FilenameQuery(pattern = "gradle build"),
                     ),
-                    SearchHistory.SearchHistoryItem(
-                        id = "preview-2",
-                        baseQuery = "nonexistent",
-                        searchQuery = SearchQuery.create(
-                            paths = listOf(LocalPath.build("/storage/emulated/0")),
-                            filenameQuery = FilenameQuery(
-                                pattern = "nonexistent",
-                                caseSensitive = true,
-                                wholeWord = true
-                            ),
-                        ),
-                        searchedAt = Clock.System.now() - 2.hours,
-                        resultCount = 0,
-                    ),
-                    SearchHistory.SearchHistoryItem(
-                        id = "preview-3",
-                        baseQuery = "import android",
-                        searchQuery = SearchQuery.create(
-                            paths = listOf(LocalPath.build("/home/user/android-project/src")),
-                            contentQuery = ContentQuery(pattern = "import android"),
-                        ),
-                        searchedAt = Clock.System.now() - 5.hours,
-                        resultCount = 127,
-                    )
+                    searchedAt = Clock.System.now() - 30.minutes,
+                    resultCount = 42,
                 ),
-                onHistoryItemClick = {},
-                onHistoryItemRemove = {},
-                onShowClearHistoryDialog = {}
-            )
-        }
+                SearchHistory.SearchHistoryItem(
+                    id = "preview-2",
+                    baseQuery = "nonexistent",
+                    searchQuery = SearchQuery.create(
+                        paths = listOf(LocalPath.build("/storage/emulated/0")),
+                        filenameQuery = FilenameQuery(
+                            pattern = "nonexistent",
+                            caseSensitive = true,
+                            wholeWord = true
+                        ),
+                    ),
+                    searchedAt = Clock.System.now() - 2.hours,
+                    resultCount = 0,
+                ),
+                SearchHistory.SearchHistoryItem(
+                    id = "preview-3",
+                    baseQuery = "import android",
+                    searchQuery = SearchQuery.create(
+                        paths = listOf(LocalPath.build("/home/user/android-project/src")),
+                        contentQuery = ContentQuery(pattern = "import android"),
+                    ),
+                    searchedAt = Clock.System.now() - 5.hours,
+                    resultCount = 127,
+                )
+            ),
+            onHistoryItemClick = {},
+            onHistoryItemRemove = {},
+            onShowClearHistoryDialog = {}
+        )
     }
 }

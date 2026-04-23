@@ -29,9 +29,11 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.ScrollPop
@@ -150,70 +152,68 @@ fun WorkspaceManagerScreen(
 
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerScreenPreview() {
-    PreviewWrapper {
-        WorkspaceManagerScreen(
-            state = WorkspaceManagerViewModel.State(
-                workspaces = listOf(
-                    WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
-                        type = Workspace.Type.TEMPLATES,
-                        title = "Templates".toCaString(),
-                        subtitle = "Workspace templates".toCaString(),
-                        isFocused = true,
-                        isSelected = true,
-                        paneNumber = 0,
-                    ),
-                    WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
-                        type = Workspace.Type.EXPLORER,
-                        title = "Explorer".toCaString(),
-                        subtitle = "File explorer".toCaString(),
-                        isSelected = true,
-                        paneNumber = 1,
-                    ),
-                    WorkspaceManagerViewModel.WorkspaceItem(
-                        id = Workspace.Id(),
-                        type = Workspace.Type.SEARCHER,
-                        title = "Search".toCaString(),
-                        subtitle = "File search".toCaString(),
-                        paneNumber = null,
-                    )
+    WorkspaceManagerScreen(
+        state = WorkspaceManagerViewModel.State(
+            workspaces = listOf(
+                WorkspaceManagerViewModel.WorkspaceItem(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.TEMPLATES,
+                    title = "Templates".toCaString(),
+                    subtitle = "Workspace templates".toCaString(),
+                    isFocused = true,
+                    isSelected = true,
+                    paneNumber = 0,
                 ),
-                operationsCount = 3,
-                attentionCount = 2
+                WorkspaceManagerViewModel.WorkspaceItem(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.EXPLORER,
+                    title = "Explorer".toCaString(),
+                    subtitle = "File explorer".toCaString(),
+                    isSelected = true,
+                    paneNumber = 1,
+                ),
+                WorkspaceManagerViewModel.WorkspaceItem(
+                    id = Workspace.Id(),
+                    type = Workspace.Type.SEARCHER,
+                    title = "Search".toCaString(),
+                    subtitle = "File search".toCaString(),
+                    paneNumber = null,
+                )
             ),
-            onCloseWorkspace = {},
-            onReorderWorkspaces = {},
-            onSelectWorkspace = {},
-            onCreateWorkspace = {},
-            onNavigateBack = {},
-            onDismissBadgeExplanation = {},
-            onDismissLongPressHint = {},
-            onCloseAllWorkspaces = {}
-        )
-    }
+            operationsCount = 3,
+            attentionCount = 2
+        ),
+        onCloseWorkspace = {},
+        onReorderWorkspaces = {},
+        onSelectWorkspace = {},
+        onCreateWorkspace = {},
+        onNavigateBack = {},
+        onDismissBadgeExplanation = {},
+        onDismissLongPressHint = {},
+        onCloseAllWorkspaces = {}
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceManagerScreenEmptyPreview() {
-    PreviewWrapper {
-        WorkspaceManagerScreen(
-            state = WorkspaceManagerViewModel.State(
-                workspaces = emptyList(),
-                operationsCount = 0,
-                attentionCount = 0
-            ),
-            onCloseWorkspace = {},
-            onReorderWorkspaces = {},
-            onSelectWorkspace = {},
-            onCreateWorkspace = {},
-            onNavigateBack = {},
-            onDismissBadgeExplanation = {},
-            onDismissLongPressHint = {},
-            onCloseAllWorkspaces = {}
-        )
-    }
+    WorkspaceManagerScreen(
+        state = WorkspaceManagerViewModel.State(
+            workspaces = emptyList(),
+            operationsCount = 0,
+            attentionCount = 0
+        ),
+        onCloseWorkspace = {},
+        onReorderWorkspaces = {},
+        onSelectWorkspace = {},
+        onCreateWorkspace = {},
+        onNavigateBack = {},
+        onDismissBadgeExplanation = {},
+        onDismissLongPressHint = {},
+        onCloseAllWorkspaces = {}
+    )
 }

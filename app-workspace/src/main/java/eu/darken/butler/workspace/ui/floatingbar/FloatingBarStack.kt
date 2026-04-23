@@ -27,9 +27,11 @@ import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import kotlinx.coroutines.launch
@@ -311,152 +313,149 @@ private fun PreviewBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FloatingBarStackBottomPreview() {
-    PreviewWrapper {
-        val barStackState = rememberFloatingBarStackState(
-            position = BarPosition.BOTTOM,
-        )
-        Box(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(barStackState.nestedScrollConnection),
-                contentPadding = PaddingValues(bottom = barStackState.contentPaddingDp()),
-            ) {
-                items(20) { index ->
-                    Text(
-                        text = "Item $index",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                    )
-                }
+    val barStackState = rememberFloatingBarStackState(
+        position = BarPosition.BOTTOM,
+    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(barStackState.nestedScrollConnection),
+            contentPadding = PaddingValues(bottom = barStackState.contentPaddingDp()),
+        ) {
+            items(20) { index ->
+                Text(
+                    text = "Item $index",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                )
             }
-            FloatingBarStack(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                state = barStackState,
-                position = BarPosition.BOTTOM,
-                bars = {
-                    FloatingBar(
-                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    ) {
-                        PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.tertiaryContainer)
-                    }
-                    FloatingBar(
-                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    ) {
-                        PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.secondaryContainer)
-                    }
-                    FloatingBar(
-                        scrollBehavior = BarScrollBehavior.HideOnScroll,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    ) {
-                        PreviewBar("HideOnScroll (edge)", MaterialTheme.colorScheme.primaryContainer)
-                    }
-                },
-            )
         }
+        FloatingBarStack(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            state = barStackState,
+            position = BarPosition.BOTTOM,
+            bars = {
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.tertiaryContainer)
+                }
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("VanishOnScroll", MaterialTheme.colorScheme.secondaryContainer)
+                }
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.HideOnScroll,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("HideOnScroll (edge)", MaterialTheme.colorScheme.primaryContainer)
+                }
+            },
+        )
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FloatingBarStackTopPreview() {
-    PreviewWrapper {
-        val barStackState = rememberFloatingBarStackState(
-            position = BarPosition.TOP,
-        )
-        Box(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(barStackState.nestedScrollConnection),
-                contentPadding = PaddingValues(top = barStackState.contentPaddingDp()),
-            ) {
-                items(20) { index ->
-                    Text(
-                        text = "Item $index",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                    )
-                }
+    val barStackState = rememberFloatingBarStackState(
+        position = BarPosition.TOP,
+    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(barStackState.nestedScrollConnection),
+            contentPadding = PaddingValues(top = barStackState.contentPaddingDp()),
+        ) {
+            items(20) { index ->
+                Text(
+                    text = "Item $index",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                )
             }
-            FloatingBarStack(
-                modifier = Modifier.align(Alignment.TopCenter),
-                state = barStackState,
-                position = BarPosition.TOP,
-                bars = {
-                    FloatingBar(
-                        scrollBehavior = BarScrollBehavior.VanishOnScroll,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    ) {
-                        PreviewBar("Toolbar (edge)", MaterialTheme.colorScheme.primaryContainer)
-                    }
-                    FloatingBar(
-                        scrollBehavior = BarScrollBehavior.Static,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    ) {
-                        PreviewBar("Static bar", MaterialTheme.colorScheme.surfaceVariant)
-                    }
-                },
-            )
         }
+        FloatingBarStack(
+            modifier = Modifier.align(Alignment.TopCenter),
+            state = barStackState,
+            position = BarPosition.TOP,
+            bars = {
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.VanishOnScroll,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("Toolbar (edge)", MaterialTheme.colorScheme.primaryContainer)
+                }
+                FloatingBar(
+                    scrollBehavior = BarScrollBehavior.Static,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("Static bar", MaterialTheme.colorScheme.surfaceVariant)
+                }
+            },
+        )
     }
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun FloatingBarStackMixedVisibilityPreview() {
-    PreviewWrapper {
-        val barStackState = rememberFloatingBarStackState(
-            position = BarPosition.BOTTOM,
-        )
-        Box(modifier = Modifier.fillMaxSize()) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(barStackState.nestedScrollConnection),
-                contentPadding = PaddingValues(bottom = barStackState.contentPaddingDp()),
-            ) {
-                items(20) { index ->
-                    Text(
-                        text = "Item $index",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                    )
-                }
+    val barStackState = rememberFloatingBarStackState(
+        position = BarPosition.BOTTOM,
+    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(barStackState.nestedScrollConnection),
+            contentPadding = PaddingValues(bottom = barStackState.contentPaddingDp()),
+        ) {
+            items(20) { index ->
+                Text(
+                    text = "Item $index",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                )
             }
-            FloatingBarStack(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                state = barStackState,
-                position = BarPosition.BOTTOM,
-                bars = {
-                    FloatingBar(
-                        visible = true,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    ) {
-                        PreviewBar("Visible bar 1", MaterialTheme.colorScheme.tertiaryContainer)
-                    }
-                    FloatingBar(
-                        visible = false, // Hidden - gap should be filled
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    ) {
-                        PreviewBar("Hidden bar", MaterialTheme.colorScheme.errorContainer)
-                    }
-                    FloatingBar(
-                        visible = true,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    ) {
-                        PreviewBar("Visible bar 2", MaterialTheme.colorScheme.primaryContainer)
-                    }
-                },
-            )
         }
+        FloatingBarStack(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            state = barStackState,
+            position = BarPosition.BOTTOM,
+            bars = {
+                FloatingBar(
+                    visible = true,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("Visible bar 1", MaterialTheme.colorScheme.tertiaryContainer)
+                }
+                FloatingBar(
+                    visible = false, // Hidden - gap should be filled
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("Hidden bar", MaterialTheme.colorScheme.errorContainer)
+                }
+                FloatingBar(
+                    visible = true,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) {
+                    PreviewBar("Visible bar 2", MaterialTheme.colorScheme.primaryContainer)
+                }
+            },
+        )
     }
 }
 

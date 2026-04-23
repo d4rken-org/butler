@@ -16,8 +16,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -91,57 +93,56 @@ fun OperationActionIndicator(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationActionIndicatorPreview() {
-    PreviewWrapper {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OperationActionIndicator(
-                state = OperationDisplay.State.Queued,
-                modifier = Modifier.size(24.dp)
-            )
-            OperationActionIndicator(
-                state = OperationDisplay.State.Running(),
-                modifier = Modifier.size(24.dp)
-            )
-            OperationActionIndicator(
-                state = OperationDisplay.State.Running(),
-                modifier = Modifier.size(24.dp),
-                onAction = {} // Shows cancel button
-            )
-            OperationActionIndicator(
-                state = OperationDisplay.State.Completed(
-                    summary = "Done".toCaString(),
-                    completedAt = Clock.System.now(),
-                    report = object : Operation.Report {
-                        override val summary = "Done".toCaString()
-                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
-                    }
-                ),
-                modifier = Modifier.size(24.dp)
-            )
-            OperationActionIndicator(
-                state = OperationDisplay.State.Failed(
-                    summary = "Error".toCaString(),
-                    completedAt = Clock.System.now(),
-                    report = object : Operation.Report {
-                        override val summary = "Error".toCaString()
-                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
-                    }
-                ),
-                modifier = Modifier.size(24.dp)
-            )
-            OperationActionIndicator(
-                state = OperationDisplay.State.Cancelled(
-                    completedAt = Clock.System.now(),
-                    report = object : Operation.Report {
-                        override val summary = "Cancelled".toCaString()
-                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
-                    }
-                ),
-                modifier = Modifier.size(24.dp)
-            )
-        }
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        OperationActionIndicator(
+            state = OperationDisplay.State.Queued,
+            modifier = Modifier.size(24.dp)
+        )
+        OperationActionIndicator(
+            state = OperationDisplay.State.Running(),
+            modifier = Modifier.size(24.dp)
+        )
+        OperationActionIndicator(
+            state = OperationDisplay.State.Running(),
+            modifier = Modifier.size(24.dp),
+            onAction = {} // Shows cancel button
+        )
+        OperationActionIndicator(
+            state = OperationDisplay.State.Completed(
+                summary = "Done".toCaString(),
+                completedAt = Clock.System.now(),
+                report = object : Operation.Report {
+                    override val summary = "Done".toCaString()
+                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                }
+            ),
+            modifier = Modifier.size(24.dp)
+        )
+        OperationActionIndicator(
+            state = OperationDisplay.State.Failed(
+                summary = "Error".toCaString(),
+                completedAt = Clock.System.now(),
+                report = object : Operation.Report {
+                    override val summary = "Error".toCaString()
+                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                }
+            ),
+            modifier = Modifier.size(24.dp)
+        )
+        OperationActionIndicator(
+            state = OperationDisplay.State.Cancelled(
+                completedAt = Clock.System.now(),
+                report = object : Operation.Report {
+                    override val summary = "Cancelled".toCaString()
+                    override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                }
+            ),
+            modifier = Modifier.size(24.dp)
+        )
     }
 }

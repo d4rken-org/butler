@@ -50,11 +50,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import eu.darken.butler.R
 import eu.darken.butler.common.ButlerLinks
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.icons.Discord
@@ -501,60 +503,58 @@ private fun SessionRow(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DebugSessionsBottomSheetPreview() {
-    PreviewWrapper {
-        DebugSessionsBottomSheet(
-            sessions = listOf(
-                DebugSession.Recording(
-                    id = "ext:session_recording",
-                    displayName = "eu.darken.butler_100_2024-03-07_11-20-00-000",
-                    createdAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()),
-                    diskSize = 12345L,
-                    path = java.io.File("/data/debug/logs/session_recording"),
-                    startedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis() - 30_000),
-                ),
-                DebugSession.Ready(
-                    id = "ext:session_ready",
-                    displayName = "eu.darken.butler_100_2024-03-06_10-00-00-000",
-                    createdAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86_400_000),
-                    diskSize = 54321L,
-                    logDir = java.io.File("/data/debug/logs/session_ready"),
-                    zipFile = java.io.File("/data/debug/logs/session_ready.zip"),
-                    compressedSize = 12000L,
-                ),
-                DebugSession.Failed(
-                    id = "ext:session_failed",
-                    displayName = "eu.darken.butler_100_2024-03-05_09-00-00-000",
-                    createdAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis() - 172_800_000),
-                    diskSize = 0L,
-                    path = java.io.File("/data/debug/logs/session_failed"),
-                    reason = DebugSession.Failed.Reason.EMPTY_LOG,
-                ),
+    DebugSessionsBottomSheet(
+        sessions = listOf(
+            DebugSession.Recording(
+                id = "ext:session_recording",
+                displayName = "eu.darken.butler_100_2024-03-07_11-20-00-000",
+                createdAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis()),
+                diskSize = 12345L,
+                path = java.io.File("/data/debug/logs/session_recording"),
+                startedAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis() - 30_000),
             ),
-            onDismiss = {},
-            onOpenSession = {},
-            onDeleteSession = {},
-            onStopRecording = {},
-            onClearAll = {},
-        )
-    }
+            DebugSession.Ready(
+                id = "ext:session_ready",
+                displayName = "eu.darken.butler_100_2024-03-06_10-00-00-000",
+                createdAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis() - 86_400_000),
+                diskSize = 54321L,
+                logDir = java.io.File("/data/debug/logs/session_ready"),
+                zipFile = java.io.File("/data/debug/logs/session_ready.zip"),
+                compressedSize = 12000L,
+            ),
+            DebugSession.Failed(
+                id = "ext:session_failed",
+                displayName = "eu.darken.butler_100_2024-03-05_09-00-00-000",
+                createdAt = kotlin.time.Instant.fromEpochMilliseconds(System.currentTimeMillis() - 172_800_000),
+                diskSize = 0L,
+                path = java.io.File("/data/debug/logs/session_failed"),
+                reason = DebugSession.Failed.Reason.EMPTY_LOG,
+            ),
+        ),
+        onDismiss = {},
+        onOpenSession = {},
+        onDeleteSession = {},
+        onStopRecording = {},
+        onClearAll = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SupportScreenPreview() {
-    PreviewWrapper {
-        SupportScreen(
-            state = SupportScreenViewModel.State(),
-            onNavigateUp = {},
-            onOpenUrl = {},
-            onContactSupport = {},
-            onDebugLogToggle = {},
-            onOpenSession = {},
-            onDeleteSession = {},
-            onStopRecording = {},
-            onClearLogs = {},
-        )
-    }
+    SupportScreen(
+        state = SupportScreenViewModel.State(),
+        onNavigateUp = {},
+        onOpenUrl = {},
+        onContactSupport = {},
+        onDebugLogToggle = {},
+        onOpenSession = {},
+        onDeleteSession = {},
+        onStopRecording = {},
+        onClearLogs = {},
+    )
 }

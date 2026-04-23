@@ -28,9 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.DurationFormat
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -365,245 +367,144 @@ fun OperationEntryRow(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationEntryRowCounterPreview() {
-    PreviewWrapper {
-        OperationEntryRow(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Deleting files".toCaString(),
-                description = "Removing selected items".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Running(
-                    primaryProgress = Progress.Data(
-                        primary = "Deleting files".toCaString(),
-                        secondary = "Processing item 3 of 4".toCaString(),
-                        count = Progress.Count.Counter(3, 4)
-                    )
-                ),
-                startedAt = Clock.System.now(),
+    OperationEntryRow(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Deleting files".toCaString(),
+            description = "Removing selected items".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Running(
+                primaryProgress = Progress.Data(
+                    primary = "Deleting files".toCaString(),
+                    secondary = "Processing item 3 of 4".toCaString(),
+                    count = Progress.Count.Counter(3, 4)
+                )
             ),
-            onRowClick = {},
-            onActionClick = {},
-            isBarExpanded = false,
-        )
-    }
+            startedAt = Clock.System.now(),
+        ),
+        onRowClick = {},
+        onActionClick = {},
+        isBarExpanded = false,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationEntryRowPercentPreview() {
-    PreviewWrapper {
-        OperationEntryRow(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Copying files".toCaString(),
-                description = "Copying to backup folder".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Running(
-                    primaryProgress = Progress.Data(
-                        primary = "Copying files".toCaString(),
-                        secondary = "Processing...".toCaString(),
-                        count = Progress.Count.Percent(75, 100)
-                    )
-                ),
-                startedAt = Clock.System.now(),
+    OperationEntryRow(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Copying files".toCaString(),
+            description = "Copying to backup folder".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Running(
+                primaryProgress = Progress.Data(
+                    primary = "Copying files".toCaString(),
+                    secondary = "Processing...".toCaString(),
+                    count = Progress.Count.Percent(75, 100)
+                )
             ),
-            onRowClick = {},
-            onActionClick = {},
-            isBarExpanded = true,
-        )
-    }
+            startedAt = Clock.System.now(),
+        ),
+        onRowClick = {},
+        onActionClick = {},
+        isBarExpanded = true,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationEntryRowSizePreview() {
-    PreviewWrapper {
-        OperationEntryRow(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Moving large files".toCaString(),
-                description = "Transferring video files".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Running(
-                    primaryProgress = Progress.Data(
-                        primary = "Moving files".toCaString(),
-                        secondary = "Transferring data...".toCaString(),
-                        count = Progress.Count.Size(1024 * 1024 * 250, 1024 * 1024 * 500) // 250MB/500MB
-                    )
-                ),
-                startedAt = Clock.System.now(),
+    OperationEntryRow(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Moving large files".toCaString(),
+            description = "Transferring video files".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Running(
+                primaryProgress = Progress.Data(
+                    primary = "Moving files".toCaString(),
+                    secondary = "Transferring data...".toCaString(),
+                    count = Progress.Count.Size(1024 * 1024 * 250, 1024 * 1024 * 500) // 250MB/500MB
+                )
             ),
-            onRowClick = {},
-            onActionClick = {},
-            isBarExpanded = false,
-        )
-    }
+            startedAt = Clock.System.now(),
+        ),
+        onRowClick = {},
+        onActionClick = {},
+        isBarExpanded = false,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationEntryRowIndeterminatePreview() {
-    PreviewWrapper {
-        OperationEntryRow(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Scanning files".toCaString(),
-                description = "Analyzing directory structure".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Running(
-                    primaryProgress = Progress.Data(
-                        primary = "Scanning".toCaString(),
-                        secondary = "Please wait...".toCaString(),
-                        count = Progress.Count.Indeterminate()
-                    )
-                ),
-                startedAt = Clock.System.now(),
+    OperationEntryRow(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Scanning files".toCaString(),
+            description = "Analyzing directory structure".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Running(
+                primaryProgress = Progress.Data(
+                    primary = "Scanning".toCaString(),
+                    secondary = "Please wait...".toCaString(),
+                    count = Progress.Count.Indeterminate()
+                )
             ),
-            onRowClick = {},
-            onActionClick = {},
-            isBarExpanded = true,
-        )
-    }
+            startedAt = Clock.System.now(),
+        ),
+        onRowClick = {},
+        onActionClick = {},
+        isBarExpanded = true,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OperationEntryRowCompletedPreview() {
-    PreviewWrapper {
-        Column {
-            OperationEntryRow(
-                operation = OperationDisplay(
-                    id = Operation.Id(),
-                    title = "Delete operation".toCaString(),
-                    description = "Successfully deleted 5 files".toCaString(),
-                    icon = Icons.TwoTone.Delete,
-                    state = OperationDisplay.State.Completed(
-                        summary = "Deleted 5 items".toCaString(),
-                        completedAt = Clock.System.now() + 2.5.seconds,
-                        report = object : Operation.Report {
-                            override val summary = "Deleted 5 items".toCaString()
-                            override val affectedPaths = emptyList<Operation.Report.PathChange>()
-                        }
-                    ),
-                    startedAt = Clock.System.now(),
-                ),
-                onRowClick = {},
-                onActionClick = {},
-                isBarExpanded = true,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OperationEntryRow(
-                operation = OperationDisplay(
-                    id = Operation.Id(),
-                    title = "Delete operation".toCaString(),
-                    description = "Successfully deleted 5 files".toCaString(),
-                    icon = Icons.TwoTone.Delete,
-                    state = OperationDisplay.State.Completed(
-                        summary = "Deleted 5 items".toCaString(),
-                        completedAt = Clock.System.now() + 2.5.seconds,
-                        report = object : Operation.Report {
-                            override val summary = "Deleted 5 items".toCaString()
-                            override val affectedPaths = emptyList<Operation.Report.PathChange>()
-                        }
-                    ),
-                    startedAt = Clock.System.now(),
-                ),
-                onRowClick = {},
-                onActionClick = {},
-                isBarExpanded = false,
-            )
-        }
-
-    }
-}
-
-@Preview2
-@Composable
-private fun OperationEntryRowFailedPreview() {
-    PreviewWrapper {
-        OperationEntryRow(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Copy operation".toCaString(),
-                description = "Failed to copy files".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Failed(
-                    summary = "Permission denied".toCaString(),
-                    completedAt = Clock.System.now() + 1.2.seconds,
-                    report = null,
-                ),
-                startedAt = Clock.System.now(),
-            ),
-            onRowClick = {},
-            onActionClick = {},
-            isBarExpanded = true,
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun OperationEntryRowCancelledPreview() {
-    PreviewWrapper {
-        OperationEntryRow(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Move operation".toCaString(),
-                description = "Cancelled by user".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Cancelled(
-                    completedAt = Clock.System.now() + 0.8.seconds,
-                    report = null,
-                ),
-                startedAt = Clock.System.now(),
-            ),
-            onRowClick = {},
-            onActionClick = {},
-            isBarExpanded = true,
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun OperationEntryRowRunningPreview() {
-    PreviewWrapper {
-        OperationEntryRow(
-            operation = OperationDisplay(
-                id = Operation.Id(),
-                title = "Moving large files".toCaString(),
-                description = "Transferring video files".toCaString(),
-                icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Running(
-                    primaryProgress = Progress.Data(
-                        primary = "Moving files".toCaString(),
-                        secondary = "Transferring data...".toCaString(),
-                        count = Progress.Count.Size(1024 * 1024 * 250, 1024 * 1024 * 500) // 250MB/500MB
-                    )
-                ),
-                startedAt = Clock.System.now(),
-            ),
-            onRowClick = {},
-            onActionClick = {},
-            isBarExpanded = false,
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun OperationEntryRowWaitingPreview() {
-    PreviewWrapper {
+    Column {
         OperationEntryRow(
             operation = OperationDisplay(
                 id = Operation.Id(),
                 title = "Delete operation".toCaString(),
-                description = "Waiting for user input".toCaString(),
+                description = "Successfully deleted 5 files".toCaString(),
                 icon = Icons.TwoTone.Delete,
-                state = OperationDisplay.State.Waiting(
-                    reason = "Waiting for user confirmation".toCaString(),
+                state = OperationDisplay.State.Completed(
+                    summary = "Deleted 5 items".toCaString(),
+                    completedAt = Clock.System.now() + 2.5.seconds,
+                    report = object : Operation.Report {
+                        override val summary = "Deleted 5 items".toCaString()
+                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    }
+                ),
+                startedAt = Clock.System.now(),
+            ),
+            onRowClick = {},
+            onActionClick = {},
+            isBarExpanded = true,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OperationEntryRow(
+            operation = OperationDisplay(
+                id = Operation.Id(),
+                title = "Delete operation".toCaString(),
+                description = "Successfully deleted 5 files".toCaString(),
+                icon = Icons.TwoTone.Delete,
+                state = OperationDisplay.State.Completed(
+                    summary = "Deleted 5 items".toCaString(),
+                    completedAt = Clock.System.now() + 2.5.seconds,
+                    report = object : Operation.Report {
+                        override val summary = "Deleted 5 items".toCaString()
+                        override val affectedPaths = emptyList<Operation.Report.PathChange>()
+                    }
                 ),
                 startedAt = Clock.System.now(),
             ),
@@ -612,4 +513,96 @@ private fun OperationEntryRowWaitingPreview() {
             isBarExpanded = false,
         )
     }
+
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationEntryRowFailedPreview() {
+    OperationEntryRow(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Copy operation".toCaString(),
+            description = "Failed to copy files".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Failed(
+                summary = "Permission denied".toCaString(),
+                completedAt = Clock.System.now() + 1.2.seconds,
+                report = null,
+            ),
+            startedAt = Clock.System.now(),
+        ),
+        onRowClick = {},
+        onActionClick = {},
+        isBarExpanded = true,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationEntryRowCancelledPreview() {
+    OperationEntryRow(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Move operation".toCaString(),
+            description = "Cancelled by user".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Cancelled(
+                completedAt = Clock.System.now() + 0.8.seconds,
+                report = null,
+            ),
+            startedAt = Clock.System.now(),
+        ),
+        onRowClick = {},
+        onActionClick = {},
+        isBarExpanded = true,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationEntryRowRunningPreview() {
+    OperationEntryRow(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Moving large files".toCaString(),
+            description = "Transferring video files".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Running(
+                primaryProgress = Progress.Data(
+                    primary = "Moving files".toCaString(),
+                    secondary = "Transferring data...".toCaString(),
+                    count = Progress.Count.Size(1024 * 1024 * 250, 1024 * 1024 * 500) // 250MB/500MB
+                )
+            ),
+            startedAt = Clock.System.now(),
+        ),
+        onRowClick = {},
+        onActionClick = {},
+        isBarExpanded = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun OperationEntryRowWaitingPreview() {
+    OperationEntryRow(
+        operation = OperationDisplay(
+            id = Operation.Id(),
+            title = "Delete operation".toCaString(),
+            description = "Waiting for user input".toCaString(),
+            icon = Icons.TwoTone.Delete,
+            state = OperationDisplay.State.Waiting(
+                reason = "Waiting for user confirmation".toCaString(),
+            ),
+            startedAt = Clock.System.now(),
+        ),
+        onRowClick = {},
+        onActionClick = {},
+        isBarExpanded = false,
+    )
 }

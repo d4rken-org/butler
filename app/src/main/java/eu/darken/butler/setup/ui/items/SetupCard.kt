@@ -22,8 +22,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.setup.core.SetupAction
@@ -117,85 +119,81 @@ fun SetupCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SetupCardCompletePreview() {
-    PreviewWrapper {
-        SetupCard(
-            modifier = Modifier.width(360.dp),
-            item = SetupItem(
-                type = SetupModule.Type.STORAGE,
-                state = object : SetupModule.State.Current {
-                    override val type = SetupModule.Type.STORAGE
-                    override val isComplete = true
-                },
-                isRequired = false,
-                priority = 1,
-            ),
-            onExecuteAction = {},
-            onOpenHelp = {},
-        )
-    }
+    SetupCard(
+        modifier = Modifier.width(360.dp),
+        item = SetupItem(
+            type = SetupModule.Type.STORAGE,
+            state = object : SetupModule.State.Current {
+                override val type = SetupModule.Type.STORAGE
+                override val isComplete = true
+            },
+            isRequired = false,
+            priority = 1,
+        ),
+        onExecuteAction = {},
+        onOpenHelp = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SetupCardRequiredPreview() {
-    PreviewWrapper {
-        SetupCard(
-            modifier = Modifier.width(360.dp),
-            item = SetupItem(
-                type = SetupModule.Type.STORAGE,
-                state = object : SetupModule.State.Current {
-                    override val type = SetupModule.Type.STORAGE
-                    override val isComplete = false
-                },
-                isRequired = true,
-                priority = 1,
-            ),
-            onExecuteAction = {},
-            onOpenHelp = {},
-        )
-    }
+    SetupCard(
+        modifier = Modifier.width(360.dp),
+        item = SetupItem(
+            type = SetupModule.Type.STORAGE,
+            state = object : SetupModule.State.Current {
+                override val type = SetupModule.Type.STORAGE
+                override val isComplete = false
+            },
+            isRequired = true,
+            priority = 1,
+        ),
+        onExecuteAction = {},
+        onOpenHelp = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SetupCardOptionalPreview() {
-    PreviewWrapper {
-        SetupCard(
-            modifier = Modifier.width(360.dp),
-            item = SetupItem(
-                type = SetupModule.Type.NOTIFICATION,
-                state = object : SetupModule.State.Current {
-                    override val type = SetupModule.Type.NOTIFICATION
-                    override val isComplete = false
-                },
-                isRequired = false,
-                priority = 2,
-            ),
-            onExecuteAction = {},
-            onOpenHelp = {},
-        )
-    }
+    SetupCard(
+        modifier = Modifier.width(360.dp),
+        item = SetupItem(
+            type = SetupModule.Type.NOTIFICATION,
+            state = object : SetupModule.State.Current {
+                override val type = SetupModule.Type.NOTIFICATION
+                override val isComplete = false
+            },
+            isRequired = false,
+            priority = 2,
+        ),
+        onExecuteAction = {},
+        onOpenHelp = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SetupCardLoadingPreview() {
-    PreviewWrapper {
-        SetupCard(
-            modifier = Modifier.width(360.dp),
-            item = SetupItem(
-                type = SetupModule.Type.ROOT,
-                state = object : SetupModule.State.Loading {
-                    override val type = SetupModule.Type.ROOT
-                    override val startAt = Clock.System.now()
-                },
-                isRequired = false,
-                priority = 4,
-            ),
-            onExecuteAction = {},
-            onOpenHelp = {},
-        )
-    }
+    SetupCard(
+        modifier = Modifier.width(360.dp),
+        item = SetupItem(
+            type = SetupModule.Type.ROOT,
+            state = object : SetupModule.State.Loading {
+                override val type = SetupModule.Type.ROOT
+                override val startAt = Clock.System.now()
+            },
+            isRequired = false,
+            priority = 4,
+        ),
+        onExecuteAction = {},
+        onOpenHelp = {},
+    )
 }

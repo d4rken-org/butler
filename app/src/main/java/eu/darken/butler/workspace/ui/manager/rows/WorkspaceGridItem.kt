@@ -29,9 +29,11 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -177,194 +179,188 @@ private fun createMockReorderableScope() = object : sh.calvin.reorderable.Reorde
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceGridItemPreview() {
-    PreviewWrapper {
+    WorkspaceGridItem(
+        modifier = Modifier.padding(16.dp),
+        reorderableScope = createMockReorderableScope(),
+        workspace = WorkspaceManagerViewModel.WorkspaceItem(
+            id = Workspace.Id(),
+            type = Workspace.Type.EXPLORER,
+            title = "/storage/emulated/0/Download/MyFile/Somepath/that/is/very/long/tooLong".toCaString(),
+            subtitle = "File explorer for browsing and managing files".toCaString(),
+        ),
+        onClose = {},
+        onSelect = {},
+        isDragging = false
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemSearcherPreview() {
+    WorkspaceGridItem(
+        modifier = Modifier.padding(16.dp),
+        reorderableScope = createMockReorderableScope(),
+        workspace = WorkspaceManagerViewModel.WorkspaceItem(
+            id = Workspace.Id(),
+            type = Workspace.Type.SEARCHER,
+            title = "Search".toCaString(),
+            subtitle = "Search for files and folders".toCaString(),
+        ),
+        onClose = {},
+        onSelect = {},
+        isDragging = false
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemEditorPreview() {
+    WorkspaceGridItem(
+        modifier = Modifier.padding(16.dp),
+        reorderableScope = createMockReorderableScope(),
+        workspace = WorkspaceManagerViewModel.WorkspaceItem(
+            id = Workspace.Id(),
+            type = Workspace.Type.EDITOR,
+            title = "Editor".toCaString(),
+            subtitle = "Text editor".toCaString(),
+        ),
+        onClose = {},
+        onSelect = {},
+        isDragging = false
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemDraggingPreview() {
+    WorkspaceGridItem(
+        modifier = Modifier.padding(16.dp),
+        reorderableScope = createMockReorderableScope(),
+        workspace = WorkspaceManagerViewModel.WorkspaceItem(
+            id = Workspace.Id(),
+            type = Workspace.Type.SEARCHER,
+            title = "Search".toCaString(),
+            subtitle = "Search for files and folders".toCaString(),
+        ),
+        onClose = {},
+        onSelect = {},
+        livePreview = false,
+        isDragging = true
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun WorkspaceGridItemFocusStatesPreview() {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Focused workspace in pane 1 - SHOWS BADGE (multi-pane mode)
         WorkspaceGridItem(
-            modifier = Modifier.padding(16.dp),
             reorderableScope = createMockReorderableScope(),
             workspace = WorkspaceManagerViewModel.WorkspaceItem(
                 id = Workspace.Id(),
                 type = Workspace.Type.EXPLORER,
-                title = "/storage/emulated/0/Download/MyFile/Somepath/that/is/very/long/tooLong".toCaString(),
-                subtitle = "File explorer for browsing and managing files".toCaString(),
-            ),
-            onClose = {},
-            onSelect = {},
-            isDragging = false
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun WorkspaceGridItemSearcherPreview() {
-    PreviewWrapper {
-        WorkspaceGridItem(
-            modifier = Modifier.padding(16.dp),
-            reorderableScope = createMockReorderableScope(),
-            workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
-                type = Workspace.Type.SEARCHER,
-                title = "Search".toCaString(),
-                subtitle = "Search for files and folders".toCaString(),
-            ),
-            onClose = {},
-            onSelect = {},
-            isDragging = false
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun WorkspaceGridItemEditorPreview() {
-    PreviewWrapper {
-        WorkspaceGridItem(
-            modifier = Modifier.padding(16.dp),
-            reorderableScope = createMockReorderableScope(),
-            workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
-                type = Workspace.Type.EDITOR,
-                title = "Editor".toCaString(),
-                subtitle = "Text editor".toCaString(),
-            ),
-            onClose = {},
-            onSelect = {},
-            isDragging = false
-        )
-    }
-}
-
-@Preview2
-@Composable
-private fun WorkspaceGridItemDraggingPreview() {
-    PreviewWrapper {
-        WorkspaceGridItem(
-            modifier = Modifier.padding(16.dp),
-            reorderableScope = createMockReorderableScope(),
-            workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                id = Workspace.Id(),
-                type = Workspace.Type.SEARCHER,
-                title = "Search".toCaString(),
-                subtitle = "Search for files and folders".toCaString(),
+                title = "Focused Workspace".toCaString(),
+                subtitle = "This workspace is focused".toCaString(),
+                isFocused = true,
+                isSelected = true,
+                paneNumber = 0,
             ),
             onClose = {},
             onSelect = {},
             livePreview = false,
-            isDragging = true
+            isFocused = true,
+            isSelected = true,
+            currentPaneCount = 2,
+        )
+
+        // Selected but not focused in pane 2 - SHOWS BADGE
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.SEARCHER,
+                title = "Selected Workspace".toCaString(),
+                subtitle = "Selected but not focused".toCaString(),
+                isFocused = false,
+                isSelected = true,
+                paneNumber = 1,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+            isFocused = false,
+            isSelected = true,
+            currentPaneCount = 2,
+        )
+
+        // Normal workspace - NO BADGE (not selected)
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EDITOR,
+                title = "Normal Workspace".toCaString(),
+                subtitle = "Not selected or focused".toCaString(),
+                isFocused = false,
+                isSelected = false,
+                paneNumber = null,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+            isFocused = false,
+            isSelected = false,
+            currentPaneCount = 2,
         )
     }
 }
 
 @Preview2
-@Composable
-private fun WorkspaceGridItemFocusStatesPreview() {
-    PreviewWrapper {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Focused workspace in pane 1 - SHOWS BADGE (multi-pane mode)
-            WorkspaceGridItem(
-                reorderableScope = createMockReorderableScope(),
-                workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                    id = Workspace.Id(),
-                    type = Workspace.Type.EXPLORER,
-                    title = "Focused Workspace".toCaString(),
-                    subtitle = "This workspace is focused".toCaString(),
-                    isFocused = true,
-                    isSelected = true,
-                    paneNumber = 0,
-                ),
-                onClose = {},
-                onSelect = {},
-                livePreview = false,
-                isFocused = true,
-                isSelected = true,
-                currentPaneCount = 2,
-            )
-
-            // Selected but not focused in pane 2 - SHOWS BADGE
-            WorkspaceGridItem(
-                reorderableScope = createMockReorderableScope(),
-                workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                    id = Workspace.Id(),
-                    type = Workspace.Type.SEARCHER,
-                    title = "Selected Workspace".toCaString(),
-                    subtitle = "Selected but not focused".toCaString(),
-                    isFocused = false,
-                    isSelected = true,
-                    paneNumber = 1,
-                ),
-                onClose = {},
-                onSelect = {},
-                livePreview = false,
-                isFocused = false,
-                isSelected = true,
-                currentPaneCount = 2,
-            )
-
-            // Normal workspace - NO BADGE (not selected)
-            WorkspaceGridItem(
-                reorderableScope = createMockReorderableScope(),
-                workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                    id = Workspace.Id(),
-                    type = Workspace.Type.EDITOR,
-                    title = "Normal Workspace".toCaString(),
-                    subtitle = "Not selected or focused".toCaString(),
-                    isFocused = false,
-                    isSelected = false,
-                    paneNumber = null,
-                ),
-                onClose = {},
-                onSelect = {},
-                livePreview = false,
-                isFocused = false,
-                isSelected = false,
-                currentPaneCount = 2,
-            )
-        }
-    }
-}
-
-@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceGridItemAttentionPreview() {
-    PreviewWrapper {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Workspace needs attention
-            WorkspaceGridItem(
-                reorderableScope = createMockReorderableScope(),
-                workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                    id = Workspace.Id(),
-                    type = Workspace.Type.EXPLORER,
-                    title = "Needs Attention".toCaString(),
-                    subtitle = "3 errors occurred".toCaString(),
-                    attentionCount = 3,
-                ),
-                onClose = {},
-                onSelect = {},
-                livePreview = false,
-            )
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Workspace needs attention
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EXPLORER,
+                title = "Needs Attention".toCaString(),
+                subtitle = "3 errors occurred".toCaString(),
+                attentionCount = 3,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
 
-            // Normal workspace for comparison
-            WorkspaceGridItem(
-                reorderableScope = createMockReorderableScope(),
-                workspace = WorkspaceManagerViewModel.WorkspaceItem(
-                    id = Workspace.Id(),
-                    type = Workspace.Type.EXPLORER,
-                    title = "Normal Workspace".toCaString(),
-                    subtitle = "No issues".toCaString(),
-                    attentionCount = 0,
-                ),
-                onClose = {},
-                onSelect = {},
-                livePreview = false,
-            )
-        }
+        // Normal workspace for comparison
+        WorkspaceGridItem(
+            reorderableScope = createMockReorderableScope(),
+            workspace = WorkspaceManagerViewModel.WorkspaceItem(
+                id = Workspace.Id(),
+                type = Workspace.Type.EXPLORER,
+                title = "Normal Workspace".toCaString(),
+                subtitle = "No issues".toCaString(),
+                attentionCount = 0,
+            ),
+            onClose = {},
+            onSelect = {},
+            livePreview = false,
+        )
     }
 }

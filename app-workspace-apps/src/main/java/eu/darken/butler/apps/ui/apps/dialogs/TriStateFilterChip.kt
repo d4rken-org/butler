@@ -2,6 +2,7 @@ package eu.darken.butler.apps.ui.apps.dialogs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.apps.core.AppTag
 import eu.darken.butler.apps.core.engine.FilterState
 import eu.darken.butler.apps.core.engine.next
@@ -11,6 +12,7 @@ import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipColors
 import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.common.compose.ButlerChipSize
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -46,61 +48,56 @@ fun TriStateFilterChip(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TriStateFilterChipNeutralPreview() {
-    PreviewWrapper {
-        TriStateFilterChip(
-            tag = AppTag.System,
-            state = FilterState.NEUTRAL,
-            onStateChange = {},
-        )
-    }
+    TriStateFilterChip(
+        tag = AppTag.System,
+        state = FilterState.NEUTRAL,
+        onStateChange = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TriStateFilterChipIncludePreview() {
-    PreviewWrapper {
-        TriStateFilterChip(
-            tag = AppTag.System,
-            state = FilterState.INCLUDE,
-            onStateChange = {},
-        )
-    }
+    TriStateFilterChip(
+        tag = AppTag.System,
+        state = FilterState.INCLUDE,
+        onStateChange = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TriStateFilterChipExcludePreview() {
-    PreviewWrapper {
-        TriStateFilterChip(
-            tag = AppTag.System,
-            state = FilterState.EXCLUDE,
-            onStateChange = {},
-        )
-    }
+    TriStateFilterChip(
+        tag = AppTag.System,
+        state = FilterState.EXCLUDE,
+        onStateChange = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TriStateFilterChipDisabledTagPreview() {
-    PreviewWrapper {
-        TriStateFilterChip(
-            tag = AppTag.Disabled,
-            state = FilterState.INCLUDE,
-            onStateChange = {},
-        )
-    }
+    TriStateFilterChip(
+        tag = AppTag.Disabled,
+        state = FilterState.INCLUDE,
+        onStateChange = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TriStateFilterChipUserAppPreview() {
-    PreviewWrapper {
-        TriStateFilterChip(
-            tag = AppTag.UserApp,
-            state = FilterState.INCLUDE,
-            onStateChange = {},
-        )
-    }
+    TriStateFilterChip(
+        tag = AppTag.UserApp,
+        state = FilterState.INCLUDE,
+        onStateChange = {},
+    )
 }

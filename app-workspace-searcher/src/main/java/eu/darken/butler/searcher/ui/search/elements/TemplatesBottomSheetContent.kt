@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
@@ -116,24 +118,22 @@ private fun TemplateRow(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TemplatesBottomSheetContentPreview() {
-    PreviewWrapper {
-        TemplatesBottomSheetContent(
-            onTemplateClick = {},
-        )
-    }
+    TemplatesBottomSheetContent(
+        onTemplateClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TemplateRowPreview() {
-    PreviewWrapper {
-        TemplateRow(
-            template = SearchTemplate.LargeFiles,
-            onClick = {},
-        )
-    }
+    TemplateRow(
+        template = SearchTemplate.LargeFiles,
+        onClick = {},
+    )
 }
 
 @Composable

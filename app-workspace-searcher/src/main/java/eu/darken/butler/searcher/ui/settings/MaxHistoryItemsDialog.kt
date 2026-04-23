@@ -23,7 +23,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.R
@@ -143,13 +145,12 @@ fun MaxHistoryItemsDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun MaxHistoryItemsDialogPreview() {
-    PreviewWrapper {
-        MaxHistoryItemsDialog(
-            currentValue = 50,
-            onDismiss = {},
-            onConfirm = {},
-        )
-    }
+    MaxHistoryItemsDialog(
+        currentValue = 50,
+        onDismiss = {},
+        onConfirm = {},
+    )
 }

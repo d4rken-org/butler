@@ -32,7 +32,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
@@ -243,68 +245,64 @@ private fun PermissionOptionCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PermissionRequestCardBothOptionsPreview() {
-    PreviewWrapper {
-        PermissionRequestCard(
-            setupRequirements = PathRequirements(
-                safPickerGrant = SAFPickerGrant(
-                    intent = Intent(),
-                    targetPath = LocalPath.build("/storage/emulated/0/Android/data"),
-                ),
-                combos = setOf(
-                    setOf(SetupModule.Type.ROOT),
-                    setOf(SetupModule.Type.SHIZUKU),
-                ),
+    PermissionRequestCard(
+        setupRequirements = PathRequirements(
+            safPickerGrant = SAFPickerGrant(
+                intent = Intent(),
+                targetPath = LocalPath.build("/storage/emulated/0/Android/data"),
             ),
-            onNavigateToSetup = {},
-            onLaunchSAFPicker = {},
-        )
-    }
+            combos = setOf(
+                setOf(SetupModule.Type.ROOT),
+                setOf(SetupModule.Type.SHIZUKU),
+            ),
+        ),
+        onNavigateToSetup = {},
+        onLaunchSAFPicker = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PermissionRequestCardSAFOnlyPreview() {
-    PreviewWrapper {
-        PermissionRequestCard(
-            setupRequirements = PathRequirements(
-                safPickerGrant = SAFPickerGrant(
-                    intent = Intent(),
-                    targetPath = LocalPath.build("/storage/emulated/0/Android/data"),
-                ),
+    PermissionRequestCard(
+        setupRequirements = PathRequirements(
+            safPickerGrant = SAFPickerGrant(
+                intent = Intent(),
+                targetPath = LocalPath.build("/storage/emulated/0/Android/data"),
             ),
-            onNavigateToSetup = {},
-            onLaunchSAFPicker = {},
-        )
-    }
+        ),
+        onNavigateToSetup = {},
+        onLaunchSAFPicker = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PermissionRequestCardSetupOnlyPreview() {
-    PreviewWrapper {
-        PermissionRequestCard(
-            setupRequirements = PathRequirements(
-                combos = setOf(
-                    setOf(SetupModule.Type.ROOT),
-                    setOf(SetupModule.Type.SHIZUKU),
-                ),
+    PermissionRequestCard(
+        setupRequirements = PathRequirements(
+            combos = setOf(
+                setOf(SetupModule.Type.ROOT),
+                setOf(SetupModule.Type.SHIZUKU),
             ),
-            onNavigateToSetup = {},
-        )
-    }
+        ),
+        onNavigateToSetup = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PermissionRequestCardStorageOnlyPreview() {
-    PreviewWrapper {
-        PermissionRequestCard(
-            setupRequirements = PathRequirements(
-                combos = setOf(setOf(SetupModule.Type.STORAGE)),
-            ),
-            onNavigateToSetup = {},
-        )
-    }
+    PermissionRequestCard(
+        setupRequirements = PathRequirements(
+            combos = setOf(setOf(SetupModule.Type.STORAGE)),
+        ),
+        onNavigateToSetup = {},
+    )
 }

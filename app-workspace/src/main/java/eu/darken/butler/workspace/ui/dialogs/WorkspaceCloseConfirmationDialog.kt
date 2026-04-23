@@ -5,8 +5,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.R as CommonR
@@ -44,13 +46,12 @@ fun WorkspaceCloseConfirmationDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceCloseConfirmationDialogPreview() {
-    PreviewWrapper {
-        WorkspaceCloseConfirmationDialog(
-            workspaceTitle = "My Documents".toCaString(),
-            onDismiss = {},
-            onConfirm = {},
-        )
-    }
+    WorkspaceCloseConfirmationDialog(
+        workspaceTitle = "My Documents".toCaString(),
+        onDismiss = {},
+        onConfirm = {},
+    )
 }

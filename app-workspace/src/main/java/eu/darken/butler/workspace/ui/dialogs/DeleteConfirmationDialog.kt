@@ -14,7 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -146,68 +148,64 @@ fun DeleteConfirmationDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DeleteConfirmationDialogPreview() {
-    PreviewWrapper {
-        DeleteConfirmationDialog(
-            items = setOf(
-                LocalPath.build("/test/file1.txt"),
-                LocalPath.build("/test/file2.txt"),
-                LocalPath.build("/test/folder1"),
-            ),
-            trashEnabled = false,
-            onDismiss = {},
-            onConfirm = { _, _ -> },
-        )
-    }
+    DeleteConfirmationDialog(
+        items = setOf(
+            LocalPath.build("/test/file1.txt"),
+            LocalPath.build("/test/file2.txt"),
+            LocalPath.build("/test/folder1"),
+        ),
+        trashEnabled = false,
+        onDismiss = {},
+        onConfirm = { _, _ -> },
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DeleteConfirmationDialogTrashPreview() {
-    PreviewWrapper {
-        DeleteConfirmationDialog(
-            items = setOf(
-                LocalPath.build("/test/file1.txt"),
-                LocalPath.build("/test/file2.txt"),
-                LocalPath.build("/test/folder1"),
-            ),
-            trashEnabled = true,
-            onDismiss = {},
-            onConfirm = { _, _ -> },
-        )
-    }
+    DeleteConfirmationDialog(
+        items = setOf(
+            LocalPath.build("/test/file1.txt"),
+            LocalPath.build("/test/file2.txt"),
+            LocalPath.build("/test/folder1"),
+        ),
+        trashEnabled = true,
+        onDismiss = {},
+        onConfirm = { _, _ -> },
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DeleteConfirmationDialogForcePermDeletePreview() {
-    PreviewWrapper {
-        DeleteConfirmationDialog(
-            items = setOf(
-                LocalPath.build("/test/file1.txt"),
-                LocalPath.build("/test/file2.txt"),
-                LocalPath.build("/test/folder1"),
-            ),
-            trashEnabled = true,
-            forcePermDelete = true,
-            onDismiss = {},
-            onConfirm = { _, _ -> },
-        )
-    }
+    DeleteConfirmationDialog(
+        items = setOf(
+            LocalPath.build("/test/file1.txt"),
+            LocalPath.build("/test/file2.txt"),
+            LocalPath.build("/test/folder1"),
+        ),
+        trashEnabled = true,
+        forcePermDelete = true,
+        onDismiss = {},
+        onConfirm = { _, _ -> },
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DeleteConfirmationDialogManyItemsPreview() {
-    PreviewWrapper {
-        DeleteConfirmationDialog(
-            items = (1..10).map {
-                LocalPath.build("/test/file$it.txt")
-            }.toSet(),
-            trashEnabled = false,
-            onDismiss = {},
-            onConfirm = { _, _ -> },
-        )
-    }
+    DeleteConfirmationDialog(
+        items = (1..10).map {
+            LocalPath.build("/test/file$it.txt")
+        }.toSet(),
+        trashEnabled = false,
+        onDismiss = {},
+        onConfirm = { _, _ -> },
+    )
 }

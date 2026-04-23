@@ -39,7 +39,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.R
@@ -206,60 +208,58 @@ fun PatternField(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PatternFieldFilenamePreview() {
-    PreviewWrapper {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            PatternField(
-                text = "*.kt",
-                onTextChange = {},
-                onSearch = {},
-                placeholder = "Filename pattern…",
-                leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
-                caseSensitive = false,
-                wholeWord = false,
-                useRegex = true,
-                onToggleCaseSensitive = {},
-                onToggleWholeWord = {},
-                onToggleRegex = {},
-            )
-            PatternField(
-                text = "TODO",
-                onTextChange = {},
-                onSearch = {},
-                placeholder = "Content pattern…",
-                leadingIcon = Icons.TwoTone.Description,
-                caseSensitive = true,
-                wholeWord = true,
-                useRegex = false,
-                onToggleCaseSensitive = {},
-                onToggleWholeWord = {},
-                onToggleRegex = {},
-            )
-        }
-    }
-}
-
-@Preview2
-@Composable
-private fun PatternFieldEmptyPreview() {
-    PreviewWrapper {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         PatternField(
-            text = "",
+            text = "*.kt",
             onTextChange = {},
             onSearch = {},
             placeholder = "Filename pattern…",
             leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
             caseSensitive = false,
             wholeWord = false,
+            useRegex = true,
+            onToggleCaseSensitive = {},
+            onToggleWholeWord = {},
+            onToggleRegex = {},
+        )
+        PatternField(
+            text = "TODO",
+            onTextChange = {},
+            onSearch = {},
+            placeholder = "Content pattern…",
+            leadingIcon = Icons.TwoTone.Description,
+            caseSensitive = true,
+            wholeWord = true,
             useRegex = false,
             onToggleCaseSensitive = {},
             onToggleWholeWord = {},
             onToggleRegex = {},
-            modifier = Modifier.padding(16.dp),
         )
     }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun PatternFieldEmptyPreview() {
+    PatternField(
+        text = "",
+        onTextChange = {},
+        onSearch = {},
+        placeholder = "Filename pattern…",
+        leadingIcon = Icons.AutoMirrored.TwoTone.InsertDriveFile,
+        caseSensitive = false,
+        wholeWord = false,
+        useRegex = false,
+        onToggleCaseSensitive = {},
+        onToggleWholeWord = {},
+        onToggleRegex = {},
+        modifier = Modifier.padding(16.dp),
+    )
 }

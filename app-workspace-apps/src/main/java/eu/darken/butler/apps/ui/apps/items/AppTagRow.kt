@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.core.AppTag
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -31,39 +33,36 @@ fun AppTagRow(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagRowSinglePreview() {
-    PreviewWrapper {
-        AppTagRow(tags = listOf(AppTag.System))
-    }
+    AppTagRow(tags = listOf(AppTag.System))
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagRowMultiplePreview() {
-    PreviewWrapper {
-        AppTagRow(
-            tags = listOf(
-                AppTag.Disabled,
-                AppTag.System,
-                AppTag.UpdatedSystem,
-            )
+    AppTagRow(
+        tags = listOf(
+            AppTag.Disabled,
+            AppTag.System,
+            AppTag.UpdatedSystem,
         )
-    }
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppTagRowManyPreview() {
-    PreviewWrapper {
-        AppTagRow(
-            tags = listOf(
-                AppTag.Disabled,
-                AppTag.System,
-                AppTag.Sideloaded,
-                AppTag.Debug,
-                AppTag.SplitApk,
-            )
+    AppTagRow(
+        tags = listOf(
+            AppTag.Disabled,
+            AppTag.System,
+            AppTag.Sideloaded,
+            AppTag.Debug,
+            AppTag.SplitApk,
         )
-    }
+    )
 }

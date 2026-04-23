@@ -26,8 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -187,81 +189,78 @@ private fun TestDataOption(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TestDataSectionPreview() {
-    PreviewWrapper {
-        TestDataSection(
-            testDataState = TestDataState(
-                targetPaths = listOf(
-                    TargetPathInfo(
-                        path = LocalPath.build("/storage/emulated/0"),
-                        displayPath = "/storage/emulated/0",
-                    ),
-                    TargetPathInfo(
-                        path = LocalPath.build("/storage/1234-5678"),
-                        displayPath = "/storage/1234-5678",
-                    ),
+    TestDataSection(
+        testDataState = TestDataState(
+            targetPaths = listOf(
+                TargetPathInfo(
+                    path = LocalPath.build("/storage/emulated/0"),
+                    displayPath = "/storage/emulated/0",
                 ),
-                largeFilesEnabled = false,
-                nestedStructureEnabled = true,
-                textFilesEnabled = true,
-                canGenerate = true,
+                TargetPathInfo(
+                    path = LocalPath.build("/storage/1234-5678"),
+                    displayPath = "/storage/1234-5678",
+                ),
             ),
-            onAddPath = {},
-            onRemovePath = {},
-            onLargeFilesToggled = {},
-            onNestedStructureToggled = {},
-            onTextFilesToggled = {},
-            onGenerateTestData = {},
-        )
-    }
+            largeFilesEnabled = false,
+            nestedStructureEnabled = true,
+            textFilesEnabled = true,
+            canGenerate = true,
+        ),
+        onAddPath = {},
+        onRemovePath = {},
+        onLargeFilesToggled = {},
+        onNestedStructureToggled = {},
+        onTextFilesToggled = {},
+        onGenerateTestData = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TestDataSectionAllEnabledPreview() {
-    PreviewWrapper {
-        TestDataSection(
-            testDataState = TestDataState(
-                targetPaths = listOf(
-                    TargetPathInfo(
-                        path = LocalPath.build("/storage/emulated/0"),
-                        displayPath = "/storage/emulated/0",
-                    ),
+    TestDataSection(
+        testDataState = TestDataState(
+            targetPaths = listOf(
+                TargetPathInfo(
+                    path = LocalPath.build("/storage/emulated/0"),
+                    displayPath = "/storage/emulated/0",
                 ),
-                largeFilesEnabled = true,
-                nestedStructureEnabled = true,
-                textFilesEnabled = true,
-                canGenerate = true,
             ),
-            onAddPath = {},
-            onRemovePath = {},
-            onLargeFilesToggled = {},
-            onNestedStructureToggled = {},
-            onTextFilesToggled = {},
-            onGenerateTestData = {},
-        )
-    }
+            largeFilesEnabled = true,
+            nestedStructureEnabled = true,
+            textFilesEnabled = true,
+            canGenerate = true,
+        ),
+        onAddPath = {},
+        onRemovePath = {},
+        onLargeFilesToggled = {},
+        onNestedStructureToggled = {},
+        onTextFilesToggled = {},
+        onGenerateTestData = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun TestDataSectionNoPathsPreview() {
-    PreviewWrapper {
-        TestDataSection(
-            testDataState = TestDataState(
-                targetPaths = emptyList(),
-                largeFilesEnabled = false,
-                nestedStructureEnabled = false,
-                textFilesEnabled = false,
-                canGenerate = false,
-            ),
-            onAddPath = {},
-            onRemovePath = {},
-            onLargeFilesToggled = {},
-            onNestedStructureToggled = {},
-            onTextFilesToggled = {},
-            onGenerateTestData = {},
-        )
-    }
+    TestDataSection(
+        testDataState = TestDataState(
+            targetPaths = emptyList(),
+            largeFilesEnabled = false,
+            nestedStructureEnabled = false,
+            textFilesEnabled = false,
+            canGenerate = false,
+        ),
+        onAddPath = {},
+        onRemovePath = {},
+        onLargeFilesToggled = {},
+        onNestedStructureToggled = {},
+        onTextFilesToggled = {},
+        onGenerateTestData = {},
+    )
 }

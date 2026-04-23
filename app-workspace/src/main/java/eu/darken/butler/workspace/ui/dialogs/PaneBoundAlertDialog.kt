@@ -22,9 +22,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -110,41 +112,40 @@ fun PaneBoundAlertDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PaneBoundAlertDialogPreview() {
-    PreviewWrapper {
-        // Simulate a workspace pane with content
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            // Background workspace content
-            Text(
-                text = "Workspace content underneath",
-                modifier = Modifier.padding(16.dp),
-            )
+    // Simulate a workspace pane with content
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Background workspace content
+        Text(
+            text = "Workspace content underneath",
+            modifier = Modifier.padding(16.dp),
+        )
 
-            // Dialog overlay
-            PaneBoundAlertDialog(
-                onDismissRequest = {},
-                title = {
-                    Text("Confirmation Dialog")
-                },
-                text = {
-                    Text("This dialog is bound to the pane and won't appear over other workspaces in multi-pane layouts.")
-                },
-                confirmButton = {
-                    TextButton(onClick = {}) {
-                        Text("Confirm")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = {}) {
-                        Text("Cancel")
-                    }
-                },
-            )
-        }
+        // Dialog overlay
+        PaneBoundAlertDialog(
+            onDismissRequest = {},
+            title = {
+                Text("Confirmation Dialog")
+            },
+            text = {
+                Text("This dialog is bound to the pane and won't appear over other workspaces in multi-pane layouts.")
+            },
+            confirmButton = {
+                TextButton(onClick = {}) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {}) {
+                    Text("Cancel")
+                }
+            },
+        )
     }
 }

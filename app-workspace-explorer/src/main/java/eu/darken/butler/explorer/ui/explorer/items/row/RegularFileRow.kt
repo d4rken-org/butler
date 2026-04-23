@@ -5,7 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.formatDate
@@ -68,6 +70,7 @@ internal fun RegularFileRow(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun RegularFileRowPreview() {
     RegularFileRow(
@@ -80,6 +83,7 @@ private fun RegularFileRowPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun RegularFileRowSelectedPreview() {
     RegularFileRow(
@@ -92,6 +96,7 @@ private fun RegularFileRowSelectedPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun RegularFileRowLeadingWhitespacePreview() {
     RegularFileRow(
@@ -104,6 +109,7 @@ private fun RegularFileRowLeadingWhitespacePreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun RegularFileRowTrailingWhitespaceSelectedPreview() {
     RegularFileRow(
@@ -116,6 +122,7 @@ private fun RegularFileRowTrailingWhitespaceSelectedPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun RegularFileRowHighlightedPreview() {
     RegularFileRow(

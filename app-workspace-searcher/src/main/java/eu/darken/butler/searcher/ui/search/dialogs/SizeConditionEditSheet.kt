@@ -30,8 +30,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.ui.SizeParser
@@ -201,30 +203,28 @@ private fun SizeConditionEditContent(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SizeConditionEditSheetNewPreview() {
-    PreviewWrapper {
-        SizeConditionEditSheet(
-            visible = true,
-            existingCondition = null,
-            onDismiss = {},
-            onApply = {},
-        )
-    }
+    SizeConditionEditSheet(
+        visible = true,
+        existingCondition = null,
+        onDismiss = {},
+        onApply = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SizeConditionEditSheetEditingPreview() {
-    PreviewWrapper {
-        SizeConditionEditSheet(
-            visible = true,
-            existingCondition = FilterCondition.Size(
-                comparator = FilterComparator.GTE,
-                bytes = 100L * 1024 * 1024,
-            ),
-            onDismiss = {},
-            onApply = {},
-        )
-    }
+    SizeConditionEditSheet(
+        visible = true,
+        existingCondition = FilterCondition.Size(
+            comparator = FilterComparator.GTE,
+            bytes = 100L * 1024 * 1024,
+        ),
+        onDismiss = {},
+        onApply = {},
+    )
 }

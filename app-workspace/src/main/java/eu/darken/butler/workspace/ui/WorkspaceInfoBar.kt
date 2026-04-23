@@ -15,10 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.R
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerChipDefaults
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.ui.propagateScrollAtBoundary
@@ -80,49 +82,46 @@ fun InfoChip(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceInfoBarWithSelectionPreview() {
-    PreviewWrapper {
-        WorkspaceInfoBar(
-            selectedCount = 3,
-            onClearSelection = {},
-        )
-    }
+    WorkspaceInfoBar(
+        selectedCount = 3,
+        onClearSelection = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceInfoBarWithoutClearPreview() {
-    PreviewWrapper {
-        WorkspaceInfoBar(
-            selectedCount = 5,
-        )
-    }
+    WorkspaceInfoBar(
+        selectedCount = 5,
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceInfoBarWithContentPreview() {
-    PreviewWrapper {
-        WorkspaceInfoBar(
-            selectedCount = 0,
-            leadingContent = {
-                InfoChip(
-                    icon = Icons.TwoTone.CheckBox,
-                    label = "42 items"
-                )
-                InfoChip(
-                    icon = Icons.TwoTone.CheckBox,
-                    label = "7 folders"
-                )
-            },
-            trailingContent = {
-                Spacer(modifier = Modifier.weight(1f))
-                InfoChip(
-                    icon = Icons.TwoTone.CheckBox,
-                    label = "512 MB"
-                )
-            }
-        )
-    }
+    WorkspaceInfoBar(
+        selectedCount = 0,
+        leadingContent = {
+            InfoChip(
+                icon = Icons.TwoTone.CheckBox,
+                label = "42 items"
+            )
+            InfoChip(
+                icon = Icons.TwoTone.CheckBox,
+                label = "7 folders"
+            )
+        },
+        trailingContent = {
+            Spacer(modifier = Modifier.weight(1f))
+            InfoChip(
+                icon = Icons.TwoTone.CheckBox,
+                label = "512 MB"
+            )
+        }
+    )
 }

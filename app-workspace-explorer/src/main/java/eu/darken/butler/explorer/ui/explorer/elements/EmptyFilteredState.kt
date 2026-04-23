@@ -35,7 +35,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.explorer.R
@@ -136,12 +138,11 @@ fun EmptyFilteredState(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun EmptyFilteredStatePreview() {
-    PreviewWrapper {
-        EmptyFilteredState(
-            onResetFilters = {},
-            initiallyVisible = true,
-        )
-    }
+    EmptyFilteredState(
+        onResetFilters = {},
+        initiallyVisible = true,
+    )
 }

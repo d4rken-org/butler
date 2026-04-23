@@ -28,7 +28,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.validation.FilenameValidator
@@ -178,12 +180,11 @@ fun CreateItemDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 fun CreateItemDialogPreview() {
-    PreviewWrapper {
-        CreateItemDialog(
-            onDismiss = {},
-            onConfirm = {}
-        )
-    }
+    CreateItemDialog(
+        onDismiss = {},
+        onConfirm = {}
+    )
 }

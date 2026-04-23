@@ -24,8 +24,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import kotlin.time.Duration
@@ -181,17 +183,16 @@ private fun parseSeconds(input: String): Duration? {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SecondsDurationInputDialogPreview() {
-    PreviewWrapper {
-        SecondsDurationInputDialog(
-            title = "Auto-save interval",
-            currentDuration = 30.seconds,
-            minimumDuration = 10.seconds,
-            maximumDuration = 300.seconds,
-            defaultDuration = 30.seconds,
-            onDismiss = {},
-            onConfirm = {},
-        )
-    }
+    SecondsDurationInputDialog(
+        title = "Auto-save interval",
+        currentDuration = 30.seconds,
+        minimumDuration = 10.seconds,
+        maximumDuration = 300.seconds,
+        defaultDuration = 30.seconds,
+        onDismiss = {},
+        onConfirm = {},
+    )
 }

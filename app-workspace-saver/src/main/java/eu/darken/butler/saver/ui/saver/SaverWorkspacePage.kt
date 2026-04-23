@@ -21,9 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -325,120 +327,116 @@ private fun BatchModeContent(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverWorkspacePageSingleFilePreview() {
-    PreviewWrapper {
-        SaverWorkspacePage(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            stateSource = flowOf(
-                SaverWorkspaceViewModel.State(
-                    sourceInfos = listOf(
-                        ContentUriHelper.SourceInfo(
-                            uri = "content://example/image.jpg".toUri(),
-                            displayName = "vacation_photo.jpg",
-                            mimeType = "image/jpeg",
-                            size = 3_500_000,
-                            isAccessible = true,
-                        )
-                    ),
-                    filename = "vacation_photo.jpg",
-                    callerLabel = "Telegram",
-                )
-            ),
-        )
-    }
+    SaverWorkspacePage(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        stateSource = flowOf(
+            SaverWorkspaceViewModel.State(
+                sourceInfos = listOf(
+                    ContentUriHelper.SourceInfo(
+                        uri = "content://example/image.jpg".toUri(),
+                        displayName = "vacation_photo.jpg",
+                        mimeType = "image/jpeg",
+                        size = 3_500_000,
+                        isAccessible = true,
+                    )
+                ),
+                filename = "vacation_photo.jpg",
+                callerLabel = "Telegram",
+            )
+        ),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverWorkspacePageBatchModePreview() {
-    PreviewWrapper {
-        SaverWorkspacePage(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            stateSource = flowOf(
-                SaverWorkspaceViewModel.State(
-                    sourceInfos = listOf(
-                        ContentUriHelper.SourceInfo(
-                            uri = "content://example/image1.jpg".toUri(),
-                            displayName = "photo_001.jpg",
-                            mimeType = "image/jpeg",
-                            size = 3_500_000,
-                            isAccessible = true,
-                        ),
-                        ContentUriHelper.SourceInfo(
-                            uri = "content://example/image2.jpg".toUri(),
-                            displayName = "photo_002.jpg",
-                            mimeType = "image/jpeg",
-                            size = 2_800_000,
-                            isAccessible = true,
-                        ),
-                        ContentUriHelper.SourceInfo(
-                            uri = "content://example/image3.jpg".toUri(),
-                            displayName = "photo_003.jpg",
-                            mimeType = "image/jpeg",
-                            size = 4_200_000,
-                            isAccessible = true,
-                        ),
+    SaverWorkspacePage(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        stateSource = flowOf(
+            SaverWorkspaceViewModel.State(
+                sourceInfos = listOf(
+                    ContentUriHelper.SourceInfo(
+                        uri = "content://example/image1.jpg".toUri(),
+                        displayName = "photo_001.jpg",
+                        mimeType = "image/jpeg",
+                        size = 3_500_000,
+                        isAccessible = true,
                     ),
-                    destination = LocalPath.build("/sdcard/Download"),
-                    callerLabel = "Gallery",
-                )
-            ),
-        )
-    }
+                    ContentUriHelper.SourceInfo(
+                        uri = "content://example/image2.jpg".toUri(),
+                        displayName = "photo_002.jpg",
+                        mimeType = "image/jpeg",
+                        size = 2_800_000,
+                        isAccessible = true,
+                    ),
+                    ContentUriHelper.SourceInfo(
+                        uri = "content://example/image3.jpg".toUri(),
+                        displayName = "photo_003.jpg",
+                        mimeType = "image/jpeg",
+                        size = 4_200_000,
+                        isAccessible = true,
+                    ),
+                ),
+                destination = LocalPath.build("/sdcard/Download"),
+                callerLabel = "Gallery",
+            )
+        ),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverWorkspacePageWithDestinationPreview() {
-    PreviewWrapper {
-        SaverWorkspacePage(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            stateSource = flowOf(
-                SaverWorkspaceViewModel.State(
-                    sourceInfos = listOf(
-                        ContentUriHelper.SourceInfo(
-                            uri = "content://example/document.pdf".toUri(),
-                            displayName = "report.pdf",
-                            mimeType = "application/pdf",
-                            size = 1_200_000,
-                            isAccessible = true,
-                        )
-                    ),
-                    filename = "report.pdf",
-                    destination = LocalPath.build("/sdcard/Download"),
-                    callerLabel = "Email",
-                )
-            ),
-        )
-    }
+    SaverWorkspacePage(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        stateSource = flowOf(
+            SaverWorkspaceViewModel.State(
+                sourceInfos = listOf(
+                    ContentUriHelper.SourceInfo(
+                        uri = "content://example/document.pdf".toUri(),
+                        displayName = "report.pdf",
+                        mimeType = "application/pdf",
+                        size = 1_200_000,
+                        isAccessible = true,
+                    )
+                ),
+                filename = "report.pdf",
+                destination = LocalPath.build("/sdcard/Download"),
+                callerLabel = "Email",
+            )
+        ),
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SaverWorkspacePageInaccessiblePreview() {
-    PreviewWrapper {
-        SaverWorkspacePage(
-            workspaceId = Workspace.Id(),
-            design = WorkspaceDesign(),
-            stateSource = flowOf(
-                SaverWorkspaceViewModel.State(
-                    sourceInfos = listOf(
-                        ContentUriHelper.SourceInfo(
-                            uri = "content://example/expired.jpg".toUri(),
-                            displayName = "expired_file.jpg",
-                            mimeType = "image/jpeg",
-                            size = 1_000_000,
-                            isAccessible = false,
-                        )
-                    ),
-                    filename = "expired_file.jpg",
-                    callerLabel = "Telegram",
-                )
-            ),
-        )
-    }
+    SaverWorkspacePage(
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        stateSource = flowOf(
+            SaverWorkspaceViewModel.State(
+                sourceInfos = listOf(
+                    ContentUriHelper.SourceInfo(
+                        uri = "content://example/expired.jpg".toUri(),
+                        displayName = "expired_file.jpg",
+                        mimeType = "image/jpeg",
+                        size = 1_000_000,
+                        isAccessible = false,
+                    )
+                ),
+                filename = "expired_file.jpg",
+                callerLabel = "Telegram",
+            )
+        ),
+    )
 }

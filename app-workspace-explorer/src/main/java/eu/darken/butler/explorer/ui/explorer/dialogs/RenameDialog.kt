@@ -19,6 +19,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -114,14 +116,13 @@ fun RenameDialog(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 fun RenameDialogPreview() {
-    PreviewWrapper {
-        RenameDialog(
-            item = eu.darken.butler.common.files.LocalPath.build("/test/file.txt"),
-            currentName = "file.txt",
-            onDismiss = {},
-            onConfirm = {}
-        )
-    }
+    RenameDialog(
+        item = eu.darken.butler.common.files.LocalPath.build("/test/file.txt"),
+        currentName = "file.txt",
+        onDismiss = {},
+        onConfirm = {}
+    )
 }

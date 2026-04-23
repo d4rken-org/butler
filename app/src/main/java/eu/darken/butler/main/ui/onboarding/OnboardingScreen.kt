@@ -11,8 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -117,15 +119,14 @@ private fun OnboardingScreen(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun OnboardingScreenPreview() {
-    PreviewWrapper {
-        OnboardingScreen(
-            state = OnboardingViewModel.State(),
-            onUpdateCheckChange = {},
-            onMotdCheckChange = {},
-            onReadPrivacyPolicy = {},
-            onFinishOnboarding = {},
-        )
-    }
+    OnboardingScreen(
+        state = OnboardingViewModel.State(),
+        onUpdateCheckChange = {},
+        onMotdCheckChange = {},
+        onReadPrivacyPolicy = {},
+        onFinishOnboarding = {},
+    )
 }

@@ -10,8 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 
@@ -39,25 +41,22 @@ fun PaneBadge(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PaneBadgePreview() {
-    PreviewWrapper {
-        PaneBadge(paneNumber = 0)
-    }
+    PaneBadge(paneNumber = 0)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PaneBadgePreview2() {
-    PreviewWrapper {
-        PaneBadge(paneNumber = 1)
-    }
+    PaneBadge(paneNumber = 1)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun PaneBadgePreview3() {
-    PreviewWrapper {
-        PaneBadge(paneNumber = 2)
-    }
+    PaneBadge(paneNumber = 2)
 }

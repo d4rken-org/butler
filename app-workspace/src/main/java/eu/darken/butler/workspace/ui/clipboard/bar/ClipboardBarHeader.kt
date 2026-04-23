@@ -21,7 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.R
@@ -109,27 +111,25 @@ fun ClipboardBarHeader(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardBarHeaderPreview() {
-    PreviewWrapper {
-        ClipboardBarHeader(
-            isExpanded = false,
-            entryCount = 3,
-            onExpandClick = {},
-            onClearAllClick = {},
-        )
-    }
+    ClipboardBarHeader(
+        isExpanded = false,
+        entryCount = 3,
+        onExpandClick = {},
+        onClearAllClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun ClipboardBarHeaderExpandedPreview() {
-    PreviewWrapper {
-        ClipboardBarHeader(
-            isExpanded = true,
-            entryCount = 3,
-            onExpandClick = {},
-            onClearAllClick = {},
-        )
-    }
+    ClipboardBarHeader(
+        isExpanded = true,
+        entryCount = 3,
+        onExpandClick = {},
+        onClearAllClick = {},
+    )
 }

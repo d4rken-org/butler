@@ -18,7 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -96,40 +98,37 @@ internal fun DestinationCard(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DestinationCardEmptyPreview() {
-    PreviewWrapper {
-        DestinationCard(
-            destination = null,
-            filename = "",
-            isBatchMode = false,
-            onClick = {},
-        )
-    }
+    DestinationCard(
+        destination = null,
+        filename = "",
+        isBatchMode = false,
+        onClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DestinationCardSingleFilePreview() {
-    PreviewWrapper {
-        DestinationCard(
-            destination = LocalPath.build("/storage/emulated/0/Download"),
-            filename = "vacation_photo.jpg",
-            isBatchMode = false,
-            onClick = {},
-        )
-    }
+    DestinationCard(
+        destination = LocalPath.build("/storage/emulated/0/Download"),
+        filename = "vacation_photo.jpg",
+        isBatchMode = false,
+        onClick = {},
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DestinationCardBatchModePreview() {
-    PreviewWrapper {
-        DestinationCard(
-            destination = LocalPath.build("/storage/emulated/0/Download"),
-            filename = null,
-            isBatchMode = true,
-            onClick = {},
-        )
-    }
+    DestinationCard(
+        destination = LocalPath.build("/storage/emulated/0/Download"),
+        filename = null,
+        isBatchMode = true,
+        onClick = {},
+    )
 }

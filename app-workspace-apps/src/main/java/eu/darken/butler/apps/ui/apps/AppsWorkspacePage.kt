@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.apps.core.AppsViewStyle
@@ -35,6 +36,7 @@ import eu.darken.butler.apps.ui.apps.elements.AppsToolbarCard
 import eu.darken.butler.apps.ui.apps.items.AppGridItem
 import eu.darken.butler.apps.ui.apps.items.AppListItem
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
@@ -312,6 +314,7 @@ fun AppsWorkspacePageHost(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsWorkspacePagePreview() {
     val mockApps = listOf(
@@ -341,6 +344,7 @@ private fun AppsWorkspacePagePreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsWorkspacePageEmptyPreview() {
     val mockState = AppsWorkspaceViewModel.State.Ready(
@@ -362,6 +366,7 @@ private fun AppsWorkspacePageEmptyPreview() {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun AppsWorkspacePageWithSelectionPreview() {
     val mockApps = listOf(

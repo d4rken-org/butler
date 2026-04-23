@@ -53,9 +53,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.BadgedIcon
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
@@ -500,8 +502,9 @@ fun BreadcrumbBar(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun BreadcrumbBarPreview() = PreviewWrapper {
+private fun BreadcrumbBarPreview() {
     BreadcrumbBar(
         breadcrumbs = MockDataProvider.createStorageBreadcrumbs(),
         onBreadcrumbClick = {},
@@ -509,8 +512,9 @@ private fun BreadcrumbBarPreview() = PreviewWrapper {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun BreadcrumbBarHomeOnlyPreview() = PreviewWrapper {
+private fun BreadcrumbBarHomeOnlyPreview() {
     BreadcrumbBar(
         breadcrumbs = listOf(MockDataProvider.createHomeBreadcrumb()),
         onBreadcrumbClick = {},
@@ -518,8 +522,9 @@ private fun BreadcrumbBarHomeOnlyPreview() = PreviewWrapper {
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
-private fun BreadcrumbBarEmptyPreview() = PreviewWrapper {
+private fun BreadcrumbBarEmptyPreview() {
     BreadcrumbBar(
         breadcrumbs = emptyList(),
         onBreadcrumbClick = {},

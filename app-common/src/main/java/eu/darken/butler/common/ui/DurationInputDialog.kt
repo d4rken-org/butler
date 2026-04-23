@@ -23,8 +23,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.R
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import kotlin.time.Duration
@@ -173,17 +175,16 @@ private fun formatDuration(context: android.content.Context, duration: Duration)
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun DurationInputDialogPreview() {
-    PreviewWrapper {
-        DurationInputDialog(
-            title = "Auto-delete period",
-            currentDuration = 30.days,
-            minimumDuration = 1.days,
-            maximumDuration = 365.days,
-            defaultDuration = 30.days,
-            onDismiss = {},
-            onConfirm = {},
-        )
-    }
+    DurationInputDialog(
+        title = "Auto-delete period",
+        currentDuration = 30.days,
+        minimumDuration = 1.days,
+        maximumDuration = 365.days,
+        defaultDuration = 30.days,
+        onDismiss = {},
+        onConfirm = {},
+    )
 }

@@ -37,9 +37,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.common.compose.PreviewWrapper
@@ -280,108 +282,104 @@ private fun SourceFileGridItem(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SourceFilesListPreview() {
-    PreviewWrapper {
-        SourceFilesList(
-            sourceInfos = listOf(
-                ContentUriHelper.SourceInfo(
-                    uri = "content://example/image1.jpg".toUri(),
-                    displayName = "vacation_photo_001.jpg",
-                    mimeType = "image/jpeg",
-                    size = 3_500_000,
-                    isAccessible = true,
-                ),
-                ContentUriHelper.SourceInfo(
-                    uri = "content://example/image2.jpg".toUri(),
-                    displayName = "vacation_photo_002.jpg",
-                    mimeType = "image/jpeg",
-                    size = 2_800_000,
-                    isAccessible = true,
-                ),
-                ContentUriHelper.SourceInfo(
-                    uri = Uri.parse("content://example/image3.jpg"),
-                    displayName = "vacation_photo_003.jpg",
-                    mimeType = "image/jpeg",
-                    size = 4_200_000,
-                    isAccessible = true,
-                ),
-            )
+    SourceFilesList(
+        sourceInfos = listOf(
+            ContentUriHelper.SourceInfo(
+                uri = "content://example/image1.jpg".toUri(),
+                displayName = "vacation_photo_001.jpg",
+                mimeType = "image/jpeg",
+                size = 3_500_000,
+                isAccessible = true,
+            ),
+            ContentUriHelper.SourceInfo(
+                uri = "content://example/image2.jpg".toUri(),
+                displayName = "vacation_photo_002.jpg",
+                mimeType = "image/jpeg",
+                size = 2_800_000,
+                isAccessible = true,
+            ),
+            ContentUriHelper.SourceInfo(
+                uri = Uri.parse("content://example/image3.jpg"),
+                displayName = "vacation_photo_003.jpg",
+                mimeType = "image/jpeg",
+                size = 4_200_000,
+                isAccessible = true,
+            ),
         )
-    }
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SourceFilesListWithInaccessiblePreview() {
-    PreviewWrapper {
-        SourceFilesList(
-            sourceInfos = listOf(
-                ContentUriHelper.SourceInfo(
-                    uri = Uri.parse("content://example/image1.jpg"),
-                    displayName = "accessible_photo.jpg",
-                    mimeType = "image/jpeg",
-                    size = 3_500_000,
-                    isAccessible = true,
-                ),
-                ContentUriHelper.SourceInfo(
-                    uri = Uri.parse("content://example/image2.jpg"),
-                    displayName = "expired_photo.jpg",
-                    mimeType = "image/jpeg",
-                    size = 2_800_000,
-                    isAccessible = false,
-                ),
-            )
+    SourceFilesList(
+        sourceInfos = listOf(
+            ContentUriHelper.SourceInfo(
+                uri = Uri.parse("content://example/image1.jpg"),
+                displayName = "accessible_photo.jpg",
+                mimeType = "image/jpeg",
+                size = 3_500_000,
+                isAccessible = true,
+            ),
+            ContentUriHelper.SourceInfo(
+                uri = Uri.parse("content://example/image2.jpg"),
+                displayName = "expired_photo.jpg",
+                mimeType = "image/jpeg",
+                size = 2_800_000,
+                isAccessible = false,
+            ),
         )
-    }
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SourceFilesListManyFilesPreview() {
-    PreviewWrapper {
-        SourceFilesList(
-            sourceInfos = (1..10).map { i ->
-                ContentUriHelper.SourceInfo(
-                    uri = Uri.parse("content://example/file$i.jpg"),
-                    displayName = "photo_${i.toString().padStart(3, '0')}.jpg",
-                    mimeType = "image/jpeg",
-                    size = 1_000_000L * i,
-                    isAccessible = true,
-                )
-            }
-        )
-    }
+    SourceFilesList(
+        sourceInfos = (1..10).map { i ->
+            ContentUriHelper.SourceInfo(
+                uri = Uri.parse("content://example/file$i.jpg"),
+                displayName = "photo_${i.toString().padStart(3, '0')}.jpg",
+                mimeType = "image/jpeg",
+                size = 1_000_000L * i,
+                isAccessible = true,
+            )
+        }
+    )
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SourceFilesListMixedTypesPreview() {
-    PreviewWrapper {
-        SourceFilesList(
-            sourceInfos = listOf(
-                ContentUriHelper.SourceInfo(
-                    uri = Uri.parse("content://example/photo.jpg"),
-                    displayName = "vacation_photo.jpg",
-                    mimeType = "image/jpeg",
-                    size = 3_500_000,
-                    isAccessible = true,
-                ),
-                ContentUriHelper.SourceInfo(
-                    uri = Uri.parse("content://example/document.pdf"),
-                    displayName = "travel_itinerary.pdf",
-                    mimeType = "application/pdf",
-                    size = 1_200_000,
-                    isAccessible = true,
-                ),
-                ContentUriHelper.SourceInfo(
-                    uri = Uri.parse("content://example/video.mp4"),
-                    displayName = "sunset_video.mp4",
-                    mimeType = "video/mp4",
-                    size = 15_000_000,
-                    isAccessible = true,
-                ),
-            )
+    SourceFilesList(
+        sourceInfos = listOf(
+            ContentUriHelper.SourceInfo(
+                uri = Uri.parse("content://example/photo.jpg"),
+                displayName = "vacation_photo.jpg",
+                mimeType = "image/jpeg",
+                size = 3_500_000,
+                isAccessible = true,
+            ),
+            ContentUriHelper.SourceInfo(
+                uri = Uri.parse("content://example/document.pdf"),
+                displayName = "travel_itinerary.pdf",
+                mimeType = "application/pdf",
+                size = 1_200_000,
+                isAccessible = true,
+            ),
+            ContentUriHelper.SourceInfo(
+                uri = Uri.parse("content://example/video.mp4"),
+                displayName = "sunset_video.mp4",
+                mimeType = "video/mp4",
+                size = 15_000_000,
+                isAccessible = true,
+            ),
         )
-    }
+    )
 }

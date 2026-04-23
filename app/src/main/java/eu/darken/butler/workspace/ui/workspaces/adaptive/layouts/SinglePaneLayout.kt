@@ -8,8 +8,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
@@ -40,37 +42,36 @@ internal fun SinglePaneLayout(
 }
 
 @Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun SinglePaneLayoutPreview() {
-    PreviewWrapper {
-        val workspace = Workspace.Info(
-            id = Workspace.Id(),
-            type = Workspace.Type.EXPLORER,
-            title = "Explorer".toCaString(),
-        )
+    val workspace = Workspace.Info(
+        id = Workspace.Id(),
+        type = Workspace.Type.EXPLORER,
+        title = "Explorer".toCaString(),
+    )
 
-        SinglePaneLayout(
-            selected = mapOf(0 to workspace.asPaneInfo()),
-            focusedTabId = workspace.id,
-            showPaneNumbers = true,
-            showPaneOverlay = false,
-            onTabFocus = {},
-        ) { ws, paneIdx ->
-            // Preview content placeholder
-            Surface(
+    SinglePaneLayout(
+        selected = mapOf(0 to workspace.asPaneInfo()),
+        focusedTabId = workspace.id,
+        showPaneNumbers = true,
+        showPaneOverlay = false,
+        onTabFocus = {},
+    ) { ws, paneIdx ->
+        // Preview content placeholder
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 2.dp,
+        ) {
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = "${ws?.type} - ${ws?.id?.shortTag ?: "Empty"} - Pane $paneIdx",
-                        style = MaterialTheme.typography.headlineSmall,
-                    )
-                }
+                Text(
+                    text = "${ws?.type} - ${ws?.id?.shortTag ?: "Empty"} - Pane $paneIdx",
+                    style = MaterialTheme.typography.headlineSmall,
+                )
             }
         }
     }
