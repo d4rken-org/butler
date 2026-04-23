@@ -6,7 +6,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("com.android.compose.screenshot") version "0.0.1-alpha13"
+    id("com.android.compose.screenshot") version "0.0.1-alpha14"
 }
 apply(plugin = "dagger.hilt.android.plugin")
 
@@ -234,6 +234,6 @@ dependencies {
 
     // Compose Preview Screenshot Testing
     "screenshotTestImplementation"(platform("androidx.compose:compose-bom:2025.12.00"))
-    "screenshotTestImplementation"("com.android.tools.screenshot:screenshot-validation-api:0.0.1-alpha13")
+    "screenshotTestImplementation"("com.android.tools.screenshot:screenshot-validation-api:0.0.1-alpha14")
     "screenshotTestImplementation"("androidx.compose.ui:ui-tooling")
 }
