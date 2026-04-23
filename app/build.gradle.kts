@@ -222,7 +222,7 @@ dependencies {
     addTesting()
 
     // Compose UI testing with Robolectric
-    testImplementation(platform("androidx.compose:compose-bom:2025.06.01"))
+    testImplementation(platform("androidx.compose:compose-bom:2025.12.00"))
     testImplementation("androidx.compose.ui:ui-test-junit4")
 
     implementation("io.github.z4kn4fein:semver:3.0.0")
@@ -233,7 +233,7 @@ dependencies {
     addCoil()
 
     // Compose Preview Screenshot Testing
-    "screenshotTestImplementation"(platform("androidx.compose:compose-bom:2025.06.01"))
+    "screenshotTestImplementation"(platform("androidx.compose:compose-bom:2025.12.00"))
     "screenshotTestImplementation"("com.android.tools.screenshot:screenshot-validation-api:0.0.1-alpha13")
     "screenshotTestImplementation"("androidx.compose.ui:ui-tooling")
 }

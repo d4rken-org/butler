@@ -45,7 +45,7 @@ dependencies {
     addSerialization()
 
     // Compose testing with Robolectric
-    val composeBom = platform("androidx.compose:compose-bom:2025.06.01")
+    val composeBom = platform("androidx.compose:compose-bom:2025.12.00")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui-test-junit4")
     implementation("org.robolectric:robolectric:4.14.1")
