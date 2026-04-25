@@ -148,6 +148,9 @@
     <string name="general_rename_action">Rename</string>
     <string name="general_retry_action">Retry</string>
     <string name="general_open_setup_action">Open Setup</string>
+    <string name="general_grant_usage_stats_action">Grant usage access</string>
+    <string name="general_grant_storage_permission_action">Grant storage permission</string>
+    <string name="general_grant_all_files_access_action">Allow all files access</string>
 
     <string name="general_result_user_cancel_msg">User has cancelled the operation.</string>
 

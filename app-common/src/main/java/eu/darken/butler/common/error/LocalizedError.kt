@@ -15,6 +15,7 @@ import eu.darken.butler.common.navigation.NavigationController
 data class LocalizedErrorContext(
     val activity: Activity? = null,
     val navController: NavigationController? = null,
+    val permissionFixResolver: PermissionFixResolver? = null,
 )
 
 interface HasLocalizedError {

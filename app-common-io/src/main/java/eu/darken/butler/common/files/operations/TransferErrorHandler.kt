@@ -2,14 +2,12 @@ package eu.darken.butler.common.files.operations
 
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.files.errors.PathException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
-import java.io.IOException
+import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
 
 /**
  * Shared error handling utilities for path operations (copy, move, delete).
@@ -48,19 +46,8 @@ import java.io.IOException
  */
 class TransferErrorHandler {
 
-    /**
-     * Checks if an exception represents a permission/access error.
-     *
-     * @return true if error is due to insufficient permissions
-     */
     private fun Exception.isPermissionError(): Boolean =
-        causeChain.any {
-            it is PathException ||
-                it is SecurityException ||
-                it is java.nio.file.AccessDeniedException ||
-                it is AccessDeniedException ||
-                (it is IOException && it.message?.contains("permission", ignoreCase = true) == true)
-        }
+        PermissionErrorClassifier.isPermissionError(this)
 
     /**
      * Checks "apply to all" error flags and executes skip if applicable.

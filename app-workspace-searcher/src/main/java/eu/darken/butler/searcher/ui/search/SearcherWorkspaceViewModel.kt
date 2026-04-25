@@ -23,6 +23,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.extensions.commonParent
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.navigation.Nav
@@ -946,7 +947,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     // Add error item at the top if there's an error
                     // Skip permission errors when setup card is already visible
                     workspaceState.error?.let { error ->
-                        val isPermissionError = error.message?.contains("permissions", ignoreCase = true) == true
+                        val isPermissionError = PermissionErrorClassifier.isPermissionError(error)
                         if (!needsSetup || !isPermissionError) {
                             add(
                                 SearchListItem.Error(

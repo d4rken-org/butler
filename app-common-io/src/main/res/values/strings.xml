@@ -19,6 +19,9 @@
 
     <string name="path_action_permission_denied_title">Permission denied</string>
     <string name="path_action_permission_denied_description">Cannot access \"%1$s\" at \"%2$s\" due to insufficient permissions.</string>
+    <string name="path_action_permission_denied_no_mechanism_description">Cannot access \"%1$s\" at \"%2$s\". No method available to perform this operation.</string>
+    <string name="path_action_permission_denied_readonly_description">Cannot access \"%1$s\" at \"%2$s\". The file system is read-only.</string>
+    <string name="path_action_permission_denied_not_permitted_description">Cannot access \"%1$s\" at \"%2$s\". The operation was denied by the system.</string>
 
     <string name="path_action_insufficient_space_title">Not enough space</string>
     <string name="path_action_insufficient_space_description">There is not enough storage space available to copy \"%1$s\" from \"%2$s\".</string>
