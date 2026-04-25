@@ -54,6 +54,11 @@ class CreateOperation @AssistedInject constructor(
                 command.name, command.parentPath.userReadablePath.get(it)
             )
         }
+        override val kind = when (command.type) {
+            ExplorerCommand.Create.Type.FILE -> Operation.Metadata.Kind.CREATE_FILE
+            ExplorerCommand.Create.Type.DIRECTORY -> Operation.Metadata.Kind.CREATE_FOLDER
+        }
+        override val intendedPaths = setOf(command.parentPath.child(command.name))
     }
 
     override fun perform(

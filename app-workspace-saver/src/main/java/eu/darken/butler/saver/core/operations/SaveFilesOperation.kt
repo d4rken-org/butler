@@ -73,6 +73,8 @@ class SaveFilesOperation @AssistedInject constructor(
                 command.targetDirectory.userReadablePath.get(cx),
             )
         }
+        override val kind = Operation.Metadata.Kind.SAVE
+        override val intendedPaths = command.sources.map { command.targetDirectory.child(it.filename) }
     }
 
     override fun perform(operationContext: Operation.Context): Flow<Operation.State> = channelFlow {

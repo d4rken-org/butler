@@ -63,6 +63,9 @@ class CopyOperation @AssistedInject constructor(
                 )
             }
         }
+        override val kind = Operation.Metadata.Kind.COPY
+        override val intent = command.intent
+        override val intendedPaths = command.sources + command.destination
     }
 
     override fun perform(

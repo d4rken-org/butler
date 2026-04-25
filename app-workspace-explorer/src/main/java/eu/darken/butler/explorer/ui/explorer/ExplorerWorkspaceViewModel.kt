@@ -1397,6 +1397,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             ExplorerCommand.Move(
                 sources = setOf(result.item),
                 destination = currentLocation.path.child(result.newName),
+                intent = Operation.Metadata.Intent.RENAME,
             )
         )
     }
@@ -1434,10 +1435,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         ClipboardClip.Paths.Mode.COPY -> ExplorerCommand.Copy(
                             sources = clip.paths.toSet(),
                             destination = currentLocation.path,
+                            intent = Operation.Metadata.Intent.PASTE_COPY,
                         )
                         ClipboardClip.Paths.Mode.CUT -> ExplorerCommand.Move(
                             sources = clip.paths.toSet(),
                             destination = currentLocation.path,
+                            intent = Operation.Metadata.Intent.PASTE_MOVE,
                         )
                     }
                     val completed = getWorkspace().execute(command)

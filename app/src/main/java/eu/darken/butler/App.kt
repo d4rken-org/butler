@@ -33,6 +33,7 @@ import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.release.ReleaseManager
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
 import eu.darken.butler.provider.documents.core.DocumentsProviderManager
+import eu.darken.butler.workspace.core.operations.history.OperationHistoryRepo
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
@@ -63,6 +64,14 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var workspacePreviewManager: WorkspacePreviewManager
     @Inject lateinit var documentsProviderManager: DocumentsProviderManager
     @Inject lateinit var trashCleanupScheduler: TrashCleanupScheduler
+
+    /**
+     * Lazy because Hilt singletons are otherwise constructed only on first call-site injection.
+     * Calling .get() in onCreate() forces construction so the repo's init block subscribes to
+     * OperationsManager.completedOperations from app start — otherwise early operation completions
+     * would be missed.
+     */
+    @Inject lateinit var operationHistoryRepo: dagger.Lazy<OperationHistoryRepo>
 
     private val logCatLogger = LogCatLogger()
 
@@ -114,6 +123,9 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         shortcutManager.initialize()
 
         workspacePreviewManager.start()
+
+        // Eagerly construct OperationHistoryRepo so it subscribes to completedOperations from start.
+        operationHistoryRepo.get()
 
         trashCleanupScheduler.setup()
 

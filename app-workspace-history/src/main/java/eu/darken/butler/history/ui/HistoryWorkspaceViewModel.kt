@@ -1,0 +1,145 @@
+package eu.darken.butler.history.ui
+
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
+import dagger.hilt.android.lifecycle.HiltViewModel
+import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.log
+import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.history.core.HistoryWorkspace
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceProvider
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.history.HistoryEntry
+import eu.darken.butler.workspace.core.operations.history.HistoryFilter
+import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
+import eu.darken.butler.workspace.core.operations.history.HistorySettings
+import eu.darken.butler.workspace.core.operations.history.OperationHistoryRepo
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
+
+@HiltViewModel(assistedFactory = HistoryWorkspaceViewModel.Factory::class)
+class HistoryWorkspaceViewModel @AssistedInject constructor(
+    @Assisted private val id: Workspace.Id,
+    dispatchers: DispatcherProvider,
+    private val workspaceProvider: WorkspaceProvider,
+    private val historyRepo: OperationHistoryRepo,
+    private val historySettings: HistorySettings,
+) : ViewModel3(dispatchers, logTag("History", "Workspace", id.shortTag, "Page")) {
+
+    private val workspaceSource = workspaceProvider.retrieve(id)
+        .map { it as? HistoryWorkspace }
+        .filterNotNull()
+
+    private val filterFlow = workspaceSource.flatMapLatest { it.filter }
+
+    private val maxItemsFlow = historySettings.maxHistoryItems.flow
+
+    private val entriesFlow = combine(filterFlow, maxItemsFlow) { f, max -> f to max }
+        .flatMapLatest { (filter, max) -> historyRepo.query(filter, max) }
+
+    val state = combine(filterFlow, entriesFlow) { filter, entries ->
+        State(
+            id = id,
+            filter = filter,
+            groups = groupByDate(entries, Clock.System.now()),
+            isEmpty = entries.isEmpty(),
+        )
+    }.asStateFlow()
+
+    init {
+        log(tag) { "Initialized for workspace $id" }
+    }
+
+    fun toggleOutcome(outcome: HistoryOutcome) = launch {
+        applyFilter { current ->
+            current.copy(
+                outcomes = if (outcome in current.outcomes) current.outcomes - outcome else current.outcomes + outcome
+            )
+        }
+    }
+
+    fun toggleKind(kind: Operation.Metadata.Kind) = launch {
+        applyFilter { current ->
+            current.copy(
+                kinds = if (kind in current.kinds) current.kinds - kind else current.kinds + kind
+            )
+        }
+    }
+
+    fun setPathScope(pathScope: String?) = launch {
+        applyFilter { it.copy(pathScope = pathScope?.takeIf { s -> s.isNotBlank() }) }
+    }
+
+    fun clearFilter() = launch {
+        applyFilter { HistoryFilter() }
+    }
+
+    fun deleteEntry(id: String) = launch {
+        log(tag, INFO) { "deleteEntry($id)" }
+        historyRepo.delete(id)
+    }
+
+    fun clearAll() = launch {
+        log(tag, INFO) { "clearAll()" }
+        historyRepo.clearAll()
+    }
+
+    private suspend fun applyFilter(transform: (HistoryFilter) -> HistoryFilter) {
+        val workspace = workspaceSource.first()
+        val current = workspace.filter.first()
+        workspace.setFilter(transform(current))
+    }
+
+    data class State(
+        val id: Workspace.Id,
+        val filter: HistoryFilter,
+        val groups: List<DateGroup>,
+        val isEmpty: Boolean,
+    )
+
+    data class DateGroup(
+        val key: GroupKey,
+        val entries: List<HistoryEntry>,
+    )
+
+    enum class GroupKey { TODAY, YESTERDAY, THIS_WEEK, THIS_MONTH, OLDER }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(id: Workspace.Id): HistoryWorkspaceViewModel
+    }
+
+    companion object {
+        private fun groupByDate(entries: List<HistoryEntry>, now: Instant): List<DateGroup> {
+            if (entries.isEmpty()) return emptyList()
+            val nowDays = now.toEpochMilliseconds() / DAY_MS
+            val grouped = entries.groupBy { entry ->
+                val entryDays = entry.completedAt.toEpochMilliseconds() / DAY_MS
+                val ageDays = nowDays - entryDays
+                when {
+                    ageDays <= 0 -> GroupKey.TODAY
+                    ageDays == 1L -> GroupKey.YESTERDAY
+                    ageDays in 2..6 -> GroupKey.THIS_WEEK
+                    ageDays in 7..29 -> GroupKey.THIS_MONTH
+                    else -> GroupKey.OLDER
+                }
+            }
+            return GroupKey.entries.mapNotNull { key ->
+                grouped[key]?.let { DateGroup(key, it) }
+            }
+        }
+
+        private val DAY_MS = 1.days.inWholeMilliseconds
+    }
+}

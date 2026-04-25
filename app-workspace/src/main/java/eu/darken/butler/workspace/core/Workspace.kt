@@ -33,6 +33,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
         APP_DETAILS,
         SAVER,
         DEVELOPER(isSingleton = true),
+        HISTORY,
         ;
     }
 

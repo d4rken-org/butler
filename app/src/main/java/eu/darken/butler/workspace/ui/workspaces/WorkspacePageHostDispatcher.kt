@@ -6,6 +6,7 @@ import eu.darken.butler.apps.ui.details.AppDetailsWorkspacePageHost
 import eu.darken.butler.developer.ui.DeveloperWorkspacePageHost
 import eu.darken.butler.editor.ui.editor.EditorWorkspacePageHost
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspacePageHost
+import eu.darken.butler.history.ui.HistoryWorkspacePageHost
 import eu.darken.butler.saver.ui.saver.SaverWorkspacePageHost
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePageHost
 import eu.darken.butler.templates.ui.TemplatesWorkspacePageHost
@@ -27,5 +28,6 @@ fun WorkspacePageHostDispatcher(
         Workspace.Type.APP_DETAILS -> AppDetailsWorkspacePageHost(id = id, design = design)
         Workspace.Type.SAVER -> SaverWorkspacePageHost(id = id, design = design)
         Workspace.Type.DEVELOPER -> DeveloperWorkspacePageHost(id = id, design = design)
+        Workspace.Type.HISTORY -> HistoryWorkspacePageHost(id = id, design = design)
     }
 }

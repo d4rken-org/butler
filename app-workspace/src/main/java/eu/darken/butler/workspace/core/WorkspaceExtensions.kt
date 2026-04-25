@@ -6,6 +6,7 @@ import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Apps
 import androidx.compose.material.icons.twotone.BugReport
 import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.History
 import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Workspaces
@@ -16,6 +17,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.developer.core.arguments.DeveloperArguments
 import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.explorer.core.arguments.ExplorerArguments
+import eu.darken.butler.history.core.arguments.HistoryArguments
 import eu.darken.butler.searcher.core.arguments.SearcherArguments
 import eu.darken.butler.templates.core.arguments.TemplatesArguments
 import eu.darken.butler.workspace.R
@@ -30,6 +32,7 @@ val Workspace.Type.icon: ImageVector
         Workspace.Type.APP_DETAILS -> Icons.TwoTone.Android
         Workspace.Type.SAVER -> Icons.TwoTone.SaveAlt
         Workspace.Type.DEVELOPER -> Icons.TwoTone.BugReport
+        Workspace.Type.HISTORY -> Icons.TwoTone.History
     }
 
 val Workspace.Type.label: CaString
@@ -42,6 +45,7 @@ val Workspace.Type.label: CaString
         Workspace.Type.APP_DETAILS -> R.string.workspace_appdetails_label.toCaString()
         Workspace.Type.SAVER -> R.string.workspace_saver_label.toCaString()
         Workspace.Type.DEVELOPER -> R.string.workspace_developer_label.toCaString()
+        Workspace.Type.HISTORY -> R.string.workspace_history_label.toCaString()
     }
 
 val Workspace.Type.defaultArguments: Workspace.Arguments?
@@ -54,4 +58,5 @@ val Workspace.Type.defaultArguments: Workspace.Arguments?
         Workspace.Type.APP_DETAILS -> null
         Workspace.Type.SAVER -> null
         Workspace.Type.DEVELOPER -> DeveloperArguments.Default()
+        Workspace.Type.HISTORY -> HistoryArguments.Default()
     }

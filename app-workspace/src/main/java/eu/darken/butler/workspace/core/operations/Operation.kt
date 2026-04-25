@@ -36,6 +36,32 @@ interface Operation {
         val title: CaString
         val description: CaString
 
+        /**
+         * File-op classification used by the global Operation History to filter and label entries.
+         * `null` means this operation is not a file op and should NOT be persisted in history
+         * (e.g., Developer test-data generators, Searcher search execution).
+         */
+        val kind: Kind? get() = null
+
+        /**
+         * Semantic intent override that refines the displayed label in history.
+         * For example, a `MoveOperation` invoked as a rename should set `intent = RENAME` so the
+         * history row reads "Renamed" instead of "Moved". Null = use the default label for `kind`.
+         */
+        val intent: Intent? get() = null
+
+        /**
+         * Paths the operation INTENDED to act on (sources for Copy/Move/Delete; parent for Create).
+         * Captured at submit time so failed/cancelled ops are still queryable by path scope, even
+         * when [Report.affectedPaths] is null/empty (because nothing was actually completed).
+         * Persistence stores the union of intended + actually-affected paths.
+         */
+        val intendedPaths: Collection<APath<*>>? get() = null
+
+        enum class Kind { COPY, MOVE, DELETE, CREATE_FOLDER, CREATE_FILE, SAVE }
+
+        enum class Intent { RENAME, PASTE_COPY, PASTE_MOVE }
+
         sealed interface Origin {
             val workspaceId: Workspace.Id
 
@@ -78,9 +104,24 @@ interface Operation {
         val summary: CaString
         val affectedPaths: Collection<PathChange>
 
+        /**
+         * Number of sub-items that DIDN'T complete as intended even though the operation as a whole
+         * didn't fail (e.g., save with mixed permissions: some files succeed, some fail per-file
+         * with the top-level [Operation.State.Completed.error] still null). Drives the
+         * [eu.darken.butler.workspace.core.operations.history.HistoryOutcome.PARTIAL] outcome in history.
+         * Default 0 means "not partial" — only reports that can produce per-item failures override.
+         */
+        val partialErrorCount: Int get() = 0
+
         data class PathChange(
             val path: APath<*>,
             val change: Change,
+            /**
+             * For [Change.MOVED]: the source path before the move (i.e., the rename source).
+             * History details show as `previousPath → path`. Null for non-move changes or when
+             * the source isn't tracked.
+             */
+            val previousPath: APath<*>? = null,
         ) {
             enum class Change {
                 ADDED, REMOVED, MODIFIED, TRASHED, MOVED,

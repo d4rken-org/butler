@@ -69,7 +69,11 @@ data class MoveOperationReport(
         fun addMovedItems(sources: Collection<Pair<APathLookup<*>, APathLookup<*>>>) {
             val affected = sources.map { (source, destLookup) ->
                 if (destLookup.isDirectory) movedDirectories++ else movedFiles++
-                PathChange(destLookup.lookedUp, PathChange.Change.MOVED)
+                PathChange(
+                    path = destLookup.lookedUp,
+                    change = PathChange.Change.MOVED,
+                    previousPath = source.lookedUp,
+                )
             }
             affectedPaths.addAll(affected)
         }

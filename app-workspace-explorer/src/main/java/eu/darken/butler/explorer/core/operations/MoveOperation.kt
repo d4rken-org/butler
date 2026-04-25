@@ -63,6 +63,9 @@ class MoveOperation @AssistedInject constructor(
                 )
             }
         }
+        override val kind = Operation.Metadata.Kind.MOVE
+        override val intent = command.intent
+        override val intendedPaths = command.sources + command.destination
     }
 
     override fun perform(

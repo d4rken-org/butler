@@ -15,6 +15,7 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.developer.ui.DeveloperWorkspaceTemplate
 import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
 import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
+import eu.darken.butler.history.ui.HistoryWorkspaceTemplate
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
@@ -39,6 +40,7 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         SearcherWorkspaceTemplate(),
         EditorWorkspaceTemplate(),
         AppsWorkspaceTemplate(),
+        HistoryWorkspaceTemplate(),
     )
 
     private val activeSingletonTypes = workspaceRemote.state.map { state ->

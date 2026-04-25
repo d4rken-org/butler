@@ -47,6 +47,8 @@ class CreateTextFileOperation @AssistedInject constructor(
                 command.path.name,
             )
         }
+        override val kind = Operation.Metadata.Kind.CREATE_FILE
+        override val intendedPaths = setOf(command.path)
     }
 
     override fun perform(

@@ -76,4 +76,11 @@ data class SaveFilesReport(
         get() = successes.map {
             Operation.Report.PathChange(it.savedPath, Operation.Report.PathChange.Change.ADDED)
         }
+
+    /**
+     * Per-file failures (errors). Skipped files are user-acknowledged choices and not counted.
+     * When `errors` is non-empty alongside successes, [HistoryOutcome.PARTIAL] is recorded.
+     */
+    override val partialErrorCount: Int
+        get() = errors.size
 }

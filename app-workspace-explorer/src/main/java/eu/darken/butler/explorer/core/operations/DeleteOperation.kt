@@ -53,6 +53,8 @@ class DeleteOperation @AssistedInject constructor(
                 )
             }
         }
+        override val kind = Operation.Metadata.Kind.DELETE
+        override val intendedPaths = command.targets
     }
 
     override fun perform(

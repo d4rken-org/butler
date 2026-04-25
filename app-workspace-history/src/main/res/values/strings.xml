@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Workspace title and subtitle (templates picker + tab) -->
+    <string name="history_workspace_title">History</string>
+    <string name="history_workspace_subtitle">Recent file operations</string>
+    <string name="history_workspace_title_scoped">History: %1$s</string>
+    <string name="history_workspace_title_outcome_failed">History: Failed</string>
+    <string name="history_workspace_title_outcome_partial">History: Partial</string>
+    <string name="history_workspace_title_outcome_cancelled">History: Cancelled</string>
+    <string name="history_workspace_title_outcome_completed">History: Completed</string>
+    <string name="history_workspace_title_kind_copy">History: Copy</string>
+    <string name="history_workspace_title_kind_move">History: Move</string>
+    <string name="history_workspace_title_kind_delete">History: Delete</string>
+    <string name="history_workspace_title_kind_create_file">History: Create file</string>
+    <string name="history_workspace_title_kind_create_folder">History: Create folder</string>
+    <string name="history_workspace_title_kind_save">History: Save</string>
+    <string name="history_workspace_title_filtered">History (filtered)</string>
+
+    <!-- Outcome filter chips -->
+    <string name="history_filter_outcome_all">All</string>
+    <string name="history_filter_outcome_completed">Completed</string>
+    <string name="history_filter_outcome_partial">Partial</string>
+    <string name="history_filter_outcome_failed">Failed</string>
+    <string name="history_filter_outcome_cancelled">Cancelled</string>
+
+    <!-- Kind filter chips -->
+    <string name="history_filter_kind_copy">Copy</string>
+    <string name="history_filter_kind_move">Move</string>
+    <string name="history_filter_kind_delete">Delete</string>
+    <string name="history_filter_kind_create_file">Create file</string>
+    <string name="history_filter_kind_create_folder">Create folder</string>
+    <string name="history_filter_kind_save">Save</string>
+
+    <!-- Path scope chip + dialog -->
+    <string name="history_path_scope_set_action">Set path scope…</string>
+    <string name="history_path_scope_clear_action">Clear path scope</string>
+    <string name="history_path_scope_dialog_title">Filter by path</string>
+    <string name="history_path_scope_dialog_description">Show only operations affecting this path or its descendants.</string>
+    <string name="history_path_scope_dialog_input_label">Path</string>
+    <string name="history_path_scope_dialog_pick_folder_action">Pick folder…</string>
+    <string name="history_path_scope_dialog_apply_action">Apply</string>
+    <string name="history_path_scope_dialog_cancel_action">Cancel</string>
+
+    <!-- Date group headers -->
+    <string name="history_group_today">Today</string>
+    <string name="history_group_yesterday">Yesterday</string>
+    <string name="history_group_this_week">This week</string>
+    <string name="history_group_this_month">This month</string>
+    <string name="history_group_older">Older</string>
+
+    <!-- Entry labels (intent overrides default kind label) -->
+    <string name="history_entry_intent_rename">Renamed</string>
+    <string name="history_entry_intent_paste_copy">Pasted</string>
+    <string name="history_entry_intent_paste_move">Pasted (move)</string>
+
+    <!-- Affected paths count -->
+    <plurals name="history_entry_affected_paths">
+        <item quantity="one">%d path</item>
+        <item quantity="other">%d paths</item>
+    </plurals>
+    <string name="history_entry_paths_truncated">First %1$d of %2$d affected paths</string>
+
+    <!-- Detail sheet -->
+    <string name="history_detail_label_started">Started</string>
+    <string name="history_detail_label_completed">Completed</string>
+    <string name="history_detail_label_duration">Duration</string>
+    <string name="history_detail_label_outcome">Outcome</string>
+    <string name="history_detail_label_origin">Origin</string>
+    <string name="history_detail_label_error">Error</string>
+    <string name="history_detail_label_paths">Affected paths</string>
+    <string name="history_detail_label_partial_errors">Per-item failures</string>
+    <string name="history_detail_copy_path_action">Copy path</string>
+    <string name="history_detail_close_action">Close</string>
+
+    <!-- Empty state -->
+    <string name="history_empty_title">No history yet</string>
+    <string name="history_empty_subtitle">File operations will appear here as you use Butler.</string>
+    <string name="history_empty_filtered_title">No matches</string>
+    <string name="history_empty_filtered_subtitle">No history entries match the current filter.</string>
+
+    <!-- Settings -->
+    <string name="history_settings_title">History</string>
+    <string name="history_settings_save_history_title">Save history</string>
+    <string name="history_settings_save_history_subtitle">Record completed file operations.</string>
+    <string name="history_settings_max_history_label">Max history items</string>
+    <string name="history_settings_max_history_subtitle">Older entries are removed once this limit is exceeded.</string>
+    <string name="history_settings_max_history_input_label">Maximum entries</string>
+    <string name="history_settings_current_history_title">Current history</string>
+    <string name="history_settings_current_history_subtitle">Stored entries.</string>
+    <string name="history_settings_clear_history_title">Clear history</string>
+    <string name="history_settings_clear_history_subtitle">Remove all stored entries.</string>
+    <string name="history_clear_dialog_title">Clear history?</string>
+    <string name="history_clear_dialog_message">Removes all entries from the operation history database. This cannot be undone.</string>
+    <string name="history_clear_confirm_action">Clear</string>
+    <string name="history_cleared_success">History cleared</string>
+</resources>

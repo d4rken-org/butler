@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.core.operations
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.workspace.core.operations.Operation
 
 sealed interface ExplorerCommand {
     data class Create(
@@ -29,6 +30,11 @@ sealed interface ExplorerCommand {
         val sources: Set<APath<*>>,
         val destination: APath<*>,
         val options: Options = Options(),
+        /**
+         * Optional semantic intent override surfaced in operation history
+         * (e.g., [Operation.Metadata.Intent.PASTE_COPY] when invoked via paste).
+         */
+        val intent: Operation.Metadata.Intent? = null,
     ) : ExplorerCommand {
         data class Options(
             val preserveAttributes: Boolean = true,
@@ -40,6 +46,12 @@ sealed interface ExplorerCommand {
         val sources: Set<APath<*>>,
         val destination: APath<*>,
         val options: Options = Options(),
+        /**
+         * Optional semantic intent override surfaced in operation history
+         * (e.g., [Operation.Metadata.Intent.RENAME] when invoked via rename,
+         * [Operation.Metadata.Intent.PASTE_MOVE] when invoked via paste-cut).
+         */
+        val intent: Operation.Metadata.Intent? = null,
     ) : ExplorerCommand {
         data class Options(
             val preserveAttributes: Boolean = true,
