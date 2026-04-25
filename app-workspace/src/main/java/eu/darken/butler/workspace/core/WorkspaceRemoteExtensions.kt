@@ -91,7 +91,7 @@ suspend fun WorkspaceRemote.launchPicker(
  *
  * @param type The type of workspace to create
  * @param arguments Optional workspace-specific arguments
- * @return The Create action result (Success with workspace ID, or LimitReached)
+ * @return The Create action result (Success, AlreadyOpen for singletons, or LimitReached)
  */
 suspend fun WorkspaceRemote.createAndFocus(
     type: Workspace.Type,
@@ -104,8 +104,10 @@ suspend fun WorkspaceRemote.createAndFocus(
         )
     ) as WorkspaceAction.Create.Result
 
-    if (result is WorkspaceAction.Create.Result.Success) {
-        emitEvent(WorkspaceEvent.SelectionRequested(result.newId))
+    when (result) {
+        is WorkspaceAction.Create.Result.Success -> emitEvent(WorkspaceEvent.SelectionRequested(result.newId))
+        is WorkspaceAction.Create.Result.AlreadyOpen -> emitEvent(WorkspaceEvent.SelectionRequested(result.existingId))
+        WorkspaceAction.Create.Result.LimitReached -> Unit
     }
 
     return result

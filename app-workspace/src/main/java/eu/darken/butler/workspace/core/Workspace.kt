@@ -24,7 +24,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
 
     }
 
-    enum class Type {
+    enum class Type(val isSingleton: Boolean = false) {
         TEMPLATES,
         EXPLORER,
         SEARCHER,

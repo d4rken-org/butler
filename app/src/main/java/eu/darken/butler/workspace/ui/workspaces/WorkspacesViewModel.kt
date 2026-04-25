@@ -227,6 +227,11 @@ class WorkspacesViewModel @Inject constructor(
                         workspacePageManager.setFocusedWorkspace(result.newId)
                         workspacePageManager.setSelectedWorkspaces(mapOf(0 to result.newId))
                     }
+                    is WorkspaceAction.Create.Result.AlreadyOpen -> {
+                        log(tag) { "Singleton already open, focusing existing: ${result.existingId}" }
+                        workspacePageManager.setFocusedWorkspace(result.existingId)
+                        workspacePageManager.setSelectedWorkspaces(mapOf(0 to result.existingId))
+                    }
                     is WorkspaceAction.Create.Result.LimitReached -> {
                         log(tag, WARN) { "On-demand workspace creation blocked - limit reached" }
                     }
@@ -240,6 +245,13 @@ class WorkspacesViewModel @Inject constructor(
                         workspacePageManager.setFocusedWorkspace(result.newId)
                         val currentSelections = workspacePageManager.state.value.selectedWorkspaces.toMutableMap()
                         currentSelections[action.paneIndex] = result.newId
+                        workspacePageManager.setSelectedWorkspaces(currentSelections)
+                    }
+                    is WorkspaceAction.Create.Result.AlreadyOpen -> {
+                        log(tag) { "Singleton already open, focusing existing: ${result.existingId} in pane ${action.paneIndex}" }
+                        workspacePageManager.setFocusedWorkspace(result.existingId)
+                        val currentSelections = workspacePageManager.state.value.selectedWorkspaces.toMutableMap()
+                        currentSelections[action.paneIndex] = result.existingId
                         workspacePageManager.setSelectedWorkspaces(currentSelections)
                     }
                     is WorkspaceAction.Create.Result.LimitReached -> {

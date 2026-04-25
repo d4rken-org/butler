@@ -103,6 +103,10 @@ class WorkspaceManagerViewModel @Inject constructor(
             is WorkspaceAction.Create.Result.Success -> {
                 log(tag) { "Workspace created: ${result.newId}" }
             }
+            is WorkspaceAction.Create.Result.AlreadyOpen -> {
+                log(tag) { "Singleton already open, focusing existing: ${result.existingId}" }
+                workspacePageManager.selectWorkspaceFromManager(result.existingId)
+            }
             is WorkspaceAction.Create.Result.LimitReached -> {
                 log(tag, WARN) { "Workspace creation blocked - limit reached" }
             }

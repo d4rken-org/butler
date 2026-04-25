@@ -19,6 +19,7 @@ import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
 import kotlinx.coroutines.flow.combine
@@ -40,13 +41,23 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         AppsWorkspaceTemplate(),
     )
 
-    private val templates = developerSettings.isDeveloperModeUnlocked.flow.map { isUnlocked ->
+    private val activeSingletonTypes = workspaceRemote.state.map { state ->
+        state.infos
+            .filter { !it.isSubWorkspace && it.type.isSingleton }
+            .map { it.type }
+            .toSet()
+    }
+
+    private val templates = combine(
+        developerSettings.isDeveloperModeUnlocked.flow,
+        activeSingletonTypes,
+    ) { isUnlocked, activeSingletons ->
         buildList {
             addAll(baseTemplates)
             if (isUnlocked) {
                 add(DeveloperWorkspaceTemplate())
             }
-        }
+        }.filterNot { it.type in activeSingletons }
     }
 
     val state = combine(
@@ -65,6 +76,10 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
         when (val result = workspaceRemote.execute(action)) {
             is WorkspaceAction.Create.Result.Success -> {
                 log(tag) { "Workspace created: ${result.newId}" }
+            }
+            is WorkspaceAction.Create.Result.AlreadyOpen -> {
+                log(tag) { "Singleton already open, focusing existing: ${result.existingId}" }
+                workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(result.existingId))
             }
             is WorkspaceAction.Create.Result.LimitReached -> {
                 log(tag, WARN) { "Workspace creation blocked - limit reached" }
