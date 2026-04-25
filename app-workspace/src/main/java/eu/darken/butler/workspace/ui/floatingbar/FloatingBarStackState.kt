@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 /**
@@ -87,7 +88,7 @@ class FloatingBarStackState(
                 hasVisibleBars = true
                 totalHeight += bar.effectiveHeight
                 if (index < barStates.lastIndex) {
-                    totalHeight += defaultSpacingPx * bar.visibilityFraction
+                    totalHeight += defaultSpacingPx * bar.layoutPresence
                 }
             }
         }
@@ -109,6 +110,9 @@ class FloatingBarStackState(
             val scope = animationScope ?: return Offset.Zero
 
             barStates.forEach { barState ->
+                // Invisible bars shouldn't accumulate scroll-collapse state
+                if (!barState.visible && barState.visibilityFraction <= 0f) return@forEach
+
                 val targetFraction = when {
                     delta < 0 -> 1f // Scrolling down -> hide/collapse
                     delta > 0 -> 0f // Scrolling up -> show/expand
@@ -140,6 +144,8 @@ class FloatingBarStackState(
             val scope = animationScope ?: return Velocity.Zero
 
             barStates.forEach { barState ->
+                if (!barState.visible && barState.visibilityFraction <= 0f) return@forEach
+
                 val targetFraction = when {
                     velocity < 0 -> 1f // Fling down -> hide/collapse
                     velocity > 0 -> 0f // Fling up -> show/expand
@@ -162,6 +168,23 @@ class FloatingBarStackState(
 
         override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
             return Velocity.Zero
+        }
+    }
+
+    /**
+     * Resets every bar's scroll-collapse fraction to 0. Use when the scrollable content
+     * underneath meaningfully changes (e.g. navigating to a new directory, opening a new file)
+     * so bars don't remain scroll-hidden over fresh content the user hasn't scrolled yet.
+     *
+     * Static bars are not affected (their fraction is always 0 by construction).
+     */
+    fun resetScrollCollapse() {
+        val scope = animationScope ?: return
+        barStates.forEach { barState ->
+            if (barState.scrollBehavior !is BarScrollBehavior.Static &&
+                barState.scrollCollapsedFraction > 0f) {
+                scope.launch { barState.scrollCollapseAnimatable.snapTo(0f) }
+            }
         }
     }
 
@@ -223,7 +246,7 @@ class FloatingBarStackState(
         for (i in range) {
             val bar = barStates.getOrNull(i) ?: continue
             if (bar.visibilityFraction > 0f || bar.visible) {
-                offset += bar.effectiveHeight + (defaultSpacingPx * bar.visibilityFraction)
+                offset += bar.effectiveHeight + (defaultSpacingPx * bar.layoutPresence)
             }
         }
         return offset

@@ -35,6 +35,9 @@ abstract class FloatingBarScope {
      * @param scrollBehavior How the bar responds to scroll events.
      * @param animation Animation style for visibility changes.
      * @param estimatedHeight Estimated height for first-frame padding calculation before measurement.
+     * @param revealOn Optional key whose change forces a scroll-collapse reset (re-reveals the bar).
+     *        Use for bars whose [visible] stays true but whose content undergoes a meaningful mode
+     *        change that should override a prior scroll-hide (e.g. entering selection mode).
      * @param content The bar content with access to [FloatingBarContentScope].
      */
     @Composable
@@ -44,9 +47,10 @@ abstract class FloatingBarScope {
         scrollBehavior: BarScrollBehavior = BarScrollBehavior.Static,
         animation: BarAnimation = BarAnimation.Slide(),
         estimatedHeight: Dp = 0.dp,
+        revealOn: Any? = null,
         content: @Composable FloatingBarContentScope.() -> Unit,
     ) {
-        FloatingBarImpl(modifier, visible, scrollBehavior, animation, estimatedHeight, content)
+        FloatingBarImpl(modifier, visible, scrollBehavior, animation, estimatedHeight, revealOn, content)
     }
 
     @Composable
@@ -56,6 +60,7 @@ abstract class FloatingBarScope {
         scrollBehavior: BarScrollBehavior,
         animation: BarAnimation,
         estimatedHeight: Dp,
+        revealOn: Any?,
         content: @Composable FloatingBarContentScope.() -> Unit,
     )
 }

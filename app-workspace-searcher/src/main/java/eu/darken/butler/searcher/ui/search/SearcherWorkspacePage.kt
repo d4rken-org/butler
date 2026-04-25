@@ -207,6 +207,15 @@ fun SearcherWorkspacePage(
         }
     }
 
+    // A new search means fresh content underneath the bars; reset scroll-collapse so bars don't
+    // stay hidden over content the user hasn't scrolled yet.
+    LaunchedEffect(searchStatus) {
+        if (searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING) {
+            topBarStackState.resetScrollCollapse()
+            bottomBarStackState.resetScrollCollapse()
+        }
+    }
+
     // Derived states for stable recomposition - at top level for immediate reactivity
     val hasOperations by remember {
         derivedStateOf { operationsState.operations.isNotEmpty() }
@@ -695,6 +704,7 @@ fun SearcherWorkspacePage(
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
                     modifier = Modifier.padding(horizontal = 16.dp),
+                    revealOn = currentState.selectionState.selectedResultIds,
                 ) {
                     WorkspaceActionBar(
                         actions = currentState.availableActions,
