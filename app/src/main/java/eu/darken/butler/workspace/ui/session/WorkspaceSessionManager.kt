@@ -210,12 +210,22 @@ class WorkspaceSessionManager @Inject constructor(
         log(TAG, INFO) { "Loaded session with ${workspaceEntities.size} workspaces" }
 
         val restoredWorkspaceIds = mutableListOf<Workspace.Id>()
+        val restoredSingletonTypes = mutableSetOf<Workspace.Type>()
 
         workspaceEntities.forEach { entity ->
             try {
-                log(TAG) { "Restoring workspace: ${entity.type} with id=${entity.workspaceId}" }
-
                 val type = entity.type
+
+                // Defensive dedup: a singleton type that appears more than once in saved session data
+                // (legacy data, or a bug in some prior version) should restore only the first instance.
+                if (type.isSingleton && type in restoredSingletonTypes) {
+                    log(TAG, WARN) {
+                        "Skipping duplicate singleton ${type} during restore (id=${entity.workspaceId}); first instance already restored"
+                    }
+                    return@forEach
+                }
+
+                log(TAG) { "Restoring workspace: ${entity.type} with id=${entity.workspaceId}" }
 
                 @Suppress("UNCHECKED_CAST")
                 val factory = factoryMap.getValue(type) as WorkspaceFactory<Workspace.Arguments>
@@ -240,6 +250,7 @@ class WorkspaceSessionManager @Inject constructor(
                 )
 
                 restoredWorkspaceIds.add(entity.workspaceId)
+                if (type.isSingleton) restoredSingletonTypes.add(type)
                 log(TAG) { "Restored workspace ${entity.type}: ${entity.workspaceId}" }
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Failed to restore workspace ${entity.type}: ${e.asLog()}" }
