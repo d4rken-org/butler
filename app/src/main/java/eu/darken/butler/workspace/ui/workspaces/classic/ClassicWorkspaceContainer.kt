@@ -16,7 +16,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
 import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
@@ -44,6 +42,10 @@ import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
 import kotlinx.coroutines.delay
 
 private val TAG = logTag("Workspace", "Container", "Classic")
+
+// Stable key for the on-demand-creation placeholder page (last index when enabled).
+// Distinct from any Workspace.Id so the pager preserves identity across list churn.
+private const val PLACEHOLDER_PAGE_KEY = "classic-pager-placeholder"
 
 @Composable
 internal fun ClassicWorkspaceContainer(
@@ -76,69 +78,27 @@ internal fun ClassicWorkspaceContainer(
     // State machine for placeholder workspace creation
     var creationState by remember { mutableStateOf<PlaceholderCreationState>(PlaceholderCreationState.Idle) }
 
-    var isAnimatingProgrammatically by remember { mutableStateOf(false) }
+    // Stable list of workspace IDs — does NOT re-identity on Workspace.Info field
+    // changes (operationCount, attentionCount, etc.), so the coordinator below
+    // doesn't trigger spurious pager scrolls when an unrelated workspace updates.
+    val tabIds = state.tabWorkspaces.map { it.id }
 
-    // Track last synced focus to detect new focus changes that should skip animation
-    var lastSyncedFocusId by remember { mutableStateOf<Workspace.Id?>(null) }
+    val coordinator = rememberPagerFocusCoordinator(
+        pagerState = pagerState,
+        tabIds = tabIds,
+        focused = state.focused,
+        isRestoring = state.isRestoring,
+        isOverlayVisible = isOverlayVisible,
+        onSettled = { settledId ->
+            onWorkspaceScreenAction(WorkspaceScreenAction.Select(settledId))
+        },
+    )
 
-    // Track focus changes initiated by user swipe to prevent race condition
-    // where Block A would re-animate after Block B dispatches Select
-    var lastUserSwipeFocusId by remember { mutableStateOf<Workspace.Id?>(null) }
-
-    // Sync pager with selected tab
-    LaunchedEffect(state.focused, state.tabWorkspaces, state.isRestoring, isOverlayVisible) {
-        val selectedId = state.focused ?: return@LaunchedEffect
-
-        // Skip animation if this focus change was initiated by user swipe
-        // (pager is already at the correct page from the swipe gesture)
-        if (selectedId == lastUserSwipeFocusId) {
-            log(TAG, VERBOSE) { "Skipping pager sync - focus change was user-initiated swipe" }
-            lastUserSwipeFocusId = null
-            lastSyncedFocusId = selectedId
-            return@LaunchedEffect
-        }
-
-        val selectedIndex = state.tabWorkspaces.indexOfFirst { it.id == selectedId }
-        log(TAG, VERBOSE) {
-            "Syncing pager with selected tab: selectedId=$selectedId, selectedIndex=$selectedIndex, currentPage=${pagerState.currentPage}"
-        }
-
-        if (selectedIndex < 0) {
-            log(TAG, VERBOSE) { "Selected tab not found in tabs list yet - waiting for state consistency" }
-            return@LaunchedEffect
-        }
-
-        if (selectedIndex >= state.tabWorkspaces.size || selectedIndex == pagerState.currentPage) {
-            lastSyncedFocusId = selectedId
-            return@LaunchedEffect
-        }
-
-        // First sync for a new focus should be instant (no animation), subsequent syncs animate
-        // Also skip animation when overlay is visible to prevent IME trigger during reorder
-        val isFirstSyncForFocus = lastSyncedFocusId != selectedId
-        val shouldSkipAnimation = state.isRestoring || isFirstSyncForFocus || isOverlayVisible
-
-        isAnimatingProgrammatically = true
-        if (shouldSkipAnimation) {
-            log(TAG, VERBOSE) {
-                "Jumping pager to page $selectedIndex (restoration=${state.isRestoring}, firstSync=$isFirstSyncForFocus, overlay=$isOverlayVisible)"
-            }
-            pagerState.scrollToPage(selectedIndex)
-        } else {
-            log(TAG, VERBOSE) { "Animating pager to page $selectedIndex" }
-            pagerState.animateScrollToPage(selectedIndex)
-        }
-        lastSyncedFocusId = selectedId
-        isAnimatingProgrammatically = false
-    }
-
-    val currentPage by remember { derivedStateOf { pagerState.currentPage } }
     val isScrolling by remember { derivedStateOf { pagerState.isScrollInProgress } }
 
     val hasBlockingDialog = managerDialogs.any { it.isBlocking }
     val settledPage by remember { derivedStateOf { pagerState.settledPage } }
     val workspaceCount = state.tabWorkspaces.size
-
 
     // State machine transitions for placeholder creation
     LaunchedEffect(
@@ -148,7 +108,7 @@ internal fun ClassicWorkspaceContainer(
         hasBlockingDialog,
         creationState,
     ) {
-        if (isScrolling || isAnimatingProgrammatically) return@LaunchedEffect
+        if (isScrolling || coordinator.isAnimatingProgrammatically) return@LaunchedEffect
 
         // Don't run placeholder creation logic when EmptyClassicWorkspaceContent is shown
         // (it has its own explicit creation actions)
@@ -242,27 +202,6 @@ internal fun ClassicWorkspaceContainer(
         }
     }
 
-    // Sync selected tab with pager when user swipes to a valid workspace page
-    LaunchedEffect(currentPage, isScrolling, state.tabWorkspaces) {
-        if (isScrolling || isAnimatingProgrammatically) return@LaunchedEffect
-        if (currentPage < 0 || currentPage >= state.tabWorkspaces.size) return@LaunchedEffect
-
-        val currentTabId = state.tabWorkspaces[currentPage].id
-        log(TAG, VERBOSE) { "Current tab ID: $currentTabId, focused: ${state.focused}" }
-
-        val focusedTabExists = state.focused?.let { focusedId ->
-            state.tabWorkspaces.any { it.id == focusedId }
-        } ?: false
-
-        if (focusedTabExists && currentTabId != state.focused) {
-            log(TAG, VERBOSE) { "Selecting tab due to user swipe: $currentTabId" }
-            lastUserSwipeFocusId = currentTabId
-            onWorkspaceScreenAction(WorkspaceScreenAction.Select(currentTabId))
-        } else if (!focusedTabExists) {
-            log(TAG, WARN) { "Skipping tab selection - focused tab doesn't exist in tabs list yet" }
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -274,6 +213,9 @@ internal fun ClassicWorkspaceContainer(
                 modifier = Modifier.fillMaxSize(),
                 flingBehavior = flingBehavior,
                 userScrollEnabled = state.swipeGesturesEnabled,
+                key = { page ->
+                    state.tabWorkspaces.getOrNull(page)?.id ?: PLACEHOLDER_PAGE_KEY
+                },
             ) { page ->
                 val paneInfo = state.tabWorkspaces.getOrNull(page)?.asPaneInfo()
                 val isPlaceholderPage = page >= state.tabWorkspaces.size
@@ -295,41 +237,38 @@ internal fun ClassicWorkspaceContainer(
                         },
                     )
                 } else {
-                    // Use key to preserve composition identity during workspace reorder
-                    key(paneInfo.id) {
-                        // When overlay is visible, no workspace should be considered focused
-                        val isFocused = state.focused == paneInfo.id && !isOverlayVisible
-                        CompositionLocalProvider(
-                            LocalWorkspaceFocused provides isFocused,
-                            LocalWorkspaceFocusRequest provides {
-                                onWorkspaceScreenAction(
-                                    WorkspaceScreenAction.Select(
-                                        paneInfo.id
-                                    )
+                    // When overlay is visible, no workspace should be considered focused
+                    val isFocused = state.focused == paneInfo.id && !isOverlayVisible
+                    CompositionLocalProvider(
+                        LocalWorkspaceFocused provides isFocused,
+                        LocalWorkspaceFocusRequest provides {
+                            onWorkspaceScreenAction(
+                                WorkspaceScreenAction.Select(
+                                    paneInfo.id
                                 )
-                            },
+                            )
+                        },
+                    ) {
+                        WorkspaceOverlayContainer(
+                            workspaceId = paneInfo.id,
+                            managerDialogStates = managerDialogStates,
+                            onDismissManagerDialog = onDismissManagerDialog,
+                            onConfirmManagerDialog = onConfirmManagerDialog,
+                            bannerStates = bannerStates,
+                            onDismissBanner = onDismissBanner,
                         ) {
-                            WorkspaceOverlayContainer(
-                                workspaceId = paneInfo.id,
-                                managerDialogStates = managerDialogStates,
-                                onDismissManagerDialog = onDismissManagerDialog,
-                                onConfirmManagerDialog = onConfirmManagerDialog,
-                                bannerStates = bannerStates,
-                                onDismissBanner = onDismissBanner,
-                            ) {
-                                WorkspaceMapper(
-                                    info = paneInfo,
-                                    design = design,
-                                    onShareError = { error ->
-                                        onShareError(paneInfo.id, error)
-                                    },
-                                    onCloseWorkspace = {
-                                        workspaceActionHandler?.executeWorkspaceAction(
-                                            WorkspaceAction.Close(paneInfo.id)
-                                        )
-                                    },
-                                )
-                            }
+                            WorkspaceMapper(
+                                info = paneInfo,
+                                design = design,
+                                onShareError = { error ->
+                                    onShareError(paneInfo.id, error)
+                                },
+                                onCloseWorkspace = {
+                                    workspaceActionHandler?.executeWorkspaceAction(
+                                        WorkspaceAction.Close(paneInfo.id)
+                                    )
+                                },
+                            )
                         }
                     }
                 }
