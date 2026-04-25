@@ -263,6 +263,7 @@ fun AppsWorkspacePage(
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
                     modifier = Modifier.padding(horizontal = 8.dp),
+                    revealOn = state.selectedAppIds,
                 ) {
                     WorkspaceActionBar(
                         actions = state.availableActions,

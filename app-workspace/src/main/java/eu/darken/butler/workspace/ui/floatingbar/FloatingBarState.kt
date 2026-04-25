@@ -129,6 +129,38 @@ class FloatingBarState(
         }
 
     /**
+     * Fraction [0..1] indicating how much this bar occupies layout space.
+     * Combines visibilityFraction and scroll-collapse so that scroll-collapsed bars
+     * don't leave a spacing gap.
+     */
+    val layoutPresence: Float
+        get() {
+            val scrollScale = when (scrollBehavior) {
+                is BarScrollBehavior.HideOnScroll,
+                is BarScrollBehavior.VanishOnScroll -> (1f - scrollCollapsedFraction).coerceIn(0f, 1f)
+                is BarScrollBehavior.Static,
+                is BarScrollBehavior.CollapseOnScroll -> 1f
+            }
+            return visibilityFraction * scrollScale
+        }
+
+    /**
+     * True when the scroll-collapse fraction has passed the "effectively hidden" threshold.
+     * Used to skip placement so collapsed bars don't receive touches.
+     *
+     * VanishOnScroll uses a soft threshold (0.9) — past that, alpha <= 0.1 so the bar
+     * is visually gone while still mid-animation. HideOnScroll uses a strict threshold (1.0)
+     * since partial translation still leaves the remainder visibly protruding and tappable.
+     */
+    val isHitHiddenByScroll: Boolean
+        get() = when (scrollBehavior) {
+            is BarScrollBehavior.VanishOnScroll -> scrollCollapsedFraction >= VANISH_HIT_HIDDEN_THRESHOLD
+            is BarScrollBehavior.HideOnScroll -> scrollCollapsedFraction >= 1f
+            is BarScrollBehavior.CollapseOnScroll,
+            is BarScrollBehavior.Static -> false
+        }
+
+    /**
      * Animates scroll collapse to target value.
      */
     suspend fun animateScrollCollapse(targetFraction: Float, animationSpec: AnimationSpec<Float>) {
@@ -172,5 +204,9 @@ class FloatingBarState(
         runBlocking {
             visibilityAnimatable.snapTo(if (targetVisible) 1f else 0f)
         }
+    }
+
+    companion object {
+        private const val VANISH_HIT_HIDDEN_THRESHOLD = 0.9f
     }
 }

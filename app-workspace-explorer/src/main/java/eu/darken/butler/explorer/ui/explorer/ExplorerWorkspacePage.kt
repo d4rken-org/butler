@@ -168,6 +168,12 @@ fun ExplorerWorkspacePage(
     val listState = key(state.locationId) { rememberLazyListState() }
     val gridState = key(state.locationId) { rememberLazyGridState() }
 
+    // Navigation resets floating-bar scroll-collapse so bars don't stay hidden over new content
+    LaunchedEffect(state.locationId) {
+        topBarStackState.resetScrollCollapse()
+        bottomBarStackState.resetScrollCollapse()
+    }
+
     // Pull-to-refresh state
     var showPullToRefreshIndicator by remember { mutableStateOf(false) }
     val pullToRefreshState = rememberPullToRefreshState()
@@ -573,6 +579,7 @@ fun ExplorerWorkspacePage(
                                 scrollBehavior = BarScrollBehavior.HideOnScroll,
                                 animation = BarAnimation.Slide(),
                                 modifier = Modifier.padding(horizontal = 16.dp),
+                                revealOn = state.selectionState.selectedItems,
                             ) {
                                 WorkspaceActionBar(
                                     actions = state.availableActions,

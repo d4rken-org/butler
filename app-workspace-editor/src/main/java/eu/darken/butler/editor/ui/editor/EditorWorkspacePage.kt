@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -127,6 +128,12 @@ fun EditorWorkspacePage(
         estimatedContentPadding = 80.dp,
     )
 
+    // Opening a new file is fresh content; reset scroll-collapse so bars don't stay hidden.
+    LaunchedEffect(state.contentSource) {
+        topBarStackState.resetScrollCollapse()
+        bottomBarStackState.resetScrollCollapse()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Top floating bars
         FloatingBarStack(
@@ -225,6 +232,7 @@ fun EditorWorkspacePage(
                     scrollBehavior = BarScrollBehavior.HideOnScroll,
                     animation = BarAnimation.Slide(),
                     modifier = Modifier.padding(horizontal = 16.dp),
+                    revealOn = state.selectionRange,
                 ) {
                     EditorActionBar(
                         actions = state.availableActions,

@@ -113,6 +113,13 @@ fun FloatingBarStack(
                     return@forEachIndexed
                 }
 
+                // Skip scroll-collapsed bars so they don't receive touches on their invisible area.
+                // Required for VanishOnScroll (doesn't translate off-screen); also covers
+                // HideOnScroll at fraction=1 as a layout-cost optimization.
+                if (barState.isHitHiddenByScroll) {
+                    return@forEachIndexed
+                }
+
                 val offset = state.getBarOffset(index)
 
                 // Edge bar is the one closest to screen edge (prevents peek during hide bounce-back)
@@ -203,6 +210,7 @@ internal class FloatingBarScopeImpl(
         scrollBehavior: BarScrollBehavior,
         animation: BarAnimation,
         estimatedHeight: Dp,
+        revealOn: Any?,
         content: @Composable FloatingBarContentScope.() -> Unit,
     ) {
         val density = LocalDensity.current
@@ -241,6 +249,11 @@ internal class FloatingBarScopeImpl(
         // Handle visibility changes
         LaunchedEffect(visible) {
             if (barState.visible != visible) {
+                // When becoming visible again, cancel any latent scroll-collapse so the bar
+                // doesn't re-appear off-screen / collapsed.
+                if (visible && barState.scrollBehavior !is BarScrollBehavior.Static) {
+                    barState.scrollCollapseAnimatable.snapTo(0f)
+                }
                 when (animation) {
                     is BarAnimation.Immediate -> barState.setVisibilityImmediate(visible)
                     else -> coroutineScope.launch {
@@ -264,6 +277,18 @@ internal class FloatingBarScopeImpl(
         LaunchedEffect(scrollBehavior) {
             if (scrollBehavior is BarScrollBehavior.Static) {
                 barState.triggerScrollCollapse(coroutineScope, 0f)
+            }
+        }
+
+        // Caller-driven scroll-collapse reset: when revealOn's value changes, snap scroll to 0
+        // so a scroll-hidden bar re-appears on a meaningful content/mode change.
+        // Skipped on initial composition (handled by the barState's initial scrollCollapsedFraction=0).
+        if (revealOn != null) {
+            LaunchedEffect(revealOn) {
+                if (barState.scrollBehavior !is BarScrollBehavior.Static &&
+                    barState.scrollCollapsedFraction > 0f) {
+                    barState.scrollCollapseAnimatable.snapTo(0f)
+                }
             }
         }
 
