@@ -5,11 +5,10 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.coroutine.DispatcherProvider
-import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.ui.ViewModel3
+import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.history.core.HistoryWorkspace
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -35,7 +34,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
     private val workspaceProvider: WorkspaceProvider,
     private val historyRepo: OperationHistoryRepo,
     private val historySettings: HistorySettings,
-) : ViewModel3(dispatchers, logTag("History", "Workspace", id.shortTag, "Page")) {
+) : ViewModel4(dispatchers, logTag("History", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource = workspaceProvider.retrieve(id)
         .map { it as? HistoryWorkspace }
@@ -45,15 +44,20 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
 
     private val maxItemsFlow = historySettings.maxHistoryItems.flow
 
-    private val entriesFlow = combine(filterFlow, maxItemsFlow) { f, max -> f to max }
-        .flatMapLatest { (filter, max) -> historyRepo.query(filter, max) }
+    private val filterAndEntries = combine(filterFlow, maxItemsFlow) { f, m -> f to m }
+        .flatMapLatest { (filter, max) ->
+            historyRepo.query(filter, max).map { entries -> filter to entries }
+        }
 
-    val state = combine(filterFlow, entriesFlow) { filter, entries ->
+    val state = combine(filterAndEntries, historyRepo.observeCount()) { pair, totalCount ->
+        val (filter, entries) = pair
         State(
             id = id,
             filter = filter,
             groups = groupByDate(entries, Clock.System.now()),
-            isEmpty = entries.isEmpty(),
+            entryCount = entries.size,
+            totalCount = totalCount,
+            hasAnyHistory = totalCount > 0,
         )
     }.asStateFlow()
 
@@ -95,6 +99,11 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         historyRepo.clearAll()
     }
 
+    fun openSettings() = launch {
+        log(tag) { "openSettings()" }
+        navTo(DestinationHistorySettings)
+    }
+
     private suspend fun applyFilter(transform: (HistoryFilter) -> HistoryFilter) {
         val workspace = workspaceSource.first()
         val current = workspace.filter.first()
@@ -105,7 +114,9 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         val id: Workspace.Id,
         val filter: HistoryFilter,
         val groups: List<DateGroup>,
-        val isEmpty: Boolean,
+        val entryCount: Int,
+        val totalCount: Int,
+        val hasAnyHistory: Boolean,
     )
 
     data class DateGroup(

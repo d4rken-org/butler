@@ -28,6 +28,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -51,6 +53,7 @@ fun HistoryEntryRow(
     entry: HistoryEntry,
     onClick: () -> Unit,
 ) {
+    val accentColor = entry.outcome.color()
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
@@ -62,14 +65,20 @@ fun HistoryEntryRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .drawBehind {
+                    drawRect(
+                        color = accentColor,
+                        size = Size(width = 4.dp.toPx(), height = size.height),
+                    )
+                }
+                .padding(start = 14.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = entry.outcome.icon(),
                 contentDescription = entry.outcome.name,
-                tint = entry.outcome.color(),
-                modifier = Modifier.size(24.dp),
+                tint = accentColor,
+                modifier = Modifier.size(20.dp),
             )
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -205,6 +214,42 @@ private fun HistoryEntryRowPreview() {
                     path = "/storage/emulated/0/backup/photo1.jpg",
                     previousPath = null,
                     change = Operation.Report.PathChange.Change.ADDED,
+                ),
+            ),
+        ),
+        onClick = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryEntryRowFailedPreview() {
+    val now = Clock.System.now()
+    HistoryEntryRow(
+        entry = HistoryEntry(
+            id = "2",
+            kind = Operation.Metadata.Kind.DELETE,
+            intent = null,
+            originType = HistoryEntry.OriginType.EXPLORER,
+            originWorkspaceId = "abc",
+            title = "Delete folder",
+            description = "Failed to remove",
+            summary = "Permission denied",
+            startedAt = now - 2.minutes,
+            completedAt = now - 90.seconds,
+            duration = 30.seconds,
+            outcome = HistoryOutcome.FAILED,
+            errorMessage = "Permission denied",
+            errorClass = "java.io.IOException",
+            affectedPathsCount = 0,
+            partialErrorCount = 0,
+            pathsTruncated = false,
+            paths = listOf(
+                HistoryEntry.PathChange(
+                    path = "/sdcard/protected/notes.txt",
+                    previousPath = null,
+                    change = Operation.Report.PathChange.Change.REMOVED,
                 ),
             ),
         ),

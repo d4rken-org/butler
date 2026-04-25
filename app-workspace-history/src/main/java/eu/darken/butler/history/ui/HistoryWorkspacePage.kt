@@ -4,34 +4,61 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.History
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.runtime.collectAsState
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.history.R
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
+import eu.darken.butler.workspace.core.operations.history.HistoryFilter
+import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
+import eu.darken.butler.workspace.ui.floatingbar.BarAnimation
+import eu.darken.butler.workspace.ui.floatingbar.BarPosition
+import eu.darken.butler.workspace.ui.floatingbar.BarScrollBehavior
+import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
+import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
+import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun HistoryWorkspacePageHost(
@@ -43,25 +70,33 @@ fun HistoryWorkspacePageHost(
     ),
 ) {
     ErrorEventHandler(vm)
+    NavigationEventHandler(vm)
 
     val state by vm.state.collectAsState(initial = null)
 
     var detailEntry by remember { mutableStateOf<HistoryEntry?>(null) }
     var pathScopeOpen by remember { mutableStateOf(false) }
+    var clearAllOpen by remember { mutableStateOf(false) }
 
     val density = LocalDensity.current
     val navBarInset = if (design.paneEdges.touchesBottom) {
         with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
+    } else {
+        0.dp
+    }
 
     state?.let { s ->
         HistoryWorkspacePage(
+            workspaceId = id,
             design = design,
             state = s,
             onToggleOutcome = { vm.toggleOutcome(it) },
             onToggleKind = { vm.toggleKind(it) },
             onSetPathScopeRequested = { pathScopeOpen = true },
             onClearPathScope = { vm.setPathScope(null) },
+            onClearFilter = { vm.clearFilter() },
+            onClearAllRequested = { clearAllOpen = true },
+            onOpenSettings = { vm.openSettings() },
             onEntryClick = { detailEntry = it },
         )
 
@@ -81,68 +116,92 @@ fun HistoryWorkspacePageHost(
                 },
             )
         }
+
+        if (clearAllOpen) {
+            AlertDialog(
+                onDismissRequest = { clearAllOpen = false },
+                title = { Text(stringResource(R.string.history_clear_dialog_title)) },
+                text = { Text(stringResource(R.string.history_clear_dialog_message)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        vm.clearAll()
+                        clearAllOpen = false
+                    }) {
+                        Text(
+                            text = stringResource(R.string.history_clear_confirm_action),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { clearAllOpen = false }) {
+                        Text(stringResource(eu.darken.butler.common.R.string.general_cancel_action))
+                    }
+                },
+            )
+        }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HistoryWorkspacePage(
+    workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     state: HistoryWorkspaceViewModel.State,
-    onToggleOutcome: (eu.darken.butler.workspace.core.operations.history.HistoryOutcome) -> Unit = {},
-    onToggleKind: (eu.darken.butler.workspace.core.operations.Operation.Metadata.Kind) -> Unit = {},
+    onToggleOutcome: (HistoryOutcome) -> Unit = {},
+    onToggleKind: (Operation.Metadata.Kind) -> Unit = {},
     onSetPathScopeRequested: () -> Unit = {},
     onClearPathScope: () -> Unit = {},
+    onClearFilter: () -> Unit = {},
+    onClearAllRequested: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     onEntryClick: (HistoryEntry) -> Unit = {},
 ) {
     val density = LocalDensity.current
-    val statusBarInset = if (design.paneEdges.touchesTop) {
-        with(density) { WindowInsets.statusBars.getTop(density).toDp() }
-    } else 0.dp
     val navBarInset = if (design.paneEdges.touchesBottom) {
         with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
-    } else 0.dp
+    } else {
+        0.dp
+    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = statusBarInset),
-    ) {
-        HistoryFilterChips(
-            modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
-            filter = state.filter,
-            onToggleOutcome = onToggleOutcome,
-            onToggleKind = onToggleKind,
-            onClearPathScope = onClearPathScope,
-            onSetPathScope = onSetPathScopeRequested,
-        )
+    val topBarStackState = rememberFloatingBarStackState(
+        position = BarPosition.TOP,
+        defaultSpacing = 8.dp,
+        edgePadding = 8.dp,
+        contentPadding = 8.dp,
+        includeSystemBarInset = design.paneEdges.touchesTop,
+        estimatedContentPadding = 192.dp,
+    )
 
-        if (state.isEmpty) {
-            EmptyState(filtered = !state.filter.isUnfiltered)
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    start = 12.dp,
-                    end = 12.dp,
-                    top = 4.dp,
-                    bottom = navBarInset + 16.dp,
-                ),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+    val listState = rememberLazyListState()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(topBarStackState.nestedScrollConnection),
+            contentPadding = PaddingValues(
+                start = 12.dp,
+                end = 12.dp,
+                top = topBarStackState.contentPaddingDp(),
+                bottom = navBarInset + 16.dp,
+            ),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (state.entryCount == 0) {
+                item(key = "empty") {
+                    EmptyState(
+                        modifier = Modifier.fillParentMaxSize(),
+                        hasAnyHistory = state.hasAnyHistory,
+                        onClearFilter = onClearFilter,
+                    )
+                }
+            } else {
                 state.groups.forEach { group ->
                     stickyHeader(key = "h-${group.key.name}") {
-                        Surface(
-                            color = MaterialTheme.colorScheme.surface,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                text = group.key.label(),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
-                            )
-                        }
+                        DateGroupHeader(group = group)
                     }
                     items(group.entries, key = { it.id }) { entry ->
                         HistoryEntryRow(entry = entry, onClick = { onEntryClick(entry) })
@@ -150,30 +209,113 @@ fun HistoryWorkspacePage(
                 }
             }
         }
+
+        FloatingBarStack(
+            state = topBarStackState,
+            position = BarPosition.TOP,
+            modifier = Modifier.align(Alignment.TopCenter),
+            bars = {
+                FloatingBar(
+                    visible = true,
+                    scrollBehavior = BarScrollBehavior.CollapseOnScroll(),
+                    animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                ) {
+                    HistoryToolbarCard(
+                        workspaceId = workspaceId,
+                        design = design,
+                        filter = state.filter,
+                        entryCount = state.entryCount,
+                        totalCount = state.totalCount,
+                        collapsedFraction = collapsedFraction,
+                        onToggleOutcome = onToggleOutcome,
+                        onToggleKind = onToggleKind,
+                        onSetPathScope = onSetPathScopeRequested,
+                        onClearPathScope = onClearPathScope,
+                        onClearFilter = onClearFilter,
+                        onClearAllRequested = onClearAllRequested,
+                        onOpenSettings = onOpenSettings,
+                    )
+                }
+            },
+        )
     }
 }
 
 @Composable
-private fun EmptyState(filtered: Boolean) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(32.dp),
+private fun DateGroupHeader(group: HistoryWorkspaceViewModel.DateGroup) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
+                text = group.key.label(),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = pluralStringResource(
+                    R.plurals.history_group_count,
+                    group.entries.size,
+                    group.entries.size,
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyState(
+    modifier: Modifier = Modifier,
+    hasAnyHistory: Boolean,
+    onClearFilter: () -> Unit,
+) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(32.dp),
+        ) {
+            Icon(
+                imageVector = Icons.TwoTone.History,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(48.dp),
+            )
+            Text(
                 text = stringResource(
-                    if (filtered) R.string.history_empty_filtered_title else R.string.history_empty_title
+                    if (hasAnyHistory) {
+                        R.string.history_empty_filtered_title
+                    } else {
+                        R.string.history_empty_title
+                    }
                 ),
                 style = MaterialTheme.typography.titleMedium,
             )
             Text(
                 text = stringResource(
-                    if (filtered) R.string.history_empty_filtered_subtitle else R.string.history_empty_subtitle
+                    if (hasAnyHistory) {
+                        R.string.history_empty_filtered_subtitle
+                    } else {
+                        R.string.history_empty_subtitle
+                    }
                 ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
+            if (hasAnyHistory) {
+                TextButton(onClick = onClearFilter) {
+                    Text(stringResource(R.string.history_empty_filtered_reset_action))
+                }
+            }
         }
     }
 }
@@ -188,3 +330,105 @@ private fun HistoryWorkspaceViewModel.GroupKey.label(): String = stringResource(
         HistoryWorkspaceViewModel.GroupKey.OLDER -> R.string.history_group_older
     }
 )
+
+private fun mockEntry(
+    id: String,
+    kind: Operation.Metadata.Kind,
+    outcome: HistoryOutcome,
+    intent: Operation.Metadata.Intent? = null,
+    path: String,
+    completedAgo: kotlin.time.Duration = 30.seconds,
+): HistoryEntry {
+    val now = Clock.System.now()
+    return HistoryEntry(
+        id = id,
+        kind = kind,
+        intent = intent,
+        originType = HistoryEntry.OriginType.EXPLORER,
+        originWorkspaceId = "ws",
+        title = kind.name,
+        description = path,
+        summary = null,
+        startedAt = now - completedAgo - 5.seconds,
+        completedAt = now - completedAgo,
+        duration = 5.seconds,
+        outcome = outcome,
+        errorMessage = null,
+        errorClass = null,
+        affectedPathsCount = 1,
+        partialErrorCount = 0,
+        pathsTruncated = false,
+        paths = listOf(
+            HistoryEntry.PathChange(
+                path = path,
+                previousPath = null,
+                change = Operation.Report.PathChange.Change.ADDED,
+            ),
+        ),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryWorkspacePageWithEntriesPreview() {
+    val workspaceId = Workspace.Id()
+    val entries = listOf(
+        mockEntry("1", Operation.Metadata.Kind.COPY, HistoryOutcome.COMPLETED, path = "/sdcard/DCIM/photo.jpg", completedAgo = 30.seconds),
+        mockEntry("2", Operation.Metadata.Kind.MOVE, HistoryOutcome.COMPLETED, intent = Operation.Metadata.Intent.RENAME, path = "/sdcard/Documents/notes.txt", completedAgo = 5.minutes),
+        mockEntry("3", Operation.Metadata.Kind.DELETE, HistoryOutcome.FAILED, path = "/sdcard/Protected/secret.bin", completedAgo = 12.minutes),
+        mockEntry("4", Operation.Metadata.Kind.SAVE, HistoryOutcome.PARTIAL, path = "/sdcard/Downloads/list.csv", completedAgo = 45.minutes),
+    )
+    HistoryWorkspacePage(
+        workspaceId = workspaceId,
+        state = HistoryWorkspaceViewModel.State(
+            id = workspaceId,
+            filter = HistoryFilter(),
+            groups = listOf(
+                HistoryWorkspaceViewModel.DateGroup(
+                    HistoryWorkspaceViewModel.GroupKey.TODAY,
+                    entries,
+                ),
+            ),
+            entryCount = entries.size,
+            totalCount = entries.size,
+            hasAnyHistory = true,
+        ),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryWorkspacePageEmptyPreview() {
+    val workspaceId = Workspace.Id()
+    HistoryWorkspacePage(
+        workspaceId = workspaceId,
+        state = HistoryWorkspaceViewModel.State(
+            id = workspaceId,
+            filter = HistoryFilter(),
+            groups = emptyList(),
+            entryCount = 0,
+            totalCount = 0,
+            hasAnyHistory = false,
+        ),
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryWorkspacePageEmptyFilteredPreview() {
+    val workspaceId = Workspace.Id()
+    HistoryWorkspacePage(
+        workspaceId = workspaceId,
+        state = HistoryWorkspaceViewModel.State(
+            id = workspaceId,
+            filter = HistoryFilter(outcomes = setOf(HistoryOutcome.FAILED)),
+            groups = emptyList(),
+            entryCount = 0,
+            totalCount = 200,
+            hasAnyHistory = true,
+        ),
+    )
+}

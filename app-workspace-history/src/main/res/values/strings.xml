@@ -77,6 +77,26 @@
     <string name="history_empty_subtitle">File operations will appear here as you use Butler.</string>
     <string name="history_empty_filtered_title">No matches</string>
     <string name="history_empty_filtered_subtitle">No history entries match the current filter.</string>
+    <string name="history_empty_filtered_reset_action">Reset filter</string>
+
+    <!-- Toolbar -->
+    <string name="history_toolbar_overflow_action">More</string>
+    <string name="history_toolbar_action_clear_all">Clear all history…</string>
+    <string name="history_toolbar_action_settings">History settings</string>
+    <string name="history_summary_reset_action">Reset</string>
+    <string name="history_summary_separator">·</string>
+    <plurals name="history_summary_total">
+        <item quantity="one">%1$d entry</item>
+        <item quantity="other">%1$d entries</item>
+    </plurals>
+    <plurals name="history_summary_filtered">
+        <item quantity="one">%1$d of %2$d shown</item>
+        <item quantity="other">%1$d of %2$d shown</item>
+    </plurals>
+    <plurals name="history_group_count">
+        <item quantity="one">(%1$d)</item>
+        <item quantity="other">(%1$d)</item>
+    </plurals>
 
     <!-- Settings -->
     <string name="history_settings_title">History</string>

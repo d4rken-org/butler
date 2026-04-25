@@ -1,89 +1,72 @@
 package eu.darken.butler.history.ui
 
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Add
+import androidx.compose.material.icons.twotone.Folder
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerChip
+import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.history.R
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
+import eu.darken.butler.workspace.ui.common.CutoutAwareFlowRow
 
 @Composable
 fun HistoryFilterChips(
     modifier: Modifier = Modifier,
+    cutoutWidth: Dp = 0.dp,
+    cutoutHeight: Dp = 0.dp,
     filter: HistoryFilter,
     onToggleOutcome: (HistoryOutcome) -> Unit,
     onToggleKind: (Operation.Metadata.Kind) -> Unit,
     onClearPathScope: () -> Unit,
     onSetPathScope: () -> Unit,
 ) {
-    Column(
+    CutoutAwareFlowRow(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        cutoutWidth = cutoutWidth,
+        cutoutHeight = cutoutHeight,
+        horizontalSpacing = 6.dp,
+        verticalSpacing = 6.dp,
     ) {
-        // Outcome row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            HistoryOutcome.entries.forEach { outcome ->
-                ButlerChip(
-                    label = outcome.label(),
-                    selected = outcome in filter.outcomes,
-                    onClick = { onToggleOutcome(outcome) },
-                )
-            }
+        HistoryOutcome.entries.forEach { outcome ->
+            ButlerChip(
+                label = outcome.label(),
+                selected = outcome in filter.outcomes,
+                onClick = { onToggleOutcome(outcome) },
+            )
         }
-
-        // Kind row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Operation.Metadata.Kind.entries.forEach { kind ->
-                ButlerChip(
-                    label = kind.label(),
-                    selected = kind in filter.kinds,
-                    onClick = { onToggleKind(kind) },
-                )
-            }
+        Operation.Metadata.Kind.entries.forEach { kind ->
+            ButlerChip(
+                label = kind.label(),
+                selected = kind in filter.kinds,
+                onClick = { onToggleKind(kind) },
+                colors = ButlerChipDefaults.accentedColors(),
+            )
         }
-
-        // Path scope row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (filter.pathScope != null) {
-                ButlerChip(
-                    label = filter.pathScope!!,
-                    selected = true,
-                    onClick = onSetPathScope,
-                    onRemove = onClearPathScope,
-                )
-            } else {
-                ButlerChip(
-                    label = stringResource(R.string.history_path_scope_set_action),
-                    onClick = onSetPathScope,
-                )
-            }
+        val scope = filter.pathScope
+        if (scope != null) {
+            ButlerChip(
+                modifier = Modifier.widthIn(max = 320.dp),
+                label = scope,
+                leadingIcon = Icons.TwoTone.Folder,
+                selected = true,
+                onClick = onSetPathScope,
+                onRemove = onClearPathScope,
+            )
+        } else {
+            ButlerChip(
+                label = stringResource(R.string.history_path_scope_set_action),
+                leadingIcon = Icons.TwoTone.Add,
+                onClick = onSetPathScope,
+            )
         }
     }
 }
