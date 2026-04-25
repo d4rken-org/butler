@@ -18,5 +18,5 @@ build/
 .kotlin/errors
 worktree-*
 /hs_err_*.log
-.claude/tmp
 app/src/screenshotTest*/reference/
+.codex
