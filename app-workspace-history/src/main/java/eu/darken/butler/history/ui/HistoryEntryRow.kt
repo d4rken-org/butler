@@ -109,7 +109,7 @@ fun HistoryEntryRow(
                     imageVector = entry.outcome.icon(),
                     contentDescription = entry.outcome.name,
                     tint = accentColor,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(16.dp),
                 )
                 CountText(entry = entry)
             }
