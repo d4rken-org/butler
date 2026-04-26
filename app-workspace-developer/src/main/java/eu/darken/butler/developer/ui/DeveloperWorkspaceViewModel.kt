@@ -42,6 +42,12 @@ import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
+import eu.darken.butler.workspace.core.operations.history.HistoryEntry
+import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
+import eu.darken.butler.workspace.core.operations.history.HistorySettings
+import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryDao
+import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryEntity
+import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryPathEntity
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
@@ -51,8 +57,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.Uuid
 
 @HiltViewModel(assistedFactory = DeveloperWorkspaceViewModel.Factory::class)
 class DeveloperWorkspaceViewModel @AssistedInject constructor(
@@ -67,6 +80,8 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val workspaceProvider: WorkspaceProvider,
     private val operationsManager: OperationsManager,
+    private val operationHistoryDao: OperationHistoryDao,
+    private val historySettings: HistorySettings,
 ) : ViewModel4(dispatchers, logTag("Developer", "Workspace", id.shortTag, "Page")) {
 
     private val selectedTab = MutableStateFlow(DeveloperTab.SYSTEM)
@@ -253,6 +268,125 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                     workspace.execute(DeveloperCommand.GenerateTextFiles(path))
                 }
             }
+        }
+    }
+
+    /**
+     * Populates ~25 fake operation history rows for design iteration on the dev emulator. Inserts
+     * directly via the DAO (bypasses [OperationsManager.completedOperations] subscription) so this
+     * generator itself does not appear in History — only the synthetic rows do.
+     */
+    fun generateTestHistory() = launch {
+        log(tag, INFO) { "generateTestHistory(): inserting sample entries" }
+        withContext(dispatchers.IO + NonCancellable) {
+            val maxItems = historySettings.maxHistoryItems.value()
+            val now = Clock.System.now()
+            val rng = kotlin.random.Random(System.currentTimeMillis())
+
+            data class Spec(
+                val ago: kotlin.time.Duration,
+                val kind: Operation.Metadata.Kind,
+                val outcome: HistoryOutcome,
+                val intent: Operation.Metadata.Intent? = null,
+                val origin: HistoryEntry.OriginType = HistoryEntry.OriginType.EXPLORER,
+                val pathRoot: String = "/storage/emulated/0/DCIM",
+                val fileNames: List<String> = listOf("photo.jpg"),
+                val withPreviousPath: Boolean = false,
+                val pathsTruncatedCount: Int? = null,
+            )
+
+            val specs = listOf(
+                // Today (8)
+                Spec(2.minutes, Operation.Metadata.Kind.COPY, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/DCIM", fileNames = listOf("IMG_2024.jpg", "IMG_2025.jpg")),
+                Spec(7.minutes, Operation.Metadata.Kind.MOVE, HistoryOutcome.COMPLETED, intent = Operation.Metadata.Intent.RENAME, pathRoot = "/storage/emulated/0/Documents", fileNames = listOf("notes.txt"), withPreviousPath = true),
+                Spec(15.minutes, Operation.Metadata.Kind.DELETE, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/Download", fileNames = listOf("temp.bin")),
+                Spec(45.minutes, Operation.Metadata.Kind.CREATE_FOLDER, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/Pictures", fileNames = listOf("Vacation 2024")),
+                Spec(1.hours + 30.minutes, Operation.Metadata.Kind.SAVE, HistoryOutcome.PARTIAL, pathRoot = "/storage/emulated/0/Documents", fileNames = listOf("draft.md", "outline.md", "todo.md")),
+                Spec(3.hours, Operation.Metadata.Kind.DELETE, HistoryOutcome.FAILED, pathRoot = "/storage/emulated/0/Music", fileNames = listOf("locked.flac")),
+                Spec(5.hours, Operation.Metadata.Kind.MOVE, HistoryOutcome.CANCELLED, intent = Operation.Metadata.Intent.PASTE_MOVE, pathRoot = "/storage/emulated/0/Download", fileNames = listOf("big.iso"), withPreviousPath = true),
+                Spec(8.hours, Operation.Metadata.Kind.COPY, HistoryOutcome.COMPLETED, intent = Operation.Metadata.Intent.PASTE_COPY, pathRoot = "/storage/emulated/0/Pictures", fileNames = listOf("portrait.png", "landscape.png", "macro.png", "abstract.png")),
+                // Yesterday (4)
+                Spec(1.days + 2.hours, Operation.Metadata.Kind.CREATE_FILE, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/Documents", fileNames = listOf("readme.txt")),
+                Spec(1.days + 6.hours, Operation.Metadata.Kind.DELETE, HistoryOutcome.COMPLETED, origin = HistoryEntry.OriginType.SEARCHER, pathRoot = "/storage/emulated/0/Download", fileNames = (1..15).map { "old_$it.tmp" }),
+                Spec(1.days + 9.hours, Operation.Metadata.Kind.SAVE, HistoryOutcome.COMPLETED, origin = HistoryEntry.OriginType.SAVER, pathRoot = "/storage/emulated/0/Documents", fileNames = listOf("export.pdf")),
+                Spec(1.days + 14.hours, Operation.Metadata.Kind.COPY, HistoryOutcome.PARTIAL, pathRoot = "/storage/emulated/0/Music", fileNames = listOf("a.mp3", "b.mp3", "c.mp3", "d.mp3")),
+                // This week (5)
+                Spec(2.days + 1.hours, Operation.Metadata.Kind.MOVE, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/Pictures/2024", fileNames = listOf("sunset.jpg"), withPreviousPath = true),
+                Spec(3.days, Operation.Metadata.Kind.DELETE, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/DCIM/Camera", pathsTruncatedCount = 250),
+                Spec(4.days + 5.hours, Operation.Metadata.Kind.CREATE_FOLDER, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/Documents/Archive", fileNames = listOf("2024-Q4")),
+                Spec(5.days, Operation.Metadata.Kind.COPY, HistoryOutcome.FAILED, pathRoot = "/storage/emulated/0/Music", fileNames = listOf("missing.flac")),
+                Spec(6.days, Operation.Metadata.Kind.SAVE, HistoryOutcome.COMPLETED, origin = HistoryEntry.OriginType.SAVER, pathRoot = "/storage/emulated/0/Download", fileNames = listOf("backup.zip")),
+                // This month (5)
+                Spec(8.days, Operation.Metadata.Kind.DELETE, HistoryOutcome.CANCELLED, pathRoot = "/storage/emulated/0/Pictures", fileNames = listOf("temp.jpg")),
+                Spec(12.days, Operation.Metadata.Kind.MOVE, HistoryOutcome.COMPLETED, intent = Operation.Metadata.Intent.RENAME, pathRoot = "/storage/emulated/0/Documents", fileNames = listOf("invoice.pdf"), withPreviousPath = true),
+                Spec(18.days, Operation.Metadata.Kind.CREATE_FILE, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/Documents/Notes", fileNames = listOf("ideas.md")),
+                Spec(22.days, Operation.Metadata.Kind.COPY, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/Pictures/Wallpapers", fileNames = listOf("nature.png", "geometric.png")),
+                Spec(28.days, Operation.Metadata.Kind.SAVE, HistoryOutcome.PARTIAL, origin = HistoryEntry.OriginType.SAVER, pathRoot = "/storage/emulated/0/Download", fileNames = (1..6).map { "report_$it.pdf" }),
+                // Older (3)
+                Spec(35.days, Operation.Metadata.Kind.DELETE, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/Music", fileNames = (1..8).map { "track_$it.mp3" }),
+                Spec(60.days, Operation.Metadata.Kind.CREATE_FOLDER, HistoryOutcome.COMPLETED, origin = HistoryEntry.OriginType.DEVELOPER, pathRoot = "/storage/emulated/0/test", fileNames = listOf("scratch")),
+                Spec(120.days, Operation.Metadata.Kind.COPY, HistoryOutcome.FAILED, pathRoot = "/storage/emulated/0/DCIM/Old", fileNames = listOf("ancient.jpg")),
+            )
+
+            for ((index, spec) in specs.withIndex()) {
+                val rowId = Uuid.random().toString()
+                val completedAt = now - spec.ago
+                val startedAt = completedAt - 5.seconds
+                val truncated = spec.pathsTruncatedCount != null
+                val storedPaths = spec.fileNames.take(200)
+                val pathEntities = storedPaths.mapIndexed { i, name ->
+                    val fullPath = "${spec.pathRoot}/$name"
+                    val change = when (spec.kind) {
+                        Operation.Metadata.Kind.DELETE -> Operation.Report.PathChange.Change.REMOVED
+                        Operation.Metadata.Kind.MOVE -> Operation.Report.PathChange.Change.MOVED
+                        else -> Operation.Report.PathChange.Change.ADDED
+                    }
+                    OperationHistoryPathEntity(
+                        operationHistoryId = rowId,
+                        path = fullPath,
+                        previousPath = if (spec.withPreviousPath) "/storage/emulated/0/legacy/${name}" else null,
+                        change = change.name,
+                        sortIndex = i,
+                    )
+                }
+
+                val outcomeLabel = spec.outcome.name.lowercase()
+                val intentLabel = spec.intent?.name?.lowercase()?.replace('_', ' ')
+                val titleText = if (intentLabel != null) "${spec.kind.name} ($intentLabel)" else spec.kind.name
+                val descriptionText = "${spec.fileNames.size} item(s) under ${spec.pathRoot}"
+                val errorMessage = when (spec.outcome) {
+                    HistoryOutcome.FAILED -> "Synthetic failure for design iteration"
+                    HistoryOutcome.PARTIAL -> null
+                    else -> null
+                }
+
+                val entry = OperationHistoryEntity(
+                    id = rowId,
+                    kind = spec.kind.name,
+                    intent = spec.intent?.name,
+                    originType = spec.origin.name,
+                    originWorkspaceId = "test-${index}",
+                    title = titleText,
+                    description = descriptionText,
+                    summary = "${storedPaths.size} item(s) — $outcomeLabel",
+                    startedAt = startedAt,
+                    completedAt = completedAt,
+                    durationMs = (completedAt - startedAt).inWholeMilliseconds.coerceAtLeast(0),
+                    outcome = spec.outcome.name,
+                    errorMessage = errorMessage,
+                    errorClass = errorMessage?.let { "java.io.IOException" },
+                    affectedPathsCount = spec.pathsTruncatedCount ?: storedPaths.size,
+                    partialErrorCount = if (spec.outcome == HistoryOutcome.PARTIAL) rng.nextInt(1, 3) else 0,
+                    pathsTruncated = truncated,
+                )
+
+                operationHistoryDao.insertWithPathsAndTrim(
+                    entry = entry,
+                    paths = pathEntities,
+                    maxItems = maxItems,
+                )
+            }
+            log(tag, INFO) { "generateTestHistory(): inserted ${specs.size} rows" }
         }
     }
 

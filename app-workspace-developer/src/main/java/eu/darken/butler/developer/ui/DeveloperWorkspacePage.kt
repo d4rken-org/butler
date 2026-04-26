@@ -88,6 +88,7 @@ fun DeveloperWorkspacePageHost(
             onNestedStructureToggled = { vm.toggleNestedStructure(it) },
             onTextFilesToggled = { vm.toggleTextFiles(it) },
             onGenerateTestData = { vm.generateTestData() },
+            onGenerateTestHistory = { vm.generateTestHistory() },
             onToggleDebugMode = { vm.toggleDebugMode(it) },
             onToggleTraceMode = { vm.toggleTraceMode(it) },
             onTestRoot = { vm.testRoot() },
@@ -130,6 +131,7 @@ fun DeveloperWorkspacePage(
     onNestedStructureToggled: (Boolean) -> Unit = {},
     onTextFilesToggled: (Boolean) -> Unit = {},
     onGenerateTestData: () -> Unit = {},
+    onGenerateTestHistory: () -> Unit = {},
     onToggleDebugMode: (Boolean) -> Unit = {},
     onToggleTraceMode: (Boolean) -> Unit = {},
     onTestRoot: () -> Unit = {},
@@ -232,6 +234,7 @@ fun DeveloperWorkspacePage(
                     onNestedStructureToggled = onNestedStructureToggled,
                     onTextFilesToggled = onTextFilesToggled,
                     onGenerateTestData = onGenerateTestData,
+                    onGenerateTestHistory = onGenerateTestHistory,
                 )
             }
         }

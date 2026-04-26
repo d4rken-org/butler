@@ -15,6 +15,7 @@ import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +48,7 @@ internal fun TestDataSection(
     onNestedStructureToggled: (Boolean) -> Unit,
     onTextFilesToggled: (Boolean) -> Unit,
     onGenerateTestData: () -> Unit,
+    onGenerateTestHistory: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -119,13 +121,32 @@ internal fun TestDataSection(
         )
 
         Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = bottomPadding),
+            modifier = Modifier.fillMaxWidth(),
             onClick = onGenerateTestData,
             enabled = testDataState.canGenerate,
         ) {
             Text(text = stringResource(R.string.developer_testdata_generate_action))
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        Text(
+            text = stringResource(R.string.developer_testdata_history_header),
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = stringResource(R.string.developer_testdata_history_desc),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = bottomPadding),
+            onClick = onGenerateTestHistory,
+        ) {
+            Text(text = stringResource(R.string.developer_testdata_history_generate_action))
         }
     }
 }

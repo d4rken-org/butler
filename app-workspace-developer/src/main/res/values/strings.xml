@@ -75,6 +75,9 @@
     <string name="developer_testdata_text_files_desc">10KB, 100KB, 1MB, 10MB, 100MB</string>
     <string name="developer_testdata_generate_action">Generate</string>
     <string name="developer_testdata_generating">Generating…</string>
+    <string name="developer_testdata_history_header">Sample history entries</string>
+    <string name="developer_testdata_history_desc">Populates ~25 fake operation entries spanning today → 30 days ago, mixed kinds/outcomes/origins/paths. Inserts directly into the history database; safe to re-tap.</string>
+    <string name="developer_testdata_history_generate_action">Generate sample history</string>
     <string name="developer_testdata_progress">%1$s of %2$s</string>
     <string name="developer_testdata_complete">Test data generated at:</string>
 
