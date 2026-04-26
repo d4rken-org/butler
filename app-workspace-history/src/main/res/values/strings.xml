@@ -74,7 +74,22 @@
     <string name="history_detail_label_paths">Affected paths</string>
     <string name="history_detail_label_partial_errors">Per-item failures</string>
     <string name="history_detail_copy_path_action">Copy path</string>
-    <string name="history_detail_close_action">Close</string>
+    <string name="history_detail_paths_empty">No affected paths recorded.</string>
+    <string name="history_detail_paths_truncated_callout">Showing first %1$d of %2$d affected paths.</string>
+    <plurals name="history_detail_partial_errors_callout">
+        <item quantity="one">%1$d item failed during this operation.</item>
+        <item quantity="other">%1$d items failed during this operation.</item>
+    </plurals>
+
+    <!-- Origin labels (workspace that created the operation) -->
+    <string name="history_origin_explorer">Explorer</string>
+    <string name="history_origin_searcher">Searcher</string>
+    <string name="history_origin_saver">Saver</string>
+    <string name="history_origin_developer">Developer</string>
+
+    <!-- Duration formats -->
+    <string name="history_duration_ms">%1$d ms</string>
+    <string name="history_duration_seconds">%1$.1f s</string>
 
     <!-- Empty state -->
     <string name="history_empty_title">No history yet</string>
@@ -84,8 +99,10 @@
     <string name="history_empty_filtered_reset_action">Reset filter</string>
 
     <!-- Toolbar -->
-    <string name="history_summary_reset_action">Reset</string>
-    <string name="history_summary_separator">·</string>
+    <string name="history_toolbar_reset_filter_action">Reset filter</string>
+    <string name="history_toolbar_reset_filter_content_description">Reset filters</string>
+    <string name="history_entry_paths_truncated_short">%1$d+</string>
+    <string name="history_entry_paths_truncated_content_description">First %1$d of %2$d affected paths</string>
     <string name="history_add_filter_action">Add filter</string>
     <string name="history_add_filter_sheet_title">Add filter</string>
     <string name="history_add_filter_section_outcome">Outcome</string>

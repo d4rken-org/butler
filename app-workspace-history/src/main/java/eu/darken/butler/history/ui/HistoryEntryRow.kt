@@ -33,6 +33,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -71,20 +74,20 @@ fun HistoryEntryRow(
                         size = Size(width = 4.dp.toPx(), height = size.height),
                     )
                 }
-                .padding(start = 14.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
+                .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                imageVector = entry.outcome.icon(),
-                contentDescription = entry.outcome.name,
-                tint = accentColor,
+                imageVector = entry.kind.icon(),
+                contentDescription = entry.kind.name,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(20.dp),
             )
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = entry.headline(),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -103,27 +106,44 @@ fun HistoryEntryRow(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Icon(
-                    imageVector = entry.kind.icon(),
-                    contentDescription = entry.kind.name,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    imageVector = entry.outcome.icon(),
+                    contentDescription = entry.outcome.name,
+                    tint = accentColor,
                     modifier = Modifier.size(20.dp),
                 )
-                Text(
-                    text = if (entry.pathsTruncated) {
-                        stringResource(
-                            R.string.history_entry_paths_truncated,
-                            entry.paths.size,
-                            entry.affectedPathsCount,
-                        )
-                    } else {
-                        "${entry.affectedPathsCount}"
-                    },
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                CountText(entry = entry)
             }
         }
     }
+}
+
+@Composable
+private fun CountText(entry: HistoryEntry) {
+    val truncatedDescription = if (entry.pathsTruncated) {
+        stringResource(
+            R.string.history_entry_paths_truncated_content_description,
+            entry.paths.size,
+            entry.affectedPathsCount,
+        )
+    } else {
+        null
+    }
+    Text(
+        modifier = if (truncatedDescription != null) {
+            Modifier.semantics { contentDescription = truncatedDescription }
+        } else {
+            Modifier
+        },
+        text = if (entry.pathsTruncated) {
+            stringResource(R.string.history_entry_paths_truncated_short, entry.affectedPathsCount)
+        } else {
+            "${entry.affectedPathsCount}"
+        },
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        textAlign = TextAlign.End,
+    )
 }
 
 private fun HistoryEntry.headline(): String {
@@ -153,7 +173,7 @@ private fun Operation.Metadata.Kind.entryHeadlineLabel(): String = when (this) {
     Operation.Metadata.Kind.SAVE -> "Saved"
 }
 
-private fun Operation.Metadata.Kind.icon(): ImageVector = when (this) {
+internal fun Operation.Metadata.Kind.icon(): ImageVector = when (this) {
     Operation.Metadata.Kind.COPY -> Icons.TwoTone.CopyAll
     Operation.Metadata.Kind.MOVE -> Icons.AutoMirrored.TwoTone.DriveFileMove
     Operation.Metadata.Kind.DELETE -> Icons.TwoTone.Delete
@@ -163,7 +183,7 @@ private fun Operation.Metadata.Kind.icon(): ImageVector = when (this) {
 }
 
 @Composable
-private fun HistoryOutcome.icon(): ImageVector = when (this) {
+internal fun HistoryOutcome.icon(): ImageVector = when (this) {
     HistoryOutcome.COMPLETED -> Icons.TwoTone.CheckCircle
     HistoryOutcome.PARTIAL -> Icons.TwoTone.ErrorOutline
     HistoryOutcome.FAILED -> Icons.TwoTone.Error
@@ -171,7 +191,7 @@ private fun HistoryOutcome.icon(): ImageVector = when (this) {
 }
 
 @Composable
-private fun HistoryOutcome.color(): Color = when (this) {
+internal fun HistoryOutcome.color(): Color = when (this) {
     HistoryOutcome.COMPLETED -> MaterialTheme.colorScheme.primary
     HistoryOutcome.PARTIAL -> MaterialTheme.colorScheme.tertiary
     HistoryOutcome.FAILED -> MaterialTheme.colorScheme.error
@@ -252,6 +272,42 @@ private fun HistoryEntryRowFailedPreview() {
                     change = Operation.Report.PathChange.Change.REMOVED,
                 ),
             ),
+        ),
+        onClick = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryEntryRowTruncatedPreview() {
+    val now = Clock.System.now()
+    HistoryEntryRow(
+        entry = HistoryEntry(
+            id = "3",
+            kind = Operation.Metadata.Kind.DELETE,
+            intent = null,
+            originType = HistoryEntry.OriginType.EXPLORER,
+            originWorkspaceId = "abc",
+            title = "Delete folder",
+            description = "Cleared cache directory",
+            summary = "1500 items removed",
+            startedAt = now - 5.minutes,
+            completedAt = now - 4.minutes,
+            duration = 60.seconds,
+            outcome = HistoryOutcome.COMPLETED,
+            errorMessage = null,
+            errorClass = null,
+            affectedPathsCount = 1500,
+            partialErrorCount = 0,
+            pathsTruncated = true,
+            paths = (1..200).map {
+                HistoryEntry.PathChange(
+                    path = "/sdcard/cache/file_$it.bin",
+                    previousPath = null,
+                    change = Operation.Report.PathChange.Change.REMOVED,
+                )
+            },
         ),
         onClick = {},
     )

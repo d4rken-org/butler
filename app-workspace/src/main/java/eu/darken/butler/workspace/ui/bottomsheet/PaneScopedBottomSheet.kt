@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.ui.bottomsheet
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -108,6 +109,8 @@ fun PaneScopedBottomSheet(
             dragOffset.snapTo(0f)
         }
     }
+
+    BackHandler(enabled = visible, onBack = onDismiss)
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Scrim overlay (pane-local, not full-screen)

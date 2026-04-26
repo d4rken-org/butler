@@ -312,7 +312,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                 Spec(1.days + 14.hours, Operation.Metadata.Kind.COPY, HistoryOutcome.PARTIAL, pathRoot = "/storage/emulated/0/Music", fileNames = listOf("a.mp3", "b.mp3", "c.mp3", "d.mp3")),
                 // This week (5)
                 Spec(2.days + 1.hours, Operation.Metadata.Kind.MOVE, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/Pictures/2024", fileNames = listOf("sunset.jpg"), withPreviousPath = true),
-                Spec(3.days, Operation.Metadata.Kind.DELETE, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/DCIM/Camera", pathsTruncatedCount = 250),
+                Spec(3.days, Operation.Metadata.Kind.DELETE, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/DCIM/Camera", fileNames = (1..200).map { "deleted_photo_$it.jpg" }, pathsTruncatedCount = 1500),
                 Spec(4.days + 5.hours, Operation.Metadata.Kind.CREATE_FOLDER, HistoryOutcome.COMPLETED, pathRoot = "/storage/emulated/0/Documents/Archive", fileNames = listOf("2024-Q4")),
                 Spec(5.days, Operation.Metadata.Kind.COPY, HistoryOutcome.FAILED, pathRoot = "/storage/emulated/0/Music", fileNames = listOf("missing.flac")),
                 Spec(6.days, Operation.Metadata.Kind.SAVE, HistoryOutcome.COMPLETED, origin = HistoryEntry.OriginType.SAVER, pathRoot = "/storage/emulated/0/Download", fileNames = listOf("backup.zip")),

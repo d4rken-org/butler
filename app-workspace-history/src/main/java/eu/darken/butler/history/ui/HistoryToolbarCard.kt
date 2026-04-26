@@ -1,7 +1,6 @@
 package eu.darken.butler.history.ui
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,10 +10,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.FilterAltOff
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -122,6 +125,16 @@ fun HistoryToolbarCard(
                     onRemovePathScope = onRemovePathScope,
                     onAddFilter = onAddFilter,
                 )
+                if (!filter.isUnfiltered) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(onClick = onClearFilter) {
+                            Text(stringResource(R.string.history_toolbar_reset_filter_action))
+                        }
+                    }
+                }
             }
         }
     }
@@ -148,13 +161,25 @@ private fun ToolbarTitleRow(
         )
         Spacer(modifier = Modifier.width(10.dp))
         if (isCollapsed) {
-            SummaryRow(
+            SummaryText(
                 modifier = Modifier.weight(1f),
                 filter = filter,
                 entryCount = entryCount,
                 totalCount = totalCount,
-                onClearFilter = onClearFilter,
             )
+            if (!filter.isUnfiltered) {
+                IconButton(
+                    onClick = onClearFilter,
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.FilterAltOff,
+                        contentDescription = stringResource(R.string.history_toolbar_reset_filter_content_description),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
         } else {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -165,11 +190,10 @@ private fun ToolbarTitleRow(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(modifier = Modifier.height(2.dp))
-                SummaryRow(
+                SummaryText(
                     filter = filter,
                     entryCount = entryCount,
                     totalCount = totalCount,
-                    onClearFilter = onClearFilter,
                 )
             }
         }
@@ -177,60 +201,24 @@ private fun ToolbarTitleRow(
 }
 
 @Composable
-private fun SummaryRow(
+private fun SummaryText(
     modifier: Modifier = Modifier,
     filter: HistoryFilter,
     entryCount: Int,
     totalCount: Int,
-    onClearFilter: () -> Unit,
 ) {
-    val style = MaterialTheme.typography.bodySmall
-    val mutedColor = MaterialTheme.colorScheme.onSurfaceVariant
-    Row(
+    Text(
         modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        if (filter.isUnfiltered) {
-            Text(
-                text = pluralStringResource(
-                    R.plurals.history_summary_total,
-                    entryCount,
-                    entryCount,
-                ),
-                style = style,
-                color = mutedColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+        text = if (filter.isUnfiltered) {
+            pluralStringResource(R.plurals.history_summary_total, entryCount, entryCount)
         } else {
-            Text(
-                text = pluralStringResource(
-                    R.plurals.history_summary_filtered,
-                    entryCount,
-                    entryCount,
-                    totalCount,
-                ),
-                style = style,
-                color = mutedColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = stringResource(R.string.history_summary_separator),
-                style = style,
-                color = mutedColor,
-            )
-            Text(
-                text = stringResource(R.string.history_summary_reset_action),
-                style = style,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .clickable(onClick = onClearFilter)
-                    .padding(vertical = 2.dp, horizontal = 4.dp),
-            )
-        }
-    }
+            pluralStringResource(R.plurals.history_summary_filtered, entryCount, entryCount, totalCount)
+        },
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
 @Preview2
@@ -287,6 +275,26 @@ private fun HistoryToolbarCardCollapsedPreview() {
         design = WorkspaceDesign(),
         filter = HistoryFilter(outcomes = setOf(HistoryOutcome.FAILED)),
         entryCount = 12,
+        totalCount = 200,
+        collapsedFraction = 1f,
+        onRemoveOutcome = {},
+        onRemoveKind = {},
+        onRemovePathScope = {},
+        onAddFilter = {},
+        onClearFilter = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun HistoryToolbarCardCollapsedUnfilteredPreview() {
+    HistoryToolbarCard(
+        modifier = Modifier.padding(16.dp),
+        workspaceId = Workspace.Id(),
+        design = WorkspaceDesign(),
+        filter = HistoryFilter(),
+        entryCount = 200,
         totalCount = 200,
         collapsedFraction = 1f,
         onRemoveOutcome = {},
