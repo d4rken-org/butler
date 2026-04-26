@@ -444,7 +444,11 @@ fun ExplorerWorkspacePage(
                                         }
                                     }
                                 } else {
-                                    items(items = state.items, key = { it.id }) { item ->
+                                    items(
+                                        items = state.items,
+                                        key = { it.id },
+                                        contentType = ExplorerItem::contentType,
+                                    ) { item ->
                                         ExplorerItemRenderer(
                                             item = item,
                                             viewStyle = state.viewStyle,
@@ -497,7 +501,11 @@ fun ExplorerWorkspacePage(
                                         }
                                     }
                                 } else {
-                                    items(items = state.items, key = { it.id }) { item ->
+                                    items(
+                                        items = state.items,
+                                        key = { it.id },
+                                        contentType = ExplorerItem::contentType,
+                                    ) { item ->
                                         ExplorerItemRenderer(
                                             item = item,
                                             viewStyle = state.viewStyle,
@@ -842,4 +850,13 @@ private fun ExplorerWorkspacePageGridPreview() {
             ),
         ),
     )
+}
+
+private fun ExplorerItem.contentType(): String = when (this) {
+    is ExplorerItem.Lookup -> "lookup"
+    is ExplorerItem.Peek -> "peek"
+    is ExplorerItem.Shortcut -> "shortcut"
+    is ExplorerItem.Storage -> "storage"
+    is ExplorerItem.Trash.Root -> "trashRoot"
+    is ExplorerItem.Trash.Nested -> "trashNested"
 }

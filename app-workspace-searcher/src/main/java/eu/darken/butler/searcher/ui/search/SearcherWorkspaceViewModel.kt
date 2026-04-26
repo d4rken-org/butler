@@ -948,12 +948,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     workspaceState.error?.let { error ->
                         val isPermissionError = error.message?.contains("permissions", ignoreCase = true) == true
                         if (!needsSetup || !isPermissionError) {
-                            add(
-                                SearchListItem.Error(
-                                    throwable = error,
-                                    timestamp = kotlin.time.Clock.System.now()
-                                )
-                            )
+                            add(SearchListItem.Error(throwable = error))
                         }
                     }
 

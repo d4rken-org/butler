@@ -43,6 +43,7 @@ internal fun OperationAffectedFilesSection(
     affectedPaths: Collection<Operation.Report.PathChange>,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+    val affectedPathList = remember(affectedPaths) { affectedPaths.toList() }
 
     Card(
         colors = CardDefaults.cardColors(
@@ -98,7 +99,10 @@ internal fun OperationAffectedFilesSection(
                             .fillMaxWidth()
                             .heightIn(max = 300.dp),
                     ) {
-                        items(affectedPaths.toList()) { pathChange ->
+                        items(
+                            items = affectedPathList,
+                            key = { "${it.path.path}:${it.change}" },
+                        ) { pathChange ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)

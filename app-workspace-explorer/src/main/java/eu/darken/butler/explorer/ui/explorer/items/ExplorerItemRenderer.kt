@@ -42,7 +42,6 @@ fun ExplorerItemRenderer(
     val isEnabled = item !in state.disabledItems
     val showSelection = state.shouldShowSelection(item)
 
-    // Focus indicator wrapper
     val focusModifier = if (isFocused) {
         Modifier.border(
             width = 2.dp,

@@ -436,9 +436,15 @@ fun SearcherWorkspacePage(
                                 key = { item ->
                                     when (item) {
                                         is SearchListItem.Result -> item.searchItem.path.path
-                                        is SearchListItem.Error -> "error_${item.timestamp}"
+                                        is SearchListItem.Error -> "error"
                                     }
-                                }
+                                },
+                                contentType = { item ->
+                                    when (item) {
+                                        is SearchListItem.Result -> "result"
+                                        is SearchListItem.Error -> "error"
+                                    }
+                                },
                             ) { item ->
                                 when (item) {
                                     is SearchListItem.Result -> {
@@ -500,6 +506,10 @@ fun SearcherWorkspacePage(
                         SearcherViewStyle.Grid.GridSize.LARGE -> 160.dp
                     }
 
+                    val gridResultItems = remember(currentState.listItems) {
+                        currentState.listItems.filterIsInstance<SearchListItem.Result>()
+                    }
+
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(minSize = minSize),
                         state = gridState,
@@ -533,9 +543,9 @@ fun SearcherWorkspacePage(
                         }
 
                         // Search results (grid mode - only results, no errors)
-                        if (currentState.listItems.isNotEmpty()) {
+                        if (gridResultItems.isNotEmpty()) {
                             items(
-                                items = currentState.listItems.filterIsInstance<SearchListItem.Result>(),
+                                items = gridResultItems,
                                 key = { item -> item.searchItem.path.path }
                             ) { item ->
                                 SelectableFileGrid(
