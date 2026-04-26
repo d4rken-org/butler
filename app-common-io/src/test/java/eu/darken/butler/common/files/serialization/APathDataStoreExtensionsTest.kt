@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.serialization
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
@@ -10,6 +11,9 @@ import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import eu.darken.butler.common.serialization.SerializationIOModule
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -136,6 +140,95 @@ class APathDataStoreExtensionsTest : BaseTest() {
                 }
             }
         }
+    }
+
+    @Test
+    fun `list - default value is empty when nothing stored`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
+
+        testStore.createAPathListValue("favorites.paths", emptyList(), json).apply {
+            flow.first() shouldBe emptyList()
+            testStore.data.first()[stringPreferencesKey(keyName)] shouldBe null
+        }
+    }
+
+    @Test
+    fun `list - round trip mixed Local and SAF paths`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
+
+        val mixed = listOf<APath<*>>(
+            LocalPath.build("/storage/emulated/0/Download"),
+            SAFPath(
+                treeRoot = "content://com.android.externalstorage.documents/tree/primary%3ADocuments",
+                segments = listOf("Documents")
+            ),
+            LocalPath.build("/storage/emulated/0/DCIM/Camera"),
+        )
+
+        testStore.createAPathListValue("favorites.paths", emptyList(), json).apply {
+            update { mixed }
+
+            val restored = flow.first()
+            restored shouldHaveSize 3
+            restored[0].shouldBeInstanceOf<LocalPath>()
+            restored[1].shouldBeInstanceOf<SAFPath>()
+            restored[2].shouldBeInstanceOf<LocalPath>()
+            restored shouldContainExactly mixed
+        }
+    }
+
+    @Test
+    fun `list - empty list is persisted not treated as default`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
+
+        val nonEmptyDefault = listOf<APath<*>>(LocalPath.build("/some/default"))
+        testStore.createAPathListValue("favorites.paths", nonEmptyDefault, json).apply {
+            // Initially no value stored → default returned
+            flow.first() shouldBe nonEmptyDefault
+
+            // User clears the list
+            update { emptyList() }
+
+            // Reader sees stored "[]", not null → returns empty, NOT the default
+            flow.first() shouldBe emptyList()
+            testStore.data.first()[stringPreferencesKey(keyName)] shouldBe "[]"
+        }
+    }
+
+    @Test
+    fun `list - corrupted JSON returns default, does not throw`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
+
+        val key = "favorites.paths"
+        // Pre-poison the prefs store with invalid JSON for this key
+        testStore.edit { it[stringPreferencesKey(key)] = "{ this is not valid json [" }
+
+        val fallback = listOf<APath<*>>(LocalPath.build("/fallback"))
+        testStore.createAPathListValue(key, fallback, json).apply {
+            // Should not crash; should fall back to the default
+            flow.first() shouldBe fallback
+        }
+    }
+
+    @Test
+    fun `list - multiple keys remain independent`(@TempDir tempDir: File) = runTest {
+        val testStore = createDataStore(this, tempDir)
+
+        val a = listOf<APath<*>>(LocalPath.build("/a"))
+        val b = listOf<APath<*>>(LocalPath.build("/b1"), LocalPath.build("/b2"))
+
+        val valueA = testStore.createAPathListValue("favs.a", emptyList(), json)
+        val valueB = testStore.createAPathListValue("favs.b", emptyList(), json)
+
+        valueA.update { a }
+        valueB.update { b }
+
+        valueA.flow.first() shouldBe a
+        valueB.flow.first() shouldBe b
+
+        valueA.update { emptyList() }
+        valueA.flow.first() shouldBe emptyList()
+        valueB.flow.first() shouldBe b
     }
 
     @Test

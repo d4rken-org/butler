@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
@@ -29,6 +30,7 @@ internal fun DirectoryGrid(
     showSelection: Boolean,
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
+    decorations: ItemDecorations = ItemDecorations(),
 ) {
     FileGridBase(
         modifier = modifier,
@@ -40,6 +42,7 @@ internal fun DirectoryGrid(
         showSelection = showSelection,
         isEnabled = isEnabled,
         isHighlighted = isHighlighted,
+        decorations = decorations,
         icon = {
             Icon(
                 imageVector = Icons.TwoTone.Folder,

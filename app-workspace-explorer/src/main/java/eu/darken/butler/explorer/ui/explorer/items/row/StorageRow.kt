@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.files.saf.location.SAFLocation
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -37,6 +38,7 @@ fun StorageRow(
     onLongClick: () -> Unit = {},
     showSelection: Boolean = false,
     isEnabled: Boolean = true,
+    decorations: ItemDecorations = ItemDecorations(),
 ) {
     val context = LocalContext.current
 
@@ -49,6 +51,7 @@ fun StorageRow(
         onLongClick = onLongClick,
         showSelection = showSelection,
         isEnabled = isEnabled,
+        decorations = decorations,
         leadingContent = {
             Box(
                 modifier = Modifier

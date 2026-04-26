@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -59,6 +60,9 @@ import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
 import eu.darken.butler.explorer.ui.explorer.dialogs.AddDeviceStorageSheet
 import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.elements.EmptyDirectoryState
+import eu.darken.butler.explorer.core.favorites.PendingFavoriteRemoval
+import eu.darken.butler.explorer.ui.explorer.elements.FavoritesUndoBar
+import eu.darken.butler.explorer.ui.explorer.elements.favoritesSection
 import eu.darken.butler.explorer.ui.explorer.elements.EmptyFilteredState
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerInfoBar
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerToolbarCard
@@ -189,6 +193,13 @@ fun ExplorerWorkspacePage(
     }
     val hasClipboard by derivedStateOf { clipboardState.entries.isNotEmpty() }
     val hasActions by derivedStateOf { state.availableActions.isNotEmpty() }
+
+    // Cache the last non-null pending favorite removal so the undo bar has content to
+    // animate out when the underlying state transitions back to null. FloatingBar keeps
+    // its content composed during the slide-out, so the lambda must always have data.
+    var lastPendingRemoval by remember { mutableStateOf<PendingFavoriteRemoval?>(null) }
+    state.pendingFavoriteRemoval?.let { lastPendingRemoval = it }
+    val showFavoritesUndoBar = state.pendingFavoriteRemoval != null && state.pickerConfig == null
     val isLoadingItems = state.items == null && state.error == null
     val hasItems = state.items != null
 
@@ -223,7 +234,7 @@ fun ExplorerWorkspacePage(
         }
     }
 
-    // Auto-scroll to top when sort settings change
+    // Auto-scroll to top when sort settings change.
     LaunchedEffect(state.sortSettings) {
         when (state.viewStyle) {
             is ExplorerViewStyle.Grid -> gridState.animateScrollToItem(0)
@@ -430,8 +441,15 @@ fun ExplorerWorkspacePage(
                                     }
                                 } else if (state.items.isEmpty()) {
                                     item(key = "empty") {
+                                        // When favorites are visible below, don't fill the viewport
+                                        // — otherwise the empty-state pushes favorites below the fold.
+                                        val emptyModifier = if (state.showHomeFavoritesSection) {
+                                            Modifier.fillMaxSize().padding(vertical = 48.dp)
+                                        } else {
+                                            Modifier.fillParentMaxSize()
+                                        }
                                         Box(
-                                            modifier = Modifier.fillParentMaxSize(),
+                                            modifier = emptyModifier,
                                             contentAlignment = Alignment.Center
                                         ) {
                                             if (state.isFilteredEmpty) {
@@ -456,6 +474,16 @@ fun ExplorerWorkspacePage(
                                             onToggleSelection = { vm?.toggleItemSelection(it) },
                                         )
                                     }
+                                }
+                                if (state.showHomeFavoritesSection) {
+                                    item(key = "favorites:divider") {
+                                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                                    }
+                                    favoritesSection(
+                                        favorites = state.favorites,
+                                        onClick = { vm?.onFavoriteClick(it) },
+                                        onRemove = { vm?.onFavoriteRemove(it) },
+                                    )
                                 }
                             }
 
@@ -483,8 +511,14 @@ fun ExplorerWorkspacePage(
                                     }
                                 } else if (state.items.isEmpty()) {
                                     item(span = { GridItemSpan(maxLineSpan) }, key = "empty") {
+                                        // When favorites are visible below, don't fill the viewport.
+                                        val emptyModifier = if (state.showHomeFavoritesSection) {
+                                            Modifier.fillMaxSize().padding(vertical = 48.dp)
+                                        } else {
+                                            Modifier.fillMaxSize()
+                                        }
                                         Box(
-                                            modifier = Modifier.fillMaxSize(),
+                                            modifier = emptyModifier,
                                             contentAlignment = Alignment.Center
                                         ) {
                                             if (state.isFilteredEmpty) {
@@ -509,6 +543,19 @@ fun ExplorerWorkspacePage(
                                             onToggleSelection = { vm?.toggleItemSelection(it) },
                                         )
                                     }
+                                }
+                                if (state.showHomeFavoritesSection) {
+                                    item(
+                                        span = { GridItemSpan(maxLineSpan) },
+                                        key = "favorites:divider",
+                                    ) {
+                                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                                    }
+                                    favoritesSection(
+                                        favorites = state.favorites,
+                                        onClick = { vm?.onFavoriteClick(it) },
+                                        onRemove = { vm?.onFavoriteRemove(it) },
+                                    )
                                 }
                             }
                         }
@@ -572,6 +619,20 @@ fun ExplorerWorkspacePage(
                                     onClearAll = { vm?.clearAllClipboard() },
                                     initialExpanded = initialClipboardExpanded,
                                 )
+                            }
+
+                            FloatingBar(
+                                visible = showFavoritesUndoBar,
+                                scrollBehavior = BarScrollBehavior.Static,
+                                animation = BarAnimation.Slide(),
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                            ) {
+                                lastPendingRemoval?.let { pending ->
+                                    FavoritesUndoBar(
+                                        pendingRemoval = pending,
+                                        onUndo = { vm?.undoFavoriteRemoval() },
+                                    )
+                                }
                             }
 
                             FloatingBar(

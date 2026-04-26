@@ -402,4 +402,15 @@
     <string name="explorer_action_open_in_new_tabs">Open in new tabs</string>
     <string name="explorer_open_tabs_confirmation_title">@string/common_open_tabs_confirmation_title</string>
     <string name="explorer_open_tabs_confirmation_message">@string/common_open_tabs_confirmation_message</string>
+
+    <!-- Favorite folders & files -->
+    <string name="explorer_favorites_section_title">Favorites</string>
+    <string name="explorer_action_add_to_favorites">Add to favorites</string>
+    <string name="explorer_action_remove_from_favorites">Remove from favorites</string>
+    <string name="explorer_favorites_unavailable_subtitle">Not accessible</string>
+    <string name="explorer_favorites_unavailable_toast">Favorite is not accessible</string>
+    <string name="explorer_favorites_remove_action">Remove from favorites</string>
+    <string name="explorer_favorites_added_toast">Added to favorites</string>
+    <string name="explorer_favorites_removed_toast">Removed from favorites</string>
+    <string name="explorer_favorites_undo_message">Removed %1$s</string>
 </resources>

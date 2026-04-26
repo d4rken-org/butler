@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.formatDate
 import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.R
@@ -30,6 +31,7 @@ internal fun SymlinkFileRow(
     showSelection: Boolean,
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
+    decorations: ItemDecorations = ItemDecorations(),
 ) {
     val primaryText = item.displayName.get(LocalContext.current)
     val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
@@ -43,6 +45,7 @@ internal fun SymlinkFileRow(
         showSelection = showSelection,
         isEnabled = isEnabled,
         isHighlighted = isHighlighted,
+        decorations = decorations,
         modifier = modifier,
         leadingContent = {
             Icon(

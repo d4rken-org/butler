@@ -32,6 +32,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.theming.onScrim
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
+import eu.darken.butler.explorer.ui.explorer.items.LeadingIconSlot
 
 @Composable
 internal fun FileGridBase(
@@ -44,6 +46,7 @@ internal fun FileGridBase(
     showSelection: Boolean,
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
+    decorations: ItemDecorations = ItemDecorations(),
     icon: @Composable () -> Unit,
     primaryText: String,
     secondaryText: String? = null,
@@ -117,17 +120,22 @@ internal fun FileGridBase(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Icon or checkbox in top-left
-                Box(
-                    modifier = Modifier.size(20.dp)
-                ) {
-                    if (showSelection) {
+                // Icon or checkbox in top-left. Decorations only apply to the icon
+                // branch — selection swaps in a checkbox and intentionally hides them.
+                if (showSelection) {
+                    Box(modifier = Modifier.size(20.dp)) {
                         Checkbox(
                             checked = isSelected,
                             onCheckedChange = { onToggleSelection() },
                             modifier = Modifier.size(20.dp)
                         )
-                    } else {
+                    }
+                } else {
+                    LeadingIconSlot(
+                        modifier = Modifier.size(20.dp),
+                        decorations = decorations,
+                        badgeSize = 10.dp,
+                    ) {
                         icon()
                     }
                 }

@@ -3,10 +3,13 @@ package eu.darken.butler.explorer.ui.explorer.actions
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import javax.inject.Inject
 
-class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
+class DirectoryActionProvider @Inject constructor(
+    private val favoritesRepo: ExplorerFavoritesRepo,
+) : ExplorerActionProvider {
 
     override fun getActions(
         location: ExplorerLocation,
@@ -49,6 +52,8 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
                 actions.add(ExplorerActionBarItem.Directory.Share())
             }
             actions.add(ExplorerActionBarItem.Common.Info())
+
+            addFavoritesSelectionAction(actions, selectionState)
         } else {
             actions.add(
                 ExplorerActionBarItem.Directory.Create(
@@ -57,6 +62,17 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
             )
 
             actions.add(ExplorerActionBarItem.Common.Refresh())
+
+            if (directory != null) {
+                val isFavorite = favoritesRepo.isFavorite(directory.path)
+                actions.add(
+                    ExplorerActionBarItem.Directory.ToggleFavoriteCurrent(
+                        path = directory.path,
+                        isFavorite = isFavorite,
+                    )
+                )
+            }
+
             actions.add(ExplorerActionBarItem.Common.Sort())
             actions.add(ExplorerActionBarItem.Common.Filter())
 
@@ -68,5 +84,21 @@ class DirectoryActionProvider @Inject constructor() : ExplorerActionProvider {
         }
 
         return actions
+    }
+
+    private fun addFavoritesSelectionAction(
+        actions: MutableList<ExplorerActionBarItem>,
+        selectionState: ExplorerSelectionState,
+    ) {
+        val lookups = selectionState.selectedItems.filterIsInstance<ExplorerItem.Lookup>()
+        if (lookups.isEmpty()) return
+        val paths = lookups.map { it.path }
+        val allFavorited = paths.all { favoritesRepo.isFavorite(it) }
+        if (allFavorited) {
+            actions.add(ExplorerActionBarItem.Common.RemoveFromFavorites(paths))
+        } else {
+            val toAdd = paths.filterNot { favoritesRepo.isFavorite(it) }
+            actions.add(ExplorerActionBarItem.Common.AddToFavorites(items = toAdd))
+        }
     }
 }

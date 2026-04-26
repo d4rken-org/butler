@@ -250,6 +250,7 @@
     </plurals>
     <string name="common_select_all_folders_action">Select all folders</string>
     <string name="common_select_all_files_action">Select all files</string>
+    <string name="general_undo_action">Undo</string>
 
     <!-- Butler Tips -->
     <string name="common_tip_multiple_panes">Use multiple panes to compare files side by side.</string>
