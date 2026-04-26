@@ -24,6 +24,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -59,6 +60,17 @@ class HistoryWorkspace @AssistedInject constructor(
     fun setFilter(newFilter: HistoryFilter) {
         log(tag) { "setFilter($newFilter)" }
         filterFlow.value = newFilter
+    }
+
+    /**
+     * Atomic read-modify-write so concurrent toggles from rapid UI taps cannot lose updates.
+     */
+    fun updateFilter(transform: (HistoryFilter) -> HistoryFilter) {
+        filterFlow.update { current ->
+            val next = transform(current)
+            log(tag) { "updateFilter: $current -> $next" }
+            next
+        }
     }
 
     override suspend fun createArguments(): HistoryArguments = HistoryArguments.Default(
@@ -97,23 +109,33 @@ class HistoryWorkspace @AssistedInject constructor(
 
     companion object {
         private fun derivedTitle(filter: HistoryFilter) = caString { ctx ->
+            val onlyPath = filter.outcomes.isEmpty() && filter.kinds.isEmpty() && filter.pathScopes.isNotEmpty()
             when {
                 filter.isUnfiltered -> ctx.getString(R.string.history_workspace_title)
-                filter.pathScope != null -> ctx.getString(R.string.history_workspace_title_scoped, filter.pathScope)
-                filter.outcomes.size == 1 && filter.kinds.isEmpty() -> when (filter.outcomes.first()) {
-                    HistoryOutcome.COMPLETED -> ctx.getString(R.string.history_workspace_title_outcome_completed)
-                    HistoryOutcome.PARTIAL -> ctx.getString(R.string.history_workspace_title_outcome_partial)
-                    HistoryOutcome.FAILED -> ctx.getString(R.string.history_workspace_title_outcome_failed)
-                    HistoryOutcome.CANCELLED -> ctx.getString(R.string.history_workspace_title_outcome_cancelled)
-                }
-                filter.kinds.size == 1 && filter.outcomes.isEmpty() -> when (filter.kinds.first()) {
-                    Operation.Metadata.Kind.COPY -> ctx.getString(R.string.history_workspace_title_kind_copy)
-                    Operation.Metadata.Kind.MOVE -> ctx.getString(R.string.history_workspace_title_kind_move)
-                    Operation.Metadata.Kind.DELETE -> ctx.getString(R.string.history_workspace_title_kind_delete)
-                    Operation.Metadata.Kind.CREATE_FILE -> ctx.getString(R.string.history_workspace_title_kind_create_file)
-                    Operation.Metadata.Kind.CREATE_FOLDER -> ctx.getString(R.string.history_workspace_title_kind_create_folder)
-                    Operation.Metadata.Kind.SAVE -> ctx.getString(R.string.history_workspace_title_kind_save)
-                }
+                onlyPath && filter.pathScopes.size == 1 ->
+                    ctx.getString(R.string.history_workspace_title_scoped, filter.pathScopes.first())
+                onlyPath ->
+                    ctx.resources.getQuantityString(
+                        R.plurals.history_workspace_title_scoped_many,
+                        filter.pathScopes.size,
+                        filter.pathScopes.size,
+                    )
+                filter.outcomes.size == 1 && filter.kinds.isEmpty() && filter.pathScopes.isEmpty() ->
+                    when (filter.outcomes.first()) {
+                        HistoryOutcome.COMPLETED -> ctx.getString(R.string.history_workspace_title_outcome_completed)
+                        HistoryOutcome.PARTIAL -> ctx.getString(R.string.history_workspace_title_outcome_partial)
+                        HistoryOutcome.FAILED -> ctx.getString(R.string.history_workspace_title_outcome_failed)
+                        HistoryOutcome.CANCELLED -> ctx.getString(R.string.history_workspace_title_outcome_cancelled)
+                    }
+                filter.kinds.size == 1 && filter.outcomes.isEmpty() && filter.pathScopes.isEmpty() ->
+                    when (filter.kinds.first()) {
+                        Operation.Metadata.Kind.COPY -> ctx.getString(R.string.history_workspace_title_kind_copy)
+                        Operation.Metadata.Kind.MOVE -> ctx.getString(R.string.history_workspace_title_kind_move)
+                        Operation.Metadata.Kind.DELETE -> ctx.getString(R.string.history_workspace_title_kind_delete)
+                        Operation.Metadata.Kind.CREATE_FILE -> ctx.getString(R.string.history_workspace_title_kind_create_file)
+                        Operation.Metadata.Kind.CREATE_FOLDER -> ctx.getString(R.string.history_workspace_title_kind_create_folder)
+                        Operation.Metadata.Kind.SAVE -> ctx.getString(R.string.history_workspace_title_kind_save)
+                    }
                 else -> ctx.getString(R.string.history_workspace_title_filtered)
             }
         }

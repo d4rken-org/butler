@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.History
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -42,9 +39,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.error.ErrorEventHandler
-import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.history.R
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
@@ -70,13 +67,12 @@ fun HistoryWorkspacePageHost(
     ),
 ) {
     ErrorEventHandler(vm)
-    NavigationEventHandler(vm)
 
     val state by vm.state.collectAsState(initial = null)
 
     var detailEntry by remember { mutableStateOf<HistoryEntry?>(null) }
     var pathScopeOpen by remember { mutableStateOf(false) }
-    var clearAllOpen by remember { mutableStateOf(false) }
+    var addFilterOpen by remember { mutableStateOf(false) }
 
     val density = LocalDensity.current
     val navBarInset = if (design.paneEdges.touchesBottom) {
@@ -90,14 +86,26 @@ fun HistoryWorkspacePageHost(
             workspaceId = id,
             design = design,
             state = s,
+            onRemoveOutcome = { vm.toggleOutcome(it) },
+            onRemoveKind = { vm.toggleKind(it) },
+            onRemovePathScope = { vm.removePathScope(it) },
+            onAddFilter = { addFilterOpen = true },
+            onClearFilter = { vm.clearFilter() },
+            onEntryClick = { detailEntry = it },
+        )
+
+        HistoryAddFilterSheet(
+            visible = addFilterOpen,
+            filter = s.filter,
+            bottomInset = navBarInset,
+            onDismiss = { addFilterOpen = false },
             onToggleOutcome = { vm.toggleOutcome(it) },
             onToggleKind = { vm.toggleKind(it) },
-            onSetPathScopeRequested = { pathScopeOpen = true },
-            onClearPathScope = { vm.setPathScope(null) },
-            onClearFilter = { vm.clearFilter() },
-            onClearAllRequested = { clearAllOpen = true },
-            onOpenSettings = { vm.openSettings() },
-            onEntryClick = { detailEntry = it },
+            onRemovePathScope = { vm.removePathScope(it) },
+            onAddPathScopeRequested = {
+                addFilterOpen = false
+                pathScopeOpen = true
+            },
         )
 
         HistoryEntryDetailsBottomSheet(
@@ -108,35 +116,11 @@ fun HistoryWorkspacePageHost(
 
         if (pathScopeOpen) {
             PathScopeDialog(
-                initialPath = s.filter.pathScope,
+                initialPath = null,
                 onDismiss = { pathScopeOpen = false },
                 onApply = { newScope ->
-                    vm.setPathScope(newScope)
+                    if (newScope != null) vm.addPathScope(newScope)
                     pathScopeOpen = false
-                },
-            )
-        }
-
-        if (clearAllOpen) {
-            AlertDialog(
-                onDismissRequest = { clearAllOpen = false },
-                title = { Text(stringResource(R.string.history_clear_dialog_title)) },
-                text = { Text(stringResource(R.string.history_clear_dialog_message)) },
-                confirmButton = {
-                    TextButton(onClick = {
-                        vm.clearAll()
-                        clearAllOpen = false
-                    }) {
-                        Text(
-                            text = stringResource(R.string.history_clear_confirm_action),
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { clearAllOpen = false }) {
-                        Text(stringResource(eu.darken.butler.common.R.string.general_cancel_action))
-                    }
                 },
             )
         }
@@ -149,13 +133,11 @@ fun HistoryWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     state: HistoryWorkspaceViewModel.State,
-    onToggleOutcome: (HistoryOutcome) -> Unit = {},
-    onToggleKind: (Operation.Metadata.Kind) -> Unit = {},
-    onSetPathScopeRequested: () -> Unit = {},
-    onClearPathScope: () -> Unit = {},
+    onRemoveOutcome: (HistoryOutcome) -> Unit = {},
+    onRemoveKind: (Operation.Metadata.Kind) -> Unit = {},
+    onRemovePathScope: (String) -> Unit = {},
+    onAddFilter: () -> Unit = {},
     onClearFilter: () -> Unit = {},
-    onClearAllRequested: () -> Unit = {},
-    onOpenSettings: () -> Unit = {},
     onEntryClick: (HistoryEntry) -> Unit = {},
 ) {
     val density = LocalDensity.current
@@ -228,13 +210,11 @@ fun HistoryWorkspacePage(
                         entryCount = state.entryCount,
                         totalCount = state.totalCount,
                         collapsedFraction = collapsedFraction,
-                        onToggleOutcome = onToggleOutcome,
-                        onToggleKind = onToggleKind,
-                        onSetPathScope = onSetPathScopeRequested,
-                        onClearPathScope = onClearPathScope,
+                        onRemoveOutcome = onRemoveOutcome,
+                        onRemoveKind = onRemoveKind,
+                        onRemovePathScope = onRemovePathScope,
+                        onAddFilter = onAddFilter,
                         onClearFilter = onClearFilter,
-                        onClearAllRequested = onClearAllRequested,
-                        onOpenSettings = onOpenSettings,
                     )
                 }
             },
@@ -284,7 +264,7 @@ private fun EmptyState(
             modifier = Modifier.padding(32.dp),
         ) {
             Icon(
-                imageVector = Icons.TwoTone.History,
+                imageVector = Workspace.Type.HISTORY.icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(48.dp),

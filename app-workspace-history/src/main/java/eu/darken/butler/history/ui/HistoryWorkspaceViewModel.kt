@@ -8,7 +8,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.ui.ViewModel4
+import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.history.core.HistoryWorkspace
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
@@ -34,7 +34,7 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
     private val workspaceProvider: WorkspaceProvider,
     private val historyRepo: OperationHistoryRepo,
     private val historySettings: HistorySettings,
-) : ViewModel4(dispatchers, logTag("History", "Workspace", id.shortTag, "Page")) {
+) : ViewModel3(dispatchers, logTag("History", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource = workspaceProvider.retrieve(id)
         .map { it as? HistoryWorkspace }
@@ -81,8 +81,13 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun setPathScope(pathScope: String?) = launch {
-        applyFilter { it.copy(pathScope = pathScope?.takeIf { s -> s.isNotBlank() }) }
+    fun addPathScope(rawScope: String) = launch {
+        val normalized = OperationHistoryRepo.normalizePathScope(rawScope) ?: return@launch
+        applyFilter { it.copy(pathScopes = it.pathScopes + normalized) }
+    }
+
+    fun removePathScope(scope: String) = launch {
+        applyFilter { it.copy(pathScopes = it.pathScopes - scope) }
     }
 
     fun clearFilter() = launch {
@@ -94,20 +99,9 @@ class HistoryWorkspaceViewModel @AssistedInject constructor(
         historyRepo.delete(id)
     }
 
-    fun clearAll() = launch {
-        log(tag, INFO) { "clearAll()" }
-        historyRepo.clearAll()
-    }
-
-    fun openSettings() = launch {
-        log(tag) { "openSettings()" }
-        navTo(DestinationHistorySettings)
-    }
-
     private suspend fun applyFilter(transform: (HistoryFilter) -> HistoryFilter) {
         val workspace = workspaceSource.first()
-        val current = workspace.filter.first()
-        workspace.setFilter(transform(current))
+        workspace.updateFilter(transform)
     }
 
     data class State(

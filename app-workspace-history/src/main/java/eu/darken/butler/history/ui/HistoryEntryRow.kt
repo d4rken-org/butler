@@ -131,7 +131,7 @@ private fun HistoryEntry.headline(): String {
         Operation.Metadata.Intent.RENAME -> "Renamed"
         Operation.Metadata.Intent.PASTE_COPY -> "Pasted"
         Operation.Metadata.Intent.PASTE_MOVE -> "Pasted (move)"
-        null -> kind.label()
+        null -> kind.entryHeadlineLabel()
     }
     val target = paths.firstOrNull()?.path?.substringAfterLast('/')
     return if (target.isNullOrBlank()) intentLabel else "$intentLabel  $target"
@@ -144,7 +144,7 @@ private fun HistoryEntry.subline(): String {
     return if (pathHint.isNotEmpty()) "$originLabel  ·  $timeAgo  ·  $pathHint" else "$originLabel  ·  $timeAgo"
 }
 
-private fun Operation.Metadata.Kind.label(): String = when (this) {
+private fun Operation.Metadata.Kind.entryHeadlineLabel(): String = when (this) {
     Operation.Metadata.Kind.COPY -> "Copied"
     Operation.Metadata.Kind.MOVE -> "Moved"
     Operation.Metadata.Kind.DELETE -> "Deleted"

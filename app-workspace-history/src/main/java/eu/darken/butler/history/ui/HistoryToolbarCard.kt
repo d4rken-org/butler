@@ -3,7 +3,6 @@ package eu.darken.butler.history.ui
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,23 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.DeleteSweep
-import androidx.compose.material.icons.twotone.History
-import androidx.compose.material.icons.twotone.MoreVert
-import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -40,6 +28,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.history.R
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
@@ -59,13 +48,11 @@ fun HistoryToolbarCard(
     entryCount: Int,
     totalCount: Int,
     collapsedFraction: Float = 0f,
-    onToggleOutcome: (HistoryOutcome) -> Unit,
-    onToggleKind: (Operation.Metadata.Kind) -> Unit,
-    onSetPathScope: () -> Unit,
-    onClearPathScope: () -> Unit,
+    onRemoveOutcome: (HistoryOutcome) -> Unit,
+    onRemoveKind: (Operation.Metadata.Kind) -> Unit,
+    onRemovePathScope: (String) -> Unit,
+    onAddFilter: () -> Unit,
     onClearFilter: () -> Unit,
-    onClearAllRequested: () -> Unit,
-    onOpenSettings: () -> Unit,
 ) {
     val isCollapsed = collapsedFraction > 0.5f
     val cardPadding by animateDpAsState(
@@ -112,8 +99,6 @@ fun HistoryToolbarCard(
                 entryCount = entryCount,
                 totalCount = totalCount,
                 onClearFilter = onClearFilter,
-                onClearAllRequested = onClearAllRequested,
-                onOpenSettings = onOpenSettings,
             )
         } else {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -126,18 +111,16 @@ fun HistoryToolbarCard(
                     entryCount = entryCount,
                     totalCount = totalCount,
                     onClearFilter = onClearFilter,
-                    onClearAllRequested = onClearAllRequested,
-                    onOpenSettings = onOpenSettings,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 HistoryFilterChips(
                     cutoutWidth = cutoutWidth,
                     cutoutHeight = cutoutHeight,
                     filter = filter,
-                    onToggleOutcome = onToggleOutcome,
-                    onToggleKind = onToggleKind,
-                    onClearPathScope = onClearPathScope,
-                    onSetPathScope = onSetPathScope,
+                    onRemoveOutcome = onRemoveOutcome,
+                    onRemoveKind = onRemoveKind,
+                    onRemovePathScope = onRemovePathScope,
+                    onAddFilter = onAddFilter,
                 )
             }
         }
@@ -152,15 +135,13 @@ private fun ToolbarTitleRow(
     entryCount: Int,
     totalCount: Int,
     onClearFilter: () -> Unit,
-    onClearAllRequested: () -> Unit,
-    onOpenSettings: () -> Unit,
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            imageVector = Icons.TwoTone.History,
+            imageVector = Workspace.Type.HISTORY.icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(if (isCollapsed) 20.dp else 24.dp),
@@ -192,10 +173,6 @@ private fun ToolbarTitleRow(
                 )
             }
         }
-        OverflowMenu(
-            onClearAllRequested = onClearAllRequested,
-            onOpenSettings = onOpenSettings,
-        )
     }
 }
 
@@ -256,53 +233,6 @@ private fun SummaryRow(
     }
 }
 
-@Composable
-private fun OverflowMenu(
-    onClearAllRequested: () -> Unit,
-    onOpenSettings: () -> Unit,
-) {
-    var menuExpanded by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { menuExpanded = true }) {
-            Icon(
-                imageVector = Icons.TwoTone.MoreVert,
-                contentDescription = stringResource(R.string.history_toolbar_overflow_action),
-            )
-        }
-        DropdownMenu(
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false },
-        ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.history_toolbar_action_clear_all)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.DeleteSweep,
-                        contentDescription = null,
-                    )
-                },
-                onClick = {
-                    menuExpanded = false
-                    onClearAllRequested()
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.history_toolbar_action_settings)) },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.TwoTone.Settings,
-                        contentDescription = null,
-                    )
-                },
-                onClick = {
-                    menuExpanded = false
-                    onOpenSettings()
-                },
-            )
-        }
-    }
-}
-
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
@@ -315,13 +245,11 @@ private fun HistoryToolbarCardExpandedUnfilteredPreview() {
         entryCount = 200,
         totalCount = 200,
         collapsedFraction = 0f,
-        onToggleOutcome = {},
-        onToggleKind = {},
-        onSetPathScope = {},
-        onClearPathScope = {},
+        onRemoveOutcome = {},
+        onRemoveKind = {},
+        onRemovePathScope = {},
+        onAddFilter = {},
         onClearFilter = {},
-        onClearAllRequested = {},
-        onOpenSettings = {},
     )
 }
 
@@ -336,18 +264,16 @@ private fun HistoryToolbarCardExpandedFilteredPreview() {
         filter = HistoryFilter(
             outcomes = setOf(HistoryOutcome.FAILED),
             kinds = setOf(Operation.Metadata.Kind.DELETE),
-            pathScope = "/storage/emulated/0/DCIM",
+            pathScopes = setOf("/storage/emulated/0/DCIM"),
         ),
         entryCount = 12,
         totalCount = 200,
         collapsedFraction = 0f,
-        onToggleOutcome = {},
-        onToggleKind = {},
-        onSetPathScope = {},
-        onClearPathScope = {},
+        onRemoveOutcome = {},
+        onRemoveKind = {},
+        onRemovePathScope = {},
+        onAddFilter = {},
         onClearFilter = {},
-        onClearAllRequested = {},
-        onOpenSettings = {},
     )
 }
 
@@ -363,13 +289,11 @@ private fun HistoryToolbarCardCollapsedPreview() {
         entryCount = 12,
         totalCount = 200,
         collapsedFraction = 1f,
-        onToggleOutcome = {},
-        onToggleKind = {},
-        onSetPathScope = {},
-        onClearPathScope = {},
+        onRemoveOutcome = {},
+        onRemoveKind = {},
+        onRemovePathScope = {},
+        onAddFilter = {},
         onClearFilter = {},
-        onClearAllRequested = {},
-        onOpenSettings = {},
     )
 }
 
@@ -385,12 +309,10 @@ private fun HistoryToolbarCardSplitPanePreview() {
         entryCount = 42,
         totalCount = 42,
         collapsedFraction = 0f,
-        onToggleOutcome = {},
-        onToggleKind = {},
-        onSetPathScope = {},
-        onClearPathScope = {},
+        onRemoveOutcome = {},
+        onRemoveKind = {},
+        onRemovePathScope = {},
+        onAddFilter = {},
         onClearFilter = {},
-        onClearAllRequested = {},
-        onOpenSettings = {},
     )
 }

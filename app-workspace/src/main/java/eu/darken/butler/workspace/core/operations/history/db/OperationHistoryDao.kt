@@ -4,7 +4,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Transaction
+import androidx.sqlite.db.SupportSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -57,26 +59,18 @@ interface OperationHistoryDao {
         limit: Int,
     ): Flow<List<String>>
 
-    @Query(
-        """
-        SELECT id FROM operation_history
-        WHERE outcome IN (:outcomes)
-          AND kind IN (:kinds)
-          AND EXISTS (
-            SELECT 1 FROM operation_history_paths p
-            WHERE p.operationHistoryId = operation_history.id
-              AND (p.path = :pathScope OR p.path LIKE :pathScope || '/%' ESCAPE '\')
-          )
-        ORDER BY completedAt DESC
-        LIMIT :limit
-        """
+    /**
+     * Phase 1 with dynamic OR-joined path scopes. The repo builds the full SQL via
+     * [androidx.sqlite.db.SimpleSQLiteQuery] and binds N path scopes (each contributing four
+     * placeholders for path/previousPath × exact/descendant). Single query so ORDER BY + LIMIT
+     * apply globally across all scopes — no client-side union, no bind-arg explosion.
+     *
+     * Observed entities ensure the Flow re-emits when either table changes.
+     */
+    @RawQuery(
+        observedEntities = [OperationHistoryEntity::class, OperationHistoryPathEntity::class],
     )
-    fun observeIdsWithPathScope(
-        outcomes: Collection<String>,
-        kinds: Collection<String>,
-        pathScope: String,
-        limit: Int,
-    ): Flow<List<String>>
+    fun observeIdsRaw(query: SupportSQLiteQuery): Flow<List<String>>
 
     /** Phase 2: load the full operations + their paths for the given IDs, ordered newest-first. */
     @Transaction

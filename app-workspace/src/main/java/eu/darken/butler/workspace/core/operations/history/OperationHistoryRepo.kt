@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.core.operations.history
 
 import android.content.Context
+import androidx.sqlite.db.SimpleSQLiteQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
@@ -178,7 +179,14 @@ class OperationHistoryRepo @Inject constructor(
     /**
      * Observe history entries matching [filter], ordered newest-first, capped at [limit].
      * Two-phase query inside: filter+limit by operation IDs first, then load with paths via @Relation.
-     * Path-scope LIKE wildcards (`%`, `_`, `\`) in the user-provided path are escaped before binding.
+     *
+     * Multi-path scopes (`pathScopes.size > 1`) are joined with OR at SQL level via a built
+     * [SimpleSQLiteQuery]. Single query → ORDER BY + LIMIT apply globally and we never fan out N
+     * sub-queries (which would risk bind-arg explosion at the IN(:ids) stage).
+     *
+     * Path-scope LIKE wildcards (`%`, `_`, `\`) in the user-provided paths are escaped before
+     * binding. Both `path` and `previousPath` columns are matched, so a move/rename OUT of a
+     * scoped folder still appears under that scope.
      */
     fun query(filter: HistoryFilter, limit: Int): Flow<List<HistoryEntry>> {
         // "No filter" for an enum dimension means "all values". Empty IN clauses are invalid SQL.
@@ -187,10 +195,10 @@ class OperationHistoryRepo @Inject constructor(
         val kinds = (filter.kinds.takeIf { it.isNotEmpty() } ?: Operation.Metadata.Kind.entries.toSet())
             .map { it.name }
 
-        val idsFlow: Flow<List<String>> = if (filter.pathScope.isNullOrEmpty()) {
+        val idsFlow: Flow<List<String>> = if (filter.pathScopes.isEmpty()) {
             dao.observeIds(outcomes, kinds, limit)
         } else {
-            dao.observeIdsWithPathScope(outcomes, kinds, escapeLikePattern(filter.pathScope), limit)
+            dao.observeIdsRaw(buildScopedIdsQuery(outcomes, kinds, filter.pathScopes, limit))
         }
 
         return idsFlow.flatMapLatest { ids ->
@@ -198,6 +206,13 @@ class OperationHistoryRepo @Inject constructor(
             else dao.loadByIds(ids).map { rows -> rows.map { it.toDomain() } }
         }
     }
+
+    private fun buildScopedIdsQuery(
+        outcomes: List<String>,
+        kinds: List<String>,
+        pathScopes: Collection<String>,
+        limit: Int,
+    ): SimpleSQLiteQuery = buildScopedIdsQueryStatic(outcomes, kinds, pathScopes, limit)
 
     fun observeCount(): Flow<Int> = dao.observeCount()
 
@@ -215,12 +230,7 @@ class OperationHistoryRepo @Inject constructor(
 
     // ─── helpers ──────────────────────────────────────────────────────────────────
 
-    /**
-     * Escape SQL LIKE wildcards so user path components containing literal `%` or `_` are matched
-     * verbatim. The DAO binds with `ESCAPE '\'`, so we replace `\` first to avoid double-escaping.
-     */
-    internal fun escapeLikePattern(input: String): String =
-        input.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    internal fun escapeLikePattern(input: String): String = escapeLikePatternStatic(input)
 
     private fun OperationHistoryWithPaths.toDomain(): HistoryEntry = HistoryEntry(
         id = entry.id,
@@ -252,5 +262,66 @@ class OperationHistoryRepo @Inject constructor(
     companion object {
         private val TAG = logTag("Workspace", "Operations", "History", "Repo")
         const val MAX_PATHS_PER_OP = 200
+
+        /**
+         * Trim, drop trailing slashes (except a lone `/` root), null on blank. De-dup is the
+         * caller's responsibility (use a Set). Exposed at companion level for unit testing.
+         */
+        fun normalizePathScope(input: String): String? {
+            val trimmed = input.trim()
+            if (trimmed.isEmpty()) return null
+            if (trimmed == "/") return "/"
+            return trimmed.trimEnd('/').takeIf { it.isNotEmpty() }
+        }
+
+        /**
+         * Escape SQL LIKE wildcards so user path components containing literal `%` or `_` are
+         * matched verbatim. The DAO binds with `ESCAPE '\'`, so we replace `\` first to avoid
+         * double-escaping. Exposed at companion level for unit testing.
+         */
+        internal fun escapeLikePatternStatic(input: String): String =
+            input.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+        /**
+         * Build the dynamic SQL for the multi-scope path filter. Each scope contributes 4 bind
+         * placeholders (path/previousPath × exact/descendant). All scopes joined with OR. A single
+         * SQL query keeps ORDER BY + LIMIT global across scopes — no client-side union, no
+         * bind-arg explosion via `IN (:ids)`. Exposed at companion level for unit testing.
+         */
+        internal fun buildScopedIdsQueryStatic(
+            outcomes: List<String>,
+            kinds: List<String>,
+            pathScopes: Collection<String>,
+            limit: Int,
+        ): SimpleSQLiteQuery {
+            val outcomesPh = List(outcomes.size) { "?" }.joinToString(",")
+            val kindsPh = List(kinds.size) { "?" }.joinToString(",")
+            val scopePredicate = pathScopes.joinToString(" OR ") {
+                "(p.path = ? OR p.path LIKE ? || '/%' ESCAPE '\\') " +
+                    "OR (p.previousPath = ? OR p.previousPath LIKE ? || '/%' ESCAPE '\\')"
+            }
+            val sql = """
+                SELECT id FROM operation_history
+                WHERE outcome IN ($outcomesPh)
+                  AND kind IN ($kindsPh)
+                  AND EXISTS (
+                    SELECT 1 FROM operation_history_paths p
+                    WHERE p.operationHistoryId = operation_history.id
+                      AND ($scopePredicate)
+                  )
+                ORDER BY completedAt DESC
+                LIMIT ?
+            """.trimIndent()
+            val args = buildList {
+                addAll(outcomes)
+                addAll(kinds)
+                for (scope in pathScopes) {
+                    val escaped = escapeLikePatternStatic(scope)
+                    add(escaped); add(escaped); add(escaped); add(escaped)
+                }
+                add(limit)
+            }
+            return SimpleSQLiteQuery(sql, args.toTypedArray())
+        }
     }
 }

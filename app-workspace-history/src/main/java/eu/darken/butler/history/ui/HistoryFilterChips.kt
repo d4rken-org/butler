@@ -18,16 +18,21 @@ import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
 import eu.darken.butler.workspace.ui.common.CutoutAwareFlowRow
 
+/**
+ * Renders only the chips for filter values currently SET, plus a trailing `+ Add filter` chip
+ * that opens the [HistoryAddFilterSheet]. When the filter is fully empty, only the Add chip
+ * is visible — by design, the toolbar starts uncluttered.
+ */
 @Composable
 fun HistoryFilterChips(
     modifier: Modifier = Modifier,
     cutoutWidth: Dp = 0.dp,
     cutoutHeight: Dp = 0.dp,
     filter: HistoryFilter,
-    onToggleOutcome: (HistoryOutcome) -> Unit,
-    onToggleKind: (Operation.Metadata.Kind) -> Unit,
-    onClearPathScope: () -> Unit,
-    onSetPathScope: () -> Unit,
+    onRemoveOutcome: (HistoryOutcome) -> Unit,
+    onRemoveKind: (Operation.Metadata.Kind) -> Unit,
+    onRemovePathScope: (String) -> Unit,
+    onAddFilter: () -> Unit,
 ) {
     CutoutAwareFlowRow(
         modifier = modifier.fillMaxWidth(),
@@ -36,43 +41,40 @@ fun HistoryFilterChips(
         horizontalSpacing = 6.dp,
         verticalSpacing = 6.dp,
     ) {
-        HistoryOutcome.entries.forEach { outcome ->
+        filter.outcomes.forEach { outcome ->
             ButlerChip(
                 label = outcome.label(),
-                selected = outcome in filter.outcomes,
-                onClick = { onToggleOutcome(outcome) },
+                selected = true,
+                onRemove = { onRemoveOutcome(outcome) },
             )
         }
-        Operation.Metadata.Kind.entries.forEach { kind ->
+        filter.kinds.forEach { kind ->
             ButlerChip(
                 label = kind.label(),
-                selected = kind in filter.kinds,
-                onClick = { onToggleKind(kind) },
+                selected = true,
+                onRemove = { onRemoveKind(kind) },
                 colors = ButlerChipDefaults.accentedColors(),
             )
         }
-        val scope = filter.pathScope
-        if (scope != null) {
+        filter.pathScopes.forEach { scope ->
             ButlerChip(
                 modifier = Modifier.widthIn(max = 320.dp),
                 label = scope,
                 leadingIcon = Icons.TwoTone.Folder,
                 selected = true,
-                onClick = onSetPathScope,
-                onRemove = onClearPathScope,
-            )
-        } else {
-            ButlerChip(
-                label = stringResource(R.string.history_path_scope_set_action),
-                leadingIcon = Icons.TwoTone.Add,
-                onClick = onSetPathScope,
+                onRemove = { onRemovePathScope(scope) },
             )
         }
+        ButlerChip(
+            label = stringResource(R.string.history_add_filter_action),
+            leadingIcon = Icons.TwoTone.Add,
+            onClick = onAddFilter,
+        )
     }
 }
 
 @Composable
-private fun HistoryOutcome.label(): String = stringResource(
+internal fun HistoryOutcome.label(): String = stringResource(
     when (this) {
         HistoryOutcome.COMPLETED -> R.string.history_filter_outcome_completed
         HistoryOutcome.PARTIAL -> R.string.history_filter_outcome_partial
@@ -82,7 +84,7 @@ private fun HistoryOutcome.label(): String = stringResource(
 )
 
 @Composable
-private fun Operation.Metadata.Kind.label(): String = stringResource(
+internal fun Operation.Metadata.Kind.label(): String = stringResource(
     when (this) {
         Operation.Metadata.Kind.COPY -> R.string.history_filter_kind_copy
         Operation.Metadata.Kind.MOVE -> R.string.history_filter_kind_move

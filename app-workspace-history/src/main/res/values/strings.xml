@@ -15,6 +15,10 @@
     <string name="history_workspace_title_kind_create_folder">History: Create folder</string>
     <string name="history_workspace_title_kind_save">History: Save</string>
     <string name="history_workspace_title_filtered">History (filtered)</string>
+    <plurals name="history_workspace_title_scoped_many">
+        <item quantity="one">History: %1$d path</item>
+        <item quantity="other">History: %1$d paths</item>
+    </plurals>
 
     <!-- Outcome filter chips -->
     <string name="history_filter_outcome_all">All</string>
@@ -80,11 +84,15 @@
     <string name="history_empty_filtered_reset_action">Reset filter</string>
 
     <!-- Toolbar -->
-    <string name="history_toolbar_overflow_action">More</string>
-    <string name="history_toolbar_action_clear_all">Clear all history…</string>
-    <string name="history_toolbar_action_settings">History settings</string>
     <string name="history_summary_reset_action">Reset</string>
     <string name="history_summary_separator">·</string>
+    <string name="history_add_filter_action">Add filter</string>
+    <string name="history_add_filter_sheet_title">Add filter</string>
+    <string name="history_add_filter_section_outcome">Outcome</string>
+    <string name="history_add_filter_section_kind">Kind</string>
+    <string name="history_add_filter_section_path_scope">Path scope</string>
+    <string name="history_add_filter_add_path_action">Add path…</string>
+    <string name="history_path_scope_remove_action">Remove</string>
     <plurals name="history_summary_total">
         <item quantity="one">%1$d entry</item>
         <item quantity="other">%1$d entries</item>

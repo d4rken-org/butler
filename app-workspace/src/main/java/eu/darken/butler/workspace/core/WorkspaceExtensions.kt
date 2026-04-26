@@ -1,12 +1,12 @@
 package eu.darken.butler.workspace.core
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.ReceiptLong
 import androidx.compose.material.icons.twotone.AccountTree
 import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Apps
 import androidx.compose.material.icons.twotone.BugReport
 import androidx.compose.material.icons.twotone.Edit
-import androidx.compose.material.icons.twotone.History
 import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Workspaces
@@ -32,7 +32,7 @@ val Workspace.Type.icon: ImageVector
         Workspace.Type.APP_DETAILS -> Icons.TwoTone.Android
         Workspace.Type.SAVER -> Icons.TwoTone.SaveAlt
         Workspace.Type.DEVELOPER -> Icons.TwoTone.BugReport
-        Workspace.Type.HISTORY -> Icons.TwoTone.History
+        Workspace.Type.HISTORY -> Icons.AutoMirrored.TwoTone.ReceiptLong
     }
 
 val Workspace.Type.label: CaString
