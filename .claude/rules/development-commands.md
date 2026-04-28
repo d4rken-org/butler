@@ -90,10 +90,12 @@ Use cases:
 
 ## Fastlane Deployment
 
+The Gemfile lives in `fastlane/`, so invoke fastlane with `BUNDLE_GEMFILE` set or from the `fastlane/` directory.
+
 ```bash
 # Deploy beta version
-fastlane android beta
+BUNDLE_GEMFILE=fastlane/Gemfile bundle exec fastlane android beta
 
 # Deploy production version
-fastlane android production
+BUNDLE_GEMFILE=fastlane/Gemfile bundle exec fastlane android production
 ```

@@ -20,3 +20,6 @@ worktree-*
 /hs_err_*.log
 app/src/screenshotTest*/reference/
 .codex
+_site/
+.jekyll-cache/
+vendor/bundle/

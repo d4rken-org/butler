@@ -18,7 +18,7 @@ jobs:
     if: always()
     steps:
       - name: Test Report - FOSS Debug
-        uses: dorny/test-reporter@3d76b34a4535afbd0600d347b09a6ee5deb3ed7f #v2.6.0
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 #v3.0.0
         if: always()
         with:
           name: 'Unit Tests - testFoss Debug'
@@ -31,7 +31,7 @@ jobs:
           max-annotations: 10
 
       - name: Test Report - FOSS Beta
-        uses: dorny/test-reporter@3d76b34a4535afbd0600d347b09a6ee5deb3ed7f #v2.6.0
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 #v3.0.0
         if: always()
         with:
           name: 'Unit Tests - testFoss Beta'
@@ -44,7 +44,7 @@ jobs:
           max-annotations: 10
 
       - name: Test Report - FOSS Release
-        uses: dorny/test-reporter@3d76b34a4535afbd0600d347b09a6ee5deb3ed7f #v2.6.0
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 #v3.0.0
         if: always()
         with:
           name: 'Unit Tests - testFoss Release'
@@ -57,7 +57,7 @@ jobs:
           max-annotations: 10
 
       - name: Test Report - GPlay Debug
-        uses: dorny/test-reporter@3d76b34a4535afbd0600d347b09a6ee5deb3ed7f #v2.6.0
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 #v3.0.0
         if: always()
         with:
           name: 'Unit Tests - testGplay Debug'
@@ -70,7 +70,7 @@ jobs:
           max-annotations: 10
 
       - name: Test Report - GPlay Beta
-        uses: dorny/test-reporter@3d76b34a4535afbd0600d347b09a6ee5deb3ed7f #v2.6.0
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 #v3.0.0
         if: always()
         with:
           name: 'Unit Tests - testGplay Beta'
@@ -83,7 +83,7 @@ jobs:
           max-annotations: 10
 
       - name: Test Report - GPlay Release
-        uses: dorny/test-reporter@3d76b34a4535afbd0600d347b09a6ee5deb3ed7f #v2.6.0
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 #v3.0.0
         if: always()
         with:
           name: 'Unit Tests - testGplay Release'
