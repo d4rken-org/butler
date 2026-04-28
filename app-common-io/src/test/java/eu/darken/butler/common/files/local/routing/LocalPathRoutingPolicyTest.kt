@@ -34,8 +34,8 @@ class LocalPathRoutingPolicyTest : BaseTest() {
     private lateinit var storageManager: StorageManager2
     private lateinit var policy: LocalPathRoutingPolicy
 
-    private val noCaps = CapabilitySnapshot(hasRoot = false, hasAdb = false)
-    private val rootCaps = CapabilitySnapshot(hasRoot = true, hasAdb = false)
+    private val noCaps get() = CapabilitySnapshot.fixed(hasRoot = false, hasAdb = false)
+    private val rootCaps get() = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = false)
 
     @Before
     fun setup() {
@@ -65,7 +65,7 @@ class LocalPathRoutingPolicyTest : BaseTest() {
     }
 
     @Test
-    fun `primary storage aliases classify identically`() {
+    fun `primary storage aliases classify identically`() = runTest {
         val sdcard = policy.classify(
             p("/sdcard/Android/data/com.other/files/item"),
             AccessIntent.Read,
@@ -82,7 +82,7 @@ class LocalPathRoutingPolicyTest : BaseTest() {
     }
 
     @Test
-    fun `Android obb routes elevated on API 30 and denied without elevation`() {
+    fun `Android obb routes elevated on API 30 and denied without elevation`() = runTest {
         policy.classify(
             p("/sdcard/Android/obb/com.other/file.obb"),
             AccessIntent.Write,
@@ -97,7 +97,7 @@ class LocalPathRoutingPolicyTest : BaseTest() {
     }
 
     @Test
-    fun `own app directories stay direct under restricted public roots`() {
+    fun `own app directories stay direct under restricted public roots`() = runTest {
         policy.classify(
             p("/sdcard/Android/data/eu.darken.butler/files/cache.bin"),
             AccessIntent.Write,
@@ -106,7 +106,7 @@ class LocalPathRoutingPolicyTest : BaseTest() {
     }
 
     @Test
-    fun `normal public path routes direct`() {
+    fun `normal public path routes direct`() = runTest {
         policy.classify(
             p("/sdcard/DCIM/photo.jpg"),
             AccessIntent.Write,
@@ -115,7 +115,7 @@ class LocalPathRoutingPolicyTest : BaseTest() {
     }
 
     @Test
-    fun `removable public path routes isolated`() {
+    fun `removable public path routes isolated`() = runTest {
         val removable = mockk<StorageVolumeX> {
             every { isRemovable } returns true
             every { directory } returns File("/storage/1234-5678")
@@ -128,6 +128,25 @@ class LocalPathRoutingPolicyTest : BaseTest() {
             AccessIntent.Read,
             noCaps,
         ) shouldBe RouteDecision.Allowed(AccessMode.ISOLATED)
+    }
+
+    @Test
+    fun `classify direct route does not invoke capability providers`() = runTest {
+        var rootCalled = 0
+        var adbCalled = 0
+        val lazyCaps = CapabilitySnapshot(
+            rootProvider = { rootCalled++; false },
+            adbProvider = { adbCalled++; false },
+        )
+
+        policy.classify(
+            p("/sdcard/Download/file.txt"),
+            AccessIntent.Write,
+            lazyCaps,
+        ) shouldBe RouteDecision.Allowed(AccessMode.DIRECT)
+
+        rootCalled shouldBe 0
+        adbCalled shouldBe 0
     }
 
     @Test

@@ -69,11 +69,11 @@ class GenericPathRoutedBatchTest : BaseTest() {
             coEvery { lookup(destinationRoot, any<LookupOptions>()) } returns LocalPathLookup.unknown(destinationRoot)
             coEvery { createDir(destination, createParents = true) } returns Unit
         }
-        val caps = CapabilitySnapshot(hasRoot = true, hasAdb = false)
+        val caps = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = false)
         val policy = mockk<LocalPathRoutingPolicy> {
-            every { classify(source, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
-            every { classify(destination, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
-            every { classify(destinationRoot, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(source, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
+            coEvery { classify(destination, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(destinationRoot, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
             every { proactiveChildren(any()) } returns emptySet()
             coEvery { batchEligibility(any()) } returns BatchEligibility.Eligible(
                 mode = AccessMode.ROOT,
@@ -127,11 +127,11 @@ class GenericPathRoutedBatchTest : BaseTest() {
             coEvery { lookup(destinationRoot, any<LookupOptions>()) } returns LocalPathLookup.unknown(destinationRoot)
             coEvery { createDir(destination, createParents = true) } returns Unit
         }
-        val caps = CapabilitySnapshot(hasRoot = true, hasAdb = false)
+        val caps = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = false)
         val policy = mockk<LocalPathRoutingPolicy> {
-            every { classify(source, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
-            every { classify(destination, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
-            every { classify(destinationRoot, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(source, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
+            coEvery { classify(destination, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(destinationRoot, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
             every { proactiveChildren(any()) } returns emptySet()
             coEvery { batchEligibility(any()) } returns BatchEligibility.Eligible(
                 mode = AccessMode.ROOT,
@@ -197,9 +197,9 @@ class GenericPathRoutedBatchTest : BaseTest() {
             coEvery { createDir(any<LocalPath>(), any<Boolean>()) } returns Unit
             coEvery { delete(source, any<Boolean>()) } throws cleanupError
         }
-        val caps = CapabilitySnapshot(hasRoot = false, hasAdb = false)
+        val caps = CapabilitySnapshot.fixed(hasRoot = false, hasAdb = false)
         val policy = mockk<LocalPathRoutingPolicy> {
-            every { classify(any(), any(), caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(any(), any(), caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
             every { proactiveChildren(any()) } returns emptySet()
             coEvery { batchEligibility(any()) } returns BatchEligibility.Ineligible("not exercising batch")
         }
@@ -256,11 +256,11 @@ class GenericPathRoutedBatchTest : BaseTest() {
             )
             coEvery { createDir(destination, createParents = true) } returns Unit
         }
-        val caps = CapabilitySnapshot(hasRoot = true, hasAdb = false)
+        val caps = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = false)
         val policy = mockk<LocalPathRoutingPolicy> {
-            every { classify(source, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
-            every { classify(destination, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
-            every { classify(destinationRoot, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(source, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
+            coEvery { classify(destination, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(destinationRoot, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
             every { proactiveChildren(any()) } returns emptySet()
             coEvery { batchEligibility(any()) } returns BatchEligibility.Eligible(
                 mode = AccessMode.ROOT,
@@ -325,13 +325,13 @@ class GenericPathRoutedBatchTest : BaseTest() {
             coEvery { listFiles(parent) } returns listOf(child)
             coEvery { createDir(any<LocalPath>(), any<Boolean>()) } returns Unit
         }
-        val caps = CapabilitySnapshot(hasRoot = true, hasAdb = false)
+        val caps = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = false)
         val policy = mockk<LocalPathRoutingPolicy> {
-            every { classify(parent, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
-            every { classify(child, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
-            every { classify(destination, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
-            every { classify(destinationRoot, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
-            every { classify(p("/dst/src/restricted"), AccessIntent.Write, caps) } returns
+            coEvery { classify(parent, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(child, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
+            coEvery { classify(destination, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(destinationRoot, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(p("/dst/src/restricted"), AccessIntent.Write, caps) } returns
                 RouteDecision.Allowed(AccessMode.DIRECT)
             every { proactiveChildren(any()) } returns emptySet()
             coEvery { batchEligibility(any()) } returns BatchEligibility.Ineligible("not exercising batch")

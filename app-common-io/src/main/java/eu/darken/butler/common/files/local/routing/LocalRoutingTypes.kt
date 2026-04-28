@@ -21,10 +21,33 @@ sealed interface AccessIntent {
     data object Delete : AccessIntent
 }
 
-data class CapabilitySnapshot(
-    val hasRoot: Boolean,
-    val hasAdb: Boolean,
-)
+/**
+ * Snapshot of routing capabilities (root, ADB) evaluated lazily on first access.
+ *
+ * Capabilities are queried only when the routing policy actually needs them — i.e. when a
+ * path classifies as restricted/system-blocked and the policy needs to fall back to elevated
+ * mode. DIRECT-route paths (the common case) never trigger the providers.
+ *
+ * The providers are idempotent (`useRoot.first()` and `useAdb.first()` return cached values
+ * after the first emission), so the @Volatile cache may double-call under concurrency without
+ * harm.
+ */
+class CapabilitySnapshot(
+    private val rootProvider: suspend () -> Boolean,
+    private val adbProvider: suspend () -> Boolean,
+) {
+    @Volatile private var rootCached: Boolean? = null
+    @Volatile private var adbCached: Boolean? = null
+
+    suspend fun hasRoot(): Boolean = rootCached ?: rootProvider().also { rootCached = it }
+    suspend fun hasAdb(): Boolean = adbCached ?: adbProvider().also { adbCached = it }
+
+    companion object {
+        /** Pre-resolved snapshot — useful for tests that don't need lazy semantics. */
+        fun fixed(hasRoot: Boolean, hasAdb: Boolean): CapabilitySnapshot =
+            CapabilitySnapshot({ hasRoot }, { hasAdb })
+    }
+}
 
 sealed interface RouteDecision {
     data class Allowed(val mode: AccessMode) : RouteDecision

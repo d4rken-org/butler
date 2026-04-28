@@ -924,7 +924,10 @@ class LocalGateway @Inject constructor(
                 try {
                     val router = StaticLocalRouteRouter(
                         policy = routingPolicy,
-                        caps = CapabilitySnapshot(hasRoot = hasRoot(), hasAdb = hasAdb()),
+                        caps = CapabilitySnapshot(
+                            rootProvider = { hasRoot() },
+                            adbProvider = { hasAdb() },
+                        ),
                         sessions = registry,
                     )
                     val routedOps = RoutedLocalFileSystemOps(router, AccessIntent.Delete)
@@ -1039,7 +1042,10 @@ class LocalGateway @Inject constructor(
                 try {
                     val router = StaticLocalRouteRouter(
                         policy = routingPolicy,
-                        caps = CapabilitySnapshot(hasRoot = hasRoot(), hasAdb = hasAdb()),
+                        caps = CapabilitySnapshot(
+                            rootProvider = { hasRoot() },
+                            adbProvider = { hasAdb() },
+                        ),
                         sessions = registry,
                     )
                     val sourceOps = RoutedLocalFileSystemOps(router, AccessIntent.Read)
@@ -1163,7 +1169,10 @@ class LocalGateway @Inject constructor(
                 try {
                     val router = StaticLocalRouteRouter(
                         policy = routingPolicy,
-                        caps = CapabilitySnapshot(hasRoot = hasRoot(), hasAdb = hasAdb()),
+                        caps = CapabilitySnapshot(
+                            rootProvider = { hasRoot() },
+                            adbProvider = { hasAdb() },
+                        ),
                         sessions = registry,
                     )
                     val sourceOps = RoutedLocalFileSystemOps(router, AccessIntent.Delete)

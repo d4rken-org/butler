@@ -27,7 +27,7 @@ import kotlin.time.Instant
 
 class StaticLocalRouteRouterTest : BaseTest() {
 
-    private val caps = CapabilitySnapshot(hasRoot = true, hasAdb = false)
+    private val caps = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = false)
 
     @Test
     fun `router caches same path independently per intent`() = runTest {
@@ -39,8 +39,8 @@ class StaticLocalRouteRouterTest : BaseTest() {
             coEvery { open(AccessMode.ROOT) } returns ModeSession(AccessMode.ROOT, rootOps, fakeBatch(), null)
         }
         val policy = mockk<LocalPathRoutingPolicy> {
-            every { classify(path, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
-            every { classify(path, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
+            coEvery { classify(path, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(path, AccessIntent.Write, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
         }
         val registry = ModeSessionRegistry(factory)
         val router = StaticLocalRouteRouter(policy, caps, registry)
@@ -64,7 +64,7 @@ class StaticLocalRouteRouterTest : BaseTest() {
             coEvery { open(AccessMode.ROOT) } throws RootUnavailableException()
         }
         val policy = mockk<LocalPathRoutingPolicy> {
-            every { classify(path, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
+            coEvery { classify(path, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.ROOT)
         }
         val registry = ModeSessionRegistry(factory)
         val router = StaticLocalRouteRouter(policy, caps, registry)
@@ -93,8 +93,8 @@ class StaticLocalRouteRouterTest : BaseTest() {
             coEvery { open(AccessMode.DIRECT) } returns ModeSession(AccessMode.DIRECT, directOps, null, null)
         }
         val policy = mockk<LocalPathRoutingPolicy> {
-            every { classify(parent, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
-            every { classify(child, AccessIntent.Read, caps) } returns RouteDecision.Denied
+            coEvery { classify(parent, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+            coEvery { classify(child, AccessIntent.Read, caps) } returns RouteDecision.Denied
             every { proactiveChildren(parent) } returns setOf(child)
         }
         val registry = ModeSessionRegistry(factory)

@@ -24,7 +24,7 @@ class LocalPathRoutingPolicy @Inject constructor(
     private val storageManager: StorageManager2,
 ) {
 
-    fun classify(path: LocalPath, intent: AccessIntent, caps: CapabilitySnapshot): RouteDecision {
+    suspend fun classify(path: LocalPath, intent: AccessIntent, caps: CapabilitySnapshot): RouteDecision {
         if (matchesAnyAlias(path, ownDirs())) return RouteDecision.Allowed(AccessMode.DIRECT)
 
         return when (intent) {
@@ -171,7 +171,7 @@ class LocalPathRoutingPolicy @Inject constructor(
         )
     }
 
-    private fun classifyDelete(path: LocalPath, caps: CapabilitySnapshot): RouteDecision {
+    private suspend fun classifyDelete(path: LocalPath, caps: CapabilitySnapshot): RouteDecision {
         val targetRead = classifyReadOrWrite(path, forWriting = false, caps)
         val parentWrite = path.parent
             ?.let { classifyReadOrWrite(it, forWriting = true, caps) }
@@ -188,7 +188,7 @@ class LocalPathRoutingPolicy @Inject constructor(
         }
     }
 
-    private fun classifyReadOrWrite(
+    private suspend fun classifyReadOrWrite(
         path: LocalPath,
         forWriting: Boolean,
         caps: CapabilitySnapshot,
@@ -216,9 +216,9 @@ class LocalPathRoutingPolicy @Inject constructor(
         return RouteDecision.Allowed(AccessMode.DIRECT)
     }
 
-    private fun elevatedOrDenied(caps: CapabilitySnapshot): RouteDecision = when {
-        caps.hasRoot -> RouteDecision.Allowed(AccessMode.ROOT)
-        caps.hasAdb -> RouteDecision.Allowed(AccessMode.ADB)
+    private suspend fun elevatedOrDenied(caps: CapabilitySnapshot): RouteDecision = when {
+        caps.hasRoot() -> RouteDecision.Allowed(AccessMode.ROOT)
+        caps.hasAdb() -> RouteDecision.Allowed(AccessMode.ADB)
         else -> RouteDecision.Denied
     }
 
