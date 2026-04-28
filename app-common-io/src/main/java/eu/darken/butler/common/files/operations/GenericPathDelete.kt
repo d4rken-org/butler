@@ -4,17 +4,28 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.UnknownFileTypeException
+import eu.darken.butler.common.files.local.routing.AccessIntent
+import eu.darken.butler.common.files.local.routing.BatchEligibility
+import eu.darken.butler.common.files.local.routing.BatchEligibilityRequest
+import eu.darken.butler.common.files.local.routing.BatchOperation
+import eu.darken.butler.common.files.local.routing.Route
+import eu.darken.butler.common.files.local.routing.RoutedLocalFileSystemOps
+import eu.darken.butler.common.files.local.routing.lookupForIntent
+import eu.darken.butler.common.files.local.routing.unknownLookupOrNull
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -65,12 +76,13 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
 
     // Scan tracking
     private var scanItemsRemaining = 0
+    private val completedScans = mutableSetOf<P>()
 
     // Work queue
     private var workQueue = ArrayDeque<WorkItem>()
 
     // Collect DeletePath items during scanning to preserve post-order
-    private val deferredDeletions = ArrayDeque<WorkItem.DeletePath<P, PL>>()
+    private val deferredDeletions = ArrayDeque<WorkItem>()
 
     private sealed class WorkItem {
         /**
@@ -86,6 +98,16 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
          */
         data class DeletePath<P : APath<P>, PL : APathLookup<P>>(
             val lookup: PL,
+        ) : WorkItem() {
+            val path: P get() = lookup.lookedUp
+        }
+
+        /**
+         * Delete a proven-safe local subtree inside one IPC backend.
+         */
+        data class BatchDeleteSubtree<P : APath<P>, PL : APathLookup<P>>(
+            val lookup: PL,
+            val sourceRoute: Route,
         ) : WorkItem() {
             val path: P get() = lookup.lookedUp
         }
@@ -121,6 +143,9 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
                 }
 
                 is WorkItem.DeletePath<*, *> -> processDeletePath(item as WorkItem.DeletePath<P, PL>) { send(it) }
+
+                is WorkItem.BatchDeleteSubtree<*, *> ->
+                    processBatchDeleteSubtree(item as WorkItem.BatchDeleteSubtree<P, PL>) { send(it) }
             }
         }
 
@@ -140,19 +165,28 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         emit: suspend (DeleteAction.State<P, PL>) -> Unit
     ): Int {
         log(TAG, VERBOSE) { "Scanning path: ${item.path}" }
+        if (item.path in completedScans) {
+            log(TAG, VERBOSE) { "Skipping already scanned path: ${item.path}" }
+            return 0
+        }
 
         val lookup = try {
-            fileSystemOps.lookup(item.path, LookupOptions.BASE)
+            fileSystemOps.lookupForIntent(item.path, AccessIntent.Delete, LookupOptions.BASE)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            if (ignoreMissing) {
+            if (ignoreMissing && e.isMissingPathError(item.path)) {
                 log(TAG, VERBOSE) { "Skipping missing file (ignoreMissing=true): ${item.path}" }
                 return 0
             }
-            throw eu.darken.butler.common.files.errors.ReadException(
-                "File does not exist",
-                item.path,
-                e
-            )
+            val unknownLookup = fileSystemOps.unknownLookupOrNull(item.path, e)
+                ?: throw eu.darken.butler.common.files.errors.ReadException(
+                    "File does not exist",
+                    item.path,
+                    e
+                )
+            handleScanError(e, unknownLookup, item.path)
+            return 0
         }
 
         when (lookup.fileType) {
@@ -167,6 +201,7 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
                     reportScanProgress(lookup, emit)
                 }
 
+                completedScans.add(item.path)
                 return 0
             }
 
@@ -182,8 +217,15 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
                         reportScanProgress(lookup, emit)
                     }
 
+                    completedScans.add(item.path)
                     return 0
                 } else {
+                    createBatchDeleteSubtreeOrNull(lookup)?.let {
+                        deferredDeletions.addFirst(it)
+                        completedScans.add(item.path)
+                        return 0
+                    }
+
                     // Recursive: scan children first, then defer directory deletion
                     var childrenFound = 0
 
@@ -194,6 +236,8 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
                             workQueue.addFirst(WorkItem.ScanPath(child))
                             childrenFound++
                         }
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         handleScanError(e, lookup, item.path)
                         return 0
@@ -209,11 +253,42 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
                         reportScanProgress(lookup, emit)
                     }
 
+                    completedScans.add(item.path)
                     return childrenFound
                 }
             }
 
             FileType.UNKNOWN -> throw UnknownFileTypeException(lookup)
+        }
+    }
+
+    private suspend fun createBatchDeleteSubtreeOrNull(
+        lookup: PL,
+    ): WorkItem.BatchDeleteSubtree<P, PL>? {
+        val sourcePath = lookup.lookedUp as? LocalPath ?: return null
+        val routedOps = fileSystemOps as? RoutedLocalFileSystemOps ?: return null
+
+        val sourceRoute = routedOps.routeFor(sourcePath, AccessIntent.Delete)
+        val eligibility = routedOps.batchEligibility(
+            BatchEligibilityRequest(
+                operation = BatchOperation.DELETE,
+                sourceRoot = sourcePath,
+                sourceIntent = AccessIntent.Delete,
+                destinationRoot = null,
+                destinationIntent = null,
+                sourceRoute = sourceRoute,
+                destinationRoute = null,
+                options = DeleteAction.Options<P>(
+                    recursive = recursive,
+                    ignoreMissing = ignoreMissing,
+                    onIssue = onIssue,
+                ),
+            )
+        )
+
+        return when (eligibility) {
+            is BatchEligibility.Eligible -> WorkItem.BatchDeleteSubtree(lookup, sourceRoute)
+            is BatchEligibility.Ineligible -> null
         }
     }
 
@@ -247,13 +322,11 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
             deleted += lookup
             progressTracker.completeItem(lookup.size ?: 0L)
 
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             // Handle case where file was deleted between scan and delete phases
-            if (ignoreMissing && (e is java.io.FileNotFoundException ||
-                    e.cause is java.io.FileNotFoundException ||
-                    e is java.nio.file.NoSuchFileException ||
-                    e.cause is java.nio.file.NoSuchFileException)
-            ) {
+            if (ignoreMissing && e.isMissingPathError(item.path)) {
                 log(TAG, VERBOSE) { "File already deleted (ignoreMissing=true): ${item.path}" }
                 progressTracker.completeItem(lookup.size ?: 0L)
                 return
@@ -268,7 +341,61 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
         }
     }
 
+    private suspend fun processBatchDeleteSubtree(
+        item: WorkItem.BatchDeleteSubtree<P, PL>,
+        emit: suspend (DeleteAction.State<P, PL>) -> Unit
+    ) {
+        log(TAG, VERBOSE) { "Deleting batched subtree: ${item.path}" }
+
+        val root = item.lookup.lookedUp as? LocalPath
+            ?: error("BatchDeleteSubtree must have LocalPath root")
+        val batch = item.sourceRoute.batch ?: run {
+            handleBatchDeleteError(IllegalStateException("Batch API unavailable for ${item.sourceRoute.mode}"), item)
+            return
+        }
+
+        try {
+            batch.deleteSubtree(
+                root = root,
+                options = DeleteAction.Options(
+                    recursive = recursive,
+                    ignoreMissing = ignoreMissing,
+                    onIssue = onIssue,
+                ),
+            ).collect { state ->
+                when (state) {
+                    is DeleteAction.State.Active -> emitBatchProgress(state, emit)
+                    is DeleteAction.State.Completed -> {
+                        @Suppress("UNCHECKED_CAST")
+                        deleted.addAll(state.deleted as Set<PL>)
+                        @Suppress("UNCHECKED_CAST")
+                        skipped.addAll(state.skipped as Set<PL>)
+                        progressTracker.completeItem(item.lookup.size ?: 0L)
+                    }
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            handleBatchDeleteError(e, item)
+        }
+    }
+
     private suspend fun handleDeleteError(error: Exception, originalItem: WorkItem.DeletePath<P, PL>) {
+        errorHandler.handleError(
+            error = error,
+            sourceLookup = originalItem.lookup,
+            issueResolver = issueResolver,
+            progressTracker = progressTracker,
+            onSkip = { skipped.add(it) },
+            onRetry = { workQueue.addFirst(originalItem) },
+            canRetry = true,
+            onIssue = onIssue,
+            tag = TAG
+        )
+    }
+
+    private suspend fun handleBatchDeleteError(error: Exception, originalItem: WorkItem.BatchDeleteSubtree<P, PL>) {
         errorHandler.handleError(
             error = error,
             sourceLookup = originalItem.lookup,
@@ -302,6 +429,14 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
             onIssue = onIssue,
             tag = TAG
         )
+    }
+
+    private suspend fun Exception.isMissingPathError(path: P): Boolean {
+        if (causeChain.any { it is java.io.FileNotFoundException || it is java.nio.file.NoSuchFileException }) {
+            return true
+        }
+
+        return runCatching { !fileSystemOps.exists(path) }.getOrDefault(false)
     }
 
     private suspend fun reportScanProgress(lookup: PL, emit: suspend (DeleteAction.State<P, PL>) -> Unit) {
@@ -351,6 +486,23 @@ internal class GenericPathDelete<P : APath<P>, PL : APathLookup<P>>(
                 deletedBytes = snapshot.processedBytes,
                 totalBytes = snapshot.totalBytes,
                 currentItemStartTime = snapshot.currentFileStartTime
+            )
+        )
+    }
+
+    private suspend fun emitBatchProgress(
+        state: DeleteAction.State.Active<LocalPath, *>,
+        emit: suspend (DeleteAction.State<P, PL>) -> Unit
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        emit(
+            DeleteAction.State.Active(
+                target = state.target as PL,
+                primaryProgress = state.primaryProgress,
+                secondaryProgress = state.secondaryProgress,
+                deletedBytes = progressTracker.processedBytes + state.deletedBytes,
+                totalBytes = progressTracker.totalBytes + state.totalBytes,
+                currentItemStartTime = state.currentItemStartTime,
             )
         )
     }

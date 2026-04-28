@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
+import kotlinx.coroutines.CancellationException
 
 /**
  * Generic strategy for moving files across different path types.
@@ -89,6 +90,8 @@ class GenericCrossTypeMoveStrategy<
                     // Note: Source remains, but destination was created successfully
                     // This is acceptable behavior - user has the file at destination
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Error deleting source after copy: ${sourceLookup.lookedUp} - $e" }
                 // Don't fail the operation - destination was created successfully

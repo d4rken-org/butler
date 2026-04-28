@@ -108,7 +108,7 @@ class RootHostLauncher @Inject constructor(
                 log(iTag) { "Launching root host with command: $cmd" }
                 // Doesn't return until root host has quit
                 cmd.execute(rootSession).also {
-                    log(iTag) { "Session (WITH-relocation) has ended: $it" }
+                    log(iTag) { "Session (without-relocation) has ended: $it" }
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
@@ -122,7 +122,7 @@ class RootHostLauncher @Inject constructor(
                     log(iTag) { "Launching root host (relocation) with command: $cmd" }
                     // Doesn't return until root host has quit
                     cmd.execute(rootSession).also {
-                        log(iTag) { "Session (without-relocation) has ended: $it" }
+                        log(iTag) { "Session (WITH-relocation) has ended: $it" }
                     }
                 } catch (e: Exception) {
                     log(iTag, WARN) { "Launch WITH relocation failed too: ${e.asLog()}" }
@@ -132,8 +132,11 @@ class RootHostLauncher @Inject constructor(
         } catch (e: Exception) {
             if (e is CancellationException) {
                 log(iTag) { "Root host launcher was cancelled: ${e.asLog()}" }
+                throw e
             } else {
                 log(iTag, WARN) { "All launch attempts failed: ${e.asLog()}" }
+                close(RootException("Failed to launch root host", cause = e))
+                return@callbackFlow
             }
         }
 

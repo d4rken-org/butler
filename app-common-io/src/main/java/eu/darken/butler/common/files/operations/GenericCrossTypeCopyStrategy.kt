@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
+import kotlinx.coroutines.CancellationException
 import okio.buffer
 import okio.sink
 import okio.source
@@ -186,6 +187,8 @@ class GenericCrossTypeCopyStrategy<
             }
 
             log(TAG, VERBOSE) { "Cross-type attribute copy completed (best-effort)" }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to copy attributes: $e" }
             // Don't fail the operation - attribute copying is best-effort

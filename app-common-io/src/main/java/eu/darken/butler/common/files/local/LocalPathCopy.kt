@@ -44,7 +44,8 @@ fun Collection<LocalPath>.copy(
     // Convert CopyAction.Options to TransferStrategy.Options
     val transferOptions = eu.darken.butler.common.files.operations.TransferStrategy.Options(
         preserveAttributes = options.preserveAttributes,
-        followSymlinks = options.followSymlinks
+        followSymlinks = options.followSymlinks,
+        overwrite = options.overwrite,
     )
 
     // Delegate to generic operation (new implementation)

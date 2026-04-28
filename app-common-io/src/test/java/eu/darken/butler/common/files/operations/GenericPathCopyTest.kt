@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
@@ -12,6 +13,7 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.cancellation.CancellationException
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -938,6 +940,39 @@ class GenericPathCopyTest : BaseTest() {
     }
 
     // ============ SCAN ERROR HANDLING ============
+
+    @Test
+    fun `missing top-level copy source throws even with issue handler`() = runTest {
+        mockOps.addMockDir("/dest")
+
+        shouldThrow<java.nio.file.NoSuchFileException> {
+            setOf(LocalPath.build("/missing.txt")).copyGeneric(
+                destination = LocalPath.build("/dest"),
+                sourceOps = mockOps,
+                destOps = mockOps,
+                strategy = strategy,
+                onIssue = { PathActionIssue.UnknownError.Resolution.Skip() }
+            ).last()
+        }
+    }
+
+    @Test
+    fun `copy scan cancellation propagates`() = runTest {
+        mockOps.addMockDir("/source/parent")
+        mockOps.addMockFile("/source/parent/child.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.setFailListFiles(1) { CancellationException("cancel copy scan") }
+
+        shouldThrow<CancellationException> {
+            setOf(LocalPath.build("/source/parent")).copyGeneric(
+                destination = LocalPath.build("/dest"),
+                sourceOps = mockOps,
+                destOps = mockOps,
+                strategy = strategy,
+                onIssue = { PathActionIssue.UnknownError.Resolution.Skip() }
+            ).last()
+        }
+    }
 
     @Test
     fun `directory scan error during copy then skip should appear only in skipped`() = runTest {

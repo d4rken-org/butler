@@ -152,6 +152,8 @@ internal class GenericPathCreate<P : APath<P>, PL : APathLookup<P>>(
                     }
                 }
                 break // Creation succeeded, exit retry loop
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 log(tag, ERROR) { "Create failed: $currentTarget - $e" }
 

@@ -18,7 +18,7 @@ import java.io.File
 internal fun File.fileHandle(readWrite: Boolean): FileHandle {
     val okioPath = this.toOkioPath()
     return if (readWrite) {
-        FileSystem.SYSTEM.openReadWrite(okioPath, mustCreate = false, mustExist = true)
+        FileSystem.SYSTEM.openReadWrite(okioPath, mustCreate = false, mustExist = false)
     } else {
         FileSystem.SYSTEM.openReadOnly(okioPath)
     }

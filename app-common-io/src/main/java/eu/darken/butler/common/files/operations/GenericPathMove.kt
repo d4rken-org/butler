@@ -7,14 +7,28 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.UnknownFileTypeException
+import eu.darken.butler.common.files.local.routing.AccessIntent
+import eu.darken.butler.common.files.local.routing.BatchEligibility
+import eu.darken.butler.common.files.local.routing.BatchEligibilityRequest
+import eu.darken.butler.common.files.local.routing.BatchOperation
+import eu.darken.butler.common.files.local.routing.OwnershipFixup
+import eu.darken.butler.common.files.local.routing.OwnershipNormalizationException
+import eu.darken.butler.common.files.local.routing.OwnershipNormalizer
+import eu.darken.butler.common.files.local.routing.Route
+import eu.darken.butler.common.files.local.routing.RoutedLocalFileSystemOps
+import eu.darken.butler.common.files.local.routing.ensurePlannedForIntent
+import eu.darken.butler.common.files.local.routing.lookupForIntent
+import eu.darken.butler.common.files.local.routing.unknownLookupOrNull
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -83,6 +97,7 @@ internal class GenericPathMove<
         progressTracker = progressTracker,
         tag = TAG
     )
+    private val ownershipNormalizer = OwnershipNormalizer()
 
     init {
         log(TAG, INFO) {
@@ -92,11 +107,13 @@ internal class GenericPathMove<
 
     // Track directories for cleanup
     private val sourceDirectories = ArrayDeque<SP>() // Post-order for deletion
+    private val sourceDirectoryLookups = mutableMapOf<SP, SPL>()
     private val skippedSourceDirs = mutableSetOf<SP>()
     private val renamedSourceDirs = mutableMapOf<SP, DP>()
 
     // Scan tracking
     private var scanItemsRemaining = 0
+    private val completedScans = mutableSetOf<SP>()
 
     // Destination state
     private var destinationExistedAsDirectory = false
@@ -143,6 +160,17 @@ internal class GenericPathMove<
             val sourceLookup: SPL,
             val destination: DP,
             val topLevelSource: SP,
+        ) : WorkItem()
+
+        /**
+         * Move a proven-safe local subtree inside one IPC backend.
+         */
+        data class BatchMoveSubtree<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>>(
+            val sourceLookup: SPL,
+            val destination: DP,
+            val topLevelSource: SP,
+            val sourceRoute: Route,
+            val ownershipFixup: OwnershipFixup,
         ) : WorkItem()
 
         /**
@@ -222,7 +250,7 @@ internal class GenericPathMove<
         log(TAG, DEBUG) { "execute(): Moving ${sources.size} sources to $destination" }
 
         // Check if destination exists and is a directory (for path calculation logic)
-        val destLookup = destOps.lookup(destination, LookupOptions(fallbackToUnknown = true))
+        val destLookup = destOps.lookupForIntent(destination, AccessIntent.Write, LookupOptions(fallbackToUnknown = true))
         destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
 
         // Initialize work queue with scan items for all sources
@@ -256,6 +284,11 @@ internal class GenericPathMove<
                     processCreateDirectory(item as WorkItem.CreateDirectory<SP, SPL, DP>)
                 }
 
+                is WorkItem.BatchMoveSubtree<*, *, *> -> {
+                    @Suppress("UNCHECKED_CAST")
+                    processBatchMoveSubtree(item as WorkItem.BatchMoveSubtree<SP, SPL, DP>) { send(it) }
+                }
+
                 is WorkItem.ResolveConflict<*, *, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
                     processResolveConflict(item as WorkItem.ResolveConflict<SP, SPL, DP, DPL>)
@@ -273,7 +306,7 @@ internal class GenericPathMove<
             MoveAction.State.Completed(
                 movedFiles = moved,
                 skippedFiles = skipped,
-                bytesMoved = progressTracker.processedBytes
+                bytesMoved = totalBytesTransferred
             )
         )
     }
@@ -283,19 +316,36 @@ internal class GenericPathMove<
         emit: suspend (MoveAction.State<SP, SPL, DP, DPL>) -> Unit
     ): Int {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
+        if (item.source in completedScans) {
+            log(TAG, VERBOSE) { "Skipping already scanned source: ${item.source}" }
+            return 0
+        }
 
         val lookup = try {
-            sourceOps.lookup(item.source, LookupOptions.BASE)
+            sourceOps.lookupForIntent(item.source, AccessIntent.Delete, LookupOptions.BASE)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            if (item.source == item.topLevelSource) {
-                throw e // Top-level source must exist
+            if (item.source == item.topLevelSource) throw e
+            val unknownLookup = sourceOps.unknownLookupOrNull(item.source, e)
+            if (unknownLookup == null) {
+                log(TAG, WARN) { "Child source disappeared during scan: ${item.source}" }
+                return 0
             }
-            log(TAG, WARN) { "Child source disappeared during scan: ${item.source}" }
+            handleScanError(e, unknownLookup, item)
             return 0
         }
 
         // Calculate destination path relative to top-level source
         val destPath = calculateDestinationPath(item.source, item.topLevelSource)
+        try {
+            destOps.ensurePlannedForIntent(destPath, AccessIntent.Write)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            handleScanError(e, lookup, item)
+            return 0
+        }
 
         when (lookup.fileType) {
             FileType.FILE, FileType.SYMBOLIC_LINK -> {
@@ -308,6 +358,7 @@ internal class GenericPathMove<
                     reportScanProgress(lookup, emit)
                 }
 
+                completedScans.add(item.source)
                 return 0
             }
 
@@ -318,6 +369,12 @@ internal class GenericPathMove<
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
                     reportScanProgress(lookup, emit)
+                }
+
+                createBatchMoveSubtreeOrNull(lookup, item.source, destPath, item.topLevelSource)?.let {
+                    workQueue.addLast(it)
+                    completedScans.add(item.source)
+                    return 0
                 }
 
                 // Try atomic directory move FIRST if enabled (optimization)
@@ -363,6 +420,7 @@ internal class GenericPathMove<
                                         "Atomic move complete: ${item.source} -> $destPath (skipped child scan)"
                                     }
 
+                                    completedScans.add(item.source)
                                     return 0  // No children to process
                                 }
 
@@ -381,6 +439,7 @@ internal class GenericPathMove<
                 // Recursive pattern: scan children, queue directory creation
                 // Add directory to cleanup queue (post-order)
                 sourceDirectories.addFirst(item.source)
+                sourceDirectoryLookups[item.source] = lookup
 
                 // List and queue children
                 var childrenFound = 0
@@ -390,6 +449,8 @@ internal class GenericPathMove<
                         workQueue.addFirst(WorkItem.ScanSource(child, item.topLevelSource))
                         childrenFound++
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     handleScanError(e, lookup, item)
                     return 0
@@ -399,10 +460,51 @@ internal class GenericPathMove<
                 // This prevents duplicate directory creation when scan errors are retried
                 workQueue.addLast(WorkItem.CreateDirectory(lookup, destPath, item.topLevelSource))
 
+                completedScans.add(item.source)
                 return childrenFound
             }
 
             FileType.UNKNOWN -> throw UnknownFileTypeException(lookup)
+        }
+    }
+
+    private suspend fun createBatchMoveSubtreeOrNull(
+        sourceLookup: SPL,
+        source: SP,
+        destination: DP,
+        topLevelSource: SP,
+    ): WorkItem.BatchMoveSubtree<SP, SPL, DP>? {
+        val sourcePath = sourceLookup.lookedUp as? LocalPath ?: return null
+        if (sourceLookup.lookedUp != source) return null
+        val destinationPath = destination as? LocalPath ?: return null
+        val routedSourceOps = sourceOps as? RoutedLocalFileSystemOps ?: return null
+        val routedDestOps = destOps as? RoutedLocalFileSystemOps ?: return null
+
+        val sourceRoute = routedSourceOps.routeFor(sourcePath, AccessIntent.Delete)
+        val destinationRoute = routedDestOps.routeFor(destinationPath, AccessIntent.Write)
+        val eligibility = routedSourceOps.batchEligibility(
+            BatchEligibilityRequest(
+                operation = BatchOperation.MOVE,
+                sourceRoot = sourcePath,
+                sourceIntent = AccessIntent.Delete,
+                destinationRoot = destinationPath,
+                destinationIntent = AccessIntent.Write,
+                sourceRoute = sourceRoute,
+                destinationRoute = destinationRoute,
+                options = moveActionOptions(),
+            )
+        )
+
+        return when (eligibility) {
+            is BatchEligibility.Eligible -> WorkItem.BatchMoveSubtree(
+                sourceLookup = sourceLookup,
+                destination = destination,
+                topLevelSource = topLevelSource,
+                sourceRoute = sourceRoute,
+                ownershipFixup = eligibility.ownershipFixup,
+            )
+
+            is BatchEligibility.Ineligible -> null
         }
     }
 
@@ -471,6 +573,8 @@ internal class GenericPathMove<
             if (progressTracker.shouldReportProgress(force = true)) {
                 reportProgress(item.sourceLookup, adjustedDest, emit)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             handleMoveError(e, item)
         }
@@ -521,17 +625,114 @@ internal class GenericPathMove<
                     progressTracker.completeItem()
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             handleDirectoryError(e, item)
         }
     }
 
+    private suspend fun processBatchMoveSubtree(
+        item: WorkItem.BatchMoveSubtree<SP, SPL, DP>,
+        emit: suspend (MoveAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
+        if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
+            log(TAG, VERBOSE) { "Skipping batch subtree - parent was skipped" }
+            skipped.add(item.sourceLookup)
+            skippedSourceDirs.add(item.sourceLookup.lookedUp)
+            progressTracker.completeItem()
+            return
+        }
+
+        val sourceRoot = item.sourceLookup.lookedUp as? LocalPath
+            ?: error("BatchMoveSubtree must have LocalPath source")
+        val destinationRoot = adjustDestinationForRenames(item.destination, item.sourceLookup.lookedUp) as? LocalPath
+            ?: error("BatchMoveSubtree must have LocalPath destination")
+        val batch = item.sourceRoute.batch ?: run {
+            handleBatchMoveError(IllegalStateException("Batch API unavailable for ${item.sourceRoute.mode}"), item)
+            return
+        }
+
+        try {
+            ensureBatchDestinationParent(destinationRoot)
+            ensureBatchDestinationAbsent(destinationRoot)
+            batch.moveSubtreeExact(
+                sourceRoot = sourceRoot,
+                destinationRoot = destinationRoot,
+                options = moveActionOptions(),
+                onIssue = onIssue,
+            ).collect { state ->
+                when (state) {
+                    is MoveAction.State.Active -> emitBatchProgress(state, emit)
+                    is MoveAction.State.Completed -> {
+                        @Suppress("UNCHECKED_CAST")
+                        moved.addAll(state.movedFiles as Set<Pair<SPL, APathLookup<DP>>>)
+                        @Suppress("UNCHECKED_CAST")
+                        skipped.addAll(state.skippedFiles as Set<SPL>)
+                        totalBytesTransferred += state.bytesMoved
+                        try {
+                            normalizeOwnershipIfNeeded(item.ownershipFixup, destinationRoot, item.sourceRoute)
+                            progressTracker.completeItem()
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: OwnershipNormalizationException) {
+                            handleBatchOwnershipNormalizationError(e, item, destinationRoot)
+                        }
+                    }
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: OwnershipNormalizationException) {
+            throw e
+        } catch (e: MoveBatchDestinationAlreadyExistsException) {
+            handleBatchMoveError(e, item, canRetry = false)
+        } catch (e: Exception) {
+            handleBatchMoveError(e, item)
+        }
+    }
+
+    private suspend fun ensureBatchDestinationParent(destinationRoot: LocalPath) {
+        val parent = destinationRoot.parent ?: return
+        @Suppress("UNCHECKED_CAST")
+        (destOps as FileSystemOps<LocalPath, *>).createDir(parent, createParents = true)
+    }
+
+    private suspend fun ensureBatchDestinationAbsent(destinationRoot: LocalPath) {
+        @Suppress("UNCHECKED_CAST")
+        val localDestOps = destOps as FileSystemOps<LocalPath, *>
+        val destinationExists = localDestOps.lookup(
+            destinationRoot,
+            LookupOptions.BASE.copy(fallbackToUnknown = true)
+        ).fileType != FileType.UNKNOWN
+        if (destinationExists) throw MoveBatchDestinationAlreadyExistsException(destinationRoot)
+    }
+
+    private suspend fun normalizeOwnershipIfNeeded(
+        fixup: OwnershipFixup,
+        destinationRoot: LocalPath,
+        route: Route,
+    ) {
+        when (fixup) {
+            OwnershipFixup.None -> Unit
+            is OwnershipFixup.InheritNearestExistingDestinationOwner -> {
+                ownershipNormalizer.normalizeRecursively(
+                    root = destinationRoot,
+                    owner = fixup.owner,
+                    ops = route.ops,
+                )
+            }
+        }
+    }
+
     private suspend fun cleanupSourceDirectories() {
         log(TAG, DEBUG) { "Cleaning up ${sourceDirectories.size} source directories" }
+        val cleanupFailures = mutableListOf<Pair<SPL, Exception>>()
 
         // Delete in post-order (children deleted before parents)
         while (sourceDirectories.isNotEmpty()) {
             val dir = sourceDirectories.removeFirst()
+            val dirLookup = sourceDirectoryLookups[dir] ?: continue
 
             // Skip if directory was skipped during move
             if (dir in skippedSourceDirs) {
@@ -541,8 +742,8 @@ internal class GenericPathMove<
 
             try {
                 // Check if directory still exists and is empty
-                val dirLookup = sourceOps.lookup(dir, LookupOptions(fallbackToUnknown = true))
-                if (dirLookup.fileType == FileType.UNKNOWN) {
+                val currentLookup = sourceOps.lookup(dir, LookupOptions(fallbackToUnknown = true))
+                if (currentLookup.fileType == FileType.UNKNOWN) {
                     log(TAG, VERBOSE) { "Directory already deleted: $dir" }
                     continue
                 }
@@ -550,17 +751,25 @@ internal class GenericPathMove<
                 // Check if empty (should be, since we moved all children)
                 val children = sourceOps.listFiles(dir)
                 if (children.isNotEmpty()) {
-                    log(TAG, WARN) { "Directory not empty, skipping cleanup: $dir (${children.size} children)" }
+                    val error = IllegalStateException("Source directory is not empty after move: $dir (${children.size} children)")
+                    log(TAG, WARN) { error.message!! }
+                    cleanupFailures.add(dirLookup to error)
                     continue
                 }
 
                 // Delete empty directory
                 sourceOps.delete(dir)
                 log(TAG, VERBOSE) { "Deleted source directory: $dir" }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Failed to cleanup source directory $dir: $e" }
-                // Continue with other directories
+                cleanupFailures.add(dirLookup to e)
             }
+        }
+
+        cleanupFailures.forEach { (lookup, error) ->
+            handleCleanupSourceDirectoryError(error, lookup)
         }
     }
 
@@ -757,6 +966,66 @@ internal class GenericPathMove<
         )
     }
 
+    private suspend fun handleCleanupSourceDirectoryError(error: Exception, lookup: SPL) {
+        log(TAG, ERROR) { "Source directory cleanup failed: ${lookup.lookedUp} - $error" }
+        if (issueResolver.skipAllUnknown) return
+        if (onIssue == null) throw error
+
+        val issue = PathActionIssue.UnknownError(
+            source = lookup,
+            destinationPath = lookup.lookedUp,
+            exception = error,
+            canRetry = false,
+            canSkip = true,
+        )
+        issueResolver.resolveIssue(issue)
+    }
+
+    private suspend fun handleBatchOwnershipNormalizationError(
+        error: OwnershipNormalizationException,
+        originalItem: WorkItem.BatchMoveSubtree<SP, SPL, DP>,
+        destinationRoot: LocalPath,
+    ) {
+        errorHandler.handleError(
+            error = error,
+            sourceLookup = originalItem.sourceLookup,
+            destinationPath = destinationRoot,
+            issueResolver = issueResolver,
+            progressTracker = progressTracker,
+            onSkip = {},
+            onRetry = null,
+            canRetry = false,
+            onIssue = onIssue,
+            tag = TAG
+        )
+    }
+
+    private suspend fun handleBatchMoveError(
+        error: Exception,
+        originalItem: WorkItem.BatchMoveSubtree<SP, SPL, DP>,
+        canRetry: Boolean = true,
+    ) {
+        errorHandler.handleError(
+            error = error,
+            sourceLookup = originalItem.sourceLookup,
+            destinationPath = originalItem.destination,
+            issueResolver = issueResolver,
+            progressTracker = progressTracker,
+            onSkip = {
+                skipped.add(it)
+                skippedSourceDirs.add(it.lookedUp)
+            },
+            onRetry = if (canRetry) {
+                { workQueue.addFirst(originalItem) }
+            } else {
+                null
+            },
+            canRetry = canRetry,
+            onIssue = onIssue,
+            tag = TAG
+        )
+    }
+
     private suspend fun reportScanProgress(lookup: SPL, emit: suspend (MoveAction.State<SP, SPL, DP, DPL>) -> Unit) {
         val snapshot = progressTracker.createSnapshot()
 
@@ -812,10 +1081,39 @@ internal class GenericPathMove<
         )
     }
 
+    private suspend fun emitBatchProgress(
+        state: MoveAction.State.Active<LocalPath, *, LocalPath, *>,
+        emit: suspend (MoveAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        emit(
+            MoveAction.State.Active(
+                currentSource = state.currentSource as SPL,
+                currentDestination = state.currentDestination as DP?,
+                primaryProgress = state.primaryProgress,
+                secondaryProgress = state.secondaryProgress,
+                movedBytes = totalBytesTransferred + state.movedBytes,
+                totalBytes = progressTracker.totalBytes + state.totalBytes,
+                currentFileSize = state.currentFileSize,
+                currentFileBytes = state.currentFileBytes,
+                currentFileStartTime = state.currentFileStartTime,
+            )
+        )
+    }
+
+    private fun moveActionOptions(): MoveAction.Options = MoveAction.Options(
+        preserveAttributes = options.preserveAttributes,
+        overwrite = options.overwrite,
+        attemptAtomicMove = options.attemptAtomicMove,
+    )
+
     companion object {
         private val TAG = logTag("PathOperation", "GenericMove")
     }
 }
+
+private class MoveBatchDestinationAlreadyExistsException(path: LocalPath) :
+    IllegalStateException("Batch destination already exists; refusing exact subtree retry: $path")
 
 /**
  * Extension function for easy use of GenericPathMove.

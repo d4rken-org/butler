@@ -84,7 +84,12 @@ class AdbHostLauncher @Inject constructor() {
                 awaitDisconnect.complete(Unit)
             }
         }
-        Shizuku.bindUserService(serviceArgs, callback)
+        try {
+            Shizuku.bindUserService(serviceArgs, callback)
+        } catch (e: Exception) {
+            close(AdbException("Failed to bind Shizuku user service", e))
+            return@callbackFlow
+        }
 
         log(TAG) { "Waiting for flow to close" }
         awaitClose {

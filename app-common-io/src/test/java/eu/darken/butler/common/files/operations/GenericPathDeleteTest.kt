@@ -4,6 +4,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Tests for GenericPathDelete - the high-level delete orchestrator.
@@ -1218,6 +1220,22 @@ class GenericPathDeleteTest : BaseTest() {
     }
 
     // ============ SCAN ERROR HANDLING ============
+
+    @Test
+    fun `delete scan cancellation propagates`() = runTest {
+        mockOps.addMockDir("/parent")
+        mockOps.addMockFile("/parent/child.txt", "content".toByteArray())
+        mockOps.setFailListFiles(1) { CancellationException("cancel delete scan") }
+
+        shouldThrow<CancellationException> {
+            LocalPath.build("/parent").deleteGeneric(
+                fileSystemOps = mockOps,
+                recursive = true,
+                ignoreMissing = false,
+                onIssue = { PathActionIssue.UnknownError.Resolution.Skip() }
+            ).last()
+        }
+    }
 
     @Test
     fun `directory scan error during delete then skip should appear only in skipped`() = runTest {

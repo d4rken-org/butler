@@ -9,6 +9,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -17,6 +18,7 @@ import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.PathException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException
@@ -24,6 +26,16 @@ import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
 import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
+import eu.darken.butler.common.files.local.operations.strategies.LocalPathCopyStrategy
+import eu.darken.butler.common.files.local.operations.strategies.LocalPathMoveStrategy
+import eu.darken.butler.common.files.local.routing.AccessIntent
+import eu.darken.butler.common.files.local.routing.CapabilitySnapshot
+import eu.darken.butler.common.files.local.routing.ModeSessionFactory
+import eu.darken.butler.common.files.local.routing.ModeSessionRegistry
+import eu.darken.butler.common.files.local.routing.LocalPathRoutingPolicy
+import eu.darken.butler.common.files.local.routing.RoutedLocalFileSystemOps
+import eu.darken.butler.common.files.local.routing.RouteUnavailableException
+import eu.darken.butler.common.files.local.routing.StaticLocalRouteRouter
 import eu.darken.butler.common.files.local.service.IsolatedServiceClient
 import eu.darken.butler.common.files.local.service.IsolatedServiceClient.*
 import eu.darken.butler.common.files.local.service.runModuleAction
@@ -33,6 +45,10 @@ import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.files.operations.createGeneric
+import eu.darken.butler.common.files.operations.copyGeneric
+import eu.darken.butler.common.files.operations.deleteGeneric
+import eu.darken.butler.common.files.operations.moveGeneric
+import eu.darken.butler.common.files.operations.TransferStrategy
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.RootUnavailableException
 import eu.darken.butler.common.root.canUseRootNow
@@ -66,6 +82,8 @@ class LocalGateway @Inject constructor(
     private val accessChecker: LocalPathAccessChecker,
     private val isolatedServiceClient: IsolatedServiceClient,
     private val storageManager: StorageManager2,
+    private val routingPolicy: LocalPathRoutingPolicy,
+    private val modeSessionFactory: ModeSessionFactory,
 ) : APathGateway<LocalPath, LocalPathLookup> {
 
     // Represents the resource that keeps the gateway resources alive
@@ -117,9 +135,17 @@ class LocalGateway @Inject constructor(
         error: Throwable,
     ): Throwable {
         if (error is PathPermissionDeniedException) return error
-        val reason = PermissionErrorClassifier.classify(error) ?: return error
+
+        val routeUnavailable = error.causeChain.filterIsInstance<RouteUnavailableException>().firstOrNull()
+        val reason = PermissionErrorClassifier.classify(error)
+            ?: routeUnavailable?.let { Reason.NO_MECHANISM }
+            ?: return error
+
+        val specificPath = routeUnavailable?.path
+            ?: error.causeChain.filterIsInstance<PathException>().firstOrNull()?.path as? LocalPath
+
         return PathPermissionDeniedException(
-            path = path,
+            path = specificPath ?: path,
             operation = operation,
             reason = reason,
             cause = error,
@@ -936,104 +962,42 @@ class LocalGateway @Inject constructor(
             }
 
             Mode.AUTO -> {
-                // Use isolated process for removable storage to survive sudden disconnection
-                val useIsolatedProcess = targets.any { isOnRemovableStorage(it) }
-                if (useIsolatedProcess) {
-                    try {
-                        log(TAG, VERBOSE) { "delete(AUTO:ISOLATED): Removable storage detected" }
-                        isolatedOps { client ->
-                            client.delete(targets, options).collect { emit(it) }
-                        }
-                        return@flow
-                    } catch (e: ServiceBindException) {
-                        log(TAG, WARN) { "delete: IsolatedService unavailable for removable storage, falling back to DIRECT" }
-                        targets.delete(
-                            fileSystemOps,
-                            recursive = options.recursive,
-                            ignoreMissing = options.ignoreMissing,
-                            onIssue = options.onIssue,
-                        ).collect { state ->
-                            emit(state)
-                            if (state is DeleteAction.State.Completed) {
-                                log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
-                            }
-                        }
-                        log(TAG, VERBOSE) { "delete(AUTO:DIRECT) [ISOLATED fallback]" }
-                        return@flow
-                    }
-                }
+                log(TAG, VERBOSE) { "delete(AUTO:routed): ${targets.size} targets" }
+                val registry = ModeSessionRegistry(modeSessionFactory)
+                try {
+                    val router = StaticLocalRouteRouter(
+                        policy = routingPolicy,
+                        caps = CapabilitySnapshot(
+                            rootProvider = { hasRoot() },
+                            adbProvider = { hasAdb() },
+                        ),
+                        sessions = registry,
+                    )
+                    val routedOps = RoutedLocalFileSystemOps(router, AccessIntent.Delete)
 
-                val shouldTry = accessChecker.shouldTryNormalAccess(targets.first(), forWriting = true)
-                when {
-                    shouldTry || (!hasAdb() && !hasRoot()) -> {
-                        var hasEscalated = false
-                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
-                            operationName = "delete()",
-                            originalOnIssue = options.onIssue,
-                            hasEscalatedRef = { hasEscalated },
-                            markEscalated = { hasEscalated = true }
-                        )
+                    targets.forEach { routedOps.ensurePlanned(it, AccessIntent.Delete) }
 
-                        try {
-                            log(TAG, VERBOSE) { "delete(AUTO->NORMAL, $shouldTry): ${targets.size} targets" }
-                            targets.delete(
-                                fileSystemOps,
-                                recursive = options.recursive,
-                                ignoreMissing = options.ignoreMissing,
-                                onIssue = escalationAwareOnIssue,
-                            ).collect { state ->
-                                emit(state)
-                                if (state is DeleteAction.State.Completed) {
-                                    log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
-                                }
-                            }
-                        } catch (e: Exception) {
-                            log(TAG, VERBOSE) { "delete(AUTO->NORMAL): Error: ${e.message}" }
-                            if (PermissionErrorClassifier.isPermissionError(e) && hasEscalated && (hasRoot() || hasAdb())) {
-                                log(TAG, INFO) { "delete(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
-                                when {
-                                    hasRoot() -> {
-                                        log(TAG, VERBOSE) { "delete(AUTO->NORMAL->ROOT): ${targets.size} targets" }
-                                        rootOps { client ->
-                                            client.delete(
-                                                targets = targets,
-                                                options = options.copy(onIssue = escalationAwareOnIssue)
-                                            ).collect { emit(it) }
-                                        }
-                                    }
-                                    hasAdb() -> {
-                                        log(TAG, VERBOSE) { "delete(AUTO->NORMAL->ADB): ${targets.size} targets" }
-                                        adbOps { client ->
-                                            client.delete(
-                                                targets = targets,
-                                                options = options.copy(onIssue = escalationAwareOnIssue)
-                                            ).collect { emit(it) }
-                                        }
-                                    }
-                                }
-                            } else {
-                                throw e
-                            }
+                    targets.deleteGeneric(
+                        fileSystemOps = routedOps,
+                        recursive = options.recursive,
+                        ignoreMissing = options.ignoreMissing,
+                        onIssue = options.onIssue,
+                    ).collect { state ->
+                        emit(state)
+                        if (state is DeleteAction.State.Completed) {
+                            log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
                         }
                     }
-                    hasRoot() -> {
-                        log(TAG, VERBOSE) { "delete(AUTO->ROOT): ${targets.size} targets" }
-                        rootOps { client ->
-                            client.delete(targets = targets, options = options).collect { emit(it) }
-                        }
-                    }
-                    hasAdb() -> {
-                        log(TAG, VERBOSE) { "delete(AUTO->ADB): ${targets.size} targets" }
-                        adbOps { client ->
-                            client.delete(targets = targets, options = options).collect { emit(it) }
-                        }
-                    }
-                    else -> throw PathPermissionDeniedException(targets.first(), "delete", Reason.NO_MECHANISM)
+                } finally {
+                    registry.close()
                 }
             }
         }
     }
-        .catch { throw mapPermissionError(targets.first(), "delete", it) }
+        .catch { e ->
+            val fallback = targets.firstOrNull() ?: throw e
+            throw mapPermissionError(fallback, "delete", e)
+        }
         .flowOn(dispatcherProvider.IO)
 
     override suspend fun copy(
@@ -1121,96 +1085,44 @@ class LocalGateway @Inject constructor(
             }
 
             Mode.AUTO -> {
-                // Use isolated process for removable storage to survive sudden disconnection
-                val useIsolatedProcess = isOnRemovableStorage(destination) ||
-                    sources.any { isOnRemovableStorage(it) }
-                if (useIsolatedProcess) {
-                    try {
-                        log(TAG, VERBOSE) { "copy(AUTO:ISOLATED): Removable storage detected" }
-                        isolatedOps { client ->
-                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
-                        }
-                        return@flow
-                    } catch (e: ServiceBindException) {
-                        log(TAG, WARN) { "copy: IsolatedService unavailable for removable storage, falling back to DIRECT" }
-                        sources.copy(
-                            fileSystemOps = fileSystemOps,
-                            destination = destination,
-                            options = options,
-                            onIssue = onIssue,
-                        ).collect { state ->
-                            emit(state)
-                            if (state is CopyAction.State.Completed) {
-                                log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
-                            }
-                        }
-                        log(TAG, VERBOSE) { "copy(AUTO:DIRECT) [ISOLATED fallback]" }
-                        return@flow
-                    }
-                }
+                log(TAG, VERBOSE) { "copy(AUTO:routed): To $destination" }
+                val registry = ModeSessionRegistry(modeSessionFactory)
+                try {
+                    val router = StaticLocalRouteRouter(
+                        policy = routingPolicy,
+                        caps = CapabilitySnapshot(
+                            rootProvider = { hasRoot() },
+                            adbProvider = { hasAdb() },
+                        ),
+                        sessions = registry,
+                    )
+                    val sourceOps = RoutedLocalFileSystemOps(router, AccessIntent.Read)
+                    val destOps = RoutedLocalFileSystemOps(router, AccessIntent.Write)
 
-                val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
-                when {
-                    shouldTry || (!hasAdb() && !hasRoot()) -> {
-                        var hasEscalated = false
-                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
-                            operationName = "copy()",
-                            originalOnIssue = onIssue,
-                            hasEscalatedRef = { hasEscalated },
-                            markEscalated = { hasEscalated = true }
-                        )
+                    sources.forEach { sourceOps.ensurePlanned(it, AccessIntent.Read) }
+                    destOps.ensurePlanned(destination, AccessIntent.Write)
 
-                        try {
-                            log(TAG, VERBOSE) { "copy(AUTO->NORMAL, $shouldTry): To $destination" }
-                            sources.copy(
-                                fileSystemOps = fileSystemOps,
-                                destination = destination,
-                                options = options,
-                                onIssue = escalationAwareOnIssue,
-                            ).collect { state ->
-                                emit(state)
-                                if (state is CopyAction.State.Completed) {
-                                    log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
-                                }
-                            }
-                        } catch (e: Exception) {
-                            log(TAG, VERBOSE) { "copy(AUTO->NORMAL): Error: ${e.message}" }
-                            if (PermissionErrorClassifier.isPermissionError(e) && hasEscalated && (hasRoot() || hasAdb())) {
-                                log(TAG, INFO) { "copy(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
-                                when {
-                                    hasRoot() -> {
-                                        log(TAG, VERBOSE) { "copy(AUTO->NORMAL->ROOT): To $destination" }
-                                        rootOps { client ->
-                                            client.copy(sources, destination, escalationAwareOnIssue, options)
-                                                .collect { emit(it) }
-                                        }
-                                    }
-                                    hasAdb() -> {
-                                        log(TAG, VERBOSE) { "copy(AUTO->NORMAL->ADB): To $destination" }
-                                        adbOps { client ->
-                                            client.copy(sources, destination, escalationAwareOnIssue, options)
-                                                .collect { emit(it) }
-                                        }
-                                    }
-                                }
-                            } else {
-                                throw e
-                            }
+                    val transferOptions = TransferStrategy.Options(
+                        preserveAttributes = options.preserveAttributes,
+                        followSymlinks = options.followSymlinks,
+                        overwrite = options.overwrite,
+                    )
+
+                    sources.copyGeneric(
+                        destination = destination,
+                        sourceOps = sourceOps,
+                        destOps = destOps,
+                        options = transferOptions,
+                        strategy = LocalPathCopyStrategy(fileSystemOps),
+                        onIssue = onIssue,
+                    ).collect { state ->
+                        emit(state)
+                        if (state is CopyAction.State.Completed) {
+                            log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
                         }
                     }
-                    hasRoot() -> {
-                        log(TAG, VERBOSE) { "copy(AUTO->ROOT): To $destination" }
-                        rootOps { client ->
-                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
-                        }
-                    }
-                    hasAdb() -> {
-                        log(TAG, VERBOSE) { "copy(AUTO->ADB): To $destination" }
-                        adbOps { client ->
-                            client.copy(sources, destination, onIssue, options).collect { emit(it) }
-                        }
-                    }
-                    else -> throw PathPermissionDeniedException(destination, "copy", Reason.NO_MECHANISM)
+                } finally {
+                    registry.close()
                 }
             }
         }
@@ -1302,96 +1214,45 @@ class LocalGateway @Inject constructor(
             }
 
             Mode.AUTO -> {
-                // Use isolated process for removable storage to survive sudden disconnection
-                val useIsolatedProcess = isOnRemovableStorage(destination) ||
-                    sources.any { isOnRemovableStorage(it) }
-                if (useIsolatedProcess) {
-                    try {
-                        log(TAG, VERBOSE) { "move(AUTO:ISOLATED): Removable storage detected" }
-                        isolatedOps { client ->
-                            client.move(sources, destination, onIssue, options).collect { emit(it) }
-                        }
-                        return@flow
-                    } catch (e: ServiceBindException) {
-                        log(TAG, WARN) { "move: IsolatedService unavailable for removable storage, falling back to DIRECT" }
-                        sources.move(
-                            fileSystemOps,
-                            destination,
-                            options,
-                            onIssue = onIssue,
-                        ).collect { state ->
-                            emit(state)
-                            if (state is MoveAction.State.Completed<*, *, *, *>) {
-                                log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
-                            }
-                        }
-                        log(TAG, VERBOSE) { "move(AUTO:DIRECT) [ISOLATED fallback]" }
-                        return@flow
-                    }
-                }
+                log(TAG, VERBOSE) { "move(AUTO:routed): To $destination" }
+                val registry = ModeSessionRegistry(modeSessionFactory)
+                try {
+                    val router = StaticLocalRouteRouter(
+                        policy = routingPolicy,
+                        caps = CapabilitySnapshot(
+                            rootProvider = { hasRoot() },
+                            adbProvider = { hasAdb() },
+                        ),
+                        sessions = registry,
+                    )
+                    val sourceOps = RoutedLocalFileSystemOps(router, AccessIntent.Delete)
+                    val destOps = RoutedLocalFileSystemOps(router, AccessIntent.Write)
 
-                val shouldTry = accessChecker.shouldTryNormalAccess(destination, forWriting = true)
-                when {
-                    shouldTry || (!hasAdb() && !hasRoot()) -> {
-                        var hasEscalated = false
-                        val escalationAwareOnIssue = createEscalationAwareOnIssue(
-                            operationName = "move()",
-                            originalOnIssue = onIssue,
-                            hasEscalatedRef = { hasEscalated },
-                            markEscalated = { hasEscalated = true }
-                        )
+                    sources.forEach { sourceOps.ensurePlanned(it, AccessIntent.Delete) }
+                    destOps.ensurePlanned(destination, AccessIntent.Write)
 
-                        try {
-                            log(TAG, VERBOSE) { "move(AUTO->NORMAL, $shouldTry): To $destination" }
-                            sources.move(
-                                fileSystemOps,
-                                destination,
-                                options,
-                                onIssue = escalationAwareOnIssue,
-                            ).collect { state ->
-                                emit(state)
-                                if (state is MoveAction.State.Completed<*, *, *, *>) {
-                                    log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
-                                }
-                            }
-                        } catch (e: Exception) {
-                            log(TAG, VERBOSE) { "move(AUTO->NORMAL): Error: ${e.message}" }
-                            if (PermissionErrorClassifier.isPermissionError(e) && hasEscalated && (hasRoot() || hasAdb())) {
-                                log(TAG, INFO) { "move(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
-                                when {
-                                    hasRoot() -> {
-                                        log(TAG, VERBOSE) { "move(AUTO->NORMAL->ROOT): To $destination" }
-                                        rootOps { client ->
-                                            client.move(sources, destination, escalationAwareOnIssue, options)
-                                                .collect { emit(it) }
-                                        }
-                                    }
-                                    hasAdb() -> {
-                                        log(TAG, VERBOSE) { "move(AUTO->NORMAL->ADB): To $destination" }
-                                        adbOps { client ->
-                                            client.move(sources, destination, escalationAwareOnIssue, options)
-                                                .collect { emit(it) }
-                                        }
-                                    }
-                                }
-                            } else {
-                                throw e
-                            }
+                    val transferOptions = TransferStrategy.Options(
+                        preserveAttributes = options.preserveAttributes,
+                        followSymlinks = false,
+                        overwrite = options.overwrite,
+                        attemptAtomicMove = false,
+                    )
+
+                    sources.moveGeneric(
+                        destination = destination,
+                        sourceOps = sourceOps,
+                        destOps = destOps,
+                        strategy = LocalPathMoveStrategy(fileSystemOps),
+                        options = transferOptions,
+                        onIssue = onIssue,
+                    ).collect { state ->
+                        emit(state)
+                        if (state is MoveAction.State.Completed<*, *, *, *>) {
+                            log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
                         }
                     }
-                    hasRoot() -> {
-                        log(TAG, VERBOSE) { "move(AUTO->ROOT): To $destination" }
-                        rootOps { client ->
-                            client.move(sources, destination, onIssue, options).collect { emit(it) }
-                        }
-                    }
-                    hasAdb() -> {
-                        log(TAG, VERBOSE) { "move(AUTO->ADB): To $destination" }
-                        adbOps { client ->
-                            client.move(sources, destination, onIssue, options).collect { emit(it) }
-                        }
-                    }
-                    else -> throw PathPermissionDeniedException(destination, "move", Reason.NO_MECHANISM)
+                } finally {
+                    registry.close()
                 }
             }
         }
