@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
@@ -84,6 +85,7 @@ private fun ItemContent(
     when (item) {
         is ExplorerItem.Lookup -> {
             val isHighlighted = item.id in state.highlightedItemIds
+            val decorations = decorationsFor(item, state)
             when (viewStyle) {
                 is ExplorerViewStyle.List -> LookupItemRow(
                     item = item,
@@ -94,6 +96,7 @@ private fun ItemContent(
                     showSelection = showSelection,
                     isEnabled = isEnabled,
                     isHighlighted = isHighlighted,
+                    decorations = decorations,
                 )
                 is ExplorerViewStyle.Grid -> LookupItemGrid(
                     item = item,
@@ -104,6 +107,7 @@ private fun ItemContent(
                     showSelection = showSelection,
                     isEnabled = isEnabled,
                     isHighlighted = isHighlighted,
+                    decorations = decorations,
                 )
             }
         }
@@ -134,6 +138,7 @@ private fun ItemContent(
             // Storage items have custom showSelection logic - based on selectableItems membership
             val storageShowSelection = state.selectionState.selectedItems.isNotEmpty() &&
                 item in state.selectionState.selectableItems
+            val decorations = decorationsFor(item, state)
             when (viewStyle) {
                 is ExplorerViewStyle.List -> StorageRow(
                     item = item,
@@ -143,6 +148,7 @@ private fun ItemContent(
                     onLongClick = { onToggleSelection(item) },
                     showSelection = storageShowSelection,
                     isEnabled = isEnabled,
+                    decorations = decorations,
                 )
                 is ExplorerViewStyle.Grid -> StorageGrid(
                     item = item,
@@ -152,6 +158,7 @@ private fun ItemContent(
                     onLongClick = { onToggleSelection(item) },
                     showSelection = storageShowSelection,
                     isEnabled = isEnabled,
+                    decorations = decorations,
                 )
             }
         }
@@ -199,3 +206,23 @@ private fun ItemContent(
         }
     }
 }
+
+/**
+ * Derives the [ItemDecorations] to overlay on [item]'s leading icon from the current
+ * workspace [state]. Single point of derivation — adding a future decoration is one
+ * `copy(...)` here plus a render branch in [LeadingIconSlot] plus a field in
+ * [ItemDecorations]. Returns the no-op default for items that aren't decoratable.
+ */
+private fun decorationsFor(
+    item: ExplorerItem,
+    state: ExplorerWorkspaceViewModel.State,
+): ItemDecorations = when (item) {
+    is ExplorerItem.Lookup -> ItemDecorations(
+        isFavorite = state.favoritePaths.any { it.matches(item.lookup.lookedUp) },
+    )
+    is ExplorerItem.Storage -> ItemDecorations(
+        isFavorite = state.favoritePaths.any { it.matches(item.target.path) },
+    )
+    else -> ItemDecorations()
+}
+

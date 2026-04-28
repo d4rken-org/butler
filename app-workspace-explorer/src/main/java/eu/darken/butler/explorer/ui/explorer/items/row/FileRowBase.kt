@@ -32,6 +32,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.isProblematicInvisible
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
+import eu.darken.butler.explorer.ui.explorer.items.LeadingIconSlot
 
 private fun String.withProblematicCharsUnderlined(color: Color): AnnotatedString {
     if (this.trim { it.isProblematicInvisible() } == this) return AnnotatedString(this)
@@ -79,6 +81,7 @@ internal fun FileRowBase(
     showSelection: Boolean,
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
+    decorations: ItemDecorations = ItemDecorations(),
     leadingContent: @Composable () -> Unit,
     primaryText: String,
     secondaryText: String? = null,
@@ -120,17 +123,24 @@ internal fun FileRowBase(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Leading content area - shows either checkbox or icon
-        Box(
-            modifier = Modifier.size(32.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (showSelection) {
+        // Leading content area - shows either checkbox or decorated icon. Decorations
+        // (favorite, etc.) only apply to the icon branch — selection mode swaps in a
+        // checkbox and intentionally hides decorations.
+        if (showSelection) {
+            Box(
+                modifier = Modifier.size(32.dp),
+                contentAlignment = Alignment.Center,
+            ) {
                 Checkbox(
                     checked = isSelected,
                     onCheckedChange = { onToggleSelection() }
                 )
-            } else {
+            }
+        } else {
+            LeadingIconSlot(
+                modifier = Modifier.size(32.dp),
+                decorations = decorations,
+            ) {
                 leadingContent()
             }
         }

@@ -3,10 +3,13 @@ package eu.darken.butler.explorer.ui.explorer.actions
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
+import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.ui.explorer.util.ExplorerSelectionState
 import javax.inject.Inject
 
-class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
+class DeviceActionProvider @Inject constructor(
+    private val favoritesRepo: ExplorerFavoritesRepo,
+) : ExplorerActionProvider {
 
     override fun getActions(
         location: ExplorerLocation,
@@ -36,6 +39,8 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
             if (selectedSAFItems.isNotEmpty()) {
                 actions.add(ExplorerActionBarItem.Device.RemoveLocation())
             }
+
+            addFavoritesSelectionAction(actions, selectionState)
         } else {
             actions.add(ExplorerActionBarItem.Device.AddLocation())
         }
@@ -51,5 +56,21 @@ class DeviceActionProvider @Inject constructor() : ExplorerActionProvider {
         actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(toggledViewStyle))
 
         return actions
+    }
+
+    private fun addFavoritesSelectionAction(
+        actions: MutableList<ExplorerActionBarItem>,
+        selectionState: ExplorerSelectionState,
+    ) {
+        val storages = selectionState.selectedItems.filterIsInstance<ExplorerItem.Storage>()
+        if (storages.isEmpty()) return
+        val paths = storages.map { it.target.path }
+        val allFavorited = paths.all { favoritesRepo.isFavorite(it) }
+        if (allFavorited) {
+            actions.add(ExplorerActionBarItem.Common.RemoveFromFavorites(paths))
+        } else {
+            val toAdd = paths.filterNot { favoritesRepo.isFavorite(it) }
+            actions.add(ExplorerActionBarItem.Common.AddToFavorites(items = toAdd))
+        }
     }
 }

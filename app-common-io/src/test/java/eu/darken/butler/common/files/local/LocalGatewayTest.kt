@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.errors.PathPermissionDeniedException
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.service.IsolatedServiceClient
 import eu.darken.butler.common.root.RootManager
@@ -209,13 +210,14 @@ class LocalGatewayTest : BaseTest() {
         // Mock normal mode failure
         coEvery { mockFileSystemOps.createFile(path) } throws IOException("Permission denied")
 
-        // Should throw the IOException even though root might be available
+        // Should throw a typed permission error wrapping the original IOException
         var exceptionThrown = false
         try {
             gateway.createFile(path, mode = LocalGateway.Mode.DIRECT)
-        } catch (e: IOException) {
+        } catch (e: PathPermissionDeniedException) {
             exceptionThrown = true
-            e.message shouldBe "Permission denied"
+            e.reason shouldBe PathPermissionDeniedException.Reason.ACCESS_DENIED
+            (e.cause as? IOException)?.message shouldBe "Permission denied"
         }
 
         exceptionThrown shouldBe true
@@ -259,7 +261,7 @@ class LocalGatewayTest : BaseTest() {
     // ========================================================================
 
     @Test
-    fun `AUTO mode with no escalation options throws original exception`() = runTest2 {
+    fun `AUTO mode with no escalation options surfaces typed permission error`() = runTest2 {
         val path = LocalPath.build("/sdcard/test.txt")
 
         // Mock all methods unavailable/failing
@@ -267,18 +269,63 @@ class LocalGatewayTest : BaseTest() {
         every { mockRootManager.useRoot } returns flowOf(false)
         every { mockAdbManager.useAdb } returns flowOf(false)
 
-        // Should throw the original IOException
+        // The original IOException is wrapped in PathPermissionDeniedException with the cause preserved
         var exceptionThrown = false
         try {
             gateway.createFile(path, mode = LocalGateway.Mode.AUTO)
-        } catch (e: IOException) {
+        } catch (e: PathPermissionDeniedException) {
             exceptionThrown = true
-            e.message shouldBe "Permission denied"
+            e.reason shouldBe PathPermissionDeniedException.Reason.ACCESS_DENIED
+            (e.cause as? IOException)?.message shouldBe "Permission denied"
         }
 
         exceptionThrown shouldBe true
         // Verify normal was tried
         coVerify(exactly = 1) { mockFileSystemOps.createFile(path) }
+    }
+
+    @Test
+    fun `AUTO mode with restricted path and no escalation throws NO_MECHANISM`() = runTest2 {
+        val path = LocalPath.build("/data/data/com.example/file.txt")
+
+        every { mockAccessibilityChecker.shouldTryNormalAccess(path, forWriting = true) } returns false
+        every { mockRootManager.useRoot } returns flowOf(false)
+        every { mockAdbManager.useAdb } returns flowOf(false)
+
+        var exceptionThrown = false
+        try {
+            gateway.createFile(path, mode = LocalGateway.Mode.AUTO)
+        } catch (e: PathPermissionDeniedException) {
+            exceptionThrown = true
+            e.reason shouldBe PathPermissionDeniedException.Reason.NO_MECHANISM
+            e.operation shouldBe "createFile"
+        }
+
+        exceptionThrown shouldBe true
+        // Direct was NOT attempted
+        coVerify(exactly = 0) { mockFileSystemOps.createFile(any()) }
+    }
+
+    @Test
+    fun `AUTO mode wraps EROFS from root in READONLY_FILESYSTEM exception`() = runTest2 {
+        val path = LocalPath.build("/system/test.txt")
+
+        every { mockAccessibilityChecker.shouldTryNormalAccess(path, forWriting = true) } returns false
+        every { mockRootManager.useRoot } returns flowOf(true)
+        // The root client surface (via runModuleAction) eventually throws — simulate by having the
+        // resource get fail with the EROFS chain that LocalFileSystemOps would produce.
+        val rootClient = mockRootManager.serviceClient
+        coEvery { rootClient.get() } throws java.io.IOException("Read-only file system")
+
+        var exceptionThrown = false
+        try {
+            gateway.createFile(path, mode = LocalGateway.Mode.AUTO)
+        } catch (e: PathPermissionDeniedException) {
+            exceptionThrown = true
+            e.reason shouldBe PathPermissionDeniedException.Reason.READONLY_FILESYSTEM
+        }
+
+        exceptionThrown shouldBe true
     }
 
     // ========================================================================

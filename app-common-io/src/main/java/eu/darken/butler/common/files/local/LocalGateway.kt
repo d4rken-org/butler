@@ -1,6 +1,5 @@
 package eu.darken.butler.common.files.local
 
-import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.canUseAdbNow
@@ -10,7 +9,6 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
@@ -19,8 +17,10 @@ import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.files.errors.PathException
+import eu.darken.butler.common.files.errors.PathPermissionDeniedException
+import eu.darken.butler.common.files.errors.PathPermissionDeniedException.Reason
 import eu.darken.butler.common.files.errors.ServiceConnectionLostException
+import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
 import eu.darken.butler.common.files.io.callbacks
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
@@ -42,6 +42,7 @@ import eu.darken.butler.common.sharedresource.keepResourcesAlive
 import eu.darken.butler.common.storage.StorageManager2
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onCompletion
@@ -110,6 +111,31 @@ class LocalGateway @Inject constructor(
         block: suspend CoroutineScope.() -> T
     ): T = withContext(dispatcherProvider.IO) { block() }
 
+    private fun mapPermissionError(
+        path: LocalPath,
+        operation: String,
+        error: Throwable,
+    ): Throwable {
+        if (error is PathPermissionDeniedException) return error
+        val reason = PermissionErrorClassifier.classify(error) ?: return error
+        return PathPermissionDeniedException(
+            path = path,
+            operation = operation,
+            reason = reason,
+            cause = error,
+        )
+    }
+
+    private suspend fun <T> mappingPermissions(
+        path: LocalPath,
+        operation: String,
+        block: suspend () -> T,
+    ): T = try {
+        block()
+    } catch (e: Exception) {
+        throw mapPermissionError(path, operation, e)
+    }
+
     /**
      * Executes a file operation with automatic mode selection and escalation.
      *
@@ -131,63 +157,65 @@ class LocalGateway @Inject constructor(
         directOp: suspend () -> T,
         clientOp: suspend (FileOpsClient) -> T
     ): T = runIO {
-        when (mode) {
-            Mode.DIRECT -> {
-                log(TAG, VERBOSE) { "$operation(DIRECT) -> $path" }
-                directOp()
-            }
-            Mode.ISOLATED -> {
-                log(TAG, VERBOSE) { "$operation(ISOLATED) -> $path" }
-                isolatedOps { clientOp(it) }
-            }
-            Mode.ROOT -> {
-                log(TAG, VERBOSE) { "$operation(ROOT) -> $path" }
-                rootOps { clientOp(it) }
-            }
-            Mode.ADB -> {
-                log(TAG, VERBOSE) { "$operation(ADB) -> $path" }
-                adbOps { clientOp(it) }
-            }
-            Mode.AUTO -> {
-                // For removable storage, prefer ISOLATED mode to protect against sudden disconnect
-                if (isOnRemovableStorage(path)) {
-                    try {
-                        log(TAG, VERBOSE) { "$operation(AUTO:ISOLATED) -> $path [removable storage]" }
-                        return@runIO isolatedOps { clientOp(it) }
-                    } catch (e: ServiceBindException) {
-                        // ISOLATED failed - fall back to DIRECT (same privilege level, no crash isolation)
-                        log(TAG, WARN) { "$operation: IsolatedService unavailable for removable storage, falling back to DIRECT" }
-                        return@runIO directOp().also {
-                            log(TAG, VERBOSE) { "$operation(AUTO:DIRECT) -> $path [ISOLATED fallback]" }
-                        }
-                    }
+        mappingPermissions(path, operation) {
+            when (mode) {
+                Mode.DIRECT -> {
+                    log(TAG, VERBOSE) { "$operation(DIRECT) -> $path" }
+                    directOp()
                 }
-
-                // Standard handling for internal storage
-                suspend fun escalation(): T = when {
-                    hasRoot() -> {
-                        log(TAG, VERBOSE) { "$operation(AUTO:ROOT) -> $path" }
-                        rootOps { clientOp(it) }
-                    }
-                    hasAdb() -> {
-                        log(TAG, VERBOSE) { "$operation(AUTO:ADB) -> $path" }
-                        adbOps { clientOp(it) }
-                    }
-                    else -> throw ElevatedAccessUnavailableException("No matching mode available for $operation")
+                Mode.ISOLATED -> {
+                    log(TAG, VERBOSE) { "$operation(ISOLATED) -> $path" }
+                    isolatedOps { clientOp(it) }
                 }
-                if (accessChecker.shouldTryNormalAccess(path, forWriting)) {
-                    try {
-                        directOp().also { log(TAG, VERBOSE) { "$operation(AUTO:DIRECT) -> $path" } }
-                    } catch (e: IOException) {
-                        log(TAG, VERBOSE) { "$operation(AUTO) failed: ${e.message}" }
+                Mode.ROOT -> {
+                    log(TAG, VERBOSE) { "$operation(ROOT) -> $path" }
+                    rootOps { clientOp(it) }
+                }
+                Mode.ADB -> {
+                    log(TAG, VERBOSE) { "$operation(ADB) -> $path" }
+                    adbOps { clientOp(it) }
+                }
+                Mode.AUTO -> {
+                    // For removable storage, prefer ISOLATED mode to protect against sudden disconnect
+                    if (isOnRemovableStorage(path)) {
                         try {
-                            escalation()
-                        } catch (_: ElevatedAccessUnavailableException) {
-                            throw e
+                            log(TAG, VERBOSE) { "$operation(AUTO:ISOLATED) -> $path [removable storage]" }
+                            return@mappingPermissions isolatedOps { clientOp(it) }
+                        } catch (e: ServiceBindException) {
+                            // ISOLATED failed - fall back to DIRECT (same privilege level, no crash isolation)
+                            log(TAG, WARN) { "$operation: IsolatedService unavailable for removable storage, falling back to DIRECT" }
+                            return@mappingPermissions directOp().also {
+                                log(TAG, VERBOSE) { "$operation(AUTO:DIRECT) -> $path [ISOLATED fallback]" }
+                            }
                         }
                     }
-                } else {
-                    escalation()
+
+                    // Standard handling for internal storage
+                    suspend fun escalation(): T = when {
+                        hasRoot() -> {
+                            log(TAG, VERBOSE) { "$operation(AUTO:ROOT) -> $path" }
+                            rootOps { clientOp(it) }
+                        }
+                        hasAdb() -> {
+                            log(TAG, VERBOSE) { "$operation(AUTO:ADB) -> $path" }
+                            adbOps { clientOp(it) }
+                        }
+                        else -> throw PathPermissionDeniedException(path, operation, Reason.NO_MECHANISM)
+                    }
+                    if (accessChecker.shouldTryNormalAccess(path, forWriting)) {
+                        try {
+                            directOp().also { log(TAG, VERBOSE) { "$operation(AUTO:DIRECT) -> $path" } }
+                        } catch (e: IOException) {
+                            log(TAG, VERBOSE) { "$operation(AUTO) failed: ${e.message}" }
+                            try {
+                                escalation()
+                            } catch (escErr: PathPermissionDeniedException) {
+                                if (escErr.reason == Reason.NO_MECHANISM) throw e else throw escErr
+                            }
+                        }
+                    } else {
+                        escalation()
+                    }
                 }
             }
         }
@@ -342,7 +370,8 @@ class LocalGateway @Inject constructor(
         mode: Mode = Mode.AUTO,
     ): Flow<LocalPathLookup> = runIO {
         // Special handling: walk() has different direct vs client implementations
-        when (mode) {
+        mappingPermissions(path, "walk") {
+            when (mode) {
             Mode.DIRECT -> {
                 log(TAG, VERBOSE) { "walk(DIRECT) -> $path" }
                 DirectLocalWalker(
@@ -426,11 +455,11 @@ class LocalGateway @Inject constructor(
                         log(TAG, VERBOSE) { "walk(AUTO:ISOLATED) -> $path [removable storage]" }
                         if (walkOptions.isDirect) {
                             val resource = isolatedServiceClient.get()
-                            return@runIO isolatedServiceClient.runModuleAction(FileOpsClient::class.java) {
+                            return@mappingPermissions isolatedServiceClient.runModuleAction(FileOpsClient::class.java) {
                                 it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
                             }
                         } else {
-                            return@runIO IndirectLocalWalker(
+                            return@mappingPermissions IndirectLocalWalker(
                                 gateway = this@LocalGateway,
                                 mode = Mode.ISOLATED,
                                 start = path,
@@ -441,7 +470,7 @@ class LocalGateway @Inject constructor(
                         }
                     } catch (e: ServiceBindException) {
                         log(TAG, WARN) { "walk: IsolatedService unavailable for removable storage, falling back to DIRECT" }
-                        return@runIO DirectLocalWalker(
+                        return@mappingPermissions DirectLocalWalker(
                             fileSystemOps = fileSystemOps,
                             lookupOptions = lookupOptions,
                             start = path,
@@ -490,7 +519,7 @@ class LocalGateway @Inject constructor(
                                 )
                             }
                         }
-                        else -> throw ElevatedAccessUnavailableException("No matching mode available for walk")
+                        else -> throw PathPermissionDeniedException(path, "walk", Reason.NO_MECHANISM)
                     }
                 }
                 if (accessChecker.shouldTryNormalAccess(path, forWriting = false)) {
@@ -506,15 +535,16 @@ class LocalGateway @Inject constructor(
                         log(TAG, VERBOSE) { "walk(AUTO) failed: ${e.message}" }
                         try {
                             escalation()
-                        } catch (_: ElevatedAccessUnavailableException) {
-                            throw e
+                        } catch (escErr: PathPermissionDeniedException) {
+                            if (escErr.reason == Reason.NO_MECHANISM) throw e else throw escErr
                         }
                     }
                 } else {
                     escalation()
                 }
             }
-        }
+            }
+        }.catch { throw mapPermissionError(path, "walk", it) }
     }
 
     override suspend fun du(
@@ -586,7 +616,8 @@ class LocalGateway @Inject constructor(
         mode: Mode = Mode.AUTO
     ): FileHandle = runIO {
         // Special handling: file() needs resource management that varies by mode
-        when (mode) {
+        mappingPermissions(path, "file") {
+            when (mode) {
             Mode.DIRECT -> {
                 log(TAG, VERBOSE) { "file(DIRECT) -> $path" }
                 fileSystemOps.file(path, readWrite)
@@ -626,7 +657,7 @@ class LocalGateway @Inject constructor(
                 if (isOnRemovableStorage(path)) {
                     try {
                         log(TAG, VERBOSE) { "file(AUTO:ISOLATED) -> $path [removable storage]" }
-                        return@runIO isolatedOps { client ->
+                        return@mappingPermissions isolatedOps { client ->
                             val resource = isolatedServiceClient.get()
                             client.file(path, readWrite).callbacks {
                                 resource.close()
@@ -635,7 +666,7 @@ class LocalGateway @Inject constructor(
                         }
                     } catch (e: ServiceBindException) {
                         log(TAG, WARN) { "file: IsolatedService unavailable for removable storage, falling back to DIRECT" }
-                        return@runIO fileSystemOps.file(path, readWrite).also {
+                        return@mappingPermissions fileSystemOps.file(path, readWrite).also {
                             log(TAG, VERBOSE) { "file(AUTO:DIRECT) -> $path [ISOLATED fallback]" }
                         }
                     }
@@ -663,7 +694,7 @@ class LocalGateway @Inject constructor(
                             }
                         }
                     }
-                    else -> throw ElevatedAccessUnavailableException("No matching mode available for file")
+                    else -> throw PathPermissionDeniedException(path, "file", Reason.NO_MECHANISM)
                 }
                 if (accessChecker.shouldTryNormalAccess(path, readWrite)) {
                     try {
@@ -672,13 +703,14 @@ class LocalGateway @Inject constructor(
                         log(TAG, VERBOSE) { "file(AUTO) failed: ${e.message}" }
                         try {
                             escalation()
-                        } catch (_: ElevatedAccessUnavailableException) {
-                            throw e
+                        } catch (escErr: PathPermissionDeniedException) {
+                            if (escErr.reason == Reason.NO_MECHANISM) throw e else throw escErr
                         }
                     }
                 } else {
                     escalation()
                 }
+            }
             }
         }
     }
@@ -957,7 +989,7 @@ class LocalGateway @Inject constructor(
                             }
                         } catch (e: Exception) {
                             log(TAG, VERBOSE) { "delete(AUTO->NORMAL): Error: ${e.message}" }
-                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                            if (PermissionErrorClassifier.isPermissionError(e) && hasEscalated && (hasRoot() || hasAdb())) {
                                 log(TAG, INFO) { "delete(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
                                 when {
                                     hasRoot() -> {
@@ -996,11 +1028,13 @@ class LocalGateway @Inject constructor(
                             client.delete(targets = targets, options = options).collect { emit(it) }
                         }
                     }
-                    else -> throw ElevatedAccessUnavailableException("No matching mode available.")
+                    else -> throw PathPermissionDeniedException(targets.first(), "delete", Reason.NO_MECHANISM)
                 }
             }
         }
-    }.flowOn(dispatcherProvider.IO)
+    }
+        .catch { throw mapPermissionError(targets.first(), "delete", it) }
+        .flowOn(dispatcherProvider.IO)
 
     override suspend fun copy(
         sources: Set<LocalPath>,
@@ -1141,7 +1175,7 @@ class LocalGateway @Inject constructor(
                             }
                         } catch (e: Exception) {
                             log(TAG, VERBOSE) { "copy(AUTO->NORMAL): Error: ${e.message}" }
-                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                            if (PermissionErrorClassifier.isPermissionError(e) && hasEscalated && (hasRoot() || hasAdb())) {
                                 log(TAG, INFO) { "copy(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
                                 when {
                                     hasRoot() -> {
@@ -1176,11 +1210,13 @@ class LocalGateway @Inject constructor(
                             client.copy(sources, destination, onIssue, options).collect { emit(it) }
                         }
                     }
-                    else -> throw ElevatedAccessUnavailableException("No matching mode available.")
+                    else -> throw PathPermissionDeniedException(destination, "copy", Reason.NO_MECHANISM)
                 }
             }
         }
-    }.flowOn(dispatcherProvider.IO)
+    }
+        .catch { throw mapPermissionError(destination, "copy", it) }
+        .flowOn(dispatcherProvider.IO)
 
     override suspend fun move(
         sources: Set<LocalPath>,
@@ -1320,7 +1356,7 @@ class LocalGateway @Inject constructor(
                             }
                         } catch (e: Exception) {
                             log(TAG, VERBOSE) { "move(AUTO->NORMAL): Error: ${e.message}" }
-                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                            if (PermissionErrorClassifier.isPermissionError(e) && hasEscalated && (hasRoot() || hasAdb())) {
                                 log(TAG, INFO) { "move(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
                                 when {
                                     hasRoot() -> {
@@ -1355,11 +1391,13 @@ class LocalGateway @Inject constructor(
                             client.move(sources, destination, onIssue, options).collect { emit(it) }
                         }
                     }
-                    else -> throw ElevatedAccessUnavailableException("No matching mode available.")
+                    else -> throw PathPermissionDeniedException(destination, "move", Reason.NO_MECHANISM)
                 }
             }
         }
-    }.flowOn(dispatcherProvider.IO)
+    }
+        .catch { throw mapPermissionError(destination, "move", it) }
+        .flowOn(dispatcherProvider.IO)
 
     override suspend fun create(
         target: LocalPath,
@@ -1502,7 +1540,7 @@ class LocalGateway @Inject constructor(
                             }
                         } catch (e: Exception) {
                             log(TAG, VERBOSE) { "create(AUTO->NORMAL): Error: ${e.message}" }
-                            if (e.isPermissionError() && hasEscalated && (hasRoot() || hasAdb())) {
+                            if (PermissionErrorClassifier.isPermissionError(e) && hasEscalated && (hasRoot() || hasAdb())) {
                                 log(TAG, INFO) { "create(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
                                 when {
                                     hasRoot() -> {
@@ -1571,24 +1609,17 @@ class LocalGateway @Inject constructor(
                             }
                         }
                     }
-                    else -> throw ElevatedAccessUnavailableException("No matching mode available.")
+                    else -> throw PathPermissionDeniedException(target, "create", Reason.NO_MECHANISM)
                 }
             }
         }
-    }.flowOn(dispatcherProvider.IO)
-
-    private fun Throwable.isPermissionError(): Boolean =
-        causeChain.any {
-            it is PathException ||
-                it is SecurityException ||
-                it is java.nio.file.AccessDeniedException ||
-                it is AccessDeniedException ||
-                (it is IOException && it.message?.contains("permission", ignoreCase = true) == true)
-        }
+    }
+        .catch { throw mapPermissionError(target, "create", it) }
+        .flowOn(dispatcherProvider.IO)
 
     private fun PathActionIssue.isPermissionIssue(): Boolean = when (this) {
         is PathActionIssue.InsufficientPermission -> true
-        is PathActionIssue.UnknownError -> exception.isPermissionError()
+        is PathActionIssue.UnknownError -> PermissionErrorClassifier.isPermissionError(exception)
         else -> false
     }
 

@@ -17,11 +17,14 @@ import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.automirrored.twotone.OpenInNew
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.RemoveCircle
+import androidx.compose.material.icons.twotone.Bookmark
+import androidx.compose.material.icons.twotone.BookmarkBorder
 import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -89,6 +92,24 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             val labelRes: Int = R.string.explorer_action_rename,
         ) : Common {
             override val label = labelRes.toCaString()
+        }
+
+        data class AddToFavorites(
+            val items: List<APath<*>>,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+        ) : Common {
+            override val icon = Icons.TwoTone.Bookmark
+            override val label = R.string.explorer_action_add_to_favorites.toCaString()
+        }
+
+        data class RemoveFromFavorites(
+            val items: List<APath<*>>,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+        ) : Common {
+            override val icon = Icons.TwoTone.BookmarkBorder
+            override val label = R.string.explorer_action_remove_from_favorites.toCaString()
         }
     }
 
@@ -159,6 +180,23 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
         ) : Directory {
             override val icon = Icons.AutoMirrored.TwoTone.OpenInNew
             override val label = R.string.explorer_action_open_in_new_tabs.toCaString()
+        }
+
+        /**
+         * Action-bar toggle for the currently-viewed folder, shown when no selection is active.
+         * `isFavorite` is for icon/label display only — execution must be atomic via repo.toggle().
+         */
+        data class ToggleFavoriteCurrent(
+            val path: APath<*>,
+            val isFavorite: Boolean,
+            override val isEnabled: Boolean = true,
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.PRIMARY,
+        ) : Directory {
+            override val icon = if (isFavorite) Icons.TwoTone.Bookmark else Icons.TwoTone.BookmarkBorder
+            override val label = (
+                if (isFavorite) R.string.explorer_action_remove_from_favorites
+                else R.string.explorer_action_add_to_favorites
+            ).toCaString()
         }
     }
 

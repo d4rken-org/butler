@@ -9,6 +9,7 @@ import eu.darken.butler.common.datastore.PreferenceScreenData
 import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.serialization.createAPathListValue
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,12 +33,15 @@ class ExplorerSettings @Inject constructor(
 
     val defaultStartLocation = dataStore.createValue<DefaultStartLocation?>("explorer.navigation.start_location_default", null, json)
 
+    val favoritePaths = dataStore.createAPathListValue("explorer.favorites.paths", emptyList(), json)
+
     override val mapper = PreferenceStoreMapper(
         sortSettings,
         useRegexPatterns,
         useBackButtonForNavigation,
         defaultViewStyle,
         defaultStartLocation,
+        favoritePaths,
     )
 
     companion object {

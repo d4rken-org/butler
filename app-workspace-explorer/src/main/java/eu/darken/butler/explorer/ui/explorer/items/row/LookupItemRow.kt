@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 
 @Composable
@@ -24,6 +25,7 @@ fun LookupItemRow(
     showSelection: Boolean = false,
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
+    decorations: ItemDecorations = ItemDecorations(),
 ) {
     when (item) {
         is ExplorerItem.RegularDirectory -> DirectoryRow(
@@ -35,6 +37,7 @@ fun LookupItemRow(
             showSelection = showSelection,
             isEnabled = isEnabled,
             isHighlighted = isHighlighted,
+            decorations = decorations,
             modifier = modifier,
         )
 
@@ -47,6 +50,7 @@ fun LookupItemRow(
             showSelection = showSelection,
             isEnabled = isEnabled,
             isHighlighted = isHighlighted,
+            decorations = decorations,
             modifier = modifier,
         )
 
@@ -59,6 +63,7 @@ fun LookupItemRow(
             showSelection = showSelection,
             isEnabled = isEnabled,
             isHighlighted = isHighlighted,
+            decorations = decorations,
             modifier = modifier,
         )
     }

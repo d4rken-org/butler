@@ -12,6 +12,7 @@ import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.metadata.FileType
+import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
 import eu.darken.butler.common.progress.Progress
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
@@ -157,13 +158,21 @@ internal class GenericPathCreate<P : APath<P>, PL : APathLookup<P>>(
                 // If no issue handler, re-throw
                 if (onIssue == null) throw e
 
-                val issue = PathActionIssue.UnknownError(
-                    exception = e,
-                    errorMessage = (e.message ?: e.toString()).toCaString(),
-                    destinationPath = currentTarget,
-                    canRetry = true,
-                    canSkip = false,
-                )
+                val issue: PathActionIssue = if (PermissionErrorClassifier.isPermissionError(e)) {
+                    PathActionIssue.InsufficientPermission(
+                        destinationPath = currentTarget,
+                        canSkip = false,
+                        exception = e,
+                    )
+                } else {
+                    PathActionIssue.UnknownError(
+                        exception = e,
+                        errorMessage = (e.message ?: e.toString()).toCaString(),
+                        destinationPath = currentTarget,
+                        canRetry = true,
+                        canSkip = false,
+                    )
+                }
 
                 when (val resolution = issueResolver.resolveIssue(issue)) {
                     is PathActionIssue.UnknownError.Resolution.Retry -> {
@@ -176,6 +185,14 @@ internal class GenericPathCreate<P : APath<P>, PL : APathLookup<P>>(
                     }
 
                     is PathActionIssue.UnknownError.Resolution.Skip -> {
+                        throw IllegalStateException("Skip not supported for create (canSkip=false)")
+                    }
+
+                    is PathActionIssue.InsufficientPermission.Resolution.Cancel -> {
+                        throw CancellationException("Create operation cancelled by user")
+                    }
+
+                    is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
                         throw IllegalStateException("Skip not supported for create (canSkip=false)")
                     }
                 }

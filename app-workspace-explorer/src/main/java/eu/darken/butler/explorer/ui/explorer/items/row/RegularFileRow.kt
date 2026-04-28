@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.TintedAsyncImage
+import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.common.formatDate
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.isProblematicInvisible
@@ -28,6 +29,7 @@ internal fun RegularFileRow(
     showSelection: Boolean,
     isEnabled: Boolean = true,
     isHighlighted: Boolean = false,
+    decorations: ItemDecorations = ItemDecorations(),
 ) {
     val primaryText = item.displayName.get(LocalContext.current)
     val hasProblematicChars = primaryText.trim { it.isProblematicInvisible() } != primaryText
@@ -41,6 +43,7 @@ internal fun RegularFileRow(
         showSelection = showSelection,
         isEnabled = isEnabled,
         isHighlighted = isHighlighted,
+        decorations = decorations,
         modifier = modifier,
         leadingContent = {
             TintedAsyncImage(

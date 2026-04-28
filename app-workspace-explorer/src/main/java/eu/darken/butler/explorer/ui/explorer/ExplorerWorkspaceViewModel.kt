@@ -18,6 +18,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.TextFileDetector
@@ -42,6 +43,9 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.ExplorerWorkspace
+import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
+import eu.darken.butler.explorer.core.favorites.FavoriteItem
+import eu.darken.butler.explorer.core.favorites.applyFavoritePriority
 import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
@@ -89,13 +93,16 @@ import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch as coroutineLaunch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -105,7 +112,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.update
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import eu.darken.butler.explorer.core.favorites.PendingFavoriteRemoval
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
@@ -133,6 +144,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val itemInfoCalculator: ItemInfoCalculator,
     private val pickerHelper: ExplorerPickerHelper,
     private val errorReportTool: ErrorReportTool,
+    private val favoritesRepo: ExplorerFavoritesRepo,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
@@ -167,6 +179,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
     val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
 
+    // Undo prompt for "X" dismissal of a Home favorite. Latest-wins: a new removal
+    // supersedes any pending undo. The id field guards against stale-timer clobbering.
+    private val pendingFavoriteRemovalFlow = MutableStateFlow<PendingFavoriteRemoval?>(null)
+    private var pendingRemovalJob: Job? = null
+    private val removalIdGen = AtomicLong(0L)
+
     private val workspaceSource: Flow<ExplorerWorkspace?> =
         workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
     private val itemSorter = itemSorterFactory.create(id)
@@ -195,7 +213,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     init {
         pickerConfigFlow
-            .onEach { cachedPickerConfig = it }
+            .onEach { config ->
+                cachedPickerConfig = config
+                // When the picker becomes active, finalize any pending favorite removal.
+                // The bar is hidden in picker mode anyway; without this, returning to
+                // non-picker mode within the 5s window would resurface a stale bar.
+                if (config != null && pendingFavoriteRemovalFlow.value != null) {
+                    pendingRemovalJob?.cancel()
+                    pendingRemovalJob = null
+                    pendingFavoriteRemovalFlow.value = null
+                }
+            }
             .launchInViewModel()
 
         explorerSettings.useRegexPatterns.flow
@@ -218,6 +246,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .map { it?.currentLocation?.locationId }
             .distinctUntilChanged()
             .onEach { clearHighlights() }
+            .launchInViewModel()
+
+        // Favorite-path changes can reorder the directory listing (favorited dirs move
+        // to the top). Drop any focused-item index so focus doesn't silently land on
+        // a different item after reorder. (StateFlow self-deduplicates, so no
+        // distinctUntilChanged needed; drop(1) skips the initial value.)
+        favoritesRepo.favoritePaths
+            .drop(1)
+            .onEach { focusedItemIndexFlow.value = null }
             .launchInViewModel()
     }
 
@@ -247,6 +284,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val highlightedItemIds: Set<String> = emptySet(),
         val focusedItemIndex: Int? = null,
         val unfilteredItemCount: Int = 0,
+        val favorites: List<FavoriteItem> = emptyList(),
+        val favoritePaths: List<APath<*>> = emptyList(),
+        val showHomeFavoritesSection: Boolean = false,
+        val pendingFavoriteRemoval: PendingFavoriteRemoval? = null,
     ) {
         val progress = currentLocation?.progress
         val info = currentLocation?.info
@@ -285,11 +326,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         currentSortSettings,
         filterStateFlow,
         explorerSettings.useRegexPatterns.flow,
-    ) { items, sortSetting, filterState, useRegexPatterns ->
+        favoritesRepo.favoritePaths,
+        workspaceReadyState.map { it?.currentLocation }.distinctUntilChanged { a, b -> a?.locationId == b?.locationId },
+        pickerConfigFlow,
+    ) { items, sortSetting, filterState, useRegexPatterns, favoritePaths, location, pickerConfig ->
         items
             ?.let { applyFilters(it, filterState, useRegexPatterns) }
             ?.let { itemSorter.sortItems(it, sortSetting) }
+            ?.let { applyFavoritePriority(it, location, pickerConfig, favoritePaths) }
     }.shareIn(vmScope, SharingStarted.Lazily, replay = 1)
+
+    // applyFavoritePriority lives in eu.darken.butler.explorer.core.favorites for
+    // independent unit-testing without VM scaffolding.
 
     // Optimization: Selection state only updates when items or selection changes
     private val derivedSelectionStateFlow: Flow<ExplorerSelectionState> = combine(
@@ -328,7 +376,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     saveAsFilenameFlow,
                     highlightedItemIds,
                     focusedItemIndexFlow,
-                ) { wsStateInner, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex ->
+                    favoritesRepo.favorites,
+                    pendingFavoriteRemovalFlow,
+                ) { wsStateInner, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, pendingFavoriteRemoval ->
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
                     val canConfirmSelection = pickerHelper.canConfirmSelection(
@@ -392,6 +442,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         focusedItemIndex = focusedItemIndex?.let { idx ->
                             items?.let { if (idx < it.size) idx else it.lastIndex.takeIf { it >= 0 } }
                         },
+                        favorites = favorites,
+                        favoritePaths = favoritesRepo.favoritePaths.value,
+                        showHomeFavoritesSection = pickerConfig == null
+                            && wsStateInner.currentLocation is ExplorerLocation.Home
+                            && favorites.isNotEmpty(),
+                        pendingFavoriteRemoval = pendingFavoriteRemoval,
                     )
                 }
             }
@@ -627,6 +683,83 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         if (allowLongPress) {
             toggleItemSelection(item)
         }
+    }
+
+    fun onFavoriteClick(fav: FavoriteItem) {
+        log(tag) { "onFavoriteClick($fav)" }
+        when (val s = fav.state) {
+            is FavoriteItem.State.Resolving -> {
+                // Lookup not yet completed; ignore the tap until resolution finishes.
+            }
+            is FavoriteItem.State.Unavailable -> launch {
+                errorEvents.emit(IllegalStateException(context.getString(R.string.explorer_favorites_unavailable_toast)))
+            }
+            is FavoriteItem.State.Available -> onItemClick(s.item)
+        }
+    }
+
+    /**
+     * Remove a favorite via the Home X button, queueing an undo prompt for [UNDO_TIMEOUT].
+     *
+     * Latest-wins on rapid taps: a fresh removal supersedes any pending undo, finalising
+     * the previous removal silently. The atomic [ExplorerFavoritesRepo.removeForUndo]
+     * captures the original index inside a single DataStore transaction so position
+     * restoration via [undoFavoriteRemoval] is race-free.
+     */
+    fun onFavoriteRemove(fav: FavoriteItem) = launch {
+        log(tag) { "onFavoriteRemove($fav)" }
+        // Don't surface undo in picker mode — the favorites section isn't even visible there.
+        if (cachedPickerConfig != null) {
+            log(tag, WARN) { "onFavoriteRemove called in picker mode; ignoring" }
+            return@launch
+        }
+        // Latest-wins: previous pending removal becomes permanent.
+        pendingRemovalJob?.cancel()
+        pendingRemovalJob = null
+
+        val removed = favoritesRepo.removeForUndo(fav.path) ?: run {
+            log(tag) { "onFavoriteRemove: path not present, nothing to undo" }
+            // Previous pending removal's timeout was just cancelled — without a fresh
+            // timeout the bar would stay visible forever. Clear it explicitly.
+            pendingFavoriteRemovalFlow.value = null
+            return@launch
+        }
+
+        val displayName = when (val s = fav.state) {
+            is FavoriteItem.State.Available -> s.item.displayName
+            else -> fav.path.userReadableName
+        }
+        val id = removalIdGen.incrementAndGet()
+        pendingFavoriteRemovalFlow.value = PendingFavoriteRemoval(
+            id = id,
+            path = removed.path,
+            displayName = displayName,
+            originalIndex = removed.originalIndex,
+        )
+
+        pendingRemovalJob = vmScope.coroutineLaunch {
+            delay(UNDO_TIMEOUT)
+            // Only clear if THIS removal is still pending; a newer removal must not be wiped.
+            pendingFavoriteRemovalFlow.update { current -> if (current?.id == id) null else current }
+        }
+    }
+
+    /** Restore the last-removed favorite at its original position. */
+    fun undoFavoriteRemoval() = launch {
+        val pending = pendingFavoriteRemovalFlow.value ?: return@launch
+        log(tag) { "undoFavoriteRemoval(${pending.path.path})" }
+        try {
+            favoritesRepo.addAt(pending.path, pending.originalIndex)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to restore favorite ${pending.path.path}: ${e.asLog()}" }
+            // fall through and clear regardless — leaving the bar visible without a
+            // restored entry is worse than the user discovering the failure via no-bar.
+        }
+        // Cancel the timeout job AFTER the addAt attempt so we don't leak a stuck bar
+        // if addAt throws partway. Id-checked clear avoids clobbering a newer removal.
+        pendingRemovalJob?.cancel()
+        pendingRemovalJob = null
+        pendingFavoriteRemovalFlow.update { current -> if (current?.id == pending.id) null else current }
     }
 
     fun clearSelection() {
@@ -922,7 +1055,18 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 }
             }
             is ExplorerActionBarItem.Common.Refresh -> {
-                getWorkspace().navigate(ExplorerNavigation.Refresh)
+                performRefresh()
+            }
+            is ExplorerActionBarItem.Common.AddToFavorites -> {
+                favoritesRepo.addAll(action.items)
+                clearSelection()
+            }
+            is ExplorerActionBarItem.Common.RemoveFromFavorites -> {
+                favoritesRepo.removeAll(action.items)
+                clearSelection()
+            }
+            is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent -> {
+                favoritesRepo.toggle(action.path)
             }
             is ExplorerActionBarItem.Common.Info -> {
                 log(tag) { "showInfo(): ${selectedItemsFlow.value.size} items selected" }
@@ -1767,6 +1911,16 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun retryNavigation() = launch {
         log(tag) { "retryNavigation()" }
+        performRefresh()
+    }
+
+    /**
+     * Centralized refresh: re-resolves favorites (so unavailable ones may become available
+     * after a SAF re-grant or SD card remount) AND triggers the workspace re-navigation.
+     * Use this from every user-initiated refresh entry point.
+     */
+    private suspend fun performRefresh() {
+        favoritesRepo.refresh()
         getWorkspace().navigate(ExplorerNavigation.Refresh)
     }
 
@@ -1898,5 +2052,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(id: Workspace.Id): ExplorerWorkspaceViewModel
+    }
+
+    companion object {
+        /** Window during which a Home favorite removal can still be undone. */
+        private val UNDO_TIMEOUT = 5.seconds
     }
 }

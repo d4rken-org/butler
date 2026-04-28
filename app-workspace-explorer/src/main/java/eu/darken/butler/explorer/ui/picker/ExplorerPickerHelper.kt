@@ -196,7 +196,11 @@ class ExplorerPickerHelper @Inject constructor() {
             is ExplorerActionBarItem.Trash.DeletePermanently,
             is ExplorerActionBarItem.Trash.EmptyBin,
             is ExplorerActionBarItem.TrashNested.Restore,
-            is ExplorerActionBarItem.TrashNested.DeletePermanently -> false
+            is ExplorerActionBarItem.TrashNested.DeletePermanently,
+            // Favorites are not relevant inside a picker workspace.
+            is ExplorerActionBarItem.Common.AddToFavorites,
+            is ExplorerActionBarItem.Common.RemoveFromFavorites,
+            is ExplorerActionBarItem.Directory.ToggleFavoriteCurrent -> false
         }
     }
 }

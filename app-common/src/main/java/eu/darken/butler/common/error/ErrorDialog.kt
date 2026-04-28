@@ -14,16 +14,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import eu.darken.butler.common.R
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.navigation.NavigationController
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+internal interface ErrorDialogEntryPoint {
+    fun permissionFixResolver(): PermissionFixResolver
+}
 
 @Composable
 fun ErrorDialog(
@@ -34,9 +45,18 @@ fun ErrorDialog(
     val context = LocalContext.current
     val activity = context as? Activity
 
+    val resolver = remember(context) {
+        runCatching {
+            EntryPointAccessors
+                .fromApplication(context.applicationContext, ErrorDialogEntryPoint::class.java)
+                .permissionFixResolver()
+        }.getOrNull()
+    }
+
     val errorContext = LocalizedErrorContext(
         activity = activity,
         navController = navController,
+        permissionFixResolver = resolver,
     )
     val localizedError = throwable.localized(context, errorContext)
 

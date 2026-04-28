@@ -345,6 +345,33 @@ class GenericPathCreateTest : BaseTest() {
     }
 
     @Test
+    fun `permission failure on create produces InsufficientPermission issue, not UnknownError`() = runTest {
+        // Given - parent directory exists, create will fail with a permission-style IOException
+        mockOps.addMockDir("/parent")
+        mockOps.failCreateFileOnce { IOException("Read-only file system") }
+
+        val targetPath = LocalPath.build("/parent/file.txt")
+
+        var receivedIssue: PathActionIssue? = null
+        val issueHandler: suspend (PathActionIssue) -> PathActionIssue.Resolution = { issue ->
+            receivedIssue = issue
+            PathActionIssue.InsufficientPermission.Resolution.Cancel()
+        }
+
+        // When
+        assertThrows<CancellationException> {
+            targetPath.createGeneric(
+                fileSystemOps = mockOps,
+                type = CreateAction.CreateType.FILE,
+                onIssue = issueHandler,
+            ).last()
+        }
+
+        // Then - issue is InsufficientPermission, not UnknownError
+        receivedIssue.shouldBeInstanceOf<PathActionIssue.InsufficientPermission>()
+    }
+
+    @Test
     fun `throw exception if no issue handler provided and conflict exists`() = runTest {
         // Given - file already exists
         mockOps.addMockDir("/parent")

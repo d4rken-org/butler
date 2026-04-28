@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Build
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Error
@@ -36,16 +37,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.error.LocalizedErrorContext
+import eu.darken.butler.common.error.PermissionFixResolver
+import eu.darken.butler.common.error.localized
+import eu.darken.butler.common.navigation.LocalNavigationController
 import eu.darken.butler.workspace.R
 import java.io.IOException
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+internal interface ErrorCardEntryPoint {
+    fun permissionFixResolver(): PermissionFixResolver
+}
 
 @Composable
 fun ErrorCard(
@@ -57,6 +73,28 @@ fun ErrorCard(
     onDismiss: (() -> Unit)? = null,
 ) {
     var showTechnicalDetails by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val navController = LocalNavigationController.current
+    val resolver = remember(context) {
+        runCatching {
+            EntryPointAccessors
+                .fromApplication(context.applicationContext, ErrorCardEntryPoint::class.java)
+                .permissionFixResolver()
+        }.getOrNull()
+    }
+    val localized = remember(error, navController, resolver) {
+        error.localized(
+            c = context,
+            errorContext = LocalizedErrorContext(
+                navController = navController,
+                permissionFixResolver = resolver,
+            ),
+        )
+    }
+    val bodyText = localized.description.get(context)
+    val fixLabel = localized.fixActionLabel?.get(context)
+    val fixAction = localized.fixAction
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -111,9 +149,9 @@ fun ErrorCard(
                 }
             }
 
-            // Error message
+            // Error message — uses HasLocalizedError when available for user-friendly text
             Text(
-                text = error.message ?: error.javaClass.simpleName,
+                text = bodyText,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -185,11 +223,7 @@ fun ErrorCard(
             // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = if (onRetry != null) {
-                    Arrangement.spacedBy(8.dp)
-                } else {
-                    Arrangement.spacedBy(8.dp, Alignment.End)
-                },
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 onRetry?.let { retryAction ->
                     TextButton(
@@ -210,12 +244,31 @@ fun ErrorCard(
                     }
                 }
 
+                if (fixAction != null && fixLabel != null) {
+                    TextButton(
+                        onClick = fixAction,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Build,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Text(fixLabel)
+                        }
+                    }
+                }
+
                 OutlinedButton(
                     onClick = onShareError,
-                    modifier = if (onRetry != null) {
+                    modifier = if (onRetry != null || fixAction != null) {
                         Modifier.weight(1f)
                     } else {
-                        Modifier
+                        Modifier.weight(1f, fill = false)
                     },
                 ) {
                     Row(
