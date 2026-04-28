@@ -9,12 +9,14 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.cancellation.CancellationException
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -1136,6 +1138,41 @@ class GenericPathMoveTest : BaseTest() {
     }
 
     // ============ SCAN ERROR HANDLING ============
+
+    @Test
+    fun `missing top-level move source throws even with issue handler`() = runTest {
+        mockOps.addMockDir("/dest")
+
+        shouldThrow<java.nio.file.NoSuchFileException> {
+            setOf(LocalPath.build("/missing.txt")).moveGeneric(
+                options = TransferStrategy.Options(attemptAtomicMove = false),
+                destination = LocalPath.build("/dest"),
+                sourceOps = mockOps,
+                destOps = mockOps,
+                strategy = strategy,
+                onIssue = { PathActionIssue.UnknownError.Resolution.Skip() }
+            ).last()
+        }
+    }
+
+    @Test
+    fun `move scan cancellation propagates`() = runTest {
+        mockOps.addMockDir("/source/parent")
+        mockOps.addMockFile("/source/parent/child.txt", "content".toByteArray())
+        mockOps.addMockDir("/dest")
+        mockOps.setFailListFiles(1) { CancellationException("cancel move scan") }
+
+        shouldThrow<CancellationException> {
+            setOf(LocalPath.build("/source/parent")).moveGeneric(
+                options = TransferStrategy.Options(attemptAtomicMove = false),
+                destination = LocalPath.build("/dest"),
+                sourceOps = mockOps,
+                destOps = mockOps,
+                strategy = strategy,
+                onIssue = { PathActionIssue.UnknownError.Resolution.Skip() }
+            ).last()
+        }
+    }
 
     @Test
     fun `directory scan error during move then skip should appear only in skipped`() = runTest {

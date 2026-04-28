@@ -5,6 +5,8 @@ import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
+import eu.darken.butler.common.files.local.routing.LocalPathRoutingPolicy
+import eu.darken.butler.common.files.local.routing.ModeSessionFactory
 import eu.darken.butler.common.files.local.service.IsolatedServiceClient
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.storage.StorageEnvironment
@@ -52,6 +54,8 @@ class LocalGatewayTest : BaseTest() {
     private lateinit var mockAccessibilityChecker: LocalPathAccessChecker
     private lateinit var mockIsolatedServiceClient: IsolatedServiceClient
     private lateinit var mockStorageManager: StorageManager2
+    private lateinit var mockRoutingPolicy: LocalPathRoutingPolicy
+    private lateinit var mockModeSessionFactory: ModeSessionFactory
     private lateinit var dispatcherProvider: TestDispatcherProvider
     private lateinit var testScope: TestScope
     private lateinit var gateway: LocalGateway
@@ -65,6 +69,8 @@ class LocalGatewayTest : BaseTest() {
         mockAccessibilityChecker = mockk(relaxed = true)
         mockIsolatedServiceClient = mockk(relaxed = true)
         mockStorageManager = mockk(relaxed = true)
+        mockRoutingPolicy = mockk(relaxed = true)
+        mockModeSessionFactory = mockk(relaxed = true)
         dispatcherProvider = TestDispatcherProvider()
         testScope = TestScope()
 
@@ -85,6 +91,8 @@ class LocalGatewayTest : BaseTest() {
             accessChecker = mockAccessibilityChecker,
             isolatedServiceClient = mockIsolatedServiceClient,
             storageManager = mockStorageManager,
+            routingPolicy = mockRoutingPolicy,
+            modeSessionFactory = mockModeSessionFactory,
         )
     }
 

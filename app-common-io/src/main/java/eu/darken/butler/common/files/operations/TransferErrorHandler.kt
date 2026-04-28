@@ -7,6 +7,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.PathException
+import eu.darken.butler.common.files.local.routing.RouteUnavailableException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import java.io.IOException
@@ -55,7 +56,8 @@ class TransferErrorHandler {
      */
     private fun Exception.isPermissionError(): Boolean =
         causeChain.any {
-            it is PathException ||
+            it is RouteUnavailableException ||
+                it is PathException ||
                 it is SecurityException ||
                 it is java.nio.file.AccessDeniedException ||
                 it is AccessDeniedException ||
@@ -256,21 +258,35 @@ class TransferErrorHandler {
         // No issue handler? Throw exception
         if (onIssue == null) throw error
 
-        // For scan errors, always use UnknownError (even for permission errors)
-        // because InsufficientPermission doesn't support Retry, but scan errors
-        // can potentially be retried if permissions are fixed externally
-        val issue = PathActionIssue.UnknownError(
-            destinationPath = lookup.lookedUp,
-            exception = error,
-            canRetry = true,
-            canSkip = true
-        )
+        val routeUnavailable = error.causeChain.filterIsInstance<RouteUnavailableException>().firstOrNull()
+        val issue = if (routeUnavailable != null) {
+            PathActionIssue.InsufficientPermission(
+                source = lookup,
+                destinationPath = routeUnavailable.path,
+                exception = routeUnavailable,
+                canSkip = true,
+            )
+        } else {
+            // For other scan errors, use UnknownError because they can potentially
+            // be retried if permissions or transient storage state changes externally.
+            PathActionIssue.UnknownError(
+                destinationPath = lookup.lookedUp,
+                exception = error,
+                canRetry = true,
+                canSkip = true
+            )
+        }
 
         // Resolve issue with user callback (may throw CancellationException)
         val resolution = issueResolver.resolveIssue(issue)
 
         // Handle resolution (only UnknownError for scan errors)
         when (resolution) {
+            is PathActionIssue.InsufficientPermission.Resolution.Skip -> {
+                log(tag, INFO) { "User chose to skip scan: ${lookup.lookedUp}" }
+                onSkip(lookup)
+            }
+
             is PathActionIssue.UnknownError.Resolution.Skip -> {
                 log(tag, INFO) { "User chose to skip scan: ${lookup.lookedUp}" }
                 onSkip(lookup)
@@ -282,6 +298,10 @@ class TransferErrorHandler {
             }
 
             is PathActionIssue.UnknownError.Resolution.Cancel -> {
+                // Already thrown by resolveIssue
+            }
+
+            is PathActionIssue.InsufficientPermission.Resolution.Cancel -> {
                 // Already thrown by resolveIssue
             }
         }

@@ -46,6 +46,7 @@ fun Collection<LocalPath>.move(
     val transferOptions = eu.darken.butler.common.files.operations.TransferStrategy.Options(
         preserveAttributes = options.preserveAttributes,
         followSymlinks = false, // MoveAction doesn't have followSymlinks option
+        overwrite = options.overwrite,
         attemptAtomicMove = options.attemptAtomicMove
     )
 

@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import java.io.ByteArrayInputStream
 import java.io.ObjectInputStream
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -25,6 +26,7 @@ interface IpcClientModule {
     }
 
     fun Throwable.refineException(): Throwable = when (this) {
+        is CancellationException -> this
         is DeadObjectException -> ServiceConnectionLostException(this)
         else -> unwrapPropagation()
     }

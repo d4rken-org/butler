@@ -23,10 +23,19 @@ class LocalPathAccessChecker @Inject constructor(
         get() = buildSet {
             storageEnvironment.publicStorages.forEach { add(it) }
             add(LocalPath.build("/sdcard"))
-        }
+            add(LocalPath.build("/storage/self/primary"))
+            add(LocalPath.build("/storage/emulated/0"))
+        }.flatMap { aliasesOf(it) }.toSet()
 
     private val publicBlocked: Set<LocalPath>
-        get() = if (!hasApiLevel(30)) emptySet() else storageEnvironment.publicDataDirs.toSet()
+        get() = if (!hasApiLevel(30)) {
+            emptySet()
+        } else {
+            buildSet {
+                addAll(storageEnvironment.publicDataDirs)
+                addAll(storageEnvironment.publicObbDirs)
+            }.flatMap { aliasesOf(it) }.toSet()
+        }
 
     private val systemBlocked by lazy {
         buildSet {
@@ -58,7 +67,7 @@ class LocalPathAccessChecker @Inject constructor(
                     .map { it.path.replace("/data/user/0", "/data/data") }
                     .map { LocalPath.build(it) }
             )
-        }
+        }.flatMap { aliasesOf(it) }.toSet()
 
     /**
      * Returns true if normal Java File API access should be attempted for this path.
@@ -94,5 +103,32 @@ class LocalPathAccessChecker @Inject constructor(
         // Conservative fallback: try normal access first for unknown paths
         // If it fails, LocalGateway will escalate to root/ADB
         return true
+    }
+
+    private fun aliasesOf(path: LocalPath): Set<LocalPath> = buildSet {
+        add(path)
+
+        val primaryAliases = listOf(
+            LocalPath.build("/sdcard"),
+            LocalPath.build("/storage/self/primary"),
+            LocalPath.build("/storage/emulated/0"),
+        )
+
+        primaryAliases.forEach { from ->
+            if (path.matches(from) || path.isDescendantOf(from)) {
+                val suffix = if (path.matches(from)) {
+                    emptyList()
+                } else {
+                    path.path
+                        .removePrefix(from.path)
+                        .trim('/')
+                        .split('/')
+                        .filter { it.isNotEmpty() }
+                }
+                primaryAliases.forEach { to ->
+                    add(if (suffix.isEmpty()) to else to.child(*suffix.toTypedArray()))
+                }
+            }
+        }
     }
 }

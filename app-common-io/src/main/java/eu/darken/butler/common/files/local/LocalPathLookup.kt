@@ -25,4 +25,14 @@ data class LocalPathLookup(
     override val ownership: Ownership? = null,
     override val permissions: Permissions? = null,
     @Contextual override val createdAt: Instant? = null,
-) : APathLookup<LocalPath>, Parcelable
+) : APathLookup<LocalPath>, Parcelable {
+    companion object {
+        fun unknown(path: LocalPath, error: String? = null): LocalPathLookup = LocalPathLookup(
+            lookedUp = path,
+            fileType = FileType.UNKNOWN,
+            size = null,
+            modifiedAt = null,
+            error = error,
+        )
+    }
+}

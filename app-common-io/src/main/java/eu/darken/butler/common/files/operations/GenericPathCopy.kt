@@ -7,15 +7,30 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.UnknownFileTypeException
+import eu.darken.butler.common.files.local.routing.AccessIntent
+import eu.darken.butler.common.files.local.routing.BatchEligibility
+import eu.darken.butler.common.files.local.routing.BatchEligibilityRequest
+import eu.darken.butler.common.files.local.routing.BatchOperation
+import eu.darken.butler.common.files.local.routing.OwnershipFixup
+import eu.darken.butler.common.files.local.routing.OwnershipNormalizationException
+import eu.darken.butler.common.files.local.routing.OwnershipNormalizer
+import eu.darken.butler.common.files.local.routing.Route
+import eu.darken.butler.common.files.local.routing.RoutedLocalFileSystemOps
+import eu.darken.butler.common.files.local.routing.ensurePlannedForIntent
+import eu.darken.butler.common.files.local.routing.installLogicalAliasForIntent
+import eu.darken.butler.common.files.local.routing.lookupForIntent
+import eu.darken.butler.common.files.local.routing.unknownLookupOrNull
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.io.R
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -95,6 +110,7 @@ internal class GenericPathCopy<
         progressTracker = progressTracker,
         tag = TAG
     )
+    private val ownershipNormalizer = OwnershipNormalizer()
 
     init {
         log(TAG, INFO) {
@@ -108,6 +124,9 @@ internal class GenericPathCopy<
 
     // Scan tracking
     private var scanItemsRemaining = 0
+    private val completedScans = mutableSetOf<SP>()
+    // Track followed symlink aliases so recursive scans can detect alias cycles.
+    private val resolvedSymlinkAliases = mutableMapOf<String, String>()
 
     // Destination state
     private var destinationExistedAsDirectory = false
@@ -157,6 +176,17 @@ internal class GenericPathCopy<
         ) : WorkItem()
 
         /**
+         * Copy a proven-safe local subtree inside one IPC backend.
+         */
+        data class BatchCopySubtree<SP : APath<SP>, SPL : APathLookup<SP>, DP : APath<DP>>(
+            val sourceLookup: SPL,
+            val destination: DP,
+            val topLevelSource: SP,
+            val sourceRoute: Route,
+            val ownershipFixup: OwnershipFixup,
+        ) : WorkItem()
+
+        /**
          * Resolve a path conflict (file/directory already exists at destination).
          *
          * @param sourceLookup Source metadata
@@ -177,7 +207,7 @@ internal class GenericPathCopy<
         log(TAG, DEBUG) { "execute(): Copying ${sources.size} sources to $destination" }
 
         // Check if destination exists and is a directory (for path calculation logic)
-        val destLookup = destOps.lookup(destination, LookupOptions(fallbackToUnknown = true))
+        val destLookup = destOps.lookupForIntent(destination, AccessIntent.Write, LookupOptions(fallbackToUnknown = true))
         destinationExistedAsDirectory = destLookup.fileType == FileType.DIRECTORY
 
         // Initialize work queue with scan items for all sources
@@ -211,6 +241,11 @@ internal class GenericPathCopy<
                     processCreateDirectory(item as WorkItem.CreateDirectory<SP, SPL, DP>)
                 }
 
+                is WorkItem.BatchCopySubtree<*, *, *> -> {
+                    @Suppress("UNCHECKED_CAST")
+                    processBatchCopySubtree(item as WorkItem.BatchCopySubtree<SP, SPL, DP>) { send(it) }
+                }
+
                 is WorkItem.ResolveConflict<*, *, *, *> -> {
                     @Suppress("UNCHECKED_CAST")
                     processResolveConflict(item as WorkItem.ResolveConflict<SP, SPL, DP, DPL>)
@@ -238,17 +273,26 @@ internal class GenericPathCopy<
         emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit
     ): Int {
         log(TAG, VERBOSE) { "Scanning source: ${item.source}" }
+        if (item.source in completedScans) {
+            log(TAG, VERBOSE) { "Skipping already scanned source: ${item.source}" }
+            return 0
+        }
 
         // Use MAX lookup options when preserving attributes to avoid redundant lookup in copyAttributes
         val lookupOptions = if (options.preserveAttributes) LookupOptions.MAX else LookupOptions.BASE
 
         val lookup = try {
-            sourceOps.lookup(item.source, lookupOptions)
+            sourceOps.lookupForIntent(item.source, AccessIntent.Read, lookupOptions)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            if (item.source == item.topLevelSource) {
-                throw e // Top-level source must exist
+            if (item.source == item.topLevelSource) throw e
+            val unknownLookup = sourceOps.unknownLookupOrNull(item.source, e)
+            if (unknownLookup == null) {
+                log(TAG, WARN) { "Child source disappeared during scan: ${item.source}" }
+                return 0
             }
-            log(TAG, WARN) { "Child source disappeared during scan: ${item.source}" }
+            handleScanError(e, unknownLookup, item)
             return 0
         }
 
@@ -261,6 +305,14 @@ internal class GenericPathCopy<
 
         // Calculate destination path relative to top-level source
         val destPath = calculateDestinationPath(item.source, item.topLevelSource)
+        try {
+            destOps.ensurePlannedForIntent(destPath, AccessIntent.Write)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            handleScanError(e, effectiveLookup, item)
+            return 0
+        }
 
         when (effectiveLookup.fileType) {
             FileType.FILE, FileType.SYMBOLIC_LINK -> {
@@ -274,6 +326,7 @@ internal class GenericPathCopy<
                     reportScanProgress(effectiveLookup, emit)
                 }
 
+                completedScans.add(item.source)
                 return 0
             }
 
@@ -284,6 +337,12 @@ internal class GenericPathCopy<
                 // Report scan progress with throttling
                 if (progressTracker.shouldReportProgress()) {
                     reportScanProgress(effectiveLookup, emit)
+                }
+
+                createBatchCopySubtreeOrNull(effectiveLookup, item.source, destPath, item.topLevelSource)?.let {
+                    workQueue.addLast(it)
+                    completedScans.add(item.source)
+                    return 0
                 }
 
                 // List and queue children
@@ -321,6 +380,8 @@ internal class GenericPathCopy<
                             childrenFound++
                         }
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     handleScanError(e, effectiveLookup, item)
                     return 0
@@ -330,10 +391,51 @@ internal class GenericPathCopy<
                 // This prevents duplicate directory creation when scan errors are retried
                 workQueue.addLast(WorkItem.CreateDirectory(effectiveLookup, destPath, item.topLevelSource))
 
+                completedScans.add(item.source)
                 return childrenFound
             }
 
             FileType.UNKNOWN -> throw UnknownFileTypeException(effectiveLookup)
+        }
+    }
+
+    private suspend fun createBatchCopySubtreeOrNull(
+        sourceLookup: SPL,
+        source: SP,
+        destination: DP,
+        topLevelSource: SP,
+    ): WorkItem.BatchCopySubtree<SP, SPL, DP>? {
+        val sourcePath = sourceLookup.lookedUp as? LocalPath ?: return null
+        if (sourceLookup.lookedUp != source) return null
+        val destinationPath = destination as? LocalPath ?: return null
+        val routedSourceOps = sourceOps as? RoutedLocalFileSystemOps ?: return null
+        val routedDestOps = destOps as? RoutedLocalFileSystemOps ?: return null
+
+        val sourceRoute = routedSourceOps.routeFor(sourcePath, AccessIntent.Read)
+        val destinationRoute = routedDestOps.routeFor(destinationPath, AccessIntent.Write)
+        val eligibility = routedSourceOps.batchEligibility(
+            BatchEligibilityRequest(
+                operation = BatchOperation.COPY,
+                sourceRoot = sourcePath,
+                sourceIntent = AccessIntent.Read,
+                destinationRoot = destinationPath,
+                destinationIntent = AccessIntent.Write,
+                sourceRoute = sourceRoute,
+                destinationRoute = destinationRoute,
+                options = copyActionOptions(),
+            )
+        )
+
+        return when (eligibility) {
+            is BatchEligibility.Eligible -> WorkItem.BatchCopySubtree(
+                sourceLookup = sourceLookup,
+                destination = destination,
+                topLevelSource = topLevelSource,
+                sourceRoute = sourceRoute,
+                ownershipFixup = eligibility.ownershipFixup,
+            )
+
+            is BatchEligibility.Ineligible -> null
         }
     }
 
@@ -399,6 +501,8 @@ internal class GenericPathCopy<
             log(TAG, VERBOSE) { "File collision detected: $adjustedDest" }
             val destLookup = destOps.lookup(adjustedDest, LookupOptions.BASE)
             handleFileConflict(item, adjustedDest, destLookup)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             handleCopyError(e, item)
         }
@@ -450,8 +554,102 @@ internal class GenericPathCopy<
                     progressTracker.completeItem()
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             handleDirectoryError(e, item)
+        }
+    }
+
+    private suspend fun processBatchCopySubtree(
+        item: WorkItem.BatchCopySubtree<SP, SPL, DP>,
+        emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
+        if (isDescendantOfSkippedDir(item.sourceLookup.lookedUp)) {
+            log(TAG, VERBOSE) { "Skipping batch subtree - parent directory was skipped" }
+            skipped.add(item.sourceLookup)
+            progressTracker.completeItem()
+            return
+        }
+
+        val sourceRoot = item.sourceLookup.lookedUp as? LocalPath
+            ?: error("BatchCopySubtree must have LocalPath source")
+        val destinationRoot = adjustDestinationForRenames(item.destination, item.sourceLookup.lookedUp) as? LocalPath
+            ?: error("BatchCopySubtree must have LocalPath destination")
+        val batch = item.sourceRoute.batch ?: run {
+            handleBatchCopyError(IllegalStateException("Batch API unavailable for ${item.sourceRoute.mode}"), item)
+            return
+        }
+
+        try {
+            ensureBatchDestinationParent(destinationRoot)
+            ensureBatchDestinationAbsent(destinationRoot)
+            batch.copySubtreeExact(
+                sourceRoot = sourceRoot,
+                destinationRoot = destinationRoot,
+                options = copyActionOptions(),
+                onIssue = onIssue,
+            ).collect { state ->
+                when (state) {
+                    is CopyAction.State.Active -> emitBatchProgress(state, emit)
+                    is CopyAction.State.Completed -> {
+                        @Suppress("UNCHECKED_CAST")
+                        copied.addAll(state.copied as Set<Pair<SPL, APathLookup<DP>>>)
+                        @Suppress("UNCHECKED_CAST")
+                        skipped.addAll(state.skipped as Set<SPL>)
+                        totalBytesTransferred += state.copiedBytes
+                        try {
+                            normalizeOwnershipIfNeeded(item.ownershipFixup, destinationRoot, item.sourceRoute)
+                            progressTracker.completeItem()
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: OwnershipNormalizationException) {
+                            handleBatchOwnershipNormalizationError(e, item, destinationRoot)
+                        }
+                    }
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: OwnershipNormalizationException) {
+            throw e
+        } catch (e: CopyBatchDestinationAlreadyExistsException) {
+            handleBatchCopyError(e, item, canRetry = false)
+        } catch (e: Exception) {
+            handleBatchCopyError(e, item)
+        }
+    }
+
+    private suspend fun ensureBatchDestinationParent(destinationRoot: LocalPath) {
+        val parent = destinationRoot.parent ?: return
+        @Suppress("UNCHECKED_CAST")
+        (destOps as FileSystemOps<LocalPath, *>).createDir(parent, createParents = true)
+    }
+
+    private suspend fun ensureBatchDestinationAbsent(destinationRoot: LocalPath) {
+        @Suppress("UNCHECKED_CAST")
+        val localDestOps = destOps as FileSystemOps<LocalPath, *>
+        val destinationExists = localDestOps.lookup(
+            destinationRoot,
+            LookupOptions.BASE.copy(fallbackToUnknown = true)
+        ).fileType != FileType.UNKNOWN
+        if (destinationExists) throw CopyBatchDestinationAlreadyExistsException(destinationRoot)
+    }
+
+    private suspend fun normalizeOwnershipIfNeeded(
+        fixup: OwnershipFixup,
+        destinationRoot: LocalPath,
+        route: Route,
+    ) {
+        when (fixup) {
+            OwnershipFixup.None -> Unit
+            is OwnershipFixup.InheritNearestExistingDestinationOwner -> {
+                ownershipNormalizer.normalizeRecursively(
+                    root = destinationRoot,
+                    owner = fixup.owner,
+                    ops = route.ops,
+                )
+            }
         }
     }
 
@@ -660,6 +858,51 @@ internal class GenericPathCopy<
         )
     }
 
+    private suspend fun handleBatchOwnershipNormalizationError(
+        error: OwnershipNormalizationException,
+        originalItem: WorkItem.BatchCopySubtree<SP, SPL, DP>,
+        destinationRoot: LocalPath,
+    ) {
+        errorHandler.handleError(
+            error = error,
+            sourceLookup = originalItem.sourceLookup,
+            destinationPath = destinationRoot,
+            issueResolver = issueResolver,
+            progressTracker = progressTracker,
+            onSkip = {},
+            onRetry = null,
+            canRetry = false,
+            onIssue = onIssue,
+            tag = TAG
+        )
+    }
+
+    private suspend fun handleBatchCopyError(
+        error: Exception,
+        originalItem: WorkItem.BatchCopySubtree<SP, SPL, DP>,
+        canRetry: Boolean = true,
+    ) {
+        errorHandler.handleError(
+            error = error,
+            sourceLookup = originalItem.sourceLookup,
+            destinationPath = originalItem.destination,
+            issueResolver = issueResolver,
+            progressTracker = progressTracker,
+            onSkip = {
+                skipped.add(it)
+                skippedSourceDirs.add(it.lookedUp)
+            },
+            onRetry = if (canRetry) {
+                { workQueue.addFirst(originalItem) }
+            } else {
+                null
+            },
+            canRetry = canRetry,
+            onIssue = onIssue,
+            tag = TAG
+        )
+    }
+
     private suspend fun reportScanProgress(lookup: SPL, emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit) {
         val snapshot = progressTracker.createSnapshot()
 
@@ -716,6 +959,32 @@ internal class GenericPathCopy<
         )
     }
 
+    private suspend fun emitBatchProgress(
+        state: CopyAction.State.Active<LocalPath, *, LocalPath, *>,
+        emit: suspend (CopyAction.State<SP, SPL, DP, DPL>) -> Unit
+    ) {
+        @Suppress("UNCHECKED_CAST")
+        emit(
+            CopyAction.State.Active(
+                currentSource = state.currentSource as SPL,
+                currentDestination = state.currentDestination as DP?,
+                primaryProgress = state.primaryProgress,
+                secondaryProgress = state.secondaryProgress,
+                copiedBytes = totalBytesTransferred + state.copiedBytes,
+                totalBytes = progressTracker.totalBytes + state.totalBytes,
+                currentFileSize = state.currentFileSize,
+                currentFileBytes = state.currentFileBytes,
+                currentFileStartTime = state.currentFileStartTime,
+            )
+        )
+    }
+
+    private fun copyActionOptions(): CopyAction.Options = CopyAction.Options(
+        overwrite = options.overwrite,
+        preserveAttributes = options.preserveAttributes,
+        followSymlinks = options.followSymlinks,
+    )
+
     /**
      * Resolve a symlink to get the lookup of its target.
      * Used during scanning to determine if we should treat a symlink as a file or directory.
@@ -738,14 +1007,23 @@ internal class GenericPathCopy<
                 parent.child(linkTarget.path)
             }
 
+            if (createsSymlinkCycle(symlinkPath, resolvedPath)) {
+                log(TAG, WARN) { "Detected symlink cycle while scanning: $symlinkPath -> $resolvedPath" }
+                return symlinkLookup
+            }
+            resolvedSymlinkAliases[normalizePath(symlinkPath.path)] = normalizePath(resolvedPath.path)
+            sourceOps.installLogicalAliasForIntent(symlinkPath, resolvedPath, AccessIntent.Read)
+
             // Lookup the target to get its actual file type
-            val targetLookup = sourceOps.lookup(resolvedPath, LookupOptions.BASE)
+            val targetLookup = sourceOps.lookupForIntent(resolvedPath, AccessIntent.Read, LookupOptions.BASE)
 
             log(TAG, VERBOSE) {
                 "Resolved symlink for scanning: $symlinkPath -> $resolvedPath (${targetLookup.fileType})"
             }
 
             return targetLookup
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to resolve symlink $symlinkPath: $e - treating as file" }
             // Fall back to treating it as a file (will be copied as symlink)
@@ -753,10 +1031,56 @@ internal class GenericPathCopy<
         }
     }
 
+    private fun createsSymlinkCycle(aliasPath: SP, resolvedPath: SP): Boolean {
+        val target = normalizePath(resolvedPath.path)
+        var current: SP? = aliasPath
+        var isAliasPath = true
+        while (current != null) {
+            val resolvedCurrent = resolveThroughKnownAliases(current.path)
+            if (isDescendantPath(resolvedCurrent, target)) return true
+            if (isAliasPath && isDescendantPath(target, resolvedCurrent)) return true
+            isAliasPath = false
+            current = current.parent
+        }
+        return false
+    }
+
+    private fun resolveThroughKnownAliases(path: String): String {
+        var current = normalizePath(path)
+        val seen = mutableSetOf<String>()
+        while (seen.add(current)) {
+            val alias = resolvedSymlinkAliases.entries
+                .filter { isDescendantPath(current, it.key) }
+                .maxByOrNull { it.key.length }
+                ?: return current
+            val suffix = current
+                .removePrefix(alias.key)
+                .trim('/')
+            current = if (suffix.isEmpty()) alias.value else "${alias.value}/$suffix"
+        }
+        return current
+    }
+
+    private fun isDescendantPath(path: String, ancestor: String): Boolean {
+        val normalizedPath = normalizePath(path)
+        val normalizedAncestor = normalizePath(ancestor)
+        return normalizedPath == normalizedAncestor ||
+            normalizedAncestor == "/" ||
+            normalizedPath.startsWith("$normalizedAncestor/")
+    }
+
+    private fun normalizePath(path: String): String {
+        val trimmed = path.trim('/')
+        return if (trimmed.isEmpty()) "/" else "/$trimmed"
+    }
+
     companion object {
         private val TAG = logTag("PathOperation", "GenericCopy")
     }
 }
+
+private class CopyBatchDestinationAlreadyExistsException(path: LocalPath) :
+    IllegalStateException("Batch destination already exists; refusing exact subtree retry: $path")
 
 /**
  * Extension function for easy use of GenericPathCopy.

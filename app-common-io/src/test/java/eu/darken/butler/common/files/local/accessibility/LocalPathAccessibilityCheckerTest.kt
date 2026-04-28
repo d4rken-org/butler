@@ -42,6 +42,10 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
             LocalPath.build("/storage/emulated/0/Android/data"),
             LocalPath.build("/storage/ABCD-12324/Android/data"),
         )
+        every { mockStorageEnvironment.publicObbDirs } returns listOf(
+            LocalPath.build("/storage/emulated/0/Android/obb"),
+            LocalPath.build("/storage/ABCD-12324/Android/obb"),
+        )
         every { mockStorageEnvironment.ourPrivateDirs } returns listOf(
             LocalPath.build("/data/user/0/eu.darken.butler"),
         )
@@ -263,6 +267,10 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
             LocalPath.build("/sdcard/Android/data"),
             LocalPath.build("/storage/emulated/0/Android/data")
         )
+        every { mockStorageEnvironment.publicObbDirs } returns listOf(
+            LocalPath.build("/sdcard/Android/obb"),
+            LocalPath.build("/storage/emulated/0/Android/obb")
+        )
 
         // Recreate checker to pick up new mocks
         checker = LocalPathAccessChecker(mockStorageEnvironment)
@@ -284,6 +292,7 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
     fun `Android data directory should try normal access on API 29 for both read and write`() {
         // On API 29, scoped storage not enforced
         every { mockStorageEnvironment.publicDataDirs } returns emptyList()
+        every { mockStorageEnvironment.publicObbDirs } returns emptyList()
 
         checker = LocalPathAccessChecker(mockStorageEnvironment)
 
@@ -580,6 +589,9 @@ class LocalPathAccessibilityCheckerTest : BaseTest() {
         // Setup scoped storage restrictions
         every { mockStorageEnvironment.publicDataDirs } returns listOf(
             LocalPath.build("/storage/emulated/0/Android/data")
+        )
+        every { mockStorageEnvironment.publicObbDirs } returns listOf(
+            LocalPath.build("/storage/emulated/0/Android/obb")
         )
 
         checker = LocalPathAccessChecker(mockStorageEnvironment)

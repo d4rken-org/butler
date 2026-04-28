@@ -26,6 +26,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import okio.FileHandle
 import okio.buffer
+import okio.Sink
+import java.io.FilterInputStream
+import java.io.FilterOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -357,20 +360,44 @@ class FileOpsClient @AssistedInject constructor(
 
     override suspend fun file(path: LocalPath, readWrite: Boolean): FileHandle = try {
         fileOpsConnection.file(path, readWrite).fileHandle(readWrite)
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         throw e.refineException()
     }
 
-    override suspend fun openInputStream(path: LocalPath): InputStream = try {
-        file(path, readWrite = false).source().buffer().inputStream()
-    } catch (e: Exception) {
-        throw e.refineException()
+    override suspend fun openInputStream(path: LocalPath): InputStream {
+        val handle = file(path, readWrite = false)
+        try {
+            return object : FilterInputStream(handle.source().buffer().inputStream()) {
+                override fun close() = closePreservingSuppressed(
+                    { super.close() },
+                    { handle.close() },
+                )
+            }
+        } catch (e: CancellationException) {
+            closeHandleAfterFailure(handle, e)
+        } catch (e: Exception) {
+            closeHandleAfterFailure(handle, e)
+        }
     }
 
-    override suspend fun openOutputStream(path: LocalPath, append: Boolean): OutputStream = try {
-        file(path, readWrite = true).sink().buffer().outputStream()
-    } catch (e: Exception) {
-        throw e.refineException()
+    override suspend fun openOutputStream(path: LocalPath, append: Boolean): OutputStream {
+        val handle = file(path, readWrite = true)
+        try {
+            if (!append) handle.resize(0)
+            val sink: Sink = if (append) handle.appendingSink() else handle.sink()
+            return object : FilterOutputStream(sink.buffer().outputStream()) {
+                override fun close() = closePreservingSuppressed(
+                    { super.close() },
+                    { handle.close() },
+                )
+            }
+        } catch (e: CancellationException) {
+            closeHandleAfterFailure(handle, e)
+        } catch (e: Exception) {
+            closeHandleAfterFailure(handle, e)
+        }
     }
 
     override suspend fun getFileSystem(path: LocalPath): FileSystem = try {
@@ -382,6 +409,30 @@ class FileOpsClient @AssistedInject constructor(
 
     companion object {
         val TAG = logTag("FileOps", "Service", "Client")
+    }
+
+    private fun closeHandleAfterFailure(handle: FileHandle, error: Exception): Nothing {
+        var closeError: Throwable? = null
+        try {
+            handle.close()
+        } catch (t: Throwable) {
+            closeError = t
+        }
+        val toThrow = if (error is CancellationException) error else error.refineException()
+        closeError?.let { toThrow.addSuppressed(it) }
+        throw toThrow
+    }
+
+    private fun closePreservingSuppressed(vararg closeables: () -> Unit) {
+        var thrown: Throwable? = null
+        closeables.forEach { close ->
+            try {
+                close()
+            } catch (t: Throwable) {
+                thrown?.addSuppressed(t) ?: run { thrown = t }
+            }
+        }
+        thrown?.let { throw it }
     }
 
     @AssistedFactory

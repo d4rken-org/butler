@@ -3,6 +3,11 @@ package eu.darken.butler.common.files.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.local.routing.AccessIntent
+import eu.darken.butler.common.files.local.routing.IntentAwareFileSystemOps
+import eu.darken.butler.common.files.local.routing.lookupForIntent
+import eu.darken.butler.common.files.metadata.FileType
 
 /**
  * Utility for generating unique filenames in generic path operations.
@@ -63,7 +68,7 @@ class GenericPathNamingUtils<P : APath<P>, PL : APathLookup<P>>(
         // Check if original name is already unique (skip if we know it exists)
         if (!knownToExist) {
             val testPath = parentPath.child(originalName)
-            if (!ops.exists(testPath)) return originalName
+            if (!existsForWrite(testPath)) return originalName
         }
 
         // Split into base name and extension
@@ -105,7 +110,7 @@ class GenericPathNamingUtils<P : APath<P>, PL : APathLookup<P>>(
             val candidateName = "$actualBase ($counter)$extension"
 
             val candidatePath = parentPath.child(candidateName)
-            if (!ops.exists(candidatePath)) {
+            if (!existsForWrite(candidatePath)) {
                 return candidateName
             }
             counter++
@@ -114,4 +119,12 @@ class GenericPathNamingUtils<P : APath<P>, PL : APathLookup<P>>(
         // Fallback if we somehow hit the limit (extremely unlikely)
         return "$actualBase (${System.currentTimeMillis()})$extension"
     }
+
+    private suspend fun existsForWrite(path: P): Boolean =
+        if (ops is IntentAwareFileSystemOps<*, *>) {
+            ops.lookupForIntent(path, AccessIntent.Write, LookupOptions.BASE.copy(fallbackToUnknown = true)).fileType !=
+                FileType.UNKNOWN
+        } else {
+            ops.exists(path)
+        }
 }
