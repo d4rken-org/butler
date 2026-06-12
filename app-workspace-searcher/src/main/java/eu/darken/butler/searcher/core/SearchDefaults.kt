@@ -1,5 +1,7 @@
 package eu.darken.butler.searcher.core
 
+import eu.darken.butler.workspace.contracts.searcher.ContentQuery
+import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
 import kotlinx.serialization.Serializable
 
 @Serializable

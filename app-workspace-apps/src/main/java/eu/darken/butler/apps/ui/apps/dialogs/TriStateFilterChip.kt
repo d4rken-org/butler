@@ -3,7 +3,6 @@ package eu.darken.butler.apps.ui.apps.dialogs
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
-import eu.darken.butler.apps.core.AppTag
 import eu.darken.butler.apps.core.engine.FilterState
 import eu.darken.butler.apps.core.engine.next
 import eu.darken.butler.apps.ui.apps.items.colors
@@ -15,6 +14,7 @@ import eu.darken.butler.common.compose.ButlerChipSize
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.contracts.apps.AppTag
 
 @Composable
 fun TriStateFilterChip(

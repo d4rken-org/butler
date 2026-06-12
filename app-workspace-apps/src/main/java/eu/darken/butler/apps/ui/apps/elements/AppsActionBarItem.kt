@@ -21,11 +21,11 @@ import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.apps.R
-import eu.darken.butler.apps.core.AppsViewStyle
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
 import eu.darken.butler.workspace.ui.actions.WorkspaceActionBarItem
 
 sealed interface AppsActionBarItem : WorkspaceActionBarItem {

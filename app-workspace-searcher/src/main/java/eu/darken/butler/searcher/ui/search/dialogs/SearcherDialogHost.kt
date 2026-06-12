@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.FilterCondition
+import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.ui.clipboard.details.ClipboardInfoBottomSheet
 import eu.darken.butler.workspace.ui.dialogs.DeleteConfirmationDialog

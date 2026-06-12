@@ -1,7 +1,7 @@
 package eu.darken.butler.searcher.core.engine
 
-import eu.darken.butler.searcher.core.ContentQuery
-import eu.darken.butler.searcher.core.FilenameQuery
+import eu.darken.butler.workspace.contracts.searcher.ContentQuery
+import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
 
 val FilenameQuery.patternOptions: PatternOptions
     get() = PatternOptions(

@@ -25,7 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
-import eu.darken.butler.apps.core.SortSettings
+import eu.darken.butler.workspace.contracts.apps.SortSettings
 
 @Composable
 fun SortOptionsDialog(

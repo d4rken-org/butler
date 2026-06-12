@@ -25,9 +25,6 @@ import eu.darken.butler.common.developer.DeveloperSettings
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.combine
-import eu.darken.butler.explorer.core.picker.PickerConfig
-import eu.darken.butler.workspace.core.handleResult
-import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.common.flow.throttleLatest
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.root.RootManager
@@ -35,11 +32,14 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.developer.core.DeveloperLogRepo
 import eu.darken.butler.developer.core.DeveloperWorkspace
 import eu.darken.butler.developer.core.operations.DeveloperCommand
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.handleResult
+import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
@@ -51,14 +51,6 @@ import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryPat
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -66,6 +58,14 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 
 @HiltViewModel(assistedFactory = DeveloperWorkspaceViewModel.Factory::class)
 class DeveloperWorkspaceViewModel @AssistedInject constructor(

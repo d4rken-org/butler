@@ -10,9 +10,10 @@ import eu.darken.butler.common.datastore.PreferenceStoreMapper
 import eu.darken.butler.common.datastore.createValue
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.logTag
-import kotlinx.serialization.json.Json
+import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.serialization.json.Json
 
 @Singleton
 class SearcherSettings @Inject constructor(

@@ -1,7 +1,7 @@
 package eu.darken.butler.apps.core.engine
 
-import eu.darken.butler.apps.core.AppTag
-import eu.darken.butler.apps.core.TagFilterConfig
+import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 
 /**
  * Extension to check if an [AppItem] matches this [TagFilterConfig].

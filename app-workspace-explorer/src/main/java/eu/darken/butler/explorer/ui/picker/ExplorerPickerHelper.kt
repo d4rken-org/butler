@@ -3,10 +3,10 @@ package eu.darken.butler.explorer.ui.picker
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.picker.PickerConfig
-import eu.darken.butler.explorer.core.picker.isDisabled
-import eu.darken.butler.explorer.core.picker.isSelectable
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
+import eu.darken.butler.workspace.contracts.explorer.isDisabled
+import eu.darken.butler.workspace.contracts.explorer.isSelectable
 import javax.inject.Inject
 import javax.inject.Singleton
 

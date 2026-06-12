@@ -14,13 +14,13 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
-import eu.darken.butler.editor.core.arguments.EditorArguments
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
+import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.operations.Operation

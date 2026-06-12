@@ -1,7 +1,7 @@
 package eu.darken.butler.history.core
 
 import eu.darken.butler.common.serialization.SerializationCommonModule
-import eu.darken.butler.history.core.arguments.HistoryArguments
+import eu.darken.butler.workspace.contracts.history.HistoryArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter

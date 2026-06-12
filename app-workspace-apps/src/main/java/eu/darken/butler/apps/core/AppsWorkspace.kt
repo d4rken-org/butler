@@ -4,7 +4,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import eu.darken.butler.apps.R
-import eu.darken.butler.apps.core.arguments.AppsArguments
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsEngine
 import eu.darken.butler.common.adb.AdbManager
@@ -20,6 +19,10 @@ import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.pkgs.pkgops.PkgOpsException
 import eu.darken.butler.common.root.RootManager
+import eu.darken.butler.workspace.contracts.apps.AppsArguments
+import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
+import eu.darken.butler.workspace.contracts.apps.SortSettings
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.initialInfo

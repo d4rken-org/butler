@@ -1,7 +1,7 @@
 package eu.darken.butler.developer.core
 
 import eu.darken.butler.common.serialization.SerializationCommonModule
-import eu.darken.butler.developer.core.arguments.DeveloperArguments
+import eu.darken.butler.workspace.contracts.developer.DeveloperArguments
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.encodeToJsonElement

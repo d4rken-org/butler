@@ -2,8 +2,8 @@ package eu.darken.butler.searcher.core.engine
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.permissions.core.PathRequirements
-import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.setup.core.SetupModule
+import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Nested

@@ -28,9 +28,9 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.FilterComparator
-import eu.darken.butler.searcher.core.FilterCondition
-import eu.darken.butler.searcher.core.SearchFilter
+import eu.darken.butler.workspace.contracts.searcher.FilterComparator
+import eu.darken.butler.workspace.contracts.searcher.FilterCondition
+import eu.darken.butler.workspace.contracts.searcher.SearchFilter
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days

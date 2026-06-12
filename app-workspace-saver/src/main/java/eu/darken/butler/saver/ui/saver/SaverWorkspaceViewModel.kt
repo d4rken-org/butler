@@ -1,11 +1,11 @@
 package eu.darken.butler.saver.ui.saver
 
+import android.content.Context
+import android.content.Intent
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import android.content.Context
-import android.content.Intent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -14,17 +14,17 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.navigation.NavEvent
-import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.issue.Issue
+import eu.darken.butler.common.navigation.NavEvent
+import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
-import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.saver.core.SaverWorkspace
 import eu.darken.butler.saver.core.operations.SaveFilesReport
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
@@ -36,6 +36,7 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,7 +49,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlin.time.Instant
 
 @HiltViewModel(assistedFactory = SaverWorkspaceViewModel.Factory::class)
 class SaverWorkspaceViewModel @AssistedInject constructor(

@@ -1,9 +1,9 @@
 package eu.darken.butler.apps.ui.apps.dialogs
 
 import eu.darken.butler.apps.core.AppPath
-import eu.darken.butler.apps.core.AppTag
-import eu.darken.butler.apps.core.SortSettings
 import eu.darken.butler.apps.core.engine.AppItem
+import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.SortSettings
 
 sealed interface AppsDialogState {
 

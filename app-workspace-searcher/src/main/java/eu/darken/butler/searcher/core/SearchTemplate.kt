@@ -15,6 +15,11 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.searcher.R
+import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
+import eu.darken.butler.workspace.contracts.searcher.FilterComparator
+import eu.darken.butler.workspace.contracts.searcher.FilterCondition
+import eu.darken.butler.workspace.contracts.searcher.SearchFilter
+import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import kotlin.time.Duration.Companion.days
 
 sealed class SearchTemplate(
