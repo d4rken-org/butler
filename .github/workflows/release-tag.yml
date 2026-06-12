@@ -127,7 +127,7 @@ jobs:
         uses: ./.github/actions/common-setup
 
       - name: Set up ruby env
-        uses: ruby/setup-ruby@4eb9f110bac952a8b68ecf92e3b5c7a987594ba6 #v1.292.0
+        uses: ruby/setup-ruby@89f90524b88a01fe6e0b732220432cc6142926af #v1.313.0
         with:
           ruby-version: 3.3.6
           bundler-cache: true
