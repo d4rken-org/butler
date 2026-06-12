@@ -43,7 +43,6 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import eu.darken.butler.apps.ui.AppsWorkspaceTemplate
 import eu.darken.butler.common.Slogans
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
@@ -57,12 +56,13 @@ import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.settings
 import androidx.compose.runtime.collectAsState
-import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
-import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
-import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.templates.R
+import eu.darken.butler.templates.core.arguments.TemplatesArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.manager.WorkspaceButton
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
@@ -377,14 +377,28 @@ private fun TemplatesWorkspacePagePreview() {
         state = TemplatesWorkspaceViewModel.State(
             id = workspaceId,
             templates = listOf(
-                ExplorerWorkspaceTemplate(),
-                SearcherWorkspaceTemplate(),
-                EditorWorkspaceTemplate(),
-                AppsWorkspaceTemplate(),
+                previewTemplate(Workspace.Type.EXPLORER, "Explorer", "Browse and manage files", 10),
+                previewTemplate(Workspace.Type.SEARCHER, "Searcher", "Find files and folders", 20),
+                previewTemplate(Workspace.Type.EDITOR, "Editor", "View and edit text files", 30),
+                previewTemplate(Workspace.Type.APPS, "Apps", "Manage installed apps", 40),
             ),
             isUpgraded = true,
             versionDescription = "1.0.0-preview",
         ),
         onNavToSettings = {},
     )
+}
+
+private fun previewTemplate(
+    type: Workspace.Type,
+    title: String,
+    subtitle: String,
+    order: Int,
+) = object : WorkspaceTemplate {
+    override val type: Workspace.Type = type
+    override val icon = type.icon
+    override val title: CaString = title.toCaString()
+    override val subtitle: CaString = subtitle.toCaString()
+    override val arguments: Workspace.Arguments = TemplatesArguments.Default()
+    override val sortOrder: Int = order
 }

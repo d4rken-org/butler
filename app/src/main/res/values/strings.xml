@@ -305,11 +305,6 @@
 
     <!-- Workspace Manager FAB -->
     <string name="workspace_fab_add_workspace">Add tab</string>
-    <string name="workspace_fab_explorer">Explorer</string>
-    <string name="workspace_fab_search">Search</string>
-    <string name="workspace_fab_editor">Editor</string>
-    <string name="workspace_fab_apps">Apps</string>
-    <string name="workspace_fab_templates">Templates</string>
     <string name="workspace_fab_close_all">Close all tabs</string>
     <string name="workspace_fab_longpress_hint">Tip: Long-press for quick access to all tab types</string>
 

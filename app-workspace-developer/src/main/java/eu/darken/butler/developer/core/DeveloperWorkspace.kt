@@ -1,8 +1,13 @@
 package eu.darken.butler.developer.core
 
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
@@ -18,6 +23,7 @@ import eu.darken.butler.developer.core.operations.GenerateNestedStructureOperati
 import eu.darken.butler.developer.core.operations.GenerateTextFilesOperation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -171,5 +177,14 @@ class DeveloperWorkspace @AssistedInject constructor(
         override fun deserialize(json: Json, element: JsonElement): DeveloperArguments {
             return json.decodeFromJsonElement<DeveloperArguments>(element)
         }
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.DEVELOPER)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }

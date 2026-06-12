@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import eu.darken.butler.workspace.core.WorkspaceRegistryValidator
 import javax.inject.Inject
 import javax.inject.Provider
 import kotlin.system.exitProcess
@@ -64,6 +65,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var workspacePreviewManager: WorkspacePreviewManager
     @Inject lateinit var documentsProviderManager: DocumentsProviderManager
     @Inject lateinit var trashCleanupScheduler: TrashCleanupScheduler
+    @Inject lateinit var workspaceRegistryValidator: WorkspaceRegistryValidator
 
     /**
      * Lazy because Hilt singletons are otherwise constructed only on first call-site injection.
@@ -80,6 +82,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         if (BuildConfigWrap.DEBUG) {
             Logging.install(logCatLogger)
             log(TAG) { "BuildConfigWrap.DEBUG=true" }
+            workspaceRegistryValidator.validate()
         }
         log(TAG) { "Fingerprint: ${BuildWrap.FINGERPRINT}" }
 

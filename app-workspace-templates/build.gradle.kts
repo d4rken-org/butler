@@ -44,12 +44,6 @@ dependencies {
 
     implementation(project(":app-common"))
     implementation(project(":app-workspace"))
-    implementation(project(":app-workspace-explorer"))
-    implementation(project(":app-workspace-searcher"))
-    implementation(project(":app-workspace-editor"))
-    implementation(project(":app-workspace-apps"))
-    implementation(project(":app-workspace-developer"))
-    implementation(project(":app-workspace-history"))
 
     addAndroidCore()
     addAndroidUI()

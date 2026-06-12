@@ -38,6 +38,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.ScrollPop
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.template.QuickCreateItem
 
 @Composable
 fun WorkspaceManagerScreen(
@@ -46,6 +47,7 @@ fun WorkspaceManagerScreen(
     onReorderWorkspaces: (List<Workspace.Id>) -> Unit,
     onSelectWorkspace: (Workspace.Id) -> Unit,
     onCreateWorkspace: (Workspace.Type) -> Unit,
+    onQuickCreate: (QuickCreateItem) -> Unit,
     onNavigateBack: () -> Unit,
     onDismissBadgeExplanation: () -> Unit,
     onDismissLongPressHint: () -> Unit,
@@ -115,7 +117,9 @@ fun WorkspaceManagerScreen(
                 ScrollPop(isVisible = isFabVisible) {
                     WorkspaceManagerFAB(
                         workspaceCount = state.workspaceCount,
+                        quickCreateItems = state.quickCreateItems,
                         onCreateWorkspace = onCreateWorkspace,
+                        onQuickCreate = onQuickCreate,
                         onShowCloseAllDialog = { showCloseAllDialog = true },
                         showLongPressHint = state.showLongPressHint,
                         onDismissLongPressHint = onDismissLongPressHint
@@ -190,6 +194,7 @@ private fun WorkspaceManagerScreenPreview() {
         onReorderWorkspaces = {},
         onSelectWorkspace = {},
         onCreateWorkspace = {},
+        onQuickCreate = {},
         onNavigateBack = {},
         onDismissBadgeExplanation = {},
         onDismissLongPressHint = {},
@@ -211,6 +216,7 @@ private fun WorkspaceManagerScreenEmptyPreview() {
         onReorderWorkspaces = {},
         onSelectWorkspace = {},
         onCreateWorkspace = {},
+        onQuickCreate = {},
         onNavigateBack = {},
         onDismissBadgeExplanation = {},
         onDismissLongPressHint = {},

@@ -1,8 +1,13 @@
 package eu.darken.butler.searcher.core
 
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -19,6 +24,7 @@ import eu.darken.butler.searcher.core.operations.DeleteOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
@@ -430,5 +436,14 @@ class SearcherWorkspace @AssistedInject constructor(
         override fun deserialize(json: Json, element: JsonElement): SearcherArguments {
             return json.decodeFromJsonElement<SearcherArguments>(element)
         }
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.SEARCHER)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }

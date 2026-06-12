@@ -4,25 +4,19 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
-import eu.darken.butler.apps.ui.AppsWorkspaceTemplate
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.developer.DeveloperSettings
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.developer.ui.DeveloperWorkspaceTemplate
-import eu.darken.butler.editor.ui.EditorWorkspaceTemplate
-import eu.darken.butler.explorer.ui.ExplorerWorkspaceTemplate
-import eu.darken.butler.history.ui.HistoryWorkspaceTemplate
-import eu.darken.butler.searcher.ui.search.SearcherWorkspaceTemplate
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
+import eu.darken.butler.workspace.ui.template.availableTemplates
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
@@ -32,16 +26,8 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     private val workspaceRemote: WorkspaceRemote,
     private val upgradeRepo: UpgradeRepo,
-    private val developerSettings: DeveloperSettings,
+    workspaceTemplates: Set<@JvmSuppressWildcards WorkspaceTemplate>,
 ) : ViewModel4(dispatchers, logTag("Templates", "Workspace", id.shortTag)) {
-
-    private val baseTemplates = listOf(
-        ExplorerWorkspaceTemplate(),
-        SearcherWorkspaceTemplate(),
-        EditorWorkspaceTemplate(),
-        AppsWorkspaceTemplate(),
-        HistoryWorkspaceTemplate(),
-    )
 
     private val activeSingletonTypes = workspaceRemote.state.map { state ->
         state.infos
@@ -51,15 +37,10 @@ class TemplatesWorkspaceViewModel @AssistedInject constructor(
     }
 
     private val templates = combine(
-        developerSettings.isDeveloperModeUnlocked.flow,
+        workspaceTemplates.availableTemplates(),
         activeSingletonTypes,
-    ) { isUnlocked, activeSingletons ->
-        buildList {
-            addAll(baseTemplates)
-            if (isUnlocked) {
-                add(DeveloperWorkspaceTemplate())
-            }
-        }.filterNot { it.type in activeSingletons }
+    ) { available, activeSingletons ->
+        available.filterNot { it.type in activeSingletons }
     }
 
     val state = combine(

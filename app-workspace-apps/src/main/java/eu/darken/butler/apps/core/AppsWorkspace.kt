@@ -1,8 +1,13 @@
 package eu.darken.butler.apps.core
 
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.arguments.AppsArguments
 import eu.darken.butler.apps.core.engine.AppItem
@@ -22,6 +27,7 @@ import eu.darken.butler.common.pkgs.pkgops.PkgOpsException
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
 import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -357,5 +363,14 @@ class AppsWorkspace @AssistedInject constructor(
         override fun deserialize(json: Json, element: JsonElement): AppsArguments {
             return json.decodeFromJsonElement<AppsArguments>(element)
         }
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.APPS)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }

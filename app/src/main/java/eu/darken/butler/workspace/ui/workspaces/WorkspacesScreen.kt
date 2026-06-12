@@ -29,6 +29,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.main.ui.motd.MotdCard
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.layout.WorkspacePanelMode
@@ -224,7 +225,10 @@ fun WorkspacesScreenHost(
 
     val state by vm.state.collectAsState(initial = null)
 
-    CompositionLocalProvider(LocalWorkspaceButtonProvider provides workspaceButtonVm) {
+    CompositionLocalProvider(
+        LocalWorkspaceButtonProvider provides workspaceButtonVm,
+        LocalWorkspacePageHosts provides vm.pageHosts,
+    ) {
         state?.let { state ->
             WorkspaceScreen(
                 state = state,
@@ -252,6 +256,7 @@ fun WorkspacesScreenHost(
                     onReorderWorkspaces = managerVm::reorderWorkspaces,
                     onSelectWorkspace = managerVm::selectWorkspace,
                     onCreateWorkspace = managerVm::createWorkspace,
+                    onQuickCreate = managerVm::createWorkspace,
                     onNavigateBack = managerVm::navigateBack,
                     onDismissBadgeExplanation = managerVm::dismissBadgeExplanation,
                     onDismissLongPressHint = managerVm::dismissLongPressHint,

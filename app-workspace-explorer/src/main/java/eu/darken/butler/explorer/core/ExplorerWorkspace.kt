@@ -1,8 +1,13 @@
 package eu.darken.butler.explorer.core
 
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
@@ -29,8 +34,8 @@ import eu.darken.butler.explorer.core.operations.MoveOperation
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
-import eu.darken.butler.workspace.core.stateInWorkspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
@@ -40,7 +45,9 @@ import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.submitAndGet
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
 import eu.darken.butler.workspace.core.operations.withStateUpdates
+import eu.darken.butler.workspace.core.stateInWorkspace
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
@@ -52,17 +59,16 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
-import kotlin.time.Duration.Companion.seconds
 
 
 class ExplorerWorkspace @AssistedInject constructor(
@@ -439,5 +445,14 @@ class ExplorerWorkspace @AssistedInject constructor(
         override fun deserialize(json: Json, element: JsonElement): ExplorerArguments {
             return json.decodeFromJsonElement<ExplorerArguments>(element)
         }
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.EXPLORER)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }

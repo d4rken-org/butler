@@ -182,6 +182,7 @@ internal fun WorkspaceManagerContent() = PreviewWrapper {
         onReorderWorkspaces = {},
         onSelectWorkspace = {},
         onCreateWorkspace = {},
+        onQuickCreate = {},
         onNavigateBack = {},
         onDismissBadgeExplanation = {},
         onDismissLongPressHint = {},

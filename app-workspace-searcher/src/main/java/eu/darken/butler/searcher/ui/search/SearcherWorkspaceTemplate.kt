@@ -1,6 +1,11 @@
 package eu.darken.butler.searcher.ui.search
 
 import androidx.compose.ui.graphics.vector.ImageVector
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.searcher.R
@@ -20,4 +25,18 @@ data class SearcherWorkspaceTemplate(
 
     override val icon: ImageVector
         get() = type.icon
+
+    override val sortOrder: Int
+        get() = 20
+
+    override val isQuickCreate: Boolean
+        get() = true
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object TemplateModule {
+        @Provides
+        @IntoSet
+        fun template(): WorkspaceTemplate = SearcherWorkspaceTemplate()
+    }
 }
