@@ -11,6 +11,7 @@ import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
@@ -21,15 +22,21 @@ import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceRemote
+import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -58,14 +65,20 @@ class AppDetailsWorkspace @AssistedInject constructor(
     private val selectedTabFlow = MutableStateFlow(args.initialTab)
     private var wasAppSeen = false
 
-    // Fetch app info from package manager
-    private val appInfoFlow: Flow<AppInfo?> = pkgRepo.pkgs().map { pkgs ->
+    // Fetch app info from package manager; shared so `state` and `info` collect pkgs() once.
+    // Plain stateIn (not shareLatest): null is a legitimate value meaning "package gone".
+    private val appInfoFlow: StateFlow<AppInfo?> = pkgRepo.pkgs().map { pkgs ->
         val pkg = pkgs.firstOrNull { it.id.name == args.packageName } ?: return@map null
 
         AppInfo(
             install = pkg,
         )
     }
+        .catch { error ->
+            log(tag, ERROR) { "Failed to resolve app info: ${error.asLog()}" }
+            emit(null)
+        }
+        .stateIn(scope, SharingStarted.Eagerly, null)
 
     data class State(
         val app: AppInfo? = null,
@@ -100,7 +113,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
         )
     }
 
-    override val info: Flow<Workspace.Info> = combine(
+    override val info: StateFlow<Workspace.Info> = combine(
         appInfoFlow,
         selectedTabFlow,
     ) { app, _ ->
@@ -115,7 +128,13 @@ class AppDetailsWorkspace @AssistedInject constructor(
             callerWorkspaceId = args.callerWorkspaceId,
             modalPresentation = args.modalPresentation,
         )
-    }
+    }.stateInWorkspace(
+        scope = scope,
+        initial = initialInfo(
+            title = args.packageName.toCaString(),
+            arguments = args,
+        ),
+    )
 
     private fun buildAppPaths(app: AppInfo): List<AppPath> = buildList {
         // Internal data directory (/data/data/package.name)

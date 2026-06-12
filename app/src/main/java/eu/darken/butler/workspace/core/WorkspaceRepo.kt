@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
@@ -81,7 +80,7 @@ class WorkspaceRepo @Inject constructor(
         _events.emit(event)
     }
 
-    private fun create(
+    private suspend fun create(
         type: Workspace.Type,
         arguments: Workspace.Arguments,
         idToReplace: Workspace.Id? = null,
@@ -100,13 +99,37 @@ class WorkspaceRepo @Inject constructor(
         if (idToReplace != null) {
             val index = wip.indexOfFirst { it.id == idToReplace }
             if (index == -1) throw IllegalStateException("Tab not found")
+            val replaced = wip[index]
             log(TAG) { "Replacing workspace at index $index" }
             wip[index] = newWorkspace
+            replaced.release()
+            operationsManager.removeWorkspace(replaced.id)
         } else {
             wip.add(newWorkspace)
         }
 
         _workspaces.value = wip
+
+        if (idToReplace != null && newWorkspace.id != idToReplace) {
+            // Close sub-workspaces orphaned by the replace — their parent instance is gone
+            _workspaces.value
+                .filter { it.info.value.callerWorkspaceId == idToReplace }
+                .forEach { executeClose(it.id) }
+        }
+
+        if (Bugs.isDebug) {
+            val expected = arguments as? Workspace.ArgumentsWithCaller
+            val seeded = newWorkspace.info.value
+            val expectedModal = expected?.modalPresentation ?: Workspace.ModalPresentationMode.PANE_LOCAL
+            if (seeded.callerWorkspaceId != expected?.callerWorkspaceId || seeded.modalPresentation != expectedModal) {
+                log(TAG, ERROR) {
+                    "Info seed mismatch for ${newWorkspace.id}: " +
+                        "seeded=(${seeded.callerWorkspaceId}, ${seeded.modalPresentation}), " +
+                        "expected=(${expected?.callerWorkspaceId}, $expectedModal). " +
+                        "Lifecycle decisions read info.value — fix the workspace's initial Info."
+                }
+            }
+        }
 
         return newWorkspace.id
     }
@@ -128,7 +151,14 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
-    override suspend fun execute(action: WorkspaceAction): WorkspaceAction.Result = lock.withLock {
+    override suspend fun execute(action: WorkspaceAction): WorkspaceAction.Result {
+        // Read outside the lock: isPro() suspends on the upgrade info flow and must not stall the repo.
+        val isPro = when (action) {
+            is WorkspaceAction.Create -> action.needsLimitCheck && upgradeRepo.isPro()
+            is WorkspaceAction.CreateBatch -> upgradeRepo.isPro()
+            else -> false
+        }
+        return lock.withLock {
         log(TAG, INFO) { "execute($action)" }
         when (action) {
             is WorkspaceAction.Create -> {
@@ -141,7 +171,7 @@ class WorkspaceRepo @Inject constructor(
                 }
 
                 // Check workspace limit for non-pro users
-                if (!canCreateWorkspace(action)) {
+                if (!canCreateWorkspace(action, isPro)) {
                     log(TAG, INFO) { "Workspace limit reached, showing upgrade dialog" }
                     postLimitDialog()
                     return@withLock WorkspaceAction.Create.Result.LimitReached
@@ -188,15 +218,11 @@ class WorkspaceRepo @Inject constructor(
                 }
 
                 // Check workspace limit for free users — counted only against pending creates
-                val isPro = upgradeRepo.isPro()
                 val allowedCreates = if (isPro) {
                     pendingCreates
                 } else {
                     // Count current tab workspaces (exclude sub-workspaces)
-                    val currentTabCount = _workspaces.value.count { ws ->
-                        val info = ws.info.first()
-                        !info.isSubWorkspace
-                    }
+                    val currentTabCount = _workspaces.value.count { !it.info.value.isSubWorkspace }
                     val remainingSlots = (FREE_TIER_WORKSPACE_LIMIT - currentTabCount).coerceAtLeast(0)
 
                     if (remainingSlots == 0 && pendingCreates.isNotEmpty()) {
@@ -260,7 +286,7 @@ class WorkspaceRepo @Inject constructor(
                         return@withLock WorkspaceAction.Close.Result
                     }
 
-                    val workspaceInfo = workspace.info.first()
+                    val workspaceInfo = workspace.info.value
                     val confirmationId = Uuid.random().toString()
 
                     log(TAG, INFO) { "Requesting confirmation to close workspace: ${workspaceInfo.title}" }
@@ -319,26 +345,22 @@ class WorkspaceRepo @Inject constructor(
                 WorkspaceAction.CloseAll.Result
             }
         }
+        }
     }
 
-    private suspend fun canCreateWorkspace(action: WorkspaceAction.Create): Boolean {
-        // Skip check if explicitly requested (e.g., session restoration)
-        if (action.skipLimitCheck) return true
+    /**
+     * True when this create counts against [FREE_TIER_WORKSPACE_LIMIT]: not a session restore
+     * ([WorkspaceAction.Create.skipLimitCheck]), not a sub-workspace (modal/picker), not a replace.
+     */
+    private val WorkspaceAction.Create.needsLimitCheck: Boolean
+        get() = !skipLimitCheck && !arguments.isForSubWorkspace && replace == null
 
-        // Sub-workspaces (modals/pickers) don't count toward limit
-        if (action.arguments.isForSubWorkspace) return true
-
-        // Replace operations don't increase count
-        if (action.replace != null) return true
-
-        // Pro users have no limit
-        if (upgradeRepo.isPro()) return true
+    private fun canCreateWorkspace(action: WorkspaceAction.Create, isPro: Boolean): Boolean {
+        if (!action.needsLimitCheck) return true
+        if (isPro) return true
 
         // Check count of tab workspaces (exclude sub-workspaces)
-        val currentTabCount = _workspaces.value.count { ws ->
-            val info = ws.info.first()
-            !info.isSubWorkspace
-        }
+        val currentTabCount = _workspaces.value.count { !it.info.value.isSubWorkspace }
 
         return currentTabCount < FREE_TIER_WORKSPACE_LIMIT
     }
@@ -353,15 +375,13 @@ class WorkspaceRepo @Inject constructor(
      * ([WorkspaceAction.Create.skipLimitCheck]), and replace operations that target the existing
      * singleton itself (legitimate "morph in place").
      */
-    private suspend fun findExistingSingleton(action: WorkspaceAction.Create): Workspace.Id? {
+    private fun findExistingSingleton(action: WorkspaceAction.Create): Workspace.Id? {
         if (!action.type.isSingleton) return null
         if (action.arguments.isForSubWorkspace) return null
         if (action.skipLimitCheck) return null
 
         val existingId = _workspaces.value.firstOrNull { ws ->
-            if (ws.type != action.type) return@firstOrNull false
-            val info = ws.info.first()
-            !info.isSubWorkspace
+            ws.type == action.type && !ws.info.value.isSubWorkspace
         }?.id ?: return null
 
         // Replacing the existing singleton itself is legitimate (templates "morph in place")
@@ -370,12 +390,9 @@ class WorkspaceRepo @Inject constructor(
         return existingId
     }
 
-    private suspend fun postLimitDialog() {
+    private fun postLimitDialog() {
         val confirmationId = Uuid.random().toString()
-        val currentCount = _workspaces.value.count { ws ->
-            val info = ws.info.first()
-            !info.isSubWorkspace
-        }
+        val currentCount = _workspaces.value.count { !it.info.value.isSubWorkspace }
 
         _pendingConfirmations.update {
             it + (confirmationId to PendingWorkspaceConfirmation(
@@ -465,24 +482,16 @@ class WorkspaceRepo @Inject constructor(
                 pendingActions.remove(confirmationId)
             }
 
-        // Find and close all child workspaces owned by this workspace
-        val childWorkspaces = _workspaces.value.filter { ws ->
-            val info = ws.info.first()
-            info.callerWorkspaceId == workspaceId
-        }
+        // Close all child workspaces first — recursive, children may have their own sub-workspaces
+        val childWorkspaces = _workspaces.value.filter { it.info.value.callerWorkspaceId == workspaceId }
         if (childWorkspaces.isNotEmpty()) {
             log(TAG) { "Auto-closing ${childWorkspaces.size} child workspace(s)" }
-            childWorkspaces.forEach { childWs ->
-                childWs.release()
-                operationsManager.removeWorkspace(childWs.id)
-                _workspaces.value = _workspaces.value.filter { it.id != childWs.id }
-                _events.emit(WorkspaceEvent.Closed(workspaceId = childWs.id))
-            }
+            childWorkspaces.forEach { executeClose(it.id) }
         }
 
         // Get caller workspace ID before removal (for returning to caller)
         val closingWorkspace = _workspaces.value.find { it.id == workspaceId }
-        val callerWorkspaceId = closingWorkspace?.info?.first()?.callerWorkspaceId
+        val callerWorkspaceId = closingWorkspace?.info?.value?.callerWorkspaceId
 
         closingWorkspace?.release()
         closingWorkspace?.let { operationsManager.removeWorkspace(it.id) }

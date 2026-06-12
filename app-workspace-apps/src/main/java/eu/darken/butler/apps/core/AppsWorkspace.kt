@@ -22,12 +22,15 @@ import eu.darken.butler.common.pkgs.pkgops.PkgOpsException
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -117,7 +120,7 @@ class AppsWorkspace @AssistedInject constructor(
         )
     }
 
-    override val info: Flow<Workspace.Info> = _state.map { state ->
+    override val info: StateFlow<Workspace.Info> = _state.map { state ->
         Workspace.Info(
             id = id,
             type = type,
@@ -135,7 +138,13 @@ class AppsWorkspace @AssistedInject constructor(
             attentionCount = 0,
             callerWorkspaceId = null,
         )
-    }
+    }.stateInWorkspace(
+        scope = scope,
+        initial = initialInfo(
+            title = R.string.apps_title.toCaString(),
+            arguments = creationArguments,
+        ),
+    )
 
     init {
         log(tag, INFO) { "AppsWorkspace initialized: $id" }

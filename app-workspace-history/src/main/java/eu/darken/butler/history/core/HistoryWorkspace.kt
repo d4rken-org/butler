@@ -14,6 +14,8 @@ import eu.darken.butler.history.R
 import eu.darken.butler.history.core.arguments.HistoryArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.stateInWorkspace
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
@@ -23,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.json.Json
@@ -77,7 +80,7 @@ class HistoryWorkspace @AssistedInject constructor(
         filter = filterFlow.value,
     )
 
-    override val info: Flow<Workspace.Info> = filterFlow.map { current ->
+    override val info: StateFlow<Workspace.Info> = filterFlow.map { current ->
         Workspace.Info(
             id = id,
             type = type,
@@ -85,7 +88,13 @@ class HistoryWorkspace @AssistedInject constructor(
             subtitle = R.string.history_workspace_subtitle.toCaString(),
             lifecycleState = Workspace.LifecycleState.Ready,
         )
-    }
+    }.stateInWorkspace(
+        scope = scope,
+        initial = initialInfo(
+            title = derivedTitle(creationArguments.filter),
+            arguments = creationArguments,
+        ),
+    )
 
     init {
         log(tag, INFO) { "Initialized with filter ${creationArguments.filter}" }

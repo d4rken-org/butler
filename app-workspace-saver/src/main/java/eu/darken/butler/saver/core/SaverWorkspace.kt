@@ -27,6 +27,8 @@ import eu.darken.butler.saver.core.operations.SaveFilesOperation
 import eu.darken.butler.saver.core.operations.SaveFilesReport
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.stateInWorkspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
@@ -38,6 +40,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -164,7 +167,7 @@ class SaverWorkspace @AssistedInject constructor(
         val hasInaccessibleFiles: Boolean get() = sourceInfos.any { !it.isAccessible }
     }
 
-    override val info: Flow<Workspace.Info> = combine(
+    override val info: StateFlow<Workspace.Info> = combine(
         _sourceInfos,
         _filename,
         _saveState,
@@ -203,7 +206,13 @@ class SaverWorkspace @AssistedInject constructor(
             attentionCount = attentionCount,
             callerWorkspaceId = null,
         )
-    }
+    }.stateInWorkspace(
+        scope = scope,
+        initial = initialInfo(
+            title = R.string.saver_workspace_title.toCaString(),
+            arguments = creationArguments,
+        ),
+    )
 
     init {
         log(tag, INFO) { "SaverWorkspace initialized: $id with ${sourceUris.size} source(s)" }

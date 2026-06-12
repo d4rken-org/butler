@@ -29,6 +29,8 @@ import eu.darken.butler.explorer.core.operations.MoveOperation
 import eu.darken.butler.explorer.core.picker.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.initialInfo
+import eu.darken.butler.workspace.core.stateInWorkspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
@@ -147,7 +149,7 @@ class ExplorerWorkspace @AssistedInject constructor(
         }
         .shareLatest(scope)
 
-    override val info: Flow<Workspace.Info> = combine(
+    override val info: StateFlow<Workspace.Info> = combine(
         _state,
         operationsManager.operationsForWorkspace(id).withOnlyStateChanges()
     ) { state, operations ->
@@ -177,8 +179,16 @@ class ExplorerWorkspace @AssistedInject constructor(
             operationCount = activeOperations,
             attentionCount = attentionCount,
             callerWorkspaceId = pickerConfig?.callerWorkspaceId,
+            modalPresentation = (creationArguments as? Workspace.ArgumentsWithCaller)?.modalPresentation
+                ?: Workspace.ModalPresentationMode.PANE_LOCAL,
         )
-    }
+    }.stateInWorkspace(
+        scope = scope,
+        initial = initialInfo(
+            title = R.string.explorer_title.toCaString(),
+            arguments = creationArguments,
+        ),
+    )
 
 
     private val navigationRequests = MutableSharedFlow<ExplorerNavigation>(replay = 1)
