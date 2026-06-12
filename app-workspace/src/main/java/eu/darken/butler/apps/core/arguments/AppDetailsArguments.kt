@@ -26,5 +26,5 @@ data class AppDetailsArguments(
     @Contextual override val callerWorkspaceId: Workspace.Id? = null,
 ) : Workspace.ArgumentsWithCaller {
     @IgnoredOnParcel
-    override val type: Workspace.Type = Workspace.Type.APP_DETAILS
+    override val type: Workspace.Type get() = Workspace.Type.APP_DETAILS
 }

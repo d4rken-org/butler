@@ -12,6 +12,7 @@ import eu.darken.butler.workspace.core.session.db.WorkspaceInstanceEntity
 import eu.darken.butler.workspace.core.session.db.WorkspaceSessionDatabase
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -438,6 +439,123 @@ class WorkspaceSessionManagerTest : BaseTest() {
             // Only A should be saved
             upsertedEntities.size shouldBe 1
             upsertedEntities.single().workspaceId shouldBe wsIdA
+        }
+    }
+
+    @Nested
+    inner class AutoSaveGuard {
+
+        private val wsId = Workspace.Id()
+        private val repoStateFlow = MutableStateFlow(WorkspaceRemote.State())
+        private val upsertedEntities = mutableListOf<WorkspaceInstanceEntity>()
+
+        // The outer setup constructs a manager whose init coroutine fails on the fully-relaxed
+        // mocks, cancelling the shared testScope. These tests need live coroutines, so they
+        // get their own scope.
+        private lateinit var autoSaveScope: TestScope
+
+        @BeforeEach
+        fun setupAutoSave() {
+            autoSaveScope = TestScope(UnconfinedTestDispatcher())
+            mockkStatic("androidx.room.RoomDatabaseKt")
+
+            val mockDatabase = mockk<WorkspaceSessionDatabase>(relaxed = true)
+            every { storage.database } returns mockDatabase
+            coEvery { mockDatabase.withTransaction(any<suspend () -> Any?>()) } coAnswers {
+                @Suppress("UNCHECKED_CAST")
+                val block = args[1] as suspend () -> Any?
+                block()
+            }
+
+            coEvery { storage.dao.upsertWorkspace(any()) } coAnswers {
+                upsertedEntities.add(firstArg())
+            }
+            coEvery { storage.dao.getWorkspaceIds(any()) } returns emptyList()
+
+            every { workspaceRepo.state } returns repoStateFlow
+
+            every { workspaceSettings.sessionRestoreEnabled } returns mockk {
+                every { flow } returns flowOf(true)
+            }
+
+            val mockFactory = mockk<WorkspaceFactory<Workspace.Arguments>>()
+            every { mockFactory.serialize(any(), any()) } returns JsonPrimitive("args")
+            factoryMap = mapOf(Workspace.Type.EXPLORER to mockFactory)
+
+            val args = mockk<Workspace.Arguments>().also {
+                every { it.type } returns Workspace.Type.EXPLORER
+            }
+            val ws = mockk<Workspace<Workspace.Arguments>>()
+            every { ws.id } returns wsId
+            coEvery { ws.createArguments() } returns args
+            every { workspaceRepo.retrieve(wsId) } returns flowOf(ws)
+        }
+
+        @AfterEach
+        fun teardownAutoSave() {
+            upsertedEntities.clear()
+        }
+
+        private fun createManager() = WorkspaceSessionManager(
+            appScope = autoSaveScope,
+            workspaceSettings = workspaceSettings,
+            workspaceRepo = workspaceRepo,
+            workspacePageManager = workspacePageManager,
+            storage = storage,
+            json = json,
+            factoryMap = factoryMap,
+        )
+
+        private fun makeInfo(id: Workspace.Id) = Workspace.Info(
+            id = id,
+            type = Workspace.Type.EXPLORER,
+            title = "Workspace".toCaString(),
+        )
+
+        @Test
+        fun `auto-save runs after successful restore`() = runTest {
+            // No saved session -> restore succeeds with empty result
+            coEvery { storage.dao.getSession(any()) } returns null
+
+            val manager = createManager()
+            autoSaveScope.testScheduler.runCurrent()
+            manager.state.value shouldBe WorkspaceSessionManager.State.Restored(emptyList())
+
+            repoStateFlow.value = WorkspaceRemote.State(infos = listOf(makeInfo(wsId)))
+            autoSaveScope.testScheduler.advanceTimeBy(1000)
+            autoSaveScope.testScheduler.runCurrent()
+
+            // Control: proves the auto-save pipeline is live in this test setup
+            coVerify { storage.dao.upsertSession(any()) }
+            upsertedEntities.single().workspaceId shouldBe wsId
+        }
+
+        @Test
+        fun `failed restore does not wipe the saved session via auto-save`() = runTest {
+            // Restore blows up after session load, outside the per-row handling (e.g. Room
+            // row mapper failure on a corrupt/unknown value). getSession itself succeeds so
+            // that an unguarded saveSession would get far enough to delete rows.
+            coEvery { storage.dao.getSession(any()) } returns mockk(relaxed = true)
+            coEvery { storage.dao.getWorkspaces(any()) } throws RuntimeException("row mapping failed")
+            // The DB still holds a row that no open workspace matches — without the guard,
+            // auto-save would delete it.
+            val staleId = Workspace.Id()
+            coEvery { storage.dao.getWorkspaceIds(any()) } returns listOf(staleId)
+
+            val manager = createManager()
+            autoSaveScope.testScheduler.runCurrent()
+            manager.state.value.shouldBeInstanceOf<WorkspaceSessionManager.State.Error>()
+
+            repoStateFlow.value = WorkspaceRemote.State(infos = listOf(makeInfo(wsId)))
+            autoSaveScope.testScheduler.advanceTimeBy(1000)
+            autoSaveScope.testScheduler.runCurrent()
+
+            // Verify against the dao child mock directly — chained storage.dao.x verification
+            // would also count the dao getter access from the restore attempt itself.
+            val dao = storage.dao
+            coVerify(exactly = 0) { dao.upsertSession(any()) }
+            coVerify(exactly = 0) { dao.deleteWorkspacesByIds(any()) }
+            coVerify(exactly = 0) { dao.upsertWorkspace(any()) }
         }
     }
 }

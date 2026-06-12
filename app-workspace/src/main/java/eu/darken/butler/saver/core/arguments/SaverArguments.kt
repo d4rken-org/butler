@@ -24,7 +24,7 @@ sealed interface SaverArguments : Workspace.Arguments {
         /** Source content URIs as strings (Uri.toString() for serialization) */
         val sourceUris: List<String>,
         /** Package name of the app that shared the files */
-        val callerPackage: Pkg.Id?,
+        val callerPackage: Pkg.Id? = null,
         /** Selected destination path, null if not yet selected */
         val destinationPath: APath<*>? = null,
     ) : SaverArguments
