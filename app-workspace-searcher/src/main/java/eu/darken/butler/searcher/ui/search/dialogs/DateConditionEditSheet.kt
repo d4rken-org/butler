@@ -35,10 +35,10 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.FilterComparator
-import eu.darken.butler.searcher.core.FilterCondition
 import eu.darken.butler.searcher.ui.search.elements.DateFilterPreset
 import eu.darken.butler.searcher.ui.search.elements.findPresetForInstant
+import eu.darken.butler.workspace.contracts.searcher.FilterComparator
+import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days

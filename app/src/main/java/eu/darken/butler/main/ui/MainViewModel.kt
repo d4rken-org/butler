@@ -11,16 +11,17 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.storage.DocumentUriResolver
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.editor.core.arguments.EditorArguments
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.themeState
 import eu.darken.butler.main.core.themeStateBlocking
-import eu.darken.butler.saver.core.arguments.SaverArguments
 import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.workspace.contracts.editor.EditorArguments
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -28,7 +29,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
 
 
 @HiltViewModel

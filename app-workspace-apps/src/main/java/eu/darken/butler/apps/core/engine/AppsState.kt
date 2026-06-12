@@ -1,9 +1,9 @@
 package eu.darken.butler.apps.core.engine
 
-import eu.darken.butler.apps.core.AppTag
-import eu.darken.butler.apps.core.SortSettings
-import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.common.pkgs.features.InstallId
+import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.SortSettings
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 
 data class AppsState(
     val apps: List<AppItem> = emptyList(),

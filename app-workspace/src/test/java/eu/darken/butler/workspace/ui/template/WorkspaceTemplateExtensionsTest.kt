@@ -5,7 +5,7 @@ import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.templates.core.arguments.TemplatesArguments
+import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe

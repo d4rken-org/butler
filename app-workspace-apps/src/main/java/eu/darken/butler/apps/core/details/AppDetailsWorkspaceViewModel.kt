@@ -12,7 +12,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.apps.core.arguments.DetailTab
 import eu.darken.butler.common.ElevatedAccessUnavailableException
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -23,8 +22,9 @@ import eu.darken.butler.common.pkgs.features.SourceAvailable
 import eu.darken.butler.common.pkgs.isEnabled
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
-import eu.darken.butler.saver.core.arguments.SaverArguments
+import eu.darken.butler.workspace.contracts.apps.DetailTab
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote

@@ -1,8 +1,8 @@
 package eu.darken.butler.workspace.core
 
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
-import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map

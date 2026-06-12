@@ -16,7 +16,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.templates.R
-import eu.darken.butler.templates.core.arguments.TemplatesArguments
+import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
@@ -32,10 +32,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 
 class TemplatesWorkspace @AssistedInject constructor(
@@ -118,13 +116,7 @@ class TemplatesWorkspace @AssistedInject constructor(
 
         override fun create(id: Workspace.Id, arguments: TemplatesArguments): TemplatesWorkspace
 
-        override fun serialize(json: Json, arguments: TemplatesArguments): JsonElement {
-            return json.encodeToJsonElement<TemplatesArguments>(arguments)
-        }
-
-        override fun deserialize(json: Json, element: JsonElement): TemplatesArguments {
-            return json.decodeFromJsonElement<TemplatesArguments>(element)
-        }
+        override val argumentsSerializer: KSerializer<TemplatesArguments> get() = serializer()
     }
 
     @Module

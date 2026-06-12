@@ -7,7 +7,7 @@ import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk

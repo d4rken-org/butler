@@ -13,8 +13,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
-import eu.darken.butler.apps.core.AppTag
-import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.apps.ui.apps.items.colors
 import eu.darken.butler.apps.ui.apps.items.label
 import eu.darken.butler.common.compose.ButlerChip
@@ -23,6 +21,8 @@ import eu.darken.butler.common.compose.ButlerChipDefaults
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 
 @Composable
 fun AppsFilterChipBar(

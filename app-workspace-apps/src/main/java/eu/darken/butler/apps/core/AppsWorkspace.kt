@@ -9,7 +9,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
 import eu.darken.butler.apps.R
-import eu.darken.butler.apps.core.arguments.AppsArguments
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsEngine
 import eu.darken.butler.common.adb.AdbManager
@@ -25,6 +24,10 @@ import eu.darken.butler.common.pkgs.features.InstallId
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.pkgs.pkgops.PkgOpsException
 import eu.darken.butler.common.root.RootManager
+import eu.darken.butler.workspace.contracts.apps.AppsArguments
+import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
+import eu.darken.butler.workspace.contracts.apps.SortSettings
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
@@ -45,10 +48,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 class AppsWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
@@ -356,13 +357,7 @@ class AppsWorkspace @AssistedInject constructor(
     interface Factory : WorkspaceFactory<AppsArguments> {
         override fun create(id: Workspace.Id, arguments: AppsArguments): AppsWorkspace
 
-        override fun serialize(json: Json, arguments: AppsArguments): JsonElement {
-            return json.encodeToJsonElement<AppsArguments>(arguments)
-        }
-
-        override fun deserialize(json: Json, element: JsonElement): AppsArguments {
-            return json.decodeFromJsonElement<AppsArguments>(element)
-        }
+        override val argumentsSerializer: KSerializer<AppsArguments> get() = serializer()
     }
 
     @Module

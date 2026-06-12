@@ -66,7 +66,7 @@ Layer 0:  app-common
 ## Cross-Module Dependency Rules
 
 - **Workspace isolation**: Workspace implementation modules (`explorer`, `searcher`, `editor`, `apps`, `developer`, `saver`, `history`, `templates`) must NOT depend on each other.
-- **Inter-workspace communication**: Goes through `WorkspaceRemote` events and actions, never direct imports. Shared contracts (`*Arguments`, `PickerConfig`) live in `app-workspace`. See `architecture-modal-workspaces.md` for the modal workspace pattern.
+- **Inter-workspace communication**: Goes through `WorkspaceRemote` events and actions, never direct imports. Shared contracts (`*Arguments`, `PickerConfig`/`PickerConstraint`, search filter/query types, apps view/tag types) live in `app-workspace` under `eu.darken.butler.workspace.contracts.<feature>`. A workspace module may import `eu.darken.butler.workspace.*` but never `eu.darken.butler.<other-feature>.*`. See `architecture-modal-workspaces.md` for the modal workspace pattern.
 - **Workspace self-registration**: Each workspace module contributes its own bindings via Hilt multibinding; aggregation happens in `:app`'s dependency graph, with no central wiring code:
     - **Factory**: `@Provides @IntoMap @WorkspaceTypeKey(Workspace.Type.X)` returning `WorkspaceFactory<*>` (nested `FactoryModule` in each `*Workspace.kt`).
     - **Template** (tile in the Templates picker): `@Provides @IntoSet` returning `WorkspaceTemplate` (nested `TemplateModule` in each `*WorkspaceTemplate.kt`). Modules without a user-creatable template (`saver`, app-details, templates itself) simply don't contribute one. Templates self-describe `sortOrder`, `isQuickCreate` (FAB dropdown), and reactive `availability` (e.g. developer mode gating).

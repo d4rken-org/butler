@@ -2,8 +2,6 @@ package eu.darken.butler.screenshots
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import eu.darken.butler.apps.core.SortSettings
-import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePage
 import eu.darken.butler.apps.ui.apps.AppsWorkspaceViewModel
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider
@@ -19,14 +17,16 @@ import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.searcher.ui.search.SearcherWorkspacePage
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
+import eu.darken.butler.workspace.R as WorkspaceR
+import eu.darken.butler.workspace.contracts.apps.SortSettings
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
-import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerScreen
 import eu.darken.butler.workspace.ui.manager.WorkspaceManagerViewModel
+import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import kotlinx.coroutines.flow.MutableStateFlow
-import eu.darken.butler.workspace.R as WorkspaceR
 
 internal const val DS = "spec:width=822px,height=1828px,dpi=320"
 

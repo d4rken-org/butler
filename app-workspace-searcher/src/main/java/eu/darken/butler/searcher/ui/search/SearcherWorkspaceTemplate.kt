@@ -9,7 +9,7 @@ import dagger.multibindings.IntoSet
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.arguments.SearcherArguments
+import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate

@@ -1,6 +1,6 @@
 package eu.darken.butler.workspace.core
 
-import eu.darken.butler.apps.core.arguments.DetailTab
+import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.core.serialization.WorkspaceTypeConverter
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json

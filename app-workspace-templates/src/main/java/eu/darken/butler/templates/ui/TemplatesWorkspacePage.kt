@@ -59,7 +59,7 @@ import androidx.compose.runtime.collectAsState
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.templates.R
-import eu.darken.butler.templates.core.arguments.TemplatesArguments
+import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.icon

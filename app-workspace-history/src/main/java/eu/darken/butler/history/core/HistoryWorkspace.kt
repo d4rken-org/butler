@@ -16,7 +16,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.history.R
-import eu.darken.butler.history.core.arguments.HistoryArguments
+import eu.darken.butler.workspace.contracts.history.HistoryArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
@@ -34,10 +34,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 /**
  * Multi-instance workspace presenting the global Operation History under a per-tab [HistoryFilter].
@@ -115,11 +113,7 @@ class HistoryWorkspace @AssistedInject constructor(
     interface Factory : WorkspaceFactory<HistoryArguments> {
         override fun create(id: Workspace.Id, arguments: HistoryArguments): HistoryWorkspace
 
-        override fun serialize(json: Json, arguments: HistoryArguments): JsonElement =
-            json.encodeToJsonElement<HistoryArguments>(arguments)
-
-        override fun deserialize(json: Json, element: JsonElement): HistoryArguments =
-            json.decodeFromJsonElement<HistoryArguments>(element)
+        override val argumentsSerializer: KSerializer<HistoryArguments> get() = serializer()
     }
 
     companion object {

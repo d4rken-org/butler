@@ -2,7 +2,7 @@ package eu.darken.butler.apps.core.engine
 
 import androidx.annotation.StringRes
 import eu.darken.butler.apps.R
-import eu.darken.butler.apps.core.AppTag
+import eu.darken.butler.workspace.contracts.apps.AppTag
 
 /**
  * UI-related extension properties for [AppTag].

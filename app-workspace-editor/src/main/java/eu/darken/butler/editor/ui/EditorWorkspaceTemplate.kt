@@ -9,7 +9,7 @@ import dagger.multibindings.IntoSet
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.editor.R
-import eu.darken.butler.editor.core.arguments.EditorArguments
+import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 import eu.darken.butler.workspace.ui.template.WorkspaceTemplate

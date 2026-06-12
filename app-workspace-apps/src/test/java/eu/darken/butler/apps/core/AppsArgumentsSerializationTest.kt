@@ -1,7 +1,12 @@
 package eu.darken.butler.apps.core
 
-import eu.darken.butler.apps.core.arguments.AppsArguments
 import eu.darken.butler.common.serialization.SerializationCommonModule
+import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.AppsArguments
+import eu.darken.butler.workspace.contracts.apps.AppsViewStyle
+import eu.darken.butler.workspace.contracts.apps.SortSettings
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
+import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.encodeToJsonElement
 import org.junit.jupiter.api.Test
@@ -140,5 +145,21 @@ class AppsArgumentsSerializationTest : BaseTest() {
             sortSettings = null,
             viewStyle = null,
         )
+    }
+
+    @Test
+    fun `factory serialization matches direct serialization and roundtrips`() {
+        val factory = object : AppsWorkspace.Factory {
+            override fun create(id: Workspace.Id, arguments: AppsArguments): AppsWorkspace = error("unused")
+        }
+        val original = AppsArguments.Default(
+            filterConfig = TagFilterConfig(includeTags = setOf(AppTag.UserApp)),
+            sortSettings = SortSettings(mode = SortSettings.Mode.SIZE, reversed = true),
+        )
+
+        val serialized = factory.serialize(json, original)
+
+        serialized shouldBe json.encodeToJsonElement<AppsArguments>(original)
+        factory.deserialize(json, serialized) shouldBe original
     }
 }

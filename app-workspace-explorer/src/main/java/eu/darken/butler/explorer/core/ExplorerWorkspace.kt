@@ -20,7 +20,6 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.shareLatest
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
@@ -31,7 +30,8 @@ import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.MoveOperation
-import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
@@ -65,10 +65,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 
 class ExplorerWorkspace @AssistedInject constructor(
@@ -438,13 +436,7 @@ class ExplorerWorkspace @AssistedInject constructor(
 
         override fun create(id: Workspace.Id, arguments: ExplorerArguments): ExplorerWorkspace
 
-        override fun serialize(json: Json, arguments: ExplorerArguments): JsonElement {
-            return json.encodeToJsonElement<ExplorerArguments>(arguments)
-        }
-
-        override fun deserialize(json: Json, element: JsonElement): ExplorerArguments {
-            return json.decodeFromJsonElement<ExplorerArguments>(element)
-        }
+        override val argumentsSerializer: KSerializer<ExplorerArguments> get() = serializer()
     }
 
     @Module

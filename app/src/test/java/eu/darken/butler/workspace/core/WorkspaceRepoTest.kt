@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -72,6 +73,9 @@ class WorkspaceRepoTest : BaseTest() {
     private inner class FakeFactory : WorkspaceFactory<Workspace.Arguments> {
         override fun create(id: Workspace.Id, arguments: Workspace.Arguments): Workspace<Workspace.Arguments> =
             FakeWorkspace(id, arguments).also { createdWorkspaces += it }
+
+        override val argumentsSerializer: KSerializer<Workspace.Arguments>
+            get() = throw NotImplementedError("serialize/deserialize are overridden directly")
 
         override fun serialize(json: Json, arguments: Workspace.Arguments): JsonElement = JsonNull
 

@@ -1,7 +1,8 @@
 package eu.darken.butler.templates.core
 
 import eu.darken.butler.common.serialization.SerializationCommonModule
-import eu.darken.butler.templates.core.arguments.TemplatesArguments
+import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
+import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.encodeToJsonElement
 import org.junit.jupiter.api.Test
@@ -66,5 +67,20 @@ class TemplatesArgumentsSerializationTest : BaseTest() {
         val deserialized = json.decodeFromString<TemplatesArguments>(serialized.toString())
 
         deserialized shouldBe original
+    }
+
+    @Test
+    fun `factory serialization matches direct serialization and roundtrips`() {
+        val factory = object : TemplatesWorkspace.Factory {
+            override fun create(id: Workspace.Id, arguments: TemplatesArguments): TemplatesWorkspace = error("unused")
+        }
+        val original = TemplatesArguments.Default(
+            placeholder = "factory-test",
+        )
+
+        val serialized = factory.serialize(json, original)
+
+        serialized shouldBe json.encodeToJsonElement<TemplatesArguments>(original)
+        factory.deserialize(json, serialized) shouldBe original
     }
 }

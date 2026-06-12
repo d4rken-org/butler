@@ -4,7 +4,8 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.serialization.SerializationCommonModule
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -109,5 +110,20 @@ class ExplorerArgumentsSerializationTest : BaseTest() {
         val deserialized = json.decodeFromString<ExplorerArguments>(serialized.toString())
 
         deserialized shouldBe original
+    }
+
+    @Test
+    fun `factory serialization matches direct serialization and roundtrips`() {
+        val factory = object : ExplorerWorkspace.Factory {
+            override fun create(id: Workspace.Id, arguments: ExplorerArguments): ExplorerWorkspace = error("unused")
+        }
+        val original = ExplorerArguments.Default(
+            startPath = LocalPath.build("/sdcard/Download"),
+        )
+
+        val serialized = factory.serialize(json, original)
+
+        serialized shouldBe json.encodeToJsonElement<ExplorerArguments>(original)
+        factory.deserialize(json, serialized) shouldBe original
     }
 }

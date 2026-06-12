@@ -1,7 +1,5 @@
 package eu.darken.butler.apps.core.engine
 
-import eu.darken.butler.apps.core.AppTag
-import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.pkgs.AKnownPkg
 import eu.darken.butler.common.pkgs.Pkg
@@ -9,6 +7,8 @@ import eu.darken.butler.common.pkgs.features.Installed
 import eu.darken.butler.common.pkgs.features.InstallerInfo
 import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.common.user.UserProfile2
+import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe

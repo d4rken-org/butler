@@ -10,8 +10,6 @@ import dagger.hilt.components.SingletonComponent
 import dagger.multibindings.IntoMap
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.AppPath
-import eu.darken.butler.apps.core.arguments.AppDetailsArguments
-import eu.darken.butler.apps.core.arguments.DetailTab
 import eu.darken.butler.common.adb.AdbManager
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -23,6 +21,8 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.pkgs.PkgRepo
 import eu.darken.butler.common.pkgs.pkgs
 import eu.darken.butler.common.root.RootManager
+import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
+import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceFactory
@@ -43,10 +43,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 class AppDetailsWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
@@ -193,13 +191,7 @@ class AppDetailsWorkspace @AssistedInject constructor(
     interface Factory : WorkspaceFactory<AppDetailsArguments> {
         override fun create(id: Workspace.Id, arguments: AppDetailsArguments): AppDetailsWorkspace
 
-        override fun serialize(json: Json, arguments: AppDetailsArguments): JsonElement {
-            return json.encodeToJsonElement(arguments)
-        }
-
-        override fun deserialize(json: Json, element: JsonElement): AppDetailsArguments {
-            return json.decodeFromJsonElement<AppDetailsArguments>(element)
-        }
+        override val argumentsSerializer: KSerializer<AppDetailsArguments> get() = serializer()
     }
 
     @Module

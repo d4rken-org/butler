@@ -1,8 +1,10 @@
-package eu.darken.butler.saver.core.arguments
+package eu.darken.butler.workspace.contracts.saver
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.serialization.SerializationIOModule
+import eu.darken.butler.saver.core.SaverWorkspace
+import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.encodeToJsonElement
 import org.junit.jupiter.api.Test
@@ -131,5 +133,22 @@ class SaverArgumentsSerializationTest : BaseTest() {
         val deserialized = json.decodeFromString<SaverArguments>(serialized.toString())
 
         deserialized shouldBe original
+    }
+
+    @Test
+    fun `factory serialization matches direct serialization and roundtrips`() {
+        val factory = object : SaverWorkspace.Factory {
+            override fun create(id: Workspace.Id, arguments: SaverArguments): SaverWorkspace = error("unused")
+        }
+        val original = SaverArguments.Default(
+            sourceUris = listOf("content://media/external/images/1234"),
+            callerPackage = "com.example.app".toPkgId(),
+            destinationPath = LocalPath.build("/sdcard/Download"),
+        )
+
+        val serialized = factory.serialize(json, original)
+
+        serialized shouldBe json.encodeToJsonElement<SaverArguments>(original)
+        factory.deserialize(json, serialized) shouldBe original
     }
 }

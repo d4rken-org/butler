@@ -40,11 +40,11 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.ContentQuery
-import eu.darken.butler.searcher.core.FilenameQuery
-import eu.darken.butler.searcher.core.SearchTarget
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
+import eu.darken.butler.workspace.contracts.searcher.ContentQuery
+import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
+import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.common.CutoutCard
 import eu.darken.butler.workspace.ui.common.CutoutCardDefaults
@@ -212,7 +212,7 @@ fun SearchToolbarCard(
                 )
 
                 FilterChipBar(
-                    filter = state?.currentFilter ?: eu.darken.butler.searcher.core.SearchFilter(),
+                    filter = state?.currentFilter ?: eu.darken.butler.workspace.contracts.searcher.SearchFilter(),
                     onConditionClick = { onAction(SearcherPageAction.Filter.EditCondition(it)) },
                     onAddSizeCondition = { onAction(SearcherPageAction.Filter.OpenSizeConditionEditor) },
                     onAddDateCondition = { onAction(SearcherPageAction.Filter.OpenDateConditionEditor) },

@@ -4,8 +4,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import eu.darken.butler.apps.core.AppTag
 import eu.darken.butler.apps.core.engine.labelRes
+import eu.darken.butler.workspace.contracts.apps.AppTag
 
 /**
  * Color pair for tag chips.

@@ -1,6 +1,6 @@
 package eu.darken.butler.workspace.core
 
-import eu.darken.butler.templates.core.arguments.TemplatesArguments
+import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 
 sealed interface WorkspaceAction {
     data class Create(

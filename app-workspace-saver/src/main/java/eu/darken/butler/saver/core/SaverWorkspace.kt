@@ -27,9 +27,9 @@ import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.saver.R
-import eu.darken.butler.saver.core.arguments.SaverArguments
 import eu.darken.butler.saver.core.operations.SaveFilesOperation
 import eu.darken.butler.saver.core.operations.SaveFilesReport
+import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
@@ -57,10 +57,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.serializer
 
 class SaverWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
@@ -427,13 +426,7 @@ class SaverWorkspace @AssistedInject constructor(
     interface Factory : WorkspaceFactory<SaverArguments> {
         override fun create(id: Workspace.Id, arguments: SaverArguments): SaverWorkspace
 
-        override fun serialize(json: Json, arguments: SaverArguments): JsonElement {
-            return json.encodeToJsonElement<SaverArguments>(arguments)
-        }
-
-        override fun deserialize(json: Json, element: JsonElement): SaverArguments {
-            return json.decodeFromJsonElement<SaverArguments>(element)
-        }
+        override val argumentsSerializer: KSerializer<SaverArguments> get() = serializer()
     }
 
     companion object {

@@ -1,11 +1,11 @@
 package eu.darken.butler.apps.ui.apps
 
 import androidx.compose.ui.text.input.TextFieldValue
-import eu.darken.butler.apps.core.AppTag
-import eu.darken.butler.apps.core.SortSettings
-import eu.darken.butler.apps.core.TagFilterConfig
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.ui.apps.elements.AppsActionBarItem
+import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.SortSettings
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 
 /**
  * Sealed interface representing all page-level actions in the Apps workspace.
