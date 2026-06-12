@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
@@ -15,14 +16,15 @@ interface WorkspaceFactory<ArgT : Workspace.Arguments> {
     fun create(id: Workspace.Id, arguments: ArgT): Workspace<ArgT>
 
     /**
-     * Serialize workspace arguments to JSON.
-     * Each factory knows its concrete Arguments type and can serialize it properly.
+     * Serializer for the concrete Arguments type.
+     * Implement as a defaulted property (`get() = ...`) so `create` stays
+     * the only abstract method, as required by @AssistedFactory.
      */
-    fun serialize(json: Json, arguments: ArgT): JsonElement
+    val argumentsSerializer: KSerializer<ArgT>
 
-    /**
-     * Deserialize JSON to workspace arguments.
-     * Each factory knows its concrete Arguments type and can deserialize it properly.
-     */
-    fun deserialize(json: Json, element: JsonElement): ArgT
+    fun serialize(json: Json, arguments: ArgT): JsonElement =
+        json.encodeToJsonElement(argumentsSerializer, arguments)
+
+    fun deserialize(json: Json, element: JsonElement): ArgT =
+        json.decodeFromJsonElement(argumentsSerializer, element)
 }

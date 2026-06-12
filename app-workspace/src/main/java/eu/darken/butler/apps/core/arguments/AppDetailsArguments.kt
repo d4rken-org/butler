@@ -3,8 +3,8 @@ package eu.darken.butler.apps.core.arguments
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * Arguments for launching an App Details workspace.
@@ -16,14 +16,16 @@ import kotlinx.serialization.Serializable
  *
  * @param packageName The package name of the app to display details for
  * @param initialTab The tab to show initially (defaults to OVERVIEW)
- * @param callerWorkspaceId If set, this workspace will render as a modal
+ * @param callerWorkspaceId If set, this workspace will render as a modal. Session-transient:
+ * caller relationships are not persisted because sub-workspaces are excluded from session
+ * save and a restored caller could not receive results anyway.
  */
 @Serializable
 @Parcelize
 data class AppDetailsArguments(
     val packageName: String,
     val initialTab: DetailTab = DetailTab.OVERVIEW,
-    @Contextual override val callerWorkspaceId: Workspace.Id? = null,
+    @Transient override val callerWorkspaceId: Workspace.Id? = null,
 ) : Workspace.ArgumentsWithCaller {
     @IgnoredOnParcel
     override val type: Workspace.Type = Workspace.Type.APP_DETAILS

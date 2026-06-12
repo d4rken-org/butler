@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import eu.darken.butler.editor.core.arguments.EditorArguments
+import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -125,5 +126,22 @@ class EditorArgumentsSerializationTest : BaseTest() {
                 "scrollToLine": 90
             }
         """.toComparableJson()
+    }
+
+    @Test
+    fun `factory serialization matches direct serialization and roundtrips`() {
+        val factory = object : EditorWorkspace.Factory {
+            override fun create(id: Workspace.Id, arguments: EditorArguments): EditorWorkspace = error("unused")
+        }
+        val original = EditorArguments.Default(
+            filePath = LocalPath.build("/sdcard/document.md"),
+            cursorLine = 42,
+            cursorColumn = 10,
+        )
+
+        val serialized = factory.serialize(json, original)
+
+        serialized shouldBe json.encodeToJsonElement<EditorArguments>(original)
+        factory.deserialize(json, serialized) shouldBe original
     }
 }

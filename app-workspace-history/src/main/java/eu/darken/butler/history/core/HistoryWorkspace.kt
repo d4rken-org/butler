@@ -25,10 +25,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 /**
  * Multi-instance workspace presenting the global Operation History under a per-tab [HistoryFilter].
@@ -100,11 +98,7 @@ class HistoryWorkspace @AssistedInject constructor(
     interface Factory : WorkspaceFactory<HistoryArguments> {
         override fun create(id: Workspace.Id, arguments: HistoryArguments): HistoryWorkspace
 
-        override fun serialize(json: Json, arguments: HistoryArguments): JsonElement =
-            json.encodeToJsonElement<HistoryArguments>(arguments)
-
-        override fun deserialize(json: Json, element: JsonElement): HistoryArguments =
-            json.decodeFromJsonElement<HistoryArguments>(element)
+        override val argumentsSerializer: KSerializer<HistoryArguments> get() = serializer()
     }
 
     companion object {
