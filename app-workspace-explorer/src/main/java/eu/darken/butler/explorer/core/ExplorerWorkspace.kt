@@ -58,10 +58,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -432,12 +430,6 @@ class ExplorerWorkspace @AssistedInject constructor(
 
         override fun create(id: Workspace.Id, arguments: ExplorerArguments): ExplorerWorkspace
 
-        override fun serialize(json: Json, arguments: ExplorerArguments): JsonElement {
-            return json.encodeToJsonElement<ExplorerArguments>(arguments)
-        }
-
-        override fun deserialize(json: Json, element: JsonElement): ExplorerArguments {
-            return json.decodeFromJsonElement<ExplorerArguments>(element)
-        }
+        override val argumentsSerializer: KSerializer<ExplorerArguments> get() = serializer()
     }
 }

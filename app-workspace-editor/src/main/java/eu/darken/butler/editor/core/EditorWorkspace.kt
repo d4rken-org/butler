@@ -47,10 +47,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 import okio.buffer
 import okio.use
 
@@ -553,13 +551,7 @@ class EditorWorkspace @AssistedInject constructor(
 
         override fun create(id: Workspace.Id, arguments: EditorArguments): EditorWorkspace
 
-        override fun serialize(json: Json, arguments: EditorArguments): JsonElement {
-            return json.encodeToJsonElement<EditorArguments>(arguments)
-        }
-
-        override fun deserialize(json: Json, element: JsonElement): EditorArguments {
-            return json.decodeFromJsonElement<EditorArguments>(element)
-        }
+        override val argumentsSerializer: KSerializer<EditorArguments> get() = serializer()
     }
 
 }

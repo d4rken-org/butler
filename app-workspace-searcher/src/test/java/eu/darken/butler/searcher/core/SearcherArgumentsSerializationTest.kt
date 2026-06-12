@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.serialization.SerializationCommonModule
 import eu.darken.butler.searcher.core.arguments.SearcherArguments
+import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -98,5 +99,25 @@ class SearcherArgumentsSerializationTest : BaseTest() {
         val deserialized = json.decodeFromString<SearcherArguments>(serialized.toString())
 
         deserialized shouldBe original
+    }
+
+    @Test
+    fun `factory serialization matches direct serialization and roundtrips`() {
+        val factory = object : SearcherWorkspace.Factory {
+            override fun create(id: Workspace.Id, arguments: SearcherArguments): SearcherWorkspace = error("unused")
+        }
+        val original = SearcherArguments.Default(
+            startTargets = listOf(
+                SearchTarget.Path(
+                    path = LocalPath.build("/sdcard/Download"),
+                    enabled = true,
+                ),
+            ),
+        )
+
+        val serialized = factory.serialize(json, original)
+
+        serialized shouldBe json.encodeToJsonElement<SearcherArguments>(original)
+        factory.deserialize(json, serialized) shouldBe original
     }
 }

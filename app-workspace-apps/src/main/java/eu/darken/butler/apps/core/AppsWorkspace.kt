@@ -39,10 +39,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 class AppsWorkspace @AssistedInject constructor(
     @Assisted override val id: Workspace.Id,
@@ -350,12 +348,6 @@ class AppsWorkspace @AssistedInject constructor(
     interface Factory : WorkspaceFactory<AppsArguments> {
         override fun create(id: Workspace.Id, arguments: AppsArguments): AppsWorkspace
 
-        override fun serialize(json: Json, arguments: AppsArguments): JsonElement {
-            return json.encodeToJsonElement<AppsArguments>(arguments)
-        }
-
-        override fun deserialize(json: Json, element: JsonElement): AppsArguments {
-            return json.decodeFromJsonElement<AppsArguments>(element)
-        }
+        override val argumentsSerializer: KSerializer<AppsArguments> get() = serializer()
     }
 }

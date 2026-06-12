@@ -40,10 +40,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 
 class SearcherWorkspace @AssistedInject constructor(
@@ -423,12 +421,6 @@ class SearcherWorkspace @AssistedInject constructor(
 
         override fun create(id: Workspace.Id, arguments: SearcherArguments): SearcherWorkspace
 
-        override fun serialize(json: Json, arguments: SearcherArguments): JsonElement {
-            return json.encodeToJsonElement<SearcherArguments>(arguments)
-        }
-
-        override fun deserialize(json: Json, element: JsonElement): SearcherArguments {
-            return json.decodeFromJsonElement<SearcherArguments>(element)
-        }
+        override val argumentsSerializer: KSerializer<SearcherArguments> get() = serializer()
     }
 }
