@@ -54,7 +54,7 @@ androidx-test-junit-android = "1.1.3"
 androidx-test-junit-unit = "1.2.1"
 androidx-test-runner = "1.4.0"
 espresso = "3.4.0"
-robolectric = "4.14.1"
+robolectric = "4.16.1"
 arch-core-testing = "1.1.1"
 # Testing (app-common-test pins newer versions; align via Dependabot later)
 jupiter-ct = "5.13.0"
