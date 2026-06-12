@@ -14,7 +14,7 @@
 ### Foundation Modules
 
 - `app-common`: Core shared utilities, base architecture components, custom ViewModel hierarchy, theming system.
-- `app-common-test`: Testing utilities, helpers, and base test classes for all modules.
+- `app-common-test`: Testing utilities, helpers, and base test classes for all modules (test-only, consumed via `testImplementation`).
 
 ### Platform Integration Modules
 
@@ -33,8 +33,12 @@
 - `app-workspace-apps`: Application management workspace.
 - `app-workspace-developer`: Developer tools workspace.
 - `app-workspace-saver`: File save/export workspace.
-- `app-workspace-debug`: Debug workspace for development.
+- `app-workspace-history`: File operation history workspace.
 - `app-workspace-templates`: Workspace template management and type switching.
+
+### Provider Modules
+
+- `app-provider-documents`: Android `DocumentsProvider` integration, exposing Butler's storage to other apps via SAF.
 
 ## Dependency Diagram
 
@@ -43,27 +47,28 @@ Each layer depends only on layers below it. Arrows point downward (dependency di
 ```
 Layer 6:  app
             │
-Layer 5:  app-workspace-templates  (aggregates all workspace types)
+Layer 5:  app-workspace-templates  (aggregates workspace types for type switching)
             │
 Layer 4:  workspace-explorer, workspace-searcher, workspace-editor,
-          workspace-apps, workspace-developer, workspace-saver, workspace-debug
+          workspace-apps, workspace-developer, workspace-saver, workspace-history
             │
-Layer 3:  app-workspace
+Layer 3:  app-workspace          app-provider-documents
             │
 Layer 2:  app-common-io  (integrates root/adb/shell via gateways)
           app-common-pkgs
             │
 Layer 1:  app-common-root, app-common-adb, app-common-shell
-          app-common-test
             │
 Layer 0:  app-common
 ```
 
+`app-common-test` sits outside the production layering: it depends on `app-common` and `app-common-io` and is consumed by all modules via `testImplementation` only.
+
 ## Cross-Module Dependency Rules
 
-- **Workspace isolation**: Workspace implementation modules (`explorer`, `searcher`, `editor`, `apps`, `developer`, `saver`, `debug`) must NOT depend on each other.
-- **Inter-workspace communication**: Goes through `WorkspaceRemote` events and actions, never direct imports. See `architecture-modal-workspaces.md` for the modal workspace pattern.
-- **Exception — templates**: `app-workspace-templates` depends on all workspace modules because it needs their template factories for type switching.
+- **Workspace isolation**: Workspace implementation modules (`explorer`, `searcher`, `editor`, `apps`, `developer`, `saver`, `history`) must NOT depend on each other.
+- **Inter-workspace communication**: Goes through `WorkspaceRemote` events and actions, never direct imports. Shared contracts (`*Arguments`, `PickerConfig`) live in `app-workspace`. See `architecture-modal-workspaces.md` for the modal workspace pattern.
+- **Exception — templates**: `app-workspace-templates` depends on the workspace modules whose template factories it aggregates for type switching (currently `explorer`, `searcher`, `editor`, `apps`, `developer`, `history` — not `saver`).
 - **File operations**: New modules should depend on `app-common-io` for file operations via `GatewaySwitch`. Never depend directly on `app-common-root`, `app-common-adb`, or `app-common-shell` — those are internal to the gateway layer.
 
 ## APath & Gateway Pattern
