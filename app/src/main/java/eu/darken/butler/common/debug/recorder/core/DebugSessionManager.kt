@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -61,7 +63,11 @@ class DebugSessionManager @Inject constructor(
         }
         val overlaid = applyOverlays(raw, zipping, failedZips)
 
-        val orphans = findOrphans(overlaid, zipping)
+        // Orphan detection reads the LIVE zippingIds/failedZipIds instead of this emission's
+        // captured values: a scan queued before a zip claimed its id would otherwise run with a
+        // stale set and schedule a duplicate zip. The captured values are only used for the
+        // display overlays, where a stale frame is corrected by the refresh() on zip completion.
+        val orphans = findOrphans(raw, zippingIds.value, failedZipIds.value)
         orphans.forEach { (id, dir) ->
             if (pendingAutoZips.add(id)) {
                 appScope.launch {
@@ -93,7 +99,10 @@ class DebugSessionManager @Inject constructor(
                 )
             }
 
-            session.id in failedZips && session !is DebugSession.Failed -> {
+            // A valid zip found on disk wins over a stale failure overlay: a successful retry
+            // must not keep presenting the session as Failed.
+            session.id in failedZips && session !is DebugSession.Failed &&
+                (session as? DebugSession.Ready)?.zipFile == null -> {
                 val ready = session as? DebugSession.Ready
                 val path = ready?.logDir ?: ready?.zipFile
                 if (path == null) log(TAG, WARN) { "No logDir/zipFile for failed-zip session: ${session.id}" }
@@ -114,20 +123,54 @@ class DebugSessionManager @Inject constructor(
     private fun findOrphans(
         sessions: List<DebugSession>,
         zipping: Set<String>,
+        failedZips: Set<String>,
     ): List<Pair<String, File>> {
+        // failedZips sessions are excluded so a failing zip isn't endlessly re-attempted on
+        // every scan. One auto-zip attempt per process; the user can retry via Share, which
+        // goes through zipSession().
         return sessions.filterIsInstance<DebugSession.Ready>()
-            .filter { it.logDir != null && it.id !in zipping }
+            .filter { it.logDir != null && it.id !in zipping && it.id !in failedZips }
             .filter { it.zipFile == null || it.compressedSize == 0L }
             .map { it.id to it.logDir!! }
     }
 
+    /** Atomically claim the per-session zip slot; returns false if another zip owns it. */
+    private fun tryClaimZip(sessionId: String): Boolean =
+        sessionId !in zippingIds.getAndUpdate { it + sessionId }
+
+    /** Claim the per-session zip slot, suspending until any in-flight zip releases it. */
+    private suspend fun claimZip(sessionId: String) {
+        while (!tryClaimZip(sessionId)) {
+            log(TAG) { "Waiting for in-flight zip of $sessionId before claiming" }
+            zippingIds.first { sessionId !in it }
+        }
+    }
+
     private fun zipSessionAsync(sessionId: String, logDir: File) {
-        zippingIds.update { it + sessionId }
+        // A stale scan can request a zip for a session that's already being zipped (e.g. the
+        // orphan auto-zip racing requestStopRecording's own zip). Only one job may own the
+        // claim — a duplicate would otherwise release the shared zippingIds entry while the
+        // other zip is still running, dropping the Compressing overlay early and disarming
+        // deleteSession's in-flight guard.
+        if (!tryClaimZip(sessionId)) {
+            log(TAG) { "Skipping duplicate zip for $sessionId, already in flight" }
+            pendingAutoZips.remove(sessionId)
+            return
+        }
         appScope.launch(dispatcherProvider.IO) {
             try {
                 fsMutex.withLock {
-                    debugLogZipper.zip(logDir)
+                    // A scan that straddled a completed zip can request a redundant re-zip:
+                    // its raw result predates the zip, but the live orphan check ran after the
+                    // claim was released. Re-check the disk before doing the work again.
+                    val existingZip = File(logDir.parentFile, "${logDir.name}.zip")
+                    if (existingZip.length() > 0 && existingZip.lastModified() >= logDir.lastModified()) {
+                        log(TAG) { "Valid zip already exists for $sessionId, skipping" }
+                    } else {
+                        debugLogZipper.zip(logDir)
+                    }
                 }
+                failedZipIds.update { it - sessionId }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -164,21 +207,42 @@ class DebugSessionManager @Inject constructor(
 
     private fun activeSessionId(): String? = recorderManager.currentLogDir?.let { deriveSessionId(it) }
 
-    suspend fun zipSession(sessionId: String): File = fsMutex.withLock {
-        // Do NOT call sessions.first() here — deadlock risk with fsMutex
-        require(activeSessionId() != sessionId) { "Cannot zip an active recording session" }
+    suspend fun zipSession(sessionId: String): File {
+        // Claim BEFORE fsMutex (same order as zipSessionAsync, avoiding lock inversion). The
+        // claim presents the session as Compressing and keeps deleteSession away from it.
+        claimZip(sessionId)
+        try {
+            return fsMutex.withLock {
+                // Do NOT call sessions.first() here — deadlock risk with fsMutex
+                require(activeSessionId() != sessionId) { "Cannot zip an active recording session" }
 
-        val (dir, existingZip) = findSessionFiles(sessionId)
+                val (dir, existingZip) = findSessionFiles(sessionId)
 
-        if (existingZip != null && existingZip.length() > 0) {
-            if (dir == null || existingZip.lastModified() >= dir.lastModified()) {
-                return@withLock existingZip
+                if (existingZip != null && existingZip.length() > 0) {
+                    if (dir == null || existingZip.lastModified() >= dir.lastModified()) {
+                        failedZipIds.update { it - sessionId }
+                        return@withLock existingZip
+                    }
+                }
+
+                requireNotNull(dir) { "No log directory found for session $sessionId" }
+                // The failure marker only clears on proven success — clearing it upfront would
+                // re-qualify the session as an auto-zip orphan if this retry fails too.
+                val zip = try {
+                    withContext(dispatcherProvider.IO) {
+                        debugLogZipper.zip(dir)
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    failedZipIds.update { it + sessionId }
+                    throw e
+                }
+                failedZipIds.update { it - sessionId }
+                zip
             }
-        }
-
-        requireNotNull(dir) { "No log directory found for session $sessionId" }
-        withContext(dispatcherProvider.IO) {
-            debugLogZipper.zip(dir)
+        } finally {
+            zippingIds.update { it - sessionId }
         }
     }
 
@@ -199,6 +263,14 @@ class DebugSessionManager @Inject constructor(
             }
             if (zip?.delete() == false) {
                 log(TAG, WARN) { "Failed to delete session zip: ${zip.path}" }
+            }
+            // A .zip.tmp left behind by an interrupted zip of this session
+            val baseName = sessionId.removePrefix("ext:").removePrefix("cache:")
+            recorderManager.getLogDirectories().forEach { parent ->
+                val tmp = File(parent, "$baseName.zip.tmp")
+                if (deriveSessionId(File(parent, baseName)) == sessionId && tmp.exists() && !tmp.delete()) {
+                    log(TAG, WARN) { "Failed to delete session zip temp: ${tmp.path}" }
+                }
             }
         }
         failedZipIds.update { it - sessionId }
