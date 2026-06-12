@@ -1,8 +1,13 @@
 package eu.darken.butler.searcher.core
 
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -23,6 +28,7 @@ import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
@@ -426,5 +432,14 @@ class SearcherWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: SearcherArguments): SearcherWorkspace
 
         override val argumentsSerializer: KSerializer<SearcherArguments> get() = serializer()
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.SEARCHER)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }

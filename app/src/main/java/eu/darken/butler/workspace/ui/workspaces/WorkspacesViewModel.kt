@@ -19,6 +19,7 @@ import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.PendingWorkspaceConfirmation
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
@@ -51,6 +52,7 @@ class WorkspacesViewModel @Inject constructor(
     private val motdRepo: MotdRepo,
     private val webpageTool: WebpageTool,
     private val errorReportTool: ErrorReportTool,
+    val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM")) {
 
     private val hiddenMotdIds = MutableStateFlow<Set<Uuid>>(emptySet())

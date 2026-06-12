@@ -1,8 +1,13 @@
 package eu.darken.butler.templates.core
 
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.Bugs
@@ -14,6 +19,7 @@ import eu.darken.butler.templates.R
 import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
@@ -111,5 +117,14 @@ class TemplatesWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: TemplatesArguments): TemplatesWorkspace
 
         override val argumentsSerializer: KSerializer<TemplatesArguments> get() = serializer()
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.TEMPLATES)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }

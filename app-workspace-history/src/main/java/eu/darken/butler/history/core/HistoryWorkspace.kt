@@ -1,8 +1,13 @@
 package eu.darken.butler.history.core
 
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -14,6 +19,7 @@ import eu.darken.butler.history.R
 import eu.darken.butler.workspace.contracts.history.HistoryArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.history.HistoryFilter
@@ -142,5 +148,14 @@ class HistoryWorkspace @AssistedInject constructor(
                 else -> ctx.getString(R.string.history_workspace_title_filtered)
             }
         }
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.HISTORY)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }

@@ -1,6 +1,11 @@
 package eu.darken.butler.history.ui
 
 import androidx.compose.ui.graphics.vector.ImageVector
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.history.R
@@ -19,4 +24,15 @@ data class HistoryWorkspaceTemplate(
 
     override val icon: ImageVector
         get() = type.icon
+
+    override val sortOrder: Int
+        get() = 50
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object TemplateModule {
+        @Provides
+        @IntoSet
+        fun template(): WorkspaceTemplate = HistoryWorkspaceTemplate()
+    }
 }

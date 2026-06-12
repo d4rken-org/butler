@@ -2,9 +2,14 @@ package eu.darken.butler.saver.core
 
 import android.net.Uri
 import androidx.core.net.toUri
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
 import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -27,6 +32,7 @@ import eu.darken.butler.saver.core.operations.SaveFilesReport
 import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
@@ -425,5 +431,14 @@ class SaverWorkspace @AssistedInject constructor(
 
     companion object {
         private const val UNKNOWN_CALLER_LABEL = "?"
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.SAVER)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }

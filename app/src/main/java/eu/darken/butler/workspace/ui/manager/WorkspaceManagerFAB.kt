@@ -39,14 +39,17 @@ import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.workspace.core.Workspace
-import eu.darken.butler.workspace.core.icon
+import eu.darken.butler.workspace.ui.template.QuickCreateItem
 import kotlinx.coroutines.launch
 
 @Composable
 fun WorkspaceManagerFAB(
     workspaceCount: Int,
+    quickCreateItems: List<QuickCreateItem>,
     onCreateWorkspace: (Workspace.Type) -> Unit,
+    onQuickCreate: (QuickCreateItem) -> Unit,
     onShowCloseAllDialog: () -> Unit,
     modifier: Modifier = Modifier,
     showLongPressHint: Boolean = true,
@@ -57,15 +60,6 @@ fun WorkspaceManagerFAB(
     val hapticFeedback = LocalHapticFeedback.current
     val tooltipState = rememberTooltipState(isPersistent = true)
     val scope = rememberCoroutineScope()
-
-    val orderedTypes = remember {
-        listOf(
-            Workspace.Type.EXPLORER,
-            Workspace.Type.SEARCHER,
-            Workspace.Type.EDITOR,
-            Workspace.Type.APPS,
-        )
-    }
 
     Box(modifier = modifier) {
         TooltipBox(
@@ -134,26 +128,15 @@ fun WorkspaceManagerFAB(
             onDismissRequest = { showDropdown = false },
             offset = DpOffset(x = 0.dp, y = (-8).dp)
         ) {
-            // Type-safe dropdown: iterate through ordered workspace types
-            orderedTypes.forEach { type ->
+            quickCreateItems.forEach { item ->
                 DropdownMenuItem(
-                    text = {
-                        Text(
-                            when (type) {
-                                Workspace.Type.EXPLORER -> stringResource(R.string.workspace_fab_explorer)
-                                Workspace.Type.SEARCHER -> stringResource(R.string.workspace_fab_search)
-                                Workspace.Type.EDITOR -> stringResource(R.string.workspace_fab_editor)
-                                Workspace.Type.APPS -> stringResource(R.string.workspace_fab_apps)
-                                else -> throw UnsupportedOperationException("$type is not supported.")
-                            }
-                        )
-                    },
+                    text = { Text(item.title.asComposable()) },
                     onClick = {
-                        onCreateWorkspace(type)
+                        onQuickCreate(item)
                         showDropdown = false
                     },
                     leadingIcon = {
-                        Icon(type.icon, contentDescription = null)
+                        Icon(item.icon, contentDescription = null)
                     }
                 )
             }
@@ -190,7 +173,9 @@ fun WorkspaceManagerFAB(
 private fun WorkspaceManagerFABPreview() {
     WorkspaceManagerFAB(
         workspaceCount = 3,
+        quickCreateItems = emptyList(),
         onCreateWorkspace = {},
+        onQuickCreate = {},
         onShowCloseAllDialog = {},
         showLongPressHint = true,
         onDismissLongPressHint = {}

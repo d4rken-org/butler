@@ -1,8 +1,13 @@
 package eu.darken.butler.apps.core
 
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
 import eu.darken.butler.apps.R
 import eu.darken.butler.apps.core.engine.AppItem
 import eu.darken.butler.apps.core.engine.AppsEngine
@@ -25,6 +30,7 @@ import eu.darken.butler.workspace.contracts.apps.SortSettings
 import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
 import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -352,5 +358,14 @@ class AppsWorkspace @AssistedInject constructor(
         override fun create(id: Workspace.Id, arguments: AppsArguments): AppsWorkspace
 
         override val argumentsSerializer: KSerializer<AppsArguments> get() = serializer()
+    }
+
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.APPS)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
     }
 }

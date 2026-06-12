@@ -16,8 +16,13 @@ import eu.darken.butler.workspace.core.WorkspaceSettings
 import eu.darken.butler.workspace.core.defaultArguments
 import eu.darken.butler.workspace.ui.WorkspacePageManager
 import eu.darken.butler.workspace.ui.manager.preview.WorkspacePreviewManager
+import eu.darken.butler.workspace.ui.template.QuickCreateItem
+import eu.darken.butler.workspace.ui.template.WorkspaceTemplate
+import eu.darken.butler.workspace.ui.template.availableTemplates
+import eu.darken.butler.workspace.ui.template.toQuickCreateItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -29,10 +34,14 @@ class WorkspaceManagerViewModel @Inject constructor(
     private val workspaceSettings: WorkspaceSettings,
     private val workspacePageManager: WorkspacePageManager,
     private val workspacePreviewManager: WorkspacePreviewManager,
+    workspaceTemplates: Set<@JvmSuppressWildcards WorkspaceTemplate>,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Manager", "VM")) {
 
     private val filterOperationsFlow = MutableStateFlow(false)
     private val filterAttentionFlow = MutableStateFlow(false)
+
+    private val quickCreateItems = workspaceTemplates.availableTemplates()
+        .map { templates -> templates.filter { it.isQuickCreate }.map { it.toQuickCreateItem() } }
 
     val state = combine(
         workspaceRepo.state,
@@ -42,7 +51,8 @@ class WorkspaceManagerViewModel @Inject constructor(
         workspacePageManager.state,
         filterOperationsFlow,
         filterAttentionFlow,
-    ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState, filterOps, filterAtt ->
+        quickCreateItems,
+    ) { repoState, showBadge, showFabLongPressHint, livePreview, pageManagerState, filterOps, filterAtt, quickCreate ->
         State(
             workspaces = repoState.infos.map { info ->
                 val panePosition = pageManagerState.selectedWorkspaces.entries
@@ -67,6 +77,7 @@ class WorkspaceManagerViewModel @Inject constructor(
             currentPaneCount = pageManagerState.currentPaneCount,
             filterOperations = filterOps,
             filterAttention = filterAtt,
+            quickCreateItems = quickCreate,
         )
     }.asStateFlow()
 
@@ -96,9 +107,11 @@ class WorkspaceManagerViewModel @Inject constructor(
         navigateBack()
     }
 
-    fun createWorkspace(type: Workspace.Type) = launch {
+    fun createWorkspace(item: QuickCreateItem) = createWorkspace(item.type, item.arguments)
+
+    fun createWorkspace(type: Workspace.Type, arguments: Workspace.Arguments? = null) = launch {
         log(tag) { "createWorkspace($type)" }
-        val args = type.defaultArguments ?: return@launch
+        val args = arguments ?: type.defaultArguments ?: return@launch
         when (val result = workspaceRepo.execute(WorkspaceAction.Create(type, args))) {
             is WorkspaceAction.Create.Result.Success -> {
                 log(tag) { "Workspace created: ${result.newId}" }
@@ -162,6 +175,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         val currentPaneCount: Int = 1,
         val filterOperations: Boolean = false,
         val filterAttention: Boolean = false,
+        val quickCreateItems: List<QuickCreateItem> = emptyList(),
     ) {
         val workspaceCount: Int = workspaces.size
 

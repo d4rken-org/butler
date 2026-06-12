@@ -47,10 +47,9 @@ Each layer depends only on layers below it. Arrows point downward (dependency di
 ```
 Layer 6:  app
             │
-Layer 5:  app-workspace-templates  (aggregates workspace types for type switching)
-            │
 Layer 4:  workspace-explorer, workspace-searcher, workspace-editor,
-          workspace-apps, workspace-developer, workspace-saver, workspace-history
+          workspace-apps, workspace-developer, workspace-saver, workspace-history,
+          workspace-templates
             │
 Layer 3:  app-workspace          app-provider-documents
             │
@@ -66,9 +65,14 @@ Layer 0:  app-common
 
 ## Cross-Module Dependency Rules
 
-- **Workspace isolation**: Workspace implementation modules (`explorer`, `searcher`, `editor`, `apps`, `developer`, `saver`, `history`) must NOT depend on each other.
+- **Workspace isolation**: Workspace implementation modules (`explorer`, `searcher`, `editor`, `apps`, `developer`, `saver`, `history`, `templates`) must NOT depend on each other.
 - **Inter-workspace communication**: Goes through `WorkspaceRemote` events and actions, never direct imports. Shared contracts (`*Arguments`, `PickerConfig`/`PickerConstraint`, search filter/query types, apps view/tag types) live in `app-workspace` under `eu.darken.butler.workspace.contracts.<feature>`. A workspace module may import `eu.darken.butler.workspace.*` but never `eu.darken.butler.<other-feature>.*`. See `architecture-modal-workspaces.md` for the modal workspace pattern.
-- **Exception — templates**: `app-workspace-templates` depends on the workspace modules whose template factories it aggregates for type switching (currently `explorer`, `searcher`, `editor`, `apps`, `developer`, `history` — not `saver`).
+- **Workspace self-registration**: Each workspace module contributes its own bindings via Hilt multibinding; aggregation happens in `:app`'s dependency graph, with no central wiring code:
+    - **Factory**: `@Provides @IntoMap @WorkspaceTypeKey(Workspace.Type.X)` returning `WorkspaceFactory<*>` (nested `FactoryModule` in each `*Workspace.kt`).
+    - **Template** (tile in the Templates picker): `@Provides @IntoSet` returning `WorkspaceTemplate` (nested `TemplateModule` in each `*WorkspaceTemplate.kt`). Modules without a user-creatable template (`saver`, app-details, templates itself) simply don't contribute one. Templates self-describe `sortOrder`, `isQuickCreate` (FAB dropdown), and reactive `availability` (e.g. developer mode gating).
+    - **Page host**: `@Provides @IntoMap @WorkspaceTypeKey(...)` returning `WorkspacePageHostEntry` (stateless composable delegate); distributed to the UI via the `LocalWorkspacePageHosts` CompositionLocal.
+    - **Hard requirement**: `:app`'s direct `implementation(project(...))` dependency on each workspace module is what keeps these contributions in the Hilt graph — removing one silently drops its bindings. `WorkspaceRegistryValidator` asserts registry completeness at startup in debug builds.
+    - `Workspace.Type.icon`/`label`/`defaultArguments` intentionally stay as exhaustive `when`s in `app-workspace`: they reference only module-local classes/resources, and exhaustiveness makes the compiler enforce updates when a type is added.
 - **File operations**: New modules should depend on `app-common-io` for file operations via `GatewaySwitch`. Never depend directly on `app-common-root`, `app-common-adb`, or `app-common-shell` — those are internal to the gateway layer.
 
 ## APath & Gateway Pattern

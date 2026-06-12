@@ -1,8 +1,13 @@
 package eu.darken.butler.editor.core
 
+import dagger.Module
+import dagger.Provides
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoMap
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -23,6 +28,7 @@ import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
+import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
@@ -554,4 +560,12 @@ class EditorWorkspace @AssistedInject constructor(
         override val argumentsSerializer: KSerializer<EditorArguments> get() = serializer()
     }
 
+    @Module
+    @InstallIn(SingletonComponent::class)
+    object FactoryModule {
+        @Provides
+        @IntoMap
+        @WorkspaceTypeKey(Workspace.Type.EDITOR)
+        fun factory(factory: Factory): WorkspaceFactory<*> = factory
+    }
 }
