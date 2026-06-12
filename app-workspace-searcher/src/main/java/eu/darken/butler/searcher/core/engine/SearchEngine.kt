@@ -17,7 +17,7 @@ import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
-import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.core.Workspace

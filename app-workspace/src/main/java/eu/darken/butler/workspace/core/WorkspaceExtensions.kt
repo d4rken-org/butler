@@ -11,15 +11,15 @@ import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.ui.graphics.vector.ImageVector
-import eu.darken.butler.apps.core.arguments.AppsArguments
+import eu.darken.butler.workspace.contracts.apps.AppsArguments
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
-import eu.darken.butler.developer.core.arguments.DeveloperArguments
-import eu.darken.butler.editor.core.arguments.EditorArguments
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
-import eu.darken.butler.history.core.arguments.HistoryArguments
-import eu.darken.butler.searcher.core.arguments.SearcherArguments
-import eu.darken.butler.templates.core.arguments.TemplatesArguments
+import eu.darken.butler.workspace.contracts.developer.DeveloperArguments
+import eu.darken.butler.workspace.contracts.editor.EditorArguments
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.history.HistoryArguments
+import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
+import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import eu.darken.butler.workspace.R
 
 val Workspace.Type.icon: ImageVector

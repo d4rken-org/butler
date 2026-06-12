@@ -11,12 +11,12 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.pkgs.toPkgId
 import eu.darken.butler.common.storage.DocumentUriResolver
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.editor.core.arguments.EditorArguments
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
+import eu.darken.butler.workspace.contracts.editor.EditorArguments
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.themeState
 import eu.darken.butler.main.core.themeStateBlocking
-import eu.darken.butler.saver.core.arguments.SaverArguments
+import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceRemote

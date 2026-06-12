@@ -22,7 +22,7 @@ import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.saver.R
-import eu.darken.butler.saver.core.arguments.SaverArguments
+import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.saver.core.operations.SaveFilesOperation
 import eu.darken.butler.saver.core.operations.SaveFilesReport
 import eu.darken.butler.workspace.core.Workspace

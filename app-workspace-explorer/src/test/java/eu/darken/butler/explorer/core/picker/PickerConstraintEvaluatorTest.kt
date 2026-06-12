@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.core.picker
+package eu.darken.butler.workspace.contracts.explorer
 
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APathLookup

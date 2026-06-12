@@ -35,7 +35,7 @@ import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.trash.TrashManager
 import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.editor.core.arguments.EditorArguments
+import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.DefaultStartLocation
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
@@ -51,13 +51,13 @@ import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.PatternMatcher
 import eu.darken.butler.explorer.core.SortSettings
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerItem.Path.Companion.toPathItemId
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
-import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
 import eu.darken.butler.explorer.ui.explorer.actions.ExplorerActionBarItem

@@ -10,7 +10,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.searcher.core.ContentQuery
+import eu.darken.butler.workspace.contracts.searcher.ContentQuery
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.withContext

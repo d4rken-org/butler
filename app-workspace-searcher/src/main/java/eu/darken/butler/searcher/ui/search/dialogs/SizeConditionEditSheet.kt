@@ -38,8 +38,8 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.ui.SizeParser
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.FilterComparator
-import eu.darken.butler.searcher.core.FilterCondition
+import eu.darken.butler.workspace.contracts.searcher.FilterComparator
+import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.ui.bottomsheet.PaneScopedBottomSheet
 
 /**

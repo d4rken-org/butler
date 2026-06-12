@@ -38,7 +38,7 @@ abstract class BaseDeleteOperationReport<T : Operation.Report>(
 
 **Current usage** in `ExplorerWorkspaceViewModel.kt`:
 ```kotlin
-import eu.darken.butler.editor.core.arguments.EditorArguments
+import eu.darken.butler.workspace.contracts.editor.EditorArguments
 ```
 
 **Solution:** Move `EditorArguments` interface to `app-workspace` (where `Workspace.Arguments` lives), or use generic workspace creation without type-specific arguments.

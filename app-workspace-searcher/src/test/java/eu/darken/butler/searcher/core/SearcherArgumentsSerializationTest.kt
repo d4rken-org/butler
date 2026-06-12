@@ -4,7 +4,8 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.serialization.SerializationCommonModule
-import eu.darken.butler.searcher.core.arguments.SearcherArguments
+import eu.darken.butler.workspace.contracts.searcher.SearchTarget
+import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement

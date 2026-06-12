@@ -29,7 +29,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
-import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 
 @Composable
 fun MultiPathChipBar(

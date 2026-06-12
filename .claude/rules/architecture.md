@@ -67,7 +67,7 @@ Layer 0:  app-common
 ## Cross-Module Dependency Rules
 
 - **Workspace isolation**: Workspace implementation modules (`explorer`, `searcher`, `editor`, `apps`, `developer`, `saver`, `history`) must NOT depend on each other.
-- **Inter-workspace communication**: Goes through `WorkspaceRemote` events and actions, never direct imports. Shared contracts (`*Arguments`, `PickerConfig`) live in `app-workspace`. See `architecture-modal-workspaces.md` for the modal workspace pattern.
+- **Inter-workspace communication**: Goes through `WorkspaceRemote` events and actions, never direct imports. Shared contracts (`*Arguments`, `PickerConfig`/`PickerConstraint`, search filter/query types, apps view/tag types) live in `app-workspace` under `eu.darken.butler.workspace.contracts.<feature>`. A workspace module may import `eu.darken.butler.workspace.*` but never `eu.darken.butler.<other-feature>.*`. See `architecture-modal-workspaces.md` for the modal workspace pattern.
 - **Exception — templates**: `app-workspace-templates` depends on the workspace modules whose template factories it aggregates for type switching (currently `explorer`, `searcher`, `editor`, `apps`, `developer`, `history` — not `saver`).
 - **File operations**: New modules should depend on `app-common-io` for file operations via `GatewaySwitch`. Never depend directly on `app-common-root`, `app-common-adb`, or `app-common-shell` — those are internal to the gateway layer.
 

@@ -4,7 +4,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 
 /**
  * In a directory listing (not Device, Trash, or any picker workspace), pull favorited

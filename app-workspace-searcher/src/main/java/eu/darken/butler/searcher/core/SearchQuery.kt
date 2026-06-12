@@ -2,6 +2,10 @@ package eu.darken.butler.searcher.core
 
 import android.os.Parcelable
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.workspace.contracts.searcher.ContentQuery
+import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
+import eu.darken.butler.workspace.contracts.searcher.SearchFilter
+import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 

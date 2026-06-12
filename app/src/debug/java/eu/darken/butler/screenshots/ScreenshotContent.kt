@@ -2,8 +2,8 @@ package eu.darken.butler.screenshots
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import eu.darken.butler.apps.core.SortSettings
-import eu.darken.butler.apps.core.TagFilterConfig
+import eu.darken.butler.workspace.contracts.apps.SortSettings
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.apps.ui.apps.AppsWorkspacePage
 import eu.darken.butler.apps.ui.apps.AppsWorkspaceViewModel
 import eu.darken.butler.apps.ui.apps.preview.AppsMockDataProvider

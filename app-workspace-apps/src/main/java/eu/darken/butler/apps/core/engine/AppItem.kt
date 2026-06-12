@@ -2,8 +2,8 @@ package eu.darken.butler.apps.core.engine
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
-import eu.darken.butler.apps.core.AppTag
-import eu.darken.butler.apps.core.SortSettings
+import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.SortSettings
 import eu.darken.butler.common.ca.CaDrawable
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString

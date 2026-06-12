@@ -19,8 +19,8 @@ import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.apps.R
-import eu.darken.butler.apps.core.AppTag
-import eu.darken.butler.apps.core.TagFilterConfig
+import eu.darken.butler.workspace.contracts.apps.AppTag
+import eu.darken.butler.workspace.contracts.apps.TagFilterConfig
 import eu.darken.butler.apps.core.engine.FilterState
 import eu.darken.butler.apps.core.engine.getTagState
 import eu.darken.butler.apps.core.engine.standardTags

@@ -20,8 +20,8 @@ import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
-import eu.darken.butler.explorer.core.picker.PickerConfig
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.explorer.PickerConfig
 import eu.darken.butler.saver.core.ContentUriHelper
 import eu.darken.butler.saver.core.SaverWorkspace
 import eu.darken.butler.saver.core.operations.SaveFilesReport

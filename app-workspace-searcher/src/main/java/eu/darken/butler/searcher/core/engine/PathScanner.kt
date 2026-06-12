@@ -15,10 +15,10 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.MetadataRepo
-import eu.darken.butler.searcher.core.FilenameQuery
-import eu.darken.butler.searcher.core.FilterComparator
-import eu.darken.butler.searcher.core.FilterCondition
-import eu.darken.butler.searcher.core.SearchFilter
+import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
+import eu.darken.butler.workspace.contracts.searcher.FilterComparator
+import eu.darken.butler.workspace.contracts.searcher.FilterCondition
+import eu.darken.butler.workspace.contracts.searcher.SearchFilter
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.workspace.core.Workspace

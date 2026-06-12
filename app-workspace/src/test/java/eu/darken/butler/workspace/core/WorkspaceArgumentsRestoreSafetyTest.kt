@@ -1,16 +1,16 @@
 package eu.darken.butler.workspace.core
 
-import eu.darken.butler.apps.core.arguments.AppDetailsArguments
-import eu.darken.butler.apps.core.arguments.AppsArguments
-import eu.darken.butler.apps.core.arguments.DetailTab
+import eu.darken.butler.workspace.contracts.apps.AppDetailsArguments
+import eu.darken.butler.workspace.contracts.apps.AppsArguments
+import eu.darken.butler.workspace.contracts.apps.DetailTab
 import eu.darken.butler.common.serialization.SerializationIOModule
-import eu.darken.butler.developer.core.arguments.DeveloperArguments
-import eu.darken.butler.editor.core.arguments.EditorArguments
-import eu.darken.butler.explorer.core.arguments.ExplorerArguments
-import eu.darken.butler.history.core.arguments.HistoryArguments
-import eu.darken.butler.saver.core.arguments.SaverArguments
-import eu.darken.butler.searcher.core.arguments.SearcherArguments
-import eu.darken.butler.templates.core.arguments.TemplatesArguments
+import eu.darken.butler.workspace.contracts.developer.DeveloperArguments
+import eu.darken.butler.workspace.contracts.editor.EditorArguments
+import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
+import eu.darken.butler.workspace.contracts.history.HistoryArguments
+import eu.darken.butler.workspace.contracts.saver.SaverArguments
+import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
+import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.serialization.SerializationException

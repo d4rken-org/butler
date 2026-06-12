@@ -1,11 +1,11 @@
 package eu.darken.butler.searcher.core.operations
 
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.searcher.core.ContentQuery
-import eu.darken.butler.searcher.core.FilenameQuery
-import eu.darken.butler.searcher.core.SearchFilter
+import eu.darken.butler.workspace.contracts.searcher.ContentQuery
+import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
+import eu.darken.butler.workspace.contracts.searcher.SearchFilter
 import eu.darken.butler.searcher.core.SearchQuery
-import eu.darken.butler.searcher.core.SearchTarget
+import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 
 sealed interface SearcherCommand {
     data class Search(

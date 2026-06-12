@@ -11,7 +11,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.developer.R
-import eu.darken.butler.developer.core.arguments.DeveloperArguments
+import eu.darken.butler.workspace.contracts.developer.DeveloperArguments
 import eu.darken.butler.developer.core.operations.DeveloperCommand
 import eu.darken.butler.developer.core.operations.GenerateLargeFilesOperation
 import eu.darken.butler.developer.core.operations.GenerateNestedStructureOperation

@@ -11,7 +11,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.history.R
-import eu.darken.butler.history.core.arguments.HistoryArguments
+import eu.darken.butler.workspace.contracts.history.HistoryArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.initialInfo

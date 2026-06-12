@@ -1,4 +1,4 @@
-package eu.darken.butler.saver.core.arguments
+package eu.darken.butler.workspace.contracts.saver
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.pkgs.toPkgId
