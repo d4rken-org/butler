@@ -31,6 +31,7 @@ object SAFLocationDatabaseModule {
             log(TAG) { "Debug mode: Enabling destructive migration for SAF location database" }
             fallbackToDestructiveMigration(true)
         }
+        addMigrations(*SAFLocationDatabase.MIGRATIONS)
     }.build()
 
     @Provides

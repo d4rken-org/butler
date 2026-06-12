@@ -69,6 +69,14 @@ jobs:
       - name: Test modules
         run: ./gradlew ${{ matrix.flavor }}${{ matrix.variant }}UnitTest
 
+      - name: Verify Room schemas are committed
+        run: |
+          if [ -n "$(git status --porcelain -- '*/schemas/*')" ]; then
+            git status --porcelain -- '*/schemas/*'
+            echo "::error::Room schema changed without being committed. Bump the @Database version, commit the new schema JSON, and add a Migration to the database's MIGRATIONS list."
+            exit 1
+          fi
+
       - name: Print test failures summary
         if: failure()
         run: |

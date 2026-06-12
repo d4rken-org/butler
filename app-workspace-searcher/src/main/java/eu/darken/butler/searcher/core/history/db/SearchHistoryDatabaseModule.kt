@@ -31,6 +31,7 @@ object SearchHistoryDatabaseModule {
             log(TAG) { "Debug mode: Enabling destructive migration for search history database" }
             fallbackToDestructiveMigration(true)
         }
+        addMigrations(*SearchHistoryDatabase.MIGRATIONS)
     }.build()
 
     @Provides

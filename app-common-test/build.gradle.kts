@@ -53,6 +53,7 @@ dependencies {
     implementation("junit:junit:4.13.2")
     implementation("org.junit.vintage:junit-vintage-engine:5.13.0")
     implementation("androidx.test:core-ktx:1.6.1")
+    implementation("androidx.room:room-testing:2.8.4")
 
     implementation("io.mockk:mockk:1.14.2")
 
