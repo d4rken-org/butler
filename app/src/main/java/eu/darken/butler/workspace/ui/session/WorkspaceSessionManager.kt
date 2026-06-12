@@ -87,6 +87,11 @@ class WorkspaceSessionManager @Inject constructor(
                 return@combine
             }
 
+            if (restorationState is State.Error) {
+                log(TAG, WARN) { "Session restoration failed, skipping auto-save to preserve saved session" }
+                return@combine
+            }
+
             if (!workspaceSettings.sessionRestoreEnabled.value()) {
                 log(TAG) { "Session saving is disabled, skipping auto-save" }
                 return@combine
