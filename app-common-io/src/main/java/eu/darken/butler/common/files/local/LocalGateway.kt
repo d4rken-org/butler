@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APathGateway
+import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
@@ -114,6 +115,120 @@ class LocalGateway @Inject constructor(
         }
     }
 
+    private suspend fun <T> clientOps(mode: Mode, action: suspend (FileOpsClient) -> T): T = when (mode) {
+        Mode.ISOLATED -> isolatedOps(action)
+        Mode.ROOT -> rootOps(action)
+        Mode.ADB -> adbOps(action)
+        Mode.DIRECT, Mode.AUTO -> error("clientOps does not support mode $mode")
+    }
+
+    private suspend fun selectEscalationModeOrNull(): Mode? = when {
+        hasRoot() -> Mode.ROOT
+        hasAdb() -> Mode.ADB
+        else -> null
+    }
+
+    private suspend fun <T> withRouting(action: suspend (StaticLocalRouteRouter) -> T): T {
+        val registry = ModeSessionRegistry(modeSessionFactory)
+        return try {
+            val router = StaticLocalRouteRouter(
+                policy = routingPolicy,
+                caps = CapabilitySnapshot(
+                    rootProvider = { hasRoot() },
+                    adbProvider = { hasAdb() },
+                ),
+                sessions = registry,
+            )
+            action(router)
+        } finally {
+            registry.close()
+        }
+    }
+
+    // The service resource must stay alive until the returned Flow completes
+    private suspend fun walkViaIpc(
+        mode: Mode,
+        path: LocalPath,
+        lookupOptions: LookupOptions,
+        walkOptions: APathGateway.WalkOptions<LocalPath, LocalPathLookup>,
+    ): Flow<LocalPathLookup> = when (mode) {
+        Mode.ISOLATED -> {
+            val resource = isolatedServiceClient.get()
+            try {
+                isolatedServiceClient.runModuleAction(FileOpsClient::class.java) {
+                    it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
+                }
+            } catch (e: Throwable) {
+                resource.close()
+                throw e
+            }
+        }
+        Mode.ROOT -> {
+            val resource = rootManager.serviceClient.get()
+            try {
+                rootManager.serviceClient.runModuleAction(FileOpsClient::class.java) {
+                    it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
+                }
+            } catch (e: Throwable) {
+                resource.close()
+                throw e
+            }
+        }
+        Mode.ADB -> {
+            val resource = adbManager.serviceClient.get()
+            try {
+                adbManager.serviceClient.runModuleAction(FileOpsClient::class.java) {
+                    it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
+                }
+            } catch (e: Throwable) {
+                resource.close()
+                throw e
+            }
+        }
+        Mode.DIRECT, Mode.AUTO -> error("walkViaIpc does not support mode $mode")
+    }
+
+    // The service resource must stay alive until the caller closes the FileHandle
+    private suspend fun fileViaIpc(mode: Mode, path: LocalPath, readWrite: Boolean): FileHandle = when (mode) {
+        Mode.ISOLATED -> isolatedOps { client ->
+            val resource = isolatedServiceClient.get()
+            try {
+                client.file(path, readWrite).callbacks {
+                    resource.close()
+                    log(TAG, VERBOSE) { "file(ISOLATED, RW=$readWrite): Closing resource for $path" }
+                }
+            } catch (e: Throwable) {
+                resource.close()
+                throw e
+            }
+        }
+        Mode.ROOT -> rootOps { client ->
+            val resource = rootManager.serviceClient.get()
+            try {
+                client.file(path, readWrite).callbacks {
+                    resource.close()
+                    log(TAG, VERBOSE) { "file(ROOT, RW=$readWrite): Closing resource for $path" }
+                }
+            } catch (e: Throwable) {
+                resource.close()
+                throw e
+            }
+        }
+        Mode.ADB -> adbOps { client ->
+            val resource = adbManager.serviceClient.get()
+            try {
+                client.file(path, readWrite).callbacks {
+                    resource.close()
+                    log(TAG, VERBOSE) { "file(ADB, RW=$readWrite): Closing resource for $path" }
+                }
+            } catch (e: Throwable) {
+                resource.close()
+                throw e
+            }
+        }
+        Mode.DIRECT, Mode.AUTO -> error("fileViaIpc does not support mode $mode")
+    }
+
     private fun isOnRemovableStorage(path: LocalPath): Boolean {
         val volume = storageManager.storageVolumes.firstOrNull { volume ->
             volume.directory?.let { path.path.startsWith(it.path) } == true
@@ -170,18 +285,18 @@ class LocalGateway @Inject constructor(
      *
      * @param mode The requested execution mode
      * @param operation Operation name for logging (e.g., "createDir")
-     * @param path Optional path for logging
+     * @param path Path for logging and access checks
      * @param directOp Direct mode operation (no IPC)
-     * @param clientOp Client mode operation (receives FileOpsClient for ISOLATED/ROOT/ADB)
+     * @param modeOp Per-mode operation for ISOLATED/ROOT/ADB
      * @return Result of the operation
      */
-    private suspend fun <T> executeWithModeSelection(
+    private suspend fun <T> executeWithMode(
         mode: Mode,
         operation: String,
         path: LocalPath,
         forWriting: Boolean,
         directOp: suspend () -> T,
-        clientOp: suspend (FileOpsClient) -> T
+        modeOp: suspend (Mode) -> T,
     ): T = runIO {
         mappingPermissions(path, operation) {
             when (mode) {
@@ -189,24 +304,16 @@ class LocalGateway @Inject constructor(
                     log(TAG, VERBOSE) { "$operation(DIRECT) -> $path" }
                     directOp()
                 }
-                Mode.ISOLATED -> {
-                    log(TAG, VERBOSE) { "$operation(ISOLATED) -> $path" }
-                    isolatedOps { clientOp(it) }
-                }
-                Mode.ROOT -> {
-                    log(TAG, VERBOSE) { "$operation(ROOT) -> $path" }
-                    rootOps { clientOp(it) }
-                }
-                Mode.ADB -> {
-                    log(TAG, VERBOSE) { "$operation(ADB) -> $path" }
-                    adbOps { clientOp(it) }
+                Mode.ISOLATED, Mode.ROOT, Mode.ADB -> {
+                    log(TAG, VERBOSE) { "$operation($mode) -> $path" }
+                    modeOp(mode)
                 }
                 Mode.AUTO -> {
                     // For removable storage, prefer ISOLATED mode to protect against sudden disconnect
                     if (isOnRemovableStorage(path)) {
                         try {
                             log(TAG, VERBOSE) { "$operation(AUTO:ISOLATED) -> $path [removable storage]" }
-                            return@mappingPermissions isolatedOps { clientOp(it) }
+                            return@mappingPermissions modeOp(Mode.ISOLATED)
                         } catch (e: ServiceBindException) {
                             // ISOLATED failed - fall back to DIRECT (same privilege level, no crash isolation)
                             log(TAG, WARN) { "$operation: IsolatedService unavailable for removable storage, falling back to DIRECT" }
@@ -217,16 +324,12 @@ class LocalGateway @Inject constructor(
                     }
 
                     // Standard handling for internal storage
-                    suspend fun escalation(): T = when {
-                        hasRoot() -> {
-                            log(TAG, VERBOSE) { "$operation(AUTO:ROOT) -> $path" }
-                            rootOps { clientOp(it) }
+                    suspend fun escalation(): T = when (val escMode = selectEscalationModeOrNull()) {
+                        null -> throw PathPermissionDeniedException(path, operation, Reason.NO_MECHANISM)
+                        else -> {
+                            log(TAG, VERBOSE) { "$operation(AUTO:$escMode) -> $path" }
+                            modeOp(escMode)
                         }
-                        hasAdb() -> {
-                            log(TAG, VERBOSE) { "$operation(AUTO:ADB) -> $path" }
-                            adbOps { clientOp(it) }
-                        }
-                        else -> throw PathPermissionDeniedException(path, operation, Reason.NO_MECHANISM)
                     }
                     if (accessChecker.shouldTryNormalAccess(path, forWriting)) {
                         try {
@@ -246,6 +349,22 @@ class LocalGateway @Inject constructor(
             }
         }
     }
+
+    private suspend fun <T> executeWithModeSelection(
+        mode: Mode,
+        operation: String,
+        path: LocalPath,
+        forWriting: Boolean,
+        directOp: suspend () -> T,
+        clientOp: suspend (FileOpsClient) -> T,
+    ): T = executeWithMode(
+        mode = mode,
+        operation = operation,
+        path = path,
+        forWriting = forWriting,
+        directOp = directOp,
+        modeOp = { m -> clientOps(m) { clientOp(it) } },
+    )
 
     override suspend fun createDir(path: LocalPath, createParents: Boolean): Unit =
         createDir(path, createParents, Mode.AUTO)
@@ -394,183 +513,41 @@ class LocalGateway @Inject constructor(
         lookupOptions: LookupOptions,
         walkOptions: APathGateway.WalkOptions<LocalPath, LocalPathLookup>,
         mode: Mode = Mode.AUTO,
-    ): Flow<LocalPathLookup> = runIO {
-        // Special handling: walk() has different direct vs client implementations
-        mappingPermissions(path, "walk") {
-            when (mode) {
-            Mode.DIRECT -> {
-                log(TAG, VERBOSE) { "walk(DIRECT) -> $path" }
-                DirectLocalWalker(
-                    fileSystemOps = fileSystemOps,
-                    lookupOptions = lookupOptions,
-                    start = path,
-                    onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                    onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                )
-            }
-            Mode.ISOLATED -> {
-                log(TAG, VERBOSE) { "walk(ISOLATED) -> $path" }
-                if (walkOptions.isDirect) {
-                    log(TAG, VERBOSE) { "walk(ISOLATED, direct): $path" }
-                    // We need to keep the resource alive until the caller is done with the Flow
-                    val resource = isolatedServiceClient.get()
-                    isolatedServiceClient.runModuleAction(FileOpsClient::class.java) {
-                        it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
-                    }
-                } else {
-                    log(TAG, VERBOSE) { "walk(ISOLATED, indirect): $path" }
-                    // Can't pass functions via IPC
-                    IndirectLocalWalker(
-                        gateway = this@LocalGateway,
-                        mode = Mode.ISOLATED,
-                        start = path,
-                        lookupOptions = lookupOptions,
-                        onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                        onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                    )
-                }
-            }
-            Mode.ROOT -> {
-                log(TAG, VERBOSE) { "walk(ROOT) -> $path" }
-                if (walkOptions.isDirect) {
-                    log(TAG, VERBOSE) { "walk(ROOT, direct): $path" }
-                    // We need to keep the resource alive until the caller is done with the Flow
-                    val resource = rootManager.serviceClient.get()
-                    rootManager.serviceClient.runModuleAction(FileOpsClient::class.java) {
-                        it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
-                    }
-                } else {
-                    log(TAG, VERBOSE) { "walk(ROOT, indirect): $path" }
-                    // Can't pass functions via IPC
-                    IndirectLocalWalker(
-                        gateway = this@LocalGateway,
-                        mode = Mode.ROOT,
-                        start = path,
-                        lookupOptions = lookupOptions,
-                        onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                        onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                    )
-                }
-            }
-            Mode.ADB -> {
-                log(TAG, VERBOSE) { "walk(ADB) -> $path" }
-                if (walkOptions.isDirect) {
-                    log(TAG, VERBOSE) { "walk(ADB, direct): $path" }
-                    // We need to keep the resource alive until the caller is done with the Flow
-                    val resource = adbManager.serviceClient.get()
-                    adbManager.serviceClient.runModuleAction(FileOpsClient::class.java) {
-                        it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
-                    }
-                } else {
-                    log(TAG, VERBOSE) { "walk(ADB, indirect): $path" }
-                    // Can't pass functions via IPC
-                    IndirectLocalWalker(
-                        gateway = this@LocalGateway,
-                        mode = Mode.ADB,
-                        start = path,
-                        lookupOptions = lookupOptions,
-                        onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                        onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                    )
-                }
-            }
-            Mode.AUTO -> {
-                // For removable storage, prefer ISOLATED mode to protect against sudden disconnect
-                if (isOnRemovableStorage(path)) {
-                    try {
-                        log(TAG, VERBOSE) { "walk(AUTO:ISOLATED) -> $path [removable storage]" }
-                        if (walkOptions.isDirect) {
-                            val resource = isolatedServiceClient.get()
-                            return@mappingPermissions isolatedServiceClient.runModuleAction(FileOpsClient::class.java) {
-                                it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
-                            }
-                        } else {
-                            return@mappingPermissions IndirectLocalWalker(
-                                gateway = this@LocalGateway,
-                                mode = Mode.ISOLATED,
-                                start = path,
-                                lookupOptions = lookupOptions,
-                                onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                                onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                            )
-                        }
-                    } catch (e: ServiceBindException) {
-                        log(TAG, WARN) { "walk: IsolatedService unavailable for removable storage, falling back to DIRECT" }
-                        return@mappingPermissions DirectLocalWalker(
-                            fileSystemOps = fileSystemOps,
-                            lookupOptions = lookupOptions,
-                            start = path,
-                            onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                            onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                        ).also { log(TAG, VERBOSE) { "walk(AUTO:DIRECT) -> $path [ISOLATED fallback]" } }
-                    }
-                }
+    ): Flow<LocalPathLookup> {
+        fun directWalker(): Flow<LocalPathLookup> = DirectLocalWalker(
+            fileSystemOps = fileSystemOps,
+            lookupOptions = lookupOptions,
+            start = path,
+            onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
+            onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
+        )
 
-                // Standard handling for internal storage
-                suspend fun escalation(): Flow<LocalPathLookup> {
-                    return when {
-                        hasRoot() -> {
-                            log(TAG, VERBOSE) { "walk(AUTO:ROOT) -> $path" }
-                            if (walkOptions.isDirect) {
-                                val resource = rootManager.serviceClient.get()
-                                rootManager.serviceClient.runModuleAction(FileOpsClient::class.java) {
-                                    it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
-                                }
-                            } else {
-                                IndirectLocalWalker(
-                                    gateway = this@LocalGateway,
-                                    mode = Mode.ROOT,
-                                    start = path,
-                                    lookupOptions = lookupOptions,
-                                    onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                                    onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                                )
-                            }
-                        }
-                        hasAdb() -> {
-                            log(TAG, VERBOSE) { "walk(AUTO:ADB) -> $path" }
-                            if (walkOptions.isDirect) {
-                                val resource = adbManager.serviceClient.get()
-                                adbManager.serviceClient.runModuleAction(FileOpsClient::class.java) {
-                                    it.walk(path, lookupOptions, walkOptions).onCompletion { resource.close() }
-                                }
-                            } else {
-                                IndirectLocalWalker(
-                                    gateway = this@LocalGateway,
-                                    mode = Mode.ADB,
-                                    start = path,
-                                    lookupOptions = lookupOptions,
-                                    onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                                    onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                                )
-                            }
-                        }
-                        else -> throw PathPermissionDeniedException(path, "walk", Reason.NO_MECHANISM)
-                    }
-                }
-                if (accessChecker.shouldTryNormalAccess(path, forWriting = false)) {
-                    try {
-                        DirectLocalWalker(
-                            fileSystemOps = fileSystemOps,
-                            lookupOptions = lookupOptions,
-                            start = path,
-                            onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
-                            onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
-                        ).also { log(TAG, VERBOSE) { "walk(AUTO:DIRECT) -> $path" } }
-                    } catch (e: IOException) {
-                        log(TAG, VERBOSE) { "walk(AUTO) failed: ${e.message}" }
-                        try {
-                            escalation()
-                        } catch (escErr: PathPermissionDeniedException) {
-                            if (escErr.reason == Reason.NO_MECHANISM) throw e else throw escErr
-                        }
-                    }
-                } else {
-                    escalation()
-                }
-            }
-            }
-        }.catch { throw mapPermissionError(path, "walk", it) }
+        // Can't pass functions via IPC
+        fun indirectWalker(walkMode: Mode): Flow<LocalPathLookup> = IndirectLocalWalker(
+            gateway = this,
+            mode = walkMode,
+            start = path,
+            lookupOptions = lookupOptions,
+            onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
+            onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
+        )
+
+        suspend fun walkVia(walkMode: Mode): Flow<LocalPathLookup> = if (walkOptions.isDirect) {
+            log(TAG, VERBOSE) { "walk($walkMode, direct): $path" }
+            walkViaIpc(walkMode, path, lookupOptions, walkOptions)
+        } else {
+            log(TAG, VERBOSE) { "walk($walkMode, indirect): $path" }
+            indirectWalker(walkMode)
+        }
+
+        return executeWithMode(
+            mode = mode,
+            operation = "walk",
+            path = path,
+            forWriting = false,
+            directOp = { directWalker() },
+            modeOp = { walkVia(it) },
+        ).catch { throw mapPermissionError(path, "walk", it) }
     }
 
     override suspend fun du(
@@ -640,106 +617,14 @@ class LocalGateway @Inject constructor(
         path: LocalPath,
         readWrite: Boolean,
         mode: Mode = Mode.AUTO
-    ): FileHandle = runIO {
-        // Special handling: file() needs resource management that varies by mode
-        mappingPermissions(path, "file") {
-            when (mode) {
-            Mode.DIRECT -> {
-                log(TAG, VERBOSE) { "file(DIRECT) -> $path" }
-                fileSystemOps.file(path, readWrite)
-            }
-            Mode.ISOLATED -> {
-                log(TAG, VERBOSE) { "file(ISOLATED) -> $path" }
-                isolatedOps { client ->
-                    val resource = isolatedServiceClient.get()
-                    client.file(path, readWrite).callbacks {
-                        resource.close()
-                        log(TAG, VERBOSE) { "file(ISOLATED, RW=$readWrite): Closing resource for $path" }
-                    }
-                }
-            }
-            Mode.ROOT -> {
-                log(TAG, VERBOSE) { "file(ROOT) -> $path" }
-                rootOps { client ->
-                    val resource = rootManager.serviceClient.get()
-                    client.file(path, readWrite).callbacks {
-                        resource.close()
-                        log(TAG, VERBOSE) { "file(ROOT, RW=$readWrite): Closing resource for $path" }
-                    }
-                }
-            }
-            Mode.ADB -> {
-                log(TAG, VERBOSE) { "file(ADB) -> $path" }
-                adbOps { client ->
-                    val resource = adbManager.serviceClient.get()
-                    client.file(path, readWrite).callbacks {
-                        resource.close()
-                        log(TAG, VERBOSE) { "file(ADB, RW=$readWrite): Closing resource for $path" }
-                    }
-                }
-            }
-            Mode.AUTO -> {
-                // For removable storage, prefer ISOLATED mode to protect against sudden disconnect
-                if (isOnRemovableStorage(path)) {
-                    try {
-                        log(TAG, VERBOSE) { "file(AUTO:ISOLATED) -> $path [removable storage]" }
-                        return@mappingPermissions isolatedOps { client ->
-                            val resource = isolatedServiceClient.get()
-                            client.file(path, readWrite).callbacks {
-                                resource.close()
-                                log(TAG, VERBOSE) { "file(ISOLATED, RW=$readWrite): Closing resource for $path" }
-                            }
-                        }
-                    } catch (e: ServiceBindException) {
-                        log(TAG, WARN) { "file: IsolatedService unavailable for removable storage, falling back to DIRECT" }
-                        return@mappingPermissions fileSystemOps.file(path, readWrite).also {
-                            log(TAG, VERBOSE) { "file(AUTO:DIRECT) -> $path [ISOLATED fallback]" }
-                        }
-                    }
-                }
-
-                // Standard handling for internal storage
-                suspend fun escalation(): FileHandle = when {
-                    hasRoot() -> {
-                        log(TAG, VERBOSE) { "file(AUTO:ROOT) -> $path" }
-                        rootOps { client ->
-                            val resource = rootManager.serviceClient.get()
-                            client.file(path, readWrite).callbacks {
-                                resource.close()
-                                log(TAG, VERBOSE) { "file(ROOT, RW=$readWrite): Closing resource for $path" }
-                            }
-                        }
-                    }
-                    hasAdb() -> {
-                        log(TAG, VERBOSE) { "file(AUTO:ADB) -> $path" }
-                        adbOps { client ->
-                            val resource = adbManager.serviceClient.get()
-                            client.file(path, readWrite).callbacks {
-                                resource.close()
-                                log(TAG, VERBOSE) { "file(ADB, RW=$readWrite): Closing resource for $path" }
-                            }
-                        }
-                    }
-                    else -> throw PathPermissionDeniedException(path, "file", Reason.NO_MECHANISM)
-                }
-                if (accessChecker.shouldTryNormalAccess(path, readWrite)) {
-                    try {
-                        fileSystemOps.file(path, readWrite).also { log(TAG, VERBOSE) { "file(AUTO:DIRECT) -> $path" } }
-                    } catch (e: IOException) {
-                        log(TAG, VERBOSE) { "file(AUTO) failed: ${e.message}" }
-                        try {
-                            escalation()
-                        } catch (escErr: PathPermissionDeniedException) {
-                            if (escErr.reason == Reason.NO_MECHANISM) throw e else throw escErr
-                        }
-                    }
-                } else {
-                    escalation()
-                }
-            }
-            }
-        }
-    }
+    ): FileHandle = executeWithMode(
+        mode = mode,
+        operation = "file",
+        path = path,
+        forWriting = readWrite,
+        directOp = { fileSystemOps.file(path, readWrite) },
+        modeOp = { fileViaIpc(it, path, readWrite) },
+    )
 
     override suspend fun openInputStream(path: LocalPath): InputStream = openInputStream(path, Mode.AUTO)
 
@@ -900,96 +785,49 @@ class LocalGateway @Inject constructor(
         mode: Mode,
     ): Flow<DeleteAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "delete(): ${targets.size} targets" }
+
+        suspend fun relay(states: Flow<DeleteAction.State<LocalPath, LocalPathLookup>>) = states.collect { state ->
+            emit(state)
+            if (state is DeleteAction.State.Completed) {
+                log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
+            }
+        }
+
         when (mode) {
             Mode.DIRECT -> {
                 log(TAG, VERBOSE) { "delete(DIRECT): ${targets.size} targets" }
-                targets.delete(
-                    fileSystemOps,
-                    recursive = options.recursive,
-                    ignoreMissing = options.ignoreMissing,
-                    onIssue = options.onIssue,
-                ).collect { state ->
-                    emit(state)
-                    if (state is DeleteAction.State.Completed) {
-                        log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
-                    }
-                }
+                relay(
+                    targets.delete(
+                        fileSystemOps,
+                        recursive = options.recursive,
+                        ignoreMissing = options.ignoreMissing,
+                        onIssue = options.onIssue,
+                    )
+                )
             }
 
-            Mode.ISOLATED -> {
-                log(TAG, VERBOSE) { "delete(ISOLATED): ${targets.size} targets" }
-                isolatedOps { client ->
-                    client.delete(
-                        targets = targets,
-                        options = options
-                    ).collect { state ->
-                        emit(state)
-                        if (state is DeleteAction.State.Completed) {
-                            log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
-                        }
-                    }
-                }
-            }
-
-            Mode.ROOT -> {
-                log(TAG, VERBOSE) { "delete(ROOT): ${targets.size} targets" }
-                rootOps { client ->
-                    client.delete(
-                        targets = targets,
-                        options = options
-                    ).collect { state ->
-                        emit(state)
-                        if (state is DeleteAction.State.Completed) {
-                            log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
-                        }
-                    }
-                }
-            }
-
-            Mode.ADB -> {
-                log(TAG, VERBOSE) { "delete(ADB): ${targets.size} targets" }
-                adbOps { client ->
-                    client.delete(
-                        targets = targets,
-                        options = options
-                    ).collect { state ->
-                        emit(state)
-                        if (state is DeleteAction.State.Completed) {
-                            log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
-                        }
-                    }
+            Mode.ISOLATED, Mode.ROOT, Mode.ADB -> {
+                log(TAG, VERBOSE) { "delete($mode): ${targets.size} targets" }
+                clientOps(mode) { client ->
+                    relay(client.delete(targets = targets, options = options))
                 }
             }
 
             Mode.AUTO -> {
                 log(TAG, VERBOSE) { "delete(AUTO:routed): ${targets.size} targets" }
-                val registry = ModeSessionRegistry(modeSessionFactory)
-                try {
-                    val router = StaticLocalRouteRouter(
-                        policy = routingPolicy,
-                        caps = CapabilitySnapshot(
-                            rootProvider = { hasRoot() },
-                            adbProvider = { hasAdb() },
-                        ),
-                        sessions = registry,
-                    )
+                withRouting { router ->
                     val routedOps = RoutedLocalFileSystemOps(router, AccessIntent.Delete)
 
                     targets.forEach { routedOps.ensurePlanned(it, AccessIntent.Delete) }
 
-                    targets.deleteGeneric(
-                        fileSystemOps = routedOps,
-                        recursive = options.recursive,
-                        ignoreMissing = options.ignoreMissing,
-                        onIssue = options.onIssue,
-                    ).collect { state ->
-                        emit(state)
-                        if (state is DeleteAction.State.Completed) {
-                            log(TAG, INFO) { "delete(): Finished, deleted ${state.deleted.size} items" }
-                        }
-                    }
-                } finally {
-                    registry.close()
+                    relay(
+                        targets.deleteGeneric(
+                            fileSystemOps = routedOps,
+                            recursive = options.recursive,
+                            ignoreMissing = options.ignoreMissing,
+                            onIssue = options.onIssue,
+                        )
+                    )
                 }
             }
         }
@@ -1017,85 +855,45 @@ class LocalGateway @Inject constructor(
     ): Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "copy(): ${sources.size} sources to $destination" }
 
+        suspend fun relay(
+            states: Flow<CopyAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>,
+        ) = states.collect { state ->
+            emit(state)
+            if (state is CopyAction.State.Completed) {
+                log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
+            }
+        }
+
         when (mode) {
             Mode.DIRECT -> {
                 log(TAG, VERBOSE) { "copy(DIRECT): To $destination" }
-                sources.copy(
-                    fileSystemOps = fileSystemOps,
-                    destination = destination,
-                    options = options,
-                    onIssue = onIssue,
-                ).collect { state ->
-                    emit(state)
-                    if (state is CopyAction.State.Completed<*, *, *, *>) {
-                        log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
-                    }
-                }
+                relay(
+                    sources.copy(
+                        fileSystemOps = fileSystemOps,
+                        destination = destination,
+                        options = options,
+                        onIssue = onIssue,
+                    )
+                )
             }
 
-            Mode.ISOLATED -> {
-                log(TAG, VERBOSE) { "copy(ISOLATED): To $destination" }
-                isolatedOps { client ->
-                    client.copy(
-                        sources = sources,
-                        destination = destination,
-                        onIssue = onIssue,
-                        options = options
-                    ).collect { state ->
-                        emit(state)
-                        if (state is CopyAction.State.Completed) {
-                            log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
-                        }
-                    }
-                }
-            }
-
-            Mode.ROOT -> {
-                log(TAG, VERBOSE) { "copy(ROOT): To $destination" }
-                rootOps { client ->
-                    client.copy(
-                        sources = sources,
-                        destination = destination,
-                        onIssue = onIssue,
-                        options = options
-                    ).collect { state ->
-                        emit(state)
-                        if (state is CopyAction.State.Completed) {
-                            log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
-                        }
-                    }
-                }
-            }
-
-            Mode.ADB -> {
-                log(TAG, VERBOSE) { "copy(ADB): To $destination" }
-                adbOps { client ->
-                    client.copy(
-                        sources = sources,
-                        destination = destination,
-                        onIssue = onIssue,
-                        options = options
-                    ).collect { state ->
-                        emit(state)
-                        if (state is CopyAction.State.Completed) {
-                            log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
-                        }
-                    }
+            Mode.ISOLATED, Mode.ROOT, Mode.ADB -> {
+                log(TAG, VERBOSE) { "copy($mode): To $destination" }
+                clientOps(mode) { client ->
+                    relay(
+                        client.copy(
+                            sources = sources,
+                            destination = destination,
+                            onIssue = onIssue,
+                            options = options
+                        )
+                    )
                 }
             }
 
             Mode.AUTO -> {
                 log(TAG, VERBOSE) { "copy(AUTO:routed): To $destination" }
-                val registry = ModeSessionRegistry(modeSessionFactory)
-                try {
-                    val router = StaticLocalRouteRouter(
-                        policy = routingPolicy,
-                        caps = CapabilitySnapshot(
-                            rootProvider = { hasRoot() },
-                            adbProvider = { hasAdb() },
-                        ),
-                        sessions = registry,
-                    )
+                withRouting { router ->
                     val sourceOps = RoutedLocalFileSystemOps(router, AccessIntent.Read)
                     val destOps = RoutedLocalFileSystemOps(router, AccessIntent.Write)
 
@@ -1108,21 +906,16 @@ class LocalGateway @Inject constructor(
                         overwrite = options.overwrite,
                     )
 
-                    sources.copyGeneric(
-                        destination = destination,
-                        sourceOps = sourceOps,
-                        destOps = destOps,
-                        options = transferOptions,
-                        strategy = LocalPathCopyStrategy(fileSystemOps),
-                        onIssue = onIssue,
-                    ).collect { state ->
-                        emit(state)
-                        if (state is CopyAction.State.Completed) {
-                            log(TAG, INFO) { "copy(): Finished, copied ${state.copied.size} items" }
-                        }
-                    }
-                } finally {
-                    registry.close()
+                    relay(
+                        sources.copyGeneric(
+                            destination = destination,
+                            sourceOps = sourceOps,
+                            destOps = destOps,
+                            options = transferOptions,
+                            strategy = LocalPathCopyStrategy(fileSystemOps),
+                            onIssue = onIssue,
+                        )
+                    )
                 }
             }
         }
@@ -1146,85 +939,46 @@ class LocalGateway @Inject constructor(
         mode: Mode = Mode.AUTO,
     ): Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "move(): ${sources.size} sources to $destination" }
+
+        suspend fun relay(
+            states: Flow<MoveAction.State<LocalPath, LocalPathLookup, LocalPath, LocalPathLookup>>,
+        ) = states.collect { state ->
+            emit(state)
+            if (state is MoveAction.State.Completed<*, *, *, *>) {
+                log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
+            }
+        }
+
         when (mode) {
             Mode.DIRECT -> {
                 log(TAG, VERBOSE) { "move(DIRECT): To $destination" }
-                sources.move(
-                    fileSystemOps,
-                    destination,
-                    options,
-                    onIssue = onIssue,
-                ).collect { state ->
-                    emit(state)
-                    if (state is MoveAction.State.Completed<*, *, *, *>) {
-                        log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
-                    }
-                }
+                relay(
+                    sources.move(
+                        fileSystemOps,
+                        destination,
+                        options,
+                        onIssue = onIssue,
+                    )
+                )
             }
 
-            Mode.ISOLATED -> {
-                log(TAG, VERBOSE) { "move(ISOLATED): To $destination" }
-                isolatedOps { client ->
-                    client.move(
-                        sources = sources,
-                        destination = destination,
-                        onIssue = onIssue,
-                        options = options
-                    ).collect { state ->
-                        emit(state)
-                        if (state is MoveAction.State.Completed<*, *, *, *>) {
-                            log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
-                        }
-                    }
-                }
-            }
-
-            Mode.ROOT -> {
-                log(TAG, VERBOSE) { "move(ROOT): To $destination" }
-                rootOps { client ->
-                    client.move(
-                        sources = sources,
-                        destination = destination,
-                        onIssue = onIssue,
-                        options = options
-                    ).collect { state ->
-                        emit(state)
-                        if (state is MoveAction.State.Completed<*, *, *, *>) {
-                            log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
-                        }
-                    }
-                }
-            }
-
-            Mode.ADB -> {
-                log(TAG, VERBOSE) { "move(ADB): To $destination" }
-                adbOps { client ->
-                    client.move(
-                        sources = sources,
-                        destination = destination,
-                        onIssue = onIssue,
-                        options = options
-                    ).collect { state ->
-                        emit(state)
-                        if (state is MoveAction.State.Completed<*, *, *, *>) {
-                            log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
-                        }
-                    }
+            Mode.ISOLATED, Mode.ROOT, Mode.ADB -> {
+                log(TAG, VERBOSE) { "move($mode): To $destination" }
+                clientOps(mode) { client ->
+                    relay(
+                        client.move(
+                            sources = sources,
+                            destination = destination,
+                            onIssue = onIssue,
+                            options = options
+                        )
+                    )
                 }
             }
 
             Mode.AUTO -> {
                 log(TAG, VERBOSE) { "move(AUTO:routed): To $destination" }
-                val registry = ModeSessionRegistry(modeSessionFactory)
-                try {
-                    val router = StaticLocalRouteRouter(
-                        policy = routingPolicy,
-                        caps = CapabilitySnapshot(
-                            rootProvider = { hasRoot() },
-                            adbProvider = { hasAdb() },
-                        ),
-                        sessions = registry,
-                    )
+                withRouting { router ->
                     val sourceOps = RoutedLocalFileSystemOps(router, AccessIntent.Delete)
                     val destOps = RoutedLocalFileSystemOps(router, AccessIntent.Write)
 
@@ -1238,21 +992,16 @@ class LocalGateway @Inject constructor(
                         attemptAtomicMove = false,
                     )
 
-                    sources.moveGeneric(
-                        destination = destination,
-                        sourceOps = sourceOps,
-                        destOps = destOps,
-                        strategy = LocalPathMoveStrategy(fileSystemOps),
-                        options = transferOptions,
-                        onIssue = onIssue,
-                    ).collect { state ->
-                        emit(state)
-                        if (state is MoveAction.State.Completed<*, *, *, *>) {
-                            log(TAG, INFO) { "move(): Finished, moved ${state.movedFiles.size} items" }
-                        }
-                    }
-                } finally {
-                    registry.close()
+                    relay(
+                        sources.moveGeneric(
+                            destination = destination,
+                            sourceOps = sourceOps,
+                            destOps = destOps,
+                            strategy = LocalPathMoveStrategy(fileSystemOps),
+                            options = transferOptions,
+                            onIssue = onIssue,
+                        )
+                    )
                 }
             }
         }
@@ -1273,67 +1022,30 @@ class LocalGateway @Inject constructor(
         mode: Mode = Mode.AUTO,
     ): Flow<CreateAction.State<LocalPath, LocalPathLookup>> = flow {
         log(TAG, VERBOSE) { "create(): $target (type=$type)" }
+
+        suspend fun relayCreate(
+            ops: FileSystemOps<LocalPath, LocalPathLookup>,
+            onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)?,
+        ) = target.createGeneric(
+            fileSystemOps = ops,
+            type = type,
+            onIssue = onIssue,
+        ).collect { state ->
+            emit(state)
+            if (state is CreateAction.State.Completed<*, *>) {
+                log(TAG, INFO) { "create(): Finished, created ${state.created}" }
+            }
+        }
+
         when (mode) {
             Mode.DIRECT -> {
                 log(TAG, VERBOSE) { "create(DIRECT): $target" }
-                target.createGeneric(
-                    fileSystemOps = fileSystemOps,
-                    type = type,
-                    onIssue = options.onIssue,
-                ).collect { state ->
-                    emit(state)
-                    if (state is CreateAction.State.Completed<*, *>) {
-                        log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                    }
-                }
+                relayCreate(fileSystemOps, options.onIssue)
             }
 
-            Mode.ROOT -> {
-                log(TAG, VERBOSE) { "create(ROOT): $target (type=$type)" }
-                rootOps { client ->
-                    target.createGeneric(
-                        fileSystemOps = client,
-                        type = type,
-                        onIssue = options.onIssue,
-                    ).collect { state ->
-                        emit(state)
-                        if (state is CreateAction.State.Completed<*, *>) {
-                            log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                        }
-                    }
-                }
-            }
-
-            Mode.ADB -> {
-                log(TAG, VERBOSE) { "create(ADB): $target (type=$type)" }
-                adbOps { client ->
-                    target.createGeneric(
-                        fileSystemOps = client,
-                        type = type,
-                        onIssue = options.onIssue,
-                    ).collect { state ->
-                        emit(state)
-                        if (state is CreateAction.State.Completed<*, *>) {
-                            log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                        }
-                    }
-                }
-            }
-
-            Mode.ISOLATED -> {
-                log(TAG, VERBOSE) { "create(ISOLATED): $target (type=$type)" }
-                isolatedOps { client ->
-                    target.createGeneric(
-                        fileSystemOps = client,
-                        type = type,
-                        onIssue = options.onIssue,
-                    ).collect { state ->
-                        emit(state)
-                        if (state is CreateAction.State.Completed<*, *>) {
-                            log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                        }
-                    }
-                }
+            Mode.ISOLATED, Mode.ROOT, Mode.ADB -> {
+                log(TAG, VERBOSE) { "create($mode): $target (type=$type)" }
+                clientOps(mode) { relayCreate(it, options.onIssue) }
             }
 
             Mode.AUTO -> {
@@ -1341,31 +1053,11 @@ class LocalGateway @Inject constructor(
                 if (isOnRemovableStorage(target)) {
                     try {
                         log(TAG, VERBOSE) { "create(AUTO:ISOLATED): $target [removable storage]" }
-                        isolatedOps { client ->
-                            target.createGeneric(
-                                fileSystemOps = client,
-                                type = type,
-                                onIssue = options.onIssue,
-                            ).collect { state ->
-                                emit(state)
-                                if (state is CreateAction.State.Completed<*, *>) {
-                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                                }
-                            }
-                        }
+                        isolatedOps { relayCreate(it, options.onIssue) }
                         return@flow
                     } catch (e: ServiceBindException) {
                         log(TAG, WARN) { "create: IsolatedService unavailable for removable storage, falling back to DIRECT" }
-                        target.createGeneric(
-                            fileSystemOps = fileSystemOps,
-                            type = type,
-                            onIssue = options.onIssue,
-                        ).collect { state ->
-                            emit(state)
-                            if (state is CreateAction.State.Completed<*, *>) {
-                                log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                            }
-                        }
+                        relayCreate(fileSystemOps, options.onIssue)
                         log(TAG, VERBOSE) { "create(AUTO:DIRECT) [ISOLATED fallback]" }
                         return@flow
                     }
@@ -1389,88 +1081,26 @@ class LocalGateway @Inject constructor(
 
                         try {
                             log(TAG, VERBOSE) { "create(AUTO->NORMAL, $shouldTry): $target" }
-                            target.createGeneric(
-                                fileSystemOps = fileSystemOps,
-                                type = type,
-                                onIssue = escalationAwareOnIssue,
-                            ).collect { state ->
-                                emit(state)
-                                if (state is CreateAction.State.Completed<*, *>) {
-                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                                }
-                            }
+                            relayCreate(fileSystemOps, escalationAwareOnIssue)
                         } catch (e: Exception) {
                             log(TAG, VERBOSE) { "create(AUTO->NORMAL): Error: ${e.message}" }
-                            if (PermissionErrorClassifier.isPermissionError(e) && hasEscalated && (hasRoot() || hasAdb())) {
-                                log(TAG, INFO) { "create(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
-                                when {
-                                    hasRoot() -> {
-                                        log(TAG, VERBOSE) { "create(AUTO->NORMAL->ROOT): $target (type=$type)" }
-                                        rootOps { client ->
-                                            target.createGeneric(
-                                                fileSystemOps = client,
-                                                type = type,
-                                                onIssue = escalationAwareOnIssue,
-                                            ).collect { state ->
-                                                emit(state)
-                                                if (state is CreateAction.State.Completed<*, *>) {
-                                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    hasAdb() -> {
-                                        log(TAG, VERBOSE) { "create(AUTO->NORMAL->ADB): $target (type=$type)" }
-                                        adbOps { client ->
-                                            target.createGeneric(
-                                                fileSystemOps = client,
-                                                type = type,
-                                                onIssue = escalationAwareOnIssue,
-                                            ).collect { state ->
-                                                emit(state)
-                                                if (state is CreateAction.State.Completed<*, *>) {
-                                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                throw e
+                            val escMode = when {
+                                PermissionErrorClassifier.isPermissionError(e) && hasEscalated -> selectEscalationModeOrNull()
+                                else -> null
                             }
+                            // No escalation possible: surface the original error, never NO_MECHANISM
+                            if (escMode == null) throw e
+                            log(TAG, INFO) { "create(AUTO->NORMAL->ROOT/ADB): Escalating after permission error" }
+                            log(TAG, VERBOSE) { "create(AUTO->NORMAL->$escMode): $target (type=$type)" }
+                            clientOps(escMode) { relayCreate(it, escalationAwareOnIssue) }
                         }
                     }
-                    hasRoot() -> {
-                        log(TAG, VERBOSE) { "create(AUTO->ROOT): $target (type=$type)" }
-                        rootOps { client ->
-                            target.createGeneric(
-                                fileSystemOps = client,
-                                type = type,
-                                onIssue = options.onIssue,
-                            ).collect { state ->
-                                emit(state)
-                                if (state is CreateAction.State.Completed<*, *>) {
-                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                                }
-                            }
-                        }
+                    else -> {
+                        val escMode = selectEscalationModeOrNull()
+                            ?: throw PathPermissionDeniedException(target, "create", Reason.NO_MECHANISM)
+                        log(TAG, VERBOSE) { "create(AUTO->$escMode): $target (type=$type)" }
+                        clientOps(escMode) { relayCreate(it, options.onIssue) }
                     }
-                    hasAdb() -> {
-                        log(TAG, VERBOSE) { "create(AUTO->ADB): $target (type=$type)" }
-                        adbOps { client ->
-                            target.createGeneric(
-                                fileSystemOps = client,
-                                type = type,
-                                onIssue = options.onIssue,
-                            ).collect { state ->
-                                emit(state)
-                                if (state is CreateAction.State.Completed<*, *>) {
-                                    log(TAG, INFO) { "create(): Finished, created ${state.created}" }
-                                }
-                            }
-                        }
-                    }
-                    else -> throw PathPermissionDeniedException(target, "create", Reason.NO_MECHANISM)
                 }
             }
         }
