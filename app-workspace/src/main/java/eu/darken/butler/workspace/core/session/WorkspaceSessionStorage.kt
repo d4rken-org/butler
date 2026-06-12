@@ -3,6 +3,7 @@ package eu.darken.butler.workspace.core.session
 import android.content.Context
 import androidx.room.Room
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -30,6 +31,11 @@ class WorkspaceSessionStorage @Inject constructor(
             WorkspaceSessionDatabase::class.java,
             "workspace_session.db"
         ).apply {
+            if (BuildConfigWrap.DEBUG) {
+                log(TAG) { "Debug mode: Enabling destructive migration for workspace session database" }
+                fallbackToDestructiveMigration(true)
+            }
+            addMigrations(*WorkspaceSessionDatabase.MIGRATIONS)
             addTypeConverter(workspaceUIStateConverter)
         }.build()
         log(TAG) { "Database initialized: $db" }

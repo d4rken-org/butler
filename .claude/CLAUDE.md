@@ -47,10 +47,10 @@ See `.claude/rules/development-commands.md` for complete command reference.
 ## Important File Locations
 
 ### Database Schemas
-- `app/schemas/`: Room database schema files for migrations
 - `app-common-io/schemas/`: SAF location and trash database schemas
 - `app-workspace-searcher/schemas/`: Search history database schemas
-- `app-workspace/schemas/`: Workspace session database schemas
+- `app-workspace/schemas/`: Workspace session and operation history database schemas
+- Migration policy and enforcement: see `.claude/rules/technical-patterns.md` (Room Migrations)
 
 ### Localization
 - `app-common/src/main/res/values/strings.xml`: Shared base English strings

@@ -48,6 +48,15 @@
     - **Workspace-specific types**: Place converters in the respective workspace module (e.g., editor-specific converters in `app-workspace-editor`)
     - This ensures proper code organization and prevents duplication
 
+## Room Migrations
+
+- **Policy**: Release builds have NO destructive migration fallback — a missing migration crashes loudly instead of silently wiping user data. Debug builds use `fallbackToDestructiveMigration()` for iteration convenience.
+- All databases use `exportSchema = true` with schemas committed under `<module>/schemas/`.
+- Each database class exposes a `MIGRATIONS: Array<Migration>` companion property. Production builders wire it via `addMigrations(*XxxDatabase.MIGRATIONS)`.
+- **When bumping a `@Database` version**: add the `Migration` to the database's `MIGRATIONS` array and commit the newly exported schema JSON. Enforcement:
+    - Per-database `*MigrationTest` (Robolectric + `MigrationTestHelper`) fails if any schema version is unreachable from version 1 via `MIGRATIONS`.
+    - CI fails if schema JSONs change without being committed (catches entity changes without a version bump).
+
 ## Logging
 
 Butler uses a custom logging system (`Logging.kt`) for comprehensive debugging and monitoring.
