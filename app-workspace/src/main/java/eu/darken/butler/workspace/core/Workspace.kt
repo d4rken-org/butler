@@ -3,7 +3,7 @@ package eu.darken.butler.workspace.core
 import android.os.Parcelable
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.parcel.UuidParceler
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.TypeParceler
 import kotlin.uuid.Uuid
@@ -11,7 +11,16 @@ import kotlin.uuid.Uuid
 interface Workspace<ArgT : Workspace.Arguments> {
     val id: Id
     val type: Type
-    val info: Flow<Info>
+
+    /**
+     * Workspace metadata as observable state.
+     *
+     * [StateFlow] so that consumers (e.g. WorkspaceRepo lifecycle decisions) can read
+     * [StateFlow.value] synchronously. The initial value must carry the correct static fields
+     * ([Info.callerWorkspaceId], [Info.modalPresentation]) — either seed a [kotlinx.coroutines.flow.MutableStateFlow]
+     * accordingly or use `initialInfo()` + `stateInWorkspace()` from WorkspaceInfoExtensions.
+     */
+    val info: StateFlow<Info>
 
     /**
      * The arguments used to create this workspace.
