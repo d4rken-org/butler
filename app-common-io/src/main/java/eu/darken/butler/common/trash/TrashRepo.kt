@@ -53,6 +53,7 @@ class TrashRepo @Inject constructor(
                 log(TAG) { "Debug mode: Enabling destructive migration for trash database" }
                 fallbackToDestructiveMigration()
             }
+            addMigrations(*TrashDatabase.MIGRATIONS)
             addTypeConverter(aPathConverter)
             addTypeConverter(aPathLookupConverter)
         }.build()

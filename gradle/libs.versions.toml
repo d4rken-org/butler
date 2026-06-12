@@ -114,6 +114,7 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 # WorkManager
 work-runtime = { module = "androidx.work:work-runtime", version.ref = "work" }
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }

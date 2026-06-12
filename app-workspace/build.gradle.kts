@@ -38,6 +38,12 @@ android {
             setupTestLogging()
         }
     }
+
+    sourceSets {
+        getByName("test") {
+            assets.srcDir("$projectDir/schemas")
+        }
+    }
 }
 
 dependencies {

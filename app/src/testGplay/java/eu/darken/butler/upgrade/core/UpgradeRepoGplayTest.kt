@@ -1,9 +1,7 @@
-package eu.darken.sdmse.upgrade.core
+package eu.darken.butler.upgrade.core
 
 import com.android.billingclient.api.Purchase
 import eu.darken.butler.upgrade.UpgradeRepo
-import eu.darken.butler.upgrade.core.OurSku
-import eu.darken.butler.upgrade.core.UpgradeRepoGplay
 import eu.darken.butler.upgrade.core.billing.BillingData
 import io.kotest.matchers.shouldBe
 import io.mockk.every

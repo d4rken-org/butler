@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.junit4)
     implementation(libs.junit.vintage.engine.ct)
     implementation(libs.androidx.test.core.ktx.ct)
+    implementation(libs.room.testing)
 
     implementation(libs.mockk.ct)
 

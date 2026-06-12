@@ -31,6 +31,7 @@ object OperationHistoryDatabaseModule {
             log(TAG) { "Debug mode: Enabling destructive migration for operation history database" }
             fallbackToDestructiveMigration(true)
         }
+        addMigrations(*OperationHistoryDatabase.MIGRATIONS)
     }.build()
 
     @Provides

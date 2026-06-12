@@ -27,8 +27,6 @@ import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.adoptChildResource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.plus
 import okio.FileHandle
@@ -205,13 +203,44 @@ class GatewaySwitch @Inject constructor(
     override suspend fun delete(
         targets: Set<APath<*>>,
         options: DeleteAction.Options<APath<*>>
-    ): Flow<DeleteAction.State<APath<*>, APathLookup<APath<*>>>> = targets
-        .groupBy { it::class }.values.asFlow()
-        .flatMapConcat { group ->
-            useGateway(group.first()) {
-                delete(group.toSet(), options)
+    ): Flow<DeleteAction.State<APath<*>, APathLookup<APath<*>>>> = flow {
+        // Group targets by gateway type for optimal processing
+        val targetsByType = targets.groupBy { it::class }
+
+        var totalBytesDeleted = 0L
+        val allDeletedFiles = mutableSetOf<APathLookup<APath<*>>>()
+        val allSkippedFiles = mutableSetOf<APathLookup<APath<*>>>()
+
+        for (targetsGroup in targetsByType.values) {
+            // Track max observed bytes, not just Completed.bytesTotal: Active progress may include
+            // items that end up skipped (e.g. ignoreMissing), and the offset must stay monotonic.
+            var groupDeletedBytes = 0L
+            useGateway(targetsGroup.first()) {
+                delete(targetsGroup.toSet(), options)
+            }.collect { state ->
+                when (state) {
+                    is DeleteAction.State.Active -> {
+                        groupDeletedBytes = maxOf(groupDeletedBytes, state.deletedBytes)
+                        emit(state.copy(deletedBytes = totalBytesDeleted + state.deletedBytes))
+                    }
+
+                    is DeleteAction.State.Completed -> {
+                        groupDeletedBytes = maxOf(groupDeletedBytes, state.bytesTotal)
+                        allDeletedFiles.addAll(state.deleted)
+                        allSkippedFiles.addAll(state.skipped)
+                    }
+                }
             }
+            totalBytesDeleted += groupDeletedBytes
         }
+
+        emit(
+            DeleteAction.State.Completed(
+                deleted = allDeletedFiles,
+                skipped = allSkippedFiles,
+            )
+        )
+    }
 
     override suspend fun setModifiedAt(path: APath<*>, modifiedAt: Instant): Boolean {
         return useGateway(path) { setModifiedAt(path, modifiedAt) }

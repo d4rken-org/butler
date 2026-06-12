@@ -111,6 +111,7 @@ fun Project.addRoomDb() {
     add("implementation", "room-runtime")
     add("implementation", "room-ktx")
     add("ksp", "room-compiler")
+    add("testImplementation", "room-testing")
 }
 
 fun Project.addWorkerManager() {
