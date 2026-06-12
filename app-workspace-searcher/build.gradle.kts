@@ -11,24 +11,12 @@ plugins {
 
 apply(plugin = "dagger.hilt.android.plugin")
 
+setupRoomSchemas()
+
 android {
     namespace = "${projectConfig.packageName}.searcher"
 
     setupLibraryDefaults(projectConfig)
-
-    defaultConfig {
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments(
-                    mapOf("room.schemaLocation" to "$projectDir/schemas")
-                )
-            }
-        }
-    }
-
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
 
     setupModuleBuildTypes()
 
@@ -53,7 +41,7 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:${Versions.Desugar.core}")
+    coreLibraryDesugaring(libs.desugar)
     testImplementation(project(":app-common-test"))
 
     implementation(project(":app-common"))
@@ -73,6 +61,6 @@ dependencies {
     addRoomDb()
 
     // Compose UI testing with Robolectric
-    testImplementation(platform("androidx.compose:compose-bom:2026.04.01"))
-    testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
 }

@@ -6,7 +6,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("com.android.compose.screenshot") version "0.0.1-alpha14"
+    alias(libs.plugins.screenshot)
 }
 apply(plugin = "dagger.hilt.android.plugin")
 
@@ -38,14 +38,6 @@ android {
         buildConfigField("String", "GITSHA", "\"${commitHashProvider.get()}\"")
         buildConfigField("String", "VERSION_CODE", "\"${projectConfig.version.code}\"")
         buildConfigField("String", "VERSION_NAME", "\"${projectConfig.version.name}\"")
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments(
-                    mapOf("room.schemaLocation" to "$projectDir/schemas")
-                )
-            }
-        }
     }
 
     signingConfigs {
@@ -149,9 +141,6 @@ android {
         getByName("test") {
             resources.srcDirs("src/main/assets")
         }
-        getByName("androidTest") {
-            assets.srcDirs(files("$projectDir/schemas"))
-        }
     }
 
     androidResources {
@@ -180,7 +169,7 @@ afterEvaluate {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:${Versions.Desugar.core}")
+    coreLibraryDesugaring(libs.desugar)
 
     implementation(project(":app-common"))
     testImplementation(project(":app-common-test"))
@@ -206,11 +195,11 @@ dependencies {
     addIO()
     addRetrofit()
 
-    "gplayImplementation"("com.android.billingclient:billing:7.1.1")
-    "gplayImplementation"("com.android.billingclient:billing-ktx:7.1.1")
+    "gplayImplementation"(libs.billing.core)
+    "gplayImplementation"(libs.billing.ktx)
 
-    "gplayImplementation"("com.google.android.play:review:2.0.2")
-    "gplayImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "gplayImplementation"(libs.play.review.core)
+    "gplayImplementation"(libs.play.review.ktx)
 
     addAndroidCore()
     addAndroidUI()
@@ -223,18 +212,18 @@ dependencies {
     addTesting()
 
     // Compose UI testing with Robolectric
-    testImplementation(platform("androidx.compose:compose-bom:2026.04.01"))
-    testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
 
-    implementation("io.github.z4kn4fein:semver:3.0.0")
+    implementation(libs.semver)
 
     // Drag and drop support for LazyColumn
-    implementation("sh.calvin.reorderable:reorderable:2.5.1")
+    implementation(libs.reorderable)
 
     addCoil()
 
     // Compose Preview Screenshot Testing
-    "screenshotTestImplementation"(platform("androidx.compose:compose-bom:2026.04.01"))
-    "screenshotTestImplementation"("com.android.tools.screenshot:screenshot-validation-api:0.0.1-alpha14")
-    "screenshotTestImplementation"("androidx.compose.ui:ui-tooling")
+    "screenshotTestImplementation"(platform(libs.androidx.compose.bom))
+    "screenshotTestImplementation"(libs.screenshot.validation.api)
+    "screenshotTestImplementation"(libs.compose.ui.tooling)
 }

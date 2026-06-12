@@ -10,24 +10,12 @@ plugins {
 
 apply(plugin = "dagger.hilt.android.plugin")
 
+setupRoomSchemas()
+
 android {
     namespace = "${projectConfig.packageName}.common.io"
 
     setupLibraryDefaults(projectConfig)
-
-    defaultConfig {
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments(
-                    mapOf("room.schemaLocation" to "$projectDir/schemas")
-                )
-            }
-        }
-    }
-
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
 
     setupModuleBuildTypes()
 
@@ -53,7 +41,7 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:${Versions.Desugar.core}")
+    coreLibraryDesugaring(libs.desugar)
     implementation(project(":app-common"))
     implementation(project(":app-common-root"))
     implementation(project(":app-common-adb"))

@@ -47,7 +47,6 @@ See `.claude/rules/development-commands.md` for complete command reference.
 ## Important File Locations
 
 ### Database Schemas
-- `app/schemas/`: Room database schema files for migrations
 - `app-common-io/schemas/`: SAF location and trash database schemas
 - `app-workspace-searcher/schemas/`: Search history database schemas
 - `app-workspace/schemas/`: Workspace session database schemas
@@ -57,8 +56,8 @@ See `.claude/rules/development-commands.md` for complete command reference.
 - `<module>/src/main/res/values/strings.xml`: Module-specific strings
 
 ### Build Configuration
-- `buildSrc/src/main/java/Versions.kt`: Dependency versions
-- `buildSrc/build.gradle.kts`: Build plugin versions
+- `gradle/libs.versions.toml`: Dependency and plugin versions (version catalog)
+- `buildSrc/src/main/java/Dependencies.kt`: Dependency group helpers (`addDI()`, `addRoomDb()`, …) resolving from the catalog
 - `.github/workflows/code-checks.yml`: CI configuration
 
 ### Screenshots

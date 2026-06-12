@@ -29,7 +29,7 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:${Versions.Desugar.core}")
+    coreLibraryDesugaring(libs.desugar)
     implementation(project(":app-common"))
 
     addAndroidCore()
@@ -38,6 +38,6 @@ dependencies {
     addSerialization()
     addIO()
 
-    implementation("dev.rikka.shizuku:api:13.1.5")
-    implementation("dev.rikka.shizuku:provider:13.1.5")
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
 }

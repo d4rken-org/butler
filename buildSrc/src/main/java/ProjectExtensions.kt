@@ -17,6 +17,12 @@ import java.util.Properties
 val Project.projectConfig: ProjectConfig
     get() = extensions.findByType(ProjectConfig::class.java)!!
 
+fun Project.setupRoomSchemas() {
+    extensions.configure(com.google.devtools.ksp.gradle.KspExtension::class.java) {
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
+}
+
 fun LibraryExtension.setupLibraryDefaults(projectConfig: ProjectConfig) {
     if (projectConfig.compileSdkPreview != null) {
         compileSdkPreview = projectConfig.compileSdkPreview

@@ -17,7 +17,9 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    implementation("com.android.tools.build:gradle:9.0.0")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.10")
-    implementation("com.squareup:javapoet:1.13.0")
+    implementation(libs.android.gradle.plugin)
+    implementation(libs.kotlin.gradle.plugin)
+    implementation(libs.ksp.gradle.plugin)
+    implementation(libs.hilt.gradle.plugin)
+    implementation(libs.javapoet)
 }
