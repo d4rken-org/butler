@@ -49,7 +49,9 @@ interface IpcClientModule {
                 .getConstructor(String::class.java)
                 .newInstance(messageParts.first())
                 .also { newException ->
-                    //  TODO: Couldn't find a way to keep the trace through parceling
+                    // Android's Parcel preserves only an exception's message across the binder, not
+                    // its stack trace; we decode the trace from the Base64 marker the host appended
+                    // to the message (see IpcHostModule).
                     if (Bugs.isDebug && messageParts.size > 1) {
                         log(TAG, VERBOSE) { "Decoding stacktrace..." }
                         messageParts[1].decodeStacktrace()?.let { remoteTrace ->

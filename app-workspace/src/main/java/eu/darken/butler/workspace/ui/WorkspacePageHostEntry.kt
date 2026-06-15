@@ -18,5 +18,8 @@ interface WorkspacePageHostEntry {
 }
 
 val LocalWorkspacePageHosts = staticCompositionLocalOf<Map<Workspace.Type, WorkspacePageHostEntry>> {
-    emptyMap()
+    // Fail loudly: any composition that renders a workspace page host must provide this map.
+    // A silent emptyMap() default would surface as "no page host registered" error content in
+    // every detached composition (e.g. offscreen preview capture) that forgot to provide it.
+    error("LocalWorkspacePageHosts not provided")
 }

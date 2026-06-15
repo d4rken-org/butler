@@ -681,6 +681,7 @@ fun ExplorerWorkspacePage(
                             collapsedFraction = collapsedFraction,
                             onBreadcrumbClick = { target -> vm?.navigate(target) },
                             onNavigateToPath = { path -> vm?.navigateToPath(path) },
+                            onCommitEditedPath = { current, edited -> vm?.navigateToEditedPath(current, edited) },
                             onSetAsHome = { target -> vm?.setAsDefaultStartLocation(target) },
                             onCopyPath = { path -> vm?.copyPathToSystemClipboard(path) },
                             safLocationManager = vm?.safLocationManager,

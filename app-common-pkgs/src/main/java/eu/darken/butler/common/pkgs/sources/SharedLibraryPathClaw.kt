@@ -13,7 +13,9 @@ import eu.darken.butler.common.files.LocalPath
 import javax.inject.Inject
 
 /**
- * TODO: Does anyone know a better way than the CLAW !?
+ * Extracts a shared library's file path from [SharedLibraryInfo] by marshalling it to a Parcel
+ * and scraping the path out of the raw bytes — no public API exposes the path directly. Fragile
+ * to framework changes, but no better option exists.
  */
 @Reusable
 class SharedLibraryPathClaw @Inject constructor() {

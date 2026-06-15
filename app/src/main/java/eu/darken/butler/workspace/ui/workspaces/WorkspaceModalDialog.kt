@@ -14,6 +14,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 
 /**
@@ -71,13 +72,16 @@ fun WorkspaceModalContent(
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
 private fun WorkspaceModalContentPreview() {
-    // Preview with a mock sub-workspace (picker)
-    WorkspaceModalContent(
-        workspace = Workspace.Info(
-            id = Workspace.Id(),
-            type = Workspace.Type.EXPLORER,
-            title = "Select Folder".toCaString(),
-            callerWorkspaceId = Workspace.Id(), // Mock parent workspace
-        ),
-    )
+    // No page host map available in previews; provide an empty one so the dispatcher renders its
+    // error fallback instead of tripping the now-required LocalWorkspacePageHosts default.
+    CompositionLocalProvider(LocalWorkspacePageHosts provides emptyMap()) {
+        WorkspaceModalContent(
+            workspace = Workspace.Info(
+                id = Workspace.Id(),
+                type = Workspace.Type.EXPLORER,
+                title = "Select Folder".toCaString(),
+                callerWorkspaceId = Workspace.Id(), // Mock parent workspace
+            ),
+        )
+    }
 }

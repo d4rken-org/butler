@@ -229,7 +229,7 @@ private fun PatternFieldFilenamePreview() {
             onToggleRegex = {},
         )
         PatternField(
-            text = "TODO",
+            text = "fun main",
             onTextChange = {},
             onSearch = {},
             placeholder = "Content pattern…",

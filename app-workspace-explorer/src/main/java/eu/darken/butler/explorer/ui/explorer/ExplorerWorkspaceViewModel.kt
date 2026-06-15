@@ -19,7 +19,9 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.isDirectory
@@ -94,6 +96,7 @@ import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
+import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -608,6 +611,22 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "navigateToPath($path)" }
         getWorkspace().navigate(ExplorerNavigation.Target.Directory(path))
         clearSelection()
+    }
+
+    fun navigateToEditedPath(currentPath: APath<*>, editedPath: String) {
+        val trimmed = editedPath.trim()
+        val newPath = when (currentPath) {
+            is SAFPath -> {
+                val segments = if (trimmed.isEmpty() || trimmed == "/") {
+                    emptyArray()
+                } else {
+                    trimmed.split("/").filter { it.isNotEmpty() }.toTypedArray()
+                }
+                SAFPath.build(currentPath.treeRootUri, *segments)
+            }
+            is LocalPath -> LocalPath.build(File("/$trimmed"))
+        }
+        navigateToPath(newPath)
     }
 
     fun navigate(target: ExplorerNavigation) = launch {

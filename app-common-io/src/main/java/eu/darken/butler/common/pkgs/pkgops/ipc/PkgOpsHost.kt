@@ -62,7 +62,9 @@ class PkgOpsHost @Inject constructor(
                 .flatMap { it.pkgList.toList() }
                 .distinct()
                 .map {
-                    // TODO can we get the correctly user handle?
+                    // ActivityManager.runningAppProcesses doesn't expose the user handle, so we
+                    // default to UserHandle2() here. (The ProcessScanner fallback used on failure
+                    // does provide real handles.) TODO: resolve the handle here directly.
                     InstallId(it.toPkgId(), UserHandle2())
                 }
                 .toSet()
