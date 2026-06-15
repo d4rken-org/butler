@@ -34,7 +34,8 @@ interface IpcHostModule {
 
         if (Bugs.isDebug) {
             log(VERBOSE) { "Encoding stacktrace..." }
-            // TODO Find better way to pass trace, see IpcClientModule
+            // Parcel can't carry the stack trace across the binder, so we append it Base64-encoded
+            // to the exception message; IpcClientModule decodes it on the other side.
             val encodedTrace = stackTrace.encodeBase64()
             if (encodedTrace != null) {
                 msgBuilder

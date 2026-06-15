@@ -107,9 +107,8 @@ class RootServiceClient @Inject constructor(
 
         fun RootHostLauncher.createHostConnection(
             /**
-             * TODO Keep this false, but evaluate more types of rooted devices
-             * Not needed unless [DataAreaManager] fails to get the altered paths or the rest of IO can't cope.
-             * Being able to work without mount-master is more reliable.
+             * Keep this false by default — working without mount-master is more reliable.
+             * Only needed if [DataAreaManager] can't get the altered paths or the rest of IO can't cope.
              */
             useMountMaster: Boolean = false,
             options: RootHostOptions,

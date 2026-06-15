@@ -43,7 +43,7 @@ class NotInstalledPkgsSource @Inject constructor(
     private val userManager: UserManager2,
 ) : PkgDataSource {
 
-    private val targetFlags = MATCH_ARCHIVED_PACKAGES or PackageManager.MATCH_UNINSTALLED_PACKAGES.toLong()
+    private val targetFlags = PackageManager.MATCH_ARCHIVED_PACKAGES or PackageManager.MATCH_UNINSTALLED_PACKAGES.toLong()
 
     override suspend fun getPkgs(): Collection<Installed> = pkgOps.useRes {
         log(TAG) { "getPkgs()" }
@@ -163,8 +163,6 @@ class NotInstalledPkgsSource @Inject constructor(
     }
 
     companion object {
-        // TODO Update when using API35: MATCH_ARCHIVED_PACKAGES
-        private const val MATCH_ARCHIVED_PACKAGES = 0x100000000L // 4294967296L
         private const val PRIVATE_FLAG_HAS_FRAGILE_USER_DATA = 1 shl 24
         private val TAG = logTag("Pkg", "Repo", "Source", "NotInstalledPkgs")
     }
