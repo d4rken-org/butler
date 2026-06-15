@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.ui.explorer.items.row
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,6 +51,7 @@ internal fun RegularFileRow(
                 model = item.lookup,
                 contentDescription = stringResource(R.string.explorer_file_regular_content_desc),
                 modifier = Modifier.size(32.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         },
         primaryText = primaryText,
