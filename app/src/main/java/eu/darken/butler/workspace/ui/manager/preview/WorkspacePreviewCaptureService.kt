@@ -15,6 +15,8 @@ import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.themeStateBlocking
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
+import eu.darken.butler.workspace.ui.LocalWorkspacePageHosts
+import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceMapper
 import eu.darken.butler.workspace.ui.workspaces.WorkspacePaneInfo
@@ -32,6 +34,7 @@ class WorkspacePreviewCaptureService @Inject constructor(
     private val composableBitmapRenderer: ComposableBitmapRenderer,
     private val dispatcherProvider: DispatcherProvider,
     private val generalSettings: GeneralSettings,
+    private val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
 ) {
 
     suspend fun captureWorkspace(
@@ -51,8 +54,14 @@ class WorkspacePreviewCaptureService @Inject constructor(
                 captureContext = captureContext,
                 viewModelStoreOwner = viewmodelStoreOwner,
             ) {
+                // Offscreen capture renders in a detached composition that doesn't inherit the
+                // app's locals, so the page host map must be re-provided here or every preview
+                // falls back to "no page host registered" error content.
                 // Disable focus during preview capture to prevent keyboard from showing
-                CompositionLocalProvider(LocalWorkspaceFocused provides false) {
+                CompositionLocalProvider(
+                    LocalWorkspaceFocused provides false,
+                    LocalWorkspacePageHosts provides pageHosts,
+                ) {
                     ButlerTheme(state = themeState) {
                         WorkspaceMapper(
                             info = WorkspacePaneInfo(
