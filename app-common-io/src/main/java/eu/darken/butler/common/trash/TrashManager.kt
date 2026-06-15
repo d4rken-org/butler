@@ -233,7 +233,6 @@ class TrashManager @Inject constructor(
 
         for (item in items) {
             try {
-                // TODO
                 val trashLookup = item.trashLookup
 
                 if (trashLookup == null) {

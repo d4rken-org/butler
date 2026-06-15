@@ -81,6 +81,7 @@ fun BreadcrumbBar(
     breadcrumbs: List<ExplorerBreadcrumb>,
     onBreadcrumbClick: (ExplorerNavigation) -> Unit,
     onNavigateToPath: ((APath<*>) -> Unit)? = null,
+    onCommitEditedPath: ((APath<*>, String) -> Unit)? = null,
     onSetAsHome: ((ExplorerNavigation.Target) -> Unit)? = null,
     onCopyPath: ((String) -> Unit)? = null,
     safLocationManager: SAFLocationManager? = null,
@@ -216,7 +217,7 @@ fun BreadcrumbBar(
             .padding(horizontal = 8.dp),
         contentAlignment = Alignment.TopStart
     ) {
-        if (isEditMode && onNavigateToPath != null) {
+        if (isEditMode && onCommitEditedPath != null) {
             // Edit mode - unified UI for both SAF and Local paths
             if (pathInfo.prefixIcon != null && pathInfo.prefixLabel != null) {
                 // Show icon + label prefix + editable suffix
@@ -297,31 +298,7 @@ fun BreadcrumbBar(
                         keyboardActions = KeyboardActions(
                             onDone = {
                                 keyboardController?.hide()
-                                val editedPath = editTextValue.text.trim()
-                                // FIXME do we need to handle this here or can we move it to the viewmodel?
-                                // Handle navigation based on path type
-                                when (val path = pathInfo.path) {
-                                    is SAFPath -> {
-                                        // Reconstruct SAFPath from tree root + edited segments
-                                        val segments = if (editedPath.isEmpty() || editedPath == "/") {
-                                            emptyArray()
-                                        } else {
-                                            editedPath.split("/").filter { it.isNotEmpty() }.toTypedArray()
-                                        }
-                                        val newSafPath = SAFPath.build(path.treeRootUri, *segments)
-                                        onNavigateToPath(newSafPath)
-                                    }
-                                    is LocalPath -> {
-                                        // Reconstruct LocalPath from edited path
-                                        val fullPath = "/$editedPath"
-                                        val newLocalPath = LocalPath.build(File(fullPath))
-                                        onNavigateToPath(newLocalPath)
-                                    }
-                                    else -> {
-                                        // Fallback for other path types or null
-                                    }
-                                }
-
+                                pathInfo.path?.let { onCommitEditedPath(it, editTextValue.text) }
                                 isEditMode = false
                             }
                         )

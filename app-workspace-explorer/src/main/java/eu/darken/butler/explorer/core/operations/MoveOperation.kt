@@ -202,8 +202,8 @@ class MoveOperation @AssistedInject constructor(
 
         result as MoveAction.State.Completed<*, *, *, *>
 
-        // Track filesystem changes - sources were removed
-        // TODO don't we have the lookup from earlier?
+        // Track filesystem changes - sources were removed.
+        // Use movedFiles (not command.sources) so skipped files aren't reported as removed.
         val movedSources = result.movedFiles.map { it.first }.toSet()
 
         fileSystemHinter.trackPathsRemoved(operationContext.id, movedSources.toSet())

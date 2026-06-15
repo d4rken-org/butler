@@ -222,7 +222,8 @@ class PkgOps @Inject constructor(
     }
 
     suspend fun viewArchive(path: APath<*>, flags: Int = 0): PkgArchive? = ipcFunnel.use {
-        // TODO Can we support SAF here?
+        // TODO: SAF paths are unsupported — getPackageArchiveInfo() needs a real filesystem path,
+        // so a SAFPath would first have to be cached to a temp file. Deferred.
         val jFile = path.toFile()
         if (!jFile.exists()) return@use null
 

@@ -49,7 +49,9 @@ class TemplatesWorkspace @AssistedInject constructor(
             CoroutineName(tag) +
             CoroutineExceptionHandler { _, throwable ->
                 log(tag, ERROR) { "Uncaught exception in workspace scope: ${throwable.asLog()}" }
-                // TODO: Add error state to workspace if needed
+                // Logged only: the Templates workspace has no failure UI because listing templates
+                // is non-destructive and recovers on the next emission. Revisit if a user-facing
+                // error state becomes necessary.
             }
     )
 
