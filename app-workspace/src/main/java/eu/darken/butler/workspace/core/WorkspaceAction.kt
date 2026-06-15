@@ -14,6 +14,12 @@ sealed interface WorkspaceAction {
          * Used by session restoration where the saved state is the source of truth.
          */
         val skipLimitCheck: Boolean = false,
+        /**
+         * System-initiated create that bypasses only the free-tier quota while still enforcing the
+         * per-type singleton check. Used to surface system workspaces (e.g. a crash bug report) even
+         * when the user is at their free-tier tab limit, without ever spawning duplicate singletons.
+         */
+        val skipQuotaCheck: Boolean = false,
     ) : WorkspaceAction {
         sealed interface Result : WorkspaceAction.Result {
             data class Success(val newId: Workspace.Id) : Result

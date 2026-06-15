@@ -353,7 +353,7 @@ class WorkspaceRepo @Inject constructor(
      * ([WorkspaceAction.Create.skipLimitCheck]), not a sub-workspace (modal/picker), not a replace.
      */
     private val WorkspaceAction.Create.needsLimitCheck: Boolean
-        get() = !skipLimitCheck && !arguments.isForSubWorkspace && replace == null
+        get() = !skipLimitCheck && !skipQuotaCheck && !arguments.isForSubWorkspace && replace == null
 
     private fun canCreateWorkspace(action: WorkspaceAction.Create, isPro: Boolean): Boolean {
         if (!action.needsLimitCheck) return true

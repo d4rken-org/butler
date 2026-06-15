@@ -46,6 +46,7 @@ class WorkspaceRegistryValidator @Inject constructor(
             Workspace.Type.APPS,
             Workspace.Type.HISTORY,
             Workspace.Type.DEVELOPER,
+            Workspace.Type.BUG_REPORT,
         )
         val actualTemplateTypes = templates.map { it.type }.toSet()
         check(actualTemplateTypes == expectedTemplateTypes) {

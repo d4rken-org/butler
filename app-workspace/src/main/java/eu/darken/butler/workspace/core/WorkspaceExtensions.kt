@@ -7,6 +7,7 @@ import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Apps
 import androidx.compose.material.icons.twotone.BugReport
 import androidx.compose.material.icons.twotone.Edit
+import androidx.compose.material.icons.twotone.ReportProblem
 import androidx.compose.material.icons.twotone.SaveAlt
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material.icons.twotone.Workspaces
@@ -15,6 +16,7 @@ import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.workspace.R
 import eu.darken.butler.workspace.contracts.apps.AppsArguments
+import eu.darken.butler.workspace.contracts.bugreport.BugReportArguments
 import eu.darken.butler.workspace.contracts.developer.DeveloperArguments
 import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
@@ -33,6 +35,7 @@ val Workspace.Type.icon: ImageVector
         Workspace.Type.SAVER -> Icons.TwoTone.SaveAlt
         Workspace.Type.DEVELOPER -> Icons.TwoTone.BugReport
         Workspace.Type.HISTORY -> Icons.AutoMirrored.TwoTone.ReceiptLong
+        Workspace.Type.BUG_REPORT -> Icons.TwoTone.ReportProblem
     }
 
 val Workspace.Type.label: CaString
@@ -46,6 +49,7 @@ val Workspace.Type.label: CaString
         Workspace.Type.SAVER -> R.string.workspace_saver_label.toCaString()
         Workspace.Type.DEVELOPER -> R.string.workspace_developer_label.toCaString()
         Workspace.Type.HISTORY -> R.string.workspace_history_label.toCaString()
+        Workspace.Type.BUG_REPORT -> R.string.workspace_bugreport_label.toCaString()
     }
 
 val Workspace.Type.defaultArguments: Workspace.Arguments?
@@ -59,4 +63,5 @@ val Workspace.Type.defaultArguments: Workspace.Arguments?
         Workspace.Type.SAVER -> null
         Workspace.Type.DEVELOPER -> DeveloperArguments.Default()
         Workspace.Type.HISTORY -> HistoryArguments.Default()
+        Workspace.Type.BUG_REPORT -> BugReportArguments.Default()
     }

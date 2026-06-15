@@ -62,6 +62,7 @@
     <string name="workspace_saver_label">Save as</string>
     <string name="workspace_developer_label">Developer</string>
     <string name="workspace_history_label">History</string>
+    <string name="workspace_bugreport_label">Bug reports</string>
 
     <!-- Workspace UI Actions -->
     <string name="workspace_expand_more_action">More</string>
