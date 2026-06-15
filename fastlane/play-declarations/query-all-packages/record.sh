@@ -15,8 +15,6 @@ source "$HERE/../_common.sh"
 printf 'Butler — File Explorer\neu.darken.butler\n\nApp manager\n(QUERY_ALL_PACKAGES)' > "$OUTDIR/title.txt"
 printf 'Searches and manages every\ninstalled app on the device.\n\nPackage data stays on-device\nand is never shared.' > "$OUTDIR/end.txt"
 
-type_text() { "${ADB[@]}" shell input text "$1"; }
-
 # ---- pre-state (off camera) -------------------------------------------------
 echo "Pre-state: clean prior exports, show touches, clean tabs, reach picker…"
 "${ADB[@]}" shell rm -f /sdcard/Download/*.apk >/dev/null 2>&1
@@ -38,16 +36,24 @@ pause 2.8                                   # header: user + system app counts
 
 cap "Search across all installed apps"
 tap "Search apps"; pause 1.0
-type_text "auto"; pause 0.6
+type_slow "auto"; pause 0.6                 # per-character typing is reliable under record load
 "${ADB[@]}" shell input keyevent 66; pause 0.6   # ENTER
 back; pause 1.6                             # hide keyboard, keep filtered results
 
 cap "Inspect any app in depth"
 tap "Android Auto"; pause 2.4
-swipe_up; pause 2.0                         # package id, version, SDK, storage paths
+swipe_up; pause 2.2                         # package id, version, SDK, storage paths
 
-cap "Manage it: export APK, share, uninstall"
-swipe_up; pause 2.2                         # the action buttons + components
-swipe_up; pause 2.2
+# Export the selected app's APK. This opens a "Save as" file-manager workspace,
+# the user saves it to shared storage, and the .apk then appears in Butler's own
+# file explorer — tying the App Manager directly to the file-manager core.
+cap "Export its APK to storage"
+tap "Export APK"; pause 2.2                 # creates a Save-as workspace (new tab)
+tap "Back to apps"; pause 2.2              # dismiss detail -> reveals the Save-as workspace
+tap "Save"; pause 3.0                       # destination prefilled to Download -> "1 file saved"
+
+cap "It lands in your file explorer"
+tap "Open directory"; pause 3.4            # opens Explorer at Download, showing the .apk
+pause 1.2
 
 rec_stop

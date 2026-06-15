@@ -78,7 +78,7 @@ file-management functionality above, which SAF and MediaStore cannot provide.
 ## 4. Demo video script
 
 This is the flow the automated recorder produces (`./record.sh`); see
-[`../README.md`](../README.md#generating-the-demo-videos-automated). Target **~90s**, portrait
+[`../README.md`](../README.md#generating-the-demo-videos-automated). Length **~104s**, portrait
 720×1606, synthetic data only.
 
 | # | Shot | On screen |
@@ -88,13 +88,15 @@ This is the flow the automated recorder produces (`./record.sh`); see
 | 3 | **Grant the permission** | Butler's Permission-setup screen (its rationale text) → Android's "Allow access to manage all files" system toggle → ON → back; storage now lists. |
 | 4 | **Browse non-media folders** | Navigate into `Projects/butler-notes/` showing non-media files: `build.log`, `config.json`, `README.md`. |
 | 5 | **Manage non-media files** | Multi-select all three → Cut → navigate to a different directory (`Documents`) → Paste. Bulk move of logs/configs/docs across the tree. |
-| 6 | **Tabbed workspaces** | Open the Tab Manager, showing the live workspace preview of the open tab. |
-| 7 | **End card** | "Browse and manage arbitrary files and folders across the device, in tabbed workspaces. On-device only — never uploaded." |
+| 6 | **Search the whole device** | Open a Search workspace and search `report` across `/storage/emulated/0`. One query returns hits from unrelated folders — `Annual-report.pdf` in `Documents/Work` and `Quarterly-report.pdf` in `Download` — each with its full path. A per-folder SAF grant could not span both. |
+| 7 | **Tabbed workspaces** | Open the Tab Manager, showing live workspace previews of **both** tabs: the Explorer (with the moved files) and the Searcher (with the search results). |
+| 8 | **End card** | "Browse and manage arbitrary files and folders across the device, in tabbed workspaces. On-device only — never uploaded." |
 
 Notes:
 - Deliberately uses **non-media** files in a deep arbitrary folder (not photos/PDFs in
   `Documents`), to make plain that MediaStore/SAF cannot serve the feature.
-- Recursive search and in-place editing (described in §2–3) are also core features but are not
-  shown in this clip to keep it focused and under length; they can be added later.
+- The three core pillars are all shown: arbitrary non-media browse (vs. MediaStore), bulk
+  move across trees (vs. single-file SAF picking), and whole-volume recursive search (vs.
+  per-folder SAF grants). In-place editing (§2–3) is described but not filmed, to keep length down.
 - No audio; on-screen captions only.
 - The `QUERY_ALL_PACKAGES` demo is a separate video (see that folder).

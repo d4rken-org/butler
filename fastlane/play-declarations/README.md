@@ -81,14 +81,17 @@ title/end-card text) and `<permission>/DECLARATION.md` (the Play Console copy).
 Each output is portrait 720×1606 H.264, well under the 2-minute limit, and uses
 only synthetic/seeded data — nothing personal is uploaded.
 
-- **`manage-external-storage`** (~75 s): feature blocked → grant → browse a deep
+- **`manage-external-storage`** (~104 s): feature blocked → grant → browse a deep
   **non-media** folder (logs/configs/docs) → bulk-move them across directories →
-  Tab Manager showing live workspace previews. Deliberately avoids photos/PDFs so
-  it's clear MediaStore/SAF cannot serve the feature.
-- **`query-all-packages`** (~40 s): App Manager breadth (user + system app counts)
-  → **search across all installed apps** → deep app detail → per-app management
-  actions (export APK, share, uninstall). The breadth + search steps show why broad
-  package visibility is required.
+  **whole-volume recursive search** (`report` → hits in `Documents/Work` and
+  `Download`) → Tab Manager showing live previews of both the Explorer and Searcher
+  tabs. The three shots map to the three reasons SAF/MediaStore are insufficient:
+  non-media files, bulk cross-tree moves, and per-folder-grant-free search.
+- **`query-all-packages`** (~50 s): App Manager breadth (user + system app counts)
+  → **search across all installed apps** → deep app detail → **Export APK into the
+  file explorer** (Export → Save-as → the `.apk` lands in `Download`, browsable in
+  Butler). Breadth + search show why broad package visibility is required; the export
+  shot ties the permission to the "File managers" permitted use.
 
 ## Policy references
 

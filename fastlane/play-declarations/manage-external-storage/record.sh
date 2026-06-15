@@ -24,6 +24,9 @@ echo "Pre-state: reset demo files, deny permission, clean tabs, reach picker…"
 "${ADB[@]}" shell settings put system show_touches 1
 "${ADB[@]}" shell settings put system pointer_location 0
 "${ADB[@]}" shell am force-stop "$PKG"
+# clear stale search history so the searcher shows a clean slate (debug build is debuggable).
+# NOTE: call run-as with rm directly — a nested `sh -c '...'` gets flattened by adb and fails.
+"${ADB[@]}" shell run-as "$PKG" rm -f databases/search_history.db databases/search_history.db-shm databases/search_history.db-wal >/dev/null 2>&1 || true
 "${ADB[@]}" shell monkey -p "$PKG" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
 pause 3
 clean_tabs_to_picker
@@ -60,9 +63,22 @@ back; pause 1.2                            # up to /sdcard
 tap "Documents"; pause 1.6
 tap "Paste" 0 -c; pause 2.2
 
+# Whole-volume recursive search in a Search workspace. A single query scans every
+# directory at once and returns hits from unrelated folders (Documents/Work and
+# Download) — something per-folder SAF grants cannot do.
+cap "Search the entire device at once"
+tap "Butler mascot performing various animations"; pause 1
+tap "Tab manager"; pause 1.4
+tap "Add tab" 0 -c; pause 1.8             # creates a New (picker) tab in the background
+tap "New " 0 -c; pause 1.8                # open the New card -> New-tab type picker
+tap "Search"; pause 2.2                    # Search workspace, path defaults to /storage/emulated/0
+tap "Filename"; pause 0.8                  # focus the query field
+type_slow "report"; pause 0.6             # reliable per-character typing under record load
+"${ADB[@]}" shell input keyevent 66; pause 4.5   # ENTER -> hits in Documents/Work + Download, let them linger
+
 cap "Every workspace previews live in the tab manager"
 tap "Butler mascot performing various animations"; pause 1
-tap "Tab manager"; pause 4.5               # workspace preview thumbnails render correctly now
+tap "Tab manager"; pause 4.5               # Explorer + Search previews render correctly now
 pause 1.5
 
 rec_stop

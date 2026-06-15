@@ -61,8 +61,8 @@ core feature to be prominently documented in the listing.
 ## 4. Demo video script
 
 Produced by the automated recorder (`./record.sh`); see
-[`../README.md`](../README.md#generating-the-demo-videos-automated). Portrait 720×1606, synthetic
-data only.
+[`../README.md`](../README.md#generating-the-demo-videos-automated). Length **~50s**, portrait
+720×1606, synthetic data only.
 
 | # | Shot | On screen |
 |---|------|-----------|
@@ -70,13 +70,13 @@ data only.
 | 2 | **Open the App Manager** | The Apps workspace, with a header showing the installed-app counts ("N user · N system apps"). |
 | 3 | **Search across all apps** | Type into the app search field; the list filters across the full installed-package set. |
 | 4 | **Inspect an app in depth** | Open an app's detail: package id, version, SDK levels, storage paths, exported components. |
-| 5 | **Management actions** | Scroll the detail to show per-app actions: Export APK, Share info, Uninstall. |
+| 5 | **Export the APK into the file explorer** | From the detail, **Export APK** → a "Save as" file-manager workspace (destination prefilled to `Download`) → **Save** → "1 file saved" → **Open directory** → the Explorer opens on `Download` with the exported `.apk` now present as a file. |
 | 6 | **End card** | "Searches and manages every installed app on the device. Package data stays on-device and is never shared." |
 
 The breadth header and the **search-all-apps** step are the policy-critical shots — they show why
-broad visibility into installed packages is required. (Butler's App Manager also exports an app's
-APK *into* its file explorer, tying the permission to the file-manager core; that step is described
-in §2 but omitted from this clip for reliability and length.)
+broad visibility into installed packages is required. Shot 5 then ties QUERY_ALL_PACKAGES directly
+to the **"File managers"** permitted use we selected: the exported APK lands in Butler's own file
+explorer, where the user browses, moves, and shares it like any other file (as described in §2).
 
 ---
 

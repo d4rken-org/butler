@@ -35,6 +35,8 @@ longpress() {  # longpress <needle> [idx]
 swipe_up() { "${ADB[@]}" shell input swipe 640 1900 640 800 500; }   # scroll list down
 back() { "${ADB[@]}" shell input keyevent BACK; }
 pause() { sleep "${1:-1.6}"; }
+# Type one character at a time; `input text` drops characters under screenrecord load.
+type_slow() { local s="$1" i; for ((i=0; i<${#s}; i++)); do "${ADB[@]}" shell input text "${s:$i:1}"; sleep 0.18; done; }
 cap() { local now; now=$(date +%s.%N); awk -v a="$now" -v b="$REC_T0" -v s="$1" 'BEGIN{printf "%.2f|%s\n", a-b, s}' >> "$CAPS"; }
 
 # ---- reach a clean New-tab type picker --------------------------------------
