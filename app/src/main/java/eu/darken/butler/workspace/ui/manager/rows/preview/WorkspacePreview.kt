@@ -81,6 +81,7 @@ fun WorkspacePreview(
                                     Workspace.Type.SAVER -> EditorMockPreview()
                                     Workspace.Type.DEVELOPER -> DeveloperMockPreview()
                                     Workspace.Type.HISTORY -> DeveloperMockPreview()
+                                    Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
                                 }
                             }
                         }
@@ -96,6 +97,7 @@ fun WorkspacePreview(
                         Workspace.Type.SAVER -> EditorMockPreview()
                         Workspace.Type.DEVELOPER -> DeveloperMockPreview()
                         Workspace.Type.HISTORY -> DeveloperMockPreview()
+                        Workspace.Type.BUG_REPORT -> DeveloperMockPreview()
                     }
                 }
             }

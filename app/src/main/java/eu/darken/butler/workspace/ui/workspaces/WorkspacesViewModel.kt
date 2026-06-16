@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -34,7 +35,10 @@ import eu.darken.butler.workspace.ui.session.WorkspaceSessionManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import kotlin.uuid.Uuid
@@ -52,6 +56,7 @@ class WorkspacesViewModel @Inject constructor(
     private val motdRepo: MotdRepo,
     private val webpageTool: WebpageTool,
     private val errorReportTool: ErrorReportTool,
+    private val bugReportRepo: BugReportRepo,
     val pageHosts: Map<Workspace.Type, @JvmSuppressWildcards WorkspacePageHostEntry>,
 ) : ViewModel4(dispatchers, logTag("Workspace", "Screen", "VM")) {
 
@@ -171,7 +176,40 @@ class WorkspacesViewModel @Inject constructor(
             }
             .launchInViewModel()
 
+        // Once session restore settles (this VM only exists post-onboarding), surface a fresh crash
+        // report as a focused workspace. Wait for a terminal state — restore-disabled users never
+        // reach Restored, so Disabled must also qualify; Error is left to the error handler above.
+        sessionManager.state
+            .filter {
+                it is WorkspaceSessionManager.State.Restored || it == WorkspaceSessionManager.State.Disabled
+            }
+            .take(1)
+            .onEach { surfaceUnseenCrashReportIfAny() }
+            .launchInViewModel()
+
         log(tag) { "WorkspacesViewModel initialization complete" }
+    }
+
+    private suspend fun surfaceUnseenCrashReportIfAny() {
+        if (!bugReportRepo.hasUnseenCrashes.first()) return
+        log(tag, INFO) { "Unseen crash report present — surfacing bug report workspace" }
+
+        val targetId = when (
+            val result = workspaceRepo.execute(
+                WorkspaceAction.Create(type = Workspace.Type.BUG_REPORT, skipQuotaCheck = true),
+            )
+        ) {
+            is WorkspaceAction.Create.Result.Success -> result.newId
+            is WorkspaceAction.Create.Result.AlreadyOpen -> result.existingId
+            is WorkspaceAction.Create.Result.LimitReached -> {
+                log(tag, WARN) { "Bug report workspace creation unexpectedly limited" }
+                null
+            }
+            else -> null
+        } ?: return
+
+        workspacePageManager.setFocusedWorkspace(targetId)
+        workspacePageManager.setSelectedWorkspaces(mapOf(0 to targetId))
     }
 
     private val visibleMotd = kotlinx.coroutines.flow.combine(motdRepo.motd, hiddenMotdIds) { motd, hiddenIds ->

@@ -187,6 +187,7 @@ dependencies {
     implementation(project(":app-workspace-saver"))
     implementation(project(":app-workspace-developer"))
     implementation(project(":app-workspace-history"))
+    implementation(project(":app-workspace-bugreport"))
     implementation(project(":app-provider-documents"))
 
     addDI()

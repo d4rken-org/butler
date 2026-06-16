@@ -42,6 +42,18 @@ object Logging {
 
     private val internalLoggers = mutableListOf<Logger>()
 
+    /**
+     * Per-priority enabled mask, indexed by [Priority.ordinal]. Recomputed whenever the installed
+     * logger set changes. The inline [log] guards read this so call sites below every installed
+     * logger's threshold skip message-lambda evaluation entirely — the fast-path that lets an
+     * always-on in-memory buffer capture INFO+ without forcing every DEBUG/VERBOSE lambda to run.
+     *
+     * A mask (not a single floor) keeps this exact: [Logger.isLoggable] is not required to be
+     * monotonic in priority.
+     */
+    @Volatile
+    private var enabledMask: BooleanArray = BooleanArray(Priority.entries.size)
+
     val loggers: List<Logger>
         get() = synchronized(internalLoggers) { internalLoggers.toList() }
 
@@ -50,12 +62,23 @@ object Logging {
             internalLoggers.isNotEmpty()
         }
 
+    fun isLoggable(priority: Priority): Boolean = enabledMask[priority.ordinal]
+
+    /** Must be called while holding the [internalLoggers] lock. */
+    private fun recomputeEnabledMask() {
+        enabledMask = BooleanArray(Priority.entries.size) { ordinal ->
+            val priority = Priority.entries[ordinal]
+            internalLoggers.any { it.isLoggable(priority) }
+        }
+    }
+
     fun install(logger: Logger) {
         synchronized(internalLoggers) {
             if (loggers.contains(logger)) {
                 log(TAG, WARN) { "Logger already installed: $logger" }
             } else {
                 internalLoggers.add(logger)
+                recomputeEnabledMask()
                 log(TAG, INFO) { "Was installed $logger" }
             }
         }
@@ -63,7 +86,18 @@ object Logging {
 
     fun remove(logger: Logger) {
         log(TAG, INFO) { "Removing: $logger" }
-        synchronized(internalLoggers) { internalLoggers.remove(logger) }
+        synchronized(internalLoggers) {
+            internalLoggers.remove(logger)
+            recomputeEnabledMask()
+        }
+    }
+
+    /**
+     * Recompute the enabled mask after a logger mutates its own [Logger.isLoggable] threshold
+     * (e.g. the in-memory buffer switching between INFO and DEBUG capture).
+     */
+    fun refreshLoggable() {
+        synchronized(internalLoggers) { recomputeEnabledMask() }
     }
 
     fun logInternal(
@@ -87,7 +121,10 @@ object Logging {
 
     fun clearAll() {
         log(TAG) { "Clearing all loggers" }
-        synchronized(internalLoggers) { internalLoggers.clear() }
+        synchronized(internalLoggers) {
+            internalLoggers.clear()
+            recomputeEnabledMask()
+        }
     }
 }
 
@@ -96,7 +133,7 @@ inline fun Any.log(
     metaData: Map<String, Any>? = null,
     message: () -> String,
 ) {
-    if (Logging.hasReceivers) {
+    if (Logging.isLoggable(priority)) {
         Logging.logInternal(
             tag = logTag(logTagViaCallSite()),
             priority = priority,
@@ -112,7 +149,7 @@ inline fun log(
     metaData: Map<String, Any>? = null,
     message: () -> String,
 ) {
-    if (Logging.hasReceivers) {
+    if (Logging.isLoggable(priority)) {
         Logging.logInternal(
             tag = tag,
             priority = priority,

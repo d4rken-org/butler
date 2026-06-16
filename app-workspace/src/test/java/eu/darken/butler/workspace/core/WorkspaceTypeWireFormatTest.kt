@@ -33,6 +33,7 @@ class WorkspaceTypeWireFormatTest : BaseTest() {
             "SAVER",
             "DEVELOPER",
             "HISTORY",
+            "BUG_REPORT",
         )
     }
 

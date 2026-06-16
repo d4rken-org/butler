@@ -7,10 +7,10 @@ import eu.darken.butler.common.debug.logging.logTag
 object Bugs {
     var reporter: AutomaticBugReporter? = null
 
-    fun report(exception: Exception) {
-        log(TAG, VERBOSE) { "Reporting $exception" }
+    fun report(throwable: Throwable) {
+        log(TAG, VERBOSE) { "Reporting $throwable" }
 
-        reporter?.notify(exception) ?: run {
+        reporter?.notify(throwable) ?: run {
             log(TAG, WARN) { "Bug tracking not initialized yet." }
         }
     }

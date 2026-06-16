@@ -43,6 +43,7 @@ interface Workspace<ArgT : Workspace.Arguments> {
         SAVER,
         DEVELOPER(isSingleton = true),
         HISTORY,
+        BUG_REPORT(isSingleton = true),
         ;
     }
 

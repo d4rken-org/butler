@@ -17,8 +17,10 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.AutomaticBugReporter
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.DebugSettings
+import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.common.debug.logging.LogCatLogger
 import eu.darken.butler.common.debug.logging.Logging
+import eu.darken.butler.common.debug.logging.RingLogBuffer
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -66,6 +68,8 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var documentsProviderManager: DocumentsProviderManager
     @Inject lateinit var trashCleanupScheduler: TrashCleanupScheduler
     @Inject lateinit var workspaceRegistryValidator: WorkspaceRegistryValidator
+    @Inject lateinit var ringLogBuffer: RingLogBuffer
+    @Inject lateinit var bugReportRepo: BugReportRepo
 
     /**
      * Lazy because Hilt singletons are otherwise constructed only on first call-site injection.
@@ -79,6 +83,10 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
 
     override fun onCreate() {
         super.onCreate()
+        // Always-on, before anything else: retains recent log lines in memory so a crash or
+        // Bugs.report can attach the trail leading up to it, even in release builds.
+        Logging.install(ringLogBuffer)
+
         if (BuildConfigWrap.DEBUG) {
             Logging.install(logCatLogger)
             log(TAG) { "BuildConfigWrap.DEBUG=true" }
@@ -88,7 +96,14 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
 
         val oldHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            log(TAG, ERROR) { "UNCAUGHT EXCEPTION: ${throwable.asLog()}" }
+            // Synchronously persist a crash report (process is dying). Everything here is best-effort
+            // and behind catch(Throwable) — even asLog()/snapshot allocation can fail under OOM, and
+            // crash propagation to oldHandler must never be blocked by our reporting.
+            try {
+                log(TAG, ERROR) { "UNCAUGHT EXCEPTION: ${throwable.asLog()}" }
+                bugReportRepo.captureCrashBlocking(throwable, thread)
+            } catch (_: Throwable) {
+            }
             if (oldHandler != null) oldHandler.uncaughtException(thread, throwable) else exitProcess(1)
             Thread.sleep(100)
         }
@@ -106,10 +121,16 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
                 Logging.remove(logCatLogger)
             }
 
+            // Capture more detail into the in-memory buffer when the cost is already accepted.
+            val verbose = isDebug || recorderState.isRecording
+            ringLogBuffer.setThreshold(if (verbose) DEBUG else RingLogBuffer.DEFAULT_THRESHOLD)
+
             Bugs.isDebug = isDebug || recorderState.isRecording
             Bugs.isTrace = isDebug && isTrace
         }.launchIn(appScope)
 
+        // Route manual Bugs.report(...) calls to the local reporter (stores a report on-device).
+        Bugs.reporter = bugReporter
         bugReporter.setup(this)
 
         sessionManager.recorderState

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bugreport_workspace_title">Bug reports</string>
+    <string name="bugreport_workspace_subtitle">Crash &amp; error reports</string>
+
+    <string name="bugreport_empty_title">No reports</string>
+    <string name="bugreport_empty_subtitle">Crash and error reports will appear here. Nothing is sent automatically.</string>
+
+    <string name="bugreport_type_crash">Crash</string>
+    <string name="bugreport_type_report">Report</string>
+
+    <string name="bugreport_share_action">Share</string>
+    <string name="bugreport_delete_action">Delete</string>
+    <string name="bugreport_delete_all_action">Delete all</string>
+    <string name="bugreport_cancel_action">Cancel</string>
+
+    <string name="bugreport_share_chooser_title">Share bug report</string>
+    <string name="bugreport_share_consent_title">Share report?</string>
+    <string name="bugreport_share_consent_message">This report includes app logs that may contain file names and paths. Only share it with people you trust.</string>
+</resources>
