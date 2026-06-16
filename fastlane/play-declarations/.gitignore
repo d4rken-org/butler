@@ -1,0 +1,5 @@
+# Generated screencasts are not committed — only the scripts that produce them.
+*.mp4
+out/
+__pycache__/
+*.pyc
