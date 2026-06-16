@@ -33,7 +33,15 @@ interface Workspace<ArgT : Workspace.Arguments> {
 
     }
 
-    enum class Type(val isSingleton: Boolean = false) {
+    enum class Type(
+        val isSingleton: Boolean = false,
+        /**
+         * When true, instances of this type never count toward the free-tier workspace limit and can
+         * always be created even when the user is already at the limit. Reserved for system/utility
+         * workspaces (developer tools, bug reports) that the user must always be able to reach.
+         */
+        val isQuotaExempt: Boolean = false,
+    ) {
         TEMPLATES,
         EXPLORER,
         SEARCHER,
@@ -41,9 +49,9 @@ interface Workspace<ArgT : Workspace.Arguments> {
         APPS,
         APP_DETAILS,
         SAVER,
-        DEVELOPER(isSingleton = true),
+        DEVELOPER(isSingleton = true, isQuotaExempt = true),
         HISTORY,
-        BUG_REPORT(isSingleton = true),
+        BUG_REPORT(isSingleton = true, isQuotaExempt = true),
         ;
     }
 

@@ -30,7 +30,7 @@ sealed interface WorkspaceEvent {
      *
      * @param successCount Number of successfully created workspaces
      * @param failureCount Number of failed workspace creations
-     * @param skippedCount Number of items that were skipped (non-openable)
+     * @param skippedCount Number of items that were not created (e.g. skipped by the free-tier limit)
      * @param sourceWorkspaceId Workspace that initiated the request (null if from global action)
      */
     data class BatchCreationCompleted(

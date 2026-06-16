@@ -118,6 +118,16 @@ class WorkspaceRepoTest : BaseTest() {
         return (result as WorkspaceAction.Create.Result.Success).newId
     }
 
+    private fun createReq(
+        type: Workspace.Type,
+        id: Workspace.Id? = null,
+    ): WorkspaceAction.Create = WorkspaceAction.Create(type = type, arguments = FakeArguments(type), id = id)
+
+    private suspend fun WorkspaceRepo.createBatch(
+        vararg requests: WorkspaceAction.Create,
+    ): WorkspaceAction.CreateBatch.Result.Success =
+        execute(WorkspaceAction.CreateBatch(requests = requests.toList())) as WorkspaceAction.CreateBatch.Result.Success
+
     private fun fake(id: Workspace.Id): FakeWorkspace = createdWorkspaces.single { it.id == id }
 
     @Test
@@ -242,5 +252,146 @@ class WorkspaceRepoTest : BaseTest() {
 
         fake(childId).released shouldBe true
         repo.retrieve(childId).first() shouldBe null
+    }
+
+    @Test
+    fun `quota-exempt types do not count toward the free tier limit`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        // An exempt singleton open alongside a full set of normal tabs must not consume a slot.
+        repo.createTab(type = Workspace.Type.DEVELOPER)
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT) {
+            repo.execute(createReq(Workspace.Type.EXPLORER))
+                .shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+        }
+
+        repo.execute(createReq(Workspace.Type.EXPLORER))
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.LimitReached>()
+    }
+
+    @Test
+    fun `quota-exempt types can be created even at the limit`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT) { repo.createTab() }
+
+        repo.execute(createReq(Workspace.Type.DEVELOPER))
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+        repo.execute(createReq(Workspace.Type.BUG_REPORT))
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+    }
+
+    @Test
+    fun `batch preserves request order for mixed exempt and counted creates`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+
+        repo.createBatch(
+            createReq(Workspace.Type.EXPLORER),
+            createReq(Workspace.Type.DEVELOPER),
+            createReq(Workspace.Type.SEARCHER),
+        )
+
+        createdWorkspaces.map { it.type } shouldBe listOf(
+            Workspace.Type.EXPLORER,
+            Workspace.Type.DEVELOPER,
+            Workspace.Type.SEARCHER,
+        )
+    }
+
+    @Test
+    fun `batch at the limit creates exempt types and skips counted ones`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT) { repo.createTab() }
+
+        val result = repo.createBatch(
+            createReq(Workspace.Type.DEVELOPER),
+            createReq(Workspace.Type.EXPLORER),
+        )
+
+        result.skippedCount shouldBe 1
+        createdWorkspaces.count { it.type == Workspace.Type.DEVELOPER } shouldBe 1
+        createdWorkspaces.count { it.type == Workspace.Type.EXPLORER } shouldBe WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT
+    }
+
+    @Test
+    fun `counted-only batch at the limit emits no completion event`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val events = mutableListOf<WorkspaceEvent>()
+        repo.events.onEach { events += it }.launchIn(backgroundScope)
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT) { repo.createTab() }
+
+        val result = repo.createBatch(
+            createReq(Workspace.Type.EXPLORER),
+            createReq(Workspace.Type.EXPLORER),
+        )
+
+        result.skippedCount shouldBe 2
+        events.filterIsInstance<WorkspaceEvent.BatchCreationCompleted>() shouldHaveSize 0
+    }
+
+    @Test
+    fun `batch sub-workspace requests bypass the limit`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT) { repo.createTab() }
+        val parentId = createdWorkspaces.first().id
+
+        val result = repo.createBatch(
+            WorkspaceAction.Create(
+                type = Workspace.Type.EXPLORER,
+                arguments = FakePickerArguments(Workspace.Type.EXPLORER, parentId),
+            ),
+        )
+
+        result.skippedCount shouldBe 0
+        result.results.values.single()
+            .shouldBeInstanceOf<WorkspaceAction.CreateBatch.CreationResult.Success>()
+    }
+
+    @Test
+    fun `duplicate singleton in one batch creates once and resolves duplicates to AlreadyOpen`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val firstId = Workspace.Id()
+            val secondId = Workspace.Id()
+
+            val result = repo.createBatch(
+                createReq(Workspace.Type.DEVELOPER, id = firstId),
+                createReq(Workspace.Type.DEVELOPER, id = secondId),
+            )
+
+            createdWorkspaces.count { it.type == Workspace.Type.DEVELOPER } shouldBe 1
+            val resultValues = result.results.values.toList()
+            resultValues.count { it is WorkspaceAction.CreateBatch.CreationResult.Success } shouldBe 1
+            resultValues.count { it is WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen } shouldBe 1
+        }
+
+    @Test
+    fun `identical singleton requests in one batch collapse to a single Success`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            // Same Create instance twice → one map key; the created instance must stay Success and not
+            // be overwritten by the deferred-duplicate AlreadyOpen resolution.
+            val request = createReq(Workspace.Type.DEVELOPER)
+
+            val result = repo.createBatch(request, request)
+
+            createdWorkspaces.count { it.type == Workspace.Type.DEVELOPER } shouldBe 1
+            result.results.size shouldBe 1
+            result.results.values.single()
+                .shouldBeInstanceOf<WorkspaceAction.CreateBatch.CreationResult.Success>()
+        }
+
+    @Test
+    fun `batch of only already-open singletons emits no completion event`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val events = mutableListOf<WorkspaceEvent>()
+        repo.events.onEach { events += it }.launchIn(backgroundScope)
+        val existingId = repo.createTab(type = Workspace.Type.DEVELOPER)
+
+        val result = repo.createBatch(createReq(Workspace.Type.DEVELOPER))
+
+        result.results.values.single()
+            .shouldBeInstanceOf<WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen>()
+        (result.results.values.single() as WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen)
+            .existingId shouldBe existingId
+        events.filterIsInstance<WorkspaceEvent.BatchCreationCompleted>() shouldHaveSize 0
     }
 }
