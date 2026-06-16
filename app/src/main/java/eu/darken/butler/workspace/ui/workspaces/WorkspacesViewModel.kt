@@ -18,6 +18,7 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.main.core.motd.MotdRepo
 import eu.darken.butler.main.core.motd.MotdState
 import eu.darken.butler.upgrade.UpgradeRepo
+import eu.darken.butler.workspace.contracts.bugreport.BugReportArguments
 import eu.darken.butler.workspace.core.PendingWorkspaceConfirmation
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.ui.WorkspacePageHostEntry
@@ -196,7 +197,10 @@ class WorkspacesViewModel @Inject constructor(
 
         val targetId = when (
             val result = workspaceRepo.execute(
-                WorkspaceAction.Create(type = Workspace.Type.BUG_REPORT, skipQuotaCheck = true),
+                WorkspaceAction.Create(
+                    type = Workspace.Type.BUG_REPORT,
+                    arguments = BugReportArguments.Default(),
+                ),
             )
         ) {
             is WorkspaceAction.Create.Result.Success -> result.newId

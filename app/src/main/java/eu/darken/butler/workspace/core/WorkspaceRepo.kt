@@ -160,6 +160,11 @@ class WorkspaceRepo @Inject constructor(
         }
         return lock.withLock {
         log(TAG, INFO) { "execute($action)" }
+        if (Bugs.isDebug) when (action) {
+            is WorkspaceAction.Create -> assertTypeMatchesArguments(action)
+            is WorkspaceAction.CreateBatch -> action.requests.forEach { assertTypeMatchesArguments(it) }
+            else -> Unit
+        }
         when (action) {
             is WorkspaceAction.Create -> {
                 log(TAG, INFO) { "Creating new workspace with $action" }
@@ -206,43 +211,58 @@ class WorkspaceRepo @Inject constructor(
 
                 // Pre-resolve singletons that already exist BEFORE applying the free-tier limit.
                 // AlreadyOpen entries do not consume tab slots — they just refocus an existing tab.
+                // A singleton type appearing more than once in the same batch (with no existing
+                // instance) is deduped here: the first occurrence stays in pendingCreates, later ones
+                // are deferred and resolved to AlreadyOpen once the instance exists. This keeps quota
+                // and confirmation accounting from counting the same singleton twice.
                 val preResolvedSingletons = mutableMapOf<WorkspaceAction.Create, Workspace.Id>()
                 val pendingCreates = mutableListOf<WorkspaceAction.Create>()
+                val deferredSingletonDupes = mutableListOf<WorkspaceAction.Create>()
+                val queuedSingletonTypes = mutableSetOf<Workspace.Type>()
                 action.requests.forEach { req ->
                     val existingId = findExistingSingleton(req)
-                    if (existingId != null) {
-                        preResolvedSingletons[req] = existingId
-                    } else {
-                        pendingCreates += req
+                    when {
+                        existingId != null -> preResolvedSingletons[req] = existingId
+                        req.createsSingletonTab && !queuedSingletonTypes.add(req.type) -> deferredSingletonDupes += req
+                        else -> pendingCreates += req
                     }
                 }
 
-                // Check workspace limit for free users — counted only against pending creates
+                // Apply the free-tier limit while preserving request order. Creates that don't need a
+                // limit check (quota-exempt types, sub-workspaces, replaces, restores) always pass and
+                // never consume a slot; the remaining creates fill the available slots in order.
                 val allowedCreates = if (isPro) {
                     pendingCreates
                 } else {
-                    // Count current tab workspaces (exclude sub-workspaces)
-                    val currentTabCount = _workspaces.value.count { !it.info.value.isSubWorkspace }
-                    val remainingSlots = (FREE_TIER_WORKSPACE_LIMIT - currentTabCount).coerceAtLeast(0)
-
-                    if (remainingSlots == 0 && pendingCreates.isNotEmpty()) {
-                        log(TAG, INFO) { "Workspace limit reached, no slots available for batch creation" }
-                        postLimitDialog()
-                        return@withLock WorkspaceAction.CreateBatch.Result.Success(
-                            results = preResolvedSingletons.mapValues { (_, id) ->
-                                WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(id)
-                            },
-                            skippedCount = pendingCreates.size,
-                        )
+                    var remainingSlots = (FREE_TIER_WORKSPACE_LIMIT - countedTabCount()).coerceAtLeast(0)
+                    pendingCreates.filter { req ->
+                        when {
+                            !req.needsLimitCheck -> true
+                            remainingSlots > 0 -> {
+                                remainingSlots--
+                                true
+                            }
+                            else -> false
+                        }
                     }
-
-                    pendingCreates.take(remainingSlots)
                 }
 
                 val limitSkipped = pendingCreates.size - allowedCreates.size
                 if (limitSkipped > 0) {
                     log(TAG, INFO) { "Workspace limit: allowing ${allowedCreates.size} new + ${preResolvedSingletons.size} singleton-already-open, skipping $limitSkipped" }
                     postLimitDialog()
+                }
+
+                // Nothing left to create: surface already-open singletons without running a creation
+                // pass, so no BatchCreationCompleted event fires (avoids a misleading "Opened 0 tabs"
+                // banner alongside the limit dialog).
+                if (allowedCreates.isEmpty()) {
+                    return@withLock WorkspaceAction.CreateBatch.Result.Success(
+                        results = preResolvedSingletons.mapValues { (_, id) ->
+                            WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(id)
+                        },
+                        skippedCount = limitSkipped,
+                    )
                 }
 
                 // Check if confirmation is needed (based on real new tabs only)
@@ -255,7 +275,7 @@ class WorkspaceRepo @Inject constructor(
                     val confirmationId = Uuid.random().toString()
 
                     pendingActions[confirmationId] = {
-                        executeBatchCreation(allowedCreates, preResolvedSingletons, limitSkipped, action.sourceWorkspaceId)
+                        executeBatchCreation(allowedCreates, preResolvedSingletons, deferredSingletonDupes, limitSkipped, action.sourceWorkspaceId)
                     }
 
                     _pendingConfirmations.update {
@@ -272,7 +292,7 @@ class WorkspaceRepo @Inject constructor(
                     return@withLock WorkspaceAction.CreateBatch.Result.AwaitingConfirmation
                 }
 
-                executeBatchCreation(allowedCreates, preResolvedSingletons, limitSkipped, action.sourceWorkspaceId)
+                executeBatchCreation(allowedCreates, preResolvedSingletons, deferredSingletonDupes, limitSkipped, action.sourceWorkspaceId)
             }
 
             is WorkspaceAction.Close -> {
@@ -350,19 +370,47 @@ class WorkspaceRepo @Inject constructor(
 
     /**
      * True when this create counts against [FREE_TIER_WORKSPACE_LIMIT]: not a session restore
-     * ([WorkspaceAction.Create.skipLimitCheck]), not a sub-workspace (modal/picker), not a replace.
+     * ([WorkspaceAction.Create.skipLimitCheck]), not a quota-exempt type ([Workspace.Type.isQuotaExempt]),
+     * not a sub-workspace (modal/picker), not a replace.
      */
     private val WorkspaceAction.Create.needsLimitCheck: Boolean
-        get() = !skipLimitCheck && !skipQuotaCheck && !arguments.isForSubWorkspace && replace == null
+        get() = !skipLimitCheck && !type.isQuotaExempt && !arguments.isForSubWorkspace && replace == null
+
+    /**
+     * True when this create would occupy the single tab slot for its singleton type — so a second
+     * such create in the same batch is redundant and can be deferred to AlreadyOpen. Mirrors the
+     * gating in [findExistingSingleton]: singleton sub-workspaces, restores ([skipLimitCheck]) and
+     * replaces are NOT deduped (they are legitimately distinct creates).
+     */
+    private val WorkspaceAction.Create.createsSingletonTab: Boolean
+        get() = type.isSingleton && !arguments.isForSubWorkspace && !skipLimitCheck && replace == null
+
+    /**
+     * Number of open tab workspaces that count toward [FREE_TIER_WORKSPACE_LIMIT]: excludes modal
+     * sub-workspaces and quota-exempt types ([Workspace.Type.isQuotaExempt]).
+     */
+    private fun countedTabCount(): Int =
+        _workspaces.value.count { !it.info.value.isSubWorkspace && !it.type.isQuotaExempt }
+
+    /**
+     * Debug-only invariant check: [WorkspaceAction.Create.type] must match its [arguments] type.
+     * Both quota policy ([Workspace.Type.isQuotaExempt]) and factory selection key off [Create.type],
+     * so a mismatch is a caller bug that could pick the wrong factory or bypass the quota.
+     */
+    private fun assertTypeMatchesArguments(create: WorkspaceAction.Create) {
+        if (create.type != create.arguments.type) {
+            log(TAG, ERROR) {
+                "Create.type (${create.type}) != arguments.type (${create.arguments.type}); " +
+                    "quota and factory selection key off Create.type — fix the caller."
+            }
+        }
+    }
 
     private fun canCreateWorkspace(action: WorkspaceAction.Create, isPro: Boolean): Boolean {
         if (!action.needsLimitCheck) return true
         if (isPro) return true
 
-        // Check count of tab workspaces (exclude sub-workspaces)
-        val currentTabCount = _workspaces.value.count { !it.info.value.isSubWorkspace }
-
-        return currentTabCount < FREE_TIER_WORKSPACE_LIMIT
+        return countedTabCount() < FREE_TIER_WORKSPACE_LIMIT
     }
 
     /**
@@ -392,7 +440,7 @@ class WorkspaceRepo @Inject constructor(
 
     private fun postLimitDialog() {
         val confirmationId = Uuid.random().toString()
-        val currentCount = _workspaces.value.count { !it.info.value.isSubWorkspace }
+        val currentCount = countedTabCount()
 
         _pendingConfirmations.update {
             it + (confirmationId to PendingWorkspaceConfirmation(
@@ -409,6 +457,7 @@ class WorkspaceRepo @Inject constructor(
     private suspend fun executeBatchCreation(
         requests: List<WorkspaceAction.Create>,
         preResolvedSingletons: Map<WorkspaceAction.Create, Workspace.Id>,
+        deferredSingletonDupes: List<WorkspaceAction.Create>,
         limitSkipped: Int,
         sourceWorkspaceId: Workspace.Id?,
     ): WorkspaceAction.CreateBatch.Result.Success {
@@ -446,6 +495,23 @@ class WorkspaceRepo @Inject constructor(
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Batch creation failed for ${createRequest.type}: ${e.asLog()}" }
                 results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.Failure(e)
+            }
+        }
+
+        // Resolve same-type singleton duplicates that were deduped out of [requests] for accounting:
+        // each maps to the now-created (or pre-existing) instance of its type. A dup that is
+        // data-class-equal to an already-recorded request collapses onto its key — keep that entry
+        // (it is the Success) instead of overwriting it with AlreadyOpen.
+        deferredSingletonDupes.forEach { dup ->
+            if (results.containsKey(dup)) return@forEach
+            val instanceId = _workspaces.value.firstOrNull { it.type == dup.type && !it.info.value.isSubWorkspace }?.id
+            results[dup] = if (instanceId != null) {
+                WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(instanceId)
+            } else {
+                log(TAG, ERROR) { "Batch: deferred singleton dup ${dup.type} has no instance to resolve to" }
+                WorkspaceAction.CreateBatch.CreationResult.Failure(
+                    IllegalStateException("No ${dup.type} instance for deferred duplicate"),
+                )
             }
         }
 

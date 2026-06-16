@@ -14,12 +14,6 @@ sealed interface WorkspaceAction {
          * Used by session restoration where the saved state is the source of truth.
          */
         val skipLimitCheck: Boolean = false,
-        /**
-         * System-initiated create that bypasses only the free-tier quota while still enforcing the
-         * per-type singleton check. Used to surface system workspaces (e.g. a crash bug report) even
-         * when the user is at their free-tier tab limit, without ever spawning duplicate singletons.
-         */
-        val skipQuotaCheck: Boolean = false,
     ) : WorkspaceAction {
         sealed interface Result : WorkspaceAction.Result {
             data class Success(val newId: Workspace.Id) : Result
@@ -41,13 +35,15 @@ sealed interface WorkspaceAction {
         sealed interface Result : WorkspaceAction.Result {
             /**
              * Per-request results keyed by the [Create] request. Note: equal [Create] instances
-             * (data-class equality on type + arguments + ids) collapse to a single entry. For
-             * singleton types this is benign — duplicates resolve to identical
-             * [CreationResult.AlreadyOpen] values. For non-singleton types, duplicate Create
-             * requests within a batch are likely a programmer error and are logged as a warning.
+             * (data-class equality on type + arguments + ids) collapse to a single entry. Repeated
+             * singleton-type requests in one batch are deduped to a single creation; the extra
+             * requests resolve to [CreationResult.AlreadyOpen] for the same instance. For
+             * non-singleton types, duplicate Create requests within a batch are likely a programmer
+             * error and are logged as a warning.
              */
             data class Success(
                 val results: Map<Create, CreationResult>,
+                /** Number of requested creates that were not created (e.g. skipped by the free-tier limit). */
                 val skippedCount: Int,
             ) : Result
 
