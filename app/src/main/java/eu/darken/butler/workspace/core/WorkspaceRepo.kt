@@ -89,6 +89,13 @@ class WorkspaceRepo @Inject constructor(
         log(TAG) { "create($type, $arguments, $idToReplace, existingId=$existingId)" }
         val wip = _workspaces.value.toMutableList()
 
+        // Honoring a caller-supplied id (single create and batch) must never append a duplicate id —
+        // that would break retrieve/close/reorder and event targeting. Reusing the id of the tab being
+        // replaced is the one legitimate collision.
+        if (existingId != null && existingId != idToReplace && wip.any { it.id == existingId }) {
+            throw IllegalStateException("Cannot create workspace with id $existingId: already in use")
+        }
+
         @Suppress("UNCHECKED_CAST")
         val factory = factoryMap[type] as? WorkspaceFactory<Workspace.Arguments>
             ?: throw IllegalArgumentException("No factory found for workspace type: $type")
@@ -228,54 +235,20 @@ class WorkspaceRepo @Inject constructor(
                     }
                 }
 
-                // Apply the free-tier limit while preserving request order. Creates that don't need a
-                // limit check (quota-exempt types, sub-workspaces, replaces, restores) always pass and
-                // never consume a slot; the remaining creates fill the available slots in order.
-                val allowedCreates = if (isPro) {
-                    pendingCreates
-                } else {
-                    var remainingSlots = (FREE_TIER_WORKSPACE_LIMIT - countedTabCount()).coerceAtLeast(0)
-                    pendingCreates.filter { req ->
-                        when {
-                            !req.needsLimitCheck -> true
-                            remainingSlots > 0 -> {
-                                remainingSlots--
-                                true
-                            }
-                            else -> false
-                        }
-                    }
-                }
+                // Decide whether to ask for confirmation based on how many new tabs we'd open right
+                // now. The actual quota is re-applied at execution time (in finalizeBatch), so a
+                // confirmation that resolves after the user opened more tabs can never push them past
+                // the limit — the planned count here is only an estimate for the dialog.
+                val plannedAllowed = applyFreeTierLimit(pendingCreates, isPro)
 
-                val limitSkipped = pendingCreates.size - allowedCreates.size
-                if (limitSkipped > 0) {
-                    log(TAG, INFO) { "Workspace limit: allowing ${allowedCreates.size} new + ${preResolvedSingletons.size} singleton-already-open, skipping $limitSkipped" }
-                    postLimitDialog()
-                }
-
-                // Nothing left to create: surface already-open singletons without running a creation
-                // pass, so no BatchCreationCompleted event fires (avoids a misleading "Opened 0 tabs"
-                // banner alongside the limit dialog).
-                if (allowedCreates.isEmpty()) {
-                    return@withLock WorkspaceAction.CreateBatch.Result.Success(
-                        results = preResolvedSingletons.mapValues { (_, id) ->
-                            WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(id)
-                        },
-                        skippedCount = limitSkipped,
-                    )
-                }
-
-                // Check if confirmation is needed (based on real new tabs only)
-                val needsConfirmation = allowedCreates.size >= CONFIRMATION_THRESHOLD
-
-                if (needsConfirmation) {
+                if (plannedAllowed.size >= CONFIRMATION_THRESHOLD) {
                     log(TAG, INFO) {
-                        "Batch size (${allowedCreates.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation"
+                        "Batch size (${plannedAllowed.size}) >= threshold ($CONFIRMATION_THRESHOLD), requesting confirmation"
                     }
                     val confirmationId = Uuid.random().toString()
 
                     pendingActions[confirmationId] = {
-                        executeBatchCreation(allowedCreates, preResolvedSingletons, deferredSingletonDupes, limitSkipped, action.sourceWorkspaceId)
+                        finalizeBatch(pendingCreates, preResolvedSingletons, deferredSingletonDupes, isPro, action.sourceWorkspaceId)
                     }
 
                     _pendingConfirmations.update {
@@ -283,8 +256,8 @@ class WorkspaceRepo @Inject constructor(
                             id = confirmationId,
                             sourceWorkspaceId = action.sourceWorkspaceId,
                             data = PendingWorkspaceConfirmation.ConfirmationData.BatchWorkspaceCreation(
-                                totalCount = allowedCreates.size,
-                                skippedCount = limitSkipped,
+                                totalCount = plannedAllowed.size,
+                                skippedCount = pendingCreates.size - plannedAllowed.size,
                             ),
                         ))
                     }
@@ -292,7 +265,7 @@ class WorkspaceRepo @Inject constructor(
                     return@withLock WorkspaceAction.CreateBatch.Result.AwaitingConfirmation
                 }
 
-                executeBatchCreation(allowedCreates, preResolvedSingletons, deferredSingletonDupes, limitSkipped, action.sourceWorkspaceId)
+                finalizeBatch(pendingCreates, preResolvedSingletons, deferredSingletonDupes, isPro, action.sourceWorkspaceId)
             }
 
             is WorkspaceAction.Close -> {
@@ -454,6 +427,69 @@ class WorkspaceRepo @Inject constructor(
         }
     }
 
+    /**
+     * Applies the free-tier limit to [pendingCreates], preserving request order. Creates that don't
+     * need a limit check (quota-exempt types, sub-workspaces, replaces, restores) always pass and
+     * never consume a slot; the rest fill the slots still available right now. Pro users get the full
+     * list. Reads the live tab count via [countedTabCount], so it is safe to re-apply at execution
+     * time rather than trusting a list captured earlier.
+     */
+    private fun applyFreeTierLimit(
+        pendingCreates: List<WorkspaceAction.Create>,
+        isPro: Boolean,
+    ): List<WorkspaceAction.Create> {
+        if (isPro) return pendingCreates
+        var remainingSlots = (FREE_TIER_WORKSPACE_LIMIT - countedTabCount()).coerceAtLeast(0)
+        return pendingCreates.filter { req ->
+            when {
+                !req.needsLimitCheck -> true
+                remainingSlots > 0 -> {
+                    remainingSlots--
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    /**
+     * Re-applies the free-tier limit against the current tab count and runs the batch. Called both
+     * for immediate execution and from the confirmation callback — re-filtering here (instead of
+     * trusting a list captured at planning time) is what stops a confirmation that resolves after the
+     * user opened more tabs from pushing them past [FREE_TIER_WORKSPACE_LIMIT]. Must be called while
+     * holding [lock].
+     *
+     * [isPro] is sampled once at request time (reading it suspends, and must not happen under [lock]);
+     * an entitlement change while a confirmation dialog is open is not re-read here.
+     */
+    private suspend fun finalizeBatch(
+        pendingCreates: List<WorkspaceAction.Create>,
+        preResolvedSingletons: Map<WorkspaceAction.Create, Workspace.Id>,
+        deferredSingletonDupes: List<WorkspaceAction.Create>,
+        isPro: Boolean,
+        sourceWorkspaceId: Workspace.Id?,
+    ): WorkspaceAction.CreateBatch.Result.Success {
+        val allowedCreates = applyFreeTierLimit(pendingCreates, isPro)
+        val limitSkipped = pendingCreates.size - allowedCreates.size
+        if (limitSkipped > 0) {
+            log(TAG, INFO) { "Workspace limit: allowing ${allowedCreates.size} new + ${preResolvedSingletons.size} singleton-already-open, skipping $limitSkipped" }
+            postLimitDialog()
+        }
+
+        // Nothing left to create: surface already-open singletons without running a creation pass, so
+        // no BatchCreationCompleted event fires (avoids a misleading "Opened 0 tabs" banner).
+        if (allowedCreates.isEmpty()) {
+            return WorkspaceAction.CreateBatch.Result.Success(
+                results = preResolvedSingletons.mapValues { (_, id) ->
+                    WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(id)
+                },
+                skippedCount = limitSkipped,
+            )
+        }
+
+        return executeBatchCreation(allowedCreates, preResolvedSingletons, deferredSingletonDupes, limitSkipped, sourceWorkspaceId)
+    }
+
     private suspend fun executeBatchCreation(
         requests: List<WorkspaceAction.Create>,
         preResolvedSingletons: Map<WorkspaceAction.Create, Workspace.Id>,
@@ -483,6 +519,7 @@ class WorkspaceRepo @Inject constructor(
                     type = createRequest.type,
                     arguments = createRequest.arguments,
                     idToReplace = createRequest.replace,
+                    existingId = createRequest.id,
                 )
                 _events.emit(
                     WorkspaceEvent.Created(

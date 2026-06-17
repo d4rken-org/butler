@@ -394,4 +394,55 @@ class WorkspaceRepoTest : BaseTest() {
             .existingId shouldBe existingId
         events.filterIsInstance<WorkspaceEvent.BatchCreationCompleted>() shouldHaveSize 0
     }
+
+    @Test
+    fun `confirmed batch re-applies the limit against tabs opened while awaiting confirmation`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            // Empty repo: a batch of exactly the limit trips confirmation (threshold == limit).
+            val requests = (1..WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT).map { createReq(Workspace.Type.EXPLORER) }
+            repo.execute(WorkspaceAction.CreateBatch(requests = requests))
+                .shouldBeInstanceOf<WorkspaceAction.CreateBatch.Result.AwaitingConfirmation>()
+
+            // The user opens two more tabs before confirming.
+            repo.createTab()
+            repo.createTab()
+
+            val confirmationId = repo.pendingConfirmations.first().keys.single()
+            repo.resolveConfirmation(confirmationId, confirmed = true)
+
+            // Two manual tabs + (limit - 2) from the batch == limit; never the pre-fix total of limit + 2.
+            createdWorkspaces shouldHaveSize WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT
+        }
+
+    @Test
+    fun `batch honors an explicit workspace id`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val explicitId = Workspace.Id()
+
+        val result = repo.createBatch(createReq(Workspace.Type.EXPLORER, id = explicitId))
+
+        val success = result.results.values.single()
+            .shouldBeInstanceOf<WorkspaceAction.CreateBatch.CreationResult.Success>()
+        success.workspaceId shouldBe explicitId
+        createdWorkspaces.single().id shouldBe explicitId
+    }
+
+    @Test
+    fun `batch rejects a colliding explicit id without dropping the first create`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val sharedId = Workspace.Id()
+
+            val result = repo.createBatch(
+                createReq(Workspace.Type.EXPLORER, id = sharedId),
+                createReq(Workspace.Type.SEARCHER, id = sharedId),
+            )
+
+            // First request creates the tab; the colliding second fails instead of duplicating the id.
+            createdWorkspaces.single().id shouldBe sharedId
+            val values = result.results.values.toList()
+            values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success } shouldBe 1
+            values.count { it is WorkspaceAction.CreateBatch.CreationResult.Failure } shouldBe 1
+        }
 }
