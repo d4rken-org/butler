@@ -99,7 +99,10 @@ class WorkspacePageManager @Inject constructor(
                 val cleanedFocusedId = currentState.focusedWorkspaceId?.takeIf { it in validWorkspaceIds }
                 val cleanedSelectedIds = currentState.selectedWorkspaces.filterValues { it in validWorkspaceIds }
 
-                // Update state if cleanup removed any IDs
+                // Update state if cleanup removed any IDs.
+                // Note: this only clears stale IDs; it never picks a replacement focus. Re-focusing a
+                // surviving workspace after a close is owned solely by handleWorkspaceClosed(), which is
+                // the only path that knows the closing workspace's callerWorkspaceId (for picker return).
                 if (cleanedFocusedId != currentState.focusedWorkspaceId || cleanedSelectedIds != currentState.selectedWorkspaces) {
                     _state.update {
                         it.copy(
@@ -450,9 +453,21 @@ class WorkspacePageManager @Inject constructor(
 
         log(TAG) { "handleWorkspaceClosed: wasSelected=$wasSelected, wasFocused=$wasFocused" }
 
-        // Get available workspaces BEFORE entering update block (suspending call)
-        val availableWorkspaces = workspaceRemote.state.first().infos.filter { !it.isSubWorkspace }
+        // Read the repo snapshot BEFORE entering the update block (suspending call).
+        val repoSnapshot = workspaceRemote.state.first()
+
+        // Replacement focus candidates: normal (non-sub) workspaces, excluding the closing one.
+        // Exclude it explicitly because the exported state flow may still replay a pre-removal
+        // snapshot that contains it, and since it was just focused it holds the latest access time,
+        // so MRU would otherwise select the very tab being closed (focus -> null).
+        val availableWorkspaces = repoSnapshot.infos
+            .filter { !it.isSubWorkspace && it.id != workspaceId }
         log(TAG) { "handleWorkspaceClosed: availableWorkspaces=${availableWorkspaces.size}" }
+
+        // Validity set for the CURRENT focus: all live workspaces (incl. sub-workspaces) minus the
+        // closing one. A focused modal sub-workspace is still valid focus, so it must not be treated
+        // as stranded when some unrelated workspace closes.
+        val liveIds = repoSnapshot.infos.map { it.id }.filter { it != workspaceId }.toSet()
 
         // Prefer returning to caller workspace, fall back to MRU
         val callerWorkspace = callerWorkspaceId?.let { callerId ->
@@ -464,44 +479,46 @@ class WorkspacePageManager @Inject constructor(
         val nextWorkspace = callerWorkspace ?: mruWorkspace
         log(TAG) { "handleWorkspaceClosed: callerWorkspace=${callerWorkspace?.id}, mruWorkspace=${mruWorkspace?.id}, nextWorkspace=${nextWorkspace?.id}" }
 
-        if (wasSelected || wasFocused) {
-            _state.update { state ->
-                log(TAG) { "handleWorkspaceClosed.update: state.selectedWorkspaces=${state.selectedWorkspaces}" }
+        _state.update { state ->
+            log(TAG) { "handleWorkspaceClosed.update: state.selectedWorkspaces=${state.selectedWorkspaces}" }
 
-                // Remove closed workspace from selection
-                val position = state.selectedWorkspaces.entries.find { it.value == workspaceId }?.key
-                log(TAG) { "handleWorkspaceClosed.update: position=$position" }
-
-                val newSelections = if (position != null) {
-                    state.selectedWorkspaces - position
-                } else {
-                    state.selectedWorkspaces
-                }
-                log(TAG) { "handleWorkspaceClosed.update: newSelections=$newSelections" }
-
-                // Determine next workspace to focus
-                val newFocus = if (wasFocused && nextWorkspace != null) {
-                    nextWorkspace.id
-                } else if (wasFocused) {
-                    null
-                } else {
-                    state.focusedWorkspaceId
-                }
-
-                // Ensure we have a selection if we have a focus
-                val finalSelections = if (newFocus != null && newSelections.isEmpty()) {
-                    mapOf(0 to newFocus)
-                } else {
-                    newSelections
-                }
-
-                log(TAG) { "handleWorkspaceClosed.update: newFocus=$newFocus, finalSelections=$finalSelections" }
-
-                state.copy(
-                    selectedWorkspaces = finalSelections,
-                    focusedWorkspaceId = newFocus,
-                )
+            // Re-focus when the closed workspace held focus, or when focus is already stranded — the
+            // latter covers the race where the cleanup observer nulled/invalidated focus before this
+            // event arrived. Without it, a stranded null focus lets the pager settle on the trailing
+            // placeholder page, which auto-creates a new workspace. A null focus only counts as
+            // stranded when a normal workspace survives to receive it.
+            val focusedId = state.focusedWorkspaceId
+            val focusStranded = if (focusedId == null) {
+                availableWorkspaces.isNotEmpty()
+            } else {
+                focusedId !in liveIds
             }
+            val needsRefocus = wasFocused || focusStranded
+            log(TAG) { "handleWorkspaceClosed.update: focusStranded=$focusStranded, needsRefocus=$needsRefocus" }
+
+            // Remove closed workspace from selection
+            val position = state.selectedWorkspaces.entries.find { it.value == workspaceId }?.key
+            val newSelections = if (position != null) {
+                state.selectedWorkspaces - position
+            } else {
+                state.selectedWorkspaces
+            }
+
+            val newFocus = if (needsRefocus) nextWorkspace?.id else state.focusedWorkspaceId
+
+            // Ensure we have a selection if we have a focus
+            val finalSelections = if (newFocus != null && newSelections.isEmpty()) {
+                mapOf(0 to newFocus)
+            } else {
+                newSelections
+            }
+
+            log(TAG) { "handleWorkspaceClosed.update: newFocus=$newFocus, finalSelections=$finalSelections" }
+
+            state.copy(
+                selectedWorkspaces = finalSelections,
+                focusedWorkspaceId = newFocus,
+            )
         }
     }
 

@@ -296,6 +296,164 @@ class WorkspacePageManagerTest : BaseTest() {
     }
 
     @Test
+    fun `closing focused workspace focuses surviving MRU not the closed tab`() = runTest {
+        val ws1 = Workspace.Id()
+        val ws2 = Workspace.Id()
+        val ws3 = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+                createWorkspaceInfo(id = ws3),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(ws1)
+        pageManager.handleWorkspaceSelection(ws2)
+        pageManager.handleWorkspaceSelection(ws3)
+
+        // Race: Closed arrives while the exported state still replays the pre-removal snapshot
+        // (ws3 — the just-focused MRU tab — is still present).
+        eventsFlow.emit(WorkspaceEvent.Closed(workspaceId = ws3, callerWorkspaceId = null))
+        testScope.testScheduler.advanceUntilIdle()
+
+        // Then the repo state catches up and drops ws3.
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+            )
+        )
+        testScope.testScheduler.advanceUntilIdle()
+
+        // Must land on a survivor (MRU = ws2), never null (which would arm placeholder auto-create).
+        pageManager.state.value.focusedWorkspaceId shouldBe ws2
+    }
+
+    @Test
+    fun `closing focused workspace recovers focus when cleanup strands it first`() = runTest {
+        val ws1 = Workspace.Id()
+        val ws2 = Workspace.Id()
+        val ws3 = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+                createWorkspaceInfo(id = ws3),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(ws1)
+        pageManager.handleWorkspaceSelection(ws2)
+        pageManager.handleWorkspaceSelection(ws3)
+
+        // Cleanup-first ordering: repo state drops ws3 (nulls focus via cleanup observer) BEFORE the
+        // Closed event reaches the manager.
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+            )
+        )
+        testScope.testScheduler.advanceUntilIdle()
+        pageManager.state.value.focusedWorkspaceId shouldBe null // stranded by cleanup
+
+        // Closed event arrives late and must still recover focus to a survivor (never leave it null).
+        eventsFlow.emit(WorkspaceEvent.Closed(workspaceId = ws3, callerWorkspaceId = null))
+        testScope.testScheduler.advanceUntilIdle()
+
+        pageManager.state.value.focusedWorkspaceId shouldBe ws2
+        pageManager.state.value.selectedWorkspaces shouldBe mapOf(0 to ws2)
+    }
+
+    @Test
+    fun `closing sub-workspace returns to caller even when cleanup strands focus first`() = runTest {
+        val callerWorkspace = Workspace.Id()
+        val otherWorkspace = Workspace.Id()
+        val subWorkspace = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = callerWorkspace),
+                createWorkspaceInfo(id = otherWorkspace),
+                createWorkspaceInfo(id = subWorkspace, callerWorkspaceId = callerWorkspace),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(callerWorkspace)
+        pageManager.handleWorkspaceSelection(otherWorkspace) // newer MRU than the caller
+        pageManager.handleWorkspaceSelection(subWorkspace)
+
+        // Cleanup strands focus before the Closed event arrives.
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = callerWorkspace),
+                createWorkspaceInfo(id = otherWorkspace),
+            )
+        )
+        testScope.testScheduler.advanceUntilIdle()
+
+        // The late Closed event carries callerWorkspaceId; focus must return to the caller, not the
+        // global MRU (otherWorkspace).
+        eventsFlow.emit(WorkspaceEvent.Closed(workspaceId = subWorkspace, callerWorkspaceId = callerWorkspace))
+        testScope.testScheduler.advanceUntilIdle()
+
+        pageManager.state.value.focusedWorkspaceId shouldBe callerWorkspace
+    }
+
+    @Test
+    fun `closing an unrelated workspace does not steal focus from an open sub-workspace`() = runTest {
+        val ws1 = Workspace.Id()
+        val ws2 = Workspace.Id()
+        val subWorkspace = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+                createWorkspaceInfo(id = subWorkspace, callerWorkspaceId = ws1),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(ws1)
+        pageManager.handleWorkspaceSelection(ws2)
+        pageManager.handleWorkspaceSelection(subWorkspace) // modal sub-workspace is focused
+
+        // An unrelated normal workspace closes while the sub-workspace is focused. The sub-workspace
+        // is still valid focus and must not be treated as stranded.
+        eventsFlow.emit(WorkspaceEvent.Closed(workspaceId = ws1, callerWorkspaceId = null))
+        testScope.testScheduler.advanceUntilIdle()
+
+        pageManager.state.value.focusedWorkspaceId shouldBe subWorkspace
+    }
+
+    @Test
+    fun `closing the last workspace clears focus`() = runTest {
+        val ws1 = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(createWorkspaceInfo(id = ws1)),
+        )
+
+        pageManager.setPaneCount(1)
+        pageManager.handleWorkspaceSelection(ws1)
+
+        eventsFlow.emit(WorkspaceEvent.Closed(workspaceId = ws1, callerWorkspaceId = null))
+        testScope.testScheduler.advanceUntilIdle()
+
+        stateFlow.value = WorkspaceRemote.State(infos = emptyList())
+        testScope.testScheduler.advanceUntilIdle()
+
+        pageManager.state.value.focusedWorkspaceId shouldBe null
+    }
+
+    @Test
     fun `manager overlay is hidden by default`() = runTest {
         pageManager.state.value.isManagerOverlayVisible shouldBe false
     }
