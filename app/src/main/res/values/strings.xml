@@ -110,6 +110,7 @@
     <string name="debug_banner_label">REC</string>
     <string name="debug_banner_label_expanded">Recording logfile</string>
     <string name="debug_banner_stop_action">Stop</string>
+    <string name="debug_banner_view_action">View</string>
     <string name="debug_banner_explanation">Recording app activity. Stop when done, then share the log when reporting bugs.</string>
     <string name="debug_log_short_recording_title">Recording is very short</string>
     <string name="debug_log_short_recording_message">Debug logs capture what happens while recording is active. Start recording, reproduce the issue, then stop. This recording may not contain useful information.</string>
@@ -180,6 +181,11 @@
     <string name="settings_support_debuglog_desc">Record everything the app is doing into a text file that you can share.</string>
     <string name="settings_support_debuglog_recording_desc">Currently recording debug information. Tap to stop recording.</string>
     <string name="settings_support_debuglog_path">Log path: %1$s</string>
+    <string name="settings_support_bugreports_label">Bug reports</string>
+    <string name="settings_support_bugreports_desc">View crash reports, record debug logs, and share them with the developer.</string>
+    <string name="support_contact_report_type_crash">Crash report</string>
+    <string name="support_contact_report_type_reported">Bug report</string>
+    <string name="support_contact_report_type_recording">Recording</string>
     <string name="settings_support_discord_label">Discord</string>
     <string name="settings_support_discord_description">A place to hang out in and ask questions.</string>
 

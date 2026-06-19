@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <cache-path
-        name="debug_logs"
-        path="debug/logs" />
-    <external-cache-path
-        name="debug_logs"
-        path="debug/logs" />
-    <cache-path
         name="bug_reports"
         path="bugreports_share" />
     <root-path

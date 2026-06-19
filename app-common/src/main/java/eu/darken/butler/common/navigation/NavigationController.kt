@@ -52,6 +52,27 @@ class NavigationController @Inject constructor() {
         backStack.add(destination)
     }
 
+    /**
+     * Navigate to [destination] at most once: no-op if it is already the current top, pop back to an
+     * existing entry (preserving it and its state) if present, otherwise push it. Safe to call
+     * repeatedly from an always-visible surface (e.g. the recording banner) without churning the
+     * destination's nav entry or risking an empty back stack.
+     */
+    fun goToSingleTop(destination: NavigationDestination) {
+        if (backStack.lastOrNull() == destination) {
+            log(TAG) { "goToSingleTop($destination) already on top" }
+            return
+        }
+        val existingIndex = backStack.indexOfLast { it == destination }
+        if (existingIndex >= 0) {
+            log(TAG) { "goToSingleTop($destination) popping back to existing entry" }
+            while (backStack.size > existingIndex + 1) backStack.removeLastOrNull()
+        } else {
+            log(TAG) { "goToSingleTop($destination) pushing new entry" }
+            backStack.add(destination)
+        }
+    }
+
     fun replace(destination: NavigationDestination) {
         backStack.removeLastOrNull()
         backStack.add(destination)

@@ -59,6 +59,7 @@ import kotlin.time.Duration.Companion.seconds
     elapsedTime: Duration,
     logSize: Long,
     onStop: () -> Unit,
+    onView: () -> Unit = {},
 ) {
     var isExpanded by remember { mutableStateOf(expanded) }
     LaunchedEffect(visible) {
@@ -156,11 +157,21 @@ import kotlin.time.Duration.Companion.seconds
                             )
                         }
 
-                        // Stop button - bottom right
+                        // Action row - View (left) opens the Bug reports workspace, Stop (right)
+                        // ends the recording.
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
+                            TextButton(onClick = onView) {
+                                Text(
+                                    text = stringResource(R.string.debug_banner_view_action),
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.labelLarge,
+                                )
+                            }
                             TextButton(onClick = onStop) {
                                 Text(
                                     text = stringResource(R.string.debug_banner_stop_action),

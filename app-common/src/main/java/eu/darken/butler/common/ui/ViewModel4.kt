@@ -23,6 +23,11 @@ abstract class ViewModel4(
         navEvents.tryEmit(NavEvent.GoTo(destination, popUpTo, inclusive))
     }
 
+    fun navToSingleTop(destination: NavigationDestination) {
+        log(tag) { "navToSingleTop($destination)" }
+        navEvents.tryEmit(NavEvent.GoToSingleTop(destination))
+    }
+
     fun navUp() {
         log(tag) { "navUp()" }
         navEvents.tryEmit(NavEvent.Up)

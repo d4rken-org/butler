@@ -9,38 +9,53 @@ import java.io.OutputStreamWriter
 import kotlin.time.Clock
 
 
-class FileLogger(private val logFile: File) : Logging.Logger {
+/**
+ * @param worldReadable when true the log file is made world read/writable (needed for the legacy
+ *   external-storage debug logs). Bug-report recordings live in private `filesDir` and pass `false`.
+ */
+class FileLogger(
+    private val logFile: File,
+    private val worldReadable: Boolean = true,
+) : Logging.Logger {
     private var logWriter: OutputStreamWriter? = null
 
+    /** @return true if the writer is ready and the logger is receiving lines. */
     @Suppress("SetWorldWritable", "SetWorldReadable")
     @Synchronized
-    fun start() {
-        if (logWriter != null) return
+    fun start(): Boolean {
+        if (logWriter != null) return true
         Log.i(TAG, "Starting logger for " + logFile.path)
         try {
             logFile.parentFile!!.mkdirs()
             if (logFile.createNewFile()) Log.i(TAG, "File logger writing to ${logFile.path}")
-            if (logFile.setReadable(true, false)) Log.i(TAG, "Debug run log read permission set")
-            if (logFile.setWritable(true, false)) Log.i(TAG, "Debug run log write permission set")
+            if (worldReadable) {
+                if (logFile.setReadable(true, false)) Log.i(TAG, "Debug run log read permission set")
+                if (logFile.setWritable(true, false)) Log.i(TAG, "Debug run log write permission set")
+            }
         } catch (e: IOException) {
             Log.e(TAG, "Log writer failed to init log file", e)
             e.printStackTrace()
         }
 
-        try {
+        return try {
             logWriter = OutputStreamWriter(FileOutputStream(logFile, true))
             logWriter!!.write("=== BEGIN ${Bugs.processTag} ===\n")
             logWriter!!.write("Logfile: $logFile\n")
             logWriter!!.flush()
             Log.i(TAG, "File logger started.")
+            true
         } catch (e: IOException) {
             Log.e(TAG, "Log writer failed to start", e)
             e.printStackTrace()
 
+            try {
+                logWriter?.close()
+            } catch (ignore: IOException) {
+            }
+            logWriter = null
             logFile.delete()
-            if (logWriter != null) logWriter!!.close()
+            false
         }
-
     }
 
     @Synchronized
