@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -262,6 +263,9 @@ fun BugReportWorkspacePage(
                     revealOn = state.isRecording,
                     modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
+                    // Derive the boolean here so the card only recomposes at the collapse threshold,
+                    // not on every scroll frame (collapsedFraction changes continuously while scrolling
+                    // and the card's CutoutCard re-measures via SubcomposeLayout on each recomposition).
                     BugReportToolbarCard(
                         workspaceId = state.id,
                         design = design,
@@ -269,7 +273,7 @@ fun BugReportWorkspacePage(
                         isRecording = state.isRecording,
                         recordingStartedAt = state.recordingStartedAt,
                         recordingLogSize = state.recordingLogSize,
-                        collapsedFraction = collapsedFraction,
+                        isCollapsed = collapsedFraction > 0.5f,
                         onStartRecording = onStartRecording,
                         onStopRecording = onStopRecording,
                         onDeleteAll = onDeleteAll,
@@ -288,17 +292,19 @@ private fun BugReportToolbarCard(
     isRecording: Boolean,
     recordingStartedAt: Long,
     recordingLogSize: Long,
-    collapsedFraction: Float,
+    isCollapsed: Boolean,
     onStartRecording: () -> Unit,
     onStopRecording: () -> Unit,
     onDeleteAll: () -> Unit,
 ) {
     val context = LocalContext.current
-    val isCollapsed = collapsedFraction > 0.5f
     // Only the recording-expanded state needs vertical breathing room (the nested control panel).
-    // The header-only states (idle-expanded, collapsed) drop vertical padding so the 48dp action
-    // buttons — and the cutout's workspace button — define the card height, instead of inflating it.
+    // The header-only states (idle-expanded, collapsed) drop vertical padding so the action buttons —
+    // and the cutout's workspace button — define the card height, instead of inflating it.
     val isRecordingExpanded = isRecording && !isCollapsed
+    // Collapsed, the card should be exactly as tall as the compact workspace ("manager") button so it
+    // lines up with the other workspaces' toolbars; expanded, it matches the default-size button.
+    val headerMinHeight = if (isCollapsed) WorkspaceButtonDefaults.sizeCompact else WorkspaceButtonDefaults.sizeDefault
     val horizontalPadding by animateDpAsState(
         targetValue = if (isCollapsed) CutoutCardDefaults.ContentPaddingCollapsed else CutoutCardDefaults.ContentPaddingExpanded,
         label = "bugReportCardPaddingH",
@@ -346,11 +352,12 @@ private fun BugReportToolbarCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 48.dp),
+                    .heightIn(min = headerMinHeight)
+                    // Match the collapsed inset used by the other workspaces' toolbars (e.g. Searcher).
+                    .padding(start = if (isCollapsed) 8.dp else 0.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (isRecording && isCollapsed) {
-                    Spacer(modifier = Modifier.width(8.dp))
                     RecordingDot()
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
@@ -359,7 +366,16 @@ private fun BugReportToolbarCard(
                         fontFamily = FontFamily.Monospace,
                         modifier = Modifier.weight(1f),
                     )
-                    IconButton(onClick = onStopRecording) {
+                    // Compact Stop as a plain clickable box (not IconButton, which would enforce a
+                    // 48dp minimum interactive size and keep the collapsed bar taller than the 40dp
+                    // workspace button). Matches WorkspaceButton's own compact tap target.
+                    Box(
+                        modifier = Modifier
+                            .size(WorkspaceButtonDefaults.sizeCompact)
+                            .clip(CircleShape)
+                            .clickable(onClick = onStopRecording),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         Icon(
                             imageVector = Icons.TwoTone.Stop,
                             contentDescription = stringResource(R.string.bugreport_stop_action),
