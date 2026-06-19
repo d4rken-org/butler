@@ -17,6 +17,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.AutomaticBugReporter
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.DebugSettings
+import eu.darken.butler.common.debug.bugreport.BugReportRecorder
 import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.common.debug.logging.LogCatLogger
 import eu.darken.butler.common.debug.logging.Logging
@@ -25,7 +26,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.debug.recorder.core.DebugSessionManager
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.theming.Theming
 import eu.darken.butler.common.trash.TrashCleanupScheduler
@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import eu.darken.butler.workspace.core.WorkspaceRegistryValidator
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Provider
 import kotlin.system.exitProcess
@@ -55,7 +56,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var bugReporter: AutomaticBugReporter
     @Inject lateinit var generalSettings: GeneralSettings
-    @Inject lateinit var sessionManager: DebugSessionManager
+    @Inject lateinit var bugReportRecorder: BugReportRecorder
     @Inject lateinit var debugSettings: DebugSettings
     @Inject lateinit var curriculumVitae: CurriculumVitae
     @Inject lateinit var updateService: UpdateService
@@ -111,7 +112,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         combine(
             debugSettings.isDebugMode.flow,
             debugSettings.isTraceMode.flow,
-            sessionManager.recorderState,
+            bugReportRecorder.state,
         ) { isDebug, isTrace, recorderState ->
             log(TAG) { "isDebug=$isDebug, isTrace=$isTrace, isRecording=${recorderState.isRecording}" }
 
@@ -133,7 +134,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         Bugs.reporter = bugReporter
         bugReporter.setup(this)
 
-        sessionManager.recorderState
+        bugReportRecorder.state
             .onEach { log(TAG) { "RecorderState: $it" } }
             .launchIn(appScope)
 
@@ -152,6 +153,14 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         operationHistoryRepo.get()
 
         trashCleanupScheduler.setup()
+
+        // One-shot cleanup of the retired external/internal debug-log store (recordings now live in
+        // the unified bug-report store under filesDir). Idempotent and harmless if already gone.
+        appScope.launch(dispatcherProvider.IO) {
+            runCatching { File(externalCacheDir, "debug/logs").deleteRecursively() }
+            runCatching { File(cacheDir, "debug/logs").deleteRecursively() }
+            runCatching { File(getExternalFilesDir(null), "force_debug_run").delete() }
+        }
 
         // Automatically refresh SAF permissions when app comes to foreground
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {

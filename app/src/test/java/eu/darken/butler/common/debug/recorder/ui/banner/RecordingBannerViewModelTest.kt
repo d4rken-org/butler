@@ -1,8 +1,11 @@
 package eu.darken.butler.common.debug.recorder.ui.banner
 
-import eu.darken.butler.common.debug.recorder.core.DebugSessionManager
-import eu.darken.butler.common.debug.recorder.core.RecorderManager
+import eu.darken.butler.common.debug.bugreport.BugReportRecorder
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.WorkspaceRemote
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -16,114 +19,88 @@ import testhelpers.coroutine.TestDispatcherProvider
 
 class RecordingBannerViewModelTest : BaseTest() {
 
-    private lateinit var sessionManager: DebugSessionManager
-    private lateinit var recorderStateFlow: MutableStateFlow<RecorderManager.State>
+    private lateinit var recorder: BugReportRecorder
+    private lateinit var recorderStateFlow: MutableStateFlow<BugReportRecorder.State>
+    private lateinit var workspaceRemote: WorkspaceRemote
 
     @BeforeEach
     fun setup() {
-        recorderStateFlow = MutableStateFlow(RecorderManager.State())
-        sessionManager = mockk(relaxed = true) {
-            every { recorderState } returns recorderStateFlow
+        recorderStateFlow = MutableStateFlow(BugReportRecorder.State())
+        recorder = mockk(relaxed = true) {
+            every { state } returns recorderStateFlow
+            coEvery { requestStop() } returns BugReportRecorder.StopResult.NotRecording
+        }
+        workspaceRemote = mockk(relaxed = true) {
+            coEvery { execute(any()) } returns WorkspaceAction.Create.Result.AlreadyOpen(Workspace.Id())
         }
     }
 
     private fun createViewModel(): RecordingBannerViewModel {
         return RecordingBannerViewModel(
             dispatcherProvider = TestDispatcherProvider(),
-            sessionManager = sessionManager,
+            bugReportRecorder = recorder,
+            workspaceRemote = workspaceRemote,
         )
     }
 
     @Test
     fun `state maps isRecording correctly when not recording`() = runTest {
-        recorderStateFlow.value = RecorderManager.State(
-            shouldRecord = false,
-            recorder = null,
-        )
+        recorderStateFlow.value = BugReportRecorder.State(isRecording = false)
 
-        val viewModel = createViewModel()
-        val state = viewModel.state.first()
+        val state = createViewModel().state.first()
 
         state.isRecording shouldBe false
     }
 
     @Test
-    fun `state maps isRecording correctly when recording`() = runTest {
-        val mockRecorder = mockk<eu.darken.butler.common.debug.recorder.core.Recorder>()
-        recorderStateFlow.value = RecorderManager.State(
-            shouldRecord = true,
-            recorder = mockRecorder,
-        )
-
-        val viewModel = createViewModel()
-        val state = viewModel.state.first()
-
-        state.isRecording shouldBe true
-    }
-
-    @Test
-    fun `state maps recordingStartedAt correctly`() = runTest {
+    fun `state maps recording fields correctly`() = runTest {
         val startedAt = System.currentTimeMillis()
-        val mockRecorder = mockk<eu.darken.butler.common.debug.recorder.core.Recorder>()
-        recorderStateFlow.value = RecorderManager.State(
-            shouldRecord = true,
-            recorder = mockRecorder,
-            recordingStartedAt = startedAt,
-        )
-
-        val viewModel = createViewModel()
-        val state = viewModel.state.first()
-
-        state.recordingStartedAt shouldBe startedAt
-    }
-
-    @Test
-    fun `state maps currentLogSize correctly`() = runTest {
-        val mockRecorder = mockk<eu.darken.butler.common.debug.recorder.core.Recorder>()
-        recorderStateFlow.value = RecorderManager.State(
-            shouldRecord = true,
-            recorder = mockRecorder,
+        recorderStateFlow.value = BugReportRecorder.State(
+            isRecording = true,
+            recordingId = "recording_1_abcd",
+            startedAtMs = startedAt,
             currentLogSize = 12345L,
         )
 
-        val viewModel = createViewModel()
-        val state = viewModel.state.first()
+        val state = createViewModel().state.first()
 
+        state.isRecording shouldBe true
+        state.recordingStartedAt shouldBe startedAt
         state.currentLogSize shouldBe 12345L
     }
 
     @Test
-    fun `state emits updated values when RecorderManager state changes`() = runTest {
+    fun `state emits updated values when recorder state changes`() = runTest {
         val viewModel = createViewModel()
 
-        // Initial state - not recording
-        recorderStateFlow.value = RecorderManager.State()
-        var state = viewModel.state.first()
-        state.isRecording shouldBe false
+        recorderStateFlow.value = BugReportRecorder.State()
+        viewModel.state.first().isRecording shouldBe false
 
-        // Start recording
-        val mockRecorder = mockk<eu.darken.butler.common.debug.recorder.core.Recorder>()
-        recorderStateFlow.value = RecorderManager.State(
-            shouldRecord = true,
-            recorder = mockRecorder,
-            currentLogSize = 100L,
-        )
-        state = viewModel.state.first()
-        state.isRecording shouldBe true
-        state.currentLogSize shouldBe 100L
+        recorderStateFlow.value = BugReportRecorder.State(isRecording = true, currentLogSize = 100L)
+        viewModel.state.first().let {
+            it.isRecording shouldBe true
+            it.currentLogSize shouldBe 100L
+        }
 
-        // Update log size
         recorderStateFlow.value = recorderStateFlow.value.copy(currentLogSize = 200L)
-        state = viewModel.state.first()
-        state.currentLogSize shouldBe 200L
+        viewModel.state.first().currentLogSize shouldBe 200L
     }
 
     @Test
-    fun `stopRecording calls sessionManager requestStopRecording`() = runTest {
-        val viewModel = createViewModel()
+    fun `stopRecording delegates to recorder requestStop`() = runTest {
+        createViewModel().stopRecording()
 
-        viewModel.stopRecording()
+        coVerify { recorder.requestStop() }
+    }
 
-        coVerify { sessionManager.requestStopRecording() }
+    @Test
+    fun `openBugReports focuses workspace without stopping recording`() = runTest {
+        recorderStateFlow.value = BugReportRecorder.State(isRecording = true, recordingId = "recording_1")
+
+        createViewModel().openBugReports()
+
+        coVerify { workspaceRemote.execute(any<WorkspaceAction.Create>()) }
+        coVerify(exactly = 0) { recorder.requestStop() }
+        coVerify(exactly = 0) { recorder.forceStop() }
     }
 }

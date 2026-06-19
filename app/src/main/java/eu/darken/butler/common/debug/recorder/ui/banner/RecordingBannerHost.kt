@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.debug.recorder.ui.ShortRecordingDialog
+import eu.darken.butler.common.navigation.NavigationEventHandler
 import kotlinx.coroutines.delay
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -21,6 +22,8 @@ fun RecordingBannerHost(
     modifier: Modifier = Modifier,
     vm: RecordingBannerViewModel = hiltViewModel(),
 ) {
+    NavigationEventHandler(vm)
+
     val state by vm.state.collectAsState(initial = null)
     val currentState = state ?: return
 
@@ -66,5 +69,6 @@ fun RecordingBannerHost(
         elapsedTime = elapsedTime,
         logSize = currentState.currentLogSize,
         onStop = vm::stopRecording,
+        onView = vm::openBugReports,
     )
 }

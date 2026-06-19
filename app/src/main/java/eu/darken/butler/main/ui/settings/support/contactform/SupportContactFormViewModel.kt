@@ -9,37 +9,35 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.R
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.BuildWrap
-import eu.darken.butler.common.ButlerLinks
 import eu.darken.butler.common.EmailTool
-import eu.darken.butler.common.WebpageTool
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.common.debug.bugreport.BugReportInfo
+import eu.darken.butler.common.debug.bugreport.BugReportRecorder
+import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.debug.recorder.core.DebugSession
-import eu.darken.butler.common.debug.recorder.core.DebugSessionManager
-import eu.darken.butler.common.debug.recorder.core.RecorderManager
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.ui.ViewModel4
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 
 @HiltViewModel
 class SupportContactFormViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     @ApplicationContext private val context: Context,
-    private val sessionManager: DebugSessionManager,
+    private val bugReportRecorder: BugReportRecorder,
+    private val bugReportRepo: BugReportRepo,
     private val emailTool: EmailTool,
-    private val webpageTool: WebpageTool,
 ) : ViewModel4(dispatcherProvider, logTag("Settings", "Support", "ContactForm", "ViewModel")) {
 
     sealed interface Event {
         data class OpenEmail(val intent: Intent) : Event
         data class ShowSnackbar(val message: String) : Event
-        data object ShowConsentDialog : Event
         data object ShowShortRecordingWarning : Event
     }
 
@@ -48,29 +46,33 @@ class SupportContactFormViewModel @Inject constructor(
     private val stater = DynamicStateFlow(tag, vmScope) { State() }
     val state = stater.flow
 
-    private val autoSelectSessionId = java.util.concurrent.atomic.AtomicReference<String?>(null)
+    private val autoSelectReportId = AtomicReference<String?>(null)
 
     init {
         combine(
-            sessionManager.recorderState,
-            sessionManager.sessions,
-        ) { recorderState, allSessions ->
-            val completed = allSessions.filterIsInstance<DebugSession.Ready>().take(MAX_PICKER_SESSIONS)
+            bugReportRecorder.state,
+            bugReportRepo.reports,
+        ) { recState, allReports ->
+            val completed = allReports.filter { !it.isOngoingRecording }.take(MAX_PICKER_REPORTS)
             stater.updateBlocking {
-                val pendingAutoSelect = autoSelectSessionId.getAndSet(null)
+                // Apply the armed auto-selection only once the just-stopped report actually appears;
+                // do NOT consume it on intermediate emissions where it isn't present yet.
+                val desired = autoSelectReportId.get()
                 val newSelectedId = when {
-                    pendingAutoSelect != null && completed.any { it.id == pendingAutoSelect } -> pendingAutoSelect
-                    selectedSessionId != null
-                        && completed.none { it.id == selectedSessionId }
-                        && allSessions.none { it.id == selectedSessionId && it is DebugSession.Compressing }
-                        -> null
-                    else -> selectedSessionId
+                    desired != null && completed.any { it.id == desired } -> {
+                        autoSelectReportId.set(null)
+                        desired
+                    }
+
+                    desired != null -> selectedReportId
+                    selectedReportId != null && completed.none { it.id == selectedReportId } -> null
+                    else -> selectedReportId
                 }
                 copy(
-                    isRecording = recorderState.isRecording,
-                    recordingStartedAt = recorderState.recordingStartedAt,
-                    sessions = completed,
-                    selectedSessionId = newSelectedId,
+                    isRecording = recState.isRecording,
+                    recordingStartedAt = recState.startedAtMs,
+                    reports = completed,
+                    selectedReportId = newSelectedId,
                 )
             }
         }.launchIn(vmScope)
@@ -96,54 +98,46 @@ class SupportContactFormViewModel @Inject constructor(
         }
     }
 
-    fun selectLogSession(id: String) = launch {
-        stater.updateBlocking { copy(selectedSessionId = id) }
+    fun selectReport(id: String) = launch {
+        stater.updateBlocking { copy(selectedReportId = id) }
     }
 
-    fun deleteLogSession(id: String) = launch {
-        log(tag) { "deleteLogSession($id)" }
-        sessionManager.deleteSession(id)
+    fun deleteReport(id: String) = launch {
+        log(tag) { "deleteReport($id)" }
+        bugReportRepo.delete(id)
     }
 
-    fun refreshSessions() = launch {
-        sessionManager.refresh()
-    }
-
-    fun startRecording() {
-        events.tryEmit(Event.ShowConsentDialog)
-    }
-
-    fun doStartRecording() = launch {
-        log(tag) { "doStartRecording()" }
-        sessionManager.startRecording()
+    fun startRecording() = launch {
+        log(tag) { "startRecording()" }
+        bugReportRecorder.start()
     }
 
     fun stopRecording() = launch {
-        when (val result = sessionManager.requestStopRecording()) {
-            is RecorderManager.StopResult.TooShort -> events.tryEmit(Event.ShowShortRecordingWarning)
-            is RecorderManager.StopResult.Stopped -> {
-                log(tag) { "stopRecording() -> ${result.sessionId}" }
-                autoSelectSessionId.set(result.sessionId)
+        // Arm before stopping: requestStop() clears recorder state (and thus emits) before returning,
+        // so the auto-select must already be set when that emission reaches the combine.
+        autoSelectReportId.set(bugReportRecorder.state.value.recordingId)
+        when (val result = bugReportRecorder.requestStop()) {
+            is BugReportRecorder.StopResult.TooShort -> {
+                autoSelectReportId.set(null)
+                events.tryEmit(Event.ShowShortRecordingWarning)
             }
-            is RecorderManager.StopResult.NotRecording -> {}
+
+            is BugReportRecorder.StopResult.Stopped -> log(tag) { "stopRecording() -> ${result.reportId}" }
+            is BugReportRecorder.StopResult.NotRecording -> autoSelectReportId.set(null)
         }
     }
 
     fun forceStopRecording() = launch {
         log(tag) { "forceStopRecording()" }
-        val result = sessionManager.forceStopRecording()
-        if (result != null) autoSelectSessionId.set(result.sessionId)
-    }
-
-    fun openPrivacyPolicy() {
-        webpageTool.open(ButlerLinks.PRIVACY_POLICY)
+        autoSelectReportId.set(bugReportRecorder.state.value.recordingId)
+        bugReportRecorder.forceStop()
     }
 
     fun confirmSent() = launch {
-        val selectedId = stater.value().selectedSessionId
+        val selectedId = stater.value().selectedReportId
         if (selectedId != null) {
-            log(tag) { "confirmSent() deleting session $selectedId" }
-            sessionManager.deleteSession(selectedId)
+            log(tag) { "confirmSent() deleting report $selectedId" }
+            bugReportRepo.delete(selectedId)
         }
         navUp()
     }
@@ -157,7 +151,7 @@ class SupportContactFormViewModel @Inject constructor(
         try {
             val subject = buildSubject(currentState)
             val body = buildBody(currentState)
-            val attachment = buildAttachment(currentState.selectedSessionId)
+            val attachment = buildAttachment(currentState.selectedReportId)
 
             val email = EmailTool.Email(
                 recipients = listOf(SUPPORT_EMAIL),
@@ -198,10 +192,10 @@ class SupportContactFormViewModel @Inject constructor(
         appendLine("Fingerprint: ${BuildWrap.FINGERPRINT}")
     }
 
-    private suspend fun buildAttachment(sessionId: String?): Uri? {
-        if (sessionId == null) return null
+    private suspend fun buildAttachment(reportId: String?): Uri? {
+        if (reportId == null) return null
         return try {
-            sessionManager.getZipUri(sessionId)
+            bugReportRepo.buildShareUri(reportId)
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to prepare attachment: ${e.asLog()}" }
             events.tryEmit(
@@ -232,8 +226,8 @@ class SupportContactFormViewModel @Inject constructor(
         val isSending: Boolean = false,
         val isRecording: Boolean = false,
         val recordingStartedAt: Long = 0L,
-        val sessions: List<DebugSession.Ready> = emptyList(),
-        val selectedSessionId: String? = null,
+        val reports: List<BugReportInfo> = emptyList(),
+        val selectedReportId: String? = null,
     ) {
         val isBug: Boolean get() = category == Category.BUG
 
@@ -255,6 +249,6 @@ class SupportContactFormViewModel @Inject constructor(
         const val MAX_CHARS = 5000
         const val MIN_DESCRIPTION_WORDS = 20
         const val MIN_EXPECTED_WORDS = 10
-        private const val MAX_PICKER_SESSIONS = 3
+        private const val MAX_PICKER_REPORTS = 3
     }
 }

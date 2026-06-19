@@ -28,6 +28,7 @@ fun NavigationEventHandler(vararg sources: NavigationEventSource) {
                         popUpTo = event.popUpTo,
                         inclusive = event.inclusive,
                     )
+                    is NavEvent.GoToSingleTop -> navController.goToSingleTop(event.destination)
                     is NavEvent.Up -> navController.up()
                     is NavEvent.Finish -> {
                         log(TAG) { "Finish event received, closing activity" }

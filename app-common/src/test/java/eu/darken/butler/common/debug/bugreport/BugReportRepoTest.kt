@@ -4,11 +4,15 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.ButlerId
 import eu.darken.butler.common.debug.logging.RingLogBuffer
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -26,19 +30,44 @@ class BugReportRepoTest : BaseTest() {
 
     private val context: Context get() = ApplicationProvider.getApplicationContext()
     private val reportsDir get() = File(context.filesDir, "bugreports")
+    private val json = Json { ignoreUnknownKeys = true }
+    private val recorderState = MutableStateFlow(BugReportRecorder.State())
 
     private fun createRepo(): BugReportRepo {
         val buffer = RingLogBuffer().apply {
             log(eu.darken.butler.common.debug.logging.Logging.Priority.INFO, "Test", "log line", null)
+        }
+        val recorder = mockk<BugReportRecorder>(relaxed = true) {
+            every { state } returns recorderState
         }
         return BugReportRepo(
             context = context,
             appScope = CoroutineScope(Dispatchers.Unconfined),
             dispatcherProvider = TestDispatcherProvider(),
             ringLogBuffer = buffer,
+            bugReportRecorder = recorder,
             butlerId = ButlerId(context),
-            json = Json { ignoreUnknownKeys = true },
+            json = json,
         )
+    }
+
+    private fun writeReportDir(id: String, type: BugReport.Type, ongoing: Boolean) {
+        val dir = File(reportsDir, id).apply { mkdirs() }
+        val report = BugReport(
+            id = id,
+            createdAt = kotlin.time.Clock.System.now(),
+            type = type,
+            appVersion = "1.0",
+            deviceFingerprint = "fp",
+            apiLevel = "29",
+            flavor = "FOSS",
+            buildType = "DEBUG",
+            installId = "iid",
+            locale = "en",
+        )
+        File(dir, "meta.json").writeText(json.encodeToString(BugReport.serializer(), report))
+        File(dir, "report.log").writeText("rec log")
+        if (ongoing) File(dir, ".recording").createNewFile()
     }
 
     @Test
@@ -86,7 +115,6 @@ class BugReportRepoTest : BaseTest() {
         val repo = createRepo()
         repo.captureCrashBlocking(IllegalStateException("boom"), Thread.currentThread())
 
-        // Incomplete dir (no meta.json), a temp dir, and a corrupt meta.json.
         File(reportsDir, "incomplete").mkdirs()
         File(reportsDir, ".tmp-partial").mkdirs()
         File(reportsDir, "corrupt").mkdirs()
@@ -101,5 +129,49 @@ class BugReportRepoTest : BaseTest() {
         repeat(30) { repo.captureReport(IllegalStateException("e$it")) }
 
         repo.reports.first() shouldHaveSize 25
+    }
+
+    @Test
+    fun `ongoing recording is surfaced with isOngoingRecording flag`() = runTest {
+        val repo = createRepo()
+        writeReportDir("recording_1_aaaa", BugReport.Type.RECORDING, ongoing = true)
+        // "Ongoing" requires the live recorder to own this id, not just the sentinel's presence.
+        recorderState.value = BugReportRecorder.State(isRecording = true, recordingId = "recording_1_aaaa")
+
+        val info = repo.reports.first().single { it.id == "recording_1_aaaa" }
+        info.isOngoingRecording shouldBe true
+        info.report.type shouldBe BugReport.Type.RECORDING
+        info.report.errorClass shouldBe null
+    }
+
+    @Test
+    fun `finished recording without sentinel is a normal report`() = runTest {
+        val repo = createRepo()
+        writeReportDir("recording_2_bbbb", BugReport.Type.RECORDING, ongoing = false)
+
+        val info = repo.reports.first().single { it.id == "recording_2_bbbb" }
+        info.isOngoingRecording shouldBe false
+        info.report.type shouldBe BugReport.Type.RECORDING
+    }
+
+    @Test
+    fun `recording with a stale sentinel but no active recorder is a normal report`() = runTest {
+        val repo = createRepo()
+        // Sentinel present (e.g. interrupted by process death) but the recorder is not recording it:
+        // it must surface as a normal, complete report rather than being hidden as "ongoing".
+        writeReportDir("recording_4_dddd", BugReport.Type.RECORDING, ongoing = true)
+
+        val info = repo.reports.first().single { it.id == "recording_4_dddd" }
+        info.isOngoingRecording shouldBe false
+        info.report.type shouldBe BugReport.Type.RECORDING
+    }
+
+    @Test
+    fun `delete refuses the active recording`() = runTest {
+        val repo = createRepo()
+        writeReportDir("recording_3_cccc", BugReport.Type.RECORDING, ongoing = true)
+        recorderState.value = BugReportRecorder.State(isRecording = true, recordingId = "recording_3_cccc")
+
+        shouldThrow<IllegalArgumentException> { repo.delete("recording_3_cccc") }
     }
 }
