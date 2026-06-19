@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -57,11 +58,13 @@ class BugReportRepo @Inject constructor(
     private val shareDir = BugReportStorage.shareDir(context)
     private val refreshTrigger = MutableStateFlow(0)
 
-    // Re-scans on manual triggers AND whenever the recorder state changes, so an ongoing recording's
-    // live size and its start/stop transitions surface without a separate poll.
+    // Re-scans on manual triggers AND on recording start/stop transitions. We key on recordingId
+    // (distinct) rather than the whole recorder state so the periodic live-size ticks do NOT trigger a
+    // disk re-scan — the live size reaches the UI directly via the workspace VM's combine on the
+    // recorder state, not through this scan.
     val reports: Flow<List<BugReportInfo>> = combine(
         refreshTrigger,
-        bugReportRecorder.state,
+        bugReportRecorder.state.map { it.recordingId }.distinctUntilChanged(),
     ) { _, _ -> withContext(dispatcherProvider.IO) { scan() } }
 
     val hasUnseenCrashes: Flow<Boolean> = reports.map { list ->
