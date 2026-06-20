@@ -29,6 +29,7 @@ class SettingsViewModel @Inject constructor(
         State(
             versionText = BuildConfigWrap.VERSION_DESCRIPTION,
             isUpgraded = upgradeInfo.isUpgraded,
+            upgradeType = upgradeInfo.type,
             isDeveloperModeUnlocked = isDeveloperUnlocked,
             canUnlockDeveloperMode = !isDeveloperUnlocked,
         )
@@ -47,6 +48,7 @@ class SettingsViewModel @Inject constructor(
     data class State(
         val versionText: String = BuildConfigWrap.VERSION_DESCRIPTION,
         val isUpgraded: Boolean = false,
+        val upgradeType: UpgradeRepo.Type = UpgradeRepo.Type.GPLAY,
         val isDeveloperModeUnlocked: Boolean = false,
         val canUnlockDeveloperMode: Boolean = false,
     )
