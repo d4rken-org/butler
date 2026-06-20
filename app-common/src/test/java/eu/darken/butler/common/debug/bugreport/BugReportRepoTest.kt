@@ -174,4 +174,46 @@ class BugReportRepoTest : BaseTest() {
 
         shouldThrow<IllegalArgumentException> { repo.delete("recording_3_cccc") }
     }
+
+    @Test
+    fun `logSizeBytes reflects the on-disk log size`() = runTest {
+        val repo = createRepo()
+        repo.captureCrashBlocking(IllegalStateException("boom"), Thread.currentThread())
+
+        val info = repo.reports.first().single()
+        (info.logSizeBytes > 0L) shouldBe true
+    }
+
+    @Test
+    fun `readLogTail returns all lines for a short log`() = runTest {
+        val repo = createRepo()
+        File(reportsDir, "tail_short").mkdirs()
+        File(File(reportsDir, "tail_short"), "report.log").writeText("a\nb\nc")
+
+        val tail = repo.readLogTail("tail_short", maxLines = 10)
+        tail.totalLines shouldBe 3
+        tail.lines shouldBe listOf("a", "b", "c")
+    }
+
+    @Test
+    fun `readLogTail returns only the tail for a long log`() = runTest {
+        val repo = createRepo()
+        File(reportsDir, "tail_long").mkdirs()
+        File(File(reportsDir, "tail_long"), "report.log").writeText((1..100).joinToString("\n") { "line$it" })
+
+        val tail = repo.readLogTail("tail_long", maxLines = 10)
+        tail.totalLines shouldBe 100
+        tail.lines shouldHaveSize 10
+        tail.lines.first() shouldBe "line91"
+        tail.lines.last() shouldBe "line100"
+    }
+
+    @Test
+    fun `readLogTail on a missing log is empty`() = runTest {
+        val repo = createRepo()
+
+        val tail = repo.readLogTail("does_not_exist", maxLines = 10)
+        tail.totalLines shouldBe 0
+        tail.lines shouldHaveSize 0
+    }
 }

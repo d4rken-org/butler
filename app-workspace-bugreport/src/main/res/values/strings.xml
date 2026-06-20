@@ -27,4 +27,20 @@
     <string name="bugreport_share_chooser_title">Share bug report</string>
     <string name="bugreport_share_consent_title">Share report?</string>
     <string name="bugreport_share_consent_message">This report includes app logs that may contain file names and paths. Only share it with people you trust.</string>
+
+    <string name="bugreport_detail_back_action">Back</string>
+    <string name="bugreport_detail_section_error">Error</string>
+    <string name="bugreport_detail_section_log">Recent log</string>
+    <string name="bugreport_detail_field_type">Type</string>
+    <string name="bugreport_detail_field_time">Time</string>
+    <string name="bugreport_detail_field_app_version">App version</string>
+    <string name="bugreport_detail_field_device">Device</string>
+    <string name="bugreport_detail_field_android">Android</string>
+    <string name="bugreport_detail_field_build">Build</string>
+    <string name="bugreport_detail_field_error_class">Error type</string>
+    <string name="bugreport_detail_field_thread">Thread</string>
+    <string name="bugreport_detail_log_truncated">last %1$d of %2$d lines</string>
+    <string name="bugreport_detail_log_count">%1$d lines</string>
+    <string name="bugreport_detail_log_empty">No log captured</string>
+    <string name="bugreport_detail_log_error">Could not load the log</string>
 </resources>

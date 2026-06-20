@@ -47,12 +47,14 @@ data class BugReport(
  *
  * [isOngoingRecording] and [recordingLogSize] are never persisted — they are derived in
  * [BugReportRepo.scan] from the live [BugReportRecorder] state + the `.recording` sentinel.
+ * [logSizeBytes] is the on-disk size of the report's `report.log`, shown in the detail view.
  */
 data class BugReportInfo(
     val report: BugReport,
     val isSeen: Boolean,
     val isOngoingRecording: Boolean = false,
     val recordingLogSize: Long = 0L,
+    val logSizeBytes: Long = 0L,
 ) {
     val id: String get() = report.id
 }

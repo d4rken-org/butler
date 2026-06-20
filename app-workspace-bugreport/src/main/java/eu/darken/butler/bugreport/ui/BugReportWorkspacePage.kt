@@ -2,6 +2,7 @@ package eu.darken.butler.bugreport.ui
 
 import android.content.Intent
 import android.text.format.Formatter
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDpAsState
@@ -68,6 +69,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.LaunchedEffect
 import eu.darken.butler.bugreport.R
+import eu.darken.butler.bugreport.ui.detail.BugReportDetailContent
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.debug.bugreport.BugReport
@@ -97,9 +99,6 @@ import kotlin.time.Instant
 
 private val TAG = logTag("BugReport", "Workspace", "Page")
 
-/** In-dialog log preview cap; the full log is always included in the shared zip. */
-private const val MAX_LOG_PREVIEW_LINES = 300
-
 @Composable
 fun BugReportWorkspacePageHost(
     id: Workspace.Id,
@@ -115,8 +114,6 @@ fun BugReportWorkspacePageHost(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var detail by remember { mutableStateOf<BugReportInfo?>(null) }
-    var detailLog by remember { mutableStateOf<String?>(null) }
     var consentFor by remember { mutableStateOf<BugReport?>(null) }
     var showShortRecordingWarning by remember { mutableStateOf(false) }
 
@@ -129,34 +126,22 @@ fun BugReportWorkspacePageHost(
     }
 
     state?.let { s ->
+        // While the detail view is open, back returns to the list — but let an open dialog consume
+        // back first so it isn't dismissed together with the detail.
+        BackHandler(enabled = s.detail != null && consentFor == null && !showShortRecordingWarning) {
+            vm.closeReport()
+        }
+
         BugReportWorkspacePage(
             design = design,
             state = s,
-            onReportClick = { info ->
-                // Ongoing recordings have no finished detail to show yet.
-                if (info.isOngoingRecording) return@BugReportWorkspacePage
-                detail = info
-                detailLog = null
-                vm.markSeen(info.id)
-                scope.launch { detailLog = vm.loadLog(info.id) }
-            },
-            onDelete = { id -> vm.delete(id); if (detail?.id == id) detail = null },
+            onReportClick = { info -> vm.openReport(info.id) },
+            onBack = { vm.closeReport() },
+            onShareReport = { report -> consentFor = report },
+            onDeleteReport = { id -> vm.delete(id) },
             onDeleteAll = { vm.deleteAll() },
             onStartRecording = { vm.startRecording() },
             onStopRecording = { vm.stopRecording() },
-        )
-    }
-
-    detail?.let { info ->
-        BugReportDetailDialog(
-            info = info,
-            log = detailLog,
-            onShare = {
-                detail = null
-                consentFor = info.report
-            },
-            onDelete = { vm.delete(info.id); detail = null },
-            onDismiss = { detail = null },
         )
     }
 
@@ -196,11 +181,26 @@ fun BugReportWorkspacePage(
     design: WorkspaceDesign = WorkspaceDesign(),
     state: BugReportWorkspaceViewModel.State,
     onReportClick: (BugReportInfo) -> Unit = {},
-    onDelete: (String) -> Unit = {},
+    onBack: () -> Unit = {},
+    onShareReport: (BugReport) -> Unit = {},
+    onDeleteReport: (String) -> Unit = {},
     onDeleteAll: () -> Unit = {},
     onStartRecording: () -> Unit = {},
     onStopRecording: () -> Unit = {},
 ) {
+    val detail = state.detail
+    if (detail != null) {
+        BugReportDetailContent(
+            modifier = modifier,
+            design = design,
+            detail = detail,
+            onBack = onBack,
+            onShare = { onShareReport(detail.info.report) },
+            onDelete = { onDeleteReport(detail.info.id) },
+        )
+        return
+    }
+
     val density = LocalDensity.current
     val navBarInset = if (design.paneEdges.touchesBottom) {
         with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
@@ -572,68 +572,6 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun BugReportDetailDialog(
-    info: BugReportInfo,
-    log: String?,
-    onShare: () -> Unit,
-    onDelete: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val report = info.report
-    // Only the tail is shown — the full log travels in the shared zip. Rendered as a lazy line list
-    // (not one giant Text) so a multi-hundred-KB log doesn't bloat composition or the a11y tree.
-    val logLines = remember(log) {
-        when (val raw = log) {
-            null -> null
-            else -> raw.split('\n').let { all ->
-                if (all.size > MAX_LOG_PREVIEW_LINES) {
-                    listOf("… last $MAX_LOG_PREVIEW_LINES of ${all.size} lines (full log in the shared report) …") +
-                        all.takeLast(MAX_LOG_PREVIEW_LINES)
-                } else {
-                    all
-                }
-            }
-        }
-    }
-    val title = report.errorClass?.substringAfterLast('.')?.takeIf { it.isNotBlank() } ?: report.type.label()
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                report.errorMessage?.takeIf { it.isNotBlank() }?.let {
-                    Text(it, style = MaterialTheme.typography.bodyMedium)
-                }
-                Text(
-                    text = "${report.appVersion}\n${report.deviceFingerprint}\nAPI ${report.apiLevel} · ${report.locale}\n${report.createdAt}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                LazyColumn(modifier = Modifier.heightIn(max = 320.dp)) {
-                    if (logLines == null) {
-                        item { Text("…", style = MaterialTheme.typography.bodySmall) }
-                    } else {
-                        items(logLines) { line ->
-                            Text(
-                                text = line,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontFamily = FontFamily.Monospace,
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onShare) { Text(stringResource(R.string.bugreport_share_action)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDelete) { Text(stringResource(R.string.bugreport_delete_action)) }
-        },
-    )
-}
-
-@Composable
 private fun ShareConsentDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
@@ -671,7 +609,7 @@ private fun ShortRecordingWarningDialog(
 }
 
 @Composable
-private fun BugReport.Type.label(): String = when (this) {
+internal fun BugReport.Type.label(): String = when (this) {
     BugReport.Type.CRASH -> stringResource(R.string.bugreport_type_crash)
     BugReport.Type.REPORTED -> stringResource(R.string.bugreport_type_report)
     BugReport.Type.RECORDING -> stringResource(R.string.bugreport_type_recording)

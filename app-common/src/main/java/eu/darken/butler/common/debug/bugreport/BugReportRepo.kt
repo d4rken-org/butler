@@ -151,10 +151,37 @@ class BugReportRepo @Inject constructor(
         refresh()
     }
 
-    /** Full log trail for the detail view; loaded on demand because it can be large. */
+    /** Full log trail; loaded on demand because it can be large. Kept for callers needing the whole log. */
     suspend fun readLog(id: String): String = withContext(dispatcherProvider.IO) {
         File(File(reportsDir, id), BugReportStorage.LOG_FILE).takeIf { it.exists() }?.readText() ?: ""
     }
+
+    /**
+     * Bounded tail of a report's log for the detail view: streams the file line-by-line and keeps only
+     * the last [maxLines] in a ring buffer plus a total-line count — never holds the whole file or a
+     * full `split` list in memory, so a multi-MB recording costs a bounded amount regardless of size.
+     */
+    suspend fun readLogTail(id: String, maxLines: Int): LogTail = withContext(dispatcherProvider.IO) {
+        require(maxLines > 0) { "maxLines must be > 0, was $maxLines" }
+        val file = File(File(reportsDir, id), BugReportStorage.LOG_FILE)
+        if (!file.exists()) return@withContext LogTail(emptyList(), 0)
+        val ring = ArrayDeque<String>(maxLines)
+        var total = 0
+        file.bufferedReader().useLines { lines ->
+            lines.forEach { line ->
+                total++
+                if (ring.size == maxLines) ring.removeFirst()
+                ring.addLast(line)
+            }
+        }
+        LogTail(lines = ring.toList(), totalLines = total)
+    }
+
+    /** Result of [readLogTail]: the tail [lines] plus the [totalLines] count for "last N of M" framing. */
+    data class LogTail(
+        val lines: List<String>,
+        val totalLines: Int,
+    )
 
     /**
      * (Re)create the report's share zip under the cache dir and return a [FileProvider] uri. Used both
@@ -269,6 +296,7 @@ class BugReportRepo @Inject constructor(
                 isSeen = isOngoing || File(dir, BugReportStorage.SEEN_MARKER).exists(),
                 isOngoingRecording = isOngoing,
                 recordingLogSize = if (isOngoing) logFile.length() else 0L,
+                logSizeBytes = logFile.length(),
             )
         }.sortedByDescending { it.report.createdAt }
     }
