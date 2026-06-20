@@ -10,12 +10,19 @@ import eu.darken.butler.common.debug.bugreport.BugReportInfo
 import eu.darken.butler.common.debug.bugreport.BugReportRecorder
 import eu.darken.butler.common.debug.bugreport.BugReportRepo
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.SingleEventFlow
 import eu.darken.butler.common.ui.ViewModel3
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 
 @HiltViewModel(assistedFactory = BugReportWorkspaceViewModel.Factory::class)
 class BugReportWorkspaceViewModel @AssistedInject constructor(
@@ -31,18 +38,77 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
 
     val events = SingleEventFlow<Event>()
 
+    /** The report currently shown in the full-screen detail view, or null while on the list. */
+    private val selectedReportId = MutableStateFlow<String?>(null)
+
+    // Loads the selected report's log tail. flatMapLatest cancels an in-flight load when the selection
+    // changes, and runCatching keeps a read failure (e.g. the report deleted between scan and read)
+    // from killing the collector — it surfaces as LogState.Error instead.
+    private val detailLog: Flow<DetailLog?> = selectedReportId.flatMapLatest { reportId ->
+        if (reportId == null) {
+            flowOf(null)
+        } else {
+            flow {
+                emit(DetailLog(reportId, LogState.Loading))
+                val logState = try {
+                    val tail = bugReportRepo.readLogTail(reportId, MAX_LOG_PREVIEW_LINES)
+                    if (tail.totalLines == 0) {
+                        LogState.Empty
+                    } else {
+                        LogState.Loaded(
+                            lines = tail.lines,
+                            totalLines = tail.totalLines,
+                            shownLines = tail.lines.size,
+                            isTruncated = tail.totalLines > tail.lines.size,
+                        )
+                    }
+                } catch (e: CancellationException) {
+                    // Selection changed/closed mid-read — let cancellation propagate, don't log an error.
+                    throw e
+                } catch (e: Exception) {
+                    log(tag, ERROR) { "readLogTail failed for $reportId: ${e.asLog()}" }
+                    LogState.Error
+                }
+                emit(DetailLog(reportId, logState))
+            }
+        }
+    }
+
     val state = combine(
         bugReportRepo.reports,
         bugReportRecorder.state,
-    ) { reports, recorder ->
+        selectedReportId,
+        detailLog,
+    ) { reports, recorder, selectedId, loadedLog ->
+        // Derive the detail from the live list: if the selected report is gone (deleted/pruned), the
+        // detail collapses to null and the UI returns to the list automatically.
+        val detail = selectedId?.let { sid ->
+            reports.firstOrNull { it.id == sid }?.let { info ->
+                Detail(
+                    info = info,
+                    logState = loadedLog?.takeIf { it.reportId == sid }?.state ?: LogState.Loading,
+                )
+            }
+        }
         State(
             id = id,
             reports = reports,
             isRecording = recorder.isRecording,
             recordingStartedAt = recorder.startedAtMs,
             recordingLogSize = recorder.currentLogSize,
+            detail = detail,
         )
     }.asStateFlow()
+
+    fun openReport(reportId: String) {
+        log(tag, INFO) { "openReport($reportId)" }
+        selectedReportId.value = reportId
+        markSeen(reportId)
+    }
+
+    fun closeReport() {
+        selectedReportId.value = null
+    }
 
     /** Acknowledge a report so a crash no longer auto-surfaces. Called on explicit user actions. */
     fun markSeen(reportId: String) = launch {
@@ -52,11 +118,13 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
     fun delete(reportId: String) = launch {
         log(tag, INFO) { "delete($reportId)" }
         bugReportRepo.delete(reportId)
+        if (selectedReportId.value == reportId) selectedReportId.value = null
     }
 
     fun deleteAll() = launch {
         log(tag, INFO) { "deleteAll()" }
         bugReportRepo.deleteAll()
+        selectedReportId.value = null
     }
 
     fun startRecording() = launch {
@@ -78,8 +146,6 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         bugReportRecorder.forceStop()
     }
 
-    suspend fun loadLog(reportId: String): String = bugReportRepo.readLog(reportId)
-
     /** Build the share intent after the user has consented. The host wraps it in a chooser. */
     suspend fun buildShareIntent(reportId: String): Intent = bugReportRepo.buildShareIntent(reportId)
         .also { markSeen(reportId) }
@@ -90,10 +156,40 @@ class BugReportWorkspaceViewModel @AssistedInject constructor(
         val isRecording: Boolean = false,
         val recordingStartedAt: Long = 0L,
         val recordingLogSize: Long = 0L,
+        val detail: Detail? = null,
+    )
+
+    /** The full-screen detail view's state: the report plus its (async) log tail. */
+    data class Detail(
+        val info: BugReportInfo,
+        val logState: LogState,
+    )
+
+    sealed interface LogState {
+        data object Loading : LogState
+        data class Loaded(
+            val lines: List<String>,
+            val totalLines: Int,
+            val shownLines: Int,
+            val isTruncated: Boolean,
+        ) : LogState
+
+        data object Empty : LogState
+        data object Error : LogState
+    }
+
+    private data class DetailLog(
+        val reportId: String,
+        val state: LogState,
     )
 
     @AssistedFactory
     interface Factory {
         fun create(id: Workspace.Id): BugReportWorkspaceViewModel
+    }
+
+    companion object {
+        /** Tail size shown in the detail view; the full log always travels in the shared zip. */
+        private const val MAX_LOG_PREVIEW_LINES = 300
     }
 }
