@@ -282,18 +282,13 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
     /**
      * Check if path is writable.
      *
-     * Default implementation checks if parent directory is writable.
-     * Implementations may override with more accurate checks.
+     * Semantics are implementation-defined and may require elevated privileges; typically true if
+     * the path (or its parent, when the path does not yet exist) can be written to.
      *
      * @param path The path to check
      * @return true if path can be written, false otherwise
      */
-    suspend fun canWrite(path: P): Boolean = try {
-        // TODO is this correct?
-        exists(path) && lookup(path, LookupOptions()).let { true }
-    } catch (_: Exception) {
-        false
-    }
+    suspend fun canWrite(path: P): Boolean
 
     suspend fun getFileSystem(path: P): FileSystem
 }

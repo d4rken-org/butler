@@ -197,6 +197,12 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         return files.containsKey(path.path)
     }
 
+    override suspend fun canWrite(path: P): Boolean {
+        if (files.containsKey(path.path)) return true
+        val parentPath = path.path.substringBeforeLast('/', "")
+        return parentPath.isEmpty() || files.containsKey(parentPath)
+    }
+
     override suspend fun delete(path: P, recursive: Boolean): Boolean {
         deleteCalls.add(path.path)
 

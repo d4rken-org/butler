@@ -55,6 +55,7 @@ import eu.darken.butler.editor.ui.editor
 import eu.darken.butler.explorer.ui.explorer
 import eu.darken.butler.history.ui.history
 import eu.darken.butler.searcher.ui.searcher
+import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.icon
 
@@ -128,7 +129,6 @@ fun SettingsIndexScreen(
                 title = {
                     Column {
                         Text(stringResource(R.string.settings_label))
-                        // TODO: Add subtitle showing upgrade status
                         if (state.isUpgraded) {
                             ColoredTitleText(
                                 fullTitle = stringResource(eu.darken.butler.common.R.string.app_name_upgraded),
@@ -249,7 +249,13 @@ fun SettingsIndexScreen(
                 SettingsBaseItem(
                     icon = Icons.TwoTone.Stars,
                     title = stringResource(R.string.settings_upgrade_status_label),
-                    subtitle = stringResource(R.string.settings_upgrade_status_description),
+                    subtitle = when {
+                        state.isUpgraded && state.upgradeType == UpgradeRepo.Type.GPLAY ->
+                            stringResource(R.string.upgrade_status_pro)
+                        state.isUpgraded && state.upgradeType == UpgradeRepo.Type.FOSS ->
+                            stringResource(R.string.upgrade_status_foss)
+                        else -> stringResource(R.string.upgrade_status_free)
+                    },
                     onClick = { onNavigateTo(Nav.Settings.upgradeStatus()) },
                 )
                 SettingsDivider()
@@ -325,6 +331,7 @@ private fun SettingsScreenPreview() {
     SettingsIndexScreen(
         state = SettingsViewModel.State(
             isUpgraded = true,
+            upgradeType = UpgradeRepo.Type.GPLAY,
         ),
         onNavigateUp = {},
         onNavigateTo = {},
