@@ -16,7 +16,6 @@ import java.util.LinkedList
 
 // Symlinks are emitted as leaf entries and not followed, to avoid traversal cycles.
 // TODO: optionally follow symlinks with cycle detection.
-// TODO unit test coverage
 class DirectLocalWalker(
     private val fileSystemOps: LocalFileSystemOps,
     private val start: LocalPath,

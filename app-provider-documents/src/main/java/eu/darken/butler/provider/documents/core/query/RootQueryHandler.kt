@@ -44,7 +44,8 @@ class RootQueryHandler @Inject constructor(
         val roots = listOf(ProviderLocation.Root.Butler)
 
         // Always use full projection: RowBuilder.add(String, Object) throws if column is missing.
-        // SAF clients handle extra columns gracefully. TODO: Consider per-column safe-add instead.
+        // Ignoring the requested projection is intentional and DocumentsProvider-contract-compliant:
+        // clients read columns by name and tolerate extra columns, so returning a superset is allowed.
         val resolvedProjection = DEFAULT_ROOT_PROJECTION
         val cursor = MatrixCursor(resolvedProjection)
 
