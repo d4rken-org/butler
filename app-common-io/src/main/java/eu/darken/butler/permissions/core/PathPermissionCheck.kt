@@ -172,16 +172,7 @@ class PathPermissionCheck @Inject constructor(
 
     fun monitor(path: APath<*>): Flow<PathRequirements> {
         return flow {
-            // Get initial setup state to check app installation
-            // TODO: Extract isInstalled from module state when interface is updated
-            // For now, always false since isInstalled is not in SetupModule.State.Current interface
-            val shizukuInstalled = false
-            val rootInstalled = false
-
-            val requirements = check(path, emptyMap()).copy(
-                shizukuInstalled = shizukuInstalled,
-                rootInstalled = rootInstalled
-            )
+            val requirements = check(path, emptyMap())
 
             // If alternative path or SAF picker available, emit immediately and don't monitor setup
             if (requirements.alternativePath != null || requirements.safPickerGrant != null) {
@@ -202,17 +193,23 @@ class PathPermissionCheck @Inject constructor(
                         moduleStates.containsKey(type)
                     }
 
-                    Pair(moduleStates, hasAllModules)
+                    // Derived per-emission so install state tracks modules resolving from Loading.
+                    val installState = InstallState(
+                        shizuku = (providerState.modules[SetupModule.Type.SHIZUKU] as? SetupModule.State.Current)?.isInstalled == true,
+                        root = (providerState.modules[SetupModule.Type.ROOT] as? SetupModule.State.Current)?.isInstalled == true,
+                    )
+
+                    Triple(moduleStates, hasAllModules, installState)
                 }
                 .distinctUntilChanged()
-                .filter { pair -> pair.second }
-                .onEach { pair ->
-                    log(TAG, VERBOSE) { "Relevant setup state for $path: ${pair.first}" }
+                .filter { it.second }
+                .onEach { (moduleStates, _, _) ->
+                    log(TAG, VERBOSE) { "Relevant setup state for $path: $moduleStates" }
                 }
-                .map { (moduleStates, _) ->
+                .map { (moduleStates, _, installState) ->
                     check(path, moduleStates).copy(
-                        shizukuInstalled = shizukuInstalled,
-                        rootInstalled = rootInstalled
+                        shizukuInstalled = installState.shizuku,
+                        rootInstalled = installState.root,
                     )
                 }
                 .distinctUntilChanged()
@@ -222,6 +219,8 @@ class PathPermissionCheck @Inject constructor(
                 .collect { emit(it) }
         }
     }
+
+    private data class InstallState(val shizuku: Boolean, val root: Boolean)
 
     companion object {
         private val TAG = logTag("Permission", "PathChecker")

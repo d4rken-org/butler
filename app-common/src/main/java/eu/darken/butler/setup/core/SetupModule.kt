@@ -23,6 +23,10 @@ interface SetupModule {
             val isComplete: Boolean
             val isAvailable: Boolean
                 get() = true
+
+            /** Whether the backing app/binary is present (distinct from available/granted). */
+            val isInstalled: Boolean
+                get() = false
         }
     }
 

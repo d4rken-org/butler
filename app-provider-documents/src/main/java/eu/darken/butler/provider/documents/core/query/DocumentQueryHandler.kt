@@ -61,7 +61,8 @@ class DocumentQueryHandler @Inject constructor(
         log(TAG, INFO) { "queryDocument($documentId)" }
 
         // Always use full projection: RowBuilder.add(String, Object) throws if column is missing.
-        // SAF clients handle extra columns gracefully. TODO: Consider per-column safe-add instead.
+        // Ignoring the requested projection is intentional and DocumentsProvider-contract-compliant:
+        // clients read columns by name and tolerate extra columns, so returning a superset is allowed.
         val cursor = MatrixCursor(DEFAULT_DOCUMENT_PROJECTION)
 
         try {
@@ -119,7 +120,8 @@ class DocumentQueryHandler @Inject constructor(
         log(TAG, INFO) { "queryChildDocuments($parentDocumentId)" }
 
         // Always use full projection: RowBuilder.add(String, Object) throws if column is missing.
-        // SAF clients handle extra columns gracefully. TODO: Consider per-column safe-add instead.
+        // Ignoring the requested projection is intentional and DocumentsProvider-contract-compliant:
+        // clients read columns by name and tolerate extra columns, so returning a superset is allowed.
         val cursor = MatrixCursor(DEFAULT_DOCUMENT_PROJECTION)
 
         val notificationUri = DocumentsContract.buildChildDocumentsUri(

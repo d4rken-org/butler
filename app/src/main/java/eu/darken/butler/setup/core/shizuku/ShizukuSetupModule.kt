@@ -136,7 +136,7 @@ class ShizukuSetupModule @Inject constructor(
         val pkg: Pkg.Id,
         val useShizuku: Boolean?,
         val isCompatible: Boolean = false,
-        val isInstalled: Boolean = false,
+        override val isInstalled: Boolean = false,
         val basicService: Boolean = false,
         val ourService: Boolean = false,
         val alsoHasRoot: Boolean = false,

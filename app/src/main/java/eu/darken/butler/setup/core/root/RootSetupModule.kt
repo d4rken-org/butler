@@ -86,7 +86,7 @@ class RootSetupModule @Inject constructor(
 
     data class Result(
         val useRoot: Boolean?,
-        val isInstalled: Boolean = false,
+        override val isInstalled: Boolean = false,
         val ourService: Boolean = false,
     ) : SetupModule.State.Current {
 
