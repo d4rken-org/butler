@@ -9,6 +9,7 @@ import eu.darken.butler.common.adb.AdbSettings
 import eu.darken.butler.common.adb.shizuku.ShizukuManager
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
@@ -19,10 +20,10 @@ import eu.darken.butler.setup.core.SetupModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -120,9 +121,10 @@ class ShizukuSetupModule @Inject constructor(
         }
 
         if (!couldUseShizuku && useShizuku == true) {
-            // TODO find a smarter way to do this, i.e. by waiting for a specific event.
-            // Small delay to allow Shizuku service to bind
-            delay(1500)
+            // Wait for the Shizuku service to actually bind instead of guessing with a fixed delay.
+            withTimeoutOrNull(SERVICE_BIND_TIMEOUT_MS) {
+                shizukuManager.shizukuBinder.filter { it?.pingBinder() == true }.first()
+            } ?: log(TAG, WARN) { "Shizuku service did not bind within ${SERVICE_BIND_TIMEOUT_MS}ms" }
         }
     }
 
@@ -161,5 +163,6 @@ class ShizukuSetupModule @Inject constructor(
 
     companion object {
         private val TAG = logTag("Setup", "ADB", "Shizuku", "Module")
+        private const val SERVICE_BIND_TIMEOUT_MS = 5_000L
     }
 }
