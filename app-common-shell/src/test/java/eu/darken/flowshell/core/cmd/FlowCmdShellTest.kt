@@ -187,4 +187,33 @@ class FlowCmdShellTest : BaseTest() {
         (System.currentTimeMillis() - start) shouldBeGreaterThanOrEqual 1000
     }
 
+    @Test fun `exec replacing shell blocks until replacement exits and returns -1 without throwing`(): Unit = runBlocking {
+        // RootHostLauncher writes an `exec ...` line that swaps the shell with the host process,
+        // so no idEnd marker is ever echoed. execute() must stay blocked until the replacement
+        // exits (joinAll, woken by the death-watcher) and surface ExitCode(-1) instead of throwing.
+        val start = System.currentTimeMillis()
+        val result = FlowCmd("exec sleep 1").execute()
+        val elapsed = System.currentTimeMillis() - start
+
+        elapsed shouldBeGreaterThanOrEqual 900
+        result.exitCode shouldBe FlowProcess.ExitCode(-1)
+    }
+
+    @Test fun `quoted exec is not treated as shell replacement`(): Unit = runBlocking {
+        // The shell does not actually exec here, so a normal idEnd marker is emitted and parsed;
+        // the EXEC_REGEX heuristic must not hijack this into an ExitCode(-1).
+        FlowCmd("echo 'exec foo'").execute().apply {
+            exitCode shouldBe FlowProcess.ExitCode.OK
+            output shouldBe listOf("exec foo")
+        }
+    }
+
+    @Test fun `external shell death without exec throws`(): Unit = runBlocking {
+        // The shell dies (kills itself) without an exec directive -> no marker, not an intentional
+        // exec-replacement -> execute() must throw rather than masking the failure as ExitCode(-1).
+        shouldThrow<IllegalStateException> {
+            FlowCmd("kill -9 \$\$").execute()
+        }
+    }
+
 }
