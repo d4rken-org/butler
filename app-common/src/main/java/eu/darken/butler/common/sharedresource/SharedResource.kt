@@ -6,6 +6,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.traceCall
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -27,7 +28,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
@@ -41,9 +41,19 @@ open class SharedResource<T : Any>(
     parentScope: CoroutineScope,
     private val source: Flow<T>,
     private val stopTimeout: Duration = 3.seconds,
+    /**
+     * Promote selected lifecycle breadcrumbs (acquire / source-launch / wait / cache-hit / completion)
+     * to non-trace DEBUG, so silent-failure debug logs from this resource can be diagnosed without trace mode.
+     * Off by default — opt in per resource where silent failures are a known support pain point.
+     */
+    private val verboseLifecycle: Boolean = false,
 ) : KeepAlive {
     private val iTag = "$tag:SR"
     override val resourceId: String = iTag
+
+    private inline fun lifecycleLog(message: () -> String) {
+        if (verboseLifecycle || Bugs.isTrace) log(iTag, DEBUG, message = message)
+    }
 
     private val coreLock = Mutex()
 
@@ -55,13 +65,35 @@ open class SharedResource<T : Any>(
     private val leases = mutableSetOf<Lease>()
     private val children = mutableMapOf<SharedResource<*>, KeepAlive>()
 
-    private var sId: String? = null
-    private var sourceJob: Job? = null
-    private var sourceValue: T? = null
-    private var sourceError: Throwable? = null
+    /**
+     * The single currently-active source "generation". A new [get] either reuses this or, when it's
+     * null (none yet, or a previous one was detached for teardown), launches a fresh one. When the
+     * last lease is released the generation is *detached* — the slot is cleared immediately under
+     * [coreLock] and the slow teardown runs off-lock — so a new [get] never waits for a closing
+     * generation to finish (which can take minutes if the underlying source, e.g. a root host, is
+     * slow to tear down).
+     */
+    @Volatile
+    private var active: Generation<T>? = null
+    private var generationCounter: Long = 0
+
+    private class Generation<T : Any>(
+        val token: Long,
+        val id: String,
+    ) {
+        /** Completed when the first value arrives; completed exceptionally if the source fails first. */
+        val ready = CompletableDeferred<Unit>()
+        @Volatile var value: T? = null
+        @Volatile var error: Throwable? = null
+        var job: Job? = null
+    }
+
+    /** Id of the active generation, for log breadcrumbs. */
+    private val sId: String?
+        get() = active?.id
 
     override val isClosed: Boolean
-        get() = sourceJob == null
+        get() = active == null
 
     suspend fun get(): Resource<T> {
         val lId = "L:${Uuid.random().toString().takeLast(4)}"
@@ -70,12 +102,8 @@ open class SharedResource<T : Any>(
             log(iTag, VERBOSE) { "[$sId|$lId]-get() ... via $call" }
         }
 
-        if (sourceJob?.isActive == false) {
-            if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-get() Source is currently closing, waiting..." }
-            while (sourceJob != null) yield()
-        }
-
         var lease: Lease? = null
+        var gen: Generation<T>? = null
 
         coreLock.withLock("[$sId|$lId]-get()-sourcejob") {
             withContext(NonCancellable) {
@@ -97,70 +125,108 @@ open class SharedResource<T : Any>(
                 }
 
                 if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-get() Checking for source job..." }
-                if (sourceJob != null) {
+                active?.let {
                     if (Bugs.isTrace) log(iTag, VERBOSE) { "[$sId|$lId]-get() Source job already exists" }
+                    gen = it
                     return@withContext
                 }
 
-                if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-get() Launching source job..." }
-                sId = "S:${Uuid.random().toString().takeLast(4)}"
-                sourceError = null
-                sourceJob = source
+                val newGen = Generation<T>(
+                    token = ++generationCounter,
+                    id = "S:${Uuid.random().toString().takeLast(4)}",
+                )
+                active = newGen
+                gen = newGen
+                lifecycleLog { "[${newGen.id}|$lId]-get() Launching source job..." }
+                newGen.job = source
                     .onStart {
-                        if (Bugs.isTrace) log(iTag) { "[$sId|$lId]-source: Starting source..." }
+                        lifecycleLog { "[${newGen.id}|$lId]-source: Starting source..." }
                     }
                     .onEach {
-                        if (Bugs.isTrace) log(iTag) { "[$sId|$lId]-source: sourceValue=$it" }
-                        sourceValue = it
+                        if (Bugs.isTrace) log(iTag) { "[${newGen.id}|$lId]-source: sourceValue=$it" }
+                        // Only the still-active generation may publish its value; a detached/stale
+                        // generation must never clobber a fresh one's state.
+                        if (active === newGen) newGen.value = it
+                        newGen.ready.complete(Unit)
                     }
                     .onCompletion { reason ->
-                        if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-source: onCompletion due to $reason" }
-                        sourceError = reason
+                        lifecycleLog { "[${newGen.id}|$lId]-source: onCompletion due to $reason" }
+                        if (active === newGen) newGen.error = reason
+                        // Wake any get() still waiting on the first value.
+                        if (!newGen.ready.isCompleted) {
+                            newGen.ready.completeExceptionally(
+                                reason ?: IllegalStateException("Source completed without a value")
+                            )
+                        }
                         if (reason is InternalCancelationException) {
-                            if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-source: Internal cancel, no cleanup" }
+                            if (Bugs.isTrace) log(iTag, DEBUG) { "[${newGen.id}|$lId]-source: Internal cancel, no cleanup" }
                             return@onCompletion
                         }
-                        leaseScope.launch(NonCancellable) {
-                            if (Bugs.isTrace) {
-                                log(iTag, DEBUG) { "[$sId|$lId]-source: onCompletion calling closeLeases()" }
-                            }
-                            closeLeases("onCompletion")
-                            if (Bugs.isTrace) {
-                                log(iTag, VERBOSE) {
-                                    "[$sId|$lId]-source: onCompletion calling leaseCheck(forced=true)"
+                        // Self-completion (error / natural end) of the *active* generation: release
+                        // leases and detach. The launched coroutine re-validates `active === newGen`
+                        // UNDER coreLock before touching anything: between scheduling here and running,
+                        // a concurrent close()/lease-drop could have detached us and a new get() could
+                        // have started a fresh generation. Closing leases / detaching then would wrongly
+                        // tear down that newer generation, so a superseded generation must self-cancel.
+                        // closeLeasesLocked() + detachLocked() run under the SAME lock hold, so the
+                        // guard can't go stale between the check and the teardown.
+                        if (active === newGen) {
+                            leaseScope.launch(NonCancellable) {
+                                // Acquire leaseCheckLock THEN coreLock — the same order leaseCheck() uses,
+                                // so there's no deadlock — then cancel any pending delayed leaseCheckJob and
+                                // close-leases + detach in one atomic coreLock hold. The cancel keeps a stale
+                                // timer from later detaching a future idle generation early; the atomic hold
+                                // keeps the active===newGen guard below honest. Re-check under coreLock: a
+                                // concurrent close()/lease-drop may have detached us and a fresh get() may have
+                                // installed a new generation between scheduling this and running it — we must
+                                // not tear that one down.
+                                leaseCheckLock.withLock {
+                                    leaseCheckJob?.cancelAndJoin()
+                                    leaseCheckJob = null
+                                    coreLock.withLock("onCompletion-${newGen.id}") {
+                                        if (active !== newGen) {
+                                            if (Bugs.isTrace) log(iTag, DEBUG) { "[${newGen.id}|$lId]-source: onCompletion superseded, skipping teardown" }
+                                            return@withLock
+                                        }
+                                        if (Bugs.isTrace) log(iTag, DEBUG) { "[${newGen.id}|$lId]-source: onCompletion closing leases + detaching" }
+                                        closeLeasesLocked("onCompletion")
+                                        detachLocked("onCompletion")
+                                    }
                                 }
                             }
-                            leaseCheck("onCompletion", forced = true)
                         }
-                        if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-source: onCompletion done" }
+                        if (Bugs.isTrace) log(iTag, DEBUG) { "[${newGen.id}|$lId]-source: onCompletion done" }
                     }
-                    .catch { error -> log(iTag, WARN) { "[$sId|$lId]-source ERROR: ${error.asLog()}" } }
+                    .catch { error -> log(iTag, WARN) { "[${newGen.id}|$lId]-source ERROR: ${error.asLog()}" } }
                     .launchIn(leaseScope)
-                if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-get() ...source job launched $sourceJob" }
+                if (Bugs.isTrace) log(iTag, DEBUG) { "[${newGen.id}|$lId]-get() ...source job launched ${newGen.job}" }
             }
         }
 
-        var value: T? = sourceValue
-        var error: Throwable? = sourceError
-        if (Bugs.isTrace) log(iTag, VERBOSE) { "[$sId|$lId]-get() Now waiting... (value=$value, error=$error)" }
-        while (value == null && error == null) {
-            value = sourceValue?.also {
-                if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-get() sourceValue loop, got $it" }
-            }
-            error = sourceError?.also {
-                if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-get() sourceError loop, got $it" }
-            }
-            yield()
+        val generation = gen!!
+        // Await readiness OFF-lock (no busy-loop, no waiting on a closing generation). If we're
+        // cancelled (caller gone) or the source fails before producing a value, release the
+        // provisional lease we registered above so it can't pin the resource open forever.
+        if (!generation.ready.isCompleted) {
+            lifecycleLog { "[${generation.id}|$lId]-get() Waiting for source value..." }
+        }
+        try {
+            generation.ready.await()
+        } catch (e: Throwable) {
+            if (Bugs.isTrace) log(iTag, DEBUG) { "[${generation.id}|$lId]-get() await failed (${e.javaClass.simpleName}), releasing provisional lease" }
+            lease!!.close()
+            throw e
         }
 
+        val value = generation.value
         if (value == null) {
-            if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|$lId]-get() sourceValue failed, waiting for cleanup" }
-            while (sourceJob != null) yield()
-            if (Bugs.isTrace) log(iTag, WARN) { "[$sId|$lId]-get() sourceValue failed, throwing $error" }
-            throw error!!
+            lease!!.close()
+            val error = generation.error ?: IllegalStateException("Source produced no value")
+            if (Bugs.isTrace) log(iTag, WARN) { "[${generation.id}|$lId]-get() no value, throwing $error" }
+            throw error
         }
 
-        if (Bugs.isTrace) log(iTag) { "[$sId|$lId]-get() returning value $value" }
+        if (Bugs.isTrace) log(iTag) { "[${generation.id}|$lId]-get() returning value $value" }
         return Resource(value, lease!!)
     }
 
@@ -223,54 +289,83 @@ open class SharedResource<T : Any>(
         }
         if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|_]-doLeaseCheck()-$tag ZERO leases left" }
 
-        if (sourceJob == null) {
-            if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|_]-doLeaseCheck()-$tag sourceJob was already null" }
+        if (active == null) {
+            if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|_]-doLeaseCheck()-$tag active was already null" }
             return@withLock
         }
 
-        if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|_]-doLeaseCheck()-$tag Cancelling sourceJob" }
-        sourceJob!!.cancel(InternalCancelationException("[$sId|_]-doLeaseCheck()-$tag ZERO leases left"))
-        sourceJob!!.join() // Waits till source.onComplete is done
-        if (Bugs.isTrace) log(iTag, DEBUG) { "[$sId|_]-doLeaseCheck()-$tag sourceJob has completed" }
+        detachLocked(tag)
+    }
 
-        children.apply {
-            if (isEmpty()) return@apply
-            onEachIndexed { index, entry ->
-                if (Bugs.isTrace) {
-                    log(iTag, VERBOSE) { "[$sId|_]-doLeaseCheck()-$tag Closing child #$index ${entry.value}" }
-                }
-                entry.value.close()
-            }
-            clear()
+    /**
+     * Detach the active generation and schedule its (possibly slow) teardown off-lock.
+     *
+     * Caller MUST hold coreLock. Clearing the [active] slot here, under the lock, is what lets a
+     * subsequent get() start a fresh source immediately instead of waiting for this teardown (which
+     * can take minutes if the underlying source, e.g. a root host, is slow to tear down).
+     */
+    private fun detachLocked(tag: String) {
+        val generation = active ?: return
 
-            if (Bugs.isTrace) log(iTag, VERBOSE) { "[$sId|_]-doLeaseCheck() Remaining children have been cleared" }
+        if (Bugs.isTrace) log(iTag, DEBUG) { "[${generation.id}|_]-detach()-$tag Detaching generation" }
+        active = null
+        val detachedJob = generation.job
+        val detachedChildren = children.toMap()
+        children.clear()
+
+        // Release any get() that is still parked on this generation's `ready` (e.g. a caller whose
+        // lease was force-closed by close() while it was mid-acquire). It must NOT keep waiting for
+        // the off-lock source teardown below, which may be slow/wedged — that's the very hang we fix.
+        // No-op when a value was already produced (the common detach-after-use case).
+        if (!generation.ready.isCompleted) {
+            generation.ready.completeExceptionally(
+                IllegalStateException("[${generation.id}|_]-detach()-$tag detached before a value was produced")
+            )
         }
 
-        sourceValue = null
-        sourceJob = null
-        if (Bugs.isTrace) log(iTag, VERBOSE) { "[$sId|_]-doLeaseCheck()-$tag Source nulled. fin." }
-        sId = null
+        // Close children synchronously — this only releases the leases we hold on them and is fast;
+        // callers (and tests) rely on children being closed by the time the parent reads as closed.
+        detachedChildren.values.forEachIndexed { index, child ->
+            if (Bugs.isTrace) log(iTag, VERBOSE) { "[${generation.id}|_]-detach()-$tag Closing child #$index $child" }
+            child.close()
+        }
+
+        // The source-job cancel+join can be slow (e.g. a root host slow to disconnect). Run it off
+        // BOTH coreLock and leaseCheckLock so a wedged source close can never block a future get()
+        // or leaseCheck().
+        leaseScope.launch(NonCancellable) {
+            detachedJob?.cancel(InternalCancelationException("[${generation.id}|_]-detach()-$tag ZERO leases left"))
+            detachedJob?.join() // Waits till source.onComplete is done
+            if (Bugs.isTrace) log(iTag, VERBOSE) { "[${generation.id}|_]-detach()-$tag teardown complete" }
+        }
     }
 
     override fun close() {
-        if (isClosed) {
-            if (Bugs.isTrace) log(iTag) { "[$sId|_]-close() already closed" }
-            return
-        } else {
-            if (Bugs.isTrace) log(iTag) { "[$sId|_]-close() via ${Exception().asLog()}" }
-        }
-
         runBlocking(NonCancellable) {
-            if (Bugs.isTrace) log(iTag) { "[$sId|_]-close() calling closeLeases()" }
-            closeLeases("close()")
-            leaseCheck("close", forced = false)
+            // Decide AND close leases under a single coreLock hold. A cold get() registers its lease
+            // and publishes `active` atomically under this same lock, so we can't race past one
+            // mid-acquire: either we observe its lease here and close it, or it runs entirely after us
+            // and starts a fresh resource. (An unsynchronized isClosed fast-path would let close()
+            // see active==null while get() holds the lock about to set it, leaking the new lease.)
+            val hadState = coreLock.withLock("close()") {
+                if (active == null && leases.isEmpty()) {
+                    if (Bugs.isTrace) log(iTag) { "[$sId|_]-close() already closed" }
+                    return@withLock false
+                }
+                if (Bugs.isTrace) log(iTag) { "[$sId|_]-close() via ${Exception().asLog()}" }
+                closeLeasesLocked("close()")
+                true
+            }
+            if (hadState) leaseCheck("close", forced = false)
         }
     }
 
-    private suspend fun closeLeases(tag: String) = coreLock.withLock("closeLeases()-$tag") {
+    // Caller MUST hold coreLock. Closing the decision and the lease-close under a single lock hold
+    // is what lets close() / onCompletion act atomically against a concurrent get() (see their docs).
+    private suspend fun closeLeasesLocked(tag: String) {
         if (leases.isEmpty()) {
             if (Bugs.isTrace) log(iTag, VERBOSE) { "[$sId|_]-closeLeases()-$tag No leases to close" }
-            return@withLock
+            return
         }
 
         if (Bugs.isTrace) log(iTag, VERBOSE) { "[$sId|_]-closeLeases()-$tag Current leases=${leases.size}" }
@@ -291,11 +386,19 @@ open class SharedResource<T : Any>(
      * But the backupmodule, while open, keeps the root shell alive.
      */
     suspend fun addChild(child: SharedResource<*>) = coreLock.withLock("addChild-${child.resourceId}") {
-        if (children.contains(child)) {
+        val existing = children[child]
+        if (existing != null && !existing.isClosed) {
             if (Bugs.isTrace) {
                 log(iTag, VERBOSE) { "[$sId|_]-addChild() Already keeping child alive: $child" }
             }
             return@withLock
+        }
+        if (existing != null) {
+            // Stale child entry — drop it and fall through to re-adopt
+            if (Bugs.isTrace) {
+                log(iTag, VERBOSE) { "[$sId|_]-addChild() Replacing stale closed child: $child" }
+            }
+            children.remove(child)
         }
 
         if (isClosed) {
