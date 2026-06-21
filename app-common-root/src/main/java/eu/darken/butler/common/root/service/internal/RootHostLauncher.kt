@@ -1,7 +1,6 @@
 package eu.darken.butler.common.root.service.internal
 
 import android.content.Context
-import android.os.Debug
 import android.os.IInterface
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -11,9 +10,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ipc.getInterface
 import eu.darken.butler.common.root.RootException
 import eu.darken.flowshell.core.cmd.FlowCmd
-import eu.darken.flowshell.core.cmd.FlowCmdShell
-import eu.darken.flowshell.core.cmd.execute
-import eu.darken.flowshell.core.cmd.openSession
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.awaitClose
@@ -34,10 +30,25 @@ import kotlin.uuid.Uuid
  * https://github.com/Chainfire/librootjava/blob/master/librootjava/src/main/java/eu/chainfire/librootjava/AppProcess.java
  * https://github.com/zhanghai/MaterialFiles/tree/71e1e0d50573d5c3645e0fe7ec025e0ec75024ec/app/src/main/java/me/zhanghai/android/files/provider/root
  * https://github.com/RikkaApps/Shizuku/blob/master/starter/src/main/java/moe/shizuku/starter/ServiceStarter.java
+ *
+ * The OS/root touchpoints (session, IPC receiver, command building) are behind injectable seams
+ * ([RootSessionFactory], [RootIpcReceiverFactory], [RootLaunchCommandFactory]) so this orchestration
+ * — especially the finally-block teardown ordering — is unit-testable. See RootHostLauncherSeam.kt.
  */
-class RootHostLauncher @Inject constructor(
-    @ApplicationContext private val context: Context
+class RootHostLauncher(
+    private val sessionFactory: RootSessionFactory,
+    private val receiverFactory: RootIpcReceiverFactory,
+    private val commandFactory: RootLaunchCommandFactory,
 ) {
+
+    // DI wires the real OS-touching seams; the primary constructor lets tests inject fakes. Keeping
+    // the @Inject constructor's only dependency at Context (as before the seam extraction) means the
+    // non-Hilt RootComponent/AdbComponent graphs that transitively build this still resolve it.
+    @Inject constructor(@ApplicationContext context: Context) : this(
+        sessionFactory = DefaultRootSessionFactory(),
+        receiverFactory = DefaultRootIpcReceiverFactory(context),
+        commandFactory = DefaultRootLaunchCommandFactory(context),
+    )
 
     fun <Service : IInterface, Host : BaseRootHost> createConnection(
         serviceClass: KClass<Service>,
@@ -51,8 +62,9 @@ class RootHostLauncher @Inject constructor(
         val pairingCode = Uuid.random().toString()
         val connected = AtomicBoolean(false)
 
-        val ipcReceiver = object : RootConnectionReceiver(pairingCode) {
-            override fun onConnect(connection: RootConnection) {
+        val ipcReceiver = receiverFactory.create(
+            pairingCode = pairingCode,
+            onConnect = fun(connection: RootConnection) {
                 log(iTag) { "onConnect(connection=$connection), getting our interface..." }
                 val userConnection = try {
                     connection.userConnection.getInterface(serviceClass) as Service
@@ -65,27 +77,24 @@ class RootHostLauncher @Inject constructor(
                 log(iTag, INFO) { "onServiceConnected(...) got our interface: $userConnection" }
                 connected.set(true)
                 trySendBlocking(ConnectionWrapper(userConnection, connection))
-            }
-
-            override fun onDisconnect(connection: RootConnection) {
+            },
+            onDisconnect = { connection ->
                 log(iTag, INFO) { "onDisconnect(ipc=$connection), closing channel..." }
                 close()
                 log(iTag, VERBOSE) { "onDisconnect(ipc=$connection), channel closed" }
-            }
-        }
+            },
+        )
 
         // Everything from receiver registration onwards is inside the try so the finally always runs
-        // the cleanup — even if connect()/openSession() throws (otherwise the receiver or root session
-        // would leak), or if we're cancelled while parked in execute() below (the common case: the
-        // producer spends the whole connection there, so the old awaitClose {} cleanup was unreachable
-        // and the host was never told to disconnect — it waited on RootIPC.byeWaiter until binder death).
-        var rootSession: FlowCmdShell.Session? = null
+        // the cleanup — even if connect()/open() throws (otherwise the receiver or root session could
+        // leak) or if we're cancelled while parked in execute() below (the common case — see finally).
+        var rootSession: RootSession? = null
         try {
             log(iTag) { "Initiating connection to host($hostClass) via binder($serviceClass)" }
-            ipcReceiver.connect(context)
+            ipcReceiver.connect()
 
             rootSession = try {
-                FlowCmdShell("su").openSession(this).first
+                sessionFactory.open(this)
             } catch (e: Exception) {
                 throw RootException("Failed to open root session.", e)
             }
@@ -93,7 +102,7 @@ class RootHostLauncher @Inject constructor(
             if (useMountMaster) {
                 try {
                     log(iTag, INFO) { "Using --mount-master" }
-                    val result = FlowCmd("su --mount-master").execute(rootSession)
+                    val result = rootSession.execute(FlowCmd("su --mount-master"))
                     log(iTag) { "--mount-master result: $result" }
                     if (!result.isSuccessful) throw IllegalStateException("--mount-master command was unsuccessful")
                 } catch (e: Exception) {
@@ -101,23 +110,15 @@ class RootHostLauncher @Inject constructor(
                 }
             }
 
-            val initArgs = RootHostInitArgs(
-                pairingCode = pairingCode,
-                packageName = context.packageName,
-                waitForDebugger = options.isTrace && Debug.isDebuggerConnected(),
-                isDebug = options.isDebug,
-                isTrace = options.isTrace,
-                recorderPath = options.recorderPath
-            )
-            val cmdBuilder = RootHostCmdBuilder(context, hostClass)
+            val command = commandFactory.create(hostClass, pairingCode, options)
 
             // Attempt 1: direct exec. Blocks until the root host process exits (success path, with
             // onConnect having fired meanwhile) or fails fast on a broken pipe / unsupported exec.
             // Decide success via `connected`, not the throw/return result.
             try {
-                val cmd = cmdBuilder.build(withRelocation = false, initialOptions = initArgs)
+                val cmd = command.build(withRelocation = false)
                 log(iTag) { "Launching root host with command: $cmd" }
-                cmd.execute(rootSession).also { log(iTag) { "Session (no-relocation) ended: $it" } }
+                rootSession.execute(cmd).also { log(iTag) { "Session (no-relocation) ended: $it" } }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 log(iTag, WARN) { "Launch without relocation failed: ${e.asLog()}" }
@@ -128,9 +129,9 @@ class RootHostLauncher @Inject constructor(
             if (!connected.get()) {
                 log(iTag, INFO) { "No binder yet, retrying root host launch with relocation" }
                 try {
-                    val cmd = cmdBuilder.build(withRelocation = true, initialOptions = initArgs)
+                    val cmd = command.build(withRelocation = true)
                     log(iTag) { "Launching root host (relocation) with command: $cmd" }
-                    cmd.execute(rootSession).also { log(iTag) { "Session (relocation) ended: $it" } }
+                    rootSession.execute(cmd).also { log(iTag) { "Session (relocation) ended: $it" } }
                 } catch (e: Exception) {
                     if (e is CancellationException) throw e
                     log(iTag, WARN) { "Launch WITH relocation failed too: ${e.asLog()}" }
@@ -155,6 +156,8 @@ class RootHostLauncher @Inject constructor(
                     .onFailure { log(iTag, WARN) { "ipcReceiver.release() failed: ${it.asLog()}" } }
 
                 rootSession?.let { session ->
+                    // session.close() writes `exit` and awaits exit (cancellable coroutine wait, so the
+                    // coroutine timeout bounds it). Fall back to a forceful cancel() otherwise.
                     val closed = withTimeoutOrNull(SESSION_CLOSE_TIMEOUT_MS) {
                         runCatching { session.close() }.isSuccess
                     }
