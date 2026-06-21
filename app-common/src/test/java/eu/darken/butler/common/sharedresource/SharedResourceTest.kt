@@ -1,22 +1,30 @@
 package eu.darken.butler.common.sharedresource
 
 import eu.darken.butler.common.debug.Bugs
+import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import okio.IOException
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -463,6 +471,384 @@ class SharedResourceTest : BaseTest() {
             jobs.joinAll()
 
             sr.close()
+            sr.isClosed shouldBe true
+        }
+    }
+
+    @Test fun `verboseLifecycle promotes lifecycle logs to non-trace`() = runTest2(autoCancel = true) {
+        // This test specifically asserts non-trace behavior
+        Bugs.isTrace = false
+
+        val captured = mutableListOf<String>()
+        val capture = object : Logging.Logger {
+            override fun log(
+                priority: Logging.Priority,
+                tag: String,
+                message: String,
+                metaData: Map<String, Any>?
+            ) {
+                if (tag.endsWith(":SR")) captured.add(message)
+            }
+        }
+        Logging.install(capture)
+        try {
+            val srVerbose = SharedResource(
+                tag = "verbose",
+                parentScope = this + Dispatchers.IO,
+                stopTimeout = Duration.ZERO,
+                source = flow {
+                    // Force a real wait so the cold-start "Waiting for source value..." path fires
+                    delay(50)
+                    emit(Unit)
+                    awaitCancellation()
+                },
+                verboseLifecycle = true,
+            )
+
+            val lease = srVerbose.get()
+            lease.close()
+
+            // The source teardown (and its onCompletion breadcrumb) now runs asynchronously off-lock,
+            // so wait for it before asserting. Runs on real Dispatchers.IO, hence the real-time wait.
+            withContext(Dispatchers.IO) {
+                withTimeoutOrNull(2_000) {
+                    while (captured.none { it.contains("onCompletion due to") }) delay(10)
+                }
+            }
+
+            // Lifecycle breadcrumbs should fire even though Bugs.isTrace == false
+            captured.any { it.contains("Launching source job") } shouldBe true
+            captured.any { it.contains("Starting source") } shouldBe true
+            captured.any { it.contains("Waiting for source value") } shouldBe true
+            captured.any { it.contains("onCompletion due to") } shouldBe true
+
+            // Sanity: a non-verbose SharedResource in the same conditions stays silent
+            captured.clear()
+            val srSilent = SharedResource(
+                tag = "silent",
+                parentScope = this + Dispatchers.IO,
+                stopTimeout = Duration.ZERO,
+                source = flow {
+                    emit(Unit)
+                    awaitCancellation()
+                },
+                // verboseLifecycle defaults to false
+            )
+            srSilent.get().close()
+            captured.any { it.contains("Launching source job") } shouldBe false
+        } finally {
+            Logging.remove(capture)
+        }
+    }
+
+    @Test fun `warm cache-hit get() does not log Source-job-already-exists or Waiting`() = runTest2(autoCancel = true) {
+        Bugs.isTrace = false
+
+        val captured = mutableListOf<String>()
+        val capture = object : Logging.Logger {
+            override fun log(
+                priority: Logging.Priority,
+                tag: String,
+                message: String,
+                metaData: Map<String, Any>?
+            ) {
+                if (tag.endsWith(":SR")) captured.add(message)
+            }
+        }
+        Logging.install(capture)
+        try {
+            val sr = SharedResource(
+                tag = "warm",
+                parentScope = this + Dispatchers.IO,
+                stopTimeout = 5.seconds,
+                source = flow {
+                    emit(Unit)
+                    awaitCancellation()
+                },
+                verboseLifecycle = true,
+            )
+
+            // First acquisition — cold start, populates the cache
+            val firstLease = sr.get()
+            // Clear logs from the cold-start path
+            captured.clear()
+
+            // Second acquisition — cache hit, must not log either lifecycle breadcrumb
+            val secondLease = sr.get()
+            captured.any { it.contains("Source job already exists") } shouldBe false
+            captured.any { it.contains("Waiting for source value") } shouldBe false
+
+            secondLease.close()
+            firstLease.close()
+        } finally {
+            Logging.remove(capture)
+        }
+    }
+
+    @Test fun `addChild refreshes a stale closed child`() = runTest2(autoCancel = true) {
+        val parent = SharedResource.createKeepAlive("parent", this + Dispatchers.IO, Duration.ZERO)
+        // Keep parent alive across the whole test
+        val parentLease = parent.get()
+
+        val child = SharedResource.createKeepAlive("child", this + Dispatchers.IO, Duration.ZERO)
+
+        // Adopt: parent acquires a keep-alive lease on child
+        parent.addChild(child)
+        child.isClosed shouldBe false
+
+        // Force child to complete: close all direct leases on it. Parent holds the only lease via addChild.
+        child.close()
+        child.isClosed shouldBe true
+
+        // Re-adopt after the child source completed
+        parent.addChild(child)
+
+        // The child must be alive again — proves the stale entry was refreshed, not silently kept
+        child.isClosed shouldBe false
+
+        parentLease.close()
+    }
+
+    @Test fun `get() does not block on a slow-closing generation`(): Unit = runBlocking {
+        val releaseTeardown = CompletableDeferred<Unit>()
+        var sourceStarts = 0
+        val sr = SharedResource(
+            tag = "slowclose",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = callbackFlow {
+                val generation = ++sourceStarts
+                send(generation)
+                awaitClose {
+                    // The first generation's teardown is deliberately wedged (like a root host that
+                    // refuses to disconnect). It must NOT hold up acquiring a fresh generation.
+                    if (generation == 1) runBlocking { releaseTeardown.await() }
+                }
+            },
+        )
+
+        val r1 = sr.get()
+        r1.item shouldBe 1
+        r1.close() // detaches gen-1; its teardown is now wedged in awaitClose
+
+        // A new get() must start gen-2 and return promptly instead of waiting on gen-1's stuck close.
+        val r2 = withTimeout(5_000) { sr.get() }
+        r2.item shouldBe 2
+        r2.close()
+
+        releaseTeardown.complete(Unit) // let gen-1 finish so the scope can wind down
+    }
+
+    @Test fun `get() cancelled before first value releases its provisional lease`(): Unit = runBlocking {
+        val gate = CompletableDeferred<Unit>()
+        val sr = SharedResource(
+            tag = "cancelgate",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = callbackFlow {
+                gate.await() // never produces a value until released
+                send(Unit)
+                awaitClose { }
+            },
+        )
+
+        val getter = launch(Dispatchers.IO) { sr.get() }
+        // Wait until the source generation is active (provisional lease registered).
+        withTimeout(5_000) { while (sr.isClosed) delay(10) }
+
+        getter.cancelAndJoin() // cancel before any value arrives
+
+        // The provisional lease must have been released, so the resource detaches on its own.
+        withTimeout(5_000) { while (!sr.isClosed) delay(10) }
+        sr.isClosed shouldBe true
+
+        gate.complete(Unit)
+    }
+
+    @Test fun `a stale generation cannot clobber the active one`(): Unit = runBlocking {
+        val releaseGen1 = CompletableDeferred<Unit>()
+        var sourceStarts = 0
+        val sr = SharedResource(
+            tag = "noclobber",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = callbackFlow {
+                val generation = ++sourceStarts
+                send(if (generation == 1) "A" else "B")
+                awaitClose {
+                    // gen-1's teardown is wedged until we release it, so its onCompletion fires
+                    // *after* gen-2 is already the active generation.
+                    if (generation == 1) runBlocking { releaseGen1.await() }
+                }
+            },
+        )
+
+        sr.get().apply { item shouldBe "A" }.close() // detaches gen-1 (teardown wedged)
+        val r2 = withTimeout(5_000) { sr.get() }
+        r2.item shouldBe "B"
+
+        // Let the stale gen-1 finish tearing down; its onEach/onCompletion must not touch gen-2.
+        releaseGen1.complete(Unit)
+        delay(250)
+
+        // gen-2 is still healthy: a fresh get() reuses it and returns "B" without an error.
+        val r3 = sr.get()
+        r3.item shouldBe "B"
+        r2.close()
+        r3.close()
+    }
+
+    @Test fun `source failure is thrown promptly despite a wedged stale teardown`(): Unit = runBlocking {
+        val releaseGen1 = CompletableDeferred<Unit>()
+        var sourceStarts = 0
+        val sr = SharedResource<String>(
+            tag = "failfast",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = callbackFlow {
+                val generation = ++sourceStarts
+                if (generation == 1) {
+                    send("A")
+                    awaitClose { runBlocking { releaseGen1.await() } }
+                } else {
+                    throw IllegalStateException("gen-2 boom")
+                }
+            },
+        )
+
+        sr.get().close() // detaches gen-1 (teardown wedged)
+
+        // gen-2's source fails; get() must surface that promptly rather than waiting on gen-1.
+        val error = withTimeout(5_000) { shouldThrow<IllegalStateException> { sr.get() } }
+        error.message shouldBe "gen-2 boom"
+
+        releaseGen1.complete(Unit)
+    }
+
+    @Test fun `a fresh lease cycle completes while a stale teardown is wedged`(): Unit = runBlocking {
+        val releaseGen1 = CompletableDeferred<Unit>()
+        var sourceStarts = 0
+        val sr = SharedResource(
+            tag = "wedged",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = callbackFlow {
+                val generation = ++sourceStarts
+                send(generation)
+                awaitClose { if (generation == 1) runBlocking { releaseGen1.await() } }
+            },
+        )
+
+        sr.get().close() // gen-1 detached, teardown wedged
+
+        // A full acquire + release of gen-2 (incl. its own detach via leaseCheck/doLeaseCheck) must
+        // complete promptly — the wedged gen-1 teardown must not hold coreLock or leaseCheckLock.
+        withTimeout(5_000) {
+            val r = sr.get()
+            r.item shouldBe 2
+            r.close()
+            while (!sr.isClosed) delay(10)
+        }
+        sr.isClosed shouldBe true
+
+        releaseGen1.complete(Unit)
+    }
+
+    @Test fun `close() releases a get() parked on a generation with a wedged teardown`(): Unit = runBlocking {
+        val releaseTeardown = CompletableDeferred<Unit>()
+        val sr = SharedResource<Int>(
+            tag = "wedgedclose",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = callbackFlow {
+                // Never produces a value, and its teardown wedges until released — so the only way a
+                // parked get() can return is if detach completes `ready`, NOT the source completion.
+                awaitClose { runBlocking { releaseTeardown.await() } }
+            },
+        )
+
+        // A getter parks on the generation's `ready` (source never emits); it holds a lease.
+        val getter = async(Dispatchers.IO) { runCatching { sr.get() } }
+        withTimeout(5_000) { while (sr.isClosed) delay(10) } // wait until the generation is active
+
+        // close() force-closes the lease and detaches. The parked getter must be released promptly,
+        // without waiting for the wedged awaitClose teardown.
+        sr.close()
+
+        val result = withTimeout(5_000) { getter.await() }
+        result.isFailure shouldBe true
+
+        releaseTeardown.complete(Unit) // let the off-lock teardown finish so the scope can wind down
+    }
+
+    @Test fun `a superseded generation's self-teardown never clobbers the live generation`(): Unit = runBlocking {
+        // Regression for the stale-onCompletion race: gen-1 dies on its own (non-internal completion),
+        // which schedules a self-teardown coroutine. By the time that coroutine runs, gen-1 may already
+        // be detached and a fresh gen-2 active. The teardown must re-check it's still the active
+        // generation under coreLock and skip — otherwise it would close gen-2's lease and detach it.
+        repeat(300) {
+            val gen1Gate = CompletableDeferred<Unit>()
+            var starts = 0
+            val sr = SharedResource<Int>(
+                tag = "supersede",
+                parentScope = this + Dispatchers.IO,
+                stopTimeout = Duration.ZERO,
+                source = callbackFlow {
+                    val g = ++starts
+                    send(g)
+                    if (g == 1) {
+                        gen1Gate.await()
+                        throw IllegalStateException("gen-1 spontaneous death")
+                    } else {
+                        awaitClose()
+                    }
+                },
+            )
+
+            val r1 = sr.get()
+            r1.item shouldBe 1
+
+            // Race gen-1's spontaneous death (schedules a self-teardown) against detaching it and
+            // acquiring a fresh gen-2.
+            val killer = launch(Dispatchers.IO) { gen1Gate.complete(Unit) }
+            r1.close()
+
+            val r2 = withTimeout(5_000) {
+                var r = sr.get()
+                var guard = 0
+                // A transient get() may reuse the not-yet-detached (dead) gen-1; retry until gen-2.
+                while (r.item == 1 && guard++ < 1000) {
+                    r.close()
+                    r = sr.get()
+                }
+                r
+            }
+            r2.item shouldBe 2
+            killer.join()
+
+            // Let any stale gen-1 teardown run; with the bug it would close gen-2's lease here.
+            delay(15)
+            r2.isClosed shouldBe false
+            sr.isClosed shouldBe false
+
+            r2.close()
+            sr.close()
+        }
+    }
+
+    @Test fun `close() decided under lock converges with a racing cold get()`(): Unit = runBlocking {
+        // Regression guard for the close()-vs-cold-get() race: close() now decides AND closes leases
+        // under a single coreLock hold, so it can't return "closed" while a get() that is mid-acquire
+        // (holding coreLock, about to publish `active`) leaks a live lease. We assert convergence:
+        // after the race and releasing any acquired lease, the resource always settles to closed.
+        repeat(300) {
+            val sr = SharedResource.createKeepAlive("coldclose", this + Dispatchers.Default, Duration.ZERO)
+            var acquired: KeepAlive? = null
+            val getter = launch(Dispatchers.IO) { acquired = runCatching { sr.get() }.getOrNull() }
+            val closer = launch(Dispatchers.IO) { sr.close() }
+            joinAll(getter, closer)
+            acquired?.close()
+            withTimeout(2_000) { while (!sr.isClosed) delay(1) }
             sr.isClosed shouldBe true
         }
     }

@@ -19,12 +19,15 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.uuid.Uuid
 
 class FlowProcess(
     launch: suspend () -> Process,
     kill: suspend (Process) -> Unit = { if (it.isAlive) it.destroyForcibly() },
+    private val terminationTimeoutMs: Long = TERMINATION_TIMEOUT_MS,
+    private val forceTerminationTimeoutMs: Long = FORCE_TERMINATION_TIMEOUT_MS,
 ) {
 
     private val processCreator = callbackFlow {
@@ -75,7 +78,17 @@ class FlowProcess(
             runBlocking {
                 killRoutine()
                 if (isDebug) log(_tag) { "kill() executed, waiting for process to terminate" }
-                process.waitFor()
+                // Bounded wait: a coroutine timeout can't interrupt a blocking JVM waitFor(),
+                // so use the timed Java overload. If the process refuses to die (e.g. a wedged
+                // `su` host on a just-unfrozen process), force-destroy it as a last resort so
+                // teardown can't hang indefinitely.
+                if (!process.waitFor(terminationTimeoutMs, TimeUnit.MILLISECONDS)) {
+                    log(_tag, WARN) { "Process did not terminate within ${terminationTimeoutMs}ms, destroying forcibly" }
+                    process.destroyForcibly()
+                    if (!process.waitFor(forceTerminationTimeoutMs, TimeUnit.MILLISECONDS)) {
+                        log(_tag, WARN) { "Process still alive after destroyForcibly()" }
+                    }
+                }
                 if (isDebug) log(_tag) { "Process has terminated" }
             }
             if (isDebug) log(_tag, VERBOSE) { "Flow is closed!" }
@@ -124,5 +137,10 @@ class FlowProcess(
 
     companion object {
         private val TAG = "${FlowShellDebug.tag}:FlowProcess"
+
+        // How long to wait for a process to exit after the kill routine runs before
+        // resorting to destroyForcibly(), and how long to wait after that.
+        private const val TERMINATION_TIMEOUT_MS = 5000L
+        private const val FORCE_TERMINATION_TIMEOUT_MS = 2000L
     }
 }

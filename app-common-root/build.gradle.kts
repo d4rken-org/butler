@@ -9,6 +9,7 @@ plugins {
 }
 
 apply(plugin = "dagger.hilt.android.plugin")
+apply(plugin = "org.jetbrains.kotlinx.kover")
 
 android {
     namespace = "${projectConfig.packageName}.common.root"
@@ -25,7 +26,16 @@ android {
 
     setupKotlinOptions()
 
-
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+        //noinspection WrongGradleMethod
+        tasks.withType<Test> {
+            useJUnitPlatform()
+            setupTestLogging()
+        }
+    }
 }
 
 dependencies {
@@ -38,4 +48,7 @@ dependencies {
     addCoroutines()
     addSerialization()
     addIO()
+
+    addTesting()
+    testImplementation(project(":app-common-test"))
 }

@@ -3,6 +3,7 @@
 agp = "9.0.0"
 kotlin = "2.2.10"
 ksp = "2.3.2"
+kover = "0.9.8"
 javapoet = "1.13.0"
 desugar = "2.1.5"
 screenshot = "0.0.1-alpha14"
@@ -197,4 +198,5 @@ androidx-test-core-ktx-ct = { module = "androidx.test:core-ktx", version.ref = "
 [plugins]
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 screenshot = { id = "com.android.compose.screenshot", version.ref = "screenshot" }

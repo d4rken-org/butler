@@ -96,7 +96,10 @@ class AdbServiceClient @Inject constructor(
                     shellOpsClientFactory.create(it.shellOps),
                 )
             )
-        }
+        },
+    // ADB teardown hangs were a silent-failure support pain point (#2453); surface its lifecycle
+    // breadcrumbs at DEBUG even outside trace mode.
+    verboseLifecycle = true,
 ) {
 
     data class Connection(
