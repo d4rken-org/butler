@@ -6,7 +6,7 @@ ksp = "2.3.2"
 kover = "0.9.8"
 javapoet = "1.13.0"
 desugar = "2.1.5"
-screenshot = "0.0.1-alpha14"
+screenshot = "0.0.1-alpha15"
 # Core
 coroutines = "1.8.0"
 dagger = "2.58"
