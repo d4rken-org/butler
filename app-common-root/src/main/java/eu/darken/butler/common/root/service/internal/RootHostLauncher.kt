@@ -15,12 +15,14 @@ import eu.darken.flowshell.core.cmd.FlowCmdShell
 import eu.darken.flowshell.core.cmd.execute
 import eu.darken.flowshell.core.cmd.openSession
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlin.reflect.KClass
 import kotlin.uuid.Uuid
@@ -47,6 +49,7 @@ class RootHostLauncher @Inject constructor(
         log(iTag, INFO) { "createConnection($serviceClass, $hostClass, $useMountMaster, $options)" }
 
         val pairingCode = Uuid.random().toString()
+        val connected = AtomicBoolean(false)
 
         val ipcReceiver = object : RootConnectionReceiver(pairingCode) {
             override fun onConnect(connection: RootConnection) {
@@ -60,6 +63,7 @@ class RootHostLauncher @Inject constructor(
                 }
 
                 log(iTag, INFO) { "onServiceConnected(...) got our interface: $userConnection" }
+                connected.set(true)
                 trySendBlocking(ConnectionWrapper(userConnection, connection))
             }
 
@@ -70,27 +74,33 @@ class RootHostLauncher @Inject constructor(
             }
         }
 
-        log(iTag) { "Initiating connection to host($hostClass) via binder($serviceClass)" }
-        ipcReceiver.connect(context)
-
-        val (rootSession, _) = try {
-            FlowCmdShell("su").openSession(this)
-        } catch (e: Exception) {
-            throw RootException("Failed to open root session.", e)
-        }
-
-        if (useMountMaster) {
-            try {
-                log(iTag, INFO) { "Using --mount-master" }
-                val result = FlowCmd("su --mount-master").execute(rootSession)
-                log(iTag) { "--mount-master result: $result" }
-                if (!result.isSuccessful) throw IllegalStateException("--mount-master command was unsuccessful")
-            } catch (e: Exception) {
-                log(iTag) { "Failed to use --mount-master" }
-            }
-        }
-
+        // Everything from receiver registration onwards is inside the try so the finally always runs
+        // the cleanup — even if connect()/openSession() throws (otherwise the receiver or root session
+        // would leak), or if we're cancelled while parked in execute() below (the common case: the
+        // producer spends the whole connection there, so the old awaitClose {} cleanup was unreachable
+        // and the host was never told to disconnect — it waited on RootIPC.byeWaiter until binder death).
+        var rootSession: FlowCmdShell.Session? = null
         try {
+            log(iTag) { "Initiating connection to host($hostClass) via binder($serviceClass)" }
+            ipcReceiver.connect(context)
+
+            rootSession = try {
+                FlowCmdShell("su").openSession(this).first
+            } catch (e: Exception) {
+                throw RootException("Failed to open root session.", e)
+            }
+
+            if (useMountMaster) {
+                try {
+                    log(iTag, INFO) { "Using --mount-master" }
+                    val result = FlowCmd("su --mount-master").execute(rootSession)
+                    log(iTag) { "--mount-master result: $result" }
+                    if (!result.isSuccessful) throw IllegalStateException("--mount-master command was unsuccessful")
+                } catch (e: Exception) {
+                    log(iTag) { "Failed to use --mount-master" }
+                }
+            }
+
             val initArgs = RootHostInitArgs(
                 pairingCode = pairingCode,
                 packageName = context.packageName,
@@ -99,57 +109,62 @@ class RootHostLauncher @Inject constructor(
                 isTrace = options.isTrace,
                 recorderPath = options.recorderPath
             )
-
             val cmdBuilder = RootHostCmdBuilder(context, hostClass)
-            var retryWithRelocation = false
 
+            // Attempt 1: direct exec. Blocks until the root host process exits (success path, with
+            // onConnect having fired meanwhile) or fails fast on a broken pipe / unsupported exec.
+            // Decide success via `connected`, not the throw/return result.
             try {
                 val cmd = cmdBuilder.build(withRelocation = false, initialOptions = initArgs)
                 log(iTag) { "Launching root host with command: $cmd" }
-                // Doesn't return until root host has quit
-                cmd.execute(rootSession).also {
-                    log(iTag) { "Session (without-relocation) has ended: $it" }
-                }
+                cmd.execute(rootSession).also { log(iTag) { "Session (no-relocation) ended: $it" } }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 log(iTag, WARN) { "Launch without relocation failed: ${e.asLog()}" }
-                retryWithRelocation = true
             }
 
-            if (retryWithRelocation) {
+            // Attempt 2: relocation — only when the direct exec didn't actually bind (some
+            // Android versions / SELinux policies refuse to exec /proc/<pid>/exe in-place).
+            if (!connected.get()) {
+                log(iTag, INFO) { "No binder yet, retrying root host launch with relocation" }
                 try {
                     val cmd = cmdBuilder.build(withRelocation = true, initialOptions = initArgs)
                     log(iTag) { "Launching root host (relocation) with command: $cmd" }
-                    // Doesn't return until root host has quit
-                    cmd.execute(rootSession).also {
-                        log(iTag) { "Session (WITH-relocation) has ended: $it" }
-                    }
+                    cmd.execute(rootSession).also { log(iTag) { "Session (relocation) ended: $it" } }
                 } catch (e: Exception) {
+                    if (e is CancellationException) throw e
                     log(iTag, WARN) { "Launch WITH relocation failed too: ${e.asLog()}" }
-                    throw e
                 }
             }
-        } catch (e: Exception) {
-            if (e is CancellationException) {
-                log(iTag) { "Root host launcher was cancelled: ${e.asLog()}" }
-                throw e
-            } else {
-                log(iTag, WARN) { "All launch attempts failed: ${e.asLog()}" }
-                close(RootException("Failed to launch root host", cause = e))
-                return@callbackFlow
+
+            // If neither attempt produced a binder, fail the flow so SharedResource consumers stop
+            // waiting on Loading forever.
+            if (!connected.get()) {
+                log(iTag, WARN) { "All launch attempts finished without a binder connection" }
+                close(RootException("Root host did not bind after exec/relocation attempts"))
             }
-        }
 
-        log(iTag, VERBOSE) { "Reached awaitClose" }
-        awaitClose {
-            log(iTag) { "Session is closing..." }
-            ipcReceiver.release()
+            log(iTag, VERBOSE) { "Reached awaitClose" }
+            awaitClose { log(iTag) { "Session is closing (awaitClose reached)…" } }
+        } finally {
+            // Runs on cancellation too — including when cancelled while parked in execute() above.
+            withContext(NonCancellable) {
+                log(iTag) { "Cleaning up root host connection…" }
+                // bye() FIRST so the host's RootIPC.byeWaiter wakes immediately.
+                runCatching { ipcReceiver.release() }
+                    .onFailure { log(iTag, WARN) { "ipcReceiver.release() failed: ${it.asLog()}" } }
 
-            runBlocking {
-                withTimeoutOrNull(10 * 1000) { rootSession.close() } ?: run {
-                    log(iTag) { "timeout on rootSession.close(), canceling..." }
-                    rootSession.cancel()
+                rootSession?.let { session ->
+                    val closed = withTimeoutOrNull(SESSION_CLOSE_TIMEOUT_MS) {
+                        runCatching { session.close() }.isSuccess
+                    }
+                    if (closed != true) {
+                        log(iTag) { "Graceful session close did not finish, cancelling…" }
+                        runCatching { session.cancel() }
+                            .onFailure { log(iTag, WARN) { "session.cancel() failed: ${it.asLog()}" } }
+                    }
                 }
+                log(iTag, VERBOSE) { "Cleanup done" }
             }
         }
     }
@@ -161,5 +176,9 @@ class RootHostLauncher @Inject constructor(
 
     companion object {
         private val TAG = logTag("Root", "Host", "Launcher")
+
+        // How long to wait for a graceful session close (write `exit` + await) before forcefully
+        // cancelling the root session shell.
+        private const val SESSION_CLOSE_TIMEOUT_MS = 10 * 1000L
     }
 }

@@ -8,16 +8,20 @@ import dagger.Reusable
 import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.adb.AdbException
 import eu.darken.butler.common.adb.service.AdbHostOptions
+import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
+import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ipc.getInterface
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.atomic.AtomicBoolean
 import rikka.shizuku.Shizuku
 import rikka.shizuku.Shizuku.*
 import javax.inject.Inject
@@ -46,6 +50,8 @@ class AdbHostLauncher @Inject constructor() {
         }
 
         val awaitDisconnect = CompletableDeferred<Unit>()
+        // Set before we intentionally unbind so our own disconnect doesn't trip the unexpected-disconnect path.
+        val closing = AtomicBoolean(false)
 
         val callback: ServiceConnection = object : ServiceConnection {
             override fun onServiceConnected(componentName: ComponentName, binder: IBinder?) {
@@ -82,26 +88,40 @@ class AdbHostLauncher @Inject constructor() {
             override fun onServiceDisconnected(componentName: ComponentName) {
                 log(TAG) { "onServiceDisconnected($componentName)" }
                 awaitDisconnect.complete(Unit)
+                // If Shizuku drops the service while we still want it, fail the flow so the
+                // SharedResource stops vending a dead binder during its keep-alive window.
+                if (!closing.get()) {
+                    close(AdbException("Shizuku user service disconnected unexpectedly"))
+                }
             }
         }
+
+        // try/finally so cleanup runs even when cancelled while parked in awaitClose; the previous
+        // awaitClose {} cleanup didn't run on producer cancellation, leaking the Shizuku binding.
+        var bound = false
         try {
-            Shizuku.bindUserService(serviceArgs, callback)
-        } catch (e: Exception) {
-            close(AdbException("Failed to bind Shizuku user service", e))
-            return@callbackFlow
-        }
-
-        log(TAG) { "Waiting for flow to close" }
-        awaitClose {
-            Shizuku.unbindUserService(serviceArgs, callback, true)
-            log(TAG) { "Waiting for disconnect..." }
-            // If we don't wait for the service to actually disconnect,
-            // then quick flow restarts can cause DeadObjectExceptions being thrown by our Shizuku service binder
-            runBlocking {
-                withTimeoutOrNull(500) { awaitDisconnect.await() }
+            try {
+                Shizuku.bindUserService(serviceArgs, callback)
+                bound = true
+            } catch (e: Exception) {
+                throw AdbException("Failed to bind Shizuku user service", e)
             }
 
-            log(TAG) { "Flow closed." }
+            log(TAG) { "Waiting for flow to close" }
+            awaitClose { log(TAG) { "awaitClose() reached, flow is closing…" } }
+        } finally {
+            closing.set(true)
+            if (bound) {
+                withContext(NonCancellable) {
+                    log(TAG) { "Unbinding Shizuku user service…" }
+                    runCatching { Shizuku.unbindUserService(serviceArgs, callback, true) }
+                        .onFailure { log(TAG, WARN) { "unbindUserService() failed: ${it.asLog()}" } }
+                    // Wait for the actual disconnect; quick flow restarts otherwise cause
+                    // DeadObjectExceptions from a not-yet-released Shizuku binder.
+                    withTimeoutOrNull(DISCONNECT_TIMEOUT_MS) { awaitDisconnect.await() }
+                    log(TAG) { "Shizuku user service unbound." }
+                }
+            }
         }
     }
 
@@ -112,5 +132,8 @@ class AdbHostLauncher @Inject constructor() {
 
     companion object {
         private val TAG = logTag("ADB", "Host", "Launcher")
+
+        // Bounded wait for the service to actually disconnect after we unbind.
+        private const val DISCONNECT_TIMEOUT_MS = 500L
     }
 }
