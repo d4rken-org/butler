@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.runTest2
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class SharedResourceTest : BaseTest() {
@@ -849,6 +850,65 @@ class SharedResourceTest : BaseTest() {
             joinAll(getter, closer)
             acquired?.close()
             withTimeout(2_000) { while (!sr.isClosed) delay(1) }
+            sr.isClosed shouldBe true
+        }
+    }
+
+    @Test fun `non-zero-stopTimeout generation churn always tears down without hang`(): Unit = runBlocking {
+        // Convergence guard for generation handoff under a NON-ZERO stopTimeout, where dropping the
+        // last lease schedules a delayed teardown timer (the shared leaseCheckJob) rather than tearing
+        // down immediately — a path the stopTimeout=ZERO supersede tests never exercise. Asserts the
+        // resource always reaches `isClosed` within its timeout (no hang, no deadlock, no never-torn-
+        // down generation) while gen-1 dies spontaneously and gen-2 takes over.
+        //
+        // NOTE: this is NOT a discriminating regression test for the "superseded onCompletion cancels
+        // the live generation's timer" bug — that needs a 3-way race (gen-1 self-completes, is
+        // superseded by gen-2, gen-2 schedules its timer, gen-1's stale cleanup runs LAST) that can't
+        // be reliably constructed black-box; verified empirically that this test passes on the buggy
+        // code too. The fix for that bug rests on the gated-cancel structure + review, not this test.
+        val stop = 200L
+        repeat(400) {
+            val gen1Gate = CompletableDeferred<Unit>()
+            var starts = 0
+            val sr = SharedResource<Int>(
+                tag = "timercancel",
+                parentScope = this + Dispatchers.IO,
+                stopTimeout = stop.milliseconds,
+                source = callbackFlow {
+                    val g = ++starts
+                    send(g)
+                    if (g == 1) {
+                        gen1Gate.await()
+                        throw IllegalStateException("gen-1 spontaneous death")
+                    } else {
+                        awaitClose()
+                    }
+                },
+            )
+
+            val r1 = sr.get()
+            r1.item shouldBe 1
+
+            // Race gen-1's spontaneous death (schedules its superseded-cleanup) against detaching it,
+            // bringing up gen-2, and dropping gen-2's lease so gen-2's teardown timer is scheduled.
+            val killer = launch(Dispatchers.IO) { gen1Gate.complete(Unit) }
+            r1.close()
+
+            val r2 = withTimeout(5_000) {
+                var r = sr.get()
+                var guard = 0
+                while (r.item == 1 && guard++ < 2000) {
+                    r.close()
+                    r = sr.get()
+                }
+                r
+            }
+            r2.item shouldBe 2
+            killer.join()
+            r2.close() // schedules gen-2's delayed teardown timer
+
+            // gen-2's timer must survive the stale gen-1 cleanup and fire: the resource must close.
+            withTimeout(stop + 4_000) { while (!sr.isClosed) delay(5) }
             sr.isClosed shouldBe true
         }
     }
