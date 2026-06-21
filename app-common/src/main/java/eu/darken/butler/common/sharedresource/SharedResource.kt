@@ -322,22 +322,31 @@ open class SharedResource<T : Any>(
             )
         }
 
-        // Close children synchronously — this only releases the leases we hold on them and is fast;
-        // callers (and tests) rely on children being closed by the time the parent reads as closed.
-        detachedChildren.values.forEachIndexed { index, child ->
-            if (Bugs.isTrace) log(iTag, VERBOSE) { "[${generation.id}|_]-detach()-$tag Closing child #$index $child" }
-            child.close()
-        }
-
-        // The source-job cancel+join can be slow (e.g. a root host slow to disconnect). Run it off
-        // BOTH coreLock and leaseCheckLock so a wedged source close can never block a future get()
-        // or leaseCheck().
+        // Schedule the source-job cancel+join FIRST, so a throwing child.close() below can never strand
+        // it (which would leak e.g. a root host that is never disconnected). The cancel+join can itself
+        // be slow, so run it off BOTH coreLock and leaseCheckLock — a wedged source close must never
+        // block a future get() or leaseCheck().
         leaseScope.launch(NonCancellable) {
             detachedJob?.cancel(InternalCancelationException("[${generation.id}|_]-detach()-$tag ZERO leases left"))
             detachedJob?.join() // Waits till source.onComplete is done
             if (Bugs.isTrace) log(iTag, VERBOSE) { "[${generation.id}|_]-detach()-$tag teardown complete" }
         }
+
+        // Close children synchronously — this only releases the leases we hold on them and is fast;
+        // callers (and tests) rely on children being closed by the time the parent reads as closed.
+        // Guard each close so one misbehaving child can't abort the rest of the cleanup.
+        detachedChildren.values.forEachIndexed { index, child ->
+            if (Bugs.isTrace) log(iTag, VERBOSE) { "[${generation.id}|_]-detach()-$tag Closing child #$index $child" }
+            runCatching { child.close() }.onFailure {
+                log(iTag, WARN) { "[${generation.id}|_]-detach()-$tag Child close failed for $child: ${it.asLog()}" }
+            }
+        }
     }
+
+    // Test seam: inject a child KeepAlive directly so detach's child-close loop can be exercised with
+    // a misbehaving child. internal (module-scoped) — the codebase uses no @VisibleForTesting.
+    internal suspend fun injectChildForTest(key: SharedResource<*>, child: KeepAlive) =
+        coreLock.withLock("injectChildForTest") { children[key] = child }
 
     override fun close() {
         runBlocking(NonCancellable) {
