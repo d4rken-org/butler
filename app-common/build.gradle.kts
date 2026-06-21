@@ -1,3 +1,5 @@
+import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
+
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
@@ -10,6 +12,7 @@ plugins {
 }
 
 apply(plugin = "dagger.hilt.android.plugin")
+apply(plugin = "org.jetbrains.kotlinx.kover")
 
 android {
     namespace = "${projectConfig.packageName}.common"
@@ -73,4 +76,21 @@ dependencies {
 
     "gplayImplementation"(libs.billing.core)
     "gplayImplementation"(libs.billing.ktx)
+}
+
+// Kover's verify rules can't filter per-rule (only the report can), so to gate ONLY the
+// well-covered SharedResource concurrency code we scope THIS module's own Kover report to that
+// package and enforce a floor on it. The broad cross-module aggregate lives in the root build and
+// is unaffected (it re-aggregates raw coverage with its own filters).
+configure<KoverProjectExtension> {
+    reports {
+        filters { includes { classes("eu.darken.butler.common.sharedresource.*") } }
+        verify {
+            rule("SharedResource line coverage") {
+                // Currently ~87%; floor leaves headroom but still guards against the concurrency
+                // code rotting. Run the gate with :app-common:koverVerifyFossDebug.
+                minBound(80)
+            }
+        }
+    }
 }
