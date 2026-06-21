@@ -163,34 +163,33 @@ open class SharedResource<T : Any>(
                             return@onCompletion
                         }
                         // Self-completion (error / natural end) of the *active* generation: release
-                        // leases and detach. The launched coroutine re-validates `active === newGen`
-                        // UNDER coreLock before touching anything: between scheduling here and running,
-                        // a concurrent close()/lease-drop could have detached us and a new get() could
-                        // have started a fresh generation. Closing leases / detaching then would wrongly
-                        // tear down that newer generation, so a superseded generation must self-cancel.
-                        // closeLeasesLocked() + detachLocked() run under the SAME lock hold, so the
-                        // guard can't go stale between the check and the teardown.
+                        // leases and detach. Between scheduling here and the coroutine running, a
+                        // concurrent close()/lease-drop could have detached us and a new get() could have
+                        // installed a fresh generation — so the launched coroutine re-validates
+                        // `active === newGen` UNDER coreLock and tears down only if still active.
                         if (active === newGen) {
                             leaseScope.launch(NonCancellable) {
-                                // Acquire leaseCheckLock THEN coreLock — the same order leaseCheck() uses,
-                                // so there's no deadlock — then cancel any pending delayed leaseCheckJob and
-                                // close-leases + detach in one atomic coreLock hold. The cancel keeps a stale
-                                // timer from later detaching a future idle generation early; the atomic hold
-                                // keeps the active===newGen guard below honest. Re-check under coreLock: a
-                                // concurrent close()/lease-drop may have detached us and a fresh get() may have
-                                // installed a new generation between scheduling this and running it — we must
-                                // not tear that one down.
+                                // Hold leaseCheckLock (the same order leaseCheck() uses, so no deadlock) so
+                                // the shared leaseCheckJob can't be rescheduled under us. Re-check
+                                // active===newGen UNDER coreLock and close-leases + detach in one atomic
+                                // hold (keeps the guard honest). Only AFTER we actually detached do we
+                                // cancel the now-redundant pending teardown timer: a SUPERSEDED generation
+                                // must touch ZERO shared state, or it would cancel the *live* generation's
+                                // pending teardown and leak it.
                                 leaseCheckLock.withLock {
-                                    leaseCheckJob?.cancelAndJoin()
-                                    leaseCheckJob = null
-                                    coreLock.withLock("onCompletion-${newGen.id}") {
+                                    val detached = coreLock.withLock("onCompletion-${newGen.id}") {
                                         if (active !== newGen) {
                                             if (Bugs.isTrace) log(iTag, DEBUG) { "[${newGen.id}|$lId]-source: onCompletion superseded, skipping teardown" }
-                                            return@withLock
+                                            return@withLock false
                                         }
                                         if (Bugs.isTrace) log(iTag, DEBUG) { "[${newGen.id}|$lId]-source: onCompletion closing leases + detaching" }
                                         closeLeasesLocked("onCompletion")
                                         detachLocked("onCompletion")
+                                        true
+                                    }
+                                    if (detached) {
+                                        leaseCheckJob?.cancelAndJoin()
+                                        leaseCheckJob = null
                                     }
                                 }
                             }
