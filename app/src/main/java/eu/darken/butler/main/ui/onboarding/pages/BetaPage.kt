@@ -99,14 +99,12 @@ internal fun BetaPage(
                     OnboardingInfoCard(
                         title = stringResource(R.string.onboarding_beta_feature_early_access_title),
                         description = stringResource(R.string.onboarding_beta_feature_early_access_description),
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         icon = {
                             Icon(
                                 imageVector = Icons.TwoTone.NewReleases,
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.size(12.dp))
                         }
@@ -115,14 +113,12 @@ internal fun BetaPage(
                     OnboardingInfoCard(
                         title = stringResource(R.string.onboarding_beta_feature_influence_title),
                         description = stringResource(R.string.onboarding_beta_feature_influence_description),
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         icon = {
                             Icon(
                                 imageVector = Icons.AutoMirrored.TwoTone.TrendingUp,
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.size(12.dp))
                         }
@@ -131,14 +127,12 @@ internal fun BetaPage(
                     OnboardingInfoCard(
                         title = stringResource(R.string.onboarding_beta_feature_feedback_title),
                         description = stringResource(R.string.onboarding_beta_feature_feedback_description),
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                         icon = {
                             Icon(
                                 imageVector = Icons.TwoTone.Forum,
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.size(12.dp))
                         }

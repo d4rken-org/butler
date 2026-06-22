@@ -21,6 +21,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -85,11 +86,13 @@ internal fun EmptyClassicWorkspaceContent(
                 )
             }
 
-            ButlerTip()
+            ButlerTip(
+                tips = listOf(R.string.workspace_classic_empty_tip),
+            )
 
             Spacer(modifier = Modifier.size(8.dp))
 
-            // Action cards in order: Create, Upgrade (if not upgraded), Settings
+            // Action cards in order: Create (primary), Settings, then demoted Upgrade
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -120,35 +123,7 @@ internal fun EmptyClassicWorkspaceContent(
                     }
                 }
 
-                // Upgrade card (if not upgraded)
-                if (!isUpgraded) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { workspaceActionHandler?.navToUpgradeButler() },
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(20.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.upgrade_prompt_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.weight(1f),
-                            )
-                            Icon(
-                                imageVector = Icons.TwoTone.Stars,
-                                contentDescription = stringResource(eu.darken.butler.common.R.string.general_upgrade_action),
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
-                        }
-                    }
-                }
-
-                // Settings card (always last)
+                // Settings card
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -167,6 +142,25 @@ internal fun EmptyClassicWorkspaceContent(
                         Icon(
                             imageVector = Icons.TwoTone.Settings,
                             contentDescription = stringResource(R.string.settings_label)
+                        )
+                    }
+                }
+
+                // Upgrade (demoted, below settings, rendered as a subtle text action)
+                if (!isUpgraded) {
+                    TextButton(
+                        onClick = { workspaceActionHandler?.navToUpgradeButler() },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Stars,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            text = stringResource(R.string.upgrade_prompt_title),
+                            style = MaterialTheme.typography.labelLarge,
                         )
                     }
                 }
@@ -196,5 +190,14 @@ internal fun EmptyClassicWorkspaceContent(
 private fun EmptyWorkspaceContentPreview() {
     EmptyClassicWorkspaceContent(
         isUpgraded = false,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EmptyWorkspaceContentUpgradedPreview() {
+    EmptyClassicWorkspaceContent(
+        isUpgraded = true,
     )
 }

@@ -16,9 +16,11 @@
     <string name="onboarding_privacy_message">Butler has no advertisements and does not sell user data. Your privacy is important to me.</string>
     <string name="onboarding_privacy_read_action">Read privacy policy</string>
     <string name="onboarding_privacy_action">Accept</string>
+    <string name="onboarding_skip_action">Skip</string>
+    <string name="onboarding_progress_step">%1$d of %2$d</string>
 
     <string name="onboarding_workspaces_title">Work in tabs</string>
-    <string name="onboarding_workspaces_message">Open multiple tabs and switch between them - just like your web browser.</string>
+    <string name="onboarding_workspaces_message">Open multiple tabs and switch between them — just like your web browser.</string>
     <string name="onboarding_workspaces_action">Continue</string>
     <string name="onboarding_workspaces_hint">Keep multiple tabs open simultaneously.</string>
     <string name="onboarding_workspaces_explorer_title">Explorer</string>
@@ -287,6 +289,7 @@
     <string name="workspace_empty_settings_action">Open settings</string>
     <string name="workspace_empty_settings_hint">Customize Butler to your liking. Adjust how the tools behave.</string>
     <string name="workspace_classic_empty_tabs_closed">No open tabs. Ready when you are.</string>
+    <string name="workspace_classic_empty_tip">Tip: Tap “Create tab” and pick a tool — Explorer, Searcher, Editor, and more.</string>
 
     <string name="workspace_creating_placeholder">Creating tab…</string>
     <string name="workspace_ondemand_swipe_title">Swipe to create new tab</string>
