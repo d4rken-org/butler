@@ -73,12 +73,12 @@ class ComposableBitmapRenderer @Inject constructor(private val appContext: Conte
     suspend fun renderToBitmap(
         canvasSize: DpSize,
         captureDelay: Duration = 300.milliseconds,
-        captureContext: Context? = appContext,
+        captureContext: Context,
         viewModelStoreOwner: ViewModelStoreOwner? = TemporaryViewModelStoreOwner(),
         composableContent: @Composable () -> Unit,
     ): Bitmap? {
         log(TAG) { "renderToBitmap($canvasSize, $captureDelay, $captureContext, $viewModelStoreOwner)" }
-        val context = captureContext ?: appContext
+        val context = captureContext
         val deviceDensity = Density(
             density = context.resources.displayMetrics.density,
             fontScale = context.resources.configuration.fontScale

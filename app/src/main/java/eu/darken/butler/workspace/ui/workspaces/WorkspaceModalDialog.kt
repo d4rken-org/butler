@@ -1,13 +1,17 @@
 package eu.darken.butler.workspace.ui.workspaces
 
+import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -44,6 +48,19 @@ fun WorkspaceModalDialog(
             decorFitsSystemWindows = false
         )
     ) {
+        // The default Dialog window stops short of the system bar regions, so the parent's bottom
+        // toolbar bleeds through in the nav-bar strip. Stretch the window to MATCH_PARENT and add
+        // FLAG_LAYOUT_NO_LIMITS so it covers the whole screen, fully occluding the parent.
+        val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+        if (dialogWindow != null) {
+            dialogWindow.setLayout(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            )
+            dialogWindow.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+            dialogWindow.decorView.fitsSystemWindows = false
+        }
+
         CompositionLocalProvider(
             LocalWorkspaceFocused provides true,
         ) {
