@@ -161,7 +161,7 @@ class BrowsingEngine @AssistedInject constructor(
     ): ExplorerLocation.Directory {
         val currentItems = current.items ?: return current
 
-        return when (event) {
+        val newItems = when (event) {
             is FileSystemEvent.Added -> {
                 // Only apply if event affects current directory
                 val affectedPaths = event.paths.filter { it.lookedUp.parent == current.path }
@@ -170,8 +170,8 @@ class BrowsingEngine @AssistedInject constructor(
                     return current
                 }
                 log(tag) { "applyIncrementalUpdate(): Adding ${affectedPaths.size} paths" }
-                val newItems = directoryLoader.classifyLookups(affectedPaths)
-                current.copy(items = (currentItems + newItems).distinctBy { it.path.path })
+                val added = directoryLoader.classifyLookups(affectedPaths)
+                (currentItems + added).distinctBy { it.path.path }
             }
             is FileSystemEvent.Removed -> {
                 // Only apply if event affects current directory
@@ -183,7 +183,7 @@ class BrowsingEngine @AssistedInject constructor(
 
                 log(tag) { "applyIncrementalUpdate(): Removing ${affectedPaths.size} paths" }
                 val removedPaths = affectedPaths.map { it.lookedUp.path }.toSet()
-                current.copy(items = currentItems.filter { it.path.path !in removedPaths })
+                currentItems.filter { it.path.path !in removedPaths }
             }
             is FileSystemEvent.Modified -> {
                 // Only apply if event affects current directory
@@ -195,11 +195,16 @@ class BrowsingEngine @AssistedInject constructor(
 
                 log(tag) { "applyIncrementalUpdate(): Modifying ${affectedPaths.size} paths" }
                 val updatedItems = directoryLoader.classifyLookups(affectedPaths).associateBy { it.path.path }
-                current.copy(items = currentItems.map { item ->
-                    updatedItems[item.path.path] ?: item
-                })
+                currentItems.map { item -> updatedItems[item.path.path] ?: item }
             }
         }
+
+        // Keep the stat-bar counts in sync with the items so it doesn't show a stale
+        // "Empty folder" / wrong count after an operation completes in the current directory.
+        return current.copy(
+            items = newItems,
+            info = current.info?.withCountsFrom(newItems),
+        )
     }
 
     suspend fun refresh() {
@@ -219,4 +224,24 @@ class BrowsingEngine @AssistedInject constructor(
             workspaceScope: CoroutineScope,
         ): BrowsingEngine
     }
+}
+
+/**
+ * Recomputes the directory file/folder counts from the given items so the stat-bar stays in sync
+ * after an incremental update (e.g. a paste/copy/move/delete into the current directory), instead
+ * of showing a stale "Empty folder" / wrong count until the user navigates away and back.
+ */
+internal fun ExplorerLocation.Directory.Info.withCountsFrom(
+    items: List<ExplorerItem.Path>,
+): ExplorerLocation.Directory.Info {
+    var fileCount = 0
+    var directoryCount = 0
+    items.forEach { item ->
+        when (item) {
+            is ExplorerItem.Directory -> directoryCount++
+            is ExplorerItem.File -> fileCount++
+            else -> Unit
+        }
+    }
+    return copy(fileCount = fileCount, directoryCount = directoryCount)
 }

@@ -33,6 +33,16 @@ data class RenameResult(
     val newName: String,
 )
 
+/**
+ * Selection to apply when opening the rename dialog: the filename stem (without its extension).
+ * For dotfiles (e.g. ".gitignore") the dot is at index 0, so the whole name is selected instead.
+ */
+internal fun initialRenameSelection(currentName: String): TextRange {
+    val dot = currentName.lastIndexOf('.')
+    val end = if (dot > 0) dot else currentName.length
+    return TextRange(0, end)
+}
+
 @Composable
 fun RenameDialog(
     item: APath<*>,
@@ -43,12 +53,8 @@ fun RenameDialog(
 ) {
     val focusRequester = remember { FocusRequester() }
 
-    // Pre-select the filename without extension for easier renaming
-    val initialSelection = if (currentName.contains('.')) {
-        TextRange(0, currentName.lastIndexOf('.'))
-    } else {
-        TextRange(0, currentName.length)
-    }
+    // Pre-select the filename stem for easier renaming.
+    val initialSelection = initialRenameSelection(currentName)
 
     var textFieldValue by remember {
         mutableStateOf(TextFieldValue(currentName, initialSelection))
