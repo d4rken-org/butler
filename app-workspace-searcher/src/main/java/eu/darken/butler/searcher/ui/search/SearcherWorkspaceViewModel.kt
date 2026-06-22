@@ -155,6 +155,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val workspaceSearchState: Flow<SearcherWorkspace.State> = workspaceSource
         .filterNotNull()
         .flatMapLatest { it.state }
+        // Deduplicate results by absolute path at the single source: overlapping search roots
+        // (e.g. /storage/emulated/0 and /storage/emulated/0/Download) can surface the same file
+        // twice. This keeps the displayed list, counts, selection, and history consistent and
+        // makes the path-keyed results LazyColumn safe.
+        .map { it.copy(results = it.results.distinctByPath()) }
 
     init {
         // Initialize UI state from workspace (source of truth, already has defaults applied)
@@ -954,10 +959,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         }
                     }
 
-                    // Add all search results, deduplicated by absolute path so overlapping
-                    // search roots can't surface the same file twice (which would crash the
-                    // path-keyed LazyColumn). Distinct full paths are kept.
-                    workspaceState.results.distinctByPath().forEach { result ->
+                    // Results are already deduplicated by absolute path upstream (see
+                    // workspaceSearchState), so keying the LazyColumn by path is safe here.
+                    workspaceState.results.forEach { result ->
                         add(
                             SearchListItem.Result(
                                 searchItem = result

@@ -17,6 +17,17 @@ class SizeConditionInputTest : BaseTest() {
     }
 
     @Test
+    fun `bare decimal number is treated as megabytes`() {
+        normalizeSizeInput("1.5") shouldBe "1.5 MB"
+        normalizeSizeInput("1,5") shouldBe "1,5 MB"
+    }
+
+    @Test
+    fun `number with two separators is not treated as bare and passes through`() {
+        normalizeSizeInput("1.5.5") shouldBe "1.5.5"
+    }
+
+    @Test
     fun `value with unit passes through unchanged`() {
         normalizeSizeInput("1 MB") shouldBe "1 MB"
         normalizeSizeInput("10mb") shouldBe "10mb"

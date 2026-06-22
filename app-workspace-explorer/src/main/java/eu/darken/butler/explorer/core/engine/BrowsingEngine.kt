@@ -236,12 +236,20 @@ internal fun ExplorerLocation.Directory.Info.withCountsFrom(
 ): ExplorerLocation.Directory.Info {
     var fileCount = 0
     var directoryCount = 0
+    var totalSize = 0L
     items.forEach { item ->
         when (item) {
             is ExplorerItem.Directory -> directoryCount++
-            is ExplorerItem.File -> fileCount++
+            is ExplorerItem.File -> {
+                fileCount++
+                totalSize += item.lookup.size ?: 0L
+            }
             else -> Unit
         }
     }
-    return copy(fileCount = fileCount, directoryCount = directoryCount)
+    return copy(
+        fileCount = fileCount,
+        directoryCount = directoryCount,
+        totalSize = if (totalSize > 0) totalSize else null,
+    )
 }

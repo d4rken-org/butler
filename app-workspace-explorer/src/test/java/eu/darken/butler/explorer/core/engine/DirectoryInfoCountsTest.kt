@@ -46,7 +46,7 @@ class DirectoryInfoCountsTest : BaseTest() {
     }
 
     @Test
-    fun `withCountsFrom - preserves unrelated info fields`() {
+    fun `withCountsFrom - recomputes totalSize and preserves unrelated fields`() {
         val info = ExplorerLocation.Directory.Info(
             fileCount = 0,
             directoryCount = 0,
@@ -56,8 +56,19 @@ class DirectoryInfoCountsTest : BaseTest() {
 
         val updated = info.withCountsFrom(listOf(MockDataProvider.createMockRegularFile()))
 
-        updated.totalSize shouldBe 9000L
+        // totalSize is recomputed from the items (the mock file is 4096 bytes), not left stale at 9000.
+        updated.totalSize shouldBe 4_096L
         updated.isWritable shouldBe true
         updated.fileCount shouldBe 1
+    }
+
+    @Test
+    fun `withCountsFrom - totalSize is null when there are no files`() {
+        val updated = ExplorerLocation.Directory.Info(fileCount = 0, directoryCount = 0, totalSize = 9000L)
+            .withCountsFrom(listOf(MockDataProvider.createMockDirectory("folderA")))
+
+        updated.totalSize shouldBe null
+        updated.directoryCount shouldBe 1
+        updated.fileCount shouldBe 0
     }
 }

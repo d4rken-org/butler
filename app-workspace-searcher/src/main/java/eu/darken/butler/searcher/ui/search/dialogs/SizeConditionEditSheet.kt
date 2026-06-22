@@ -60,7 +60,21 @@ private enum class SizeDirection(val labelResId: Int, val comparator: FilterComp
 internal fun normalizeSizeInput(text: String): String? {
     val trimmed = text.trim()
     if (trimmed.isBlank()) return null
-    return if (trimmed.all { it.isDigit() }) "$trimmed MB" else trimmed
+    // A bare number (optionally with a single decimal separator) is interpreted as MB;
+    // anything that already carries a unit is passed through to the locale-aware parser.
+    return if (trimmed.isBareNumber()) "$trimmed MB" else trimmed
+}
+
+private fun String.isBareNumber(): Boolean {
+    var separators = 0
+    for (c in this) {
+        when {
+            c.isDigit() -> Unit
+            c == '.' || c == ',' -> separators++
+            else -> return false
+        }
+    }
+    return separators <= 1 && any { it.isDigit() }
 }
 
 /**
