@@ -51,6 +51,19 @@ private enum class SizeDirection(val labelResId: Int, val comparator: FilterComp
 }
 
 /**
+ * Normalizes raw size-filter input before it reaches [eu.darken.butler.common.ui.SizeParser].
+ *
+ * Returns null for blank input. A bare number (no unit) is treated as megabytes so the field
+ * isn't silently rejected — this matches the displayed format hint. Any other input is passed
+ * through unchanged for the locale-aware parser to handle.
+ */
+internal fun normalizeSizeInput(text: String): String? {
+    val trimmed = text.trim()
+    if (trimmed.isBlank()) return null
+    return if (trimmed.all { it.isDigit() }) "$trimmed MB" else trimmed
+}
+
+/**
  * Bottom sheet for editing a single size condition with comparator selection.
  */
 @Composable
@@ -106,8 +119,8 @@ private fun SizeConditionEditContent(
     var sizeError by remember { mutableStateOf(false) }
 
     fun parseSize(text: String): Long? {
-        if (text.isBlank()) return null
-        return sizeParser.parse(text)
+        val normalized = normalizeSizeInput(text) ?: return null
+        return sizeParser.parse(normalized)
     }
 
     fun validateSize() {
@@ -165,7 +178,16 @@ private fun SizeConditionEditContent(
                     validateSize()
                 },
                 label = { Text(stringResource(R.string.searcher_filter_size_value_label)) },
-                placeholder = { Text("e.g. 100 MB") },
+                placeholder = { Text(stringResource(R.string.searcher_filter_size_value_hint)) },
+                supportingText = {
+                    Text(
+                        text = if (sizeError) {
+                            stringResource(R.string.searcher_filter_size_format_error)
+                        } else {
+                            stringResource(R.string.searcher_filter_size_format_help)
+                        },
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = sizeError,

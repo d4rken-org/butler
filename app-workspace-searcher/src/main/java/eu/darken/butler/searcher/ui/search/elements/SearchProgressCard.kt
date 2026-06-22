@@ -61,6 +61,7 @@ fun SearchProgressCard(
     targetProgress: List<SearchEngine.SearchTargetProgress>,
     overallProgress: SearcherWorkspace.State.SearchProgress?,
     searchStatus: SearcherWorkspace.State.SearchStatus,
+    resultCount: Int,
     onCancel: () -> Unit,
     onClear: () -> Unit,
     onErrorClick: (path: String, exception: Throwable) -> Unit,
@@ -72,13 +73,22 @@ fun SearchProgressCard(
         mutableStateOf(initiallyExpanded)
     }
 
+    // Scanned is summed from per-target progress, which is updated on every progress tick
+    // (the aggregate overallProgress is throttled to every 100th item and stays 0 for small
+    // scans). Found mirrors the actually displayed result count.
+    val totalScanned = if (targetProgress.isNotEmpty()) {
+        targetProgress.sumOf { it.itemsScanned }
+    } else {
+        overallProgress?.itemsScanned ?: 0
+    }
+
     Card(modifier = modifier.fillMaxWidth()) {
         Column {
             // Header: Overall stats + expand button
             SearchProgressHeader(
                 pathCount = targetProgress.size,
-                totalScanned = overallProgress?.itemsScanned ?: 0,
-                totalFound = overallProgress?.resultsFound ?: 0,
+                totalScanned = totalScanned,
+                totalFound = resultCount,
                 searchStatus = searchStatus,
                 failedCount = targetProgress.count { it.status == SearchEngine.SearchTargetProgress.Status.ERROR },
                 isExpanded = isExpanded,
@@ -421,6 +431,7 @@ private fun SearchProgressCardMixedPreview() {
             ),
         ),
         overallProgress = createSearchProgress(2365, 15),
+        resultCount = 15,
         searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
         onCancel = {},
         onClear = {},
@@ -455,6 +466,7 @@ private fun SearchProgressCardAllSearchingPreview() {
             ),
         ),
         overallProgress = createSearchProgress(4100, 28),
+        resultCount = 28,
         searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
         onCancel = {},
         onClear = {},
@@ -490,6 +502,7 @@ private fun SearchProgressCardWithErrorsPreview() {
             ),
         ),
         overallProgress = createSearchProgress(4150, 30),
+        resultCount = 30,
         searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
         onCancel = {},
         onClear = {},
@@ -524,6 +537,7 @@ private fun SearchProgressCardCancelledPreview() {
             ),
         ),
         overallProgress = createSearchProgress(1900, 15),
+        resultCount = 15,
         searchStatus = SearcherWorkspace.State.SearchStatus.CANCELLED,
         onCancel = {},
         onClear = {},
@@ -546,6 +560,7 @@ private fun SearchProgressCardSinglePathPreview() {
             ),
         ),
         overallProgress = createSearchProgress(5420, 42),
+        resultCount = 42,
         searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
         onCancel = {},
         onClear = {},
@@ -580,6 +595,7 @@ private fun SearchProgressCardCompletedPreview() {
             ),
         ),
         overallProgress = createSearchProgress(5970, 45),
+        resultCount = 45,
         searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
         onCancel = {},
         onClear = {},
@@ -615,6 +631,7 @@ private fun SearchProgressCardCompletedWithErrorsPreview() {
             ),
         ),
         overallProgress = createSearchProgress(5200, 39),
+        resultCount = 39,
         searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
         onCancel = {},
         onClear = {},
@@ -630,6 +647,7 @@ private fun SearchProgressCardEmptyPreview() {
     SearchProgressCard(
         targetProgress = emptyList(),
         overallProgress = null,
+        resultCount = 0,
         searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
         onCancel = {},
         onClear = {},
@@ -664,6 +682,7 @@ private fun SearchProgressCardCompletedCollapsedPreview() {
             ),
         ),
         overallProgress = createSearchProgress(5970, 45),
+        resultCount = 45,
         searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
         onCancel = {},
         onClear = {},
@@ -699,6 +718,7 @@ private fun SearchProgressCardCompletedWithErrorsCollapsedPreview() {
             ),
         ),
         overallProgress = createSearchProgress(5200, 39),
+        resultCount = 39,
         searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
         onCancel = {},
         onClear = {},
@@ -733,6 +753,7 @@ private fun SearchProgressCardSearchingCollapsedPreview() {
             ),
         ),
         overallProgress = createSearchProgress(4100, 28),
+        resultCount = 28,
         searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
         onCancel = {},
         onClear = {},
