@@ -98,6 +98,9 @@
     <string name="searcher_filter_size_value_label">Size</string>
     <string name="searcher_filter_size_at_least">At least</string>
     <string name="searcher_filter_size_at_most">At most</string>
+    <string name="searcher_filter_size_value_hint">e.g. 10 MB</string>
+    <string name="searcher_filter_size_format_help">Enter a number with a unit (KB, MB, GB). A plain number is treated as MB.</string>
+    <string name="searcher_filter_size_format_error">Invalid size — use a number and unit, e.g. 10 MB.</string>
     <string name="searcher_filter_date_value_label">Date</string>
     <string name="searcher_filter_date_direction_after">After</string>
     <string name="searcher_filter_date_direction_before">Before</string>

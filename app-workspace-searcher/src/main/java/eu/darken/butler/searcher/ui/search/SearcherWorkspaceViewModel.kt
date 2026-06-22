@@ -44,6 +44,7 @@ import eu.darken.butler.searcher.core.sorting.SearchItemSorter
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.searcher.ui.search.util.SearchListItem
+import eu.darken.butler.searcher.ui.search.util.distinctByPath
 import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.searcher.ui.search.util.SearcherSelectionState
@@ -953,8 +954,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         }
                     }
 
-                    // Add all search results
-                    workspaceState.results.forEach { result ->
+                    // Add all search results, deduplicated by absolute path so overlapping
+                    // search roots can't surface the same file twice (which would crash the
+                    // path-keyed LazyColumn). Distinct full paths are kept.
+                    workspaceState.results.distinctByPath().forEach { result ->
                         add(
                             SearchListItem.Result(
                                 searchItem = result
