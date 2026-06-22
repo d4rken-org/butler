@@ -2,9 +2,12 @@ package eu.darken.butler.main.ui.onboarding
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
@@ -21,6 +24,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import androidx.compose.runtime.collectAsState
 import eu.darken.butler.main.ui.onboarding.OnboardingViewModel.State.*
+import eu.darken.butler.main.ui.onboarding.components.OnboardingProgressBar
 import eu.darken.butler.main.ui.onboarding.pages.BetaPage
 import eu.darken.butler.main.ui.onboarding.pages.PrivacyPage
 import eu.darken.butler.main.ui.onboarding.pages.WelcomePage
@@ -65,12 +69,27 @@ private fun OnboardingScreen(
         scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
     }
 
+    val lastPage = Page.entries.size - 1
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .statusBarsPadding()
             .navigationBarsPadding()
     ) {
+        OnboardingProgressBar(
+            currentPage = pagerState.currentPage,
+            pageCount = Page.entries.size,
+            onSkip = if (pagerState.currentPage < lastPage) {
+                { scope.launch { pagerState.animateScrollToPage(lastPage) } }
+            } else {
+                null
+            },
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.weight(1f),

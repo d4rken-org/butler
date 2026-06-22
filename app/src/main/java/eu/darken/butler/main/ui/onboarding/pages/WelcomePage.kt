@@ -77,7 +77,7 @@ internal fun WelcomePage(
                     spacingAfterTitle = 24.dp,
                     icon = {
                         ButlerMascot(
-                            modifier = Modifier.size(172.dp),
+                            modifier = Modifier.size(120.dp),
                             variant = ButlerMascotMode.Animated.Greeting(speed = 1.2f),
                         )
                         Spacer(modifier = Modifier.height(8.dp))
