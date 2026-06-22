@@ -235,18 +235,26 @@ private fun SearchProgressHeader(
                 overflow = TextOverflow.Ellipsis,
             )
 
-            val scannedText = pluralStringResource(
-                R.plurals.searcher_progress_items_scanned_count,
-                totalScanned,
-                totalScanned
-            )
             val foundText = pluralStringResource(
                 R.plurals.searcher_progress_results_found_count,
                 totalFound,
                 totalFound
             )
+            // Only surface the "scanned" metric when the engine actually reports a non-zero
+            // count (live large scans). It isn't retained for completed/small scans, and showing
+            // "0 scanned" next to real results reads as broken. "found" is always accurate.
+            val statsText = if (totalScanned > 0) {
+                val scannedText = pluralStringResource(
+                    R.plurals.searcher_progress_items_scanned_count,
+                    totalScanned,
+                    totalScanned,
+                )
+                "$scannedText • $foundText"
+            } else {
+                foundText
+            }
             Text(
-                text = "$scannedText • $foundText",
+                text = statsText,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
