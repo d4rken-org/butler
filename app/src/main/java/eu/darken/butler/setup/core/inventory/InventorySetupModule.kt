@@ -118,6 +118,6 @@ class InventorySetupModule @Inject constructor(
 
     companion object {
         private val TAG = logTag("Setup", "Inventory", "Module")
-        const val INFO_URL = "https://github.com/d4rken/butler/wiki/Setup#app-inventory"
+        const val INFO_URL = "https://github.com/d4rken-org/butler/wiki/Setup#app-inventory"
     }
 }

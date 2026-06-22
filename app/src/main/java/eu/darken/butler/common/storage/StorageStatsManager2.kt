@@ -45,7 +45,7 @@ class StorageStatsManager2 @Inject constructor(
 
     companion object {
         // using get*Bytes on a 512GB sdcard leads to invalid values being returned
-        // See https://github.com/d4rken/butler/issues/1575
+        // See https://github.com/d4rken-org/butler/issues/1575
         private const val ERROR_MAX = 1000000000000L
         private const val ERRROR_MIN = 0L
         val TAG: String = logTag("StorageStatsManager2")

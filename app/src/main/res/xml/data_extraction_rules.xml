@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Data extraction rules for Android 12+ (API 31+), referenced via android:dataExtractionRules.
+
+  Covers both cloud backup (<cloud-backup>) and device-to-device transfer (<device-transfer>).
+
+  Excludes install-specific / volatile state that must NOT be restored onto a fresh install
+  or transferred to another device:
+    - saf_location.db: holds SAF tree URI grants that do not survive reinstall (restoring
+      them leaves broken, non-functional locations).
+    - workspace_session.db / trash.db / operation_history.db: reference device-, path- and
+      cache-specific state that is meaningless after a reinstall or on another device.
+
+  Everything else (DataStore settings, shared preferences, search history) is backed up.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="database" path="saf_location.db" />
+        <exclude domain="database" path="saf_location.db-shm" />
+        <exclude domain="database" path="saf_location.db-wal" />
+
+        <exclude domain="database" path="workspace_session.db" />
+        <exclude domain="database" path="workspace_session.db-shm" />
+        <exclude domain="database" path="workspace_session.db-wal" />
+
+        <exclude domain="database" path="trash.db" />
+        <exclude domain="database" path="trash.db-shm" />
+        <exclude domain="database" path="trash.db-wal" />
+
+        <exclude domain="database" path="operation_history.db" />
+        <exclude domain="database" path="operation_history.db-shm" />
+        <exclude domain="database" path="operation_history.db-wal" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" path="saf_location.db" />
+        <exclude domain="database" path="saf_location.db-shm" />
+        <exclude domain="database" path="saf_location.db-wal" />
+
+        <exclude domain="database" path="workspace_session.db" />
+        <exclude domain="database" path="workspace_session.db-shm" />
+        <exclude domain="database" path="workspace_session.db-wal" />
+
+        <exclude domain="database" path="trash.db" />
+        <exclude domain="database" path="trash.db-shm" />
+        <exclude domain="database" path="trash.db-wal" />
+
+        <exclude domain="database" path="operation_history.db" />
+        <exclude domain="database" path="operation_history.db-shm" />
+        <exclude domain="database" path="operation_history.db-wal" />
+    </device-transfer>
+</data-extraction-rules>

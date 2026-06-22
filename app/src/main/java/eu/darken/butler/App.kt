@@ -89,7 +89,8 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         Logging.install(ringLogBuffer)
 
         if (BuildConfigWrap.DEBUG) {
-            Logging.install(logCatLogger)
+            // LogCatLogger is installed by the reactive combine block below (the single owner);
+            // installing it here too would double up logcat output on debug cold start.
             log(TAG) { "BuildConfigWrap.DEBUG=true" }
             workspaceRegistryValidator.validate()
         }
