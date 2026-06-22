@@ -1,5 +1,6 @@
 package eu.darken.butler.common.trash
 
+import androidx.annotation.VisibleForTesting
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
@@ -19,6 +20,7 @@ import eu.darken.butler.common.files.extensions.move
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.storage.StorageEnvironment
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -257,9 +259,13 @@ class TrashManager @Inject constructor(
                     destination = originalPath,
                 ).last()
 
-                // TODO: Restore ownership/permissions from item.originalLookup if possible
-
                 if (restoreState is MoveAction.State.Completed<*, *, *, *>) {
+                    // Best-effort reapply of the captured Unix ownership/permissions. The file is
+                    // already back; this must never fail the restore. Effective only where the
+                    // gateway can apply them (e.g. root for chown, cross-filesystem restores) — a
+                    // same-filesystem rename already preserves metadata, and SAF is a no-op.
+                    reapplyOriginalMetadata(originalPath, item.originalLookup)
+
                     // Remove from repository
                     repository.deleteById(item.id)
                     restoredItems.add(originalPath)
@@ -268,6 +274,8 @@ class TrashManager @Inject constructor(
                     failedItems.add(item.trashPath)
                     log(TAG, ERROR) { "Failed to restore: $item" }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Error restoring item ${item.id}: ${e.asLog()}" }
                 failedItems.add(item.trashPath)
@@ -279,6 +287,41 @@ class TrashManager @Inject constructor(
             failed = failedItems,
             conflicts = conflicts,
         )
+    }
+
+    /**
+     * Best-effort reapply of the original Unix ownership and permissions captured at trash time.
+     *
+     * Applies [APathLookup.ownership] then [APathLookup.permissions] to [targetPath], skipping
+     * either when the captured value is null. Every step is isolated in try/catch and a failure
+     * (including a `false`/no-op result from the gateway) is only logged — it must never fail the
+     * restore, since the file is already back at its original location.
+     */
+    @VisibleForTesting
+    internal suspend fun reapplyOriginalMetadata(
+        targetPath: APath<*>,
+        originalLookup: APathLookup<*>,
+    ) {
+        originalLookup.ownership?.let { ownership ->
+            try {
+                val applied = gatewaySwitch.setOwnership(targetPath, ownership)
+                if (!applied) log(TAG, WARN) { "Could not reapply ownership $ownership to $targetPath" }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to reapply ownership to $targetPath: ${e.asLog()}" }
+            }
+        }
+        originalLookup.permissions?.let { permissions ->
+            try {
+                val applied = gatewaySwitch.setPermissions(targetPath, permissions)
+                if (!applied) log(TAG, WARN) { "Could not reapply permissions $permissions to $targetPath" }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, WARN) { "Failed to reapply permissions to $targetPath: ${e.asLog()}" }
+            }
+        }
     }
 
     suspend fun deletePermanently(
@@ -364,6 +407,8 @@ class TrashManager @Inject constructor(
             ).last()
 
             if (moveState is MoveAction.State.Completed<*, *, *, *>) {
+                // No per-nested-file metadata to reapply: the trash item only holds the parent
+                // folder's originalLookup, not ownership/permissions of individual children.
                 restoredItems.add(destinationPath)
                 log(TAG, DEBUG) { "Successfully restored: $sourcePath -> $destinationPath" }
             } else {
