@@ -9,6 +9,8 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.SystemClipboardHelper
+import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
@@ -168,6 +170,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val safPickerEvents = SingleEventFlow<Intent>()
 
     val shareIntentEvent = SingleEventFlow<Intent>()
+
+    val toastEvents = SingleEventFlow<CaString>()
 
     // Reveal and highlight functionality
     data class RevealRequest(
@@ -1903,6 +1907,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun copyPathToSystemClipboard(path: String) = launch {
         log(tag) { "copyPathToSystemClipboard($path)" }
         systemClipboardHelper.copyToClipboard(path)
+        toastEvents.emit(R.string.explorer_breadcrumb_copy_path_confirmation.toCaString())
     }
 
     fun setAsDefaultStartLocation(target: ExplorerNavigation.Target) = launch {
@@ -2050,6 +2055,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         if (currentPath != null) {
             revealItems(listOf(currentPath), highlight = false)
         }
+    }
+
+    fun closeWorkspace() = launch {
+        log(tag) { "closeWorkspace()" }
+        workspaceRemote.execute(WorkspaceAction.Close(id))
     }
 
     fun revealItems(paths: List<APath<*>>, highlight: Boolean = true) = launch {

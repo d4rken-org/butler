@@ -24,7 +24,7 @@ class TrashSettings @Inject constructor(
     override val dataStore: DataStore<Preferences>
         get() = context.dataStore
 
-    val enabled = dataStore.createValue("trash.enabled", false)
+    val enabled = dataStore.createValue("trash.enabled", true)
 
     val expiresAfter = dataStore.createValue("trash.expiration.duration", 30.days, json)
 

@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
@@ -326,10 +327,15 @@ fun ExplorerWorkspacePage(
         }
     }
 
-    // Handle back button for navigation history (when setting enabled)
+    // Handle back button for navigation history (when setting enabled).
+    // At the top-level (can't go back) the tab closes, matching the setting's description.
     if (state.useBackButtonForNavigation && state.pickerConfig == null) {
-        BackHandler(enabled = state.canGoBack) {
-            vm?.goBack()
+        BackHandler(enabled = true) {
+            if (state.canGoBack) {
+                vm?.goBack()
+            } else {
+                vm?.closeWorkspace()
+            }
         }
     }
 
@@ -814,6 +820,13 @@ fun ExplorerWorkspacePageHost(
     LaunchedEffect(vm) {
         vm.shareIntentEvent.collect { intent ->
             context.startActivity(intent)
+        }
+    }
+
+    // Handle one-shot toast confirmations (e.g. breadcrumb "Copy path")
+    LaunchedEffect(vm) {
+        vm.toastEvents.collect { message ->
+            Toast.makeText(context, message.get(context), Toast.LENGTH_SHORT).show()
         }
     }
 
