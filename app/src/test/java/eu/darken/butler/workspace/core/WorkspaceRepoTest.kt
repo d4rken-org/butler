@@ -6,6 +6,7 @@ import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coVerify
 import io.mockk.every
@@ -413,6 +414,59 @@ class WorkspaceRepoTest : BaseTest() {
 
             // Two manual tabs + (limit - 2) from the batch == limit; never the pre-fix total of limit + 2.
             createdWorkspaces shouldHaveSize WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT
+        }
+
+    private fun markDirty(id: Workspace.Id) {
+        val ws = fake(id)
+        ws.info.value = ws.info.value.copy(hasUnsavedChanges = true)
+    }
+
+    private fun Map<String, PendingWorkspaceConfirmation>.closeConfirmationsFor(id: Workspace.Id): Int =
+        values.count {
+            val data = it.data
+            data is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation &&
+                data.workspaceId == id
+        }
+
+    @Test
+    fun `closing a dirty workspace queues a confirmation instead of closing`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createTab()
+            markDirty(id)
+
+            repo.execute(WorkspaceAction.Close(id))
+
+            fake(id).released shouldBe false
+            repo.retrieve(id).first() shouldNotBe null
+            repo.pendingConfirmations.first().closeConfirmationsFor(id) shouldBe 1
+        }
+
+    @Test
+    fun `closing a clean workspace closes immediately without confirmation`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createTab()
+
+            repo.execute(WorkspaceAction.Close(id))
+
+            fake(id).released shouldBe true
+            repo.retrieve(id).first() shouldBe null
+            repo.pendingConfirmations.first() shouldBe emptyMap()
+        }
+
+    @Test
+    fun `repeated close on a dirty workspace queues only one confirmation`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo()
+            val id = repo.createTab()
+            markDirty(id)
+
+            repo.execute(WorkspaceAction.Close(id))
+            repo.execute(WorkspaceAction.Close(id))
+            repo.execute(WorkspaceAction.Close(id))
+
+            repo.pendingConfirmations.first().closeConfirmationsFor(id) shouldBe 1
         }
 
     @Test

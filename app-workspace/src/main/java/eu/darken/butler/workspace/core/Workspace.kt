@@ -214,6 +214,12 @@ interface Workspace<ArgT : Workspace.Arguments> {
         val operationCount: Int = 0,
         val attentionCount: Int = 0,
         /**
+         * True when this workspace holds unsaved in-memory changes that would be lost on close.
+         * Domain signal: the close path uses it to require confirmation, the UI to warn the user.
+         * Workspaces without a dirty concept leave this false.
+         */
+        val hasUnsavedChanges: Boolean = false,
+        /**
          * ID of the workspace that created this workspace, if this is a sub-workspace.
          * Null for normal workspaces.
          *

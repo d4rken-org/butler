@@ -31,6 +31,7 @@ class WorkspaceButtonViewModel @Inject constructor(
             workspaceCount = it.workspaceCount,
             operationsCount = it.operationCount,
             attentionCount = it.attentionCount,
+            hasUnsavedChanges = it.infos.any { info -> info.hasUnsavedChanges },
         )
     }.asStateFlow()
 
@@ -58,6 +59,7 @@ class WorkspaceButtonViewModel @Inject constructor(
         val workspaceCount: Int = 0,
         val operationsCount: Int = 0,
         val attentionCount: Int = 0,
+        val hasUnsavedChanges: Boolean = false,
     )
 
 }

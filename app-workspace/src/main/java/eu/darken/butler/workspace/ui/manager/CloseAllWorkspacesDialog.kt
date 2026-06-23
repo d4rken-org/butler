@@ -1,17 +1,23 @@
 package eu.darken.butler.workspace.ui.manager
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import eu.darken.butler.workspace.R
 
 @Composable
 fun CloseAllWorkspacesDialog(
     visible: Boolean,
     workspaceCount: Int,
+    hasUnsavedChanges: Boolean = false,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
@@ -21,23 +27,39 @@ fun CloseAllWorkspacesDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.workspace_manager_close_all_title)) },
         text = {
-            val workspaceString = if (workspaceCount == 1) {
-                stringResource(R.string.workspace_manager_close_all_message_singular)
-            } else {
-                stringResource(R.string.workspace_manager_close_all_message_plural)
-            }
-            Text(
-                stringResource(
-                    R.string.workspace_manager_close_all_message,
-                    workspaceCount,
-                    workspaceString
+            Column {
+                val workspaceString = if (workspaceCount == 1) {
+                    stringResource(R.string.workspace_manager_close_all_message_singular)
+                } else {
+                    stringResource(R.string.workspace_manager_close_all_message_plural)
+                }
+                Text(
+                    stringResource(
+                        R.string.workspace_manager_close_all_message,
+                        workspaceCount,
+                        workspaceString
+                    )
                 )
-            )
+                if (hasUnsavedChanges) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.workspace_manager_close_all_unsaved_warning),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(
-                    text = stringResource(R.string.workspace_manager_close_all_action),
+                    text = stringResource(
+                        if (hasUnsavedChanges) {
+                            R.string.workspace_manager_close_all_unsaved_action
+                        } else {
+                            R.string.workspace_manager_close_all_action
+                        }
+                    ),
                     color = MaterialTheme.colorScheme.error
                 )
             }

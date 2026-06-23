@@ -136,6 +136,7 @@ class WorkspacesViewModel @Inject constructor(
                                 id = confirmationId,
                                 targetWorkspaceId = targetId,
                                 workspaceTitle = data.workspaceTitle,
+                                hasUnsavedChanges = data.hasUnsavedChanges,
                             )
                         }
                     }

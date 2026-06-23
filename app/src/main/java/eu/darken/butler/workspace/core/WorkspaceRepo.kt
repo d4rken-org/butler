@@ -271,11 +271,26 @@ class WorkspaceRepo @Inject constructor(
             is WorkspaceAction.Close -> {
                 log(TAG, INFO) { "Closing workspace with id ${action.id}" }
 
-                // Request confirmation if required
-                if (action.requireConfirmation) {
-                    val workspace = _workspaces.value.firstOrNull { it.id == action.id }
+                val workspace = _workspaces.value.firstOrNull { it.id == action.id }
+
+                // Confirm when explicitly requested OR when the workspace has unsaved changes.
+                val needsConfirmation = action.requireConfirmation ||
+                    workspace?.info?.value?.hasUnsavedChanges == true
+
+                if (needsConfirmation) {
                     if (workspace == null) {
                         log(TAG, WARN) { "Cannot request close confirmation - workspace ${action.id} not found" }
+                        return@withLock WorkspaceAction.Close.Result
+                    }
+
+                    // De-dupe: don't queue a second close confirmation for the same workspace.
+                    val alreadyPending = _pendingConfirmations.value.values.any {
+                        val data = it.data
+                        data is PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation &&
+                            data.workspaceId == action.id
+                    }
+                    if (alreadyPending) {
+                        log(TAG) { "Close confirmation already pending for ${action.id}, ignoring duplicate" }
                         return@withLock WorkspaceAction.Close.Result
                     }
 
@@ -295,6 +310,7 @@ class WorkspaceRepo @Inject constructor(
                             data = PendingWorkspaceConfirmation.ConfirmationData.WorkspaceCloseConfirmation(
                                 workspaceId = action.id,
                                 workspaceTitle = workspaceInfo.title,
+                                hasUnsavedChanges = workspaceInfo.hasUnsavedChanges,
                             ),
                         ))
                     }

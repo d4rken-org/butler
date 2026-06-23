@@ -10,6 +10,7 @@ import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.instanceOf
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 import kotlin.uuid.Uuid
 
 class FileDataSourceTest : BaseTest() {
@@ -69,6 +71,12 @@ class FileDataSourceTest : BaseTest() {
             val source = firstArg<APath<*>>() as LocalPath
             val target = secondArg<APath<*>>() as LocalPath
             source.file.renameTo(target.file)
+        }
+
+        // Mock createFile() - delegates to REAL file system operations
+        coEvery { createFile(any(), any()) } coAnswers {
+            val path = firstArg<APath<*>>() as LocalPath
+            path.file.createNewFile()
         }
     }
 
@@ -229,6 +237,137 @@ class FileDataSourceTest : BaseTest() {
         // Then: File timestamp unchanged (assuming implementation optimizes this)
         // Note: Depending on implementation, this may or may not update timestamp
         dataSource.isModified.value shouldBe false
+    }
+
+    // ==================== Safe-save (local backup-swap) Tests ====================
+
+    private fun dirtyChunk(content: String) =
+        TextChunk(id = TextChunk.ChunkId.generate(), content = content, lineCount = 1, isDirty = true)
+
+    @Test
+    fun `save failure preserves the original file and cleans up artifacts`(@TempDir tempDir: File) = runTest {
+        val gateway = createMockGateway()
+        // Fail the commit move (temp -> original); allow the backup and restore moves.
+        coEvery { gateway.move(any<APath<*>>(), any<APath<*>>()) } coAnswers {
+            val source = firstArg<APath<*>>() as LocalPath
+            val target = secondArg<APath<*>>() as LocalPath
+            if (source.name.contains("butler-save-tmp")) throw IOException("simulated commit failure")
+            source.file.renameTo(target.file)
+        }
+        val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
+        val dataSource = FileDataSource(workspaceId, LocalPath.build(testFile), gateway).apply { open() }
+
+        val dirty = dirtyChunk("Goodbye")
+        shouldThrow<Exception> {
+            dataSource.save(listOf(dirty), boundaries(dirty to (0L to 7L)))
+        }
+
+        // Original intact, no leftover save artifacts.
+        testFile.readText() shouldBe "Hello World"
+        tempDir.listFiles()!!.none { it.name.contains("butler-save") } shouldBe true
+    }
+
+    @Test
+    fun `save failure via false move result also preserves the original`(@TempDir tempDir: File) = runTest {
+        val gateway = createMockGateway()
+        coEvery { gateway.move(any<APath<*>>(), any<APath<*>>()) } coAnswers {
+            val source = firstArg<APath<*>>() as LocalPath
+            val target = secondArg<APath<*>>() as LocalPath
+            if (source.name.contains("butler-save-tmp")) false else source.file.renameTo(target.file)
+        }
+        val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
+        val dataSource = FileDataSource(workspaceId, LocalPath.build(testFile), gateway).apply { open() }
+
+        val dirty = dirtyChunk("Goodbye")
+        shouldThrow<Exception> {
+            dataSource.save(listOf(dirty), boundaries(dirty to (0L to 7L)))
+        }
+
+        testFile.readText() shouldBe "Hello World"
+        tempDir.listFiles()!!.none { it.name.contains("butler-save") } shouldBe true
+    }
+
+    @Test
+    fun `successful save leaves no temp or backup artifacts`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
+        val dataSource = createDataSource(tempDir, "test.txt", "Hello World")
+
+        val dirty = dirtyChunk("Goodbye")
+        dataSource.save(listOf(dirty), boundaries(dirty to (0L to 7L)))
+
+        testFile.readText().take(7) shouldBe "Goodbye"
+        tempDir.listFiles()!!.none { it.name.contains("butler-save") } shouldBe true
+    }
+
+    @Test
+    fun `save failure never destroys the original even when restore fails`(@TempDir tempDir: File) = runTest {
+        val gateway = createMockGateway()
+        // Every move targeting the original (commit AND restore) fails.
+        coEvery { gateway.move(any<APath<*>>(), any<APath<*>>()) } coAnswers {
+            val source = firstArg<APath<*>>() as LocalPath
+            val target = secondArg<APath<*>>() as LocalPath
+            if (target.name == "test.txt") throw IOException("write barrier") else source.file.renameTo(target.file)
+        }
+        val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
+        val dataSource = FileDataSource(workspaceId, LocalPath.build(testFile), gateway).apply { open() }
+
+        val dirty = dirtyChunk("Goodbye")
+        shouldThrow<Exception> {
+            dataSource.save(listOf(dirty), boundaries(dirty to (0L to 7L)))
+        }
+
+        // The original survives: restored in place, or preserved in the backup if restore also failed.
+        val survivors = tempDir.listFiles()!!
+            .filter { it.name == "test.txt" || it.name.contains("butler-save-bak") }
+            .map { it.readText() }
+        survivors.any { it == "Hello World" } shouldBe true
+    }
+
+    // ==================== Safe-save (in-place / non-local) Tests ====================
+
+    @Test
+    fun `commitViaInPlace overwrites in place and removes the backup on success`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt").apply { writeText("original") }
+        val dataSource = createDataSource(tempDir, "test.txt", "original")
+        val backupPath = LocalPath.build(File(tempDir, "test.txt.butler-save-bak-inplace"))
+
+        dataSource.commitViaInPlace(
+            backupPath = backupPath,
+            bom = null,
+            mergedContent = "NEW CONTENT".toByteArray(),
+            originalBytes = "original".toByteArray(),
+        )
+
+        testFile.readText() shouldBe "NEW CONTENT"
+        backupPath.file.exists() shouldBe false
+    }
+
+    @Test
+    fun `commitViaInPlace retains the backup when the overwrite fails`(@TempDir tempDir: File) = runTest {
+        val gateway = createMockGateway()
+        // Block read/write opens of the target document; backup writes still succeed.
+        coEvery { gateway.file(any(), any()) } coAnswers {
+            val path = firstArg<APath<*>>() as LocalPath
+            val readWrite = secondArg<Boolean>()
+            if (readWrite && path.name == "test.txt") throw IOException("doc not writable")
+            if (readWrite && !fileSystemOps.exists(path)) path.file.createNewFile()
+            fileSystemOps.file(path, readWrite)
+        }
+        val testFile = File(tempDir, "test.txt").apply { writeText("original") }
+        val dataSource = FileDataSource(workspaceId, LocalPath.build(testFile), gateway).apply { open() }
+        val backupPath = LocalPath.build(File(tempDir, "test.txt.butler-save-bak-inplace"))
+
+        shouldThrow<Exception> {
+            dataSource.commitViaInPlace(
+                backupPath = backupPath,
+                bom = null,
+                mergedContent = "NEW".toByteArray(),
+                originalBytes = "original".toByteArray(),
+            )
+        }
+
+        // Original content preserved in the backup for recovery.
+        backupPath.file.readText() shouldBe "original"
     }
 
     // ==================== Edge Case Tests ====================
