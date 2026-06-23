@@ -145,6 +145,17 @@
             android:name="eu.darken.butler.common.files.local.service.IsolatedService"
             android:exported="false"
             android:process=":isolated" />
+
+        <!-- Keeps the process alive while long-running file operations run in the background. -->
+        <service
+            android:name="eu.darken.butler.main.core.operations.fgs.OperationFgsService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Cancel action for operation notifications. Reached only via explicit PendingIntent. -->
+        <receiver
+            android:name="eu.darken.butler.main.core.operations.fgs.OperationCancelReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

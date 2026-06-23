@@ -84,20 +84,10 @@ internal fun SaverWorkspacePage(
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
-    // Issue state observation
+    // Issue state observation. showIssueSheet is durable VM state so a notification-driven open
+    // survives recomposition / late collector subscription.
     val issueState by (vm?.issueState?.collectAsState(initial = null) ?: remember { mutableStateOf(null) })
-    var showIssueSheet by remember { mutableStateOf(false) }
-
-    LaunchedEffect(vm) {
-        vm?.showIssueSheetEvent?.collect { showIssueSheet = true }
-    }
-
-    // Auto-dismiss issue sheet when issue is resolved/cancelled
-    LaunchedEffect(issueState) {
-        if (issueState == null) {
-            showIssueSheet = false
-        }
-    }
+    val showIssueSheet by (vm?.showIssueSheet?.collectAsState() ?: remember { mutableStateOf(false) })
 
     // Navigation bar inset for bottom sheets
     val density = LocalDensity.current
@@ -159,9 +149,8 @@ internal fun SaverWorkspacePage(
                 issue = issueState!!,
                 onResolution = { resolution ->
                     vm?.resolveConflict(resolution)
-                    showIssueSheet = false  // Dismiss immediately after resolution
                 },
-                onDismiss = { showIssueSheet = false },
+                onDismiss = { vm?.dismissConflictSheet() },
                 bottomInset = navBarInset,
             )
         }

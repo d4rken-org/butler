@@ -33,6 +33,7 @@ import eu.darken.butler.common.updater.UpdateService
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
 import eu.darken.butler.main.core.release.ReleaseManager
+import eu.darken.butler.main.core.operations.fgs.OperationFgsCoordinator
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
 import eu.darken.butler.provider.documents.core.DocumentsProviderManager
 import eu.darken.butler.workspace.core.operations.history.OperationHistoryRepo
@@ -79,6 +80,9 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
      * would be missed.
      */
     @Inject lateinit var operationHistoryRepo: dagger.Lazy<OperationHistoryRepo>
+
+    /** Eagerly constructed so the operation foreground-service/notifications observe from app start. */
+    @Inject lateinit var operationFgsCoordinator: dagger.Lazy<OperationFgsCoordinator>
 
     private val logCatLogger = LogCatLogger()
 
@@ -153,6 +157,10 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
         // Eagerly construct OperationHistoryRepo so it subscribes to completedOperations from start.
         operationHistoryRepo.get()
 
+        // Eagerly start the operation foreground-service/notification coordinator.
+        val fgsCoordinator = operationFgsCoordinator.get()
+        fgsCoordinator.start()
+
         trashCleanupScheduler.setup()
 
         // One-shot cleanup of the retired external/internal debug-log store (recordings now live in
@@ -163,13 +171,19 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
             runCatching { File(getExternalFilesDir(null), "force_debug_run").delete() }
         }
 
-        // Automatically refresh SAF permissions when app comes to foreground
+        // Drive operation notifications by app foreground/background, and refresh SAF on foreground.
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
-                log(TAG) { "App foregrounded, refreshing SAF permissions" }
+                log(TAG) { "App foregrounded" }
+                fgsCoordinator.onAppForegrounded()
                 appScope.launch {
                     safLocationManager.refresh()
                 }
+            }
+
+            override fun onStop(owner: LifecycleOwner) {
+                log(TAG) { "App backgrounded" }
+                fgsCoordinator.onAppBackgrounded()
             }
         })
 

@@ -92,6 +92,7 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.clipboard.ClipboardSettings
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationFocusRequest
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.get
 import eu.darken.butler.workspace.core.returnResult
@@ -105,10 +106,10 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
@@ -150,6 +151,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val pickerHelper: ExplorerPickerHelper,
     private val errorReportTool: ErrorReportTool,
     private val favoritesRepo: ExplorerFavoritesRepo,
+    private val operationFocusRequest: OperationFocusRequest,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
@@ -160,8 +162,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val filterStateFlow = MutableStateFlow(FilterState())
     val issueState = issueStateFlow
     private var currentConflictOperationId: Operation.Id? = null
-    private val showIssueSheetFlow = MutableSharedFlow<Unit>()
-    val showIssueSheetEvent = showIssueSheetFlow.asSharedFlow()
+    // Durable (StateFlow) rather than a transient event so a notification-driven open isn't lost
+    // if the page's collector subscribes after the request is issued.
+    private val showIssueSheetFlow = MutableStateFlow(false)
+    val showIssueSheet: StateFlow<Boolean> = showIssueSheetFlow
     private val showAddStorageSheetFlow = MutableStateFlow(false)
     val showAddStorageSheet = showAddStorageSheetFlow
 
@@ -263,6 +267,32 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .drop(1)
             .onEach { focusedItemIndexFlow.value = null }
             .launchInViewModel()
+
+        // A "tap to resolve" conflict notification routes here. Wait until the conflict is actually
+        // present for this workspace before surfacing it, then consume the request.
+        operationFocusRequest.requests
+            .filterNotNull()
+            .filter { it.workspaceId == id }
+            .flatMapLatest { request ->
+                workspaceSource.filterNotNull()
+                    .flatMapLatest { it.operations }
+                    .map { request to it.pendingConflicts[request.operationId] }
+            }
+            .distinctUntilChanged()
+            .onEach { (request, issue) ->
+                if (issue != null) {
+                    currentConflictOperationId = request.operationId
+                    issueStateFlow.value = issue
+                    showIssueSheetFlow.value = true
+                    operationFocusRequest.consume(request)
+                }
+            }
+            .launchInViewModel()
+    }
+
+    override fun onCleared() {
+        operationFocusRequest.clearForWorkspace(id)
+        super.onCleared()
     }
 
     data class State(
@@ -1693,6 +1723,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // Clear conflict UI state (it will be updated by workspace state observer if needed)
         issueStateFlow.value = null
         currentConflictOperationId = null
+        showIssueSheetFlow.value = false
     }
 
     fun showConflictSheet(operationId: Operation.Id) = launch {
@@ -1707,10 +1738,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         if (issue != null) {
             currentConflictOperationId = operationId
             issueStateFlow.value = issue
-            showIssueSheetFlow.emit(Unit)
+            showIssueSheetFlow.value = true
         } else {
             log(tag, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
         }
+    }
+
+    fun dismissConflictSheet() {
+        log(tag) { "dismissConflictSheet()" }
+        showIssueSheetFlow.value = false
+        issueStateFlow.value = null
+        currentConflictOperationId = null
     }
 
     fun navigateToSetup(requirements: PathRequirements) = launch {
