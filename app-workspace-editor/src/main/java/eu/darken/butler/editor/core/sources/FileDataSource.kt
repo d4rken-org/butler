@@ -9,6 +9,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
@@ -33,6 +34,7 @@ import java.io.FileNotFoundException
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
+import kotlin.uuid.Uuid
 
 /**
  * File-based data source implementation.
@@ -267,8 +269,13 @@ class FileDataSource @AssistedInject constructor(
     override suspend fun getSize(): Long = _contentSource.value.size
 
     /**
-     * Saves dirty chunks to file using atomic write pattern.
-     * Uses temp file + atomic rename to prevent corruption.
+     * Saves dirty chunks to the file without risking the original on failure.
+     *
+     * Local paths use a backup-swap: the original is renamed aside, the new content (written to a
+     * uniquely-named temp) is renamed into place, and the backup is removed only after the commit
+     * succeeds. On any failure the original is restored from the backup. SAF paths have no rename
+     * primitive, so the original bytes are copied to a uniquely-named backup, the document is
+     * overwritten in place, and the original is restored from the backup if the write fails.
      *
      * @param dirtyChunks List of modified chunks to save (will be merged with original content)
      */
@@ -310,42 +317,24 @@ class FileDataSource @AssistedInject constructor(
                         charset = fileSource.detectedCharset
                     )
 
-                    // Atomic save: write to temp file, then rename
-                    val tempPath = filePath.parent?.child("${filePath.name}.tmp")
-                        ?: throw IllegalStateException("Cannot create temp file - no parent directory")
+                    // BOM to prepend when writing the new content (restored verbatim from the original).
+                    val bom = if (fileSource.hasBOM) fileSource.bomBytes else null
 
-                    try {
-                        // Write merged content to temp file
-                        gatewaySwitch.file(tempPath, readWrite = true).use { handle ->
-                            handle.sink().buffer().use { sink ->
-                                // Restore BOM if original file had one
-                                if (fileSource.hasBOM && fileSource.bomBytes != null) {
-                                    sink.write(fileSource.bomBytes)
-                                    log(tag) { "Restored ${fileSource.bomBytes.size} byte BOM to saved file" }
-                                }
-                                sink.write(mergedContent)
-                            }
-                        }
+                    // Unique per-save artifact names so we never collide with or delete a user's own
+                    // files, and never touch artifacts from a different (e.g. crashed) save.
+                    val token = Uuid.random().toString().take(8)
+                    val parent = filePath.parent
+                        ?: throw IllegalStateException("Cannot save - no parent directory")
+                    val backupPath = parent.child("${filePath.name}.butler-save-bak-$token")
 
-                        // Atomic rename: temp file -> original file
-                        // Note: This requires the gateway to support rename/move operations
-                        // For now, we'll delete original and rename temp (not fully atomic but safer than direct write)
-                        gatewaySwitch.delete(filePath)
-                        gatewaySwitch.move(tempPath, filePath)
-
-                        log(tag) { "Successfully saved ${mergedContent.size} bytes using atomic write" }
-
-                    } catch (e: Exception) {
-                        // Clean up temp file on failure
-                        try {
-                            if (tempPath.exists(gatewaySwitch)) {
-                                gatewaySwitch.delete(tempPath)
-                            }
-                        } catch (cleanupError: Exception) {
-                            log(tag, ERROR) { "Failed to cleanup temp file: ${cleanupError.asLog()}" }
-                        }
-                        throw e
+                    if (filePath is LocalPath) {
+                        val tempPath = parent.child("${filePath.name}.butler-save-tmp-$token")
+                        commitViaBackupSwap(tempPath, backupPath, bom, mergedContent)
+                    } else {
+                        commitViaInPlace(backupPath, bom, mergedContent, originalBytes)
                     }
+
+                    log(tag) { "Saved ${mergedContent.size} bytes" }
 
                     // Update state
                     _isModified.value = false
@@ -369,6 +358,105 @@ class FileDataSource @AssistedInject constructor(
                 }
             }
         }
+
+    /**
+     * Writes [bom] (if any) followed by [body] to [target], truncating any existing content first and
+     * flushing to disk so the result is durable before it is treated as a recovery copy.
+     */
+    private suspend fun writeContent(target: APath<*>, bom: ByteArray?, body: ByteArray) {
+        gatewaySwitch.file(target, readWrite = true).use { handle ->
+            handle.resize(0)
+            handle.sink().buffer().use { sink ->
+                if (bom != null) sink.write(bom)
+                sink.write(body)
+                sink.flush()
+            }
+            handle.flush()
+        }
+    }
+
+    /** Best-effort removal of a save artifact; logs (never throws) if the delete fails or returns false. */
+    private suspend fun cleanupArtifact(path: APath<*>) {
+        runCatching {
+            if (path.exists(gatewaySwitch) && !gatewaySwitch.delete(path)) {
+                log(tag, WARN) { "Failed to delete leftover save artifact: $path" }
+            }
+        }.onFailure { log(tag, WARN) { "Error cleaning up save artifact $path: ${it.asLog()}" } }
+    }
+
+    /**
+     * Local-path commit: rename the original aside, rename the freshly-written temp into place, and
+     * drop the backup only after the commit succeeds. Restores the original on failure and always
+     * cleans up the temp artifact.
+     */
+    internal suspend fun commitViaBackupSwap(
+        tempPath: APath<*>,
+        backupPath: APath<*>,
+        bom: ByteArray?,
+        mergedContent: ByteArray,
+    ) {
+        var backedUp = false
+        try {
+            writeContent(tempPath, bom, mergedContent)
+            if (filePath.exists(gatewaySwitch)) {
+                check(gatewaySwitch.move(filePath, backupPath)) { "Backup move failed: $filePath -> $backupPath" }
+                backedUp = true
+            }
+            check(gatewaySwitch.move(tempPath, filePath)) { "Commit move failed: $tempPath -> $filePath" }
+        } catch (e: Exception) {
+            // Moves are atomic, so a failure here means the commit never landed and the original path
+            // is free; if we had moved the original aside, put it back.
+            if (backedUp) {
+                try {
+                    check(gatewaySwitch.move(backupPath, filePath)) { "Restore move returned false" }
+                    backedUp = false
+                } catch (restoreError: Exception) {
+                    log(tag, ERROR) { "Restore failed - original preserved at $backupPath: ${restoreError.asLog()}" }
+                    e.addSuppressed(restoreError)
+                }
+            }
+            cleanupArtifact(tempPath)
+            throw e
+        }
+
+        cleanupArtifact(backupPath)
+    }
+
+    /**
+     * SAF/non-local commit: no rename primitive is available, so copy the original bytes to a backup,
+     * overwrite the document in place, and restore from the backup on failure. Not atomic - process
+     * death mid-write can leave the file partial with the original preserved in [backupPath].
+     */
+    internal suspend fun commitViaInPlace(
+        backupPath: APath<*>,
+        bom: ByteArray?,
+        mergedContent: ByteArray,
+        originalBytes: ByteArray,
+    ) {
+        var backupReady = false
+        try {
+            gatewaySwitch.createFile(backupPath, createParents = false)
+            writeContent(backupPath, bom = null, body = originalBytes)
+            backupReady = true
+            writeContent(filePath, bom, mergedContent)
+        } catch (e: Exception) {
+            if (backupReady) {
+                // The in-place overwrite failed; the original may be partial. Restore it, and keep the
+                // backup as a recovery copy if the restore also fails.
+                runCatching { writeContent(filePath, bom = null, body = originalBytes) }
+                    .onFailure {
+                        log(tag, ERROR) { "Restore failed - original preserved at $backupPath: ${it.asLog()}" }
+                        e.addSuppressed(it)
+                    }
+            } else {
+                // Backup never completed; the original was not touched, so the partial backup is junk.
+                cleanupArtifact(backupPath)
+            }
+            throw e
+        }
+
+        cleanupArtifact(backupPath)
+    }
 
     override suspend fun close() = accessMutex.withLock {
         _contentSource.value = ContentSource.Memory(size = 0L)

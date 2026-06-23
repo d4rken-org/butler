@@ -23,6 +23,7 @@ data class PendingWorkspaceConfirmation(
         data class WorkspaceCloseConfirmation(
             val workspaceId: Workspace.Id,
             val workspaceTitle: CaString,
+            val hasUnsavedChanges: Boolean = false,
         ) : ConfirmationData
 
         /**

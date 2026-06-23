@@ -78,6 +78,7 @@ class WorkspaceManagerViewModel @Inject constructor(
             filterOperations = filterOps,
             filterAttention = filterAtt,
             quickCreateItems = quickCreate,
+            hasUnsavedChanges = repoState.infos.any { it.hasUnsavedChanges },
         )
     }.asStateFlow()
 
@@ -176,6 +177,7 @@ class WorkspaceManagerViewModel @Inject constructor(
         val filterOperations: Boolean = false,
         val filterAttention: Boolean = false,
         val quickCreateItems: List<QuickCreateItem> = emptyList(),
+        val hasUnsavedChanges: Boolean = false,
     ) {
         val workspaceCount: Int = workspaces.size
 

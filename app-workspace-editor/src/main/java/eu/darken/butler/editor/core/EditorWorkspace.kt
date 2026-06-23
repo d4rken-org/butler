@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -176,7 +177,8 @@ class EditorWorkspace @AssistedInject constructor(
                     is State.Error -> Workspace.LifecycleState.Error(state.error)
                     is State.Ready -> Workspace.LifecycleState.Ready
                 }
-                _info.value = _info.value.copy(lifecycleState = lifecycle)
+                val hasUnsavedChanges = (state as? State.Ready)?.editor?.isModified == true
+                _info.update { it.copy(lifecycleState = lifecycle, hasUnsavedChanges = hasUnsavedChanges) }
             }
         }
 
@@ -202,10 +204,12 @@ class EditorWorkspace @AssistedInject constructor(
                     }
                 }
 
-                _info.value = _info.value.copy(
-                    operationCount = operationCount,
-                    attentionCount = attentionCount
-                )
+                _info.update {
+                    it.copy(
+                        operationCount = operationCount,
+                        attentionCount = attentionCount,
+                    )
+                }
                 log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
             }
             .launchIn(workspaceScope)
@@ -301,7 +305,7 @@ class EditorWorkspace @AssistedInject constructor(
             else -> "Editor ${id.shortTag}"
         }
 
-        _info.value = _info.value.copy(title = newTitle.toCaString())
+        _info.update { it.copy(title = newTitle.toCaString()) }
         log(tag, DEBUG) { "Updated title to: $newTitle" }
     }
 

@@ -69,6 +69,7 @@ fun WorkspaceOverlayContainer(
                 is ManagerDialog.WorkspaceTargeted.CloseConfirmation -> {
                     WorkspaceCloseConfirmationDialog(
                         workspaceTitle = dialog.workspaceTitle,
+                        hasUnsavedChanges = dialog.hasUnsavedChanges,
                         onDismiss = { onDismissManagerDialog(dialog.targetWorkspaceId) },
                         onConfirm = { onConfirmManagerDialog(dialog) },
                     )

@@ -149,6 +149,7 @@ fun WorkspaceButton(
         CloseAllWorkspacesDialog(
             visible = showCloseAllDialog,
             workspaceCount = state?.workspaceCount ?: 0,
+            hasUnsavedChanges = state?.hasUnsavedChanges == true,
             onDismiss = { showCloseAllDialog = false },
             onConfirm = {
                 showCloseAllDialog = false

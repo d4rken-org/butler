@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okio.Buffer
 import okio.Source
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.coroutineContext
@@ -301,8 +302,19 @@ class EditorEngine @AssistedInject constructor(
     suspend fun getContentStream(): Source = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
-                log(tag) { "Opening content stream for reading" }
-                currentState.resources.dataSource.openSource()
+                log(tag) { "Opening content stream for current buffer content" }
+                val buffer = currentState.resources.textBuffer
+                val text = buffer.getFullText().getOrThrow()
+                val source = buffer.contentSource.value
+                val charset = when (source) {
+                    is ContentSource.File -> source.detectedCharset
+                    is ContentSource.Memory -> Charsets.UTF_8
+                }
+                val bom = (source as? ContentSource.File)?.takeIf { it.hasBOM }?.bomBytes
+                Buffer().apply {
+                    if (bom != null) write(bom)
+                    write(text.toByteArray(charset))
+                }
             }
             else -> {
                 throw IllegalStateException("Cannot get content stream - no content available")

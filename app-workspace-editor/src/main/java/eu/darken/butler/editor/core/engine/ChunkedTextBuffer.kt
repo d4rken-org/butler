@@ -173,6 +173,27 @@ class ChunkedTextBuffer @AssistedInject constructor(
         }
     }
 
+    /**
+     * Returns the full current document text by concatenating every chunk's decoded content in order.
+     *
+     * Deliberately offset-independent: it does not use the byte/char offset math that [getText] relies on,
+     * so it stays correct for BOM/multibyte documents where byte and char counts diverge. Loads all chunks
+     * into memory, so it is intended for whole-document operations (e.g. "Save As"), not hot paths.
+     */
+    suspend fun getFullText(): Result<String> {
+        return try {
+            val sb = StringBuilder()
+            for (meta in chunkMetadata.toList()) {
+                val chunk = chunkManager.loadChunk(meta.chunkId).getOrThrow()
+                sb.append(chunk.content)
+            }
+            Result.success(sb.toString())
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to assemble full text - ${e.asLog()}" }
+            Result.failure(e)
+        }
+    }
+
     suspend fun getTextForLine(lineNumber: Int): Result<String> {
         if (lineNumber < 0 || lineNumber >= _totalLines.value) {
             return Result.failure(IndexOutOfBoundsException("Line number $lineNumber is out of bounds"))

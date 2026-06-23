@@ -146,6 +146,7 @@ fun WorkspaceManagerScreen(
     CloseAllWorkspacesDialog(
         visible = showCloseAllDialog,
         workspaceCount = state.workspaceCount,
+        hasUnsavedChanges = state.hasUnsavedChanges,
         onDismiss = { showCloseAllDialog = false },
         onConfirm = {
             onCloseAllWorkspaces()
