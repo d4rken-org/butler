@@ -1,5 +1,6 @@
 package eu.darken.butler.main.ui
 
+import android.Manifest
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
@@ -9,7 +10,11 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,11 +51,21 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.common.navigation.onboarding
 import eu.darken.butler.common.theming.ButlerTheme
 import eu.darken.butler.common.ui.Activity2
+import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.main.core.CurriculumVitae
 import eu.darken.butler.main.core.GeneralSettings
+import eu.darken.butler.main.core.operations.fgs.ACTION_FOCUS_OPERATION
+import eu.darken.butler.main.core.operations.fgs.EXTRA_OPERATION_ID
+import eu.darken.butler.main.core.operations.fgs.EXTRA_WORKSPACE_ID
+import eu.darken.butler.main.core.operations.fgs.NotificationPermissionGate
+import eu.darken.butler.main.core.operations.fgs.OperationFgsCoordinator
 import eu.darken.butler.main.core.shortcuts.DynamicShortcutManager
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.ui.workspaces.workspaces
 import javax.inject.Inject
+import kotlin.uuid.Uuid
+import kotlinx.coroutines.launch
 import eu.darken.butler.common.R as CommonR
 
 @AndroidEntryPoint
@@ -62,6 +77,14 @@ class MainActivity : Activity2() {
     @Inject lateinit var navCtrl: NavigationController
     @Inject lateinit var navigationEntries: Set<@JvmSuppressWildcards NavigationEntry>
     @Inject lateinit var shortcutManager: DynamicShortcutManager
+    @Inject lateinit var notificationPermissionGate: NotificationPermissionGate
+    @Inject lateinit var operationFgsCoordinator: OperationFgsCoordinator
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        log(TAG) { "POST_NOTIFICATIONS granted=$granted" }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Set initial window background to prevent white flash
@@ -82,6 +105,18 @@ class MainActivity : Activity2() {
         }
 
         curriculumVitae.updateAppOpened()
+
+        // Just-in-time POST_NOTIFICATIONS request when a background operation needs notifications.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                notificationPermissionGate.prompts.collect {
+                    if (hasApiLevel(33)) {
+                        log(TAG) { "Requesting POST_NOTIFICATIONS (background operation running)" }
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
+            }
+        }
 
         // Handle shortcut intent if present (will be processed once navigation is ready)
         savedIntent = intent
@@ -126,6 +161,9 @@ class MainActivity : Activity2() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         savedIntent = intent
+        // A singleTask activity that is already resumed gets onNewIntent but no following onResume,
+        // so process here too. handleSavedIntent() is idempotent (consumes savedIntent).
+        handleSavedIntent()
     }
 
     @Composable
@@ -193,27 +231,39 @@ class MainActivity : Activity2() {
     override fun onResume() {
         super.onResume()
         vm.checkUpgrades()
+        handleSavedIntent()
+    }
 
-        savedIntent?.let { intent ->
-            when (intent.action) {
-                DynamicShortcutManager.EXPLORER_SHORTCUT_ACTION -> {
-                    handleShortcutIntent(intent)
-                    savedIntent = null
-                }
-                DynamicShortcutManager.EXPLORER_NEW_ACTION -> {
-                    handleNewExplorerIntent()
-                    savedIntent = null
-                }
-                Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> {
-                    handleShareIntent(intent)
-                    savedIntent = null
-                }
-                Intent.ACTION_VIEW -> {
-                    handleViewIntent(intent)
-                    savedIntent = null
-                }
-            }
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        // Still foreground-eligible here, so this is the legal moment to acquire the operation
+        // foreground service before the app is fully backgrounded.
+        operationFgsCoordinator.onAppBackgrounded()
+    }
+
+    private fun handleSavedIntent() {
+        // Consume once: clearing up-front keeps this idempotent across the onNewIntent + onResume pair.
+        val intent = savedIntent?.also { savedIntent = null } ?: return
+        when (intent.action) {
+            DynamicShortcutManager.EXPLORER_SHORTCUT_ACTION -> handleShortcutIntent(intent)
+            DynamicShortcutManager.EXPLORER_NEW_ACTION -> handleNewExplorerIntent()
+            Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> handleShareIntent(intent)
+            Intent.ACTION_VIEW -> handleViewIntent(intent)
+            ACTION_FOCUS_OPERATION -> handleFocusOperationIntent(intent)
         }
+    }
+
+    private fun handleFocusOperationIntent(intent: Intent) {
+        val workspaceId = intent.getStringExtra(EXTRA_WORKSPACE_ID)
+            ?.let { runCatching { Workspace.Id(Uuid.parse(it)) }.getOrNull() }
+        if (workspaceId == null) {
+            log(TAG, WARN) { "FOCUS_OPERATION intent without a valid workspace id" }
+            return
+        }
+        val operationId = intent.getStringExtra(EXTRA_OPERATION_ID)
+            ?.let { runCatching { Operation.Id(Uuid.parse(it)) }.getOrNull() }
+        log(TAG) { "Focusing workspace $workspaceId for operation $operationId" }
+        vm.focusOperationWorkspace(workspaceId, operationId)
     }
 
     private fun handleShortcutIntent(intent: Intent) {

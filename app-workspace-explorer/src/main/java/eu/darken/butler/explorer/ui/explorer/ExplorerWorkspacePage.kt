@@ -153,14 +153,10 @@ fun ExplorerWorkspacePage(
         0.dp
     }
 
-    // Observe conflict state
+    // Observe conflict state. showIssueSheet is durable VM state so a notification-driven open
+    // survives recomposition / late collector subscription.
     val issueState by (vm?.issueState?.collectAsState() ?: remember { mutableStateOf(null) })
-    var showIssueSheet by remember { mutableStateOf(false) }
-
-    // Listen for requests to show conflict sheet (manual trigger only)
-    LaunchedEffect(vm) {
-        vm?.showIssueSheetEvent?.collect { showIssueSheet = true }
-    }
+    val showIssueSheet by (vm?.showIssueSheet?.collectAsState() ?: remember { mutableStateOf(false) })
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
@@ -751,7 +747,7 @@ fun ExplorerWorkspacePage(
                 IssuesBottomSheet(
                     issue = issueState!!,
                     onResolution = { resolution -> vm?.resolveConflict(resolution) },
-                    onDismiss = { showIssueSheet = false },
+                    onDismiss = { vm?.dismissConflictSheet() },
                     bottomInset = navBarInset,
                 )
             }

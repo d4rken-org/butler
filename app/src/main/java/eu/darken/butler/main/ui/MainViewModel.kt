@@ -19,8 +19,11 @@ import eu.darken.butler.workspace.contracts.editor.EditorArguments
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.saver.SaverArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.createAndFocus
+import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationFocusRequest
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -39,6 +42,7 @@ class MainViewModel @Inject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val json: Json,
     private val documentUriResolver: DocumentUriResolver,
+    private val operationFocusRequest: OperationFocusRequest,
 ) : ViewModel4(dispatcherProvider, logTag("Main", "Screen", "VM")) {
 
     val themeState = generalSettings.themeState.stateIn(
@@ -62,6 +66,17 @@ class MainViewModel @Inject constructor(
     fun checkUpgrades() = launch {
         log(tag) { "checkUpgrades()" }
         upgradeRepo.refresh()
+    }
+
+    /**
+     * Notification tap → focus the owning workspace; if an [operationId] is supplied (a "tap to
+     * resolve" conflict notification), also publish a focus request so the workspace's ViewModel
+     * surfaces the matching conflict sheet.
+     */
+    fun focusOperationWorkspace(workspaceId: Workspace.Id, operationId: Operation.Id?) = launch {
+        log(tag) { "focusOperationWorkspace($workspaceId, $operationId)" }
+        workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(workspaceId))
+        if (operationId != null) operationFocusRequest.request(workspaceId, operationId)
     }
 
     data class State(

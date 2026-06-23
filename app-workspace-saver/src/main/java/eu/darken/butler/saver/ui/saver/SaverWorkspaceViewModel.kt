@@ -34,15 +34,16 @@ import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.OperationFocusRequest
 import eu.darken.butler.workspace.ui.operations.OperationDisplay
 import eu.darken.butler.workspace.ui.operations.toDisplayModel
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -59,6 +60,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val storageEnvironment: StorageEnvironment,
     private val errorReportTool: ErrorReportTool,
+    private val operationFocusRequest: OperationFocusRequest,
 ) : ViewModel4(dispatchers, logTag("Saver", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<SaverWorkspace?> =
@@ -73,8 +75,9 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
     private val issueStateFlow = MutableStateFlow<Issue?>(null)
     val issueState = issueStateFlow.asStateFlow()
     private var currentConflictOperationId: Operation.Id? = null
-    private val showIssueSheetFlow = MutableSharedFlow<Unit>()
-    val showIssueSheetEvent = showIssueSheetFlow.asSharedFlow()
+    // Durable (StateFlow) so a notification-driven open isn't lost if the page subscribes late.
+    private val showIssueSheetFlow = MutableStateFlow(false)
+    val showIssueSheet: StateFlow<Boolean> = showIssueSheetFlow
 
     data class State(
         val sourceInfos: List<ContentUriHelper.SourceInfo> = emptyList(),
@@ -174,9 +177,36 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
                 } else {
                     currentConflictOperationId = null
                     issueStateFlow.value = null
+                    showIssueSheetFlow.value = false
                 }
             }
             .launchIn(vmScope)
+
+        // A "tap to resolve" conflict notification routes here. Wait until the conflict is present
+        // for this workspace before surfacing the sheet, then consume the request.
+        operationFocusRequest.requests
+            .filterNotNull()
+            .filter { it.workspaceId == id }
+            .flatMapLatest { request ->
+                workspaceSource.filterNotNull()
+                    .flatMapLatest { it.operations }
+                    .map { request to it.pendingConflicts[request.operationId] }
+            }
+            .distinctUntilChanged()
+            .onEach { (request, issue) ->
+                if (issue != null) {
+                    currentConflictOperationId = request.operationId
+                    issueStateFlow.value = issue
+                    showIssueSheetFlow.value = true
+                    operationFocusRequest.consume(request)
+                }
+            }
+            .launchIn(vmScope)
+    }
+
+    override fun onCleared() {
+        operationFocusRequest.clearForWorkspace(id)
+        super.onCleared()
     }
 
     fun onPickDestination() = launch {
@@ -270,6 +300,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         // Clear conflict UI state
         issueStateFlow.value = null
         currentConflictOperationId = null
+        showIssueSheetFlow.value = false
     }
 
     fun showConflictSheet(operationId: Operation.Id) = launch {
@@ -279,10 +310,17 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         if (conflict != null) {
             currentConflictOperationId = operationId
             issueStateFlow.value = conflict
-            showIssueSheetFlow.emit(Unit)
+            showIssueSheetFlow.value = true
         } else {
             log(tag, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
         }
+    }
+
+    fun dismissConflictSheet() {
+        log(tag) { "dismissConflictSheet()" }
+        showIssueSheetFlow.value = false
+        issueStateFlow.value = null
+        currentConflictOperationId = null
     }
 
     fun shareError(operationId: Operation.Id) = launch {

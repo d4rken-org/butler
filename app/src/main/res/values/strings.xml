@@ -414,4 +414,18 @@
     <string name="support_contact_sent_message">If the message was sent, the attached debug log will be deleted to save space. If not, you can keep it and try again later.</string>
     <string name="support_contact_debuglog_zip_error">Failed to prepare debug log attachment</string>
 
+    <!-- Background file operations: progress & attention notifications -->
+    <string name="ops_notification_channel_progress_name">File operation progress</string>
+    <string name="ops_notification_channel_progress_desc">Ongoing progress for copy, move, and delete operations</string>
+    <string name="ops_notification_channel_attention_name">File operation alerts</string>
+    <string name="ops_notification_channel_attention_desc">Operations that need your attention or have failed</string>
+    <plurals name="ops_notification_summary_title">
+        <item quantity="one">%1$d file operation running</item>
+        <item quantity="other">%1$d file operations running</item>
+    </plurals>
+    <string name="ops_notification_state_queued">Queued…</string>
+    <string name="ops_notification_state_attention_title">Action required</string>
+    <string name="ops_notification_state_attention_text">A conflict needs your attention — tap to resolve</string>
+    <string name="ops_notification_result_failed_title">Operation failed</string>
+
 </resources>
