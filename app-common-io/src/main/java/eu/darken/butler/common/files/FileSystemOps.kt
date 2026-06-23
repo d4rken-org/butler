@@ -190,6 +190,19 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
     suspend fun readSymbolicLink(linkPath: P): P
 
     /**
+     * Fully resolve symlinks and normalize a path to its authoritative real path.
+     *
+     * Filesystems without symlinks return the (normalized) path itself. Throws when the path cannot
+     * be authoritatively resolved (e.g. it doesn't exist or a symlink target is missing/inaccessible)
+     * so callers can treat failure as "unresolvable" rather than silently using a non-canonical path.
+     *
+     * @param path The path to resolve
+     * @return The canonical real path
+     * @throws eu.darken.butler.common.files.errors.ReadException if the path cannot be resolved
+     */
+    suspend fun canonicalize(path: P): P
+
+    /**
      * Move/rename a file or directory.
      *
      * Attempts atomic move when source and destination are on the same file system.

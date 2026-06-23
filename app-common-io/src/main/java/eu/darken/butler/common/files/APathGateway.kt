@@ -28,10 +28,16 @@ interface APathGateway<
     data class WalkOptions<P : APath<P>, PLU : APathLookup<P>>(
         val pathDoesNotContain: Set<String>? = null,
         val onFilter: (suspend (PLU) -> Boolean)? = null,
-        val onError: (suspend (PLU, Exception) -> Boolean)? = null
+        val onError: (suspend (PLU, Exception) -> Boolean)? = null,
+        /**
+         * Follow symlinks-to-directories wherever they point (with canonical-path cycle detection),
+         * like `find -L`. Default false. Destructive callers must leave this false. Enabling it forces
+         * the in-process walker (the streaming-IPC walk path does not honor it), see [isDirect].
+         */
+        val followSymlinks: Boolean = false,
     ) {
         val isDirect: Boolean
-            get() = onFilter == null && onError == null
+            get() = onFilter == null && onError == null && !followSymlinks
     }
 
     suspend fun du(

@@ -414,6 +414,9 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         return true
     }
 
+    // Identity: the mock can't faithfully resolve symlink chains; follow-semantics are tested on a real FS.
+    override suspend fun canonicalize(path: P): P = path
+
     override suspend fun readSymbolicLink(linkPath: P): P {
         val mockFile = files[linkPath.path]
             ?: throw NoSuchFileException(linkPath.path)

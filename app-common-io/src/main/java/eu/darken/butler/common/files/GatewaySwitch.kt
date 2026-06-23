@@ -254,6 +254,10 @@ class GatewaySwitch @Inject constructor(
         return useGateway(path) { setOwnership(path, ownership) }
     }
 
+    override suspend fun canonicalize(path: APath<*>): APath<*> {
+        return useGateway(path) { canonicalize(path) }
+    }
+
     private suspend fun APath<*>.toTargetType(type: Type): APath<*> = when (type) {
         Type.AUTO -> this
         Type.CURRENT -> this

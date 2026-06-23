@@ -611,6 +611,9 @@ class SAFFileSystemOps @Inject constructor(
         throw UnsupportedOperationException("SAF (Storage Access Framework) does not support symlinks")
     }
 
+    // SAF has no symlinks, so a path is already its own canonical form.
+    override suspend fun canonicalize(path: SAFPath): SAFPath = path
+
     override suspend fun move(source: SAFPath, destination: SAFPath): Boolean = try {
         log(TAG, VERBOSE) { "move(): $source -> $destination" }
 

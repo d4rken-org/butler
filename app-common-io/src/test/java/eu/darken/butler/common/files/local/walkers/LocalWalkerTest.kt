@@ -27,6 +27,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import testhelpers.BaseTest
 import java.nio.file.NoSuchFileException
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Instant
 
 /**
@@ -289,5 +290,61 @@ class LocalWalkerTest : BaseTest() {
 
         coVerify { gw.lookup(any(), any(), LocalGateway.Mode.ROOT) }
         coVerify { gw.lookupFiles(any(), any(), LocalGateway.Mode.ROOT) }
+    }
+
+    @Test
+    fun `indirect walker threads mode through canonicalize when following symlinks`() = runTest {
+        backing.addMockDir("/root")
+        backing.addMockSymlink("/root/link", "/target")
+        backing.addMockDir("/target")
+        val gw = mockk<LocalGateway>()
+        coEvery { gw.lookup(any(), any(), any<LocalGateway.Mode>()) } coAnswers {
+            backing.lookup(firstArg<LocalPath>(), secondArg<LookupOptions>())
+        }
+        coEvery { gw.lookupFiles(any(), any(), any<LocalGateway.Mode>()) } coAnswers {
+            backing.lookupFiles(firstArg<LocalPath>(), secondArg<LookupOptions>())
+        }
+        coEvery { gw.canonicalize(any(), any<LocalGateway.Mode>()) } coAnswers {
+            backing.canonicalize(firstArg<LocalPath>())
+        }
+
+        IndirectLocalWalker(gw, LocalGateway.Mode.ROOT, LocalPath.build("/root"), LookupOptions(), followSymlinks = true).toList()
+
+        coVerify { gw.canonicalize(any(), LocalGateway.Mode.ROOT) }
+    }
+
+    @Test
+    fun `indirect walker does not canonicalize when not following symlinks`() = runTest {
+        backing.addMockDir("/root")
+        backing.addMockSymlink("/root/link", "/target")
+        backing.addMockDir("/target")
+        val gw = gatewayOps(backing)
+
+        IndirectLocalWalker(gw, LocalGateway.Mode.AUTO, LocalPath.build("/root"), LookupOptions(), followSymlinks = false).toList()
+
+        coVerify(exactly = 0) { gw.canonicalize(any(), any<LocalGateway.Mode>()) }
+    }
+
+    @Test
+    fun `walk flow propagates cancellation from canonicalize`() = runTest {
+        backing.addMockDir("/root")
+        backing.addMockSymlink("/root/link", "/target")
+        backing.addMockDir("/target")
+        val gw = mockk<LocalGateway>()
+        coEvery { gw.lookup(any(), any(), any<LocalGateway.Mode>()) } coAnswers {
+            backing.lookup(firstArg<LocalPath>(), secondArg<LookupOptions>())
+        }
+        coEvery { gw.lookupFiles(any(), any(), any<LocalGateway.Mode>()) } coAnswers {
+            backing.lookupFiles(firstArg<LocalPath>(), secondArg<LookupOptions>())
+        }
+        // Succeed for the seed (start), cancel when resolving the child symlink.
+        coEvery { gw.canonicalize(any(), any<LocalGateway.Mode>()) } coAnswers {
+            val p = firstArg<LocalPath>()
+            if (p.path == "/root/link") throw CancellationException("cancelled") else backing.canonicalize(p)
+        }
+
+        shouldThrow<CancellationException> {
+            IndirectLocalWalker(gw, LocalGateway.Mode.AUTO, LocalPath.build("/root"), LookupOptions(), followSymlinks = true).toList()
+        }
     }
 }
