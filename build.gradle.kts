@@ -9,12 +9,16 @@ plugins {
 
 allprojects {
     // Dagger/Hilt 2.59.2 bundles kotlin-metadata-jvm 2.3.0, which refuses to parse the
-    // metadata version 2.4.0 emitted by Kotlin 2.4.0. Force the reader up to the Kotlin
-    // version on every annotation-processor classpath. Only Dagger's processor consumes it,
-    // so runtime artifacts are unaffected.
+    // metadata version 2.4.0 emitted by Kotlin 2.4.0 (the failure surfaces in Hilt's
+    // javac annotation processing as well as KSP). Pin the reader to the Kotlin version
+    // wherever it is already resolved — this only rewrites an existing transitive
+    // dependency on the processor classpaths and never adds it to a runtime classpath.
     configurations.configureEach {
-        resolutionStrategy {
-            force("org.jetbrains.kotlin:kotlin-metadata-jvm:${libs.versions.kotlin.get()}")
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.jetbrains.kotlin" && requested.name == "kotlin-metadata-jvm") {
+                useVersion(libs.versions.kotlin.get())
+                because("Dagger/Hilt's bundled metadata reader must understand Kotlin 2.4.0 metadata")
+            }
         }
     }
 
