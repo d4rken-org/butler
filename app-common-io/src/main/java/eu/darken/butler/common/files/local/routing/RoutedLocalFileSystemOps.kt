@@ -107,6 +107,11 @@ internal class RoutedLocalFileSystemOps(
         return route.ops.readSymbolicLink(linkPath)
     }
 
+    override suspend fun canonicalize(path: LocalPath): LocalPath {
+        val route = router.routeFor(path, defaultLookupIntent)
+        return route.ops.canonicalize(path)
+    }
+
     override suspend fun move(source: LocalPath, destination: LocalPath): Boolean {
         val sourceRoute = router.routeFor(source, AccessIntent.Delete)
         val destinationRoute = router.routeFor(destination, AccessIntent.Write)

@@ -366,6 +366,13 @@ class LocalFileSystemOps @Inject constructor(
         throw ReadException(path = linkPath, cause = e)
     }
 
+    override suspend fun canonicalize(path: LocalPath): LocalPath = try {
+        // toRealPath() resolves the entire symlink chain and normalizes; requires the path to exist.
+        LocalPath.build(path.toNioPath().toRealPath().toFile())
+    } catch (e: IOException) {
+        throw ReadException(path = path, cause = e)
+    }
+
     override suspend fun move(source: LocalPath, destination: LocalPath): Boolean = try {
         Files.move(
             source.toNioPath(),

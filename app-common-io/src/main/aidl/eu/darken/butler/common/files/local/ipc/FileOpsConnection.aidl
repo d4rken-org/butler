@@ -38,6 +38,8 @@ interface FileOpsConnection {
 
     LocalPath readSymbolicLink(in LocalPath linkPath);
 
+    LocalPath canonicalize(in LocalPath path);
+
     boolean move(in LocalPath source, in LocalPath destination);
 
     boolean setModifiedAt(in LocalPath path, in long modifiedAt);

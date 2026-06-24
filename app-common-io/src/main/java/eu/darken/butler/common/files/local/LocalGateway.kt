@@ -430,6 +430,21 @@ class LocalGateway @Inject constructor(
         clientOp = { it.readSymbolicLink(linkPath) },
     )
 
+    override suspend fun canonicalize(path: LocalPath): LocalPath =
+        canonicalize(path, Mode.AUTO)
+
+    suspend fun canonicalize(
+        path: LocalPath,
+        mode: Mode = Mode.AUTO
+    ): LocalPath = executeWithModeSelection(
+        mode = mode,
+        operation = "canonicalize",
+        path = path,
+        forWriting = false,
+        directOp = { fileSystemOps.canonicalize(path) },
+        clientOp = { it.canonicalize(path) },
+    )
+
     override suspend fun move(source: LocalPath, destination: LocalPath): Boolean =
         move(source, destination, Mode.AUTO)
 
@@ -520,6 +535,7 @@ class LocalGateway @Inject constructor(
             start = path,
             onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
             onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
+            followSymlinks = walkOptions.followSymlinks,
         )
 
         // Can't pass functions via IPC
@@ -530,6 +546,7 @@ class LocalGateway @Inject constructor(
             lookupOptions = lookupOptions,
             onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
             onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
+            followSymlinks = walkOptions.followSymlinks,
         )
 
         suspend fun walkVia(walkMode: Mode): Flow<LocalPathLookup> = if (walkOptions.isDirect) {

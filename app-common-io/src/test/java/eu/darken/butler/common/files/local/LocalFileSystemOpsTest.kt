@@ -328,6 +328,43 @@ class LocalFileSystemOpsTest : BaseTest() {
     }
 
     @Test
+    fun `canonicalize resolves a symlink to its real path`(@TempDir tempDir: File) = runTest {
+        val targetDir = File(tempDir, "realdir").apply { mkdirs() }
+        val linkFile = File(tempDir, "link")
+        java.nio.file.Files.createSymbolicLink(linkFile.toPath(), targetDir.toPath())
+
+        val canonical = fileSystemOps.canonicalize(LocalPath.build(linkFile))
+
+        canonical.path shouldBe targetDir.toPath().toRealPath().toString()
+    }
+
+    @Test
+    fun `canonicalize returns a real directory as itself`(@TempDir tempDir: File) = runTest {
+        val dir = File(tempDir, "plain").apply { mkdirs() }
+
+        val canonical = fileSystemOps.canonicalize(LocalPath.build(dir))
+
+        canonical.path shouldBe dir.toPath().toRealPath().toString()
+    }
+
+    @Test
+    fun `canonicalize throws on a broken symlink`(@TempDir tempDir: File) = runTest {
+        val linkFile = File(tempDir, "broken")
+        java.nio.file.Files.createSymbolicLink(linkFile.toPath(), File(tempDir, "missing").toPath())
+
+        shouldThrow<ReadException> {
+            fileSystemOps.canonicalize(LocalPath.build(linkFile))
+        }
+    }
+
+    @Test
+    fun `canonicalize throws on a non-existent path`(@TempDir tempDir: File) = runTest {
+        shouldThrow<ReadException> {
+            fileSystemOps.canonicalize(LocalPath.build(File(tempDir, "nope")))
+        }
+    }
+
+    @Test
     fun `move renames file`(@TempDir tempDir: File) = runTest {
         val sourceFile = File(tempDir, "source.txt").apply { writeText("content") }
         val sourcePath = LocalPath.build(sourceFile)

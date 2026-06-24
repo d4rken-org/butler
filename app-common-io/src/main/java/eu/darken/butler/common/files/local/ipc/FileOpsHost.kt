@@ -177,6 +177,14 @@ class FileOpsHost @Inject constructor(
         throw e.wrapToPropagate()
     }
 
+    override fun canonicalize(path: LocalPath): LocalPath = try {
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "canonicalize($path)..." }
+        runBlocking { fileSystemOps.canonicalize(path) }
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "canonicalize(path=$path) failed\n${e.asLog()}" }
+        throw e.wrapToPropagate()
+    }
+
     override fun move(source: LocalPath, destination: LocalPath): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "move($source,$destination)..." }
         runBlocking { fileSystemOps.move(source, destination) }

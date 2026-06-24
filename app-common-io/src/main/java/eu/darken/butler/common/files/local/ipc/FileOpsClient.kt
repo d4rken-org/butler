@@ -127,6 +127,12 @@ class FileOpsClient @AssistedInject constructor(
         throw e.refineException()
     }
 
+    override suspend fun canonicalize(path: LocalPath): LocalPath = try {
+        fileOpsConnection.canonicalize(path)
+    } catch (e: Exception) {
+        throw e.refineException()
+    }
+
     override suspend fun move(source: LocalPath, destination: LocalPath): Boolean = try {
         fileOpsConnection.move(source, destination)
     } catch (e: Exception) {
