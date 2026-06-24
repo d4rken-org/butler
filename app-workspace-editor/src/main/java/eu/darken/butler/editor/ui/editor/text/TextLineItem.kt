@@ -107,7 +107,8 @@ internal fun TextLineItem(
     val cursorModifier = if (isCurrentLine && selection == null) {
         Modifier.drawWithContent {
             val expandedText = lineContent.expandTabs(tabSize)
-            val position = cursorPosition.column
+            // Engine columns are RAW char indices; the layout/text here is tab-EXPANDED.
+            val position = rawToExpandedColumn(lineContent, cursorPosition.column, tabSize)
             val layoutResult = textLayoutResult
 
             // When word wrap is enabled, draw highlight only for the visual line containing cursor
@@ -238,6 +239,7 @@ internal fun TextLineItem(
     ) {
         SelectableText(
             text = lineContent.expandTabs(tabSize).ifEmpty { " " },
+            rawLineContent = lineContent,
             lineIndex = lineIndex,
             cursorPosition = cursorPosition,
             selection = selection,
@@ -258,6 +260,7 @@ internal fun TextLineItem(
 @Composable
 internal fun SelectableText(
     text: String,
+    rawLineContent: String,
     lineIndex: Int,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
@@ -283,15 +286,11 @@ internal fun SelectableText(
             val isCurrentResult = resultIndex == currentSearchResultIndex
             val highlightColor = if (isCurrentResult) currentSearchHighlightColor else searchHighlightColor
 
-            // Convert original column to expanded column (account for tab expansion)
-            val originalColumn = result.position.column
+            // result.position.column is a RAW char index; the rendered text is tab-EXPANDED.
+            val rawColumn = result.position.column
             val matchLength = result.matchText.length
-
-            // Calculate expanded column position by counting characters up to the original column
-            // For simplicity, we use the original column since expandTabs preserves character count
-            // (tabs are replaced with spaces, maintaining relative positions)
-            val highlightStart = originalColumn
-            val highlightEnd = originalColumn + matchLength
+            val highlightStart = rawToExpandedColumn(rawLineContent, rawColumn, tabSize)
+            val highlightEnd = rawToExpandedColumn(rawLineContent, rawColumn + matchLength, tabSize)
 
             if (highlightStart < text.length && highlightEnd > 0) {
                 val adjustedStart = highlightStart.coerceIn(0, text.length)
@@ -371,8 +370,11 @@ internal fun SelectableText(
         // Selection highlighting (rendered after search highlights)
         selection?.let { (start, end) ->
             if (lineIndex >= start.line && lineIndex <= end.line) {
-                val selectionStart = if (lineIndex == start.line) start.column else 0
-                val selectionEnd = if (lineIndex == end.line) end.column else text.length
+                // start/end columns are RAW char indices; convert to EXPANDED for the rendered text.
+                val selectionStart =
+                    if (lineIndex == start.line) rawToExpandedColumn(rawLineContent, start.column, tabSize) else 0
+                val selectionEnd =
+                    if (lineIndex == end.line) rawToExpandedColumn(rawLineContent, end.column, tabSize) else text.length
 
                 if (selectionStart < selectionEnd) {
                     val layout = layoutResult
@@ -529,6 +531,7 @@ private fun TextLineItemPreview() {
 private fun SelectableTextPreview() {
     SelectableText(
         text = "fun calculateSum(a: Int, b: Int): Int {",
+        rawLineContent = "fun calculateSum(a: Int, b: Int): Int {",
         lineIndex = 0,
         cursorPosition = TextPosition(offset = 15, line = 0, column = 15),
         selection = TextPosition(offset = 4, line = 0, column = 4) to TextPosition(

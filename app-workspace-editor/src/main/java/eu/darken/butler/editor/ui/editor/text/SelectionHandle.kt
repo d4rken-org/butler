@@ -51,6 +51,7 @@ internal fun SelectionHandle(
     wordWrap: Boolean = false,
     textLayouts: Map<Int, TextLayoutResult> = emptyMap(),
     visibleLineContent: Map<Int, String> = emptyMap(),
+    tabSize: Int = 4,
     contentPaddingTop: Float = 0f,
 ) {
     val density = LocalDensity.current
@@ -62,8 +63,11 @@ internal fun SelectionHandle(
     val lineNumberWidthPx = with(density) { lineNumberWidth.toPx() }
     val handleHalfWidth = with(density) { 12.dp.toPx() }  // Half of 24.dp handle width
 
-    // Use rememberUpdatedState to get current position without restarting gesture
-    val currentPositionColumn by rememberUpdatedState(position.column)
+    // Engine columns are RAW char indices; the rendered line is tab-EXPANDED, so convert for all
+    // pixel math (column * charWidth and layout indexing below).
+    val currentPositionColumn by rememberUpdatedState(
+        rawToExpandedColumn(visibleLineContent[position.line] ?: "", position.column, tabSize)
+    )
 
     // Use simple state to store Y position, updated via LaunchedEffect observing layout
     var yPosition by remember { mutableStateOf<Float?>(null) }
@@ -84,9 +88,11 @@ internal fun SelectionHandle(
     LaunchedEffect(position.line, position.column, wordWrap, textLayouts) {
         if (wordWrap && textLayouts.containsKey(position.line)) {
             val layout = textLayouts[position.line]!!
-            val textLength = visibleLineContent[position.line]?.length ?: 0
+            // The layout is built from the tab-EXPANDED line, so work in expanded columns/length.
+            val rawLine = visibleLineContent[position.line] ?: ""
+            val textLength = rawLine.expandTabs(tabSize).length
             if (textLength > 0) {
-                val columnForCalc = position.column.coerceIn(0, textLength)
+                val columnForCalc = rawToExpandedColumn(rawLine, position.column, tabSize).coerceIn(0, textLength)
 
                 // Calculate visual line, handling boundary case
                 // getLineForOffset(N) returns the line where char N starts, but if N equals
