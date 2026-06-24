@@ -8,6 +8,16 @@ plugins {
 }
 
 allprojects {
+    // Dagger/Hilt 2.59.2 bundles kotlin-metadata-jvm 2.3.0, which refuses to parse the
+    // metadata version 2.4.0 emitted by Kotlin 2.4.0. Force the reader up to the Kotlin
+    // version on every annotation-processor classpath. Only Dagger's processor consumes it,
+    // so runtime artifacts are unaffected.
+    configurations.configureEach {
+        resolutionStrategy {
+            force("org.jetbrains.kotlin:kotlin-metadata-jvm:${libs.versions.kotlin.get()}")
+        }
+    }
+
     tasks.withType<Test> {
         testLogging {
             events("failed")
