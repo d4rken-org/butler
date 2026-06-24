@@ -33,7 +33,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import dagger.hilt.android.AndroidEntryPoint
 import eu.darken.butler.common.BuildConfigWrap
@@ -175,7 +175,7 @@ class MainActivity : Activity2() {
             }
         }
 
-        val backStack = rememberNavBackStack<NavigationDestination>(start)
+        val backStack = rememberNavBackStack(start)
 
         LaunchedEffect(Unit) { navCtrl.setup(backStack) }
 
@@ -206,7 +206,7 @@ class MainActivity : Activity2() {
                     navCtrl.up()
                 },
                 entryDecorators = listOf(
-                    rememberSavedStateNavEntryDecorator(),
+                    rememberSaveableStateHolderNavEntryDecorator(),
                     rememberViewModelStoreNavEntryDecorator(),
                 ),
                 entryProvider = entryProvider {

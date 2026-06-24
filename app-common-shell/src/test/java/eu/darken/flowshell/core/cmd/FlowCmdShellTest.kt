@@ -10,6 +10,7 @@ import io.kotest.matchers.longs.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -64,19 +66,23 @@ class FlowCmdShellTest : BaseTest() {
         }
     }
 
-    @Test fun `closing session aborts command`() = runTest2(autoCancel = true) {
+    @Test fun `closing session drains an in-flight command`() = runTest2(autoCancel = true) {
         val sharedSession = FlowCmdShell().session.replayingShare(this)
         sharedSession.launchIn(this + Dispatchers.IO)
         val session = sharedSession.first()
 
-        launch {
-            shouldThrow<Exception> {
-                FlowCmd("sleep 3").execute(session)
-            }
+        val cmd = async(Dispatchers.IO) {
+            FlowCmd("sleep 1").execute(session)
         }
 
-        delay(500)
+        // Real (non-virtual) delay so the command is actually running before we close.
+        // runTest's virtual time would skip a plain delay() and race the close().
+        withContext(Dispatchers.IO) { delay(500) }
         session.close()
+
+        // close() is graceful: the already-submitted command is allowed to drain to
+        // completion and returns normally. Use cancel() to abort a running command.
+        cmd.await().exitCode shouldBe FlowProcess.ExitCode.OK
     }
 
     @Test fun `killing session aborts command`() = runTest2(autoCancel = true) {
@@ -84,14 +90,17 @@ class FlowCmdShellTest : BaseTest() {
         sharedSession.launchIn(this + Dispatchers.IO)
         val session = sharedSession.first()
 
-        launch {
+        val cmdJob = launch(Dispatchers.IO) {
             shouldThrow<Exception> {
                 FlowCmd("sleep 3").execute(session)
             }
         }
 
-        delay(500)
+        // Real (non-virtual) delay so the command is actually running before we cancel.
+        // runTest's virtual time would skip a plain delay() and race the cancel().
+        withContext(Dispatchers.IO) { delay(500) }
         session.cancel()
+        cmdJob.join()
     }
 
     @Test fun `queued commands`() = runTest2(autoCancel = true) {

@@ -1,8 +1,7 @@
 package eu.darken.butler.workspace.ui.workspaces
 
-import androidx.navigation3.runtime.EntryProviderBuilder
+import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entry
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -12,7 +11,7 @@ import eu.darken.butler.common.navigation.NavigationEntry
 import javax.inject.Inject
 
 class WorkspaceNavigation @Inject constructor() : NavigationEntry {
-    override fun EntryProviderBuilder<NavKey>.setup() {
+    override fun EntryProviderScope<NavKey>.setup() {
         entry<DestinationWorkspaces> {
             WorkspacesScreenHost()
         }
