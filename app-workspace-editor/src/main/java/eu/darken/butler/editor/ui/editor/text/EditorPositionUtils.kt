@@ -3,6 +3,7 @@ package eu.darken.butler.editor.ui.editor.text
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,6 +51,128 @@ internal fun expandedToRawColumn(line: String, expandedCol: Int, tabSize: Int): 
     }
     // Past the end of the (expanded) line: remaining columns are 1:1.
     return raw + (expandedCol - expanded).coerceAtLeast(0)
+}
+
+/**
+ * A single contiguous text edit expressed as flat (UTF-16 code unit) offsets into the OLD text:
+ * the range [start, end) is replaced by [inserted].
+ *
+ * - Pure insert: [start] == [end], [inserted] non-empty.
+ * - Pure delete: [start] < [end], [inserted] empty.
+ * - Replace: [start] < [end], [inserted] non-empty.
+ */
+internal data class TextEdit(
+    val start: Int,
+    val end: Int,
+    val inserted: String,
+)
+
+/**
+ * Computes the minimal single-region edit that turns [old] into [new] by stripping the common
+ * prefix and suffix. Covers append, prepend, mid-insert, delete, equal-length replace (autocorrect),
+ * and full replace. Returns null when the strings are equal.
+ *
+ * Offsets are UTF-16 code units, consistent with [TextPosition.column], [androidx.compose.ui.text.TextRange],
+ * and the chunked buffer. The prefix/suffix boundaries are nudged off any lone surrogate so [inserted]
+ * never contains half of a surrogate pair.
+ */
+internal fun computeTextEdit(old: String, new: String): TextEdit? {
+    if (old == new) return null
+    val oldLen = old.length
+    val newLen = new.length
+
+    val maxCommon = minOf(oldLen, newLen)
+
+    // Common prefix length.
+    var p = 0
+    while (p < maxCommon && old[p] == new[p]) p++
+    // A prefix that ends on a high surrogate would split a pair; back off so the whole pair is replaced.
+    if (p > 0 && old[p - 1].isHighSurrogate()) p--
+
+    // Common suffix length (not overlapping the prefix).
+    var s = 0
+    val maxSuffix = maxCommon - p
+    while (s < maxSuffix && old[oldLen - 1 - s] == new[newLen - 1 - s]) s++
+    // A suffix that starts on a low surrogate would split a pair; back off so the whole pair is replaced.
+    if (s > 0 && old[oldLen - s].isLowSurrogate()) s--
+
+    return TextEdit(
+        start = p,
+        end = oldLen - s,
+        inserted = new.substring(p, newLen - s),
+    )
+}
+
+/**
+ * Maps a flat offset into the joined visible field text (visible lines joined by '\n', starting at
+ * absolute line [visibleRangeStart]) to an engine [TextPosition].
+ *
+ * The synthetic '\n' between lines occupies the gap: in "abc\ndef" offset 3 → (line0, col3) and
+ * offset 4 → (line1, col0). Columns are RAW char indices (the hidden field is never tab-expanded).
+ * Offsets past the end clamp to the end of the last visible line.
+ */
+internal fun flatOffsetToPosition(
+    visibleLines: List<String>,
+    visibleRangeStart: Int,
+    flatOffset: Int,
+): TextPosition {
+    if (visibleLines.isEmpty()) return createUiTextPosition(line = visibleRangeStart, column = 0)
+    var remaining = flatOffset.coerceAtLeast(0)
+    for (i in visibleLines.indices) {
+        val line = visibleLines[i]
+        if (remaining <= line.length) {
+            return createUiTextPosition(line = visibleRangeStart + i, column = remaining)
+        }
+        remaining -= line.length + 1 // +1 for the joining '\n'
+    }
+    val lastIndex = visibleLines.lastIndex
+    return createUiTextPosition(line = visibleRangeStart + lastIndex, column = visibleLines[lastIndex].length)
+}
+
+/**
+ * Inverse of [flatOffsetToPosition]: maps an engine [position] to a flat offset into the joined visible
+ * field text. Returns null when [position] falls outside the visible window so callers can skip syncing
+ * rather than emit a bogus offset.
+ */
+internal fun positionToFlatOffset(
+    visibleLines: List<String>,
+    visibleRangeStart: Int,
+    position: TextPosition,
+): Int? {
+    val lineIndex = position.line - visibleRangeStart
+    if (lineIndex < 0 || lineIndex > visibleLines.lastIndex) return null
+    var offset = 0
+    for (i in 0 until lineIndex) {
+        offset += visibleLines[i].length + 1 // +1 for the joining '\n'
+    }
+    return offset + position.column.coerceIn(0, visibleLines[lineIndex].length)
+}
+
+/**
+ * Decides how the hidden field should be synced FROM authoritative engine state (when the user is not
+ * actively typing). Returns the selection to apply to a rebuilt [TextFieldValue], or null to leave the
+ * field untouched.
+ *
+ * The field is rewritten when the engine content differs ([engineContent] != [fieldText]) OR the engine
+ * caret/selection moved relative to the field ([mappedSelection] != [fieldSelection]) — e.g. a tap, arrow
+ * key, or undo. This must happen even mid-IME-composition: an explicit caret move has to reposition where
+ * the next input lands, otherwise typing inserts at the stale offset. When nothing moved (a spurious
+ * re-fire, e.g. a viewport scroll that didn't change the caret) it returns null so an in-progress
+ * composition is preserved. When the engine caret is outside the visible window ([mappedSelection] null)
+ * but the text changed, the previous caret is clamped into the new text.
+ */
+internal fun computeFieldSelectionSync(
+    fieldText: String,
+    fieldSelection: TextRange,
+    engineContent: String,
+    mappedSelection: TextRange?,
+): TextRange? {
+    val textChanged = fieldText != engineContent
+    return when {
+        mappedSelection != null && (textChanged || fieldSelection != mappedSelection) -> mappedSelection
+        mappedSelection == null && textChanged -> TextRange(fieldSelection.end.coerceIn(0, engineContent.length))
+        else -> null
+    }
 }
 
 /**

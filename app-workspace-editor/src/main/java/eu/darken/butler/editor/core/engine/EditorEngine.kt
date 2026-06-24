@@ -402,6 +402,82 @@ class EditorEngine @AssistedInject constructor(
     }
 
     /**
+     * Applies a single contiguous edit: replaces the [start]..[end] range (line/column positions from the
+     * visible field, placeholder offsets resolved here) with [text], then places the cursor at [caret].
+     *
+     * This is the path all soft-keyboard input flows through. To keep one keystroke = one undo entry, pure
+     * inserts and pure deletes are routed to the buffer's single-op methods; only genuine replacements
+     * (e.g. autocorrect) use the composite delete+insert path.
+     */
+    suspend fun replaceText(
+        start: TextPosition,
+        end: TextPosition,
+        text: String,
+        caret: TextPosition,
+    ) = stateMutex.withLock {
+        val currentState = _state.value as? EditorState.Loaded
+        if (currentState == null) {
+            log(tag, WARN) { "Cannot replace text - no file open" }
+            return@withLock
+        }
+        val buffer = currentState.resources.textBuffer
+
+        // Resolve flat offsets from line/column - UI sends placeholder offset=0 with virtual scrolling.
+        val startOffset = buffer.findOffset(start.line, start.column)
+        val endOffset = buffer.findOffset(end.line, end.column)
+        val lowPos: TextPosition
+        val highPos: TextPosition
+        if (startOffset <= endOffset) {
+            lowPos = TextPosition(startOffset, start.line, start.column)
+            highPos = TextPosition(endOffset, end.line, end.column)
+        } else {
+            lowPos = TextPosition(endOffset, end.line, end.column)
+            highPos = TextPosition(startOffset, start.line, start.column)
+        }
+
+        val isEmptyRange = lowPos.offset == highPos.offset
+        if (isEmptyRange && text.isEmpty()) {
+            // Pure no-op: the field never emits this (computeTextEdit returns null when text is unchanged),
+            // so there is nothing to edit and no cursor/selection state to disturb.
+            return@withLock
+        }
+
+        log(tag, VERBOSE) { "replaceText $lowPos..$highPos -> ${text.take(50)} (caret=$caret)" }
+
+        val result: Result<*> = when {
+            isEmptyRange -> buffer.insertText(lowPos, text) // pure insert
+            text.isEmpty() -> buffer.deleteText(lowPos, highPos) // pure delete
+            else -> buffer.replaceText(lowPos, highPos, text) // genuine replace (delete + insert)
+        }
+
+        if (result.isSuccess) {
+            _totalLines.value = buffer.totalLines.value
+            updateCursorFromCaret(buffer, caret)
+            _selectionRange.value = null
+            selectionAnchor = null
+            _state.value = currentState.copy(isModified = true)
+            invalidateSearchResults()
+            refreshVisibleContent()
+        } else {
+            val e = result.exceptionOrNull() ?: IllegalStateException("Unknown error replacing text")
+            log(tag, ERROR) { "Failed to replace text - ${e.asLog()}" }
+            _error.value = e
+        }
+    }
+
+    /** Resolves [caret] (line/column from the visible field) to a buffer offset and sets it as the cursor. */
+    private suspend fun updateCursorFromCaret(buffer: ChunkedTextBuffer, caret: TextPosition) {
+        val maxLine = (_totalLines.value - 1).coerceAtLeast(0)
+        val safeLine = caret.line.coerceIn(0, maxLine)
+        val caretOffset = try {
+            buffer.findOffset(safeLine, caret.column)
+        } catch (e: Exception) {
+            buffer.totalLength.value
+        }
+        _cursorPosition.value = TextPosition(offset = caretOffset, line = safeLine, column = caret.column)
+    }
+
+    /**
      * Deletes the current selection if one exists.
      * Must be called within stateMutex.withLock.
      * @return Pair of (selection was deleted, deleted text result). If no selection, returns (false, null).
@@ -951,17 +1027,23 @@ class EditorEngine @AssistedInject constructor(
 
     private suspend fun refreshVisibleContent() {
         val currentState = _state.value as? EditorState.Loaded ?: return
+        val maxLine = (_totalLines.value - 1).coerceAtLeast(0)
         val currentRange = _visibleRange.value
+        val first = currentRange.first.coerceIn(0, maxLine)
+        // Ensure the loaded window covers the cursor line. An edit that adds lines (e.g. splitting a line
+        // with a newline) must render the new lines even in a document too short to scroll — otherwise the
+        // range never grows (updateVisibleRange ignores sub-3-line changes) and the new lines render blank.
+        val cursorLine = _cursorPosition.value.line.coerceIn(0, maxLine)
+        val last = maxOf(currentRange.last, cursorLine).coerceIn(first, maxLine)
+        val range = first..last
+        _visibleRange.value = range
 
         try {
             currentCoroutineContext().ensureActive()
-            val contentResult = currentState.resources.textBuffer.getTextForRange(
-                currentRange.first,
-                currentRange.last
-            )
+            val contentResult = currentState.resources.textBuffer.getTextForRange(range.first, range.last)
             if (contentResult.isSuccess) {
                 _currentContent.value = contentResult.getOrNull() ?: ""
-                log(tag) { "Refreshed visible content for range: ${currentRange.first}..${currentRange.last}" }
+                log(tag) { "Refreshed visible content for range: ${range.first}..${range.last}" }
             } else {
                 log(tag, WARN) { "Failed to refresh content: ${contentResult.exceptionOrNull()?.asLog()}" }
             }

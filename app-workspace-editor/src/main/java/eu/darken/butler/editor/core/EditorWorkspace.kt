@@ -456,6 +456,8 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun selectAll() = currentEngine().selectAll()
 
     suspend fun insertText(text: String) = currentEngine().insertText(text)
+    suspend fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) =
+        currentEngine().replaceText(start, end, text, caret)
     suspend fun setCursorPosition(position: TextPosition) = currentEngine().setCursorPosition(position)
     suspend fun setSelection(start: TextPosition, end: TextPosition) = currentEngine().setSelection(start, end)
     suspend fun updateVisibleRange(startLine: Int, endLine: Int) =
