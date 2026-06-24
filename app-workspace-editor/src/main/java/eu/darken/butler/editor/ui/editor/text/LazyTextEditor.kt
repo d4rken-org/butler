@@ -202,8 +202,14 @@ fun LazyTextEditor(
             val textPaddingPx = with(density) { 8.dp.toPx() } // Match TextLineItem padding
             val margin = charWidth * 3 // 3 character margin from edge
 
-            // Cursor X position
-            val cursorX = textPaddingPx + (cursorPosition.column * charWidth)
+            // Cursor X position. Engine column is a RAW char index; expand it for the tab-rendered line.
+            val cursorLineContent = visibleLineContent[cursorPosition.line]
+            val expandedCursorColumn = if (cursorLineContent != null) {
+                rawToExpandedColumn(cursorLineContent, cursorPosition.column, tabSize)
+            } else {
+                cursorPosition.column
+            }
+            val cursorX = textPaddingPx + (expandedCursorColumn * charWidth)
 
             val currentScrollX = horizontalScrollState.value.toFloat()
             val visibleRight = currentScrollX + viewportWidth
@@ -757,6 +763,7 @@ private fun DualColumnEditorContent(
                 wordWrap = wordWrap,
                 textLayouts = textLayouts,
                 visibleLineContent = currentVisibleLineContent,
+                tabSize = tabSize,
                 contentPaddingTop = contentPaddingTopPx,
             )
 
@@ -796,6 +803,7 @@ private fun DualColumnEditorContent(
                 wordWrap = wordWrap,
                 textLayouts = textLayouts,
                 visibleLineContent = currentVisibleLineContent,
+                tabSize = tabSize,
                 contentPaddingTop = contentPaddingTopPx,
             )
         }

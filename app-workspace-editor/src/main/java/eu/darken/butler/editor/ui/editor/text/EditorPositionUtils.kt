@@ -18,6 +18,41 @@ internal fun String.expandTabs(tabSize: Int): String {
 }
 
 /**
+ * Converts a RAW column (char index into the engine line) to the EXPANDED visual column used by the
+ * tab-expanded rendering layout. Each tab before [rawCol] contributes [tabSize] visual columns instead
+ * of 1. Columns at/after the end of [line] map 1:1 (so an end-of-line cursor stays correct).
+ */
+internal fun rawToExpandedColumn(line: String, rawCol: Int, tabSize: Int): Int {
+    val ts = tabSize.coerceAtLeast(1)
+    var expanded = 0
+    val inLine = minOf(rawCol, line.length)
+    for (i in 0 until inLine) {
+        expanded += if (line[i] == '\t') ts else 1
+    }
+    if (rawCol > line.length) expanded += rawCol - line.length
+    return expanded
+}
+
+/**
+ * Inverse of [rawToExpandedColumn]: maps an EXPANDED visual column back to a RAW char index.
+ * Tie-break: a column that falls *inside* a tab's expanded cells snaps to that tab's raw index (its
+ * left edge). Columns past the expanded line width map 1:1.
+ */
+internal fun expandedToRawColumn(line: String, expandedCol: Int, tabSize: Int): Int {
+    val ts = tabSize.coerceAtLeast(1)
+    var expanded = 0
+    var raw = 0
+    while (raw < line.length) {
+        val width = if (line[raw] == '\t') ts else 1
+        if (expanded + width > expandedCol) return raw
+        expanded += width
+        raw++
+    }
+    // Past the end of the (expanded) line: remaining columns are 1:1.
+    return raw + (expandedCol - expanded).coerceAtLeast(0)
+}
+
+/**
  * Creates a TextPosition for UI-initiated position changes.
  * The offset is set to 0L as a placeholder - the engine recalculates the actual offset
  * based on line/column since the UI only has access to visible lines.
@@ -126,9 +161,11 @@ internal fun calculatePositionFromOffset(
         }
     }
 
+    // clickedColumn is an EXPANDED (tab-expanded) visual column; the engine expects a RAW char index.
+    val rawColumn = expandedToRawColumn(lineContent, clickedColumn, tabSize)
     val position = createUiTextPosition(
         line = lineIndex,
-        column = clickedColumn
+        column = rawColumn
     )
 
     return PositionCalculationResult(position)
