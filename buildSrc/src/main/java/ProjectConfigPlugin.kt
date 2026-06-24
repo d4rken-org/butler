@@ -8,7 +8,7 @@ open class ProjectConfig {
     val packageName = "eu.darken.butler"
     val minSdk = 26
 
-    val compileSdk = 36
+    val compileSdk = 37
     val compileSdkPreview: String? = null
     val targetSdk = 36
     val targetSdkPreview: String? = null
