@@ -100,8 +100,7 @@ fun LazyTextEditor(
     searchResults: List<SearchResult> = emptyList(),
     currentSearchResultIndex: Int = 0,
     scrollTrigger: Int = 0,
-    onTextChange: (String) -> Unit,
-    onTextDelete: (Int) -> Unit,
+    onTextReplace: (start: TextPosition, end: TextPosition, inserted: String, caret: TextPosition) -> Unit,
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     onVisibleRangeChange: (IntRange) -> Unit,
@@ -256,6 +255,7 @@ fun LazyTextEditor(
         contentPadding = contentPadding,
         totalLines = totalLines,
         visibleLineContent = visibleLineContent,
+        visibleRange = visibleRange,
         cursorPosition = cursorPosition,
         selection = selection,
         lineNumbersListState = lineNumbersListState,
@@ -268,8 +268,7 @@ fun LazyTextEditor(
         tabSize = tabSize,
         searchResultsByLine = searchResultsByLine,
         currentSearchResultIndex = currentSearchResultIndex,
-        onTextChange = onTextChange,
-        onTextDelete = onTextDelete,
+        onTextReplace = onTextReplace,
         onCursorPositionChange = onCursorPositionChange,
         onSelectionChange = onSelectionChange,
         onCursorMove = onCursorMove,
@@ -283,6 +282,7 @@ private fun DualColumnEditorContent(
     contentPadding: PaddingValues,
     totalLines: Int,
     visibleLineContent: Map<Int, String>,
+    visibleRange: IntRange,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     lineNumbersListState: LazyListState,
@@ -295,8 +295,7 @@ private fun DualColumnEditorContent(
     tabSize: Int,
     searchResultsByLine: Map<Int, List<Pair<Int, SearchResult>>>,
     currentSearchResultIndex: Int,
-    onTextChange: (String) -> Unit,
-    onTextDelete: (Int) -> Unit,
+    onTextReplace: (start: TextPosition, end: TextPosition, inserted: String, caret: TextPosition) -> Unit,
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     onCursorMove: (CursorDirection, Boolean) -> Unit,
@@ -344,22 +343,44 @@ private fun DualColumnEditorContent(
         measured.size.width.toFloat()
     }
 
-    // Sync textFieldValue with visible content (skip during user edits)
-    LaunchedEffect(visibleLineContent) {
-        if (isUserEditing) {
-            isUserEditing = false
-            return@LaunchedEffect // Skip sync - TextField already has correct content from user input
-        }
-        val currentContent = visibleLineContent.entries
+    // The hidden field text is the visible lines joined by '\n'.
+    val currentContent = remember(visibleLineContent) {
+        visibleLineContent.entries
             .sortedBy { it.key }
             .joinToString("\n") { it.value }
-        if (textFieldValue.text != currentContent) {
-            // Always position cursor at end - insertion detection relies on characters
-            // being appended, which only works when cursor is at the end
-            textFieldValue = TextFieldValue(
-                text = currentContent,
-                selection = TextRange(currentContent.length),
-            )
+    }
+
+    // Ownership model arbitrated by isUserEditing:
+    //  - While the user is typing (isUserEditing): the hidden field is authoritative. We skip syncing so
+    //    we never clobber in-flight input (incl. IME composition). Authority is released only once the
+    //    engine echo has caught up with the field (texts match), so fast multi-keystroke bursts don't
+    //    drop characters.
+    //  - Otherwise (tap, arrows, undo/redo, programmatic): the engine is authoritative. Rebuild the field
+    //    text and map the field selection from the engine cursor/selection so the IME composes in the
+    //    right place.
+    LaunchedEffect(currentContent, visibleRange, cursorPosition, selection) {
+        if (isUserEditing) {
+            if (textFieldValue.text == currentContent) isUserEditing = false
+            return@LaunchedEffect
+        }
+
+        val visibleLines = currentContent.split('\n')
+        val rangeStart = visibleRange.first
+
+        val mappedSelection: TextRange? = selection?.let { (start, end) ->
+            val s = positionToFlatOffset(visibleLines, rangeStart, start)
+            val e = positionToFlatOffset(visibleLines, rangeStart, end)
+            if (s != null && e != null) TextRange(s, e) else null
+        } ?: positionToFlatOffset(visibleLines, rangeStart, cursorPosition)?.let { TextRange(it) }
+
+        val newSelection = computeFieldSelectionSync(
+            fieldText = textFieldValue.text,
+            fieldSelection = textFieldValue.selection,
+            engineContent = currentContent,
+            mappedSelection = mappedSelection,
+        )
+        if (newSelection != null) {
+            textFieldValue = TextFieldValue(text = currentContent, selection = newSelection)
         }
     }
 
@@ -416,20 +437,24 @@ private fun DualColumnEditorContent(
                 val oldText = textFieldValue.text
                 val newText = newValue.text
 
+                // The field is authoritative while editing: keep the new value verbatim so its selection
+                // and IME composition are preserved.
                 textFieldValue = newValue
 
-                if (newText != oldText) {
-                    // Mark as user edit to skip TextField sync when content updates
+                // Diff the change into a single contiguous region (covers append, prepend, mid-insert,
+                // delete, equal-length/autocorrect replace, and predictive rewrites).
+                val edit = computeTextEdit(oldText, newText)
+                if (edit != null) {
                     isUserEditing = true
-                    if (newText.length > oldText.length && newText.startsWith(oldText)) {
-                        // Insertion: text was added at the end
-                        val addedText = newText.substring(oldText.length)
-                        onTextChange(addedText)
-                    } else if (newText.length < oldText.length) {
-                        // Deletion: characters were removed (backspace/delete)
-                        val deletedCount = oldText.length - newText.length
-                        onTextDelete(deletedCount)
-                    }
+                    val rangeStart = visibleRange.first
+                    val oldLines = oldText.split('\n')
+                    val newLines = newText.split('\n')
+                    val start = flatOffsetToPosition(oldLines, rangeStart, edit.start)
+                    val end = flatOffsetToPosition(oldLines, rangeStart, edit.end)
+                    // Forward the resulting caret (mapped from the field selection in the NEW text) so the
+                    // engine cursor lands exactly where the IME caret is and the echo maps back unchanged.
+                    val caret = flatOffsetToPosition(newLines, rangeStart, newValue.selection.end)
+                    onTextReplace(start, end, edit.inserted, caret)
                 }
             },
             modifier = Modifier
@@ -835,8 +860,7 @@ private fun LazyTextEditorPreview() {
         wordWrap = false,
         fontSize = 14,
         tabSize = 4,
-        onTextChange = {},
-        onTextDelete = {},
+        onTextReplace = { _, _, _, _ -> },
         onCursorPositionChange = {},
         onSelectionChange = {},
         onVisibleRangeChange = {},

@@ -258,6 +258,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().insertText(text)
     }
 
+    fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) = launch {
+        getWorkspace().replaceText(start, end, text, caret)
+    }
+
     fun deleteSelection() = launch {
         getWorkspace().deleteSelection()
     }
@@ -588,6 +592,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
             is EditorPageAction.Edit.DeleteAtCursor -> deleteAtCursor(action.count)
+            is EditorPageAction.Edit.ReplaceRange -> replaceText(action.start, action.end, action.text, action.caret)
             is EditorPageAction.Edit.ForwardDelete -> deleteForward()
             is EditorPageAction.Edit.Undo -> undo()
             is EditorPageAction.Edit.Redo -> redo()

@@ -282,8 +282,9 @@ fun EditorWorkspacePage(
                         searchResults = state.searchResults,
                         currentSearchResultIndex = state.currentSearchResultIndex,
                         scrollTrigger = state.scrollTrigger,
-                        onTextChange = { text -> onPageAction(EditorPageAction.Edit.InsertText(text)) },
-                        onTextDelete = { count -> onPageAction(EditorPageAction.Edit.DeleteAtCursor(count)) },
+                        onTextReplace = { start, end, inserted, caret ->
+                            onPageAction(EditorPageAction.Edit.ReplaceRange(start, end, inserted, caret))
+                        },
                         onCursorPositionChange = { position ->
                             onPageAction(
                                 EditorPageAction.Navigation.SetCursor(
