@@ -2,7 +2,6 @@ package eu.darken.butler.main.ui.onboarding
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entry
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
