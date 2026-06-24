@@ -23,7 +23,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.extensions.toFile
+import eu.darken.butler.common.files.local.LocalFileMaterializer
 import eu.darken.butler.common.funnel.IPCFunnel
 import eu.darken.butler.common.hasApiLevel
 import eu.darken.butler.common.permissions.Permission
@@ -46,6 +46,7 @@ import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.keepResourcesAlive
 import eu.darken.butler.common.user.UserHandle2
 import eu.darken.butler.common.user.UserManager2
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.plus
 import javax.inject.Inject
@@ -65,6 +66,7 @@ class PkgOps @Inject constructor(
     private val usageStatsManager: UsageStatsManager,
     private val storageStatsManager: StorageStatsManager,
     private val userManager2: UserManager2,
+    private val localFileMaterializer: LocalFileMaterializer,
 ) : HasSharedResource<Any> {
 
     override val sharedResource = SharedResource.createKeepAlive(TAG, appScope + dispatcherProvider.IO)
@@ -221,18 +223,36 @@ class PkgOps @Inject constructor(
         }
     }
 
-    suspend fun viewArchive(path: APath<*>, flags: Int = 0): PkgArchive? = ipcFunnel.use {
-        // TODO: SAF paths are unsupported — getPackageArchiveInfo() needs a real filesystem path,
-        // so a SAFPath would first have to be cached to a temp file. Deferred.
-        val jFile = path.toFile()
-        if (!jFile.exists()) return@use null
+    /**
+     * Reads metadata from an APK archive at [path].
+     *
+     * Works for any [APath] backend: non-local paths (SAF today, FTP/SFTP/HTTP in future) are
+     * materialized to a temp file first, because [PackageManager.getPackageArchiveInfo] only accepts
+     * a real filesystem path. The result is metadata-only (package name, version, permissions): the
+     * underlying [PackageInfo] references temp paths (`sourceDir`, `publicSourceDir`, `splitSourceDirs`,
+     * `nativeLibraryDir`) that no longer exist once this returns, so do NOT load resources from its raw
+     * `applicationInfo` (e.g. `loadIcon()`/`loadLabel()`).
+     *
+     * Returns null if the archive cannot be read or parsed.
+     */
+    suspend fun viewArchive(path: APath<*>, flags: Int = 0): PkgArchive? = try {
+        localFileMaterializer.useLocalFile(path) { jFile ->
+            if (!jFile.exists()) return@useLocalFile null
 
-        packageManager.getPackageArchiveInfo(path.path, flags)?.let {
-            PkgArchive(
-                id = it.packageName.toPkgId(),
-                packageInfo = it,
-            )
+            ipcFunnel.use {
+                packageManager.getPackageArchiveInfo(jFile.path, flags)?.let {
+                    PkgArchive(
+                        id = it.packageName.toPkgId(),
+                        packageInfo = it,
+                    )
+                }
+            }
         }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        log(TAG, WARN) { "viewArchive($path) failed: ${e.asLog()}" }
+        null
     }
 
     suspend fun getIcon(pkg: Pkg.Id): Drawable? {
