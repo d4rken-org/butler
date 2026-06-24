@@ -312,7 +312,7 @@ class OperationHistoryRepo @Inject constructor(
                 ORDER BY completedAt DESC
                 LIMIT ?
             """.trimIndent()
-            val args = buildList {
+            val args = buildList<Any> {
                 addAll(outcomes)
                 addAll(kinds)
                 for (scope in pathScopes) {
