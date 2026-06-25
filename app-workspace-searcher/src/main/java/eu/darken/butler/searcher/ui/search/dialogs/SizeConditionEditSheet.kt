@@ -96,6 +96,8 @@ fun SizeConditionEditSheet(
         onDismiss = onDismiss,
         topInset = topInset,
         bottomInset = bottomInset,
+        // Has an editable numeric field, so its content must stay above the keyboard.
+        includeImePadding = true,
     ) {
         SizeConditionEditContent(
             existingCondition = existingCondition,

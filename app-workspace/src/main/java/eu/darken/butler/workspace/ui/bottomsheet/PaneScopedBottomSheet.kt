@@ -40,7 +40,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -48,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -64,6 +67,9 @@ import kotlin.math.roundToInt
  * @param visible Whether the bottom sheet should be shown
  * @param onDismiss Callback when the user dismisses the sheet (by clicking the scrim or dragging down)
  * @param dragHandle Optional drag handle composable. Pass null to hide the handle.
+ * @param includeImePadding Whether the sheet content should pad for the soft keyboard. Enable
+ *        only for sheets containing an editable text field. When `false` the sheet ignores the
+ *        IME (so a stale host IME inset can't inflate it) and dismisses the keyboard on show.
  * @param modifier Modifier for the sheet content
  * @param content The content to display in the bottom sheet
  */
@@ -74,6 +80,7 @@ fun PaneScopedBottomSheet(
     onDismiss: () -> Unit,
     topInset: Dp = 0.dp,
     bottomInset: Dp = 0.dp,
+    includeImePadding: Boolean = false,
     dragHandle: @Composable (() -> Unit)? = { DefaultDragHandle() },
     content: @Composable () -> Unit,
 ) {
@@ -86,7 +93,7 @@ fun PaneScopedBottomSheet(
         ) {
             Column(
                 modifier = Modifier
-                    .imePadding()
+                    .then(if (includeImePadding) Modifier.imePadding() else Modifier)
                     .padding(bottom = bottomInset),
             ) {
                 dragHandle?.invoke()
@@ -107,6 +114,21 @@ fun PaneScopedBottomSheet(
     LaunchedEffect(visible) {
         if (visible) {
             dragOffset.snapTo(0f)
+        }
+    }
+
+    // A non-input sheet shouldn't sit behind a keyboard, nor inherit a stale host IME inset that
+    // can linger after a dialog's keyboard is dismissed. Hide the keyboard when such a sheet
+    // appears. Gated on workspace focus so a sheet opening in an unfocused pane can't steal the
+    // keyboard from a focused pane (e.g. the editor). Keyed only on (visible, includeImePadding)
+    // so nested dialogs (e.g. PathIssueRenameDialog) don't re-fire it.
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val isWorkspaceFocused = LocalWorkspaceFocused.current
+    LaunchedEffect(visible, includeImePadding) {
+        if (visible && !includeImePadding && isWorkspaceFocused) {
+            focusManager.clearFocus()
+            keyboardController?.hide()
         }
     }
 
@@ -184,7 +206,7 @@ fun PaneScopedBottomSheet(
                 ) {
                     Column(
                         modifier = Modifier
-                            .imePadding()
+                            .then(if (includeImePadding) Modifier.imePadding() else Modifier)
                             .padding(bottom = bottomInset),
                     ) {
                         dragHandle?.invoke()

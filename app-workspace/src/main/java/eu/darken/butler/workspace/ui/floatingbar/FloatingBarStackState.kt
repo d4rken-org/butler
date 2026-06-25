@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
@@ -42,6 +41,8 @@ import kotlin.math.abs
  * @param initialEdgePaddingPx Space from screen edge to first bar (updated via [updateConfig]).
  * @param initialContentGapPx Space after last bar before content (updated via [updateConfig]).
  * @param initialSystemBarInsetPx System bar height - status bar for TOP, nav bar for BOTTOM.
+ * @param initialImeExtraPx Extra bottom inset for the soft keyboard, over and above the nav bar
+ *        (i.e. `max(0, ime - navBar)`). Non-zero only for IME-tracking BOTTOM stacks.
  * @param initialEstimatedContentPaddingPx Estimated total content padding for first-frame rendering.
  *        Used when bars haven't registered yet (e.g. screenshot tests, first composition frame).
  *        Once bars register, the actual calculated padding takes over.
@@ -53,6 +54,7 @@ class FloatingBarStackState(
     initialEdgePaddingPx: Float = 0f,
     initialContentGapPx: Float = 0f,
     initialSystemBarInsetPx: Float = 0f,
+    initialImeExtraPx: Float = 0f,
     initialEstimatedContentPaddingPx: Float = 0f,
 ) {
     // Make these mutableState so derivedStateOf can observe changes when updateConfig() is called
@@ -60,6 +62,7 @@ class FloatingBarStackState(
     private var edgePaddingPx by mutableFloatStateOf(initialEdgePaddingPx)
     private var contentGapPx by mutableFloatStateOf(initialContentGapPx)
     private var systemBarInsetPx by mutableFloatStateOf(initialSystemBarInsetPx)
+    private var imeExtraPx by mutableFloatStateOf(initialImeExtraPx)
     private var estimatedContentPaddingPx by mutableFloatStateOf(initialEstimatedContentPaddingPx)
 
     internal val barStates = mutableStateListOf<FloatingBarState>()
@@ -74,8 +77,8 @@ class FloatingBarStackState(
      * Clamped to non-negative to handle bounce animation overshoot.
      */
     val contentPaddingPx: Float by derivedStateOf {
-        // Start with system bar inset (status bar for TOP, nav bar for BOTTOM)
-        var totalHeight = systemBarInsetPx + edgePaddingPx
+        // Start with system bar inset (status bar for TOP, nav bar for BOTTOM) plus any IME extra
+        var totalHeight = systemBarInsetPx + imeExtraPx + edgePaddingPx
 
         if (barStates.isEmpty()) {
             // Use estimate before bars register (first frame / screenshot rendering)
@@ -212,12 +215,14 @@ class FloatingBarStackState(
         edgePaddingPx: Float,
         contentGapPx: Float,
         systemBarInsetPx: Float,
+        imeExtraPx: Float,
         estimatedContentPaddingPx: Float = this.estimatedContentPaddingPx,
     ) {
         this.defaultSpacingPx = defaultSpacingPx
         this.edgePaddingPx = edgePaddingPx
         this.contentGapPx = contentGapPx
         this.systemBarInsetPx = systemBarInsetPx
+        this.imeExtraPx = imeExtraPx
         this.estimatedContentPaddingPx = estimatedContentPaddingPx
     }
 
@@ -233,8 +238,8 @@ class FloatingBarStackState(
      * - BOTTOM: first bar is furthest from edge, last bar is at bottom edge
      */
     internal fun getBarOffset(index: Int): Float {
-        // Start with system bar inset + edge padding
-        var offset = systemBarInsetPx + edgePaddingPx
+        // Start with system bar inset + IME extra + edge padding
+        var offset = systemBarInsetPx + imeExtraPx + edgePaddingPx
 
         // For TOP: sum bars BEFORE this one (closer to edge = lower index)
         // For BOTTOM: sum bars AFTER this one (closer to edge = higher index)
@@ -278,7 +283,7 @@ class FloatingBarStackState(
                 val spacingPx = saved[1] as Float
                 val edgePx = saved[2] as Float
                 val contentGapPx = saved[3] as Float
-                // systemBarInsetPx is not saved - it's recomputed from WindowInsets via updateConfig()
+                // systemBarInsetPx / imeExtraPx are not saved - recomputed from WindowInsets via updateConfig()
                 FloatingBarStackState(
                     position = position,
                     initialDefaultSpacingPx = spacingPx,
@@ -293,6 +298,14 @@ class FloatingBarStackState(
 }
 
 /**
+ * The soft-keyboard contribution to the bottom inset, expressed as an extra *over* the nav bar so
+ * that `navBottomPx + imeInsetExtraPx(...) == max(navBottomPx, imeBottomPx)`. This avoids
+ * double-counting the nav-bar region, which the IME inset already spans under 3-button navigation.
+ */
+internal fun imeInsetExtraPx(imeBottomPx: Float, navBottomPx: Float): Float =
+    (imeBottomPx - navBottomPx).coerceAtLeast(0f)
+
+/**
  * Creates and remembers a [FloatingBarStackState].
  *
  * @param position Whether this stack is at TOP or BOTTOM of the screen.
@@ -301,6 +314,11 @@ class FloatingBarStackState(
  * @param contentPadding Padding between the last bar and content.
  * @param includeSystemBarInset Whether to include the relevant system bar inset
  *        (status bar for TOP position, navigation bar for BOTTOM position).
+ * @param includeImeInset Whether bars and content should rise above the soft keyboard. Only
+ *        meaningful for a BOTTOM stack that also includes the system bar inset, and only stacks
+ *        that host a text input which must stay above the keyboard (e.g. the editor) should opt
+ *        in. Non-input action bars leave this `false` so a stale host IME inset (which can linger
+ *        after a dialog's keyboard is dismissed) never pushes them up.
  * @param estimatedContentPadding Estimated total content padding for first-frame rendering.
  *        Used when bars haven't registered yet (e.g. screenshot tests, first composition frame).
  *        Once bars register, the actual calculated padding takes over.
@@ -312,6 +330,7 @@ fun rememberFloatingBarStackState(
     edgePadding: Dp = 8.dp,
     contentPadding: Dp = 0.dp,
     includeSystemBarInset: Boolean = true,
+    includeImeInset: Boolean = false,
     estimatedContentPadding: Dp = Dp.Unspecified,
 ): FloatingBarStackState {
     val density = LocalDensity.current
@@ -324,12 +343,22 @@ fun rememberFloatingBarStackState(
         0f
     }
 
-    // Get system bar inset based on position (status bar for TOP, nav bar + IME for BOTTOM)
+    // System bar inset based on position (status bar for TOP, nav bar for BOTTOM). No IME here.
     val systemBarInsetPx = if (includeSystemBarInset) {
         when (position) {
             BarPosition.TOP -> WindowInsets.statusBars.getTop(density).toFloat()
-            BarPosition.BOTTOM -> WindowInsets.navigationBars.union(WindowInsets.ime).getBottom(density).toFloat()
+            BarPosition.BOTTOM -> WindowInsets.navigationBars.getBottom(density).toFloat()
         }
+    } else {
+        0f
+    }
+
+    // IME contribution as an extra over the nav bar so nav+extra == max(nav, ime) (no double
+    // count when the IME inset already spans the nav bar region, e.g. 3-button navigation).
+    // Only BOTTOM stacks that opt in track the keyboard; reading WindowInsets.ime is confined to
+    // this branch so non-opted-in stacks never react to a stale host IME inset.
+    val imeExtraPx = if (includeImeInset && includeSystemBarInset && position == BarPosition.BOTTOM) {
+        imeInsetExtraPx(WindowInsets.ime.getBottom(density).toFloat(), systemBarInsetPx)
     } else {
         0f
     }
@@ -343,10 +372,11 @@ fun rememberFloatingBarStackState(
             initialEdgePaddingPx = edgePaddingPx,
             initialContentGapPx = contentGapPx,
             initialSystemBarInsetPx = systemBarInsetPx,
+            initialImeExtraPx = imeExtraPx,
             initialEstimatedContentPaddingPx = estimatedContentPaddingPx,
         )
     }.also {
-        it.updateConfig(defaultSpacingPx, edgePaddingPx, contentGapPx, systemBarInsetPx, estimatedContentPaddingPx)
+        it.updateConfig(defaultSpacingPx, edgePaddingPx, contentGapPx, systemBarInsetPx, imeExtraPx, estimatedContentPaddingPx)
         it.animationScope = scope
     }
 }
