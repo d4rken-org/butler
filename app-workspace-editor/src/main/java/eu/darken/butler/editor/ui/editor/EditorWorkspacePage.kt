@@ -125,6 +125,8 @@ fun EditorWorkspacePage(
         edgePadding = 8.dp,
         contentPadding = 16.dp,
         includeSystemBarInset = design.paneEdges.touchesBottom,
+        // Editor bars (in-document search) and content must rise above the soft keyboard.
+        includeImeInset = true,
         estimatedContentPadding = 80.dp,
     )
 
