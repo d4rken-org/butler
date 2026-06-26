@@ -39,7 +39,7 @@ accompanist = "0.37.3"
 room = "2.8.4"
 work = "2.11.2"
 # App-specific
-billing = "7.1.1"
+billing = "9.1.0"
 play-review = "2.0.2"
 vico = "2.2.0"
 shizuku = "13.1.5"
