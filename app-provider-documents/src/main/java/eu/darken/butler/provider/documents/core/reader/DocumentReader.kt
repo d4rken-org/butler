@@ -6,6 +6,7 @@ import android.os.ParcelFileDescriptor
 import android.system.ErrnoException
 import android.system.OsConstants
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
@@ -15,7 +16,6 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
 import java.io.InputStream
@@ -37,6 +37,7 @@ class DocumentReader @Inject constructor(
     private val codec: DocumentIdCodec,
     private val gatewaySwitch: GatewaySwitch,
     private val proxyPfdFactory: ProxyPfdFactory,
+    private val dispatcherProvider: DispatcherProvider,
 ) {
 
     /**
@@ -136,7 +137,7 @@ class DocumentReader @Inject constructor(
         val readSide = pipe[0]
         val writeSide = pipe[1]
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(dispatcherProvider.IO).launch {
             try {
                 ParcelFileDescriptor.AutoCloseOutputStream(writeSide).use { output ->
                     inputStream.use { input ->
@@ -166,7 +167,7 @@ class DocumentReader @Inject constructor(
         val readSide = pipe[0]
         val writeSide = pipe[1]
 
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(dispatcherProvider.IO).launch {
             try {
                 ParcelFileDescriptor.AutoCloseInputStream(readSide).use { input ->
                     outputStream.use { output ->
