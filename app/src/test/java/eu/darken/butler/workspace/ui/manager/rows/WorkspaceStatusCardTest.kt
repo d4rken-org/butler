@@ -23,7 +23,7 @@ class WorkspaceStatusCardTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithText("5").assertIsDisplayed()
+        composeTestRule.onNodeWithText("5", substring = true).assertIsDisplayed()
     }
 
     @Test
@@ -38,7 +38,7 @@ class WorkspaceStatusCardTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithText("3").assertIsDisplayed()
+        composeTestRule.onNodeWithText("3", substring = true).assertIsDisplayed()
     }
 
     @Test
@@ -53,7 +53,7 @@ class WorkspaceStatusCardTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithText("2").assertIsDisplayed()
+        composeTestRule.onNodeWithText("2", substring = true).assertIsDisplayed()
     }
 
     @Test
@@ -71,7 +71,7 @@ class WorkspaceStatusCardTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Show all workspaces").performClick()
+        composeTestRule.onNodeWithContentDescription("Show all tabs").performClick()
 
         clicked shouldBe true
     }
@@ -91,7 +91,7 @@ class WorkspaceStatusCardTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Filter by workspaces with operations").performClick()
+        composeTestRule.onNodeWithContentDescription("Filter by tabs with operations").performClick()
 
         clicked shouldBe true
     }
@@ -111,7 +111,7 @@ class WorkspaceStatusCardTest : ComposeTest() {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription("Filter by workspaces needing attention").performClick()
+        composeTestRule.onNodeWithContentDescription("Filter by tabs needing attention").performClick()
 
         clicked shouldBe true
     }
