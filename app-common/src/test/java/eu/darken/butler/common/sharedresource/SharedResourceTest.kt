@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import okio.IOException
+import java.util.concurrent.atomic.AtomicInteger
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -216,6 +217,21 @@ class SharedResourceTest : BaseTest() {
         srParent.addChild(srChild)
         srParent.addChild(srChild)
         srChild.isClosed shouldBe false
+
+        // A duplicate adoption must not leak a second keep-alive: closing the parent frees the child.
+        srParent.close()
+        srChild.isClosed shouldBe true
+    }
+
+    @Test fun `addChild ignores self-adoption`() = runTest2(autoCancel = true) {
+        val sr = SharedResource.createKeepAlive("test", this + Dispatchers.IO, Duration.ZERO)
+
+        val lease = sr.get()
+        sr.addChild(sr)
+        lease.close()
+
+        // Without the guard, the self-held child lease would keep us pinned open forever.
+        sr.isClosed shouldBe true
     }
 
     @Test fun `error during creation is forwarded`() = runTest2(autoCancel = true) {
@@ -952,5 +968,281 @@ class SharedResourceTest : BaseTest() {
         parent.isClosed shouldBe true   // detach completed despite the throwing child
         goodChildClosed shouldBe true   // iteration continued past the thrower (per-child runCatching)
         sourceTornDown shouldBe true    // source teardown was enqueued before the child loop, not stranded
+    }
+
+    @Test
+    fun `addChild does not hold the parent lock across child acquisition`(): Unit = runBlocking {
+        val childStarted = CompletableDeferred<Unit>()
+        val childGate = CompletableDeferred<Unit>()
+        val parent = SharedResource<Int>(
+            tag = "parent",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = flow {
+                emit(1)
+                awaitCancellation()
+            },
+        )
+        val child = SharedResource<Int>(
+            tag = "child",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = flow {
+                childStarted.complete(Unit)
+                childGate.await() // a slow child startup, e.g. launching a root helper
+                emit(2)
+                awaitCancellation()
+            },
+        )
+
+        val parentLease = parent.get()
+        val adoption = launch(Dispatchers.IO) { parent.addChild(child) }
+        childStarted.await()
+
+        // While the child's slow startup is still in progress, the parent must stay fully usable —
+        // previously addChild held the parent's coreLock across child.get(), wedging this call.
+        val concurrent = withTimeout(5_000) { parent.get() }
+        concurrent.item shouldBe 1
+        concurrent.close()
+
+        childGate.complete(Unit)
+        adoption.join()
+        child.isClosed shouldBe false
+
+        parentLease.close()
+        parent.close()
+        child.isClosed shouldBe true
+    }
+
+    @Test
+    fun `addChild releases the child when the parent dies during adoption`(): Unit = runBlocking {
+        val childStarted = CompletableDeferred<Unit>()
+        val childGate = CompletableDeferred<Unit>()
+        val parent = SharedResource<Int>(
+            tag = "parent",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = flow {
+                emit(1)
+                awaitCancellation()
+            },
+        )
+        val child = SharedResource<Int>(
+            tag = "child",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = flow {
+                childStarted.complete(Unit)
+                childGate.await()
+                emit(2)
+                awaitCancellation()
+            },
+        )
+
+        parent.get()
+        val adoption = launch(Dispatchers.IO) { parent.addChild(child) }
+        childStarted.await()
+
+        try {
+            // The generation the adoption was decided for dies while the child is still starting up.
+            // Off-thread + timeout so a regression (addChild holding coreLock across child.get() would
+            // block close() until childGate opens) fails the test instead of hanging the worker.
+            withTimeout(5_000) {
+                withContext(Dispatchers.IO) { parent.close() }
+            }
+        } finally {
+            childGate.complete(Unit)
+        }
+        parent.isClosed shouldBe true
+
+        adoption.join()
+
+        // ...so the acquired keep-alive must be released instead of registered — nothing may pin the
+        // child open on behalf of a parent generation whose cleanup already ran.
+        child.isClosed shouldBe true
+        parent.isClosed shouldBe true
+    }
+
+    @Test
+    fun `addChild propagates a failing child acquisition without leaking`(): Unit = runBlocking {
+        val parent = SharedResource<Int>(
+            tag = "parent",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = flow {
+                emit(1)
+                awaitCancellation()
+            },
+        )
+        val child = SharedResource<Int>(
+            tag = "child",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = flow<Int> { throw IOException("child cannot start") },
+        )
+
+        val parentLease = parent.get()
+
+        // child.get() throws before any keep-alive exists — addChild must surface it, not swallow it.
+        shouldThrow<IOException> { parent.addChild(child) }
+
+        // Nothing was registered, and the failure did not corrupt the parent: it stays fully usable.
+        val stillWorks = withTimeout(5_000) { parent.get() }
+        stillWorks.item shouldBe 1
+        stillWorks.close()
+
+        parentLease.close()
+        parent.close()
+    }
+
+    @Test
+    fun `addChild replaces a stale closed child on re-adoption`() = runTest2(autoCancel = true) {
+        val srParent = SharedResource.createKeepAlive("parent", this + Dispatchers.IO, Duration.ZERO)
+        val srChild = SharedResource.createKeepAlive("child", this + Dispatchers.IO, Duration.ZERO)
+
+        val parentLease = srParent.get()
+
+        srParent.addChild(srChild)
+        srChild.isClosed shouldBe false
+
+        // Force the child closed out from under the parent, leaving a stale closed child entry.
+        srChild.close()
+        srChild.isClosed shouldBe true
+
+        // Re-adopting must replace the stale entry and revive the child, not treat it as already-kept.
+        srParent.addChild(srChild)
+        srChild.isClosed shouldBe false
+
+        parentLease.close()
+        srParent.close()
+        srChild.isClosed shouldBe true
+    }
+
+    @Test
+    fun `get re-acquires a fresh generation when a reused one fails the liveness check`() = runTest2 {
+        // Real dispatcher, like the other tests here: SharedResource's Lease.close uses runBlocking, which
+        // deadlocks a single-threaded test dispatcher.
+        val produced = AtomicInteger(0)
+        val liveThreshold = AtomicInteger(0) // resources with id > threshold are considered alive
+        val sr = SharedResource<Int>(
+            tag = "reuse-liveness",
+            parentScope = this + Dispatchers.IO,
+            source = flow {
+                emit(produced.incrementAndGet())
+                awaitCancellation()
+            },
+            isReusable = { it > liveThreshold.get() },
+        )
+
+        // A held lease pins generation 1 as `active`, so no idle-teardown can race this test.
+        val pin = sr.get()
+        pin.item shouldBe 1
+
+        // Resource 1 is now "dead" WITHOUT completing its source, so `active` still points at generation 1 —
+        // exactly the window where SharedResource's async detach hasn't cleared the dead generation yet.
+        liveThreshold.set(1)
+
+        // Without the fix, get() reuses the stale dead generation 1. With it, get() fails the liveness
+        // check, detaches generation 1, and re-acquires a fresh generation 2.
+        val second = sr.get()
+        second.item shouldBe 2
+
+        second.close()
+        pin.close()
+        sr.close()
+    }
+
+    @Test
+    fun `get retries when a concurrent close force-closes the lease mid-acquisition`() = runTest2 {
+        // Real dispatcher: Lease.close/close() use runBlocking.
+        val produced = AtomicInteger(0)
+        val closeTriggered = AtomicInteger(0)
+        lateinit var sr: SharedResource<Int>
+        sr = SharedResource(
+            tag = "close-race",
+            parentScope = this + Dispatchers.IO,
+            stopTimeout = Duration.ZERO,
+            source = flow {
+                emit(produced.incrementAndGet())
+                awaitCancellation()
+            },
+            // The validator runs in the window between lease registration (under coreLock) and get()
+            // returning — exactly where a concurrent close() can force-close the just-created lease.
+            // Trigger that close() deterministically on the first acquisition.
+            isReusable = {
+                if (closeTriggered.incrementAndGet() == 1) sr.close()
+                true
+            },
+        )
+
+        val resource = sr.get()
+        // Without the retry, get() hands back generation 1's force-closed lease and this access throws.
+        // With it, get() notices the closed lease and re-acquires a fresh generation.
+        resource.item shouldBe 2
+        resource.close()
+        sr.close()
+    }
+
+    @Test
+    fun `a reused generation dying before its first value does not poison the reusing caller`(): Unit = runBlocking {
+        val attempts = AtomicInteger(0)
+        val firstStarted = CompletableDeferred<Unit>()
+        val failFirst = CompletableDeferred<Unit>()
+
+        // Completed when the second get() has REUSED the running generation — the "Source job already
+        // exists" breadcrumb is logged under coreLock exactly where the reuse decision falls, and only
+        // a reusing caller emits it. Deterministic, unlike a sleep: without this the reuser could start
+        // only after generation 1 already failed, acquire a fresh generation, and pass vacuously.
+        val reuserLatched = CompletableDeferred<Unit>()
+        val capture = object : Logging.Logger {
+            override fun log(
+                priority: Logging.Priority,
+                tag: String,
+                message: String,
+                metaData: Map<String, Any>?,
+            ) {
+                if (tag == "stale-reuse:SR" && message.contains("Source job already exists")) {
+                    reuserLatched.complete(Unit)
+                }
+            }
+        }
+        Logging.install(capture)
+        try {
+            val sr = SharedResource<Int>(
+                tag = "stale-reuse",
+                parentScope = this + Dispatchers.IO,
+                stopTimeout = Duration.ZERO,
+                source = flow {
+                    if (attempts.incrementAndGet() == 1) {
+                        firstStarted.complete(Unit)
+                        failFirst.await()
+                        throw IOException("source died before producing a value")
+                    }
+                    emit(attempts.get())
+                    awaitCancellation()
+                },
+            )
+
+            val creator = async(Dispatchers.IO) { runCatching { sr.get() } }
+            firstStarted.await()
+            // The source is running but has produced no value yet, so this get() REUSES generation 1
+            // and awaits its ready-gate...
+            val reuser = async(Dispatchers.IO) { runCatching { sr.get() } }
+            reuserLatched.await()
+            // ...then generation 1 dies before ever producing a value.
+            failFirst.complete(Unit)
+
+            // The caller that STARTED the doomed source sees its original failure...
+            (creator.await().exceptionOrNull() is IOException) shouldBe true
+            // ...but the caller that merely latched onto the dying generation must not inherit that
+            // stale error — it retries onto a fresh generation instead.
+            val resource = reuser.await().getOrThrow()
+            resource.item shouldBe 2
+
+            resource.close()
+            sr.close()
+        } finally {
+            Logging.remove(capture)
+        }
     }
 }
