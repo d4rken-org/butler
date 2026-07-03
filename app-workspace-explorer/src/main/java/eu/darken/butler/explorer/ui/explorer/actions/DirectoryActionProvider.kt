@@ -21,6 +21,8 @@ class DirectoryActionProvider @Inject constructor(
 
         val directory = location as? ExplorerLocation.Directory
         val isWritable = (directory?.info?.isWritable ?: false)
+        // Genuinely empty folder (raw, unfiltered items). null = still loading -> not treated as empty.
+        val isEmpty = directory?.items?.isEmpty() == true
 
         if (selectionState.isSelectionMode) {
             if (!selectionState.isAllSelected) {
@@ -73,14 +75,17 @@ class DirectoryActionProvider @Inject constructor(
                 )
             }
 
-            actions.add(ExplorerActionBarItem.Common.Sort())
-            actions.add(ExplorerActionBarItem.Common.Filter())
+            // Sort/filter/view-style have no effect on an empty folder.
+            if (!isEmpty) {
+                actions.add(ExplorerActionBarItem.Common.Sort())
+                actions.add(ExplorerActionBarItem.Common.Filter())
 
-            val toggledViewStyle = when (viewStyle) {
-                is ExplorerViewStyle.List -> ExplorerViewStyle.Grid()
-                is ExplorerViewStyle.Grid -> ExplorerViewStyle.List()
+                val toggledViewStyle = when (viewStyle) {
+                    is ExplorerViewStyle.List -> ExplorerViewStyle.Grid()
+                    is ExplorerViewStyle.Grid -> ExplorerViewStyle.List()
+                }
+                actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(toggledViewStyle))
             }
-            actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(toggledViewStyle))
         }
 
         return actions

@@ -25,7 +25,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
         trashEnabled: Boolean,
     ): List<ExplorerActionBarItem> = when (location) {
         is ExplorerLocation.Trash.Root -> getRootActions(location, selectionState, viewStyle)
-        is ExplorerLocation.Trash.Nested -> getNestedActions(selectionState, viewStyle)
+        is ExplorerLocation.Trash.Nested -> getNestedActions(location, selectionState, viewStyle)
         else -> emptyList()
     }
 
@@ -61,10 +61,16 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                 )
             )
         } else {
+            // null = still loading -> not treated as empty.
+            val isEmpty = location.items?.isEmpty() == true
+
             actions.add(ExplorerActionBarItem.Common.Refresh())
-            actions.add(ExplorerActionBarItem.Common.Sort())
-            actions.add(ExplorerActionBarItem.Common.Filter())
-            actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle))
+            // Sort/filter/view-style have no effect on an empty trash.
+            if (!isEmpty) {
+                actions.add(ExplorerActionBarItem.Common.Sort())
+                actions.add(ExplorerActionBarItem.Common.Filter())
+                actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle))
+            }
 
             actions.add(
                 ExplorerActionBarItem.Trash.EmptyBin(
@@ -79,6 +85,7 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
     }
 
     private fun getNestedActions(
+        location: ExplorerLocation.Trash.Nested,
         selectionState: ExplorerSelectionState,
         viewStyle: ExplorerViewStyle,
     ): List<ExplorerActionBarItem> {
@@ -109,10 +116,16 @@ class TrashActionProvider @Inject constructor() : ExplorerActionProvider {
                 )
             )
         } else {
+            // null = still loading -> not treated as empty.
+            val isEmpty = location.items?.isEmpty() == true
+
             actions.add(ExplorerActionBarItem.Common.Refresh())
-            actions.add(ExplorerActionBarItem.Common.Sort())
-            actions.add(ExplorerActionBarItem.Common.Filter())
-            actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle))
+            // Sort/filter/view-style have no effect on an empty trash folder.
+            if (!isEmpty) {
+                actions.add(ExplorerActionBarItem.Common.Sort())
+                actions.add(ExplorerActionBarItem.Common.Filter())
+                actions.add(ExplorerActionBarItem.Common.UpdateViewStyle(viewStyle))
+            }
         }
 
         return actions
