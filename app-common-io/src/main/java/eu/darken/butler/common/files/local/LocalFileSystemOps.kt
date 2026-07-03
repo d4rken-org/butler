@@ -11,7 +11,6 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
-import eu.darken.butler.common.files.core.local.readLink
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
@@ -127,7 +126,17 @@ class LocalFileSystemOps @Inject constructor(
         var size: Long? = null
         if (options.fetchSize) {
             try {
-                size = path.file.length()
+                size = if (fileType == FileType.SYMBOLIC_LINK) {
+                    // File.length() follows the link and reports the TARGET's size; a symlink must report
+                    // its own node size. Os.lstat (NOFOLLOW) provides it. If lstat is unavailable, leave
+                    // size null and record an error rather than silently reporting the target's size.
+                    fstat?.st_size ?: run {
+                        errors.add("Size: lstat unavailable for symlink")
+                        null
+                    }
+                } else {
+                    path.file.length()
+                }
             } catch (e: Exception) {
                 errors.add("Size: ${e.message}")
             }
@@ -145,7 +154,10 @@ class LocalFileSystemOps @Inject constructor(
         var target: LocalPath? = null
         if (fileType == FileType.SYMBOLIC_LINK) {
             try {
-                target = path.file.readLink()?.let { LocalPath.build(it) }
+                // Reuse readSymbolicLink(): it resolves a relative target against the link's parent and
+                // normalizes it. Raw readLink() returned the stored target verbatim, so a relative
+                // "../x" became a bogus absolute "/../x" when passed to LocalPath.build().
+                target = readSymbolicLink(path)
             } catch (e: Exception) {
                 errors.add("Link target: ${e.message}")
             }
