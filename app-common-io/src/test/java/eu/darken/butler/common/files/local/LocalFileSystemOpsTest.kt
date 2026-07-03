@@ -875,4 +875,58 @@ class LocalFileSystemOpsTest : BaseTest() {
         lookup.ownership shouldBe null // Not requested
         lookup.permissions shouldBe null // Not requested
     }
+
+    @Test
+    fun `lookup - symlink reports its own size, not the target's`(@TempDir tempDir: File) = runTest {
+        val target = File(tempDir, "target.bin").apply { writeBytes(ByteArray(5000)) }
+        val link = File(tempDir, "link")
+        java.nio.file.Files.createSymbolicLink(link.toPath(), target.toPath())
+
+        val lookup = fileSystemOps.lookup(LocalPath.build(link), LookupOptions.BASE)
+
+        lookup.fileType shouldBe FileType.SYMBOLIC_LINK
+        // The link node, NOT the 5000-byte target — deletion only removes the link. (When lstat is
+        // unavailable size is null; either way it must never be the target's size.)
+        lookup.size shouldNotBe 5000L
+        lookup.target shouldBe LocalPath.build(target.path)
+    }
+
+    @Test
+    fun `lookup - relative symlink target is resolved against the link's parent`(@TempDir tempDir: File) = runTest {
+        File(tempDir, "realfile").apply { writeText("x") }
+        val link = File(tempDir, "rellink")
+        java.nio.file.Files.createSymbolicLink(link.toPath(), java.nio.file.Paths.get("realfile")) // relative
+
+        val lookup = fileSystemOps.lookup(LocalPath.build(link), LookupOptions.BASE)
+
+        lookup.fileType shouldBe FileType.SYMBOLIC_LINK
+        // Resolved to <parent>/realfile, not the old bogus "/realfile".
+        lookup.target shouldBe LocalPath.build(File(tempDir, "realfile").path)
+    }
+
+    @Test
+    fun `lookup - relative symlink target with parent traversal is normalized`(@TempDir tempDir: File) = runTest {
+        File(tempDir, "realfile").apply { writeText("x") }
+        val sub = File(tempDir, "sub").apply { mkdirs() }
+        val link = File(sub, "uplink")
+        java.nio.file.Files.createSymbolicLink(link.toPath(), java.nio.file.Paths.get("../realfile")) // traverses up
+
+        val lookup = fileSystemOps.lookup(LocalPath.build(link), LookupOptions.BASE)
+
+        lookup.fileType shouldBe FileType.SYMBOLIC_LINK
+        // <sub>/../realfile is lexically normalized to <tempDir>/realfile, not left as "/sub/../realfile".
+        lookup.target shouldBe LocalPath.build(File(tempDir, "realfile").path)
+    }
+
+    @Test
+    fun `lookup - broken symlink is still a SYMBOLIC_LINK`(@TempDir tempDir: File) = runTest {
+        val link = File(tempDir, "broken")
+        java.nio.file.Files.createSymbolicLink(link.toPath(), File(tempDir, "does-not-exist").toPath())
+
+        val lookup = fileSystemOps.lookup(LocalPath.build(link), LookupOptions.BASE)
+
+        lookup.fileType shouldBe FileType.SYMBOLIC_LINK
+        // The target is read from the link itself, so a missing target is still resolved & reported.
+        lookup.target shouldBe LocalPath.build(File(tempDir, "does-not-exist").path)
+    }
 }
