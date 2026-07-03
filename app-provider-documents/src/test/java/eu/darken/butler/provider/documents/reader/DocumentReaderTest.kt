@@ -7,6 +7,7 @@ import android.os.OperationCanceledException
 import android.os.ParcelFileDescriptor
 import androidx.test.core.app.ApplicationProvider
 import eu.darken.butler.common.SafUri
+import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
@@ -19,7 +20,8 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.runTest
 import okio.FileHandle
 import org.junit.Before
@@ -45,6 +47,7 @@ class DocumentReaderTest {
     private lateinit var codec: DocumentIdCodec
     private lateinit var gatewaySwitch: GatewaySwitch
     private lateinit var proxyPfdFactory: ProxyPfdFactory
+    private lateinit var testDispatcher: TestDispatcher
     private lateinit var reader: DocumentReader
 
     @Before
@@ -53,11 +56,15 @@ class DocumentReaderTest {
         codec = mockk()
         gatewaySwitch = mockk()
         proxyPfdFactory = mockk()
-        reader = DocumentReader(context, codec, gatewaySwitch, proxyPfdFactory)
+        testDispatcher = StandardTestDispatcher()
+        val dispatcherProvider = object : DispatcherProvider {
+            override val IO = testDispatcher
+        }
+        reader = DocumentReader(context, codec, gatewaySwitch, proxyPfdFactory, dispatcherProvider)
     }
 
     @Test
-    fun `openDocument reads LocalPath via pipe fallback`() = runBlocking {
+    fun `openDocument reads LocalPath via pipe fallback`() = runTest(testDispatcher) {
         val testContent = "Hello DocumentsProvider"
         val path = LocalPath.build("/some/file.txt")
         val documentId = "local|encoded"
@@ -67,8 +74,7 @@ class DocumentReaderTest {
         coEvery { gatewaySwitch.openInputStream(path) } returns testContent.byteInputStream()
 
         val pfd = reader.openDocument(documentId, "r", null)
-
-        Thread.sleep(1000)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
             val content = inputStream.readBytes().toString(Charsets.UTF_8)
@@ -160,7 +166,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument handles SAFPath via pipe fallback`() = runBlocking {
+    fun `openDocument handles SAFPath via pipe fallback`() = runTest(testDispatcher) {
         val androidUri =
             Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Ftest.txt")
         val safUri = mockk<SafUri> {
@@ -178,9 +184,7 @@ class DocumentReaderTest {
         coEvery { gatewaySwitch.openInputStream(safPath) } returns testContent.byteInputStream()
 
         val pfd = reader.openDocument(documentId, "r", null)
-
-        // Allow background coroutine (Dispatchers.IO) to transfer data through pipe
-        Thread.sleep(1000)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
             val content = inputStream.readBytes().toString(Charsets.UTF_8)
@@ -191,7 +195,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument uses pipe for SAFPath with large file`() = runBlocking {
+    fun `openDocument uses pipe for SAFPath with large file`() = runTest(testDispatcher) {
         val androidUri =
             Uri.parse("content://com.android.externalstorage.documents/tree/primary%3AFolder/document/primary%3AFolder%2Flarge.bin")
         val safUri = mockk<SafUri> {
@@ -209,9 +213,7 @@ class DocumentReaderTest {
         coEvery { gatewaySwitch.openInputStream(safPath) } returns largeData.inputStream()
 
         val pfd = reader.openDocument(documentId, "r", null)
-
-        // Allow background coroutine (Dispatchers.IO) to transfer data through pipe
-        Thread.sleep(1000)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
             val content = inputStream.readBytes()
@@ -226,7 +228,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument reads file content via pipe fallback`() = runBlocking {
+    fun `openDocument reads file content via pipe fallback`() = runTest(testDispatcher) {
         val testFile = tempFolder.newFile("data.txt")
         val testData = "Line 1\nLine 2\nLine 3"
         testFile.writeText(testData)
@@ -239,9 +241,7 @@ class DocumentReaderTest {
         coEvery { gatewaySwitch.openInputStream(path) } returns testData.byteInputStream()
 
         val pfd = reader.openDocument(documentId, "r", null)
-
-        // Allow background coroutine (Dispatchers.IO) to transfer data through pipe
-        Thread.sleep(1000)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         FileInputStream(pfd.fileDescriptor).bufferedReader().use { reader ->
             reader.readLine() shouldBe "Line 1"
@@ -253,7 +253,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument handles empty file via pipe fallback`() = runBlocking {
+    fun `openDocument handles empty file via pipe fallback`() = runTest(testDispatcher) {
         val testFile = tempFolder.newFile("empty.txt")
         val path = LocalPath.build(testFile.absolutePath)
         val documentId = "local|empty"
@@ -263,9 +263,7 @@ class DocumentReaderTest {
         coEvery { gatewaySwitch.openInputStream(path) } returns ByteArray(0).inputStream()
 
         val pfd = reader.openDocument(documentId, "r", null)
-
-        // Allow background coroutine (Dispatchers.IO) to transfer data through pipe
-        Thread.sleep(1000)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
             val content = inputStream.readBytes()
@@ -276,7 +274,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument handles large file via pipe fallback`() = runBlocking {
+    fun `openDocument handles large file via pipe fallback`() = runTest(testDispatcher) {
         val largeData = ByteArray(100 * 1024) { (it % 256).toByte() }
 
         val testFile = tempFolder.newFile("large.txt")
@@ -290,9 +288,7 @@ class DocumentReaderTest {
         coEvery { gatewaySwitch.openInputStream(path) } returns largeData.inputStream()
 
         val pfd = reader.openDocument(documentId, "r", null)
-
-        // Allow background coroutine (Dispatchers.IO) to transfer data through pipe
-        Thread.sleep(1000)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         FileInputStream(pfd.fileDescriptor).use { inputStream ->
             val content = inputStream.readBytes()
@@ -303,7 +299,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument writes via pipe fallback`(): Unit = runBlocking {
+    fun `openDocument writes via pipe fallback`(): Unit = runTest(testDispatcher) {
         val path = LocalPath.build("/some/file.txt")
         val documentId = "local|write"
         val outputStream = ByteArrayOutputStream()
@@ -318,13 +314,13 @@ class DocumentReaderTest {
         FileOutputStream(pfd.fileDescriptor).use { it.write(testContent.toByteArray()) }
         pfd.close()
 
-        Thread.sleep(1000)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         outputStream.toString(Charsets.UTF_8.name()) shouldBe testContent
     }
 
     @Test
-    fun `openDocument writes append via pipe fallback`(): Unit = runBlocking {
+    fun `openDocument writes append via pipe fallback`(): Unit = runTest(testDispatcher) {
         val path = LocalPath.build("/some/file.txt")
         val documentId = "local|append"
         val outputStream = ByteArrayOutputStream()
@@ -339,7 +335,7 @@ class DocumentReaderTest {
         FileOutputStream(pfd.fileDescriptor).use { it.write(testContent.toByteArray()) }
         pfd.close()
 
-        Thread.sleep(1000)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         outputStream.toString(Charsets.UTF_8.name()) shouldBe testContent
     }
@@ -362,7 +358,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument read-write falls back to write pipe`(): Unit = runBlocking {
+    fun `openDocument read-write falls back to write pipe`(): Unit = runTest(testDispatcher) {
         val path = LocalPath.build("/some/file.txt")
         val documentId = "local|rw"
         val outputStream = ByteArrayOutputStream()
@@ -377,7 +373,7 @@ class DocumentReaderTest {
         FileOutputStream(pfd.fileDescriptor).use { it.write(testContent.toByteArray()) }
         pfd.close()
 
-        Thread.sleep(1000)
+        testDispatcher.scheduler.advanceUntilIdle()
 
         outputStream.toString(Charsets.UTF_8.name()) shouldBe testContent
     }
@@ -484,7 +480,7 @@ class DocumentReaderTest {
     }
 
     @Test
-    fun `openDocument seekable ProxyPFD cleans up FileHandle on factory failure`() = runTest {
+    fun `openDocument seekable ProxyPFD cleans up FileHandle on factory failure`() = runTest(testDispatcher) {
         val path = LocalPath.build("/some/file.txt")
         val documentId = "local|seekable-cleanup"
         val fileHandle = mockk<FileHandle>(relaxed = true)
@@ -496,7 +492,9 @@ class DocumentReaderTest {
         coEvery { gatewaySwitch.openOutputStream(path, append = false) } returns outputStream
 
         // Should fall back to pipe without crashing
-        reader.openDocument(documentId, "w", null)
+        val pfd = reader.openDocument(documentId, "w", null)
+        pfd.close()
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Factory was attempted
         verify(exactly = 1) { proxyPfdFactory.create(fileHandle, "w") }
