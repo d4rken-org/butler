@@ -10,6 +10,7 @@ import eu.darken.butler.common.flow.chunked
 import eu.darken.butler.common.ipc.RemoteInputStream
 import eu.darken.butler.common.ipc.inputStream
 import eu.darken.butler.common.ipc.remoteInputStream
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import okio.ByteString.Companion.decodeBase64
 import okio.ByteString.Companion.toByteString
+import java.io.IOException
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 
@@ -74,21 +76,37 @@ fun Flow<LocalPathLookup>.toRemoteInputStream(scope: CoroutineScope): RemoteInpu
             val encodedChunk = parcel.marshall().toByteString().base64()
             parcel.recycle()
 
-            buffer.write(encodedChunk)
-            buffer.write('\n'.code)
-            buffer.flush()
+            // Only the pipe write can fail with the consumer gone; marshalling above stays unwrapped
+            // so genuine serialization errors still fault loudly.
+            try {
+                buffer.write(encodedChunk)
+                buffer.write('\n'.code)
+                buffer.flush()
+            } catch (e: IOException) {
+                throw ConsumerGone(e)
+            }
 
             if (Bugs.isTrace) {
                 log(FileOpsHost.TAG, VERBOSE) { "WRITECHUNK: ${chunk.size} items to ${encodedChunk.length}B" }
             }
         }
-        .onCompletion {
-            buffer.flush()
-            buffer.close()
+        .onCompletion { cause ->
+            // Skip the final flush when the stream is unwinding on a failure/cancel (the consumer is
+            // likely gone, so flush would just throw again); always attempt close, ignoring failures.
+            if (cause == null) runCatching { buffer.flush() }
+            runCatching { buffer.close() }
         }
-        .catch {
-            log(FileOpsHost.TAG, ERROR) { "toRemoteInputStream failed: ${it.asLog()}" }
-            throw it
+        .catch { e ->
+            when {
+                e is CancellationException -> throw e
+                // The client closed its end (cancelled scan, take()); nobody is left to stream to.
+                // Contain it — rethrowing would fault the helper's app scope and kill the process.
+                e is ConsumerGone -> log(FileOpsHost.TAG, WARN) { "toRemoteInputStream consumer gone: ${e.asLog()}" }
+                else -> {
+                    log(FileOpsHost.TAG, ERROR) { "toRemoteInputStream failed: ${e.asLog()}" }
+                    throw e
+                }
+            }
         }
         .launchIn(scope)
 
