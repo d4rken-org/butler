@@ -182,6 +182,7 @@ fun WorkspacesScreenHost(
 ) {
     ErrorEventHandler(vm)
     ErrorEventHandler(managerVm)
+    ErrorEventHandler(workspaceButtonVm)
     NavigationEventHandler(vm, workspaceButtonVm, managerVm)
 
     val context = LocalContext.current

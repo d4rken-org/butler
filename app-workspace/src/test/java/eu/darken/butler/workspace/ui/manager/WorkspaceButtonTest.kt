@@ -1,10 +1,22 @@
 package eu.darken.butler.workspace.ui.manager
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Add
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.compose.ButlerMascotMode
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.WorkspaceAction
+import eu.darken.butler.workspace.core.defaultArguments
+import eu.darken.butler.workspace.ui.template.QuickCreateItem
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Test
 import testhelpers.ComposeTest
 
@@ -12,6 +24,30 @@ class WorkspaceButtonTest : ComposeTest() {
 
     // Use static mascot to avoid infinite animation loop in Robolectric
     private val testMascotVariant = ButlerMascotMode.Static.Normal()
+
+    private fun quickItem(type: Workspace.Type, title: String) = QuickCreateItem(
+        type = type,
+        icon = Icons.TwoTone.Add,
+        title = title.toCaString(),
+        arguments = type.defaultArguments!!,
+    )
+
+    private class RecordingButtonProvider(
+        state: WorkspaceButtonViewModel.State,
+    ) : WorkspaceButtonProvider {
+        val created = mutableListOf<QuickCreateItem>()
+        var templatesCreated = 0
+        override val state: Flow<WorkspaceButtonViewModel.State> = flowOf(state)
+        override fun executeWorkspaceAction(action: WorkspaceAction) {}
+        override fun navToWorkspaceManager() {}
+        override fun navToSettings() {}
+        override fun navToUpgradeButler() {}
+        override fun createWorkspace(item: QuickCreateItem) { created += item }
+        override fun createTemplatesWorkspace() { templatesCreated++ }
+    }
+
+    private fun openMenu() =
+        composeTestRule.onNodeWithTag(WorkspaceButtonDefaults.TEST_TAG).performClick()
 
     @Test
     fun `displays workspace count badge`() {
@@ -182,5 +218,88 @@ class WorkspaceButtonTest : ComposeTest() {
 
         // Only "9+" badge text patterns should not exist
         composeTestRule.onNodeWithText("0").assertDoesNotExist()
+    }
+
+    @Test
+    fun `quick-create rows and More row are shown alongside existing items`() {
+        val provider = RecordingButtonProvider(
+            WorkspaceButtonViewModel.State(
+                quickCreateItems = listOf(
+                    quickItem(Workspace.Type.EXPLORER, "Explorer"),
+                    quickItem(Workspace.Type.SEARCHER, "Searcher"),
+                ),
+            )
+        )
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(LocalWorkspaceButtonProvider provides provider) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
+            }
+        }
+
+        openMenu()
+
+        composeTestRule.onNodeWithText("New Explorer").assertIsDisplayed()
+        composeTestRule.onNodeWithText("New Searcher").assertIsDisplayed()
+        composeTestRule.onNodeWithText("More…").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Tab manager").assertIsDisplayed()
+    }
+
+    @Test
+    fun `clicking a quick-create row creates that workspace`() {
+        val explorer = quickItem(Workspace.Type.EXPLORER, "Explorer")
+        val provider = RecordingButtonProvider(
+            WorkspaceButtonViewModel.State(quickCreateItems = listOf(explorer))
+        )
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(LocalWorkspaceButtonProvider provides provider) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
+            }
+        }
+
+        openMenu()
+        composeTestRule.onNodeWithText("New Explorer").performClick()
+
+        provider.created.map { it.type } shouldBe listOf(Workspace.Type.EXPLORER)
+    }
+
+    @Test
+    fun `clicking More creates the templates picker`() {
+        val provider = RecordingButtonProvider(
+            WorkspaceButtonViewModel.State(
+                quickCreateItems = listOf(quickItem(Workspace.Type.EXPLORER, "Explorer")),
+            )
+        )
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(LocalWorkspaceButtonProvider provides provider) {
+                    WorkspaceButton(mascotVariant = testMascotVariant)
+                }
+            }
+        }
+
+        openMenu()
+        composeTestRule.onNodeWithText("More…").performClick()
+
+        provider.templatesCreated shouldBe 1
+    }
+
+    @Test
+    fun `close current is hidden when there is no current workspace`() {
+        val provider = RecordingButtonProvider(WorkspaceButtonViewModel.State())
+        composeTestRule.setContent {
+            PreviewWrapper {
+                CompositionLocalProvider(LocalWorkspaceButtonProvider provides provider) {
+                    WorkspaceButton(mascotVariant = testMascotVariant, currentWorkspaceId = null)
+                }
+            }
+        }
+
+        openMenu()
+
+        composeTestRule.onNodeWithText("Close current tab").assertDoesNotExist()
     }
 }

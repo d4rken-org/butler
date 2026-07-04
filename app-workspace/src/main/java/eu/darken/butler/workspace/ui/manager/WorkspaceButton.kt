@@ -16,11 +16,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Workspaces
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.compose.ButlerMascot
 import eu.darken.butler.common.compose.ButlerMascotMode
+import eu.darken.butler.common.compose.asComposable
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.LongClickableDropdownMenuItem
 import eu.darken.butler.common.compose.Preview2
@@ -75,6 +79,7 @@ fun WorkspaceButton(
         BoxWithConstraints(
             modifier = Modifier
                 .size(buttonSize)
+                .testTag(WorkspaceButtonDefaults.TEST_TAG)
                 .clip(RoundedCornerShape(8.dp))
                 .background(containerColor ?: MaterialTheme.colorScheme.tertiaryContainer)
                 .combinedClickable(
@@ -98,6 +103,42 @@ fun WorkspaceButton(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
+            state?.quickCreateItems?.forEach { item ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            stringResource(
+                                R.string.workspace_button_menu_new_workspace_format,
+                                item.title.asComposable(),
+                            )
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        provider.createWorkspace(item)
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = null,
+                        )
+                    },
+                )
+            }
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.workspace_button_menu_more_workspaces_action)) },
+                onClick = {
+                    expanded = false
+                    provider?.createTemplatesWorkspace()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Add,
+                        contentDescription = null,
+                    )
+                },
+            )
+            HorizontalDivider()
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.workspace_button_menu_manager_action)) },
                 onClick = {
@@ -279,6 +320,7 @@ fun WorkspaceButton(
 object WorkspaceButtonDefaults {
     val sizeDefault = 48.dp
     val sizeCompact = 40.dp
+    const val TEST_TAG = "workspace.button"
 }
 
 @Preview2

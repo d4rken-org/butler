@@ -83,6 +83,37 @@ class WorkspacePageManagerTest : BaseTest() {
     }
 
     @Test
+    fun `selecting a newly created workspace with all panes full keeps it visible and focused`() = runTest {
+        // Guards the butler-button quick-create path: createAndFocus emits SelectionRequested for the
+        // new workspace, which must land it in a pane (not just focus it) so it can't become
+        // focused-but-invisible when every pane is occupied.
+        val paneA = Workspace.Id()
+        val paneB = Workspace.Id()
+        val created = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = paneA),
+                createWorkspaceInfo(id = paneB),
+                createWorkspaceInfo(id = created),
+            )
+        )
+
+        pageManager.setPaneCount(2)
+        pageManager.handleWorkspaceSelection(paneA)
+        pageManager.handleWorkspaceSelection(paneB)
+        pageManager.state.value.selectedWorkspaces.values.toSet() shouldBe setOf(paneA, paneB)
+
+        pageManager.handleWorkspaceSelection(created)
+
+        val state = pageManager.state.value
+        state.focusedWorkspaceId shouldBe created
+        // Focus is visible: the newly focused workspace occupies a pane (pane 0 is replaced).
+        state.selectedWorkspaces.containsValue(created) shouldBe true
+        state.selectedWorkspaces[0] shouldBe created
+    }
+
+    @Test
     fun `sub-workspace selection updates MRU timestamp`() = runTest {
         val parentWorkspace = Workspace.Id()
         val subWorkspace = Workspace.Id()
