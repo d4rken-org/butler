@@ -331,17 +331,17 @@ private fun TemplateCard(
 
     if (isFirstItem) {
         ElevatedCard(
+            onClick = onClick,
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onClick() },
+                .fillMaxWidth(),
             colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
         ) { cardContent() }
     } else {
         Card(
+            onClick = onClick,
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onClick() },
+                .fillMaxWidth(),
             colors = CardDefaults.cardColors()
         ) { cardContent() }
     }

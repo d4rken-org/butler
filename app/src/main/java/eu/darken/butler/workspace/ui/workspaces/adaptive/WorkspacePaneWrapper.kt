@@ -99,8 +99,8 @@ internal fun WorkspacePaneWrapper(
     }
     Box(
         modifier = modifier
-            .clickable { onFocus() }
             .clip(MaterialTheme.shapes.medium)
+            .clickable { onFocus() }
             .then(
                 if (showFocusBorder || isDropTarget) {
                     Modifier.border(

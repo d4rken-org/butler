@@ -60,6 +60,7 @@ fun SelectableFileGrid(
     // Parent path for context
     val parentPath = result.lookup.parent?.userReadablePath?.asComposable()
 
+    val shape = RoundedCornerShape(4.dp)
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -71,20 +72,21 @@ fun SelectableFileGrid(
                 } else {
                     MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                 },
-                shape = RoundedCornerShape(4.dp)
-            )
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongPress
+                shape = shape
             ),
-        shape = RoundedCornerShape(4.dp),
+        shape = shape,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         )
     ) {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongPress
+                )
         ) {
             // Preview/thumbnail background
             TintedAsyncImage(

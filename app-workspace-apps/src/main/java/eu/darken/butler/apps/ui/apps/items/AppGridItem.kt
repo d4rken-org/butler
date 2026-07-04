@@ -47,6 +47,7 @@ fun AppGridItem(
     showSelection: Boolean = false,
 ) {
     val context = LocalContext.current
+    val shape = RoundedCornerShape(8.dp)
 
     Card(
         modifier = modifier
@@ -60,20 +61,21 @@ fun AppGridItem(
                 } else {
                     MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
                 },
-                shape = RoundedCornerShape(8.dp),
-            )
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick,
+                shape = shape,
             ),
-        shape = RoundedCornerShape(8.dp),
+        shape = shape,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
     ) {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                ),
         ) {
             // App icon centered
             Box(

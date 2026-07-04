@@ -79,8 +79,7 @@ fun WorkspaceGridItem(
     Box(modifier = modifier.then(glowModifier)) {
         Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onSelect() },
+                .fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
                 containerColor = when {
@@ -97,6 +96,7 @@ fun WorkspaceGridItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable { onSelect() }
                     .padding(6.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {

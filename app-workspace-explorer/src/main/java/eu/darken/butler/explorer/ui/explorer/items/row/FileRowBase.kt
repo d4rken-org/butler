@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -111,6 +112,7 @@ internal fun FileRowBase(
         modifier = modifier
             .fillMaxWidth()
             .alpha(if (isEnabled) 1f else 0.38f)
+            .clip(RoundedCornerShape(8.dp))
             .background(backgroundColor, RoundedCornerShape(8.dp))
             .then(
                 if (isEnabled) {

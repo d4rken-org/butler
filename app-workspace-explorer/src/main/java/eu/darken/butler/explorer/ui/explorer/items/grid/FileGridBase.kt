@@ -78,6 +78,7 @@ internal fun FileGridBase(
         else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
     }
 
+    val shape = RoundedCornerShape(4.dp)
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -86,24 +87,25 @@ internal fun FileGridBase(
             .border(
                 width = borderWidth,
                 color = borderColor,
-                shape = RoundedCornerShape(4.dp)
-            )
-            .then(
-                if (isEnabled) {
-                    Modifier.combinedClickable(
-                        onClick = onClick,
-                        onLongClick = onLongClick
-                    )
-                } else Modifier
+                shape = shape
             ),
-        shape = RoundedCornerShape(4.dp),
+        shape = shape,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
             containerColor = backgroundColor
         )
     ) {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .then(
+                    if (isEnabled) {
+                        Modifier.combinedClickable(
+                            onClick = onClick,
+                            onLongClick = onLongClick
+                        )
+                    } else Modifier
+                )
         ) {
             // Preview/placeholder background
             if (previewContent != null) {

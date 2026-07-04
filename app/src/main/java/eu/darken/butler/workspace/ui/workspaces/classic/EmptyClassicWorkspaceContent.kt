@@ -1,6 +1,5 @@
 package eu.darken.butler.workspace.ui.workspaces.classic
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -99,9 +98,9 @@ internal fun EmptyClassicWorkspaceContent(
             ) {
                 // Create workspace card (primary action)
                 Card(
+                    onClick = { workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Create()) },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { workspaceActionHandler?.executeWorkspaceAction(WorkspaceAction.Create()) },
+                        .fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Row(
@@ -125,9 +124,9 @@ internal fun EmptyClassicWorkspaceContent(
 
                 // Settings card
                 Card(
+                    onClick = { workspaceActionHandler?.navToSettings() },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { workspaceActionHandler?.navToSettings() }
                 ) {
                     Row(
                         modifier = Modifier.padding(20.dp),

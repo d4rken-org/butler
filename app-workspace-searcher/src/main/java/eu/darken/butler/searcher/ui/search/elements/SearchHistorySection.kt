@@ -81,7 +81,6 @@ fun LazyListScope.searchHistorySection(
                 )
             }
             Surface(
-                modifier = Modifier.clickable { onShowClearHistoryDialog() },
                 shape = RoundedCornerShape(6.dp),
                 color = Color.Transparent
             ) {
@@ -89,7 +88,9 @@ fun LazyListScope.searchHistorySection(
                     text = stringResource(R.string.searcher_history_clear_all_action),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier = Modifier
+                        .clickable { onShowClearHistoryDialog() }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
         }
@@ -135,11 +136,11 @@ fun SearchHistoryItem(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onItemClick() }
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable { onItemClick() }
                     .padding(horizontal = 16.dp, vertical = 6.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {

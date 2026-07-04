@@ -1,6 +1,5 @@
 package eu.darken.butler.workspace.ui.workspaces.adaptive
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -98,9 +97,9 @@ internal fun EmptyAdaptiveWorkspaceContent(
             if (onAddWorkspace != null) {
                 Spacer(modifier = Modifier.size(4.dp))
                 Card(
+                    onClick = onAddWorkspace,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onAddWorkspace),
+                        .fillMaxWidth(),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                     ),

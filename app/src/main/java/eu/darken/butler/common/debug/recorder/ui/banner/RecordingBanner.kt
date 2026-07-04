@@ -78,11 +78,11 @@ import kotlin.time.Duration.Companion.seconds
             shape = RoundedCornerShape(bottomEnd = 12.dp),
             color = MaterialTheme.colorScheme.errorContainer,
             shadowElevation = 4.dp,
-            modifier = Modifier.clickable { isExpanded = !isExpanded },
         ) {
             Column(
                 modifier = Modifier
                     .widthIn(max = 220.dp)
+                    .clickable { isExpanded = !isExpanded }
                     .padding(cardPadding),
             ) {
                 // Header - changes based on expanded state

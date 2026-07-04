@@ -77,32 +77,6 @@ fun WorkspaceManagerFAB(
             enableUserInput = false,
         ) {
             Surface(
-                modifier = Modifier.combinedClickable(
-                    onClick = {
-                        if (showLongPressHint) {
-                            if (showLongPressHintThisSession) {
-                                scope.launch { tooltipState.show() }
-                                showLongPressHintThisSession = false
-                            } else {
-                                onDismissLongPressHint()
-                                scope.launch { tooltipState.dismiss() }
-                            }
-                        }
-                        // Always execute action
-                        onCreateWorkspace(Workspace.Type.TEMPLATES)
-                    },
-                    onLongClick = {
-                        // Long press: dismiss tooltip if showing, show dropdown
-                        if (showLongPressHint) {
-                            onDismissLongPressHint()
-                            scope.launch { tooltipState.dismiss() }
-                            showLongPressHintThisSession = false
-                        }
-
-                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                        showDropdown = true
-                    }
-                ),
                 shape = FloatingActionButtonDefaults.extendedFabShape,
                 color = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -110,7 +84,34 @@ fun WorkspaceManagerFAB(
                 shadowElevation = 6.dp,
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                    modifier = Modifier
+                        .combinedClickable(
+                            onClick = {
+                                if (showLongPressHint) {
+                                    if (showLongPressHintThisSession) {
+                                        scope.launch { tooltipState.show() }
+                                        showLongPressHintThisSession = false
+                                    } else {
+                                        onDismissLongPressHint()
+                                        scope.launch { tooltipState.dismiss() }
+                                    }
+                                }
+                                // Always execute action
+                                onCreateWorkspace(Workspace.Type.TEMPLATES)
+                            },
+                            onLongClick = {
+                                // Long press: dismiss tooltip if showing, show dropdown
+                                if (showLongPressHint) {
+                                    onDismissLongPressHint()
+                                    scope.launch { tooltipState.dismiss() }
+                                    showLongPressHintThisSession = false
+                                }
+
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showDropdown = true
+                            }
+                        )
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
