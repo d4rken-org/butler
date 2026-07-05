@@ -129,11 +129,13 @@ class EditorWorkspace @AssistedInject constructor(
             engine.visibleRange,
             engine.error,
             engine.progress,
+            engine.canUndo,
+            engine.canRedo,
             editorSettings.showLineNumbers.flow,
             editorSettings.wordWrap.flow,
         ) { contentSource, totalLines, isModified, currentContent, cursorPosition,
             selectionRange, searchQuery, searchResults, visibleRange, error,
-            progress, showLineNumbers, wordWrap ->
+            progress, canUndo, canRedo, showLineNumbers, wordWrap ->
             EditorState(
                 contentSource = contentSource,
                 totalLines = totalLines,
@@ -148,6 +150,8 @@ class EditorWorkspace @AssistedInject constructor(
                 showLineNumbers = showLineNumbers,
                 wordWrap = wordWrap,
                 progress = progress,
+                canUndo = canUndo,
+                canRedo = canRedo,
             )
         }
     }
@@ -474,8 +478,6 @@ class EditorWorkspace @AssistedInject constructor(
     }
 
     fun clearError() = _engine.value?.clearError()
-    fun canUndo() = _engine.value?.canUndo() ?: false
-    fun canRedo() = _engine.value?.canRedo() ?: false
 
     /**
      * Reads file content for pasting from clipboard.
@@ -544,6 +546,8 @@ class EditorWorkspace @AssistedInject constructor(
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
         val progress: Progress.Data? = null,
+        val canUndo: Boolean = false,
+        val canRedo: Boolean = false,
     )
 
     sealed interface State {

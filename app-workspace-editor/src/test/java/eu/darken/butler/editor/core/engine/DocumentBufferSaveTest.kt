@@ -198,6 +198,31 @@ class DocumentBufferSaveTest : BaseTest() {
     }
 
     @Test
+    fun `lone surrogate in added text saves deterministic UTF-8 replacement bytes`(@TempDir tempDir: File) = runTest {
+        val (file, buffer) = fileBuffer(tempDir, "ab".toByteArray())
+
+        buffer.insertText(TextPosition(1, 0, 1), "\uD800").getOrThrow()
+        buffer.saveFile().isSuccess shouldBe true
+
+        file.readBytes() shouldBe byteArrayOf(
+            'a'.code.toByte(), 0xEF.toByte(), 0xBF.toByte(), 0xBD.toByte(), 'b'.code.toByte(),
+        )
+    }
+
+    @Test
+    fun `lone surrogate saves deterministic replacement bytes in UTF-16LE`(@TempDir tempDir: File) = runTest {
+        val bom = byteArrayOf(0xFF.toByte(), 0xFE.toByte())
+        val (file, buffer) = fileBuffer(tempDir, bom + "ab".toByteArray(Charsets.UTF_16LE))
+
+        buffer.insertText(TextPosition(1, 0, 1), "\uDC00").getOrThrow()
+        buffer.saveFile().isSuccess shouldBe true
+
+        file.readBytes() shouldBe bom + byteArrayOf(
+            'a'.code.toByte(), 0, 0xFD.toByte(), 0xFF.toByte(), 'b'.code.toByte(), 0,
+        )
+    }
+
+    @Test
     fun `malformed bytes in untouched region survive byte-verbatim`(@TempDir tempDir: File) = runTest {
         // 0xC3 without a continuation byte is malformed UTF-8; it must round-trip untouched
         val original = "head ".toByteArray() + byteArrayOf(0xC3.toByte(), 0x28) + " tail".toByteArray()

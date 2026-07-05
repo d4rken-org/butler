@@ -34,6 +34,35 @@ class DocumentBufferUndoRedoTest : DocumentBufferTestBase() {
     }
 
     @Test
+    fun `canUndo and canRedo flows track edit undo and redo`() = runTest {
+        val buffer = createBuffer("Hello")
+        buffer.canUndo.value shouldBe false
+        buffer.canRedo.value shouldBe false
+
+        buffer.insertText(TextPosition(5, 0, 5), "!").getOrThrow()
+        buffer.canUndo.value shouldBe true
+        buffer.canRedo.value shouldBe false
+
+        buffer.undo().getOrThrow()
+        buffer.canUndo.value shouldBe false
+        buffer.canRedo.value shouldBe true
+
+        buffer.redo().getOrThrow()
+        buffer.canUndo.value shouldBe true
+        buffer.canRedo.value shouldBe false
+
+        // A new edit clears the redo stack
+        buffer.undo().getOrThrow()
+        buffer.insertText(TextPosition(5, 0, 5), "?").getOrThrow()
+        buffer.canUndo.value shouldBe true
+        buffer.canRedo.value shouldBe false
+
+        buffer.release().getOrThrow()
+        buffer.canUndo.value shouldBe false
+        buffer.canRedo.value shouldBe false
+    }
+
+    @Test
     fun `undo insert operation restores original text`() = runTest {
         // Given: Buffer with original content
         val buffer = createBuffer("Hello")

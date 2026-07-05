@@ -161,8 +161,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             searchRegexEnabled = search.regexEnabled,
             searchWholeWord = search.wholeWord,
             scrollTrigger = search.scrollTrigger,
-            canUndo = workspace.canUndo(),
-            canRedo = workspace.canRedo(),
+            canUndo = editorState.canUndo,
+            canRedo = editorState.canRedo,
             hasSystemClipboardContent = hasClipboardContent,
         )
     }.filterNotNull()

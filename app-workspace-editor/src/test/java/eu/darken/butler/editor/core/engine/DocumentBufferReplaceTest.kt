@@ -2,7 +2,10 @@ package eu.darken.butler.editor.core.engine
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.Test
 
 /**
@@ -231,6 +234,29 @@ class DocumentBufferReplaceTest : DocumentBufferTestBase() {
         val newContent = buffer.getTextForRange(0, 0).getOrThrow()
         newContent shouldBe "A".repeat(50) + "B".repeat(50)
         newContent.length shouldBe 100
+    }
+
+    @Test
+    fun `concurrent reads never observe the intermediate delete-only state`() = runTest {
+        val before = "AAAA" + "B".repeat(200) + "CCCC"
+        val after = "AAAA" + "XXX" + "CCCC"
+        val buffer = createBuffer(before, blockSize = 50)
+
+        withContext(Dispatchers.Default) {
+            val replaceJob = launch {
+                buffer.replaceText(
+                    startPosition = TextPosition(4L, 0, 4),
+                    endPosition = TextPosition(204L, 0, 204),
+                    newText = "XXX",
+                ).getOrThrow()
+            }
+            repeat(50) {
+                val snapshot = buffer.getFullText().getOrThrow()
+                (snapshot == before || snapshot == after) shouldBe true
+            }
+            replaceJob.join()
+        }
+        buffer.getFullText().getOrThrow() shouldBe after
     }
 
     @Test

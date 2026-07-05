@@ -30,7 +30,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okio.buffer
 import okio.use
+import java.nio.CharBuffer
 import java.nio.charset.Charset
+import java.nio.charset.CodingErrorAction
 import java.security.MessageDigest
 import java.util.LinkedList
 import kotlin.coroutines.coroutineContext
@@ -68,6 +70,12 @@ class DocumentBuffer @AssistedInject constructor(
 
     private val _isModified = MutableStateFlow(false)
     val isModified: StateFlow<Boolean> = _isModified.asStateFlow()
+
+    private val _canUndo = MutableStateFlow(false)
+    val canUndo: StateFlow<Boolean> = _canUndo.asStateFlow()
+
+    private val _canRedo = MutableStateFlow(false)
+    val canRedo: StateFlow<Boolean> = _canRedo.asStateFlow()
 
     private val bufferMutex = Mutex()
     private var pieceTable: PieceTable? = null
@@ -154,6 +162,7 @@ class DocumentBuffer @AssistedInject constructor(
             savedGenerationValid = true
             refreshStats()
             updateModified()
+            refreshUndoRedo()
 
             log(tag) { "Initialized (${_totalLength.value} chars, ${_totalLines.value} lines, ${index.lineEnding})" }
             Result.success(Unit)
@@ -182,6 +191,7 @@ class DocumentBuffer @AssistedInject constructor(
             _totalLines.value = 0
             _totalLength.value = 0L
             _isModified.value = false
+            refreshUndoRedo()
             Result.success(Unit)
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to close document buffer - ${e.asLog()}" }
@@ -237,17 +247,7 @@ class DocumentBuffer @AssistedInject constructor(
                 table.insert(position.offset, text)
                 commitNewEdit(EditOperation.Insert(position, text))
             }
-
-            val newPosition = TextPosition(
-                offset = position.offset + text.length,
-                line = position.line + text.count { it == '\n' },
-                column = if (text.contains('\n')) {
-                    text.length - text.lastIndexOf('\n') - 1
-                } else {
-                    position.column + text.length
-                },
-            )
-            Result.success(newPosition)
+            Result.success(insertEndPosition(position, text))
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to insert text at position: $position - ${e.asLog()}" }
             Result.failure(e)
@@ -276,15 +276,48 @@ class DocumentBuffer @AssistedInject constructor(
             }
         }
 
+    /**
+     * Atomic delete+insert under a single lock acquisition: no other operation can observe the
+     * intermediate deleted-only state. Piece-table ops run first; bookkeeping (two undo entries,
+     * parity with separate delete+insert) only happens after both succeeded, so a failed insert
+     * rolls back by re-inserting the deleted text without having touched undo/redo state.
+     */
     suspend fun replaceText(
         startPosition: TextPosition,
         endPosition: TextPosition,
         newText: String,
-    ): Result<TextPosition> {
-        return try {
-            deleteText(startPosition, endPosition).getOrThrow()
-            insertText(startPosition, newText)
+    ): Result<TextPosition> = bufferMutex.withLock {
+        try {
+            val table = table()
+            val deletedText = table.read(startPosition.offset, endPosition.offset)
+            if (deletedText.isNotEmpty()) {
+                table.delete(startPosition.offset, endPosition.offset)
+            }
+            if (newText.isNotEmpty()) {
+                try {
+                    table.insert(startPosition.offset, newText)
+                } catch (e: Exception) {
+                    if (deletedText.isNotEmpty()) {
+                        withContext(NonCancellable) { table.insert(startPosition.offset, deletedText) }
+                    }
+                    throw e
+                }
+            }
+            if (deletedText.isNotEmpty()) {
+                commitNewEdit(
+                    EditOperation.Delete(
+                        startPosition,
+                        (endPosition.offset - startPosition.offset).toInt(),
+                        deletedText,
+                    ),
+                )
+            }
+            if (newText.isNotEmpty()) {
+                commitNewEdit(EditOperation.Insert(startPosition, newText))
+            }
+            Result.success(insertEndPosition(startPosition, newText))
         } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to replace text from $startPosition to $endPosition - ${e.asLog()}" }
             Result.failure(e)
         }
     }
@@ -384,7 +417,7 @@ class DocumentBuffer @AssistedInject constructor(
         suspend fun flushAddedRun(end: Long) {
             if (runStart < 0) return
             val text = table.read(runStart, end)
-            sink.write(text.toByteArray(detectedCharset))
+            sink.write(encodeAdded(text))
             runStart = -1L
         }
 
@@ -402,6 +435,25 @@ class DocumentBuffer @AssistedInject constructor(
             position += piece.charCount
         }
         flushAddedRun(position)
+    }
+
+    /**
+     * Encodes an added-text run with an explicit U+FFFD replacement so unencodable content
+     * (lone surrogates) produces identical bytes on every platform - `String.toByteArray`
+     * replacement bytes differ between JVM ('?') and Android ICU encoders.
+     */
+    private fun encodeAdded(text: String): ByteArray {
+        val encoder = detectedCharset.newEncoder()
+            .onMalformedInput(CodingErrorAction.REPLACE)
+            .onUnmappableCharacter(CodingErrorAction.REPLACE)
+        when (detectedCharset) {
+            Charsets.UTF_8 -> byteArrayOf(0xEF.toByte(), 0xBF.toByte(), 0xBD.toByte())
+            Charsets.UTF_16LE -> byteArrayOf(0xFD.toByte(), 0xFF.toByte())
+            Charsets.UTF_16BE -> byteArrayOf(0xFF.toByte(), 0xFD.toByte())
+            else -> null
+        }?.let { encoder.replaceWith(it) }
+        val encoded = encoder.encode(CharBuffer.wrap(text))
+        return ByteArray(encoded.remaining()).also { encoded.get(it) }
     }
 
     /**
@@ -501,6 +553,7 @@ class DocumentBuffer @AssistedInject constructor(
             currentGeneration = entry.generationBefore
             refreshStats()
             updateModified()
+            refreshUndoRedo()
             Result.success(entry.operation)
         } catch (e: Exception) {
             undoStack.addLast(entry)
@@ -532,6 +585,7 @@ class DocumentBuffer @AssistedInject constructor(
             currentGeneration = entry.generationAfter
             refreshStats()
             updateModified()
+            refreshUndoRedo()
             Result.success(entry.operation)
         } catch (e: Exception) {
             redoStack.addLast(entry)
@@ -540,9 +594,9 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
-    fun canUndo(): Boolean = undoStack.isNotEmpty()
+    fun canUndo(): Boolean = _canUndo.value
 
-    fun canRedo(): Boolean = redoStack.isNotEmpty()
+    fun canRedo(): Boolean = _canRedo.value
 
     private fun table(): PieceTable = tableOrNull() ?: throw IllegalStateException("Buffer not initialized")
 
@@ -601,6 +655,7 @@ class DocumentBuffer @AssistedInject constructor(
         }
         refreshStats()
         updateModified()
+        refreshUndoRedo()
     }
 
     private fun refreshStats() {
@@ -613,6 +668,21 @@ class DocumentBuffer @AssistedInject constructor(
     private fun updateModified() {
         _isModified.value = !savedGenerationValid || currentGeneration != savedGeneration
     }
+
+    private fun refreshUndoRedo() {
+        _canUndo.value = undoStack.isNotEmpty()
+        _canRedo.value = redoStack.isNotEmpty()
+    }
+
+    private fun insertEndPosition(position: TextPosition, text: String): TextPosition = TextPosition(
+        offset = position.offset + text.length,
+        line = position.line + text.count { it == '\n' },
+        column = if (text.contains('\n')) {
+            text.length - text.lastIndexOf('\n') - 1
+        } else {
+            position.column + text.length
+        },
+    )
 
     /**
      * Estimates the memory footprint of an EditOperation in bytes.
