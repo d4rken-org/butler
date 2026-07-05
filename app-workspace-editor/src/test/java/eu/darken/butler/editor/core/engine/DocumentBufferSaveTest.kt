@@ -22,6 +22,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import okio.Buffer
 import okio.Source
 import okio.buffer
 import okio.use
@@ -197,6 +198,18 @@ class DocumentBufferSaveTest : BaseTest() {
 
         val expected = StringBuilder(content).insert(1, "X😀").toString()
         file.readBytes() shouldBe bom + expected.toByteArray(Charsets.UTF_16BE)
+    }
+
+    @Test
+    fun `writeContentTo streams the same bytes saveFile writes`(@TempDir tempDir: File) = runTest {
+        val bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+        val (file, buffer) = fileBuffer(tempDir, bom + blockContent().toByteArray(), blockSize = 10)
+        buffer.insertText(TextPosition(5, 0, 5), "édit😀").getOrThrow()
+        buffer.deleteText(TextPosition(40, 0, 0), TextPosition(60, 0, 0)).getOrThrow()
+
+        val streamed = Buffer().also { buffer.writeContentTo(it).getOrThrow() }.readByteArray()
+        buffer.saveFile().isSuccess shouldBe true
+        file.readBytes() shouldBe streamed
     }
 
     @Test

@@ -28,6 +28,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import okio.BufferedSink
+import okio.Source
 import okio.buffer
 import okio.use
 import java.nio.CharBuffer
@@ -410,9 +412,33 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
-    /** Streams the document in original-file order: BOM once, Original byte ranges verbatim, contiguous Added runs encoded as one string. */
     private suspend fun writeSplice(context: EditorDataSource.CommitContext, table: PieceTable) {
-        val sink = context.sink
+        streamPieces(context.sink, table, context::openOriginalSource)
+    }
+
+    /**
+     * Streams the current document content (including unsaved edits) to [sink] - byte-identical
+     * to what saving would write. Runs under the buffer mutex, so no commit can move the
+     * underlying file while originals are being read.
+     */
+    suspend fun writeContentTo(sink: BufferedSink): Result<Unit> = bufferMutex.withLock {
+        try {
+            streamPieces(sink, table()) { offset -> dataSource.openByteSource(offset) }
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to stream content - ${e.asLog()}" }
+            Result.failure(e)
+        }
+    }
+
+    /** Streams the document in original-file order: BOM once, Original byte ranges verbatim, contiguous Added runs encoded as one string. */
+    private suspend fun streamPieces(
+        sink: BufferedSink,
+        table: PieceTable,
+        readOriginal: suspend (physicalOffset: Long) -> Source,
+    ) {
         (_contentSource.value as? ContentSource.File)?.bomBytes?.let { sink.write(it) }
 
         val bomOffset = bomSize.toLong()
@@ -432,7 +458,7 @@ class DocumentBuffer @AssistedInject constructor(
                 is Piece.Added -> if (runStart < 0) runStart = position
                 is Piece.Original -> {
                     flushAddedRun(position)
-                    context.openOriginalSource(bomOffset + piece.byteStart).buffer().use { source ->
+                    readOriginal(bomOffset + piece.byteStart).buffer().use { source ->
                         sink.write(source, piece.byteLen)
                     }
                 }

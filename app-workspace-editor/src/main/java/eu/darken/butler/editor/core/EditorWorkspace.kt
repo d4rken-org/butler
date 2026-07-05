@@ -450,18 +450,21 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> {
         val engine = currentEngine()
 
+        val currentPath = ((_state.value as? State.Ready)?.editor?.contentSource as? ContentSource.File)?.path
+        if (currentPath == newFilePath) {
+            // Streaming into the current file would truncate the very source the original byte
+            // ranges are read from; the normal atomic save handles this case
+            log(tag) { "Save-as targets the current file, using the atomic save path" }
+            return engine.saveFile()
+        }
+
         return try {
             log(tag) { "Saving as: ${newFilePath.name}" }
 
-            // Get content stream from engine (Engine manages content)
-            val source = engine.getContentStream()
-
-            // Workspace handles file I/O operations
-            source.use {
-                gatewaySwitch.file(newFilePath, readWrite = true).use { handle ->
-                    handle.sink().buffer().use { sink ->
-                        sink.writeAll(source)
-                    }
+            // Engine streams content, Workspace handles file I/O
+            gatewaySwitch.file(newFilePath, readWrite = true).use { handle ->
+                handle.sink().buffer().use { sink ->
+                    engine.writeContentTo(sink)
                 }
             }
 

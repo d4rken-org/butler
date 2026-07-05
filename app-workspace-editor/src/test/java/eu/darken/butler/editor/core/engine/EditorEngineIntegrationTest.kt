@@ -19,6 +19,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import okio.Buffer
 import okio.buffer
 import okio.use
 import org.junit.jupiter.api.Test
@@ -173,19 +174,19 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
     }
 
     @Test
-    fun `getContentStream is byte-exact for a BOM file`(@TempDir tempDir: File) = runTest {
+    fun `writeContentTo is byte-exact for a BOM file`(@TempDir tempDir: File) = runTest {
         val bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
         val content = "中文\r\nabc"
         val file = File(tempDir, "stream.txt").apply { writeBytes(bom + content.toByteArray()) }
 
         val engine = createEngine(filePath = LocalPath.build(file))
-        val streamed = engine.getContentStream().buffer().use { it.readByteArray() }
+        val streamed = Buffer().also { engine.writeContentTo(it) }.readByteArray()
 
         streamed shouldBe bom + content.toByteArray()
     }
 
     @Test
-    fun `getContentStream reflects unsaved edits`(@TempDir tempDir: File) = runTest {
+    fun `writeContentTo reflects unsaved edits`(@TempDir tempDir: File) = runTest {
         val content = "hello world"
         val file = File(tempDir, "stream.txt").apply { writeBytes(content.toByteArray()) }
 
@@ -193,7 +194,7 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
         engine.setCursorPosition(TextPosition(0, 0, 0))
         engine.insertText("X")
 
-        val streamed = engine.getContentStream().buffer().use { it.readByteArray() }
+        val streamed = Buffer().also { engine.writeContentTo(it) }.readByteArray()
         streamed shouldBe "Xhello world".toByteArray()
     }
 }

@@ -32,8 +32,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okio.Buffer
-import okio.Source
+import okio.BufferedSink
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.coroutineContext
@@ -299,31 +298,19 @@ class EditorEngine @AssistedInject constructor(
     }
 
     /**
-     * Gets a content stream for reading the current document content.
-     * Engine exposes content, Workspace handles file I/O operations.
+     * Streams the current document content (including unsaved edits) to [sink] - byte-identical
+     * to what saving would write. Engine exposes content, Workspace handles file I/O operations.
      *
-     * @return Source for streaming content
      * @throws IllegalStateException if no content is loaded
      */
-    suspend fun getContentStream(): Source = stateMutex.withLock {
-        return when (val currentState = _state.value) {
+    suspend fun writeContentTo(sink: BufferedSink): Unit = stateMutex.withLock {
+        when (val currentState = _state.value) {
             is EditorState.Loaded -> {
-                log(tag) { "Opening content stream for current buffer content" }
-                val buffer = currentState.resources.textBuffer
-                val text = buffer.getFullText().getOrThrow()
-                val source = buffer.contentSource.value
-                val charset = when (source) {
-                    is ContentSource.File -> source.detectedCharset
-                    is ContentSource.Memory -> Charsets.UTF_8
-                }
-                val bom = (source as? ContentSource.File)?.takeIf { it.hasBOM }?.bomBytes
-                Buffer().apply {
-                    if (bom != null) write(bom)
-                    write(text.toByteArray(charset))
-                }
+                log(tag) { "Streaming current buffer content" }
+                currentState.resources.textBuffer.writeContentTo(sink).getOrThrow()
             }
             else -> {
-                throw IllegalStateException("Cannot get content stream - no content available")
+                throw IllegalStateException("Cannot stream content - no content available")
             }
         }
     }

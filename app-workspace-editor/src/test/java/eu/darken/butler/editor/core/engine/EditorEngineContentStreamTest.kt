@@ -19,7 +19,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import okio.buffer
+import okio.Buffer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -27,10 +27,10 @@ import kotlin.random.Random
 import java.nio.charset.Charset
 
 /**
- * Tests for [EditorEngine.getContentStream], which backs "Save As".
+ * Tests for [EditorEngine.writeContentTo], which backs "Save As".
  *
- * Regression guard: the stream must reflect the CURRENT (edited) buffer content, not the stale
- * on-disk original, and must preserve the detected charset/BOM for file-backed documents.
+ * Regression guard: the streamed bytes must reflect the CURRENT (edited) buffer content, not the
+ * stale on-disk original, and must preserve the detected charset/BOM for file-backed documents.
  */
 class EditorEngineContentStreamTest : DocumentBufferTestBase() {
 
@@ -99,25 +99,38 @@ class EditorEngineContentStreamTest : DocumentBufferTestBase() {
         documentBufferFactory = documentBufferFactory,
     ).apply { initialize().getOrThrow() }
 
+    private suspend fun EditorEngine.streamedBytes(): ByteArray {
+        val buffer = Buffer()
+        writeContentTo(buffer)
+        return buffer.readByteArray()
+    }
+
     @Test
-    fun `getContentStream returns the edited buffer content, not the stale original`() = runTest {
+    fun `writeContentTo streams the edited buffer content, not the stale original`() = runTest {
         val engine = createEngine(content = "Hello")
         engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
         engine.insertText(" World")
 
-        val streamed = engine.getContentStream().buffer().use { it.readUtf8() }
-
-        streamed shouldBe "Hello World"
+        engine.streamedBytes().decodeToString() shouldBe "Hello World"
     }
 
     @Test
-    fun `getContentStream preserves the BOM for a file-backed document`(@TempDir tempDir: File) = runTest {
+    fun `writeContentTo preserves the BOM for a file-backed document`(@TempDir tempDir: File) = runTest {
         val bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
         val file = File(tempDir, "bom.txt").apply { writeBytes(bom + "Hello".toByteArray()) }
         val engine = createEngine(filePath = LocalPath.build(file), gateway = createReadOnlyGateway())
 
-        val streamed = engine.getContentStream().buffer().use { it.readByteArray() }
+        engine.streamedBytes().toList() shouldBe (bom + "Hello".toByteArray()).toList()
+    }
 
-        streamed.toList() shouldBe (bom + "Hello".toByteArray()).toList()
+    @Test
+    fun `writeContentTo with unsaved edits streams the same bytes a save would write`(@TempDir tempDir: File) = runTest {
+        val bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+        val file = File(tempDir, "bom.txt").apply { writeBytes(bom + "中文 content".toByteArray()) }
+        val engine = createEngine(filePath = LocalPath.build(file), gateway = createReadOnlyGateway())
+        engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 0))
+        engine.insertText("é😀 ")
+
+        engine.streamedBytes().toList() shouldBe (bom + "é😀 中文 content".toByteArray()).toList()
     }
 }
