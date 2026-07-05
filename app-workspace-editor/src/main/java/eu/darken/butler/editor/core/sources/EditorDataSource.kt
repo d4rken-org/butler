@@ -6,6 +6,7 @@ import eu.darken.butler.editor.core.engine.TextChunk
 import kotlinx.coroutines.flow.StateFlow
 import okio.Source
 import java.io.FileNotFoundException
+import kotlin.time.Instant
 
 /**
  * Data source interface for editor content.
@@ -84,4 +85,21 @@ interface EditorDataSource {
      * Caller is responsible for closing the Source.
      */
     suspend fun openSource(): Source
+
+    /**
+     * Physical metadata for staleness checks: size in bytes (including any BOM) and
+     * last modification time (null when the backend has none, e.g. in-memory sources).
+     */
+    suspend fun getMeta(): Meta
+
+    /**
+     * Opens a byte source positioned at [offset] physical bytes (positional, not a
+     * forward-only skip). Caller is responsible for closing the Source.
+     */
+    suspend fun openByteSource(offset: Long = 0L): Source
+
+    data class Meta(
+        val size: Long,
+        val modifiedAt: Instant?,
+    )
 }

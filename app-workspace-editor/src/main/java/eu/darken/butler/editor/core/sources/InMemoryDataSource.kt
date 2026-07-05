@@ -109,6 +109,17 @@ class InMemoryDataSource @AssistedInject constructor(
         return buffer
     }
 
+    override suspend fun getMeta(): EditorDataSource.Meta = EditorDataSource.Meta(
+        size = content.toByteArray(Charsets.UTF_8).size.toLong(),
+        modifiedAt = null,
+    )
+
+    override suspend fun openByteSource(offset: Long): Source {
+        val buffer = Buffer().write(content.toByteArray(Charsets.UTF_8))
+        buffer.skip(offset)
+        return buffer
+    }
+
     fun setContent(newContent: String) {
         content = newContent
         _isModified.value = content != initialContent

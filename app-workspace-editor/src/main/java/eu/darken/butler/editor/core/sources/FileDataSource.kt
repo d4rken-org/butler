@@ -268,6 +268,25 @@ class FileDataSource @AssistedInject constructor(
 
     override suspend fun getSize(): Long = _contentSource.value.size
 
+    override suspend fun getMeta(): EditorDataSource.Meta = withContext(Dispatchers.IO) {
+        val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
+        EditorDataSource.Meta(
+            size = lookup.size ?: 0L,
+            modifiedAt = lookup.modifiedAt,
+        )
+    }
+
+    override suspend fun openByteSource(offset: Long): Source = withContext(Dispatchers.IO) {
+        val handle = gatewaySwitch.file(filePath, readWrite = false)
+        val source = handle.source(fileOffset = offset)
+        object : Source by source {
+            override fun close() {
+                source.close()
+                handle.close()
+            }
+        }
+    }
+
     /**
      * Saves dirty chunks to the file without risking the original on failure.
      *
