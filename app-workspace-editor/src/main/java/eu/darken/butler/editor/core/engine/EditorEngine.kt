@@ -34,6 +34,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okio.Buffer
 import okio.Source
+import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.coroutineContext
 import kotlin.math.abs
@@ -42,6 +43,7 @@ class EditorEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val filePath: APath<*>?,
     @Assisted private val initialContent: String?,
+    @Assisted private val charsetOverride: Charset? = null,
     private val gatewaySwitch: GatewaySwitch,
     private val editorSettings: EditorSettings,
     private val fileDataSourceFactory: FileDataSource.Factory,
@@ -120,7 +122,8 @@ class EditorEngine @AssistedInject constructor(
             fileDataSourceFactory.create(
                 workspaceId = workspaceId,
                 filePath = filePath,
-                gatewaySwitch = gatewaySwitch
+                gatewaySwitch = gatewaySwitch,
+                charsetOverride = charsetOverride,
             )
         } else {
             inMemoryDataSourceFactory.create(
@@ -1206,7 +1209,12 @@ class EditorEngine @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(workspaceId: Workspace.Id, filePath: APath<*>?, initialContent: String? = null): EditorEngine
+        fun create(
+            workspaceId: Workspace.Id,
+            filePath: APath<*>?,
+            initialContent: String? = null,
+            charsetOverride: Charset? = null,
+        ): EditorEngine
     }
 
     companion object {

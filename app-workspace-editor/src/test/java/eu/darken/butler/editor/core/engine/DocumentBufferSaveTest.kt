@@ -44,6 +44,7 @@ class DocumentBufferSaveTest : BaseTest() {
     private val fileSystemOps = LocalFileSystemOps(ownershipResolver = mockOwnershipResolver)
 
     private fun createMockGateway(failTempWrites: Boolean = false): GatewaySwitch = mockk<GatewaySwitch>().apply {
+        coEvery { canWrite(any()) } returns true
         coEvery { exists(any()) } coAnswers { fileSystemOps.exists(firstArg<APath<*>>() as LocalPath) }
         @Suppress("UNCHECKED_CAST")
         coEvery { lookup(any(), any()) } coAnswers {
@@ -196,6 +197,50 @@ class DocumentBufferSaveTest : BaseTest() {
 
         val expected = StringBuilder(content).insert(1, "X😀").toString()
         file.readBytes() shouldBe bom + expected.toByteArray(Charsets.UTF_16BE)
+    }
+
+    @Test
+    fun `ISO-8859-1 override round-trips high bytes and encodes added text`(@TempDir tempDir: File) = runTest {
+        // é = 0xE9 in ISO-8859-1, invalid as UTF-8; blockSize 4 forces edges through high bytes
+        val original = "café\ncafé".toByteArray(Charsets.ISO_8859_1)
+        val file = File(tempDir, "latin.txt").apply { writeBytes(original) }
+        val dataSource = FileDataSource(
+            workspaceId, LocalPath.build(file), createMockGateway(), Charsets.ISO_8859_1,
+        ).apply { open() }
+        val buffer = DocumentBuffer(
+            workspaceId = workspaceId,
+            dataSource = dataSource,
+            maxUndoStackSize = 100,
+            maxUndoMemoryBytes = 10_485_760,
+            blockSize = 4,
+            assertions = true,
+        )
+        buffer.initialize().getOrThrow()
+
+        buffer.getFullText().getOrThrow() shouldBe "café\ncafé"
+
+        buffer.insertText(TextPosition(4, 0, 4), "s è").getOrThrow()
+        buffer.saveFile().isSuccess shouldBe true
+
+        file.readBytes() shouldBe "cafés è\ncafé".toByteArray(Charsets.ISO_8859_1)
+        buffer.getFullText().getOrThrow() shouldBe "cafés è\ncafé"
+    }
+
+    @Test
+    fun `read-only file fails save explicitly but unmodified save stays no-op`(@TempDir tempDir: File) = runTest {
+        val gateway = createMockGateway().apply {
+            coEvery { canWrite(any()) } returns false
+        }
+        val (file, buffer) = fileBuffer(tempDir, "hello".toByteArray(), gateway = gateway)
+
+        // No modifications: save succeeds as a no-op even though the file is read-only
+        buffer.saveFile().isSuccess shouldBe true
+
+        buffer.insertText(TextPosition(0, 0, 0), "X").getOrThrow()
+        val result = buffer.saveFile()
+        (result.exceptionOrNull() is ReadOnlyFileException).shouldBeTrue()
+        buffer.isModified.value shouldBe true
+        file.readBytes() shouldBe "hello".toByteArray()
     }
 
     @Test

@@ -30,6 +30,12 @@ sealed interface EditorPageAction {
 
         /** Cancel an in-progress file open operation */
         data object CancelOpen : File
+
+        /** Show the encoding picker dialog */
+        data object ShowEncodingPicker : File
+
+        /** Reopen the current file decoding it with the given charset */
+        data class ReopenWithEncoding(val charsetName: String) : File
     }
 
     /**
@@ -127,6 +133,15 @@ sealed interface EditorPageAction {
 
         /** Confirm closing the file (discard changes) */
         data object ConfirmClose : Dialog
+
+        /** Dismiss the encoding picker dialog */
+        data object DismissEncoding : Dialog
+
+        /** Confirm reopening with a new encoding, discarding unsaved changes */
+        data object ConfirmEncodingDiscard : Dialog
+
+        /** Dismiss the encoding discard-confirmation dialog */
+        data object DismissEncodingDiscard : Dialog
     }
 
     /**

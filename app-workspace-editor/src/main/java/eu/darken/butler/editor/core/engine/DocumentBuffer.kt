@@ -372,6 +372,11 @@ class DocumentBuffer @AssistedInject constructor(
                 log(tag) { "No modifications to save" }
                 return Result.success(Unit)
             }
+            (_contentSource.value as? ContentSource.File)?.let { source ->
+                if (!source.canWrite) {
+                    return Result.failure(ReadOnlyFileException("File is read-only: ${source.path}"))
+                }
+            }
 
             checkStaleness()
             val expectedLength = table.totalCharLength

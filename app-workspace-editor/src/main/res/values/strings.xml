@@ -70,6 +70,9 @@
     <string name="editor_dialog_close_confirm_title">Unsaved Changes</string>
     <string name="editor_dialog_close_confirm_message">You have unsaved changes. Discard them?</string>
     <string name="editor_dialog_close_confirm_discard">Discard</string>
+    <string name="editor_encoding_dialog_title">Encoding</string>
+    <string name="editor_encoding_dialog_message">Reopen the file with a different encoding. Unsaved changes are discarded; unedited bytes stay untouched on save.</string>
+    <string name="editor_infobar_read_only">Read-only</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Untitled</string>

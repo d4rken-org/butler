@@ -30,6 +30,7 @@ class DocumentBufferMultibyteTest : BaseTest() {
     private val fileSystemOps = LocalFileSystemOps(ownershipResolver = mockOwnershipResolver)
 
     private fun createMockGateway(): GatewaySwitch = mockk<GatewaySwitch>().apply {
+        coEvery { canWrite(any()) } returns true
         coEvery { exists(any()) } coAnswers { fileSystemOps.exists(firstArg<APath<*>>() as LocalPath) }
         @Suppress("UNCHECKED_CAST")
         coEvery { lookup(any(), any()) } coAnswers {

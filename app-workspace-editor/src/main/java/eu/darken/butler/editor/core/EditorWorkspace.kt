@@ -58,6 +58,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import okio.buffer
 import okio.use
+import java.nio.charset.Charset
 
 
 class EditorWorkspace @AssistedInject constructor(
@@ -79,6 +80,7 @@ class EditorWorkspace @AssistedInject constructor(
             cursorLine = currentState.cursorPosition.line,
             cursorColumn = currentState.cursorPosition.column,
             scrollToLine = currentState.visibleRange.first,
+            charsetOverride = charsetOverride?.name(),
         )
     }
 
@@ -102,6 +104,15 @@ class EditorWorkspace @AssistedInject constructor(
     override val info: MutableStateFlow<Workspace.Info> = _info
 
     val filePath: APath<*>? get() = (creationArguments as? EditorArguments.Default)?.filePath
+
+    // Active charset override; restored from session arguments (validated against the allowlist
+    // so an unknown persisted name degrades to auto-detection instead of breaking restore)
+    private var charsetOverride: Charset? =
+        (creationArguments as? EditorArguments.Default)?.charsetOverride?.let { name ->
+            EditorCharsets.resolve(name).also {
+                if (it == null) log(tag, WARN) { "Ignoring unknown persisted charset override: $name" }
+            }
+        }
 
     // Track engine being initialized to allow cancellation
     @Volatile
@@ -227,9 +238,12 @@ class EditorWorkspace @AssistedInject constructor(
             }
         }
 
-        // Auto-save logic: debounce after changes
+        // Auto-save logic: debounce after changes; read-only files are skipped so an edited
+        // read-only document doesn't produce a failing save on every interval
         combine(
-            editorStateInternal.map { it.isModified }.distinctUntilChanged(),
+            editorStateInternal.map { state ->
+                state.isModified && (state.contentSource as? ContentSource.File)?.canWrite != false
+            }.distinctUntilChanged(),
             editorSettings.autoSaveEnabled.flow,
             editorSettings.autoSaveInterval.flow,
         ) { isModified, enabled, interval ->
@@ -264,7 +278,7 @@ class EditorWorkspace @AssistedInject constructor(
             val initialContent = args?.initialContent
             log(tag, INFO) { "Creating initial engine with: ${initialPath?.name ?: "scratch buffer"}" }
 
-            val engine = editorEngineFactory.create(id, initialPath, initialContent)
+            val engine = editorEngineFactory.create(id, initialPath, initialContent, charsetOverride)
             _engine.value = engine
             pendingEngine = engine
 
@@ -331,10 +345,10 @@ class EditorWorkspace @AssistedInject constructor(
         }
     }
 
-    private suspend fun switchEngine(newFilePath: APath<*>?) {
-        log(tag, INFO) { "Switching engine to: ${newFilePath?.name ?: "scratch buffer"}" }
+    private suspend fun switchEngine(newFilePath: APath<*>?, charset: Charset? = null) {
+        log(tag, INFO) { "Switching engine to: ${newFilePath?.name ?: "scratch buffer"} (charset=$charset)" }
 
-        val newEngine = editorEngineFactory.create(id, newFilePath)
+        val newEngine = editorEngineFactory.create(id, newFilePath, charsetOverride = charset)
         pendingEngine = newEngine
 
         // Swap engine before initialize so progress flows through editorStateInternal
@@ -363,6 +377,7 @@ class EditorWorkspace @AssistedInject constructor(
                 }
             }
 
+            charsetOverride = charset
             log(tag, DEBUG) { "Engine switched successfully" }
         } catch (e: CancellationException) {
             log(tag, INFO) { "Engine switch cancelled" }
@@ -395,6 +410,20 @@ class EditorWorkspace @AssistedInject constructor(
     }
 
     suspend fun closeFile() = switchEngine(null)
+
+    /** Reopens the current file decoding it with [charsetName]; unsaved changes are discarded. */
+    suspend fun reopenWithCharset(charsetName: String) {
+        val charset = EditorCharsets.resolve(charsetName) ?: run {
+            log(tag, WARN) { "Ignoring reopen with unknown charset: $charsetName" }
+            return
+        }
+        val currentPath = ((_state.value as? State.Ready)?.editor?.contentSource as? ContentSource.File)?.path
+            ?: run {
+                log(tag, WARN) { "Cannot reopen with charset - no file open" }
+                return
+            }
+        switchEngine(currentPath, charset)
+    }
 
     /**
      * Cancels an in-progress file open operation.
@@ -438,8 +467,8 @@ class EditorWorkspace @AssistedInject constructor(
 
             log(tag) { "Content written to: ${newFilePath.name}" }
 
-            // Switch to new engine with the new file path
-            switchEngine(newFilePath)
+            // Switch to new engine with the new file path, keeping the active charset override
+            switchEngine(newFilePath, charsetOverride)
 
             Result.success(Unit)
         } catch (e: Exception) {

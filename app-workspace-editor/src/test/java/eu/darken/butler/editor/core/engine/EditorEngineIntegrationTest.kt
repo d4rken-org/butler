@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import kotlin.random.Random
+import java.nio.charset.Charset
+
 /**
  * Engine-level cases for the piece-table rewrite: save checkpoints across engine save,
  * line navigation on multi-block multibyte documents, and byte-exact content streaming.
@@ -46,6 +48,7 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
     }
 
     private fun createMockGateway(): GatewaySwitch = mockk<GatewaySwitch>().apply {
+        coEvery { canWrite(any()) } returns true
         coEvery { exists(any()) } coAnswers { fileSystemOps.exists(firstArg<APath<*>>() as LocalPath) }
         @Suppress("UNCHECKED_CAST")
         coEvery { lookup(any(), any()) } coAnswers {
@@ -76,8 +79,12 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
                 InMemoryDataSource(workspaceId, initialContent)
         }
         val fileFactory = object : FileDataSource.Factory {
-            override fun create(workspaceId: Workspace.Id, filePath: APath<*>, gatewaySwitch: GatewaySwitch) =
-                FileDataSource(workspaceId, filePath, gatewaySwitch)
+            override fun create(
+                workspaceId: Workspace.Id,
+                filePath: APath<*>,
+                gatewaySwitch: GatewaySwitch,
+                charsetOverride: Charset?,
+            ) = FileDataSource(workspaceId, filePath, gatewaySwitch, charsetOverride)
         }
         val documentBufferFactory = object : DocumentBuffer.Factory {
             override fun create(

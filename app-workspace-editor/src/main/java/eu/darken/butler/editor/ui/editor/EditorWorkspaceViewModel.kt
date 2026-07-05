@@ -63,6 +63,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val _showGoToLineDialog = MutableStateFlow(false)
     private val _showSearchDialog = MutableStateFlow(false)
     private val _showCloseConfirmDialog = MutableStateFlow(false)
+    private val _showEncodingDialog = MutableStateFlow(false)
+    private val _pendingEncoding = MutableStateFlow<String?>(null)
     private val _searchQueryInput = MutableStateFlow(TextFieldValue(""))
     private val _currentSearchResultIndex = MutableStateFlow(0)
     private val _searchCaseSensitive = MutableStateFlow(false)
@@ -76,14 +78,18 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val showGoToLineDialog: Boolean,
         val showSearchDialog: Boolean,
         val showCloseConfirmDialog: Boolean,
+        val showEncodingDialog: Boolean,
+        val pendingEncoding: String?,
     )
 
     private val dialogStates = combine(
         _showGoToLineDialog,
         _showSearchDialog,
         _showCloseConfirmDialog,
-    ) { showGoToLineDialog, showSearchDialog, showCloseConfirmDialog ->
-        DialogStates(showGoToLineDialog, showSearchDialog, showCloseConfirmDialog)
+        _showEncodingDialog,
+        _pendingEncoding,
+    ) { showGoToLineDialog, showSearchDialog, showCloseConfirmDialog, showEncodingDialog, pendingEncoding ->
+        DialogStates(showGoToLineDialog, showSearchDialog, showCloseConfirmDialog, showEncodingDialog, pendingEncoding)
     }
 
     private data class SearchStates(
@@ -155,6 +161,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             showGoToLineDialog = dialogs.showGoToLineDialog,
             showSearchDialog = dialogs.showSearchDialog,
             showCloseConfirmDialog = dialogs.showCloseConfirmDialog,
+            showEncodingDialog = dialogs.showEncodingDialog,
+            pendingEncoding = dialogs.pendingEncoding,
             searchQueryInput = search.queryInput,
             currentSearchResultIndex = search.currentResultIndex,
             searchCaseSensitive = search.caseSensitive,
@@ -536,6 +544,40 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         _showSearchDialog.value = false
     }
 
+    fun showEncodingDialog() {
+        _showEncodingDialog.value = true
+    }
+
+    fun dismissEncodingDialog() {
+        _showEncodingDialog.value = false
+    }
+
+    fun selectEncoding(charsetName: String) {
+        _showEncodingDialog.value = false
+        launch {
+            val currentState = state.first()
+            if (currentState.fileEncoding.equals(charsetName, ignoreCase = true)) return@launch
+            if (currentState.isModified) {
+                // Reopening rescans from disk; let the user confirm losing unsaved changes
+                _pendingEncoding.value = charsetName
+            } else {
+                getWorkspace().reopenWithCharset(charsetName)
+            }
+        }
+    }
+
+    fun confirmEncodingDiscard() {
+        val charsetName = _pendingEncoding.value ?: return
+        _pendingEncoding.value = null
+        launch {
+            getWorkspace().reopenWithCharset(charsetName)
+        }
+    }
+
+    fun dismissEncodingDiscard() {
+        _pendingEncoding.value = null
+    }
+
     fun undo() = launch {
         getWorkspace().undo()
     }
@@ -588,6 +630,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.File.Save -> saveFile()
             is EditorPageAction.File.Close -> closeFile()
             is EditorPageAction.File.CancelOpen -> cancelFileOpen()
+            is EditorPageAction.File.ShowEncodingPicker -> showEncodingDialog()
+            is EditorPageAction.File.ReopenWithEncoding -> selectEncoding(action.charsetName)
 
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
@@ -619,6 +663,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Dialog.DismissSearch -> dismissSearchDialog()
             is EditorPageAction.Dialog.DismissCloseConfirm -> dismissCloseConfirmDialog()
             is EditorPageAction.Dialog.ConfirmClose -> confirmCloseFile()
+            is EditorPageAction.Dialog.DismissEncoding -> dismissEncodingDialog()
+            is EditorPageAction.Dialog.ConfirmEncodingDiscard -> confirmEncodingDiscard()
+            is EditorPageAction.Dialog.DismissEncodingDiscard -> dismissEncodingDiscard()
 
             // Clipboard actions
             is EditorPageAction.Clipboard.Paste -> pasteFromClipboard(action.clip)
@@ -661,6 +708,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val showGoToLineDialog: Boolean = false,
         val showSearchDialog: Boolean = false,
         val showCloseConfirmDialog: Boolean = false,
+        val showEncodingDialog: Boolean = false,
+        val pendingEncoding: String? = null,
         val searchQueryInput: TextFieldValue = TextFieldValue(""),
         val currentSearchResultIndex: Int = 0,
         val searchCaseSensitive: Boolean = false,
@@ -673,6 +722,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     ) {
         val isLoading: Boolean get() = progress != null
         val hasFile: Boolean get() = contentSource is ContentSource.File
+        val isReadOnly: Boolean get() = (contentSource as? ContentSource.File)?.canWrite == false
         val hasContent: Boolean get() = contentSource.hasContent
         val isFileReady: Boolean get() = contentSource is ContentSource.File && progress == null
         val hasSelection: Boolean get() = selectionRange != null

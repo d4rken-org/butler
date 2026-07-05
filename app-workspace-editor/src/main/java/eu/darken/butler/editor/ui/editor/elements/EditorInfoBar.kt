@@ -3,7 +3,9 @@ package eu.darken.butler.editor.ui.editor.elements
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Description
+import androidx.compose.material.icons.twotone.Lock
 import androidx.compose.material.icons.twotone.TextFields
+import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -27,6 +29,9 @@ fun EditorInfoBar(
     cursorColumn: Int = 0,
     selectedCharacterCount: Long = 0,
     selectedLineCount: Long = 0,
+    fileEncoding: String? = null,
+    isReadOnly: Boolean = false,
+    onEncodingClick: (() -> Unit)? = null,
     onClearSelection: () -> Unit = {},
 ) {
     WorkspaceInfoBar(
@@ -60,6 +65,23 @@ fun EditorInfoBar(
         },
         trailingContent = {
             Spacer(modifier = Modifier.weight(1f))
+
+            if (selectedCharacterCount == 0L) {
+                if (isReadOnly) {
+                    InfoChip(
+                        icon = Icons.TwoTone.Lock,
+                        label = stringResource(R.string.editor_infobar_read_only),
+                        isAccented = true,
+                    )
+                }
+                if (fileEncoding != null) {
+                    InfoChip(
+                        icon = Icons.TwoTone.Translate,
+                        label = fileEncoding,
+                        onClick = onEncodingClick,
+                    )
+                }
+            }
 
             // Show combined lines and size
             if (totalLines > 0 && fileSize != null && selectedCharacterCount == 0L) {

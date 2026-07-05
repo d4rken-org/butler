@@ -39,6 +39,7 @@ class FileDataSourceEncodingTest : BaseTest() {
     private val fileSystemOps = LocalFileSystemOps(ownershipResolver = mockOwnershipResolver)
 
     private fun createMockGateway(): GatewaySwitch = mockk<GatewaySwitch>().apply {
+        coEvery { canWrite(any()) } returns true
         coEvery { exists(any()) } coAnswers {
             val path = firstArg<APath<*>>() as LocalPath
             fileSystemOps.exists(path)
@@ -331,6 +332,68 @@ class FileDataSourceEncodingTest : BaseTest() {
 
         // And: Content is correct
         String(savedBytes.drop(3).toByteArray(), Charsets.UTF_8) shouldBe "Line 1\nLine 2\nLine 3\nLine 4"
+    }
+
+    // ==================== Charset Override Tests ====================
+
+    @Test
+    fun `override skips detection and decodes single-byte content`(@TempDir tempDir: File) = runTest {
+        // "café" in ISO-8859-1: é = 0xE9, invalid as UTF-8 (detection would fall back to UTF-8)
+        val testFile = File(tempDir, "latin.txt")
+        testFile.writeBytes(byteArrayOf(0x63, 0x61, 0x66, 0xE9.toByte()))
+
+        val dataSource = FileDataSource(
+            workspaceId = workspaceId,
+            filePath = LocalPath.build(testFile),
+            gatewaySwitch = createMockGateway(),
+            charsetOverride = Charsets.ISO_8859_1,
+        )
+        dataSource.open()
+
+        val contentSource = dataSource.contentSource.value as ContentSource.File
+        contentSource.detectedCharset shouldBe Charsets.ISO_8859_1
+        contentSource.hasBOM shouldBe false
+        contentSource.bomBytes shouldBe null
+    }
+
+    @Test
+    fun `override matching the on-disk BOM family strips the BOM`(@TempDir tempDir: File) = runTest {
+        val testFile = File(tempDir, "test.txt")
+        val bomBytes = byteArrayOf(0xFF.toByte(), 0xFE.toByte())
+        testFile.writeBytes(bomBytes + "Hello".toByteArray(Charsets.UTF_16LE))
+
+        val dataSource = FileDataSource(
+            workspaceId = workspaceId,
+            filePath = LocalPath.build(testFile),
+            gatewaySwitch = createMockGateway(),
+            charsetOverride = Charsets.UTF_16LE,
+        )
+        dataSource.open()
+
+        val contentSource = dataSource.contentSource.value as ContentSource.File
+        contentSource.detectedCharset shouldBe Charsets.UTF_16LE
+        contentSource.hasBOM shouldBe true
+        contentSource.bomBytes shouldBe bomBytes
+    }
+
+    @Test
+    fun `override from a different family treats a BOM as content`(@TempDir tempDir: File) = runTest {
+        // UTF-8 BOM on disk, but the file is reopened as ISO-8859-1: the BOM bytes are content
+        val testFile = File(tempDir, "test.txt")
+        testFile.writeBytes(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte()) + "Hello".toByteArray())
+
+        val dataSource = FileDataSource(
+            workspaceId = workspaceId,
+            filePath = LocalPath.build(testFile),
+            gatewaySwitch = createMockGateway(),
+            charsetOverride = Charsets.ISO_8859_1,
+        )
+        dataSource.open()
+
+        val contentSource = dataSource.contentSource.value as ContentSource.File
+        contentSource.detectedCharset shouldBe Charsets.ISO_8859_1
+        contentSource.hasBOM shouldBe false
+        contentSource.bomBytes shouldBe null
     }
 
     @Test

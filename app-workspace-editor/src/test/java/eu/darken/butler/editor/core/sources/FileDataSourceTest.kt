@@ -33,6 +33,7 @@ class FileDataSourceTest : BaseTest() {
     private val fileSystemOps = LocalFileSystemOps(ownershipResolver = mockOwnershipResolver)
 
     private fun createMockGateway(): GatewaySwitch = mockk<GatewaySwitch>().apply {
+        coEvery { canWrite(any()) } returns true
         // Mock exists() - delegates to REAL file system operations
         coEvery { exists(any()) } coAnswers {
             val path = firstArg<APath<*>>() as LocalPath
@@ -112,6 +113,7 @@ class FileDataSourceTest : BaseTest() {
     fun `open throws on non-existent file`(@TempDir tempDir: File) = runTest {
         // Given: Non-existent file
         val mockGateway = mockk<GatewaySwitch>().apply {
+        coEvery { canWrite(any()) } returns true
             coEvery { exists(any()) } returns false
         }
         val dataSource = FileDataSource(

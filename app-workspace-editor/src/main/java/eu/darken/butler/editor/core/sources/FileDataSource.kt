@@ -39,7 +39,8 @@ import kotlin.uuid.Uuid
 class FileDataSource @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val filePath: APath<*>,
-    @Assisted private val gatewaySwitch: GatewaySwitch
+    @Assisted private val gatewaySwitch: GatewaySwitch,
+    @Assisted private val charsetOverride: Charset? = null,
 ) : EditorDataSource {
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "DataSource", "File")
     private val _contentSource = MutableStateFlow<ContentSource>(ContentSource.Memory(size = 0L))
@@ -47,29 +48,31 @@ class FileDataSource @AssistedInject constructor(
 
     private val accessMutex = Mutex()
 
+    /** Reads the first 8KB for charset detection (enough for BOM + content validation). */
+    private suspend fun readDetectionSample(): ByteArray {
+        val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
+        val sampleSize = minOf(8192L, lookup.size ?: 0L).toInt()
+        if (sampleSize == 0) return ByteArray(0)
+        val sampleBytes = ByteArray(sampleSize)
+        gatewaySwitch.file(filePath, readWrite = false).use { handle ->
+            handle.source().buffer().use { source ->
+                source.read(sampleBytes)
+            }
+        }
+        return sampleBytes
+    }
+
     /**
      * Detects charset from file content via [CharsetDetector]:
      * BOM first, UTF-8 validation second, defaulting to UTF-8.
      *
      * @return Triple of (Charset, hasBOM, bomBytes)
      */
-    private suspend fun detectCharset(filePath: APath<*>): Triple<Charset, Boolean, ByteArray?> {
-        // Read first 8KB for detection (enough for BOM + content validation)
-        val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
-        val fileSize = lookup.size ?: 0L
-        val sampleSize = minOf(8192L, fileSize).toInt()
-
-        if (sampleSize == 0) {
+    private suspend fun detectCharset(): Triple<Charset, Boolean, ByteArray?> {
+        val sampleBytes = readDetectionSample()
+        if (sampleBytes.isEmpty()) {
             // Empty file - default to UTF-8
             return Triple(Charsets.UTF_8, false, null)
-        }
-
-        val sampleBytes = ByteArray(sampleSize)
-
-        gatewaySwitch.file(filePath, readWrite = false).use { handle ->
-            handle.source().buffer().use { source ->
-                source.read(sampleBytes)
-            }
         }
 
         CharsetDetector.detectBom(sampleBytes)?.let { detection ->
@@ -83,9 +86,25 @@ class FileDataSource @AssistedInject constructor(
         }
 
         // Legacy encodings (ISO-8859-1, Windows-1252, Shift-JIS) will display as mojibake
-        // but won't crash. Future enhancement: add manual encoding selector.
+        // but won't crash; the user can reopen with an explicit charset override.
         log(tag, WARN) { "Could not confidently detect encoding - defaulting to UTF-8" }
         return Triple(Charsets.UTF_8, false, null)
+    }
+
+    /**
+     * Applies an explicit charset override, skipping detection. A BOM on disk is stripped
+     * (and preserved on save) only when it belongs to the override's own family; any other
+     * BOM bytes are treated as document content.
+     */
+    private suspend fun applyOverride(override: Charset): Triple<Charset, Boolean, ByteArray?> {
+        val sampleBytes = readDetectionSample()
+        val bom = if (sampleBytes.isEmpty()) null else CharsetDetector.detectBom(sampleBytes)
+        log(tag, INFO) { "Using charset override $override (bom=${bom?.charset})" }
+        return if (bom != null && bom.charset == override) {
+            Triple(override, true, bom.bomBytes)
+        } else {
+            Triple(override, false, null)
+        }
     }
 
     override suspend fun open() {
@@ -97,14 +116,15 @@ class FileDataSource @AssistedInject constructor(
 
             val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
 
-            // Detect charset from file content
-            val (detectedCharset, hasBOM, bomBytes) = detectCharset(filePath)
+            val (detectedCharset, hasBOM, bomBytes) = charsetOverride?.let { applyOverride(it) }
+                ?: detectCharset()
+            val canWrite = gatewaySwitch.canWrite(filePath)
 
             _contentSource.value = ContentSource.File(
                 path = filePath,
                 size = lookup.size!!,
                 lastModified = lookup.modifiedAt!!,
-                canWrite = true, // We'll assume writable for now
+                canWrite = canWrite,
                 lineEnding = LineEnding.LF, // Updated by the engine after the block scan
                 detectedCharset = detectedCharset,
                 hasBOM = hasBOM,
@@ -112,7 +132,8 @@ class FileDataSource @AssistedInject constructor(
             )
 
             log(tag, INFO) {
-                "Opened FileDataSource: size=${lookup.size} bytes, charset=$detectedCharset, hasBOM=$hasBOM"
+                "Opened FileDataSource: size=${lookup.size} bytes, charset=$detectedCharset, " +
+                    "hasBOM=$hasBOM, canWrite=$canWrite"
             }
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to open - ${e.asLog()}" }
@@ -326,6 +347,7 @@ class FileDataSource @AssistedInject constructor(
             workspaceId: Workspace.Id,
             filePath: APath<*>,
             gatewaySwitch: GatewaySwitch,
+            charsetOverride: Charset? = null,
         ): FileDataSource
     }
 }

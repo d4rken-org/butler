@@ -24,5 +24,6 @@ sealed interface EditorArguments : Workspace.Arguments {
         val scrollToLine: Long? = null,
         val initialContent: String? = null,
         val suggestedTitle: String? = null,
+        val charsetOverride: String? = null,
     ) : EditorArguments
 }

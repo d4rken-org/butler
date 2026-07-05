@@ -28,6 +28,7 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
+import eu.darken.butler.editor.ui.editor.dialogs.EncodingDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
@@ -178,6 +179,9 @@ fun EditorWorkspacePage(
                         cursorColumn = state.cursorPosition.column,
                         selectedLineCount = state.selectedLineCount,
                         selectedCharacterCount = state.selectedCharacterCount,
+                        fileEncoding = if (state.hasFile) state.fileEncoding else null,
+                        isReadOnly = state.isReadOnly,
+                        onEncodingClick = { onPageAction(EditorPageAction.File.ShowEncodingPicker) },
                         onClearSelection = { onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition)) },
                     )
                 }
@@ -339,6 +343,22 @@ fun EditorWorkspacePage(
         CloseConfirmDialog(
             onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmClose) },
             onDismiss = { onPageAction(EditorPageAction.Dialog.DismissCloseConfirm) },
+        )
+    }
+
+    if (state.showEncodingDialog) {
+        EncodingDialog(
+            currentEncoding = state.fileEncoding,
+            onSelect = { charsetName -> onPageAction(EditorPageAction.File.ReopenWithEncoding(charsetName)) },
+            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissEncoding) },
+        )
+    }
+
+    if (state.pendingEncoding != null) {
+        // Reopening with a different encoding rescans from disk and discards unsaved changes
+        CloseConfirmDialog(
+            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmEncodingDiscard) },
+            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissEncodingDiscard) },
         )
     }
 
