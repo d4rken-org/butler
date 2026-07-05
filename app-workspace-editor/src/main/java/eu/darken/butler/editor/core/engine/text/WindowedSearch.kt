@@ -98,7 +98,9 @@ class WindowedSearch(
                 }
             }
 
-            for (match in regex.findAll(text)) {
+            // Matching starts at the core so a pad-only match can never consume the non-overlap
+            // slot of a real one; the pad still provides real \b context at the edges.
+            for (match in regex.findAll(text, coreOffset)) {
                 if (match.value.isEmpty()) continue
                 val absolute = padStart + match.range.first
                 if (absolute < windowStart || absolute >= acceptLimit) continue

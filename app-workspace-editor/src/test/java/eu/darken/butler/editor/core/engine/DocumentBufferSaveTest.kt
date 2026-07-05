@@ -316,6 +316,40 @@ class DocumentBufferSaveTest : BaseTest() {
         buffer.saveFile().isFailure shouldBe true
     }
 
+    private class IntegrityFailingDataSource(
+        private val delegate: InMemoryDataSource,
+    ) : EditorDataSource by delegate {
+        override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) {
+            throw eu.darken.butler.editor.core.sources.CommitIntegrityException(
+                "Simulated unrestorable commit",
+                IOException("boom"),
+            )
+        }
+    }
+
+    @Test
+    fun `commit integrity failure poisons the buffer`() = runTest {
+        val delegate = InMemoryDataSource(workspaceId, "hello world").apply { open() }
+        val buffer = DocumentBuffer(
+            workspaceId = workspaceId,
+            dataSource = IntegrityFailingDataSource(delegate),
+            maxUndoStackSize = 100,
+            maxUndoMemoryBytes = 10_485_760,
+            blockSize = BlockIndexBuilder.DEFAULT_BLOCK_SIZE,
+            assertions = true,
+        )
+        buffer.initialize().getOrThrow()
+        buffer.insertText(TextPosition(0, 0, 0), "X").getOrThrow()
+
+        val result = buffer.saveFile()
+
+        result.isFailure shouldBe true
+        buffer.isModified.value shouldBe true
+        // The target may have mutated: stale pieces must not be served
+        buffer.getText(0, 5).isFailure shouldBe true
+        buffer.insertText(TextPosition(0, 0, 0), "Y").isFailure shouldBe true
+    }
+
     private class GatedCommitDataSource(
         private val delegate: InMemoryDataSource,
     ) : EditorDataSource by delegate {

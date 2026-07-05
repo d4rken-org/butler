@@ -172,12 +172,16 @@ class FileDataSource @AssistedInject constructor(
                 commitViaInPlace(backupPath, writer)
             }
 
-            val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
-            _contentSource.value = fileSource.copy(
-                size = lookup.size!!,
-                lastModified = lookup.modifiedAt!!,
-            )
-            log(tag) { "Committed ${lookup.size} bytes" }
+            // The commit has landed; a metadata refresh failure must not be reported as a
+            // failed commit (consumers re-read metadata during their post-save rescan anyway)
+            runCatching {
+                val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
+                _contentSource.value = fileSource.copy(
+                    size = lookup.size!!,
+                    lastModified = lookup.modifiedAt!!,
+                )
+            }.onFailure { log(tag, WARN) { "Post-commit metadata refresh failed: ${it.asLog()}" } }
+            log(tag) { "Commit landed for $filePath" }
         }
     }
 
@@ -211,15 +215,20 @@ class FileDataSource @AssistedInject constructor(
             } catch (e: Exception) {
                 // Moves are atomic, so a failure here means the commit never landed and the original
                 // path is free; if we had moved the original aside, put it back.
+                var restored = !backedUp
                 if (backedUp) {
                     try {
                         check(gatewaySwitch.move(backupPath, filePath)) { "Restore move returned false" }
+                        restored = true
                     } catch (restoreError: Exception) {
                         log(tag, ERROR) { "Restore failed - original preserved at $backupPath: ${restoreError.asLog()}" }
                         e.addSuppressed(restoreError)
                     }
                 }
                 cleanupArtifact(tempPath)
+                if (!restored) {
+                    throw CommitIntegrityException("Commit failed and the original could not be restored to $filePath", e)
+                }
                 throw e
             }
             cleanupArtifact(backupPath)
@@ -253,6 +262,7 @@ class FileDataSource @AssistedInject constructor(
             }
         } catch (e: Exception) {
             if (backupReady) {
+                var restored = false
                 withContext(NonCancellable) {
                     runCatching {
                         writeContent(filePath) { sink ->
@@ -260,10 +270,14 @@ class FileDataSource @AssistedInject constructor(
                                 handle.source().buffer().use { source -> sink.writeAll(source) }
                             }
                         }
+                        restored = true
                     }.onFailure {
                         log(tag, ERROR) { "Restore failed - original preserved at $backupPath: ${it.asLog()}" }
                         e.addSuppressed(it)
                     }
+                }
+                if (!restored) {
+                    throw CommitIntegrityException("In-place commit failed and $filePath could not be restored", e)
                 }
             } else {
                 // Backup never completed; the original was not touched, so the partial backup is junk.

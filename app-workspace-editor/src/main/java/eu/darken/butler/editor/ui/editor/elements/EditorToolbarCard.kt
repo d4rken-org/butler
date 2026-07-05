@@ -352,7 +352,7 @@ private fun EditorToolbarCardLoadingPreview() {
         isModified = false,
         progress = Progress.Data(
             primary = R.string.editor_progress_opening.toCaString(),
-            secondary = "Processing chunk 5 of 20".toCaString(),
+            secondary = "Indexing 5 MB of 20 MB".toCaString(),
             count = Progress.Count.Counter(5, 20),
         ),
         hasContent = false,
@@ -374,7 +374,7 @@ private fun EditorToolbarCardLoadingCollapsedPreview() {
         isModified = false,
         progress = Progress.Data(
             primary = R.string.editor_progress_opening.toCaString(),
-            secondary = "Processing chunk 5 of 20".toCaString(),
+            secondary = "Indexing 5 MB of 20 MB".toCaString(),
             count = Progress.Count.Counter(5, 20),
         ),
         hasContent = false,

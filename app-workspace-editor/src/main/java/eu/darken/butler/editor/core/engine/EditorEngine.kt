@@ -327,7 +327,7 @@ class EditorEngine @AssistedInject constructor(
                 // Use current cursor position (will be at selection.first if selection was deleted)
                 val cursorPos = _cursorPosition.value
 
-                // Recalculate correct offset from line/column using chunk metadata
+                // Recalculate correct offset from line/column via the buffer
                 // UI may send placeholder offset=0 with virtual scrolling
                 val correctedOffset = currentState.resources.textBuffer.findOffset(
                     cursorPos.line,

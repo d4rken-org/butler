@@ -88,6 +88,16 @@ class DocumentBufferCheckpointTest : DocumentBufferTestBase() {
     }
 
     @Test
+    fun `no-op edits do not mark the buffer modified`() = runTest {
+        val buffer = createBuffer("abc")
+        buffer.insertText(TextPosition(1, 0, 1), "").getOrThrow()
+        buffer.deleteText(TextPosition(2, 0, 2), TextPosition(2, 0, 2)).getOrThrow()
+        buffer.isModified.value shouldBe false
+        buffer.canUndo() shouldBe false
+        buffer.getFullText().getOrThrow() shouldBe "abc"
+    }
+
+    @Test
     fun `discarded redo region keeps modified even at matching content`() = runTest {
         val buffer = createBuffer("base")
         buffer.insertText(TextPosition(0, 0, 0), "1").getOrThrow()

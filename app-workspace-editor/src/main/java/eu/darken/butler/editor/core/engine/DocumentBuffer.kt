@@ -16,6 +16,7 @@ import eu.darken.butler.editor.core.engine.text.BlockOriginalDocument
 import eu.darken.butler.editor.core.engine.text.Piece
 import eu.darken.butler.editor.core.engine.text.PieceTable
 import eu.darken.butler.editor.core.engine.text.WindowedSearch
+import eu.darken.butler.editor.core.sources.CommitIntegrityException
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
@@ -232,8 +233,10 @@ class DocumentBuffer @AssistedInject constructor(
                 }
                 return@withLock Result.failure(IllegalArgumentException("Position is out of bounds"))
             }
-            table.insert(position.offset, text)
-            commitNewEdit(EditOperation.Insert(position, text))
+            if (text.isNotEmpty()) {
+                table.insert(position.offset, text)
+                commitNewEdit(EditOperation.Insert(position, text))
+            }
 
             val newPosition = TextPosition(
                 offset = position.offset + text.length,
@@ -256,14 +259,16 @@ class DocumentBuffer @AssistedInject constructor(
             try {
                 val table = table()
                 val deletedText = table.read(startPosition.offset, endPosition.offset)
-                table.delete(startPosition.offset, endPosition.offset)
-                commitNewEdit(
-                    EditOperation.Delete(
-                        startPosition,
-                        (endPosition.offset - startPosition.offset).toInt(),
-                        deletedText,
-                    ),
-                )
+                if (deletedText.isNotEmpty()) {
+                    table.delete(startPosition.offset, endPosition.offset)
+                    commitNewEdit(
+                        EditOperation.Delete(
+                            startPosition,
+                            (endPosition.offset - startPosition.offset).toInt(),
+                            deletedText,
+                        ),
+                    )
+                }
                 Result.success(deletedText)
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to delete text from $startPosition to $endPosition - ${e.asLog()}" }
@@ -356,6 +361,11 @@ class DocumentBuffer @AssistedInject constructor(
         } catch (e: CancellationException) {
             // Cancelled before the point of no return: commit cleaned up, buffer stays editable
             throw e
+        } catch (e: CommitIntegrityException) {
+            // The on-disk state no longer matches the pre-commit content: pieces are stale
+            saveError = e
+            log(tag, ERROR) { "Commit left the target inconsistent, buffer requires reload - ${e.asLog()}" }
+            Result.failure(e)
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to save - ${e.asLog()}" }
             Result.failure(e)
@@ -411,13 +421,18 @@ class DocumentBuffer @AssistedInject constructor(
         pieceTable = PieceTable.create(original, assertions)
 
         _lineEnding.value = index.lineEnding
+        captureFreshness(index)
         val freshSource = dataSource.contentSource.value
         _contentSource.value = if (freshSource is ContentSource.File) {
-            freshSource.copy(lineEnding = index.lineEnding)
+            // Size/mtime from our own fresh lookup - the data source's post-commit refresh is best-effort
+            freshSource.copy(
+                lineEnding = index.lineEnding,
+                size = lastKnownMeta?.size ?: freshSource.size,
+                lastModified = lastKnownMeta?.modifiedAt ?: freshSource.lastModified,
+            )
         } else {
             freshSource
         }
-        captureFreshness(index)
         savedGeneration = currentGeneration
         savedGenerationValid = true
         refreshStats()

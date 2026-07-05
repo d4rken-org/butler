@@ -196,6 +196,15 @@ class WindowedSearchTest : BaseTest() {
     }
 
     @Test
+    fun `pad matches do not consume real matches at window handoff`() = runTest {
+        // A match starting in the left pad must not eat the non-overlap slot of a core match
+        val content = "xxxxaaaazz"
+        val results = searchAll(content, "aa", windowSize = 8, minOverlap = 2)
+        val expected = Regex(Regex.escape("aa")).findAll(content).map { it.range.first.toLong() }.toList()
+        results.map { it.offset } shouldBe expected
+    }
+
+    @Test
     fun `whole word does not see a false boundary at window end`() = runTest {
         // Window 1 text ends right after "cat", but the real next char is a word char
         val content = "ab cats"

@@ -73,7 +73,7 @@ internal data class TextEdit(
  * and full replace. Returns null when the strings are equal.
  *
  * Offsets are UTF-16 code units, consistent with [TextPosition.column], [androidx.compose.ui.text.TextRange],
- * and the chunked buffer. The prefix/suffix boundaries are nudged off any lone surrogate so [inserted]
+ * and the document buffer. The prefix/suffix boundaries are nudged off any lone surrogate so [inserted]
  * never contains half of a surrogate pair.
  */
 internal fun computeTextEdit(old: String, new: String): TextEdit? {
