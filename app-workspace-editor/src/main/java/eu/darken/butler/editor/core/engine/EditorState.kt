@@ -40,7 +40,5 @@ sealed class EditorState {
  */
 data class EditorResources(
     val dataSource: EditorDataSource,
-    val chunkRepository: ChunkRepository,
-    val chunkManager: ChunkManager,
-    val textBuffer: ChunkedTextBuffer,
+    val textBuffer: DocumentBuffer,
 )

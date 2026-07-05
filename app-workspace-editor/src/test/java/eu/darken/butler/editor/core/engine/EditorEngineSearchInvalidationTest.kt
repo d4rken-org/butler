@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
  * Integration testing with full EditorEngine setup would require:
  * - GatewaySwitch with real file access
  * - EditorSettings with DataStore
- * - All factory dependencies for ChunkedTextBuffer stack
+ * - All factory dependencies for the DocumentBuffer stack
  *
  * The behavior can be verified through manual testing:
  * 1. Open file in editor
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test
  * 4. Undo (cmd/ctrl+Z)
  * 5. Verify search highlighting is cleared
  */
-class EditorEngineSearchInvalidationTest : ChunkedTextBufferTestBase() {
+class EditorEngineSearchInvalidationTest : DocumentBufferTestBase() {
 
     @Test
     fun `search and undo workflow - search results become stale`() = runTest {

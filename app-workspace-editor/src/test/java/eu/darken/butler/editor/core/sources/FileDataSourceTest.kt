@@ -7,16 +7,15 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
-import eu.darken.butler.editor.core.engine.ChunkBoundary
-import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.instanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import okio.buffer
+import okio.use
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
@@ -88,14 +87,11 @@ class FileDataSourceTest : BaseTest() {
             open()
         }
 
-    private fun boundaries(vararg entries: Pair<TextChunk, Pair<Long, Long>>): Map<TextChunk.ChunkId, ChunkBoundary> {
-        return entries.associate { (chunk, offsets) ->
-            // Calculate line count from chunk content
-            val lineCount =
-                chunk.content.count { it == '\n' } + if (chunk.content.isNotEmpty() && !chunk.content.endsWith('\n')) 1 else 0
-            chunk.id to ChunkBoundary(offsets.first, offsets.second, lineCount)
-        }
-    }
+    private suspend fun FileDataSource.readBytes(offset: Long, count: Int): ByteArray =
+        openByteSource(offset).buffer().use { it.readByteArray(count.toLong()) }
+
+    private suspend fun FileDataSource.readAllBytes(offset: Long): ByteArray =
+        openByteSource(offset).buffer().use { it.readByteArray() }
 
     // ==================== Initialization Tests ====================
 
@@ -124,125 +120,78 @@ class FileDataSourceTest : BaseTest() {
             mockGateway,
         )
 
-        // When & Then: Open throws IllegalArgumentException
+        // When & Then: Open throws
         val exception = runCatching { dataSource.open() }.exceptionOrNull()
         exception shouldBe instanceOf<FileNotFoundException>()
     }
 
-    // ==================== Read Chunk Tests ====================
+    // ==================== Byte Source Tests ====================
 
     @Test
-    fun `readChunk reads from start of file`(@TempDir tempDir: File) = runTest {
+    fun `openByteSource reads from start of file`(@TempDir tempDir: File) = runTest {
         // Given: File with known content
         val dataSource = createDataSource(tempDir, "test.txt", "Hello World\nLine 2\nLine 3")
 
         // When: Read first 11 bytes
-        val chunk = dataSource.readChunk(0L, 11L)
+        val bytes = dataSource.readBytes(0L, 11)
 
         // Then: Should match expected content
-        chunk shouldBe "Hello World"
+        bytes shouldBe "Hello World".toByteArray()
     }
 
     @Test
-    fun `readChunk reads from middle of file`(@TempDir tempDir: File) = runTest {
+    fun `openByteSource reads from middle of file`(@TempDir tempDir: File) = runTest {
         // Given
         val dataSource = createDataSource(tempDir, "test.txt", "Hello World\nLine 2\nLine 3")
 
         // When: Read from offset 12 (after first newline)
-        val chunk = dataSource.readChunk(12L, 6L)
+        val bytes = dataSource.readBytes(12L, 6)
 
         // Then
-        chunk shouldBe "Line 2"
+        bytes shouldBe "Line 2".toByteArray()
     }
 
     @Test
-    fun `readChunk beyond EOF returns available content`(@TempDir tempDir: File) = runTest {
+    fun `openByteSource read beyond EOF returns available content`(@TempDir tempDir: File) = runTest {
         // Given
         val dataSource = createDataSource(tempDir, "test.txt", "Hello")
 
-        // When: Request more bytes than available
-        val chunk = dataSource.readChunk(0L, 100L)
+        // When: Read everything from the start
+        val bytes = dataSource.readAllBytes(0L)
 
         // Then: Returns what's available
-        chunk shouldBe "Hello"
+        bytes shouldBe "Hello".toByteArray()
     }
 
     @Test
-    fun `readChunk from offset beyond file size returns empty`(@TempDir tempDir: File) = runTest {
+    fun `openByteSource from offset beyond file size returns empty`(@TempDir tempDir: File) = runTest {
         // Given
         val dataSource = createDataSource(tempDir, "test.txt", "Hello")
 
         // When: Offset beyond file
-        val chunk = dataSource.readChunk(100L, 10L)
+        val bytes = dataSource.readAllBytes(100L)
 
-        // Then: Empty string
-        chunk shouldBe ""
+        // Then: No bytes
+        bytes.size shouldBe 0
     }
 
     @Test
-    fun `readChunk multiple reads with different offsets`(@TempDir tempDir: File) = runTest {
+    fun `openByteSource multiple reads with different offsets`(@TempDir tempDir: File) = runTest {
         // Given
         val dataSource = createDataSource(tempDir, "test.txt", "ABCDEFGHIJ")
 
-        // When: Read different chunks
-        val chunk1 = dataSource.readChunk(0L, 3L)
-        val chunk2 = dataSource.readChunk(3L, 3L)
-        val chunk3 = dataSource.readChunk(6L, 3L)
+        // When: Read different ranges
+        val bytes1 = dataSource.readBytes(0L, 3)
+        val bytes2 = dataSource.readBytes(3L, 3)
+        val bytes3 = dataSource.readBytes(6L, 3)
 
-        // Then: All chunks correct
-        chunk1 shouldBe "ABC"
-        chunk2 shouldBe "DEF"
-        chunk3 shouldBe "GHI"
-    }
-
-    // ==================== Save Tests ====================
-
-    @Test
-    fun `save merges modifications and writes to disk`(@TempDir tempDir: File) = runTest {
-        // Given
-        val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
-        val dataSource = createDataSource(tempDir, "test.txt", "Hello World")
-
-        // When: Save dirty chunks
-        val dirtyChunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
-            content = "Goodbye",
-            lineCount = 1,
-            isDirty = true,
-        )
-        dataSource.save(
-            listOf(dirtyChunk),
-            boundaries(dirtyChunk to (0L to 7L))
-        )
-
-        // Then: File updated on disk
-        testFile.readText().take(7) shouldBe "Goodbye"
-
-        // And: isModified cleared
-        dataSource.isModified.value shouldBe false
-    }
-
-    @Test
-    fun `save with no modifications does nothing`(@TempDir tempDir: File) = runTest {
-        // Given
-        val testFile = File(tempDir, "test.txt").apply { writeText("Content") }
-        val dataSource = createDataSource(tempDir, "test.txt", "Content")
-        testFile.lastModified()
-
-        Thread.sleep(100)
-
-        // When: Save with empty dirty chunks list
-        dataSource.save(emptyList(), emptyMap())
-
-        // Then: File timestamp unchanged (assuming implementation optimizes this)
-        // Note: Depending on implementation, this may or may not update timestamp
-        dataSource.isModified.value shouldBe false
+        // Then: All ranges correct
+        bytes1 shouldBe "ABC".toByteArray()
+        bytes2 shouldBe "DEF".toByteArray()
+        bytes3 shouldBe "GHI".toByteArray()
     }
 
     // ==================== Safe-save (local backup-swap) Tests ====================
-
-    private fun dirtyChunk(content: String) =
-        TextChunk(id = TextChunk.ChunkId.generate(), content = content, lineCount = 1, isDirty = true)
 
     @Test
     fun `save failure preserves the original file and cleans up artifacts`(@TempDir tempDir: File) = runTest {
@@ -257,9 +206,8 @@ class FileDataSourceTest : BaseTest() {
         val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
         val dataSource = FileDataSource(workspaceId, LocalPath.build(testFile), gateway).apply { open() }
 
-        val dirty = dirtyChunk("Goodbye")
         shouldThrow<Exception> {
-            dataSource.save(listOf(dirty), boundaries(dirty to (0L to 7L)))
+            dataSource.commit { context -> context.sink.write("Goodbye".toByteArray()) }
         }
 
         // Original intact, no leftover save artifacts.
@@ -278,9 +226,8 @@ class FileDataSourceTest : BaseTest() {
         val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
         val dataSource = FileDataSource(workspaceId, LocalPath.build(testFile), gateway).apply { open() }
 
-        val dirty = dirtyChunk("Goodbye")
         shouldThrow<Exception> {
-            dataSource.save(listOf(dirty), boundaries(dirty to (0L to 7L)))
+            dataSource.commit { context -> context.sink.write("Goodbye".toByteArray()) }
         }
 
         testFile.readText() shouldBe "Hello World"
@@ -292,10 +239,9 @@ class FileDataSourceTest : BaseTest() {
         val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
         val dataSource = createDataSource(tempDir, "test.txt", "Hello World")
 
-        val dirty = dirtyChunk("Goodbye")
-        dataSource.save(listOf(dirty), boundaries(dirty to (0L to 7L)))
+        dataSource.commit { context -> context.sink.write("Goodbye".toByteArray()) }
 
-        testFile.readText().take(7) shouldBe "Goodbye"
+        testFile.readText() shouldBe "Goodbye"
         tempDir.listFiles()!!.none { it.name.contains("butler-save") } shouldBe true
     }
 
@@ -311,9 +257,8 @@ class FileDataSourceTest : BaseTest() {
         val testFile = File(tempDir, "test.txt").apply { writeText("Hello World") }
         val dataSource = FileDataSource(workspaceId, LocalPath.build(testFile), gateway).apply { open() }
 
-        val dirty = dirtyChunk("Goodbye")
         shouldThrow<Exception> {
-            dataSource.save(listOf(dirty), boundaries(dirty to (0L to 7L)))
+            dataSource.commit { context -> context.sink.write("Goodbye".toByteArray()) }
         }
 
         // The original survives: restored in place, or preserved in the backup if restore also failed.
@@ -331,12 +276,9 @@ class FileDataSourceTest : BaseTest() {
         val dataSource = createDataSource(tempDir, "test.txt", "original")
         val backupPath = LocalPath.build(File(tempDir, "test.txt.butler-save-bak-inplace"))
 
-        dataSource.commitViaInPlace(
-            backupPath = backupPath,
-            bom = null,
-            mergedContent = "NEW CONTENT".toByteArray(),
-            originalBytes = "original".toByteArray(),
-        )
+        dataSource.commitViaInPlace(backupPath) { context ->
+            context.sink.write("NEW CONTENT".toByteArray())
+        }
 
         testFile.readText() shouldBe "NEW CONTENT"
         backupPath.file.exists() shouldBe false
@@ -358,12 +300,9 @@ class FileDataSourceTest : BaseTest() {
         val backupPath = LocalPath.build(File(tempDir, "test.txt.butler-save-bak-inplace"))
 
         shouldThrow<Exception> {
-            dataSource.commitViaInPlace(
-                backupPath = backupPath,
-                bom = null,
-                mergedContent = "NEW".toByteArray(),
-                originalBytes = "original".toByteArray(),
-            )
+            dataSource.commitViaInPlace(backupPath) { context ->
+                context.sink.write("NEW".toByteArray())
+            }
         }
 
         // Original content preserved in the backup for recovery.
@@ -378,10 +317,10 @@ class FileDataSourceTest : BaseTest() {
         val dataSource = createDataSource(tempDir, "test.txt", "")
 
         // When: Read
-        val chunk = dataSource.readChunk(0L, 100L)
+        val bytes = dataSource.readAllBytes(0L)
 
-        // Then: Empty string
-        chunk shouldBe ""
+        // Then: No bytes
+        bytes.size shouldBe 0
         dataSource.getSize() shouldBe 0L
     }
 
@@ -391,54 +330,27 @@ class FileDataSourceTest : BaseTest() {
         val dataSource = createDataSource(tempDir, "test.txt", "X")
 
         // When
-        val chunk = dataSource.readChunk(0L, 1L)
+        val bytes = dataSource.readBytes(0L, 1)
 
         // Then
-        chunk shouldBe "X"
+        bytes shouldBe "X".toByteArray()
         dataSource.getSize() shouldBe 1L
     }
 
     @Test
     fun `handles UTF-8 multibyte characters`(@TempDir tempDir: File) = runTest {
         // Given: File with emoji and Chinese characters
-        val dataSource = createDataSource(tempDir, "test.txt", "Hello 🚀 World 中文")
-
-        // When: Read
-        val chunk = dataSource.readChunk(0L, 100L)
-
-        // Then: Characters preserved
-        chunk.contains("🚀") shouldBe true
-        chunk.contains("中文") shouldBe true
-    }
-
-    @Test
-    fun `emoji at chunk boundary is protected from corruption`(@TempDir tempDir: File) = runTest {
-        // Given: File with emoji positioned so byte boundary might split it
-        // Emoji 🎉 = U+1F389 = 4 bytes in UTF-8: F0 9F 8E 89
-        // UTF-16: 2 chars (high surrogate D83C + low surrogate DF89)
-        // Position content so emoji bytes span a chunk boundary
-        val paddingLength = 10
-        val padding = "a".repeat(paddingLength)
-        val emoji = "🎉"
-        val content = padding + emoji + "XYZ"
-
+        val content = "Hello 🚀 World 中文"
         val dataSource = createDataSource(tempDir, "test.txt", content)
 
-        // When: Read chunk that would end in the middle of emoji's UTF-8 bytes
-        // Read just the padding + 2 bytes of emoji (incomplete)
-        val chunk = dataSource.readChunk(0L, (paddingLength + 2).toLong())
+        // When: Read
+        val bytes = dataSource.readAllBytes(0L)
 
-        // Then: Should NOT contain orphaned surrogate (protection should truncate or include full emoji)
-        val hasHighSurrogate = chunk.contains('\uD83C')  // High surrogate of 🎉
-        val hasLowSurrogate = chunk.contains('\uDF89')   // Low surrogate of 🎉
-
-        // Protection ensures we don't have orphaned surrogates:
-        // Either both surrogates present (full emoji) or neither (truncated before emoji)
-        (hasHighSurrogate && hasLowSurrogate) || (!hasHighSurrogate && !hasLowSurrogate) shouldBe true
-
-        // Verify content is valid (no corruption)
-        (chunk.length > 0) shouldBe true
-        chunk.startsWith("a") shouldBe true
+        // Then: Bytes round-trip verbatim and decode back to the original characters
+        bytes shouldBe content.toByteArray()
+        val decoded = bytes.toString(Charsets.UTF_8)
+        decoded.contains("🚀") shouldBe true
+        decoded.contains("中文") shouldBe true
     }
 
     @Test
@@ -447,11 +359,11 @@ class FileDataSourceTest : BaseTest() {
         val dataSource = createDataSource(tempDir, "test.txt", "Line 1\nLine 2")
 
         // When
-        val chunk = dataSource.readChunk(0L, 100L)
+        val bytes = dataSource.readAllBytes(0L)
 
         // Then: Content preserved without trailing newline
-        chunk shouldBe "Line 1\nLine 2"
-        chunk.endsWith("\n") shouldBe false
+        bytes shouldBe "Line 1\nLine 2".toByteArray()
+        bytes.toString(Charsets.UTF_8).endsWith("\n") shouldBe false
     }
 
     @Test
@@ -465,7 +377,6 @@ class FileDataSourceTest : BaseTest() {
 
         // Then: No exception thrown, content source reset to empty Memory
         dataSource.contentSource.value.size shouldBe 0L
-        dataSource.isModified.value shouldBe false
     }
 
     @Test
@@ -480,79 +391,78 @@ class FileDataSourceTest : BaseTest() {
     // ==================== Partial Read Tests ====================
 
     @Test
-    fun `readChunk handles large chunk requiring multiple reads`(@TempDir tempDir: File) = runTest {
+    fun `openByteSource handles large read requiring multiple segments`(@TempDir tempDir: File) = runTest {
         // Given: File with 100KB of content (larger than 8KB Okio segment size)
         val contentSize = 100 * 1024 // 100KB
         val content = "a".repeat(contentSize)
         val dataSource = createDataSource(tempDir, "large.txt", content)
 
-        // When: Read 64KB chunk from middle (will require multiple Okio reads)
-        val chunkSize = 64 * 1024L
-        val chunk = dataSource.readChunk(1024L, chunkSize)
+        // When: Read 64KB from an offset (will require multiple Okio reads)
+        val readSize = 64 * 1024
+        val bytes = dataSource.readBytes(1024L, readSize)
 
-        // Then: Full chunk is read despite Okio returning partial reads
-        chunk.length shouldBe chunkSize.toInt()
-        chunk shouldBe "a".repeat(chunkSize.toInt())
+        // Then: Full range is read despite Okio returning partial reads
+        bytes.size shouldBe readSize
+        bytes shouldBe "a".repeat(readSize).toByteArray()
     }
 
     @Test
-    fun `readChunk handles reading exactly 64KB chunk`(@TempDir tempDir: File) = runTest {
+    fun `openByteSource handles reading exactly 64KB`(@TempDir tempDir: File) = runTest {
         // Given: File with exactly 64KB + some extra
-        val chunkSize = 64 * 1024
-        val content = "b".repeat(chunkSize + 1000)
+        val readSize = 64 * 1024
+        val content = "b".repeat(readSize + 1000)
         val dataSource = createDataSource(tempDir, "64kb.txt", content)
 
-        // When: Read exactly 64KB (default chunk size)
-        val chunk = dataSource.readChunk(0L, chunkSize.toLong())
+        // When: Read exactly 64KB
+        val bytes = dataSource.readBytes(0L, readSize)
 
         // Then: All 64KB read correctly (not just first 8KB segment)
-        chunk.length shouldBe chunkSize
-        chunk shouldBe "b".repeat(chunkSize)
+        bytes.size shouldBe readSize
+        bytes shouldBe "b".repeat(readSize).toByteArray()
     }
 
     @Test
-    fun `readChunk handles EOF during accumulation`(@TempDir tempDir: File) = runTest {
+    fun `openByteSource handles EOF before requested amount`(@TempDir tempDir: File) = runTest {
         // Given: File with 20KB content
         val contentSize = 20 * 1024
         val content = "c".repeat(contentSize)
         val dataSource = createDataSource(tempDir, "20kb.txt", content)
 
-        // When: Try to read 64KB but file only has 20KB
-        val chunk = dataSource.readChunk(0L, 64 * 1024L)
+        // When: Read everything although far more was expected to fit
+        val bytes = dataSource.readAllBytes(0L)
 
         // Then: Returns what's available (20KB), not empty or error
-        chunk.length shouldBe contentSize
-        chunk shouldBe "c".repeat(contentSize)
+        bytes.size shouldBe contentSize
+        bytes shouldBe "c".repeat(contentSize).toByteArray()
     }
 
     @Test
-    fun `readChunk handles partial last chunk correctly`(@TempDir tempDir: File) = runTest {
-        // Given: File with 70KB (first chunk 64KB, second chunk 6KB)
+    fun `openByteSource handles partial tail read correctly`(@TempDir tempDir: File) = runTest {
+        // Given: File with 70KB (64KB head, 6KB tail)
         val contentSize = 70 * 1024
         val content = "d".repeat(contentSize)
         val dataSource = createDataSource(tempDir, "70kb.txt", content)
 
-        // When: Read second chunk (starts at 64KB, should read remaining 6KB)
-        val secondChunkStart = 64 * 1024L
-        val secondChunkSize = 64 * 1024L
-        val chunk = dataSource.readChunk(secondChunkStart, secondChunkSize)
+        // When: Read from 64KB to EOF (remaining 6KB)
+        val tailStart = 64 * 1024L
+        val bytes = dataSource.readAllBytes(tailStart)
 
-        // Then: Returns only the 6KB available, not 64KB
-        val expectedSize = contentSize - secondChunkStart.toInt()
-        chunk.length shouldBe expectedSize
-        chunk shouldBe "d".repeat(expectedSize)
+        // Then: Returns only the 6KB available
+        val expectedSize = contentSize - tailStart.toInt()
+        bytes.size shouldBe expectedSize
+        bytes shouldBe "d".repeat(expectedSize).toByteArray()
     }
 
     @Test
-    fun `readChunk returns empty string at exact EOF`(@TempDir tempDir: File) = runTest {
+    fun `openByteSource returns no bytes at exact EOF`(@TempDir tempDir: File) = runTest {
         // Given: File with 1KB
         val content = "e".repeat(1024)
         val dataSource = createDataSource(tempDir, "1kb.txt", content)
 
         // When: Read at exact file size (EOF)
-        val chunk = dataSource.readChunk(1024L, 100L)
+        val bytes = dataSource.readAllBytes(1024L)
 
-        // Then: Returns empty string
-        chunk shouldBe ""
+        // Then: No bytes
+        bytes.size shouldBe 0
     }
 }

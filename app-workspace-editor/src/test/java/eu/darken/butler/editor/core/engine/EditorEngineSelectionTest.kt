@@ -14,10 +14,10 @@ import org.junit.jupiter.api.Test
  * during virtual scrolling of large files.
  *
  * The fix ensures that TextPosition offsets are computed via
- * ChunkedTextBuffer.findOffset() rather than trusting potentially
+ * DocumentBuffer.findOffset() rather than trusting potentially
  * stale offset values from the UI layer.
  */
-class EditorEngineSelectionTest : ChunkedTextBufferTestBase() {
+class EditorEngineSelectionTest : DocumentBufferTestBase() {
 
     // ==================== Single Line Selection ====================
 
@@ -103,7 +103,7 @@ class EditorEngineSelectionTest : ChunkedTextBufferTestBase() {
         val chunk1 = "A".repeat(100)
         val chunk2 = "B".repeat(100)
         val content = "$chunk1\n$chunk2"
-        val buffer = createBuffer(content, chunkSize = 100L)
+        val buffer = createBuffer(content, blockSize = 100)
 
         // When: Find offset at chunk boundary (start of line 1)
         val offsetAtBoundary = buffer.findOffset(line = 1, column = 0)
@@ -119,7 +119,7 @@ class EditorEngineSelectionTest : ChunkedTextBufferTestBase() {
         val line2 = "B".repeat(100)
         val line3 = "C".repeat(100)
         val content = "$line1\n$line2\n$line3"
-        val buffer = createBuffer(content, chunkSize = 100L)
+        val buffer = createBuffer(content, blockSize = 100)
 
         // When: Find offset in the middle of chunk 3
         val offsetInChunk3 = buffer.findOffset(line = 2, column = 50)

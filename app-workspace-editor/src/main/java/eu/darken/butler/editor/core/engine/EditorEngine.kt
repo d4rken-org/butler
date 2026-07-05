@@ -12,6 +12,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.progress.Progress
+import eu.darken.butler.editor.BuildConfig
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.sources.FileDataSource
@@ -43,9 +44,7 @@ class EditorEngine @AssistedInject constructor(
     private val editorSettings: EditorSettings,
     private val fileDataSourceFactory: FileDataSource.Factory,
     private val inMemoryDataSourceFactory: InMemoryDataSource.Factory,
-    private val chunkRepositoryFactory: ChunkRepository.Factory,
-    private val chunkManagerFactory: ChunkManager.Factory,
-    private val chunkedTextBufferFactory: ChunkedTextBuffer.Factory,
+    private val documentBufferFactory: DocumentBuffer.Factory,
 ) {
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine")
 
@@ -100,7 +99,7 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    val textBuffer: ChunkedTextBuffer?
+    val textBuffer: DocumentBuffer?
         get() = (state.value as? EditorState.Loaded)?.resources?.textBuffer
 
     private suspend fun createResourcesForFile(filePath: APath<*>?): EditorResources {
@@ -120,26 +119,20 @@ class EditorEngine @AssistedInject constructor(
             )
         }
 
-        // Create dependent resources
-        val chunkRepository = chunkRepositoryFactory.create(workspaceId, dataSource)
-        val chunkManager = chunkManagerFactory.create(workspaceId, chunkRepository)
-
         // Read undo settings
         val maxUndoStackSize = editorSettings.undoStackSize.value()
         val maxUndoMemoryBytes = editorSettings.undoMaxMemory.value()
 
-        val textBuffer = chunkedTextBufferFactory.create(
-            workspaceId,
-            chunkManager,
-            chunkRepository,
-            maxUndoStackSize,
-            maxUndoMemoryBytes
+        val textBuffer = documentBufferFactory.create(
+            workspaceId = workspaceId,
+            dataSource = dataSource,
+            maxUndoStackSize = maxUndoStackSize,
+            maxUndoMemoryBytes = maxUndoMemoryBytes,
+            assertions = BuildConfig.DEBUG,
         )
 
         return EditorResources(
             dataSource = dataSource,
-            chunkRepository = chunkRepository,
-            chunkManager = chunkManager,
             textBuffer = textBuffer,
         )
     }
@@ -466,7 +459,7 @@ class EditorEngine @AssistedInject constructor(
     }
 
     /** Resolves [caret] (line/column from the visible field) to a buffer offset and sets it as the cursor. */
-    private suspend fun updateCursorFromCaret(buffer: ChunkedTextBuffer, caret: TextPosition) {
+    private suspend fun updateCursorFromCaret(buffer: DocumentBuffer, caret: TextPosition) {
         val maxLine = (_totalLines.value - 1).coerceAtLeast(0)
         val safeLine = caret.line.coerceIn(0, maxLine)
         val caretOffset = try {

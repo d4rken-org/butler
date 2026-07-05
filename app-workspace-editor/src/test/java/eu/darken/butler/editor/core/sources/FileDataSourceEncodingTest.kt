@@ -7,15 +7,15 @@ import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
-import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.ContentSource
-import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import okio.buffer
+import okio.use
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
@@ -28,8 +28,8 @@ import kotlin.uuid.Uuid
  * Tests verify:
  * - BOM detection (UTF-8, UTF-16 LE/BE)
  * - UTF-8 validation for non-BOM files
- * - BOM preservation on save
- * - Encoding preservation on save
+ * - BOM preservation on commit
+ * - Encoding preservation on commit
  * - Round-trip integrity
  */
 class FileDataSourceEncodingTest : BaseTest() {
@@ -191,63 +191,6 @@ class FileDataSourceEncodingTest : BaseTest() {
         contentSource.hasBOM shouldBe false
     }
 
-    // ==================== BOM Stripping Tests ====================
-
-    @Test
-    fun `strip BOM from first chunk`(@TempDir tempDir: File) = runTest {
-        // Given: UTF-8 file with BOM
-        val testFile = File(tempDir, "test.txt")
-        testFile.writeBytes(
-            byteArrayOf(
-                0xEF.toByte(),
-                0xBB.toByte(),
-                0xBF.toByte()
-            ) + "Hello".toByteArray(Charsets.UTF_8)
-        )
-
-        val dataSource = FileDataSource(
-            workspaceId = workspaceId,
-            filePath = LocalPath.build(testFile),
-            gatewaySwitch = createMockGateway()
-        )
-
-        dataSource.open()
-
-        // When: Read first chunk
-        val content = dataSource.readChunk(0, 100)
-
-        // Then: BOM should be stripped
-        content shouldBe "Hello"
-        content.startsWith("\uFEFF") shouldBe false // No BOM character
-    }
-
-    @Test
-    fun `do not strip BOM from non-first chunk`(@TempDir tempDir: File) = runTest {
-        // Given: File with BOM at start
-        val testFile = File(tempDir, "test.txt")
-        testFile.writeBytes(
-            byteArrayOf(
-                0xEF.toByte(),
-                0xBB.toByte(),
-                0xBF.toByte()
-            ) + "0123456789".toByteArray(Charsets.UTF_8)
-        )
-
-        val dataSource = FileDataSource(
-            workspaceId = workspaceId,
-            filePath = LocalPath.build(testFile),
-            gatewaySwitch = createMockGateway()
-        )
-
-        dataSource.open()
-
-        // When: Read chunk starting after BOM
-        val content = dataSource.readChunk(5, 10) // Offset 5 is past the 3-byte BOM
-
-        // Then: Should just read content (BOM already skipped in file)
-        content.length shouldBe 8 // "23456789"
-    }
-
     // ==================== BOM Preservation Tests ====================
 
     @Test
@@ -265,21 +208,11 @@ class FileDataSourceEncodingTest : BaseTest() {
 
         dataSource.open()
 
-        // When: Modify and save
-        val chunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
-            content = "Modified content",
-            lineCount = 1,
-            lineEnding = eu.darken.butler.editor.core.engine.LineEnding.LF,
-            isDirty = true,
-            isLoaded = true
-        )
-
-        val boundaries = mapOf(
-            chunk.id to ChunkBoundary(startOffset = 0, endOffset = 16, lineCount = 1) // BOM is handled separately
-        )
-
-        dataSource.save(listOf(chunk), boundaries)
+        // When: Commit modified content, writing the detected BOM first
+        dataSource.commit { context ->
+            context.sink.write(bomBytes)
+            context.sink.write("Modified content".toByteArray(Charsets.UTF_8))
+        }
 
         // Then: BOM should be preserved
         val savedBytes = testFile.readBytes()
@@ -304,21 +237,11 @@ class FileDataSourceEncodingTest : BaseTest() {
 
         dataSource.open()
 
-        // When: Save with modification
-        val chunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
-            content = "Modified",
-            lineCount = 1,
-            lineEnding = eu.darken.butler.editor.core.engine.LineEnding.LF,
-            isDirty = true,
-            isLoaded = true
-        )
-
-        val boundaries = mapOf(
-            chunk.id to ChunkBoundary(startOffset = 0, endOffset = 16, lineCount = 1) // BOM is handled separately
-        )
-
-        dataSource.save(listOf(chunk), boundaries)
+        // When: Commit modified content in the detected encoding
+        dataSource.commit { context ->
+            context.sink.write(bomBytes)
+            context.sink.write("Modified".toByteArray(Charsets.UTF_16LE))
+        }
 
         // Then: BOM should be preserved
         val savedBytes = testFile.readBytes()
@@ -339,21 +262,10 @@ class FileDataSourceEncodingTest : BaseTest() {
 
         dataSource.open()
 
-        // When: Save with modification
-        val chunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
-            content = "Modified content",
-            lineCount = 1,
-            lineEnding = eu.darken.butler.editor.core.engine.LineEnding.LF,
-            isDirty = true,
-            isLoaded = true
-        )
-
-        val boundaries = mapOf(
-            chunk.id to ChunkBoundary(startOffset = 0, endOffset = 16, lineCount = 1)
-        )
-
-        dataSource.save(listOf(chunk), boundaries)
+        // When: Commit modified content without a BOM
+        dataSource.commit { context ->
+            context.sink.write("Modified content".toByteArray(Charsets.UTF_8))
+        }
 
         // Then: Should NOT have BOM
         val savedBytes = testFile.readBytes()
@@ -379,21 +291,10 @@ class FileDataSourceEncodingTest : BaseTest() {
 
         dataSource.open()
 
-        // When: Modify and save
-        val chunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
-            content = "Modified with emoji 🚀",
-            lineCount = 1,
-            lineEnding = eu.darken.butler.editor.core.engine.LineEnding.LF,
-            isDirty = true,
-            isLoaded = true
-        )
-
-        val boundaries = mapOf(
-            chunk.id to ChunkBoundary(startOffset = 0, endOffset = 21, lineCount = 1)
-        )
-
-        dataSource.save(listOf(chunk), boundaries)
+        // When: Commit modified content
+        dataSource.commit { context ->
+            context.sink.write("Modified with emoji 🚀".toByteArray(Charsets.UTF_8))
+        }
 
         // Then: Should still be UTF-8
         val savedContent = testFile.readText(Charsets.UTF_8)
@@ -415,23 +316,14 @@ class FileDataSourceEncodingTest : BaseTest() {
 
         dataSource.open()
 
-        // When: Read, modify, and save
-        val originalContent = dataSource.readChunk(0, 100)
+        // When: Read (past the BOM), modify, and commit
+        val originalContent = dataSource.openByteSource(3L).buffer().use { it.readByteArray() }
+            .toString(Charsets.UTF_8)
 
-        val chunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
-            content = originalContent + "\nLine 4",
-            lineCount = 4,
-            lineEnding = eu.darken.butler.editor.core.engine.LineEnding.LF,
-            isDirty = true,
-            isLoaded = true
-        )
-
-        val boundaries = mapOf(
-            chunk.id to ChunkBoundary(startOffset = 0, endOffset = 22, lineCount = 3) // BOM is handled separately
-        )
-
-        dataSource.save(listOf(chunk), boundaries)
+        dataSource.commit { context ->
+            context.sink.write(originalBOM)
+            context.sink.write((originalContent + "\nLine 4").toByteArray(Charsets.UTF_8))
+        }
 
         // Then: BOM should be preserved
         val savedBytes = testFile.readBytes()
@@ -459,21 +351,11 @@ class FileDataSourceEncodingTest : BaseTest() {
         // Verify detection
         (dataSource.contentSource.value as ContentSource.File).detectedCharset shouldBe Charsets.UTF_16LE
 
-        // When: Modify and save
-        val chunk = TextChunk(
-            id = TextChunk.ChunkId.generate(),
-            content = "Modified",
-            lineCount = 1,
-            lineEnding = eu.darken.butler.editor.core.engine.LineEnding.LF,
-            isDirty = true,
-            isLoaded = true
-        )
-
-        val boundaries = mapOf(
-            chunk.id to ChunkBoundary(startOffset = 0, endOffset = 16, lineCount = 1) // BOM is handled separately
-        )
-
-        dataSource.save(listOf(chunk), boundaries)
+        // When: Commit modified content in the detected encoding
+        dataSource.commit { context ->
+            context.sink.write(bomBytes)
+            context.sink.write("Modified".toByteArray(Charsets.UTF_16LE))
+        }
 
         // Then: Should still be UTF-16 LE with BOM
         val savedBytes = testFile.readBytes()

@@ -30,7 +30,7 @@ import java.io.File
  * Regression guard: the stream must reflect the CURRENT (edited) buffer content, not the stale
  * on-disk original, and must preserve the detected charset/BOM for file-backed documents.
  */
-class EditorEngineContentStreamTest : ChunkedTextBufferTestBase() {
+class EditorEngineContentStreamTest : DocumentBufferTestBase() {
 
     private val mockOwnershipResolver = mockk<OwnershipResolver>(relaxed = true)
     private val fileSystemOps = LocalFileSystemOps(ownershipResolver = mockOwnershipResolver)
@@ -54,22 +54,15 @@ class EditorEngineContentStreamTest : ChunkedTextBufferTestBase() {
         override fun create(workspaceId: Workspace.Id, filePath: APath<*>, gatewaySwitch: GatewaySwitch) =
             FileDataSource(workspaceId, filePath, gatewaySwitch)
     }
-    private val chunkRepositoryFactory = object : ChunkRepository.Factory {
-        override fun create(workspaceId: Workspace.Id, dataSource: EditorDataSource) =
-            ChunkRepository(workspaceId, dataSource)
-    }
-    private val chunkManagerFactory = object : ChunkManager.Factory {
-        override fun create(workspaceId: Workspace.Id, chunkRepository: ChunkRepository, chunkSize: Long) =
-            ChunkManager(workspaceId, chunkRepository, chunkSize)
-    }
-    private val chunkedTextBufferFactory = object : ChunkedTextBuffer.Factory {
+    private val documentBufferFactory = object : DocumentBuffer.Factory {
         override fun create(
             workspaceId: Workspace.Id,
-            chunkManager: ChunkManager,
-            chunkRepository: ChunkRepository,
+            dataSource: EditorDataSource,
             maxUndoStackSize: Int,
             maxUndoMemoryBytes: Long,
-        ) = ChunkedTextBuffer(workspaceId, chunkManager, chunkRepository, maxUndoStackSize, maxUndoMemoryBytes)
+            blockSize: Int,
+            assertions: Boolean,
+        ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true)
     }
 
     private fun createReadOnlyGateway(): GatewaySwitch = mockk<GatewaySwitch>().apply {
@@ -95,9 +88,7 @@ class EditorEngineContentStreamTest : ChunkedTextBufferTestBase() {
         editorSettings = createMockSettings(),
         fileDataSourceFactory = fileDataSourceFactory,
         inMemoryDataSourceFactory = inMemoryDataSourceFactory,
-        chunkRepositoryFactory = chunkRepositoryFactory,
-        chunkManagerFactory = chunkManagerFactory,
-        chunkedTextBufferFactory = chunkedTextBufferFactory,
+        documentBufferFactory = documentBufferFactory,
     ).apply { initialize().getOrThrow() }
 
     @Test

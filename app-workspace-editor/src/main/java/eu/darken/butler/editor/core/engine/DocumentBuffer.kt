@@ -311,7 +311,6 @@ class DocumentBuffer @AssistedInject constructor(
                     SearchResult(
                         position = TextPosition(match.offset, match.line, match.column),
                         matchText = match.matchText,
-                        chunkId = DOC_CHUNK_ID,
                     )
                 }
             } catch (e: Exception) {
@@ -629,10 +628,5 @@ class DocumentBuffer @AssistedInject constructor(
             @Assisted("blockSize") blockSize: Int = BlockIndexBuilder.DEFAULT_BLOCK_SIZE,
             assertions: Boolean = false,
         ): DocumentBuffer
-    }
-
-    companion object {
-        // SearchResult still carries a chunk id until the chunk engine is deleted
-        private val DOC_CHUNK_ID = TextChunk.ChunkId("document")
     }
 }

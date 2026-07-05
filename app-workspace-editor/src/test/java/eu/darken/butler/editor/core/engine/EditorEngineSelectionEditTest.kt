@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test
  * - deleteAtCursor() deletes selection instead of backspacing
  * - deleteForward() deletes selection instead of forward-deleting
  */
-class EditorEngineSelectionEditTest : ChunkedTextBufferTestBase() {
+class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
 
     private fun createMockSettings(): EditorSettings {
         val settings = mockk<EditorSettings>()
@@ -45,24 +45,15 @@ class EditorEngineSelectionEditTest : ChunkedTextBufferTestBase() {
                 InMemoryDataSource(workspaceId, initialContent)
         }
 
-        val chunkRepositoryFactory = object : ChunkRepository.Factory {
-            override fun create(workspaceId: Workspace.Id, dataSource: eu.darken.butler.editor.core.sources.EditorDataSource) =
-                ChunkRepository(workspaceId, dataSource)
-        }
-
-        val chunkManagerFactory = object : ChunkManager.Factory {
-            override fun create(workspaceId: Workspace.Id, chunkRepository: ChunkRepository, chunkSize: Long) =
-                ChunkManager(workspaceId, chunkRepository, chunkSize)
-        }
-
-        val chunkedTextBufferFactory = object : ChunkedTextBuffer.Factory {
+        val documentBufferFactory = object : DocumentBuffer.Factory {
             override fun create(
                 workspaceId: Workspace.Id,
-                chunkManager: ChunkManager,
-                chunkRepository: ChunkRepository,
+                dataSource: eu.darken.butler.editor.core.sources.EditorDataSource,
                 maxUndoStackSize: Int,
                 maxUndoMemoryBytes: Long,
-            ) = ChunkedTextBuffer(workspaceId, chunkManager, chunkRepository, maxUndoStackSize, maxUndoMemoryBytes)
+                blockSize: Int,
+                assertions: Boolean,
+            ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true)
         }
 
         val engine = EditorEngine(
@@ -73,9 +64,7 @@ class EditorEngineSelectionEditTest : ChunkedTextBufferTestBase() {
             editorSettings = settings,
             fileDataSourceFactory = mockk(), // Not used for in-memory
             inMemoryDataSourceFactory = inMemoryDataSourceFactory,
-            chunkRepositoryFactory = chunkRepositoryFactory,
-            chunkManagerFactory = chunkManagerFactory,
-            chunkedTextBufferFactory = chunkedTextBufferFactory,
+            documentBufferFactory = documentBufferFactory,
         )
 
         engine.initialize().getOrThrow()

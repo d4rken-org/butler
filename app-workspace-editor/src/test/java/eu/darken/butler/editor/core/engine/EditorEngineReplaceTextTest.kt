@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test
  * Positions use placeholder offset=0; the engine re-resolves offsets from line/column via the buffer, so
  * tests only need to supply line/column (matching what the UI sends with virtual scrolling).
  */
-class EditorEngineReplaceTextTest : ChunkedTextBufferTestBase() {
+class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
 
     private fun createMockSettings(): EditorSettings {
         val settings = mockk<EditorSettings>()
@@ -40,22 +40,15 @@ class EditorEngineReplaceTextTest : ChunkedTextBufferTestBase() {
             override fun create(workspaceId: Workspace.Id, initialContent: String) =
                 InMemoryDataSource(workspaceId, initialContent)
         }
-        val chunkRepositoryFactory = object : ChunkRepository.Factory {
-            override fun create(workspaceId: Workspace.Id, dataSource: eu.darken.butler.editor.core.sources.EditorDataSource) =
-                ChunkRepository(workspaceId, dataSource)
-        }
-        val chunkManagerFactory = object : ChunkManager.Factory {
-            override fun create(workspaceId: Workspace.Id, chunkRepository: ChunkRepository, chunkSize: Long) =
-                ChunkManager(workspaceId, chunkRepository, chunkSize)
-        }
-        val chunkedTextBufferFactory = object : ChunkedTextBuffer.Factory {
+        val documentBufferFactory = object : DocumentBuffer.Factory {
             override fun create(
                 workspaceId: Workspace.Id,
-                chunkManager: ChunkManager,
-                chunkRepository: ChunkRepository,
+                dataSource: eu.darken.butler.editor.core.sources.EditorDataSource,
                 maxUndoStackSize: Int,
                 maxUndoMemoryBytes: Long,
-            ) = ChunkedTextBuffer(workspaceId, chunkManager, chunkRepository, maxUndoStackSize, maxUndoMemoryBytes)
+                blockSize: Int,
+                assertions: Boolean,
+            ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true)
         }
 
         val engine = EditorEngine(
@@ -66,9 +59,7 @@ class EditorEngineReplaceTextTest : ChunkedTextBufferTestBase() {
             editorSettings = settings,
             fileDataSourceFactory = mockk(),
             inMemoryDataSourceFactory = inMemoryDataSourceFactory,
-            chunkRepositoryFactory = chunkRepositoryFactory,
-            chunkManagerFactory = chunkManagerFactory,
-            chunkedTextBufferFactory = chunkedTextBufferFactory,
+            documentBufferFactory = documentBufferFactory,
         )
 
         engine.initialize().getOrThrow()

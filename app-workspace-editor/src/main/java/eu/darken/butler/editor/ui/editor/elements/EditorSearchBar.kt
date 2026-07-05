@@ -319,7 +319,6 @@ private fun EditorSearchBarWithResultsPreview() {
             SearchResult(
                 position = eu.darken.butler.editor.core.engine.TextPosition.ZERO,
                 matchText = "test",
-                chunkId = eu.darken.butler.editor.core.engine.TextChunk.ChunkId("0")
             )
         },
         currentIndex = 2,
@@ -346,7 +345,6 @@ private fun EditorSearchBarWithOptionsPreview() {
             SearchResult(
                 position = eu.darken.butler.editor.core.engine.TextPosition.ZERO,
                 matchText = "Test",
-                chunkId = eu.darken.butler.editor.core.engine.TextChunk.ChunkId("0")
             )
         },
         currentIndex = 0,
