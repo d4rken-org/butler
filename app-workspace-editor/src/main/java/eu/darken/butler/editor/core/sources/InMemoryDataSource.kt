@@ -114,6 +114,21 @@ class InMemoryDataSource @AssistedInject constructor(
         modifiedAt = null,
     )
 
+    override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) {
+        val original = content.toByteArray(Charsets.UTF_8)
+        val collected = Buffer()
+        val context = object : EditorDataSource.CommitContext {
+            override val sink: okio.BufferedSink = collected
+            override suspend fun openOriginalSource(offset: Long): Source =
+                Buffer().write(original).apply { skip(offset) }
+        }
+        writer(context)
+        content = collected.readByteArray().toString(Charsets.UTF_8)
+        _isModified.value = content != initialContent
+        updateContentSource()
+        log(tag) { "Committed ${content.length} chars to in-memory content" }
+    }
+
     override suspend fun openByteSource(offset: Long): Source {
         val buffer = Buffer().write(content.toByteArray(Charsets.UTF_8))
         buffer.skip(offset)

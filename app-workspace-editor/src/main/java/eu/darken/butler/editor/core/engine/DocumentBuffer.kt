@@ -10,21 +10,29 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
+import eu.darken.butler.editor.core.engine.text.BlockIndex
 import eu.darken.butler.editor.core.engine.text.BlockIndexBuilder
 import eu.darken.butler.editor.core.engine.text.BlockOriginalDocument
+import eu.darken.butler.editor.core.engine.text.Piece
 import eu.darken.butler.editor.core.engine.text.PieceTable
 import eu.darken.butler.editor.core.engine.text.WindowedSearch
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import okio.buffer
 import okio.use
 import java.nio.charset.Charset
+import java.security.MessageDigest
 import java.util.LinkedList
+import kotlin.coroutines.coroutineContext
 
 /**
  * Piece-table document buffer: same public surface as the previous ChunkedTextBuffer, backed by
@@ -63,8 +71,17 @@ class DocumentBuffer @AssistedInject constructor(
     private val bufferMutex = Mutex()
     private var pieceTable: PieceTable? = null
     private var originalDocument: BlockOriginalDocument? = null
+    private var blockIndex: BlockIndex? = null
     private var detectedCharset: Charset = Charsets.UTF_8
     private var bomSize: Int = 0
+
+    // Best-effort staleness baseline, captured at open and after each rebase
+    private var lastKnownMeta: EditorDataSource.Meta? = null
+    private var firstBlockHash: ByteArray? = null
+    private var lastBlockHash: ByteArray? = null
+
+    // Set when a commit succeeded but the rebase failed: pieces are stale, the buffer needs reload
+    private var saveError: Throwable? = null
 
     private val undoStack = LinkedList<UndoEntry>()
     private val redoStack = LinkedList<UndoEntry>()
@@ -116,12 +133,15 @@ class DocumentBuffer @AssistedInject constructor(
                 readOriginalBytes(bomOffset + byteStart, byteLen)
             }
             originalDocument = original
+            blockIndex = index
             pieceTable = PieceTable.create(original, assertions)
 
             _lineEnding.value = index.lineEnding
             (_contentSource.value as? ContentSource.File)?.let {
                 _contentSource.value = it.copy(lineEnding = index.lineEnding)
             }
+            saveError = null
+            captureFreshness(index)
 
             undoStack.clear()
             redoStack.clear()
@@ -265,7 +285,7 @@ class DocumentBuffer @AssistedInject constructor(
     }
 
     suspend fun findPosition(offset: Long): TextPosition = bufferMutex.withLock {
-        val table = pieceTable ?: return@withLock TextPosition(offset, 0, 0)
+        val table = tableOrNull() ?: return@withLock TextPosition(offset, 0, 0)
         val clamped = offset.coerceIn(0L, table.totalCharLength)
         val line = table.lineOfOffset(clamped)
         val lineStart = table.lineStartOffset(line)
@@ -284,7 +304,7 @@ class DocumentBuffer @AssistedInject constructor(
 
     suspend fun search(query: String, startFrom: TextPosition?, options: SearchOptions): List<SearchResult> =
         bufferMutex.withLock {
-            val table = pieceTable ?: return@withLock emptyList()
+            val table = tableOrNull() ?: return@withLock emptyList()
             try {
                 val windowedSearch = WindowedSearch { start, end -> table.read(start, end) }
                 windowedSearch.search(table.totalCharLength, query, options).map { match ->
@@ -304,13 +324,144 @@ class DocumentBuffer @AssistedInject constructor(
         saveFileInternal()
     }
 
-    private fun saveFileInternal(): Result<Unit> {
-        if (!_isModified.value) {
-            log(tag) { "No modifications to save" }
-            return Result.success(Unit)
+    private suspend fun saveFileInternal(): Result<Unit> {
+        return try {
+            saveError?.let {
+                return Result.failure(IllegalStateException("Buffer requires reload after failed save", it))
+            }
+            val table = pieceTable
+                ?: return Result.failure(IllegalStateException("Buffer not initialized"))
+            if (!_isModified.value) {
+                log(tag) { "No modifications to save" }
+                return Result.success(Unit)
+            }
+
+            checkStaleness()
+            val expectedLength = table.totalCharLength
+            dataSource.commit { context -> writeSplice(context, table) }
+
+            withContext(NonCancellable) {
+                try {
+                    rebase()
+                    check(pieceTable?.totalCharLength == expectedLength) {
+                        "Rebased length ${pieceTable?.totalCharLength} != pre-save length $expectedLength"
+                    }
+                } catch (e: Exception) {
+                    saveError = e
+                    log(tag, ERROR) { "Post-save rebase failed, buffer requires reload - ${e.asLog()}" }
+                    throw e
+                }
+            }
+            log(tag, INFO) { "Saved and rebased (${_totalLength.value} chars)" }
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            // Cancelled before the point of no return: commit cleaned up, buffer stays editable
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to save - ${e.asLog()}" }
+            Result.failure(e)
         }
-        // Streaming splice save lands in editor-v3 phase 3
-        return Result.failure(UnsupportedOperationException("Save is not implemented yet"))
+    }
+
+    /** Streams the document in original-file order: BOM once, Original byte ranges verbatim, contiguous Added runs encoded as one string. */
+    private suspend fun writeSplice(context: EditorDataSource.CommitContext, table: PieceTable) {
+        val sink = context.sink
+        (_contentSource.value as? ContentSource.File)?.bomBytes?.let { sink.write(it) }
+
+        val bomOffset = bomSize.toLong()
+        var position = 0L
+        var runStart = -1L
+
+        suspend fun flushAddedRun(end: Long) {
+            if (runStart < 0) return
+            val text = table.read(runStart, end)
+            sink.write(text.toByteArray(detectedCharset))
+            runStart = -1L
+        }
+
+        for (piece in table.pieceSnapshot()) {
+            coroutineContext.ensureActive()
+            when (piece) {
+                is Piece.Added -> if (runStart < 0) runStart = position
+                is Piece.Original -> {
+                    flushAddedRun(position)
+                    context.openOriginalSource(bomOffset + piece.byteStart).buffer().use { source ->
+                        sink.write(source, piece.byteLen)
+                    }
+                }
+            }
+            position += piece.charCount
+        }
+        flushAddedRun(position)
+    }
+
+    /**
+     * Rescans the just-saved file into a fresh single-piece document. Undo/redo stacks survive:
+     * their operations are text-based and char content is identical across the rebase.
+     */
+    private suspend fun rebase() {
+        val index = dataSource.openByteSource(bomSize.toLong()).buffer().use { byteSource ->
+            BlockIndexBuilder(blockSize).build(byteSource, detectedCharset)
+        }
+        val bomOffset = bomSize.toLong()
+        val original = BlockOriginalDocument(index, detectedCharset) { byteStart, byteLen ->
+            readOriginalBytes(bomOffset + byteStart, byteLen)
+        }
+        originalDocument = original
+        blockIndex = index
+        pieceTable = PieceTable.create(original, assertions)
+
+        _lineEnding.value = index.lineEnding
+        val freshSource = dataSource.contentSource.value
+        _contentSource.value = if (freshSource is ContentSource.File) {
+            freshSource.copy(lineEnding = index.lineEnding)
+        } else {
+            freshSource
+        }
+        captureFreshness(index)
+        savedGeneration = currentGeneration
+        savedGenerationValid = true
+        refreshStats()
+        updateModified()
+    }
+
+    private suspend fun captureFreshness(index: BlockIndex) {
+        lastKnownMeta = dataSource.getMeta()
+        firstBlockHash = index.blocks.firstOrNull()?.let { hashBlock(it) }
+        lastBlockHash = index.blocks.lastOrNull()?.let { hashBlock(it) }
+    }
+
+    private suspend fun hashBlock(block: BlockIndex.Block): ByteArray {
+        val bytes = readOriginalBytes(bomSize + block.byteStart, block.byteLen)
+        return MessageDigest.getInstance("SHA-256").digest(bytes)
+    }
+
+    /**
+     * Best-effort external-modification guard: size + mtime, plus re-hash of the first and last
+     * original blocks (coarse/missing mtime on SAF/root, same-size edits). Not race-free — same
+     * limitation as any file editor.
+     */
+    private suspend fun checkStaleness() {
+        val known = lastKnownMeta ?: return
+        val current = dataSource.getMeta()
+        if (current.size != known.size) {
+            throw ExternalModificationException(
+                "File size changed externally: ${known.size} -> ${current.size} bytes",
+            )
+        }
+        if (known.modifiedAt != null && current.modifiedAt != null && current.modifiedAt != known.modifiedAt) {
+            throw ExternalModificationException(
+                "File was modified externally: ${known.modifiedAt} -> ${current.modifiedAt}",
+            )
+        }
+        val index = blockIndex ?: return
+        val first = index.blocks.firstOrNull() ?: return
+        val firstChanged = firstBlockHash?.let { !MessageDigest.isEqual(it, hashBlock(first)) } ?: false
+        val lastChanged = !firstChanged &&
+            (lastBlockHash?.let { !MessageDigest.isEqual(it, hashBlock(index.blocks.last())) } ?: false)
+        if (firstChanged || lastChanged) {
+            throw ExternalModificationException("File content changed externally (same size and mtime)")
+        }
     }
 
     suspend fun undo(): Result<EditOperation?> = bufferMutex.withLock {
@@ -379,7 +530,12 @@ class DocumentBuffer @AssistedInject constructor(
 
     fun canRedo(): Boolean = redoStack.isNotEmpty()
 
-    private fun table(): PieceTable = pieceTable ?: throw IllegalStateException("Buffer not initialized")
+    private fun table(): PieceTable = tableOrNull() ?: throw IllegalStateException("Buffer not initialized")
+
+    private fun tableOrNull(): PieceTable? {
+        saveError?.let { throw IllegalStateException("Buffer requires reload after failed save", it) }
+        return pieceTable
+    }
 
     private suspend fun readOriginalBytes(physicalOffset: Long, byteLen: Int): ByteArray =
         dataSource.openByteSource(physicalOffset).buffer().use { it.readByteArray(byteLen.toLong()) }

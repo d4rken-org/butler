@@ -4,6 +4,7 @@ import eu.darken.butler.editor.core.engine.ChunkBoundary
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.TextChunk
 import kotlinx.coroutines.flow.StateFlow
+import okio.BufferedSink
 import okio.Source
 import java.io.FileNotFoundException
 import kotlin.time.Instant
@@ -91,6 +92,26 @@ interface EditorDataSource {
      * last modification time (null when the backend has none, e.g. in-memory sources).
      */
     suspend fun getMeta(): Meta
+
+    /**
+     * Atomically replaces the full content with whatever [writer] streams into the context's sink.
+     *
+     * Contract:
+     * - [CommitContext.openOriginalSource] serves the PRE-COMMIT content (physical bytes, BOM
+     *   included) for the whole duration of the commit, regardless of backend mode.
+     * - The sink is flushed and closed by commit; the writer never closes it.
+     * - If the writer throws, the original content is restored and no partial target remains.
+     * - Cancellation is honored while writing to temp/backup artifacts; the final target
+     *   replacement runs non-cancellable.
+     */
+    suspend fun commit(writer: suspend (CommitContext) -> Unit)
+
+    interface CommitContext {
+        val sink: BufferedSink
+
+        /** Positional source over the pre-commit content; stable until the commit finishes. */
+        suspend fun openOriginalSource(offset: Long = 0L): Source
+    }
 
     /**
      * Opens a byte source positioned at [offset] physical bytes (positional, not a

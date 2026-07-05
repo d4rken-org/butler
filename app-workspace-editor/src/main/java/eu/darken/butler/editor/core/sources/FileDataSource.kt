@@ -20,6 +20,7 @@ import eu.darken.butler.editor.core.engine.LineEnding
 import eu.darken.butler.editor.core.engine.TextChunk
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +28,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okio.Buffer
+import okio.BufferedSink
 import okio.Source
 import okio.buffer
 import okio.use
@@ -383,14 +385,155 @@ class FileDataSource @AssistedInject constructor(
      * flushing to disk so the result is durable before it is treated as a recovery copy.
      */
     private suspend fun writeContent(target: APath<*>, bom: ByteArray?, body: ByteArray) {
+        writeContent(target) { sink ->
+            if (bom != null) sink.write(bom)
+            sink.write(body)
+        }
+    }
+
+    /** Streams [writer] output into [target] (truncated first), flushed to disk before returning. */
+    private suspend fun writeContent(target: APath<*>, writer: suspend (BufferedSink) -> Unit) {
         gatewaySwitch.file(target, readWrite = true).use { handle ->
             handle.resize(0)
             handle.sink().buffer().use { sink ->
-                if (bom != null) sink.write(bom)
-                sink.write(body)
+                writer(sink)
                 sink.flush()
             }
             handle.flush()
+        }
+    }
+
+    override suspend fun commit(writer: suspend (EditorDataSource.CommitContext) -> Unit) = accessMutex.withLock {
+        withContext(Dispatchers.IO) {
+            val fileSource = _contentSource.value as? ContentSource.File
+                ?: error("ContentSource.File not initialized")
+
+            val token = Uuid.random().toString().take(8)
+            val parent = filePath.parent
+                ?: throw IllegalStateException("Cannot save - no parent directory")
+            val backupPath = parent.child("${filePath.name}.butler-save-bak-$token")
+
+            if (filePath is LocalPath) {
+                val tempPath = parent.child("${filePath.name}.butler-save-tmp-$token")
+                commitViaBackupSwap(tempPath, backupPath, writer)
+            } else {
+                commitViaInPlace(backupPath, writer)
+            }
+
+            val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
+            _contentSource.value = fileSource.copy(
+                size = lookup.size!!,
+                lastModified = lookup.modifiedAt!!,
+            )
+            _isModified.value = false
+            log(tag) { "Committed ${lookup.size} bytes" }
+        }
+    }
+
+    /**
+     * Local-path streaming commit: the writer streams into a uniquely-named temp while the original
+     * stays untouched and readable (cancellation-safe); the rename swap is the point of no return
+     * and runs non-cancellable, restoring the original on failure.
+     */
+    internal suspend fun commitViaBackupSwap(
+        tempPath: APath<*>,
+        backupPath: APath<*>,
+        writer: suspend (EditorDataSource.CommitContext) -> Unit,
+    ) {
+        try {
+            writeContent(tempPath) { sink ->
+                writer(GatewayCommitContext(sink, readPath = filePath))
+            }
+        } catch (e: Exception) {
+            cleanupArtifact(tempPath)
+            throw e
+        }
+
+        withContext(NonCancellable) {
+            var backedUp = false
+            try {
+                if (filePath.exists(gatewaySwitch)) {
+                    check(gatewaySwitch.move(filePath, backupPath)) { "Backup move failed: $filePath -> $backupPath" }
+                    backedUp = true
+                }
+                check(gatewaySwitch.move(tempPath, filePath)) { "Commit move failed: $tempPath -> $filePath" }
+            } catch (e: Exception) {
+                if (backedUp) {
+                    try {
+                        check(gatewaySwitch.move(backupPath, filePath)) { "Restore move returned false" }
+                    } catch (restoreError: Exception) {
+                        log(tag, ERROR) { "Restore failed - original preserved at $backupPath: ${restoreError.asLog()}" }
+                        e.addSuppressed(restoreError)
+                    }
+                }
+                cleanupArtifact(tempPath)
+                throw e
+            }
+            cleanupArtifact(backupPath)
+        }
+    }
+
+    /**
+     * SAF/non-local streaming commit: the original is copied to a uniquely-named backup first
+     * (cancellation-safe), then the document is overwritten in place with the writer reading
+     * original ranges FROM THE BACKUP; the overwrite runs non-cancellable and the original is
+     * restored from the backup on failure.
+     */
+    internal suspend fun commitViaInPlace(
+        backupPath: APath<*>,
+        writer: suspend (EditorDataSource.CommitContext) -> Unit,
+    ) {
+        var backupReady = false
+        try {
+            gatewaySwitch.createFile(backupPath, createParents = false)
+            writeContent(backupPath) { sink ->
+                gatewaySwitch.file(filePath, readWrite = false).use { handle ->
+                    handle.source().buffer().use { source -> sink.writeAll(source) }
+                }
+            }
+            backupReady = true
+
+            withContext(NonCancellable) {
+                writeContent(filePath) { sink ->
+                    writer(GatewayCommitContext(sink, readPath = backupPath))
+                }
+            }
+        } catch (e: Exception) {
+            if (backupReady) {
+                withContext(NonCancellable) {
+                    runCatching {
+                        writeContent(filePath) { sink ->
+                            gatewaySwitch.file(backupPath, readWrite = false).use { handle ->
+                                handle.source().buffer().use { source -> sink.writeAll(source) }
+                            }
+                        }
+                    }.onFailure {
+                        log(tag, ERROR) { "Restore failed - original preserved at $backupPath: ${it.asLog()}" }
+                        e.addSuppressed(it)
+                    }
+                }
+            } else {
+                cleanupArtifact(backupPath)
+            }
+            throw e
+        }
+
+        cleanupArtifact(backupPath)
+    }
+
+    private inner class GatewayCommitContext(
+        override val sink: BufferedSink,
+        private val readPath: APath<*>,
+    ) : EditorDataSource.CommitContext {
+        override suspend fun openOriginalSource(offset: Long): Source {
+            val handle = gatewaySwitch.file(readPath, readWrite = false)
+            val source = handle.source(fileOffset = offset)
+            return object : Source by source {
+                override fun close() {
+                    source.close()
+                    handle.close()
+                }
+            }
         }
     }
 
