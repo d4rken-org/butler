@@ -6,17 +6,25 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.editor.core.engine.SearchOptions
 
 /**
- * Search over the logical document via a sliding decoded window, tracking line/column in the
- * same pass. Literal/whole-word overlap covers the query length so matches spanning window
- * edges are found exactly once; regex matches longer than the overlap are a documented
- * limitation. Zero-length regex matches are skipped. Matches are non-overlapping (findAll
- * semantics, parity with the previous engine). Non-regex windows include one char of real
- * document context on each side so `\b` in whole-word queries never sees a false boundary
- * at a window edge.
+ * Search over the logical document, tracking line/column in the same pass. Matches are
+ * non-overlapping (findAll semantics); zero-length regex matches are skipped.
+ *
+ * Literal and whole-word queries run over a sliding decoded window and produce EXACTLY the
+ * matches of `Regex.findAll` over the whole document, independent of window and overlap size:
+ * the overlap covers the query length, one char of real document context on each side keeps
+ * `\b` honest at window edges, and consumption state carries across windows via the end offset
+ * of the last accepted match.
+ *
+ * Regex queries cannot be windowed correctly in general (`^`/`$` would anchor at window edges,
+ * lookaround across a boundary is silently missed, matches longer than the overlap are
+ * truncated). Documents up to [regexFullScanCap] chars are therefore materialized once and
+ * scanned whole — exact findAll semantics. Above the cap the windowed scan is used as a
+ * fallback: anchors, lookaround, and matches longer than the overlap are unreliable there.
  */
 class WindowedSearch(
     private val baseWindowSize: Int = DEFAULT_WINDOW_SIZE,
     private val minOverlap: Int = DEFAULT_MIN_OVERLAP,
+    private val regexFullScanCap: Int = REGEX_FULL_SCAN_CAP,
     private val readText: suspend (charStart: Long, charEnd: Long) -> String,
 ) {
 
@@ -47,14 +55,28 @@ class WindowedSearch(
             return emptyList()
         }
 
+        val fullScan = options.useRegex && totalLength <= regexFullScanCap
+        if (options.useRegex && !fullScan) {
+            log(TAG, WARN) {
+                "Document exceeds regex full-scan cap ($totalLength > $regexFullScanCap chars), " +
+                    "falling back to windowed scan: anchors, lookaround, and matches longer than " +
+                    "the overlap are unreliable"
+            }
+        }
+
         val overlap = if (options.useRegex) minOverlap else maxOf(query.length - 1, minOverlap)
-        val windowSize = maxOf(baseWindowSize, if (options.useRegex) 0 else 2 * query.length, overlap + 1)
+        val windowSize = when {
+            fullScan -> maxOf(totalLength.toInt(), overlap + 1)
+            options.useRegex -> maxOf(baseWindowSize, overlap + 1)
+            else -> maxOf(baseWindowSize, 2 * query.length, overlap + 1)
+        }
         val stride = windowSize - overlap
 
         val results = mutableListOf<Match>()
         var windowStart = 0L
         var line = 0L
         var lineStart = 0L
+        var lastMatchEnd = 0L
 
         while (true) {
             val windowEnd = minOf(windowStart + windowSize, totalLength)
@@ -98,9 +120,13 @@ class WindowedSearch(
                 }
             }
 
-            // Matching starts at the core so a pad-only match can never consume the non-overlap
-            // slot of a real one; the pad still provides real \b context at the edges.
-            for (match in regex.findAll(text, coreOffset)) {
+            // Matching starts at the core or just past the last accepted match, whichever is
+            // later: a pad-only match can never consume the slot of a real one, and carrying
+            // the consumption point across windows makes output equal whole-document findAll.
+            val matchFrom = maxOf(coreOffset.toLong(), lastMatchEnd - padStart)
+                .toInt()
+                .coerceAtMost(text.length)
+            for (match in regex.findAll(text, matchFrom)) {
                 if (match.value.isEmpty()) continue
                 val absolute = padStart + match.range.first
                 if (absolute < windowStart || absolute >= acceptLimit) continue
@@ -111,6 +137,7 @@ class WindowedSearch(
                     column = (absolute - lineStart).toInt(),
                     matchText = match.value,
                 )
+                lastMatchEnd = padStart + match.range.last + 1
             }
 
             if (isFinal) break
@@ -129,6 +156,7 @@ class WindowedSearch(
     companion object {
         const val DEFAULT_WINDOW_SIZE = 64 * 1024
         const val DEFAULT_MIN_OVERLAP = 4 * 1024
+        const val REGEX_FULL_SCAN_CAP = 8 * 1024 * 1024
         private val TAG = logTag("Editor", "Engine", "WindowedSearch")
     }
 }

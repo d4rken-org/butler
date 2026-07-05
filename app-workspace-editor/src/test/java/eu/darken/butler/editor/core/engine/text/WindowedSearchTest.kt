@@ -17,8 +17,9 @@ class WindowedSearchTest : BaseTest() {
         options: SearchOptions = SearchOptions(caseSensitive = true),
         windowSize: Int = 32,
         minOverlap: Int = 8,
+        regexFullScanCap: Int = WindowedSearch.REGEX_FULL_SCAN_CAP,
     ): List<WindowedSearch.Match> {
-        val search = WindowedSearch(windowSize, minOverlap) { start, end ->
+        val search = WindowedSearch(windowSize, minOverlap, regexFullScanCap) { start, end ->
             content.substring(start.toInt(), end.toInt())
         }
         return search.search(content.length.toLong(), query, options)
@@ -216,5 +217,122 @@ class WindowedSearchTest : BaseTest() {
             minOverlap = 2,
         )
         results.shouldBeEmpty()
+    }
+
+    @Test
+    fun `self-overlapping needle straddling stride boundaries equals whole-string findAll`() = runTest {
+        // Consumption state must carry across windows: after "aa" matches at 0 in "aaa",
+        // the next window must not re-match at 1
+        val contents = listOf(
+            "aaa".repeat(20) + "b" + "a".repeat(50),
+            "a".repeat(100),
+            "abab".repeat(30) + "ab",
+        )
+        for (content in contents) {
+            for (query in listOf("aa", "abab")) {
+                val expected = Regex(Regex.escape(query)).findAll(content)
+                    .map { it.range.first.toLong() }.toList()
+                for (windowSize in listOf(8, 16, 32, 64)) {
+                    for (overlap in listOf(2, 4, 8)) {
+                        if (windowSize <= overlap) continue
+                        val results = searchAll(content, query, windowSize = windowSize, minOverlap = overlap)
+                        results.map { it.offset } shouldBe expected
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `windowed literal search equals whole-string findAll on random content`() = runTest {
+        val random = Random(42)
+        val alphabet = listOf("a", "b", "ab", "aa", "\n", "\r\n", "中", "😀", "NEED", "NEEDLE")
+        val queries = listOf("aa", "abab", "a", "中", "NEEDLE", "aba")
+        repeat(40) {
+            val content = buildString { repeat(random.nextInt(50, 300)) { append(alphabet.random(random)) } }
+            val query = queries.random(random)
+            val expected = Regex(Regex.escape(query)).findAll(content)
+                .map { it.range.first.toLong() to it.value }.toList()
+            for (windowSize in listOf(8, 16, 32, 64)) {
+                for (overlap in listOf(2, 4, 8)) {
+                    if (windowSize <= overlap) continue
+                    val results = searchAll(content, query, windowSize = windowSize, minOverlap = overlap)
+                    results.map { it.offset to it.matchText } shouldBe expected
+                    for (result in results) {
+                        val (line, column) = refPosition(content, result.offset.toInt())
+                        result.line shouldBe line
+                        result.column shouldBe column
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `windowed whole-word search equals whole-string findAll on random content`() = runTest {
+        val random = Random(43)
+        val parts = listOf("cat", "cats", "concat", "cat.", " ", "\n", "x", "-")
+        repeat(30) {
+            val content = buildString { repeat(random.nextInt(30, 150)) { append(parts.random(random)) } }
+            val expected = Regex("\\bcat\\b").findAll(content).map { it.range.first.toLong() }.toList()
+            for (windowSize in listOf(8, 16, 32)) {
+                for (overlap in listOf(2, 4)) {
+                    val results = searchAll(
+                        content,
+                        "cat",
+                        SearchOptions(caseSensitive = true, wholeWord = true),
+                        windowSize = windowSize,
+                        minOverlap = overlap,
+                    )
+                    results.map { it.offset } shouldBe expected
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `regex anchors are document anchors under full scan`() = runTest {
+        val content = "foo start\nfoo middle\nend foo"
+        // Tiny windows would previously anchor-match at every window start
+        searchAll(content, "^foo", SearchOptions(useRegex = true), windowSize = 8, minOverlap = 2)
+            .map { it.offset } shouldBe listOf(0L)
+        searchAll(content, "foo$", SearchOptions(useRegex = true), windowSize = 8, minOverlap = 2)
+            .map { it.offset } shouldBe listOf(25L)
+    }
+
+    @Test
+    fun `regex multiline flag matches line starts under full scan`() = runTest {
+        val content = "foo a\nbar b\nfoo c"
+        val results = searchAll(content, "(?m)^foo", SearchOptions(useRegex = true), windowSize = 8, minOverlap = 2)
+        results.map { it.offset } shouldBe listOf(0L, 12L)
+        results.map { it.line } shouldBe listOf(0, 2)
+        results.map { it.column } shouldBe listOf(0, 0)
+    }
+
+    @Test
+    fun `regex lookahead across former window boundaries`() = runTest {
+        val content = "x".repeat(30) + "ab" + "x".repeat(30)
+        val results = searchAll(content, "a(?=b)", SearchOptions(useRegex = true), windowSize = 8, minOverlap = 2)
+        results.map { it.offset } shouldBe listOf(30L)
+        results[0].matchText shouldBe "a"
+    }
+
+    @Test
+    fun `regex match longer than overlap found exactly under full scan`() = runTest {
+        val content = "a".repeat(10) + "L".repeat(40) + "a".repeat(10)
+        val results = searchAll(content, "L+", SearchOptions(useRegex = true), windowSize = 8, minOverlap = 2)
+        results.map { it.offset } shouldBe listOf(10L)
+        results[0].matchText shouldBe "L".repeat(40)
+    }
+
+    @Test
+    fun `regex above full-scan cap falls back to windowed scan`() = runTest {
+        val content = "foo " + "x".repeat(60) + " foo"
+        // Plain patterns still work windowed above the cap
+        searchAll(content, "foo", SearchOptions(useRegex = true), windowSize = 16, minOverlap = 4, regexFullScanCap = 8)
+            .map { it.offset } shouldBe listOf(0L, 65L)
+        // Documented limitation: anchors are unreliable above the cap (window starts anchor)
+        val anchored = searchAll(content, "^foo", SearchOptions(useRegex = true), windowSize = 16, minOverlap = 4, regexFullScanCap = 8)
+        anchored.map { it.offset }.contains(0L).shouldBeTrue()
     }
 }
