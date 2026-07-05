@@ -36,6 +36,7 @@ import java.nio.charset.CodingErrorAction
 import java.security.MessageDigest
 import java.util.LinkedList
 import kotlin.coroutines.coroutineContext
+import kotlin.random.Random
 
 /**
  * Piece-table document buffer: same public surface as the previous ChunkedTextBuffer, backed by
@@ -52,6 +53,7 @@ class DocumentBuffer @AssistedInject constructor(
     @Assisted private val maxUndoMemoryBytes: Long,
     @Assisted("blockSize") private val blockSize: Int,
     @Assisted private val assertions: Boolean,
+    @Assisted private val staleSampleRandom: Random = Random.Default,
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "DocumentBuffer")
@@ -86,8 +88,6 @@ class DocumentBuffer @AssistedInject constructor(
 
     // Best-effort staleness baseline, captured at open and after each rebase
     private var lastKnownMeta: EditorDataSource.Meta? = null
-    private var firstBlockHash: ByteArray? = null
-    private var lastBlockHash: ByteArray? = null
 
     // Set when a commit succeeded but the rebase failed: pieces are stale, the buffer needs reload
     private var saveError: Throwable? = null
@@ -150,7 +150,7 @@ class DocumentBuffer @AssistedInject constructor(
                 _contentSource.value = it.copy(lineEnding = index.lineEnding)
             }
             saveError = null
-            captureFreshness(index)
+            lastKnownMeta = dataSource.getMeta()
 
             undoStack.clear()
             redoStack.clear()
@@ -473,7 +473,7 @@ class DocumentBuffer @AssistedInject constructor(
         pieceTable = PieceTable.create(original, assertions)
 
         _lineEnding.value = index.lineEnding
-        captureFreshness(index)
+        lastKnownMeta = dataSource.getMeta()
         val freshSource = dataSource.contentSource.value
         _contentSource.value = if (freshSource is ContentSource.File) {
             // Size/mtime from our own fresh lookup - the data source's post-commit refresh is best-effort
@@ -491,21 +491,20 @@ class DocumentBuffer @AssistedInject constructor(
         updateModified()
     }
 
-    private suspend fun captureFreshness(index: BlockIndex) {
-        lastKnownMeta = dataSource.getMeta()
-        firstBlockHash = index.blocks.firstOrNull()?.let { hashBlock(it) }
-        lastBlockHash = index.blocks.lastOrNull()?.let { hashBlock(it) }
-    }
-
-    private suspend fun hashBlock(block: BlockIndex.Block): ByteArray {
+    private suspend fun computeBlockDigest(block: BlockIndex.Block): Long {
         val bytes = readOriginalBytes(bomSize + block.byteStart, block.byteLen)
-        return MessageDigest.getInstance("SHA-256").digest(bytes)
+        return BlockIndexBuilder.truncateDigest(MessageDigest.getInstance("SHA-256").digest(bytes))
     }
 
     /**
-     * Best-effort external-modification guard: size + mtime, plus re-hash of the first and last
-     * original blocks (coarse/missing mtime on SAF/root, same-size edits). Not race-free — same
-     * limitation as any file editor.
+     * Best-effort external-modification guard: size + mtime, then BOM bytes, then per-block
+     * digest verification of the first, last, and [STALENESS_SAMPLE_COUNT] random interior
+     * blocks (catches same-size edits under coarse/missing mtime on SAF/root). SAMPLED, not
+     * exhaustive: if a same-size/same-mtime interior tamper lands only in unsampled blocks, the
+     * save splices around it and the post-save rebase makes the tampered bytes the permanent new
+     * baseline. Per-save catch probability is roughly (sampleCount + 2) / blockCount; closing
+     * the gap entirely would mean re-reading the whole file at every save, which was rejected as
+     * it defeats lazy open. Not race-free either — same limitation as any file editor.
      */
     private suspend fun checkStaleness() {
         val known = lastKnownMeta ?: return
@@ -520,13 +519,26 @@ class DocumentBuffer @AssistedInject constructor(
                 "File was modified externally: ${known.modifiedAt} -> ${current.modifiedAt}",
             )
         }
+        (_contentSource.value as? ContentSource.File)?.bomBytes?.let { bom ->
+            if (!bom.contentEquals(readOriginalBytes(0L, bom.size))) {
+                throw ExternalModificationException("File BOM changed externally (same size and mtime)")
+            }
+        }
         val index = blockIndex ?: return
-        val first = index.blocks.firstOrNull() ?: return
-        val firstChanged = firstBlockHash?.let { !MessageDigest.isEqual(it, hashBlock(first)) } ?: false
-        val lastChanged = !firstChanged &&
-            (lastBlockHash?.let { !MessageDigest.isEqual(it, hashBlock(index.blocks.last())) } ?: false)
-        if (firstChanged || lastChanged) {
-            throw ExternalModificationException("File content changed externally (same size and mtime)")
+        if (index.blocks.isEmpty()) return
+        val sampled = buildSet {
+            add(0)
+            add(index.blocks.size - 1)
+            if (index.blocks.size > 2) {
+                repeat(STALENESS_SAMPLE_COUNT) {
+                    add(1 + staleSampleRandom.nextInt(index.blocks.size - 2))
+                }
+            }
+        }
+        for (i in sampled) {
+            if (computeBlockDigest(index.blocks[i]) != index.blockDigests[i]) {
+                throw ExternalModificationException("File content changed externally (same size and mtime)")
+            }
         }
     }
 
@@ -712,6 +724,11 @@ class DocumentBuffer @AssistedInject constructor(
             maxUndoMemoryBytes: Long = 10_485_760,
             @Assisted("blockSize") blockSize: Int = BlockIndexBuilder.DEFAULT_BLOCK_SIZE,
             assertions: Boolean = false,
+            staleSampleRandom: Random = Random.Default,
         ): DocumentBuffer
+    }
+
+    companion object {
+        const val STALENESS_SAMPLE_COUNT = 8
     }
 }

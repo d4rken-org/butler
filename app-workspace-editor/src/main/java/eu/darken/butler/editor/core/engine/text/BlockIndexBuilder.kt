@@ -6,6 +6,7 @@ import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
+import java.security.MessageDigest
 import kotlin.coroutines.coroutineContext
 
 /**
@@ -39,6 +40,8 @@ class BlockIndexBuilder(
         val isUtf8 = charset == Charsets.UTF_8
 
         val blocks = mutableListOf<BlockIndex.Block>()
+        val digests = mutableListOf<Long>()
+        val sha256 = MessageDigest.getInstance("SHA-256")
         var carry = ByteArray(0)
         var bytesAttributed = 0L
         var charsAttributed = 0L
@@ -113,6 +116,8 @@ class BlockIndexBuilder(
                 endsWithCr = TextMetrics.endsWithCr(text),
                 endsWithBreak = TextMetrics.endsWithBreak(text),
             )
+            sha256.update(input, 0, take)
+            digests += truncateDigest(sha256.digest())
             bytesAttributed += take
             charsAttributed += text.length
             onProgress?.invoke(bytesAttributed)
@@ -121,7 +126,7 @@ class BlockIndexBuilder(
         }
         if (pendingCr) cr++
 
-        return BlockIndex(blocks, TextMetrics.detectLineEnding(crlf, lf, cr))
+        return BlockIndex(blocks, TextMetrics.detectLineEnding(crlf, lf, cr), digests.toLongArray())
     }
 
     private fun decodeRange(bytes: ByteArray, length: Int, charset: Charset): String {
@@ -178,5 +183,14 @@ class BlockIndexBuilder(
 
     companion object {
         const val DEFAULT_BLOCK_SIZE = 64 * 1024
+
+        /** First 8 bytes of a digest as a big-endian Long - the per-block staleness fingerprint. */
+        fun truncateDigest(digest: ByteArray): Long {
+            var value = 0L
+            for (i in 0 until 8) {
+                value = (value shl 8) or (digest[i].toLong() and 0xFF)
+            }
+            return value
+        }
     }
 }

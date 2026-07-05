@@ -31,6 +31,7 @@ import testhelpers.BaseTest
 import java.io.File
 import java.io.IOException
 import kotlin.coroutines.coroutineContext
+import kotlin.random.Random
 
 /**
  * Streaming-splice save: exact on-disk bytes (the multi-block cases fail on the old chunk
@@ -487,6 +488,68 @@ class DocumentBufferSaveTest : BaseTest() {
         file.readBytes() shouldBe tampered
     }
 
+    @Test
+    fun `interior same-size external change fails via sampled digest`(@TempDir tempDir: File) = runTest {
+        // 3 blocks: the single interior block is always in the sample set
+        val original = ("A".repeat(10) + "B".repeat(10) + "C".repeat(10)).toByteArray()
+        val (file, buffer) = fileBuffer(tempDir, original, blockSize = 10)
+        val originalMtime = file.lastModified()
+        buffer.insertText(TextPosition(0, 0, 0), "X").getOrThrow()
+
+        val tampered = ("A".repeat(10) + "b".repeat(10) + "C".repeat(10)).toByteArray()
+        file.writeBytes(tampered)
+        file.setLastModified(originalMtime)
+
+        val result = buffer.saveFile()
+        (result.exceptionOrNull() is ExternalModificationException).shouldBeTrue()
+        file.readBytes() shouldBe tampered
+    }
+
+    @Test
+    fun `unsampled interior tamper is absorbed - the documented staleness gap`(@TempDir tempDir: File) = runTest {
+        // 10 blocks; a zero Random samples only interior block 1; block 5 is tampered.
+        // The sampled check misses it: the save splices around the tampered bytes and the
+        // post-save rebase makes them the permanent new baseline. This is the accepted
+        // trade-off for not re-reading the whole file at every save.
+        val original = "0123456789".repeat(10).toByteArray()
+        val file = File(tempDir, "save.txt").apply { writeBytes(original) }
+        val dataSource = FileDataSource(workspaceId, LocalPath.build(file), createMockGateway()).apply { open() }
+        val buffer = DocumentBuffer(
+            workspaceId = workspaceId,
+            dataSource = dataSource,
+            maxUndoStackSize = 100,
+            maxUndoMemoryBytes = 10_485_760,
+            blockSize = 10,
+            assertions = true,
+            staleSampleRandom = FixedZeroRandom(),
+        )
+        buffer.initialize().getOrThrow()
+        val originalMtime = file.lastModified()
+        buffer.insertText(TextPosition(0, 0, 0), "X").getOrThrow()
+
+        val tampered = original.copyOf().also { it[55] = 'x'.code.toByte() }
+        file.writeBytes(tampered)
+        file.setLastModified(originalMtime)
+
+        buffer.saveFile().isSuccess shouldBe true
+        file.readBytes() shouldBe "X".toByteArray() + tampered
+    }
+
+    @Test
+    fun `BOM tampered externally fails save`(@TempDir tempDir: File) = runTest {
+        // Same size, same mtime, post-BOM content unchanged: only the BOM check can catch this
+        val bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+        val (file, buffer) = fileBuffer(tempDir, bom + "hello".toByteArray())
+        val originalMtime = file.lastModified()
+        buffer.insertText(TextPosition(0, 0, 0), "X").getOrThrow()
+
+        file.writeBytes(byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0x21) + "hello".toByteArray())
+        file.setLastModified(originalMtime)
+
+        val result = buffer.saveFile()
+        (result.exceptionOrNull() is ExternalModificationException).shouldBeTrue()
+    }
+
     // ── in-place (SAF-style) mode ───────────────────────────────────────────────
 
     @Test
@@ -527,5 +590,10 @@ class DocumentBufferSaveTest : BaseTest() {
         // The backup is retained as a recovery copy after an in-place failure
         backupFile.exists().shouldBeTrue()
         backupFile.readBytes() shouldBe original
+    }
+
+    /** Deterministic sampler: always draws 0, so interior sampling always picks block 1. */
+    private class FixedZeroRandom : Random() {
+        override fun nextBits(bitCount: Int): Int = 0
     }
 }

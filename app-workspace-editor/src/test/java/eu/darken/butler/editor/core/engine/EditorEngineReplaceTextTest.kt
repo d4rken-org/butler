@@ -10,7 +10,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
-
+import kotlin.random.Random
 /**
  * Tests for [EditorEngine.replaceText], the single-region edit that all soft-keyboard input flows through.
  *
@@ -48,7 +48,8 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
                 maxUndoMemoryBytes: Long,
                 blockSize: Int,
                 assertions: Boolean,
-            ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true)
+                staleSampleRandom: Random,
+            ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true, staleSampleRandom)
         }
 
         val engine = EditorEngine(

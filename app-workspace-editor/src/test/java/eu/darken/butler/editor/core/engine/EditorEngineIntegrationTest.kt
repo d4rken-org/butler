@@ -24,7 +24,7 @@ import okio.use
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-
+import kotlin.random.Random
 /**
  * Engine-level cases for the piece-table rewrite: save checkpoints across engine save,
  * line navigation on multi-block multibyte documents, and byte-exact content streaming.
@@ -87,6 +87,7 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
                 maxUndoMemoryBytes: Long,
                 blockSize: Int,
                 assertions: Boolean,
+                staleSampleRandom: Random,
             ) = DocumentBuffer(
                 workspaceId = workspaceId,
                 dataSource = dataSource,

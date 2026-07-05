@@ -14,6 +14,7 @@ import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
+import java.security.MessageDigest
 
 class BlockIndexBuilderTest : BaseTest() {
 
@@ -223,5 +224,25 @@ class BlockIndexBuilderTest : BaseTest() {
             (index.breaksBeforeBlock(block) < n).shouldBeTrue()
             (index.breaksBeforeBlock(block + 1) >= n).shouldBeTrue()
         }
+    }
+
+    @Test
+    fun `block digests match recomputed hashes`() = runTest {
+        val bytes = ("0123456789".repeat(5) + "abc").toByteArray()
+        val index = build(bytes, blockSize = 10)
+        index.blockDigests.size shouldBe index.blocks.size
+        index.blocks.forEachIndexed { i, block ->
+            val blockBytes = bytes.copyOfRange(block.byteStart.toInt(), (block.byteStart + block.byteLen).toInt())
+            val expected = BlockIndexBuilder.truncateDigest(
+                MessageDigest.getInstance("SHA-256").digest(blockBytes),
+            )
+            index.blockDigests[i] shouldBe expected
+        }
+    }
+
+    @Test
+    fun `digest counts for empty and single-block inputs`() = runTest {
+        build(ByteArray(0)).blockDigests.size shouldBe 0
+        build("abc".toByteArray()).blockDigests.size shouldBe 1
     }
 }

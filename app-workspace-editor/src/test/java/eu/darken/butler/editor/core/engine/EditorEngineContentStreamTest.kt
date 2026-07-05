@@ -23,7 +23,7 @@ import okio.buffer
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
-
+import kotlin.random.Random
 /**
  * Tests for [EditorEngine.getContentStream], which backs "Save As".
  *
@@ -62,7 +62,8 @@ class EditorEngineContentStreamTest : DocumentBufferTestBase() {
             maxUndoMemoryBytes: Long,
             blockSize: Int,
             assertions: Boolean,
-        ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true)
+            staleSampleRandom: Random,
+        ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true, staleSampleRandom)
     }
 
     private fun createReadOnlyGateway(): GatewaySwitch = mockk<GatewaySwitch>().apply {
