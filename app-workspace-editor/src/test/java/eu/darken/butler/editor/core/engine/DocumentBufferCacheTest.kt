@@ -182,7 +182,7 @@ class DocumentBufferCacheTest : DocumentBufferTestBase() {
         buffer.getTextForRange(15, 15).getOrThrow()
 
         // Line count should still be correct
-        buffer.totalLines.value shouldBe 20
+        buffer.totalLines.value shouldBe 20L
     }
 
     @Test
@@ -198,7 +198,7 @@ class DocumentBufferCacheTest : DocumentBufferTestBase() {
         val position = buffer.findPosition(offset = 50L)
 
         position.offset shouldBe 50L
-        position.line shouldBe 0
+        position.line shouldBe 0L
         position.column shouldBe 50
     }
 

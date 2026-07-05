@@ -63,6 +63,6 @@ class DocumentBufferCancellationTest : BaseTest() {
         assertThrows<CancellationException> { job.await() }
 
         // Buffer should not be fully initialized
-        buffer.totalLines.value shouldBe 0
+        buffer.totalLines.value shouldBe 0L
     }
 }

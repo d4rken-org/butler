@@ -49,8 +49,8 @@ internal fun SelectionHandle(
     onDrag: (Offset) -> Unit,
     modifier: Modifier = Modifier,
     wordWrap: Boolean = false,
-    textLayouts: Map<Int, TextLayoutResult> = emptyMap(),
-    visibleLineContent: Map<Int, String> = emptyMap(),
+    textLayouts: Map<Long, TextLayoutResult> = emptyMap(),
+    visibleLineContent: Map<Long, String> = emptyMap(),
     tabSize: Int = 4,
     contentPaddingTop: Float = 0f,
 ) {
@@ -78,7 +78,7 @@ internal fun SelectionHandle(
     // This isolates layout reading from composition/offset lambda
     LaunchedEffect(position.line) {
         snapshotFlow {
-            contentListState.layoutInfo.visibleItemsInfo.find { it.index == position.line }?.offset
+            contentListState.layoutInfo.visibleItemsInfo.find { it.index.toLong() == position.line }?.offset
         }.collect { offset ->
             yPosition = offset?.toFloat()
         }

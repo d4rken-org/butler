@@ -143,7 +143,7 @@ class DocumentBufferReplaceTest : DocumentBufferTestBase() {
         result.isSuccess shouldBe true
 
         // And: Line count increased due to newlines
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // And: Content contains all lines (use totalLines-1 as endLine to get all lines)
         val newContent = buffer.getTextForRange(0, buffer.totalLines.value - 1).getOrThrow()

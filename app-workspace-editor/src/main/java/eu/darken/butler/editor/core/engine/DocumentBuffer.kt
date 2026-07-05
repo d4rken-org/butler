@@ -62,8 +62,8 @@ class DocumentBuffer @AssistedInject constructor(
     private val _lineEnding = MutableStateFlow(LineEnding.LF)
     val lineEnding: StateFlow<LineEnding> = _lineEnding.asStateFlow()
 
-    private val _totalLines = MutableStateFlow(0)
-    val totalLines: StateFlow<Int> = _totalLines.asStateFlow()
+    private val _totalLines = MutableStateFlow(0L)
+    val totalLines: StateFlow<Long> = _totalLines.asStateFlow()
 
     private val _totalLength = MutableStateFlow(0L)
     val totalLength: StateFlow<Long> = _totalLength.asStateFlow()
@@ -217,11 +217,11 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
-    suspend fun getTextForLine(lineNumber: Int): Result<String> = bufferMutex.withLock {
+    suspend fun getTextForLine(lineNumber: Long): Result<String> = bufferMutex.withLock {
         getTextForLineInternal(lineNumber)
     }
 
-    suspend fun getTextForRange(startLine: Int, endLine: Int): Result<String> = bufferMutex.withLock {
+    suspend fun getTextForRange(startLine: Long, endLine: Long): Result<String> = bufferMutex.withLock {
         if (startLine < 0 || endLine >= _totalLines.value || startLine > endLine) {
             return@withLock Result.failure(IndexOutOfBoundsException("Invalid line range: $startLine-$endLine"))
         }
@@ -327,17 +327,17 @@ class DocumentBuffer @AssistedInject constructor(
         val clamped = offset.coerceIn(0L, table.totalCharLength)
         val line = table.lineOfOffset(clamped)
         val lineStart = table.lineStartOffset(line)
-        TextPosition(offset, line.toInt(), (clamped - lineStart).toInt())
+        TextPosition(offset, line, (clamped - lineStart).toInt())
     }
 
-    suspend fun findOffset(line: Int, column: Int): Long = bufferMutex.withLock {
+    suspend fun findOffset(line: Long, column: Int): Long = bufferMutex.withLock {
         if (line < 0 || line >= _totalLines.value) {
             throw IndexOutOfBoundsException("Line $line is out of bounds (total lines: ${_totalLines.value})")
         }
         val table = table()
-        val start = table.lineStartOffset(line.toLong())
-        val end = lineContentEnd(table, line.toLong())
-        start + column.coerceIn(0, (end - start).toInt())
+        val start = table.lineStartOffset(line)
+        val end = lineContentEnd(table, line)
+        start + column.coerceIn(0, (end - start).coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
     }
 
     suspend fun search(query: String, startFrom: TextPosition?, options: SearchOptions): List<SearchResult> =
@@ -608,14 +608,14 @@ class DocumentBuffer @AssistedInject constructor(
     private suspend fun readOriginalBytes(physicalOffset: Long, byteLen: Int): ByteArray =
         dataSource.openByteSource(physicalOffset).buffer().use { it.readByteArray(byteLen.toLong()) }
 
-    private suspend fun getTextForLineInternal(lineNumber: Int): Result<String> {
+    private suspend fun getTextForLineInternal(lineNumber: Long): Result<String> {
         if (lineNumber < 0 || lineNumber >= _totalLines.value) {
             return Result.failure(IndexOutOfBoundsException("Line number $lineNumber is out of bounds"))
         }
         return try {
             val table = table()
-            val start = table.lineStartOffset(lineNumber.toLong())
-            val end = lineContentEnd(table, lineNumber.toLong())
+            val start = table.lineStartOffset(lineNumber)
+            val end = lineContentEnd(table, lineNumber)
             Result.success(table.read(start, end))
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to get text for line $lineNumber - ${e.asLog()}" }
@@ -662,7 +662,7 @@ class DocumentBuffer @AssistedInject constructor(
         val table = pieceTable ?: return
         _totalLength.value = table.totalCharLength
         val lines = table.totalLineBreaks + (if (table.endsWithBreak) 0L else 1L)
-        _totalLines.value = lines.coerceAtLeast(1L).toInt()
+        _totalLines.value = lines.coerceAtLeast(1L)
     }
 
     private fun updateModified() {

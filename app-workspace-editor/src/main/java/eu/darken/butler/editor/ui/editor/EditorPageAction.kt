@@ -80,10 +80,10 @@ sealed interface EditorPageAction {
         data class ClearSelection(val cursorPosition: TextPosition) : Navigation
 
         /** Go to a specific line number */
-        data class GoToLine(val lineNumber: Int) : Navigation
+        data class GoToLine(val lineNumber: Long) : Navigation
 
         /** Update the visible range of lines */
-        data class UpdateVisibleRange(val startLine: Int, val endLine: Int) : Navigation
+        data class UpdateVisibleRange(val startLine: Long, val endLine: Long) : Navigation
     }
 
     /**

@@ -19,7 +19,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: Should count 3 lines (not 2 like wc -l would)
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // And: Last line should be accessible
         val lastLine = buffer.getTextForLine(2).getOrThrow()
@@ -33,7 +33,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: Should count 3 lines (not 4 with empty line)
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // And: Lines should be accessible
         buffer.getTextForLine(0).getOrThrow() shouldBe "line1"
@@ -54,7 +54,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: Line count should be 100 (not 100 + number_of_chunks)
-        buffer.totalLines.value shouldBe 100
+        buffer.totalLines.value shouldBe 100L
 
         // And: Last line accessible
         val lastLine = buffer.getTextForLine(99).getOrThrow()
@@ -67,7 +67,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer("")
 
         // Then: Should have 1 line (editor convention)
-        buffer.totalLines.value shouldBe 1
+        buffer.totalLines.value shouldBe 1L
 
         // And: That line is empty
         buffer.getTextForLine(0).getOrThrow() shouldBe ""
@@ -80,7 +80,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: Should count 3 lines (3 newlines = 3 empty lines)
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // And: All lines should be empty
         buffer.getTextForLine(0).getOrThrow() shouldBe ""
@@ -97,7 +97,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: Should have 2 lines (not 3 with empty element from split)
-        buffer.totalLines.value shouldBe 2
+        buffer.totalLines.value shouldBe 2L
 
         // And: Lines should have correct content
         buffer.getTextForLine(0).getOrThrow() shouldBe "line1"
@@ -114,7 +114,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: Both lines accessible
-        buffer.totalLines.value shouldBe 2
+        buffer.totalLines.value shouldBe 2L
         buffer.getTextForLine(0).getOrThrow() shouldBe "line1"
         buffer.getTextForLine(1).getOrThrow() shouldBe "line2"
     }
@@ -140,7 +140,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: One empty line before the newline
-        buffer.totalLines.value shouldBe 1
+        buffer.totalLines.value shouldBe 1L
         buffer.getTextForLine(0).getOrThrow() shouldBe ""
     }
 
@@ -155,7 +155,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: All lines counted (not just 10%)
-        buffer.totalLines.value shouldBe 1000
+        buffer.totalLines.value shouldBe 1000L
 
         // And: Sample lines have correct content
         buffer.getTextForLine(0).getOrThrow() shouldBe "Line 1"
@@ -250,13 +250,13 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val pos8 = buffer.findPosition(8) // 'g'
 
         // Then: Correct line and column
-        pos0.line shouldBe 0
+        pos0.line shouldBe 0L
         pos0.column shouldBe 0
 
-        pos4.line shouldBe 1
+        pos4.line shouldBe 1L
         pos4.column shouldBe 0
 
-        pos8.line shouldBe 2
+        pos8.line shouldBe 2L
         pos8.column shouldBe 0
     }
 
@@ -286,7 +286,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: All lines counted
-        buffer.totalLines.value shouldBe 4
+        buffer.totalLines.value shouldBe 4L
 
         // And: Empty lines are empty
         buffer.getTextForLine(0).getOrThrow() shouldBe "line1"
@@ -302,7 +302,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: One line with that character
-        buffer.totalLines.value shouldBe 1
+        buffer.totalLines.value shouldBe 1L
         buffer.getTextForLine(0).getOrThrow() shouldBe "A"
     }
 
@@ -313,7 +313,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: Lines counted correctly
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // And: Characters preserved
         buffer.getTextForLine(0).getOrThrow() shouldBe "Hello 👋"
@@ -344,7 +344,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: All lines accessible
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
         buffer.getTextForLine(0).getOrThrow() shouldBe longLine
         buffer.getTextForLine(1).getOrThrow() shouldBe "short"
         buffer.getTextForLine(2).getOrThrow() shouldBe longLine
@@ -357,7 +357,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // Then: All lines correct
-        buffer.totalLines.value shouldBe 5
+        buffer.totalLines.value shouldBe 5L
         buffer.getTextForLine(0).getOrThrow() shouldBe "a"
         buffer.getTextForLine(1).getOrThrow() shouldBe "b".repeat(1000)
         buffer.getTextForLine(2).getOrThrow() shouldBe "c"
@@ -427,7 +427,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content, blockSize = 1024)
 
         // Then: All lines counted correctly
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // And: Each line accessible
         buffer.getTextForLine(0).getOrThrow() shouldBe line1
@@ -444,7 +444,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content, blockSize = 100)
 
         // Then: Lines counted correctly
-        buffer.totalLines.value shouldBe 2
+        buffer.totalLines.value shouldBe 2L
 
         // And: Lines have correct content
         buffer.getTextForLine(0).getOrThrow() shouldBe line1
@@ -459,7 +459,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content, blockSize = 1024)
 
         // Then: All lines counted
-        buffer.totalLines.value shouldBe 100
+        buffer.totalLines.value shouldBe 100L
 
         // And: Sample lines correct
         buffer.getTextForLine(0).getOrThrow() shouldBe "Line 1 with some content to make it realistic"
@@ -475,7 +475,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content, blockSize = 100)
 
         // Then: Correct line count
-        buffer.totalLines.value shouldBe 2
+        buffer.totalLines.value shouldBe 2L
 
         // And: Long line retrieved correctly
         buffer.getTextForLine(0).getOrThrow() shouldBe longLine
@@ -521,7 +521,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content, blockSize = 100)
 
         // Then: Should count 2 lines
-        buffer.totalLines.value shouldBe 2
+        buffer.totalLines.value shouldBe 2L
 
         // When: Getting the long line
         val line = buffer.getTextForLine(0).getOrThrow()
@@ -541,7 +541,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(singleLine, blockSize = 100)
 
         // Then: Should count as 1 line
-        buffer.totalLines.value shouldBe 1
+        buffer.totalLines.value shouldBe 1L
 
         // When: Getting the line
         val line = buffer.getTextForLine(0).getOrThrow()
@@ -561,7 +561,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content, blockSize = 100)
 
         // Then: 3 lines counted
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // When: Getting each line
         val retrievedLine1 = buffer.getTextForLine(0).getOrThrow()
@@ -583,7 +583,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content, blockSize = 100)
 
         // Then: Should count 2 lines
-        buffer.totalLines.value shouldBe 2
+        buffer.totalLines.value shouldBe 2L
 
         // When: Getting each line
         val retrievedLine1 = buffer.getTextForLine(0).getOrThrow()
@@ -622,7 +622,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content, blockSize = 100)
 
         // Then: Should count 5 lines
-        buffer.totalLines.value shouldBe 5
+        buffer.totalLines.value shouldBe 5L
 
         // When: Getting each line
         val retrievedLine1 = buffer.getTextForLine(0).getOrThrow()
@@ -652,7 +652,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val position = buffer.findPosition(offset = 100L)
 
         position.offset shouldBe 100L
-        position.line shouldBe 0
+        position.line shouldBe 0L
         position.column shouldBe 100
     }
 
@@ -696,7 +696,7 @@ class DocumentBufferReadTest : DocumentBufferTestBase() {
         val position = buffer.findPosition(offset = content.length.toLong())
 
         position.offset shouldBe content.length.toLong()
-        position.line shouldBe 1
+        position.line shouldBe 1L
         position.column shouldBe 6  // End of "Line 2"
     }
 

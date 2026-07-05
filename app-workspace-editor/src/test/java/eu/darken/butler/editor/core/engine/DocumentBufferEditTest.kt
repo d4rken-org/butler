@@ -75,7 +75,7 @@ class DocumentBufferEditTest : DocumentBufferTestBase() {
         // Given: Buffer with single line
         val content = "Hello World"
         val buffer = createBuffer(content)
-        buffer.totalLines.value shouldBe 1
+        buffer.totalLines.value shouldBe 1L
 
         // When: Insert text with newlines
         val position = TextPosition(offset = 5L, line = 0, column = 5)
@@ -85,7 +85,7 @@ class DocumentBufferEditTest : DocumentBufferTestBase() {
         result.isSuccess shouldBe true
 
         // And: Line count updated
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // And: Lines accessible
         buffer.getTextForLine(0).getOrThrow() shouldBe "Hello"
@@ -158,7 +158,7 @@ class DocumentBufferEditTest : DocumentBufferTestBase() {
         // Given: Buffer with multiple lines
         val content = "Line 1\nLine 2\nLine 3"
         val buffer = createBuffer(content)
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // When: Delete middle line including its newline
         val result = buffer.deleteText(
@@ -170,7 +170,7 @@ class DocumentBufferEditTest : DocumentBufferTestBase() {
         result.isSuccess shouldBe true
 
         // And: Line count updated
-        buffer.totalLines.value shouldBe 2
+        buffer.totalLines.value shouldBe 2L
 
         // And: Content correct
         buffer.getTextForLine(0).getOrThrow() shouldBe "Line 1"
@@ -295,7 +295,7 @@ class DocumentBufferEditTest : DocumentBufferTestBase() {
         val line3 = "Line 3\n" + "Z".repeat(94)  // 101 bytes, offsets 202-302
         val content = line1 + line2 + line3      // 303 bytes total, 4 display lines
         val buffer = createBuffer(content, blockSize = 100)
-        buffer.totalLines.value shouldBe 4  // Line 0: "Line 1", Line 1: X's, Line 2: "Line 2" + Y's, Line 3: "Line 3" + Z's
+        buffer.totalLines.value shouldBe 4L  // Line 0: "Line 1", Line 1: X's, Line 2: "Line 2" + Y's, Line 3: "Line 3" + Z's
 
         // When: Delete entire middle line (line2) including its newline
         // This removes: byte 101-201 = "Line 2\n" + "Y"*94
@@ -311,7 +311,7 @@ class DocumentBufferEditTest : DocumentBufferTestBase() {
         // Line 0: "Line 1"
         // Line 1: "X"*94 + "Line 3" (merged onto same line)
         // Line 2: "Z"*94 (last line, no trailing newline)
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // And: Correct content remains
         buffer.getTextForLine(0).getOrThrow() shouldContain "Line 1"

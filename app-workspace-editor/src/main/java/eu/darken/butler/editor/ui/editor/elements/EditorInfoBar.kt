@@ -14,6 +14,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.editor.R
+import eu.darken.butler.editor.ui.editor.text.toIntSaturated
 import eu.darken.butler.workspace.ui.InfoChip
 import eu.darken.butler.workspace.ui.WorkspaceInfoBar
 
@@ -21,26 +22,26 @@ import eu.darken.butler.workspace.ui.WorkspaceInfoBar
 fun EditorInfoBar(
     modifier: Modifier = Modifier,
     fileSize: Long? = null,
-    totalLines: Int = 0,
-    cursorLine: Int = 0,
+    totalLines: Long = 0,
+    cursorLine: Long = 0,
     cursorColumn: Int = 0,
-    selectedCharacterCount: Int = 0,
-    selectedLineCount: Int = 0,
+    selectedCharacterCount: Long = 0,
+    selectedLineCount: Long = 0,
     onClearSelection: () -> Unit = {},
 ) {
     WorkspaceInfoBar(
         modifier = modifier,
-        selectedCount = selectedLineCount,
+        selectedCount = selectedLineCount.toIntSaturated(),
         onClearSelection = onClearSelection,
         selectionText = {
             val lines = pluralStringResource(
                 R.plurals.editor_infobar_lines,
-                selectedLineCount,
+                selectedLineCount.toIntSaturated(),
                 selectedLineCount
             )
             val characters = pluralStringResource(
                 R.plurals.editor_infobar_characters,
-                selectedCharacterCount,
+                selectedCharacterCount.toIntSaturated(),
                 selectedCharacterCount
             )
             stringResource(
@@ -50,7 +51,7 @@ fun EditorInfoBar(
             )
         },
         leadingContent = {
-            if (selectedCharacterCount == 0) {
+            if (selectedCharacterCount == 0L) {
                 InfoChip(
                     icon = Icons.TwoTone.TextFields,
                     label = "${cursorLine + 1}:${cursorColumn + 1}",
@@ -61,7 +62,7 @@ fun EditorInfoBar(
             Spacer(modifier = Modifier.weight(1f))
 
             // Show combined lines and size
-            if (totalLines > 0 && fileSize != null && selectedCharacterCount == 0) {
+            if (totalLines > 0 && fileSize != null && selectedCharacterCount == 0L) {
                 InfoChip(
                     icon = Icons.TwoTone.Description,
                     label = stringResource(

@@ -43,7 +43,7 @@ class DocumentBufferStressTest : DocumentBufferTestBase() {
 
         val lineTime = measureTime {
             repeat(500) {
-                buffer.getTextForLine(random.nextInt(buffer.totalLines.value)).getOrThrow()
+                buffer.getTextForLine(random.nextLong(buffer.totalLines.value)).getOrThrow()
             }
         }
         val searchTime = measureTime {

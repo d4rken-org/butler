@@ -1,5 +1,7 @@
 package eu.darken.butler.editor.core.engine.text
 
+import eu.darken.butler.editor.core.engine.LineEnding
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
@@ -375,6 +377,58 @@ class PieceTableTest : BaseTest() {
                 }
             }
         }
+    }
+
+    @Test
+    fun `line math stays exact beyond Int MAX line breaks`() = runTest {
+        // Virtual ~8.8GB UTF-16LE document of "a\n" pairs: 140k blocks x 16384 breaks ≈ 2.29e9 breaks
+        val blockCount = 140_000
+        val blockBytes = 64 * 1024
+        val blockChars = blockBytes / 2
+        val breaksPerBlock = blockChars / 2
+        val blocks = buildList {
+            var byteStart = 0L
+            var charStart = 0L
+            repeat(blockCount) {
+                add(
+                    BlockIndex.Block(
+                        byteStart = byteStart,
+                        byteLen = blockBytes,
+                        charStart = charStart,
+                        charCount = blockChars,
+                        lineBreakCount = breaksPerBlock,
+                        startsWithLf = false,
+                        endsWithCr = false,
+                        endsWithBreak = true,
+                    ),
+                )
+                byteStart += blockBytes
+                charStart += blockChars
+            }
+        }
+        val index = BlockIndex(blocks, LineEnding.LF)
+        val doc = BlockOriginalDocument(index, Charsets.UTF_16LE, maxCachedBlocks = 2) { start, len ->
+            // Block starts are 4-byte aligned, so char j is 'a' for even j and '\n' for odd j
+            ByteArray(len) { i ->
+                when ((start + i) % 4) {
+                    0L -> 'a'.code.toByte()
+                    2L -> '\n'.code.toByte()
+                    else -> 0
+                }
+            }
+        }
+        val table = PieceTable.create(doc)
+
+        val totalBreaks = blockCount.toLong() * breaksPerBlock
+        (totalBreaks > Int.MAX_VALUE.toLong()).shouldBeTrue()
+        table.totalLineBreaks shouldBe totalBreaks
+
+        // Line n is the "a" at char 2n; its break is the '\n' at 2n+1
+        val hugeLine = 2_200_000_123L
+        table.lineStartOffset(hugeLine) shouldBe hugeLine * 2
+        table.lineOfOffset(hugeLine * 2) shouldBe hugeLine
+        table.lineOfOffset(hugeLine * 2 + 1) shouldBe hugeLine
+        table.read(hugeLine * 2, hugeLine * 2 + 2) shouldBe "a\n"
     }
 
     private fun referenceLineOfOffset(text: String, offset: Int): Long {

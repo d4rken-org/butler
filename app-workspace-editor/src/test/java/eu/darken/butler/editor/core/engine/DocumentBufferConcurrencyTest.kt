@@ -217,7 +217,7 @@ class DocumentBufferConcurrencyTest : BaseTest() {
         (successCount > 0) shouldBe true
 
         // And: No corruption - buffer remains consistent
-        val finalContent = buffer.getTextForRange(0, buffer.totalLines.value.toInt() - 1).getOrThrow()
+        val finalContent = buffer.getTextForRange(0, buffer.totalLines.value - 1).getOrThrow()
         finalContent shouldContain "Hello"
         finalContent shouldContain "World"
 
@@ -320,7 +320,7 @@ class DocumentBufferConcurrencyTest : BaseTest() {
 
         // And: Content should be readable without corruption
         // The key test here is that concurrent metadata rebuilds don't corrupt data
-        val finalContent = buffer.getTextForRange(0, buffer.totalLines.value.toInt() - 1).getOrThrow()
+        val finalContent = buffer.getTextForRange(0, buffer.totalLines.value - 1).getOrThrow()
 
         // Original content "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n" structure should remain
         // After inserts at sequential offsets, we might get "LXXXXXine 1..." (X's stacked)

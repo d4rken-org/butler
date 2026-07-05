@@ -14,6 +14,13 @@ import eu.darken.butler.editor.core.engine.TextPosition
 
 private val tag = logTag("Editor", "PositionUtils")
 
+/**
+ * Narrows a Long line/count to Int for Compose/framework APIs that force Int (LazyColumn item
+ * counts, plural quantities). Saturates instead of wrapping; values past Int.MAX_VALUE are not
+ * addressable in the current UI (engine-level line addressing stays exact).
+ */
+internal fun Long.toIntSaturated(): Int = coerceIn(Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
+
 internal fun String.expandTabs(tabSize: Int): String {
     return this.replace("\t", " ".repeat(tabSize))
 }
@@ -113,7 +120,7 @@ internal fun computeTextEdit(old: String, new: String): TextEdit? {
  */
 internal fun flatOffsetToPosition(
     visibleLines: List<String>,
-    visibleRangeStart: Int,
+    visibleRangeStart: Long,
     flatOffset: Int,
 ): TextPosition {
     if (visibleLines.isEmpty()) return createUiTextPosition(line = visibleRangeStart, column = 0)
@@ -136,11 +143,12 @@ internal fun flatOffsetToPosition(
  */
 internal fun positionToFlatOffset(
     visibleLines: List<String>,
-    visibleRangeStart: Int,
+    visibleRangeStart: Long,
     position: TextPosition,
 ): Int? {
-    val lineIndex = position.line - visibleRangeStart
-    if (lineIndex < 0 || lineIndex > visibleLines.lastIndex) return null
+    val lineOffset = position.line - visibleRangeStart
+    if (lineOffset < 0 || lineOffset > visibleLines.lastIndex) return null
+    val lineIndex = lineOffset.toInt()
     var offset = 0
     for (i in 0 until lineIndex) {
         offset += visibleLines[i].length + 1 // +1 for the joining '\n'
@@ -180,7 +188,7 @@ internal fun computeFieldSelectionSync(
  * The offset is set to 0L as a placeholder - the engine recalculates the actual offset
  * based on line/column since the UI only has access to visible lines.
  */
-internal fun createUiTextPosition(line: Int, column: Int): TextPosition {
+internal fun createUiTextPosition(line: Long, column: Int): TextPosition {
     return TextPosition(
         offset = 0L,
         line = line,
@@ -195,12 +203,12 @@ internal data class PositionCalculationResult(
 internal fun calculatePositionFromOffset(
     offset: Offset,
     contentListState: LazyListState,
-    visibleLineContent: Map<Int, String>,
+    visibleLineContent: Map<Long, String>,
     density: Density,
     fontSize: Int,
     tabSize: Int,
     wordWrap: Boolean = false,
-    textLayouts: Map<Int, TextLayoutResult> = emptyMap(),
+    textLayouts: Map<Long, TextLayoutResult> = emptyMap(),
     contentPaddingTop: Float = 0f,
 ): PositionCalculationResult? {
     val layoutInfo = contentListState.layoutInfo
@@ -214,7 +222,7 @@ internal fun calculatePositionFromOffset(
         return null
     }
 
-    val lineIndex = clickedItem.index
+    val lineIndex = clickedItem.index.toLong()
     val contentPaddingPx = with(density) { 8.dp.toPx() }
     val adjustedX = offset.x - contentPaddingPx
 
@@ -321,9 +329,9 @@ internal fun findWordBoundaries(text: String, column: Int): Pair<Int, Int> {
 }
 
 internal fun selectWordAt(
-    lineIndex: Int,
+    lineIndex: Long,
     column: Int,
-    visibleLineContent: Map<Int, String>
+    visibleLineContent: Map<Long, String>
 ): Pair<TextPosition, TextPosition> {
     val lineContent = visibleLineContent[lineIndex] ?: ""
     val (start, end) = findWordBoundaries(lineContent, column)
@@ -338,8 +346,8 @@ internal fun selectWordAt(
 }
 
 internal fun selectLineAt(
-    lineIndex: Int,
-    visibleLineContent: Map<Int, String>
+    lineIndex: Long,
+    visibleLineContent: Map<Long, String>
 ): Pair<TextPosition, TextPosition> {
     val lineContent = visibleLineContent[lineIndex] ?: ""
 

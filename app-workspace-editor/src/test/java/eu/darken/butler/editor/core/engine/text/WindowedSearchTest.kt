@@ -25,8 +25,8 @@ class WindowedSearchTest : BaseTest() {
         return search.search(content.length.toLong(), query, options)
     }
 
-    private fun refPosition(content: String, offset: Int): Pair<Int, Int> {
-        var line = 0
+    private fun refPosition(content: String, offset: Int): Pair<Long, Int> {
+        var line = 0L
         var lineStart = 0
         var i = 0
         while (i < offset) {
@@ -144,10 +144,10 @@ class WindowedSearchTest : BaseTest() {
         val results = searchAll(content, "NEEDLE")
         results.size shouldBe 2
         results[0].offset shouldBe 11L
-        results[0].line shouldBe 2
+        results[0].line shouldBe 2L
         results[0].column shouldBe 0
         results[1].offset shouldBe 20L
-        results[1].line shouldBe 2
+        results[1].line shouldBe 2L
         results[1].column shouldBe 9
     }
 
@@ -305,7 +305,7 @@ class WindowedSearchTest : BaseTest() {
         val content = "foo a\nbar b\nfoo c"
         val results = searchAll(content, "(?m)^foo", SearchOptions(useRegex = true), windowSize = 8, minOverlap = 2)
         results.map { it.offset } shouldBe listOf(0L, 12L)
-        results.map { it.line } shouldBe listOf(0, 2)
+        results.map { it.line } shouldBe listOf(0L, 2L)
         results.map { it.column } shouldBe listOf(0, 0)
     }
 

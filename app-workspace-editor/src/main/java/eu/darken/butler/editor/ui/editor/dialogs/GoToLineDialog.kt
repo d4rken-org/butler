@@ -18,8 +18,8 @@ import eu.darken.butler.editor.R
 
 @Composable
 fun GoToLineDialog(
-    totalLines: Int,
-    onGoToLine: (Int) -> Unit,
+    totalLines: Long,
+    onGoToLine: (Long) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var lineNumber by remember { mutableStateOf("") }
@@ -38,13 +38,13 @@ fun GoToLineDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    lineNumber.toIntOrNull()?.let { line ->
+                    lineNumber.toLongOrNull()?.let { line ->
                         if (line in 1..totalLines) {
                             onGoToLine(line - 1) // Convert to 0-based index
                         }
                     }
                 },
-                enabled = lineNumber.toIntOrNull()?.let { it in 1..totalLines } == true
+                enabled = lineNumber.toLongOrNull()?.let { it in 1..totalLines } == true
             ) {
                 Text(stringResource(R.string.editor_dialog_action_go))
             }

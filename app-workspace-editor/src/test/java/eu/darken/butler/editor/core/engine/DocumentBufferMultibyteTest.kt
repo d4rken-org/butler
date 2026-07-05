@@ -91,7 +91,7 @@ class DocumentBufferMultibyteTest : BaseTest() {
         val offset = buffer.findOffset(line = 1, column = 1)
         offset shouldBe 5L
         val pos = buffer.findPosition(5L)
-        pos.line shouldBe 1
+        pos.line shouldBe 1L
         pos.column shouldBe 1
     }
 

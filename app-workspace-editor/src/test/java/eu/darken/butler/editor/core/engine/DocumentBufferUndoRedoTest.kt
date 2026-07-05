@@ -217,19 +217,19 @@ class DocumentBufferUndoRedoTest : DocumentBufferTestBase() {
     fun `undo and redo preserve line counts correctly`() = runTest {
         // Given: Multi-line buffer
         val buffer = createBuffer("Line 1\nLine 2\nLine 3")
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // When: Insert newlines then undo
         buffer.insertText(TextPosition(6, 0, 6), "\nNew Line\n")
-        buffer.totalLines.value shouldBe 5
+        buffer.totalLines.value shouldBe 5L
 
         buffer.undo()
 
         // Then: Line count restored
-        buffer.totalLines.value shouldBe 3
+        buffer.totalLines.value shouldBe 3L
 
         // And: Redo restores added lines
         buffer.redo()
-        buffer.totalLines.value shouldBe 5
+        buffer.totalLines.value shouldBe 5L
     }
 }

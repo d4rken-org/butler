@@ -143,7 +143,7 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
 
         engine.goToLine(15).isSuccess shouldBe true
         val cursor = engine.cursorPosition.value
-        cursor.line shouldBe 15
+        cursor.line shouldBe 15L
         cursor.column shouldBe 0
         cursor.offset shouldBe buffer.findOffset(15, 0)
 

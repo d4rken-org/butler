@@ -230,7 +230,7 @@ class DocumentBufferLineEndingTest : DocumentBufferTestBase() {
         val position = buffer.findPosition(8L)
 
         // Then: Position is line 1, column 0
-        position.line shouldBe 1
+        position.line shouldBe 1L
         position.column shouldBe 0
         position.offset shouldBe 8L
     }
@@ -384,8 +384,8 @@ class DocumentBufferLineEndingTest : DocumentBufferTestBase() {
         results.size shouldBe 2
 
         // And: Positions account for CRLF
-        results[0].position.line shouldBe 0
-        results[1].position.line shouldBe 2
+        results[0].position.line shouldBe 0L
+        results[1].position.line shouldBe 2L
     }
 
     // DEFERRED (save is implemented in the next phase):

@@ -55,6 +55,14 @@ class WorkspaceArgumentsRestoreSafetyTest : BaseTest() {
     }
 
     @Test
+    fun `EditorArguments decodes Int line payloads from old sessions into Long fields`() {
+        // cursorLine/scrollToLine were Int before the Long line migration
+        json.decodeFromString<EditorArguments>(
+            """{"type":"arguments","cursorLine":42,"cursorColumn":7,"scrollToLine":40}"""
+        ) shouldBe EditorArguments.Default(cursorLine = 42L, cursorColumn = 7, scrollToLine = 40L)
+    }
+
+    @Test
     fun `AppsArguments decodes from minimal JSON`() {
         json.decodeFromString<AppsArguments>("""{"type":"arguments"}""") shouldBe AppsArguments.Default()
     }

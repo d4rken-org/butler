@@ -451,7 +451,7 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun search(query: String, options: SearchOptions = SearchOptions()) =
         currentEngine().search(query, options)
 
-    suspend fun goToLine(lineNumber: Int) = currentEngine().goToLine(lineNumber)
+    suspend fun goToLine(lineNumber: Long) = currentEngine().goToLine(lineNumber)
     suspend fun undo() = currentEngine().undo()
     suspend fun redo() = currentEngine().redo()
     suspend fun deleteSelection() = currentEngine().deleteSelection()
@@ -464,7 +464,7 @@ class EditorWorkspace @AssistedInject constructor(
         currentEngine().replaceText(start, end, text, caret)
     suspend fun setCursorPosition(position: TextPosition) = currentEngine().setCursorPosition(position)
     suspend fun setSelection(start: TextPosition, end: TextPosition) = currentEngine().setSelection(start, end)
-    suspend fun updateVisibleRange(startLine: Int, endLine: Int) =
+    suspend fun updateVisibleRange(startLine: Long, endLine: Long) =
         currentEngine().updateVisibleRange(startLine, endLine)
 
     suspend fun moveCursor(direction: CursorDirection, extendSelection: Boolean) {
@@ -534,14 +534,14 @@ class EditorWorkspace @AssistedInject constructor(
 
     data class EditorState(
         val contentSource: ContentSource = ContentSource.Memory(size = 0L),
-        val totalLines: Int = 0,
+        val totalLines: Long = 0,
         val isModified: Boolean = false,
         val currentContent: String = "",
         val cursorPosition: TextPosition = TextPosition.ZERO,
         val selectionRange: Pair<TextPosition, TextPosition>? = null,
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
-        val visibleRange: IntRange = 0..50,
+        val visibleRange: LongRange = 0L..50L,
         val error: Throwable? = null,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,

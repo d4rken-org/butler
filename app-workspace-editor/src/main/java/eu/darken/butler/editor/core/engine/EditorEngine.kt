@@ -72,11 +72,11 @@ class EditorEngine @AssistedInject constructor(
     private val _searchResults = MutableStateFlow<List<SearchResult>>(emptyList())
     val searchResults: StateFlow<List<SearchResult>> = _searchResults.asStateFlow()
 
-    private val _visibleRange = MutableStateFlow<IntRange>(0..50)
-    val visibleRange: StateFlow<IntRange> = _visibleRange.asStateFlow()
+    private val _visibleRange = MutableStateFlow(0L..50L)
+    val visibleRange: StateFlow<LongRange> = _visibleRange.asStateFlow()
 
-    private val _totalLines = MutableStateFlow(1)
-    val totalLines: StateFlow<Int> = _totalLines.asStateFlow()
+    private val _totalLines = MutableStateFlow(1L)
+    val totalLines: StateFlow<Long> = _totalLines.asStateFlow()
 
     private val _error = MutableStateFlow<Throwable?>(null)
     val error: StateFlow<Throwable?> = _error.asStateFlow()
@@ -203,16 +203,16 @@ class EditorEngine @AssistedInject constructor(
             _totalLines.value = resources.textBuffer.totalLines.value
 
             // Load initial visible range content
-            val endLine = minOf(50, resources.textBuffer.totalLines.value - 1)
+            val endLine = minOf(50L, resources.textBuffer.totalLines.value - 1)
             if (endLine >= 0) {
-                _visibleRange.value = 0..endLine
+                _visibleRange.value = 0L..endLine
                 currentCoroutineContext().ensureActive()
                 val contentResult = resources.textBuffer.getTextForRange(0, endLine)
                 if (contentResult.isSuccess) {
                     _currentContent.value = contentResult.getOrNull() ?: ""
                 }
             } else {
-                _visibleRange.value = 0..0
+                _visibleRange.value = 0L..0L
                 _currentContent.value = ""
             }
 
@@ -374,17 +374,14 @@ class EditorEngine @AssistedInject constructor(
                         if (text.length <= 10 && !text.contains('\n')) {
                             val cursorLine = correctedPosition.line
                             val visibleStart = _visibleRange.value.first
-                            if (cursorLine in _visibleRange.value) {
-                                val lines = _currentContent.value.split('\n').toMutableList()
-                                val lineIndex = cursorLine - visibleStart
-                                if (lineIndex in lines.indices) {
-                                    val line = lines[lineIndex]
-                                    val col = correctedPosition.column.coerceAtMost(line.length)
-                                    lines[lineIndex] = line.substring(0, col) + text + line.substring(col)
-                                    _currentContent.value = lines.joinToString("\n")
-                                } else {
-                                    refreshVisibleContent()
-                                }
+                            val lines = _currentContent.value.split('\n').toMutableList()
+                            // Index into the loaded window; bounded by the window size, safe to narrow
+                            val lineIndex = (cursorLine - visibleStart).toInt()
+                            if (cursorLine in _visibleRange.value && lineIndex in lines.indices) {
+                                val line = lines[lineIndex]
+                                val col = correctedPosition.column.coerceAtMost(line.length)
+                                lines[lineIndex] = line.substring(0, col) + text + line.substring(col)
+                                _currentContent.value = lines.joinToString("\n")
                             } else {
                                 refreshVisibleContent()
                             }
@@ -582,18 +579,15 @@ class EditorEngine @AssistedInject constructor(
                         if (actualCount <= 10 && !deletedText.contains('\n') && startPosition.line == endPosition.line) {
                             val cursorLine = startPosition.line
                             val visibleStart = _visibleRange.value.first
-                            if (cursorLine in _visibleRange.value) {
-                                val lines = _currentContent.value.split('\n').toMutableList()
-                                val lineIndex = cursorLine - visibleStart
-                                if (lineIndex in lines.indices) {
-                                    val line = lines[lineIndex]
-                                    val startCol = startPosition.column.coerceAtMost(line.length)
-                                    val endCol = endPosition.column.coerceAtMost(line.length)
-                                    lines[lineIndex] = line.substring(0, startCol) + line.substring(endCol)
-                                    _currentContent.value = lines.joinToString("\n")
-                                } else {
-                                    refreshVisibleContent()
-                                }
+                            val lines = _currentContent.value.split('\n').toMutableList()
+                            // Index into the loaded window; bounded by the window size, safe to narrow
+                            val lineIndex = (cursorLine - visibleStart).toInt()
+                            if (cursorLine in _visibleRange.value && lineIndex in lines.indices) {
+                                val line = lines[lineIndex]
+                                val startCol = startPosition.column.coerceAtMost(line.length)
+                                val endCol = endPosition.column.coerceAtMost(line.length)
+                                lines[lineIndex] = line.substring(0, startCol) + line.substring(endCol)
+                                _currentContent.value = lines.joinToString("\n")
                             } else {
                                 refreshVisibleContent()
                             }
@@ -905,12 +899,12 @@ class EditorEngine @AssistedInject constructor(
         return TextPosition(offset = newOffset, line = pos.line, column = lineLength)
     }
 
-    private suspend fun getLineLength(lineNumber: Int, state: EditorState.Loaded): Int {
+    private suspend fun getLineLength(lineNumber: Long, state: EditorState.Loaded): Int {
         val result = state.resources.textBuffer.getTextForLine(lineNumber)
         return result.getOrNull()?.length ?: 0
     }
 
-    private suspend fun getLineContent(lineNumber: Int, state: EditorState.Loaded): String {
+    private suspend fun getLineContent(lineNumber: Long, state: EditorState.Loaded): String {
         val result = state.resources.textBuffer.getTextForLine(lineNumber)
         return result.getOrNull() ?: ""
     }
@@ -988,13 +982,13 @@ class EditorEngine @AssistedInject constructor(
             }
         }
 
-    suspend fun goToLine(lineNumber: Int): Result<Unit> {
+    suspend fun goToLine(lineNumber: Long): Result<Unit> {
         return try {
             val currentState = _state.value as? EditorState.Loaded
                 ?: return Result.failure(IllegalStateException("Cannot go to line - no file open"))
 
             val totalLines = _totalLines.value
-            if (lineNumber !in 0..<totalLines) {
+            if (lineNumber !in 0L..<totalLines) {
                 return Result.failure(
                     IllegalArgumentException("Line $lineNumber out of range (0..$totalLines)")
                 )
@@ -1055,7 +1049,7 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun updateVisibleRange(startLine: Int, endLine: Int) = stateMutex.withLock {
+    suspend fun updateVisibleRange(startLine: Long, endLine: Long) = stateMutex.withLock {
         if (isInitializing.get()) {
             log(tag) { "Ignoring visible range update during initialization: $startLine..$endLine" }
             return

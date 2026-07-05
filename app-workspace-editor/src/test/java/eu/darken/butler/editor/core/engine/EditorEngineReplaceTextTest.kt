@@ -66,7 +66,7 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
         return engine
     }
 
-    private fun pos(line: Int, column: Int) = TextPosition(offset = 0, line = line, column = column)
+    private fun pos(line: Long, column: Int) = TextPosition(offset = 0, line = line, column = column)
 
     private suspend fun EditorEngine.fullContent(): String {
         val loaded = this.state.value as EditorState.Loaded
@@ -81,7 +81,7 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
 
         engine.fullContent() shouldBe "Hello Kotlin"
         engine.cursorPosition.value.offset shouldBe 12L
-        engine.cursorPosition.value.line shouldBe 0
+        engine.cursorPosition.value.line shouldBe 0L
         engine.cursorPosition.value.column shouldBe 12
         engine.selectionRange.value shouldBe null
         (engine.state.value as EditorState.Loaded).isModified shouldBe true
@@ -114,8 +114,8 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
         engine.replaceText(start = pos(0, 1), end = pos(0, 2), text = "X\nY", caret = pos(1, 1))
 
         engine.fullContent() shouldBe "aX\nYc"
-        engine.totalLines.value shouldBe 2
-        engine.cursorPosition.value.line shouldBe 1
+        engine.totalLines.value shouldBe 2L
+        engine.cursorPosition.value.line shouldBe 1L
         engine.cursorPosition.value.column shouldBe 1
     }
 
@@ -127,7 +127,7 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
         engine.replaceText(start = pos(0, 3), end = pos(1, 0), text = "", caret = pos(0, 3))
 
         engine.fullContent() shouldBe "abcdef"
-        engine.totalLines.value shouldBe 1
+        engine.totalLines.value shouldBe 1L
     }
 
     @Test
@@ -138,7 +138,7 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
         engine.replaceText(start = pos(0, 2), end = pos(1, 1), text = "Z", caret = pos(0, 3))
 
         engine.fullContent() shouldBe "abZef"
-        engine.totalLines.value shouldBe 1
+        engine.totalLines.value shouldBe 1L
     }
 
     @Test
@@ -194,7 +194,7 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
         engine.replaceText(start = pos(0, 3), end = pos(0, 3), text = "\n", caret = pos(1, 0))
 
         engine.fullContent() shouldBe "abc\ndef"
-        engine.totalLines.value shouldBe 2
+        engine.totalLines.value shouldBe 2L
         // Both lines must be present in the visible content that drives rendering.
         engine.currentContent.value shouldBe "abc\ndef"
     }

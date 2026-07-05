@@ -250,7 +250,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateVisibleRange(startLine: Int, endLine: Int) = launch {
+    fun updateVisibleRange(startLine: Long, endLine: Long) = launch {
         getWorkspace().updateVisibleRange(startLine, endLine)
     }
 
@@ -516,7 +516,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun goToLine(lineNumber: Int) = launch {
+    fun goToLine(lineNumber: Long) = launch {
         getWorkspace().goToLine(lineNumber)
     }
 
@@ -646,7 +646,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val contentSource: ContentSource = ContentSource.Memory(size = 0L),
         val title: CaString,
         val subTitle: CaString,
-        val totalLines: Int = 0,
+        val totalLines: Long = 0,
         val isModified: Boolean = false,
         val currentContent: String = "",
         val cursorPosition: TextPosition = TextPosition.ZERO,
@@ -655,7 +655,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val error: Throwable? = null,
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
-        val visibleRange: IntRange = 0..50,
+        val visibleRange: LongRange = 0L..50L,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
         val showGoToLineDialog: Boolean = false,
@@ -683,18 +683,18 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
         // Info bar properties
         val fileSize: Long get() = contentSource.size
-        val totalCharacters: Int get() = fileSize.toInt()
+        val totalCharacters: Long get() = fileSize
         val fileEncoding: String
             get() = (contentSource as? ContentSource.File)?.detectedCharset?.name() ?: "UTF-8"
-        val selectedCharacterCount: Int
+        val selectedCharacterCount: Long
             get() {
                 if (selectionRange == null) return 0
                 val (start, end) = selectionRange
                 // Calculate character count from offset difference
-                return (end.offset - start.offset).toInt()
+                return end.offset - start.offset
             }
 
-        val selectedLineCount: Int
+        val selectedLineCount: Long
             get() {
                 if (selectionRange == null) return 0
                 val (start, end) = selectionRange

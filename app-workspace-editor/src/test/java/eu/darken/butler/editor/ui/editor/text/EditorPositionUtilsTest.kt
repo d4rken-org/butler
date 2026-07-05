@@ -114,33 +114,33 @@ class EditorPositionUtilsTest {
     inner class SelectWordAt {
         @Test
         fun `selects word and returns positions`() {
-            val content = mapOf(0 to "hello world")
+            val content = mapOf(0L to "hello world")
             val (start, end) = selectWordAt(0, 6, content)
 
-            start.line shouldBe 0
+            start.line shouldBe 0L
             start.column shouldBe 6
-            end.line shouldBe 0
+            end.line shouldBe 0L
             end.column shouldBe 11
         }
 
         @Test
         fun `handles missing line content`() {
-            val content = emptyMap<Int, String>()
+            val content = emptyMap<Long, String>()
             val (start, end) = selectWordAt(5, 0, content)
 
-            start.line shouldBe 5
+            start.line shouldBe 5L
             start.column shouldBe 0
-            end.line shouldBe 5
+            end.line shouldBe 5L
             end.column shouldBe 0
         }
 
         @Test
         fun `preserves line index in result`() {
-            val content = mapOf(42 to "test")
+            val content = mapOf(42L to "test")
             val (start, end) = selectWordAt(42, 0, content)
 
-            start.line shouldBe 42
-            end.line shouldBe 42
+            start.line shouldBe 42L
+            end.line shouldBe 42L
         }
     }
 
@@ -254,7 +254,7 @@ class EditorPositionUtilsTest {
     inner class FlatOffsetMapping {
 
         private val lines = listOf("abc", "def", "ghi")
-        private val start = 5 // non-zero visible window start
+        private val start = 5L // non-zero visible window start
 
         @Test
         fun `offset at line start`() {
@@ -382,18 +382,18 @@ class EditorPositionUtilsTest {
     inner class SelectLineAt {
         @Test
         fun `selects entire line`() {
-            val content = mapOf(0 to "hello world")
+            val content = mapOf(0L to "hello world")
             val (start, end) = selectLineAt(0, content)
 
-            start.line shouldBe 0
+            start.line shouldBe 0L
             start.column shouldBe 0
-            end.line shouldBe 0
+            end.line shouldBe 0L
             end.column shouldBe 11
         }
 
         @Test
         fun `handles empty line`() {
-            val content = mapOf(0 to "")
+            val content = mapOf(0L to "")
             val (start, end) = selectLineAt(0, content)
 
             start.column shouldBe 0
@@ -402,22 +402,22 @@ class EditorPositionUtilsTest {
 
         @Test
         fun `handles missing line content`() {
-            val content = emptyMap<Int, String>()
+            val content = emptyMap<Long, String>()
             val (start, end) = selectLineAt(5, content)
 
-            start.line shouldBe 5
+            start.line shouldBe 5L
             start.column shouldBe 0
-            end.line shouldBe 5
+            end.line shouldBe 5L
             end.column shouldBe 0
         }
 
         @Test
         fun `preserves line index in result`() {
-            val content = mapOf(99 to "content")
+            val content = mapOf(99L to "content")
             val (start, end) = selectLineAt(99, content)
 
-            start.line shouldBe 99
-            end.line shouldBe 99
+            start.line shouldBe 99L
+            end.line shouldBe 99L
         }
     }
 }

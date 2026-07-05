@@ -36,7 +36,7 @@ class WindowedSearch(
 
     data class Match(
         val offset: Long,
-        val line: Int,
+        val line: Long,
         val column: Int,
         val matchText: String,
     )
@@ -133,7 +133,7 @@ class WindowedSearch(
                 advanceTo(match.range.first)
                 results += Match(
                     offset = absolute,
-                    line = line.toInt(),
+                    line = line,
                     column = (absolute - lineStart).toInt(),
                     matchText = match.value,
                 )

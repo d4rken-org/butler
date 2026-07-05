@@ -247,7 +247,7 @@ class DocumentBufferSaveTest : BaseTest() {
         buffer.deleteText(TextPosition(0, 0, 0), TextPosition(5, 0, 5)).getOrThrow()
         buffer.saveFile().isSuccess shouldBe true
         file.readBytes().size shouldBe 0
-        buffer.totalLines.value shouldBe 1
+        buffer.totalLines.value shouldBe 1L
     }
 
     @Test

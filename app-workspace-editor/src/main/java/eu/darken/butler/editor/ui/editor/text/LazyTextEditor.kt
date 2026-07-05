@@ -89,10 +89,10 @@ fun LazyTextEditor(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
     content: String,
-    totalLines: Int,
+    totalLines: Long,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
-    visibleRange: IntRange,
+    visibleRange: LongRange,
     showLineNumbers: Boolean = true,
     wordWrap: Boolean = false,
     fontSize: Int = 14,
@@ -103,14 +103,14 @@ fun LazyTextEditor(
     onTextReplace: (start: TextPosition, end: TextPosition, inserted: String, caret: TextPosition) -> Unit,
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
-    onVisibleRangeChange: (IntRange) -> Unit,
+    onVisibleRangeChange: (LongRange) -> Unit,
     onCursorMove: (CursorDirection, Boolean) -> Unit,
     onForwardDelete: () -> Unit,
 ) {
     // Create a map of visible line content indexed by line number
     val visibleLineContent = remember(content, visibleRange) {
         if (content.isEmpty()) {
-            mapOf(0 to "")
+            mapOf(0L to "")
         } else {
             val contentLines = content.split('\n')
             contentLines.mapIndexed { index, line ->
@@ -153,7 +153,7 @@ fun LazyTextEditor(
             contentListState.firstVisibleItemIndex to contentListState.layoutInfo.visibleItemsInfo.size
         }.debounce(50).collect { (firstVisibleIndex, visibleItemsSize) ->
             if (totalLines > 0 && contentListState.layoutInfo.totalItemsCount > 0) {
-                val startIndex = (firstVisibleIndex - 10).coerceAtLeast(0)
+                val startIndex = (firstVisibleIndex - 10).coerceAtLeast(0).toLong()
                 val visibleCount = visibleItemsSize.coerceAtLeast(1)
                 val endIndex = minOf(
                     startIndex + visibleCount + 10, // Buffer
@@ -178,14 +178,14 @@ fun LazyTextEditor(
         val visibleCount = contentListState.layoutInfo.visibleItemsInfo.size
         val lastVisibleLine = firstVisibleLine + visibleCount - 1
 
-        val needsVerticalScroll = targetLine !in firstVisibleLine..lastVisibleLine
+        val needsVerticalScroll = targetLine < firstVisibleLine || targetLine > lastVisibleLine
         val forceScroll = scrollTrigger > 0
 
         if (needsVerticalScroll || forceScroll) {
             try {
                 // Center the target line in viewport (not at top edge)
                 val centerOffset = (visibleCount / 2).coerceAtLeast(0)
-                val scrollTarget = (targetLine - centerOffset).coerceAtLeast(0)
+                val scrollTarget = (targetLine - centerOffset).coerceAtLeast(0).toIntSaturated()
                 contentListState.scrollToItem(scrollTarget)
                 lineNumbersListState.scrollToItem(scrollTarget)
             } catch (_: Exception) {
@@ -280,9 +280,9 @@ fun LazyTextEditor(
 @Composable
 private fun DualColumnEditorContent(
     contentPadding: PaddingValues,
-    totalLines: Int,
-    visibleLineContent: Map<Int, String>,
-    visibleRange: IntRange,
+    totalLines: Long,
+    visibleLineContent: Map<Long, String>,
+    visibleRange: LongRange,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     lineNumbersListState: LazyListState,
@@ -293,7 +293,7 @@ private fun DualColumnEditorContent(
     wordWrap: Boolean,
     fontSize: Int,
     tabSize: Int,
-    searchResultsByLine: Map<Int, List<Pair<Int, SearchResult>>>,
+    searchResultsByLine: Map<Long, List<Pair<Int, SearchResult>>>,
     currentSearchResultIndex: Int,
     onTextReplace: (start: TextPosition, end: TextPosition, inserted: String, caret: TextPosition) -> Unit,
     onCursorPositionChange: (TextPosition) -> Unit,
@@ -325,10 +325,10 @@ private fun DualColumnEditorContent(
     val contentPaddingTopPx = with(density) { contentPadding.calculateTopPadding().toPx() }
 
     // Track measured heights for each line when word wrap is enabled
-    val lineHeights = remember { mutableStateMapOf<Int, Int>() }
+    val lineHeights = remember { mutableStateMapOf<Long, Int>() }
 
     // Track TextLayoutResults for accurate tap position calculation when word wrap is enabled
-    val textLayouts = remember { mutableStateMapOf<Int, TextLayoutResult>() }
+    val textLayouts = remember { mutableStateMapOf<Long, TextLayoutResult>() }
 
     // Measure actual character width for accurate positioning
     val textMeasurer = rememberTextMeasurer()
@@ -479,7 +479,7 @@ private fun DualColumnEditorContent(
                             }
                             Key.DirectionUp -> {
                                 // At top line without shift - move focus to toolbar
-                                if (cursorPosition.line == 0 && !event.isShiftPressed) {
+                                if (cursorPosition.line == 0L && !event.isShiftPressed) {
                                     log(tag) { "Key: Up at line 0 -> move focus up" }
                                     focusManager.moveFocus(FocusDirection.Up)
                                     true
@@ -553,10 +553,10 @@ private fun DualColumnEditorContent(
                         .clipToBounds()
                 ) {
                     items(
-                        count = totalLines,
+                        count = totalLines.toIntSaturated(),
                         key = { index -> "line_num_$index" }
                     ) { lineIndex ->
-                        val measuredHeight = if (wordWrap) lineHeights[lineIndex] else null
+                        val measuredHeight = if (wordWrap) lineHeights[lineIndex.toLong()] else null
 
                         Box(
                             modifier = Modifier
@@ -719,9 +719,10 @@ private fun DualColumnEditorContent(
                     }
             ) {
                 items(
-                    count = totalLines,
+                    count = totalLines.toIntSaturated(),
                     key = { index -> "line_content_$index" }
-                ) { lineIndex ->
+                ) { itemIndex ->
+                    val lineIndex = itemIndex.toLong()
                     val lineContent = visibleLineContent[lineIndex] ?: ""
 
                     TextLineItem(
@@ -852,10 +853,10 @@ private fun LazyTextEditorPreview() {
 
     LazyTextEditor(
         content = sampleContent,
-        totalLines = sampleContent.split('\n').size,
+        totalLines = sampleContent.split('\n').size.toLong(),
         cursorPosition = TextPosition(offset = 50, line = 1, column = 10),
         selection = null,
-        visibleRange = 0..7,
+        visibleRange = 0L..7L,
         showLineNumbers = true,
         wordWrap = false,
         fontSize = 14,

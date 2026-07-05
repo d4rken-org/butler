@@ -50,7 +50,7 @@ private data class SelectionBounds(
 
 @Composable
 internal fun TextLineItem(
-    lineIndex: Int,
+    lineIndex: Long,
     lineContent: String,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
@@ -261,7 +261,7 @@ internal fun TextLineItem(
 internal fun SelectableText(
     text: String,
     rawLineContent: String,
-    lineIndex: Int,
+    lineIndex: Long,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     searchHighlights: List<Pair<Int, SearchResult>> = emptyList(),

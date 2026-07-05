@@ -25,11 +25,11 @@ class DocumentBufferSearchTest : DocumentBufferTestBase() {
         matches.size shouldBe 2
 
         // And: First match is on line 0
-        matches[0].position.line shouldBe 0
+        matches[0].position.line shouldBe 0L
         matches[0].matchText shouldBe "Hello"
 
         // And: Second match is on line 2
-        matches[1].position.line shouldBe 2
+        matches[1].position.line shouldBe 2L
         matches[1].matchText shouldBe "Hello"
     }
 
@@ -49,9 +49,9 @@ class DocumentBufferSearchTest : DocumentBufferTestBase() {
         matches.size shouldBe 3
 
         // And: Matches have correct file-relative line numbers (not chunk-relative!)
-        matches[0].position.line shouldBe 0  // First line of file
-        matches[1].position.line shouldBe 2  // Third line of file (after line 0 and line 1)
-        matches[2].position.line shouldBe 4  // Fifth line of file
+        matches[0].position.line shouldBe 0L  // First line of file
+        matches[1].position.line shouldBe 2L  // Third line of file (after line 0 and line 1)
+        matches[2].position.line shouldBe 4L  // Fifth line of file
     }
 
     @Test
