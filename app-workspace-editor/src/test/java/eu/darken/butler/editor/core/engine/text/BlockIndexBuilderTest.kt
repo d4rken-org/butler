@@ -184,6 +184,18 @@ class BlockIndexBuilderTest : BaseTest() {
     }
 
     @Test
+    fun `block edges never end mid UTF-8 sequence across odd block sizes`() = runTest {
+        // Regression: Android's ICU decoder consumes partial sequences at buffer ends, so edge
+        // snapping must come from byte inspection, not decoder underflow
+        val content = "中文行1 日本語のテキスト x".repeat(50)
+        val bytes = content.toByteArray(Charsets.UTF_8)
+        for (blockSize in listOf(4, 5, 7, 8, 16, 61, 64)) {
+            val index = build(bytes, blockSize = blockSize)
+            index.verifyAgainst(bytes, Charsets.UTF_8) shouldBe content
+        }
+    }
+
+    @Test
     fun `unpaired high surrogate at block edge decodes consistently`() = runTest {
         // UTF-16LE 'a', lone \uD800, 'A' - crafted raw since encoders replace lone surrogates
         val bytes = byteArrayOf(0x61, 0x00, 0x00, 0xD8.toByte(), 0x41, 0x00)
