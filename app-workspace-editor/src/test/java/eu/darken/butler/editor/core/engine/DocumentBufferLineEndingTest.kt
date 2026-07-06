@@ -378,7 +378,7 @@ class DocumentBufferLineEndingTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for "Hello"
-        val results = buffer.search("Hello", options = SearchOptions(caseSensitive = true))
+        val results = buffer.search("Hello", options = SearchOptions(caseSensitive = true)).getOrThrow()
 
         // Then: Found 2 results
         results.size shouldBe 2

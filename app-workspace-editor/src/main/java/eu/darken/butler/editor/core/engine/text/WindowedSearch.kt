@@ -4,6 +4,8 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.WARN
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.editor.core.engine.SearchOptions
+import kotlinx.coroutines.ensureActive
+import kotlin.coroutines.coroutineContext
 
 /**
  * Search over the logical document, tracking line/column in the same pass. Matches are
@@ -79,6 +81,7 @@ class WindowedSearch(
         var lastMatchEnd = 0L
 
         while (true) {
+            coroutineContext.ensureActive()
             val windowEnd = minOf(windowStart + windowSize, totalLength)
             val isFinal = windowEnd == totalLength
             val padStart = if (options.useRegex) windowStart else maxOf(windowStart - 1, 0L)

@@ -106,6 +106,15 @@ class DocumentBuffer @AssistedInject constructor(
     private var savedGeneration = 0L
     private var savedGenerationValid = true
 
+    // Bumped on EVERY piece-table mutation (edits, undo/redo, rebase, initialize). Searches
+    // validate it per window so a long scan aborts instead of holding the lock across the
+    // whole document while typing queues behind it.
+    private var structuralVersion = 0L
+
+    // Test seam: lets tests shrink windows and gate reads outside the lock
+    internal var windowedSearchFactory: (suspend (Long, Long) -> String) -> WindowedSearch =
+        { readText -> WindowedSearch(readText = readText) }
+
     suspend fun initialize(
         onProgress: ((Progress.Data) -> Unit)? = null,
     ): Result<Unit> = bufferMutex.withLock {
@@ -146,6 +155,7 @@ class DocumentBuffer @AssistedInject constructor(
             originalDocument = original
             blockIndex = index
             pieceTable = PieceTable.create(original, assertions)
+            structuralVersion++
 
             _lineEnding.value = index.lineEnding
             (_contentSource.value as? ContentSource.File)?.let {
@@ -352,22 +362,50 @@ class DocumentBuffer @AssistedInject constructor(
         start + column.coerceIn(0, (end - start).coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
     }
 
-    suspend fun search(query: String, options: SearchOptions): List<SearchResult> =
-        bufferMutex.withLock {
-            val table = tableOrNull() ?: return@withLock emptyList()
-            try {
-                val windowedSearch = WindowedSearch { start, end -> table.read(start, end) }
-                windowedSearch.search(table.totalCharLength, query, options).map { match ->
-                    SearchResult(
-                        position = TextPosition(match.offset, match.line, match.column),
-                        matchText = match.matchText,
-                    )
-                }
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Search failed for query: $query - ${e.asLog()}" }
-                emptyList()
+    /**
+     * Scans the whole document WITHOUT holding [bufferMutex] across the scan: the lock is taken
+     * per window read, and [structuralVersion] is validated each time. A concurrent edit makes
+     * the scan fail with [SearchInvalidatedException] (distinguishable from no-matches) instead
+     * of stalling the edit for the scan's duration. Edits can still wait for at most one
+     * window's decode (~64KB) - bounded and acceptable.
+     */
+    suspend fun search(query: String, options: SearchOptions): Result<List<SearchResult>> {
+        // tableOrNull() throws when the buffer requires a reload - that must surface as a
+        // Result too, the engine no longer wraps this call
+        val (table, version, totalLength) = try {
+            bufferMutex.withLock {
+                val t = tableOrNull() ?: return Result.success(emptyList())
+                Triple(t, structuralVersion, t.totalCharLength)
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            return Result.failure(e)
         }
+        return try {
+            val windowedSearch = windowedSearchFactory { start, end ->
+                bufferMutex.withLock {
+                    if (structuralVersion != version) throw SearchInvalidatedException()
+                    table.read(start, end)
+                }
+            }
+            val matches = windowedSearch.search(totalLength, query, options).map { match ->
+                SearchResult(
+                    position = TextPosition(match.offset, match.line, match.column),
+                    matchText = match.matchText,
+                )
+            }
+            Result.success(matches)
+        } catch (e: SearchInvalidatedException) {
+            log(tag) { "Search invalidated by a concurrent edit" }
+            Result.failure(e)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Search failed for query: $query - ${e.asLog()}" }
+            Result.failure(e)
+        }
+    }
 
     suspend fun saveFile(): Result<Unit> = bufferMutex.withLock {
         saveFileInternal()
@@ -512,6 +550,7 @@ class DocumentBuffer @AssistedInject constructor(
         originalDocument = original
         blockIndex = index
         pieceTable = PieceTable.create(original, assertions)
+        structuralVersion++
 
         _lineEnding.value = index.lineEnding
         lastKnownMeta = dataSource.getMeta()
@@ -599,6 +638,7 @@ class DocumentBuffer @AssistedInject constructor(
                     table.insert(operation.position.offset, operation.oldText)
                 }
             }
+            structuralVersion++
             val memory = entry.operation.estimateMemoryBytes()
             currentUndoMemoryBytes -= memory
             redoStack.addLast(entry)
@@ -631,6 +671,7 @@ class DocumentBuffer @AssistedInject constructor(
                     table.insert(operation.position.offset, operation.newText)
                 }
             }
+            structuralVersion++
             val memory = entry.operation.estimateMemoryBytes()
             currentRedoMemoryBytes -= memory
             undoStack.addLast(entry)
@@ -685,6 +726,7 @@ class DocumentBuffer @AssistedInject constructor(
     }
 
     private fun commitNewEdit(operation: EditOperation) {
+        structuralVersion++
         val before = currentGeneration
         currentGeneration = ++generationCounter
         for (discarded in redoStack) {

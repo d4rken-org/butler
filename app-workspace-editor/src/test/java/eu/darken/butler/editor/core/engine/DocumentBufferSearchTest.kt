@@ -19,7 +19,7 @@ class DocumentBufferSearchTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for "Hello"
-        val matches = buffer.search(query = "Hello", options = SearchOptions(caseSensitive = true))
+        val matches = buffer.search(query = "Hello", options = SearchOptions(caseSensitive = true)).getOrThrow()
 
         // Then: Found 2 matches
         matches.size shouldBe 2
@@ -43,7 +43,7 @@ class DocumentBufferSearchTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content, blockSize = 100)
 
         // When: Search for "SEARCH"
-        val matches = buffer.search(query = "SEARCH", options = SearchOptions(caseSensitive = true))
+        val matches = buffer.search(query = "SEARCH", options = SearchOptions(caseSensitive = true)).getOrThrow()
 
         // Then: Found 3 matches
         matches.size shouldBe 3
@@ -61,7 +61,7 @@ class DocumentBufferSearchTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search case-sensitive for "Hello"
-        val matches = buffer.search(query = "Hello", options = SearchOptions(caseSensitive = true))
+        val matches = buffer.search(query = "Hello", options = SearchOptions(caseSensitive = true)).getOrThrow()
 
         // Then: Found only exact match
         matches.size shouldBe 1
@@ -75,7 +75,7 @@ class DocumentBufferSearchTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for "apple"
-        val matches = buffer.search(query = "apple", options = SearchOptions(caseSensitive = true))
+        val matches = buffer.search(query = "apple", options = SearchOptions(caseSensitive = true)).getOrThrow()
 
         // Then: Results are sorted by offset
         matches.size shouldBe 3
@@ -96,7 +96,7 @@ class DocumentBufferSearchTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for non-existent term
-        val matches = buffer.search(query = "NOTFOUND", options = SearchOptions(caseSensitive = true))
+        val matches = buffer.search(query = "NOTFOUND", options = SearchOptions(caseSensitive = true)).getOrThrow()
 
         // Then: Returns empty list (not failure)
         matches.shouldBeEmpty()
@@ -109,7 +109,7 @@ class DocumentBufferSearchTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for empty string
-        val matches = buffer.search(query = "", options = SearchOptions(caseSensitive = true))
+        val matches = buffer.search(query = "", options = SearchOptions(caseSensitive = true)).getOrThrow()
 
         // Then: Returns empty list
         matches.shouldBeEmpty()
@@ -122,7 +122,7 @@ class DocumentBufferSearchTest : DocumentBufferTestBase() {
         val buffer = createBuffer(content)
 
         // When: Search for "TARGET"
-        val matches = buffer.search(query = "TARGET", options = SearchOptions(caseSensitive = true))
+        val matches = buffer.search(query = "TARGET", options = SearchOptions(caseSensitive = true)).getOrThrow()
 
         // Then: Found 2 matches
         matches.size shouldBe 2

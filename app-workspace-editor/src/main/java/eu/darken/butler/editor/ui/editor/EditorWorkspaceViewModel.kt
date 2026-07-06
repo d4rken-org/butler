@@ -37,6 +37,7 @@ import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -79,6 +80,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val _scrollTrigger = MutableStateFlow(0)
     private val _clipboardInfoClip = MutableStateFlow<ClipboardClip?>(null)
     private var openFileJob: Job? = null
+    private var searchJob: Job? = null
 
     private data class DialogStates(
         val showGoToLineDialog: Boolean,
@@ -520,16 +522,31 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         wholeWord = _searchWholeWord.value,
     )
 
-    private fun search(query: String) = launch {
-        val options = buildSearchOptions()
-        val result = getWorkspace().search(query, options)
-        result.onSuccess { searchResults ->
-            // Auto-navigate to first result if available
-            if (searchResults.isNotEmpty()) {
-                _currentSearchResultIndex.value = 0
-                getWorkspace().setCursorPosition(searchResults[0].position)
-            } else {
-                _currentSearchResultIndex.value = 0
+    /**
+     * One tracked search at a time: a new query cancels the previous scan. Typing debounces
+     * so every keystroke doesn't start a whole-document scan; option toggles re-search
+     * immediately (deliberate single action).
+     */
+    private fun search(query: String, debounce: Boolean = false) {
+        searchJob?.cancel()
+        searchJob = vmScope.launch {
+            try {
+                if (debounce) delay(SEARCH_DEBOUNCE_MS)
+                val options = buildSearchOptions()
+                val result = getWorkspace().search(query, options)
+                result.onSuccess { searchResults ->
+                    // Auto-navigate to first result if available
+                    if (searchResults.isNotEmpty()) {
+                        _currentSearchResultIndex.value = 0
+                        getWorkspace().setCursorPosition(searchResults[0].position)
+                    } else {
+                        _currentSearchResultIndex.value = 0
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Search failed - ${e.asLog()}" }
             }
         }
     }
@@ -537,15 +554,12 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     fun updateSearchQuery(textFieldValue: TextFieldValue) {
         _searchQueryInput.value = textFieldValue
         val query = textFieldValue.text
-        // Trigger search immediately (debouncing can be added later if needed)
         if (query.isNotEmpty()) {
-            search(query)
+            search(query, debounce = true)
         } else {
-            // Clear results when query is empty
-            launch {
-                getWorkspace().search("")
-                _currentSearchResultIndex.value = 0
-            }
+            // Clearing goes through the same tracked job - an untracked clear could otherwise
+            // race a newer search and purge its results
+            search("")
         }
     }
 
@@ -602,12 +616,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun closeSearch() {
         _searchQueryInput.value = TextFieldValue("")
-        _currentSearchResultIndex.value = 0
         _showSearchDialog.value = false
-        // Clear search results in workspace
-        launch {
-            getWorkspace().search("")
-        }
+        // Clear via the tracked job so it cannot race a still-running scan
+        search("")
     }
 
     fun goToLine(lineNumber: Long) = launch {
@@ -904,6 +915,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     companion object {
+        private const val SEARCH_DEBOUNCE_MS = 200L
         private val TEXT_EXTENSIONS = setOf(
             "txt", "md", "json", "xml", "html", "css", "js", "kt", "java", "py", "sh",
             "yml", "yaml", "csv", "log", "conf", "ini", "properties", "gradle", "toml",

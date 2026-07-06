@@ -70,6 +70,10 @@ class EditorEngine @AssistedInject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    // Monotonic search request id (guarded by stateMutex): a scan publishes its results only
+    // if it is still the latest request when it finishes
+    private var searchRequestCounter = 0L
+
     private val _searchResults = MutableStateFlow<List<SearchResult>>(emptyList())
     val searchResults: StateFlow<List<SearchResult>> = _searchResults.asStateFlow()
 
@@ -937,35 +941,46 @@ class EditorEngine @AssistedInject constructor(
         return result
     }
 
-    suspend fun search(query: String, options: SearchOptions = SearchOptions()): Result<List<SearchResult>> =
-        stateMutex.withLock {
+    /**
+     * The scan itself runs OUTSIDE [stateMutex] so typing never queues behind a whole-document
+     * search. Results are published only if this is still the LATEST search request (a newer
+     * query/options change supersedes it) AND no edit invalidated the query in the meantime.
+     */
+    suspend fun search(query: String, options: SearchOptions = SearchOptions()): Result<List<SearchResult>> {
+        val (buffer, requestId) = stateMutex.withLock {
             _searchQuery.value = query
+            val id = ++searchRequestCounter
 
             if (query.isEmpty()) {
                 _searchResults.value = emptyList()
                 return Result.success(emptyList())
             }
+            val loaded = _state.value as? EditorState.Loaded ?: run {
+                val error = IllegalStateException("Cannot search - no file open")
+                log(tag, WARN) { error.message ?: "Unknown error" }
+                return Result.failure(error)
+            }
+            loaded.resources.textBuffer to id
+        }
 
-            return when (val currentState = _state.value) {
-                is EditorState.Loaded -> {
-                    try {
-                        coroutineContext.ensureActive()
-                        val results = currentState.resources.textBuffer.search(query, options)
-                        _searchResults.value = results
-                        Result.success(results)
-                    } catch (e: Exception) {
+        val result = buffer.search(query, options)
+
+        stateMutex.withLock {
+            val isLatest = requestId == searchRequestCounter && _searchQuery.value == query
+            result.fold(
+                onSuccess = { if (isLatest) _searchResults.value = it },
+                onFailure = { e ->
+                    // Never leave stale positions highlighted under the failed (latest) query
+                    if (isLatest) _searchResults.value = emptyList()
+                    if (e !is SearchInvalidatedException) {
                         log(tag, ERROR) { "Failed to search - ${e.asLog()}" }
                         _error.value = e
-                        Result.failure(e)
                     }
-                }
-                else -> {
-                    val error = IllegalStateException("Cannot search - no file open")
-                    log(tag, WARN) { error.message ?: "Unknown error" }
-                    Result.failure(error)
-                }
-            }
+                },
+            )
         }
+        return result
+    }
 
     suspend fun goToLine(lineNumber: Long): Result<Unit> {
         return try {
