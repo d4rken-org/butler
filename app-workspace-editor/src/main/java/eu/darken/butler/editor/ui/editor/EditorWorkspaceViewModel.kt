@@ -20,6 +20,7 @@ import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
+import eu.darken.butler.editor.core.engine.LineEnding
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
@@ -553,6 +554,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val totalCharacters: Long get() = fileSize
         val fileEncoding: String
             get() = (contentSource as? ContentSource.File)?.detectedCharset?.name() ?: "UTF-8"
+        val lineEnding: LineEnding?
+            get() = (contentSource as? ContentSource.File)?.lineEnding
         val selectedCharacterCount: Long
             get() {
                 if (selectionRange == null) return 0

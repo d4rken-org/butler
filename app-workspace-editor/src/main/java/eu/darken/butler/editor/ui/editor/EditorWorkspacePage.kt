@@ -30,6 +30,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
+import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.EncodingDialog
 import eu.darken.butler.editor.ui.editor.dialogs.ReloadConfirmDialog
@@ -151,7 +152,13 @@ fun EditorWorkspacePage(
     )
 
     // Opening a new file is fresh content; reset scroll-collapse so bars don't stay hidden.
-    LaunchedEffect(state.contentSource) {
+    // Keyed on the source's IDENTITY: the contentSource value also refreshes after every save
+    // (size/mtime/line ending), which must not pop collapsed bars back in.
+    val contentIdentity = when (val source = state.contentSource) {
+        is ContentSource.File -> source.path
+        is ContentSource.Memory -> source.name
+    }
+    LaunchedEffect(contentIdentity) {
         topBarStackState.resetScrollCollapse()
         bottomBarStackState.resetScrollCollapse()
     }
@@ -204,6 +211,7 @@ fun EditorWorkspacePage(
                         selectedLineCount = state.selectedLineCount,
                         selectedCharacterCount = state.selectedCharacterCount,
                         fileEncoding = if (state.hasFile) state.fileEncoding else null,
+                        lineEnding = state.lineEnding,
                         isReadOnly = state.isReadOnly,
                         onEncodingClick = { onPageAction(EditorPageAction.File.ShowEncodingPicker) },
                         onClearSelection = { onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition)) },

@@ -108,11 +108,11 @@ class EditorEngine @AssistedInject constructor(
     private val isInitializing = AtomicBoolean(true)
     private var initializationJob: Job? = null
 
-    val contentSource: Flow<ContentSource> = state.map { s ->
-        when (s) {
-            is EditorState.Loaded -> s.contentSource
-            else -> ContentSource.Memory(size = 0L)
-        }
+    // Sourced from the buffer (not the Loaded snapshot) so post-save rebase refreshes -
+    // e.g. re-detected line endings - reach the UI
+    val contentSource: Flow<ContentSource> = state.flatMapLatest { s ->
+        (s as? EditorState.Loaded)?.resources?.textBuffer?.contentSource
+            ?: flowOf(ContentSource.Memory(size = 0L))
     }
 
     val isModified: Flow<Boolean> = state.map { s ->
@@ -132,6 +132,26 @@ class EditorEngine @AssistedInject constructor(
 
     val textBuffer: DocumentBuffer?
         get() = (state.value as? EditorState.Loaded)?.resources?.textBuffer
+
+    /**
+     * Matches inserted text to the document's line ending so editing doesn't turn a uniform
+     * file MIXED on save: CRLF documents turn every break ('\n' from the IME diff path, lone
+     * '\r' or "\r\n" from foreign clipboards) into "\r\n"; LF documents turn pasted "\r\n"/'\r'
+     * into '\n'. Applied at the mutation entry points BEFORE any offset math - the buffer, undo
+     * ops, and cursor/replacement-end calculations must all see the same string. CR documents
+     * are excluded (a bare '\r' would break the '\n'-based line math: insertEndPosition, the
+     * in-place visible-content fast path); MIXED has no ending to conform to.
+     */
+    private fun matchDocumentLineEnding(text: String, buffer: DocumentBuffer): String {
+        val target = when (buffer.lineEnding.value) {
+            LineEnding.LF -> "\n"
+            LineEnding.CRLF -> "\r\n"
+            else -> return text
+        }
+        val needsWork = text.contains('\r') || (target == "\r\n" && text.contains('\n'))
+        if (!needsWork) return text
+        return text.replace(LINE_BREAK_REGEX, target)
+    }
 
     /**
      * Backstop for read-only/binary sources: the UI disables input, but nothing may bypass it -
@@ -425,6 +445,8 @@ class EditorEngine @AssistedInject constructor(
                     return@withLock // Selection delete failed, error already set
                 }
 
+                val insert = matchDocumentLineEnding(text, currentState.resources.textBuffer)
+
                 // Use current cursor position (will be at selection.first if selection was deleted)
                 val cursorPos = _cursorPosition.value
 
@@ -441,9 +463,9 @@ class EditorEngine @AssistedInject constructor(
                     column = cursorPos.column
                 )
 
-                log(tag, VERBOSE) { "Inserting text at position $correctedPosition: ${text.take(50)}..." }
+                log(tag, VERBOSE) { "Inserting text at position $correctedPosition: ${insert.take(50)}..." }
 
-                val result = currentState.resources.textBuffer.insertText(correctedPosition, text)
+                val result = currentState.resources.textBuffer.insertText(correctedPosition, insert)
 
                 result.fold(
                     onSuccess = { newPosition ->
@@ -462,7 +484,7 @@ class EditorEngine @AssistedInject constructor(
                         invalidateSearchResults()
 
                         // Update visible content - use in-place update for small edits
-                        if (text.length <= 10 && !text.contains('\n')) {
+                        if (insert.length <= 10 && !insert.contains('\n')) {
                             val cursorLine = correctedPosition.line
                             val visibleStart = _visibleRange.value.first
                             val lines = _currentContent.value.split('\n').toMutableList()
@@ -471,7 +493,7 @@ class EditorEngine @AssistedInject constructor(
                             if (cursorLine in _visibleRange.value && lineIndex in lines.indices) {
                                 val line = lines[lineIndex]
                                 val col = correctedPosition.column.coerceAtMost(line.length)
-                                lines[lineIndex] = line.substring(0, col) + text + line.substring(col)
+                                lines[lineIndex] = line.substring(0, col) + insert + line.substring(col)
                                 _currentContent.value = lines.joinToString("\n")
                             } else {
                                 refreshVisibleContent()
@@ -516,6 +538,7 @@ class EditorEngine @AssistedInject constructor(
             return@withLock
         }
         val buffer = currentState.resources.textBuffer
+        val newText = matchDocumentLineEnding(text, buffer)
 
         // Resolve flat offsets from line/column - UI sends placeholder offset=0 with virtual scrolling.
         val startOffset = buffer.findOffset(start.line, start.column)
@@ -531,24 +554,24 @@ class EditorEngine @AssistedInject constructor(
         }
 
         val isEmptyRange = lowPos.offset == highPos.offset
-        if (isEmptyRange && text.isEmpty()) {
+        if (isEmptyRange && newText.isEmpty()) {
             // Pure no-op: the field never emits this (computeTextEdit returns null when text is unchanged),
             // so there is nothing to edit and no cursor/selection state to disturb.
             return@withLock
         }
 
-        log(tag, VERBOSE) { "replaceText $lowPos..$highPos -> ${text.take(50)} (caret=$caret)" }
+        log(tag, VERBOSE) { "replaceText $lowPos..$highPos -> ${newText.take(50)} (caret=$caret)" }
 
         // Only keystroke-SIZED edits coalesce (<= 2 UTF-16 units covers surrogate-pair input):
         // platform paste and IME batch commits arrive through this same diff path as large pure
         // inserts and must neither join a typing run nor anchor one
-        val keystrokeSized = text.length <= 2 && (highPos.offset - lowPos.offset) <= 2
+        val keystrokeSized = newText.length <= 2 && (highPos.offset - lowPos.offset) <= 2
         val result: Result<*> = when {
             // Keystroke-sized inserts/deletes merge into the current typing run (one undo
             // steps back over the run, not one character)
-            isEmptyRange -> buffer.insertText(lowPos, text, coalesce = keystrokeSized) // pure insert
-            text.isEmpty() -> buffer.deleteText(lowPos, highPos, coalesce = keystrokeSized) // pure delete
-            else -> buffer.replaceText(lowPos, highPos, text) // genuine replace (delete + insert)
+            isEmptyRange -> buffer.insertText(lowPos, newText, coalesce = keystrokeSized) // pure insert
+            newText.isEmpty() -> buffer.deleteText(lowPos, highPos, coalesce = keystrokeSized) // pure delete
+            else -> buffer.replaceText(lowPos, highPos, newText) // genuine replace (delete + insert)
         }
 
         if (result.isSuccess) {
@@ -1125,12 +1148,15 @@ class EditorEngine @AssistedInject constructor(
             loaded.resources.textBuffer
         }
 
-        val newText = if (options.useRegex) {
-            expandRegexReplacementAt(buffer, query, options, match, replacement)
-                .getOrElse { return Result.failure(it) }
-        } else {
-            replacement
-        }
+        val newText = matchDocumentLineEnding(
+            if (options.useRegex) {
+                expandRegexReplacementAt(buffer, query, options, match, replacement)
+                    .getOrElse { return Result.failure(it) }
+            } else {
+                replacement
+            },
+            buffer,
+        )
 
         buffer.replaceMatches(
             listOf(DocumentBuffer.MatchReplacement(match.position.offset, match.matchText, newText)),
@@ -1190,7 +1216,7 @@ class EditorEngine @AssistedInject constructor(
                         DocumentBuffer.MatchReplacement(
                             startOffset = m.range.first.toLong(),
                             oldText = m.value,
-                            newText = expandReplacementTemplate(replacement, m),
+                            newText = matchDocumentLineEnding(expandReplacementTemplate(replacement, m), buffer),
                         )
                     }
                     .toList()
@@ -1199,8 +1225,9 @@ class EditorEngine @AssistedInject constructor(
                 return Result.failure(e)
             }
         } else {
+            val translated = matchDocumentLineEnding(replacement, buffer)
             val matches = buffer.search(query, options).getOrElse { return Result.failure(it) }
-            matches.map { DocumentBuffer.MatchReplacement(it.position.offset, it.matchText, replacement) }
+            matches.map { DocumentBuffer.MatchReplacement(it.position.offset, it.matchText, translated) }
         }
 
         if (replacements.isEmpty()) return Result.success(ReplaceAllOutcome(0, undoable = true))
@@ -1514,6 +1541,10 @@ class EditorEngine @AssistedInject constructor(
     }
 
     companion object {
+        // Idempotent break normalizer: "\r\n" matches before its parts, so already-conforming
+        // text (e.g. regex group captures of CRLF document content) is never double-converted
+        private val LINE_BREAK_REGEX = Regex("\r\n|\r|\n")
+
         /**
          * Expands `$N` group references with Kotlin `Regex.replace` semantics: `\$` is a
          * literal dollar, a `$` must be followed by digits, unknown groups are an error.

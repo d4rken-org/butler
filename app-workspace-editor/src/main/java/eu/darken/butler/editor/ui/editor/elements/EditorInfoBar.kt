@@ -3,6 +3,7 @@ package eu.darken.butler.editor.ui.editor.elements
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Description
+import androidx.compose.material.icons.twotone.KeyboardReturn
 import androidx.compose.material.icons.twotone.Lock
 import androidx.compose.material.icons.twotone.TextFields
 import androidx.compose.material.icons.twotone.Translate
@@ -16,6 +17,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.editor.R
+import eu.darken.butler.editor.core.engine.LineEnding
 import eu.darken.butler.editor.ui.editor.text.toIntSaturated
 import eu.darken.butler.workspace.ui.InfoChip
 import eu.darken.butler.workspace.ui.WorkspaceInfoBar
@@ -30,8 +32,10 @@ fun EditorInfoBar(
     selectedCharacterCount: Long = 0,
     selectedLineCount: Long = 0,
     fileEncoding: String? = null,
+    lineEnding: LineEnding? = null,
     isReadOnly: Boolean = false,
     onEncodingClick: (() -> Unit)? = null,
+    onLineEndingClick: (() -> Unit)? = null,
     onClearSelection: () -> Unit = {},
 ) {
     WorkspaceInfoBar(
@@ -79,6 +83,17 @@ fun EditorInfoBar(
                         icon = Icons.TwoTone.Translate,
                         label = fileEncoding,
                         onClick = onEncodingClick,
+                    )
+                }
+                if (lineEnding != null) {
+                    InfoChip(
+                        icon = Icons.TwoTone.KeyboardReturn,
+                        label = when (lineEnding) {
+                            LineEnding.MIXED -> stringResource(R.string.editor_line_ending_mixed)
+                            else -> lineEnding.name
+                        },
+                        isAccented = lineEnding == LineEnding.MIXED,
+                        onClick = onLineEndingClick,
                     )
                 }
             }

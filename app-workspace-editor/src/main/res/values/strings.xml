@@ -110,6 +110,7 @@
     <string name="editor_encoding_dialog_title">Encoding</string>
     <string name="editor_encoding_dialog_message">Reopen the file with a different encoding. Unsaved changes are discarded; unedited bytes stay untouched on save.</string>
     <string name="editor_infobar_read_only">Read-only</string>
+    <string name="editor_line_ending_mixed">Mixed</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Untitled</string>
