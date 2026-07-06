@@ -710,6 +710,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             pickerConfig?.selection is PickerConfig.Selection.MixedMulti && item is ExplorerItem.File -> {
                 toggleItemSelection(item)
             }
+            // SaveAs mode: tap file to prefill the filename field (folders navigate)
+            pickerConfig?.selection is PickerConfig.Selection.SaveAs && item is ExplorerItem.File -> {
+                workspace.updateSaveAsFilename(item.lookup.name)
+            }
             // Selection mode active: toggle selection
             selectedItemsFlow.value.isNotEmpty() -> {
                 toggleItemSelection(item)
