@@ -1313,7 +1313,12 @@ class EditorEngine @AssistedInject constructor(
                 try {
                     val result = currentState.resources.textBuffer.undo()
                     if (result.isSuccess) {
-                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        val buffer = currentState.resources.textBuffer
+                        _totalLines.value = buffer.totalLines.value
+                        // The Loaded state's isModified is a snapshot; undo can cross the save
+                        // point in either direction, so it must be re-read from the buffer or
+                        // auto-save and the unsaved-changes close warning act on stale state
+                        _state.value = currentState.copy(isModified = buffer.isModified.value)
                         invalidateSearchResults()
                         refreshVisibleContent()
 
@@ -1350,7 +1355,11 @@ class EditorEngine @AssistedInject constructor(
                 try {
                     val result = currentState.resources.textBuffer.redo()
                     if (result.isSuccess) {
-                        _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                        val buffer = currentState.resources.textBuffer
+                        _totalLines.value = buffer.totalLines.value
+                        // See undo(): the isModified snapshot must follow the buffer across
+                        // save-point crossings
+                        _state.value = currentState.copy(isModified = buffer.isModified.value)
                         invalidateSearchResults()
                         refreshVisibleContent()
 

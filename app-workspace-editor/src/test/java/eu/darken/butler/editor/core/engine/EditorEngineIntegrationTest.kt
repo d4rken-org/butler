@@ -17,6 +17,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import okio.Buffer
@@ -143,6 +144,24 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
 
         engine.saveFile().isSuccess shouldBe true
         buffer.isModified.value shouldBe false
+    }
+
+    @Test
+    fun `engine isModified flow follows undo and redo across the save point`() = runTest {
+        val engine = createEngine(content = "base")
+
+        engine.setCursorPosition(TextPosition(0, 0, 0))
+        engine.insertText("11")
+        engine.saveFile().isSuccess shouldBe true
+        engine.isModified.first() shouldBe false
+
+        // The Loaded state's isModified is a snapshot: undo/redo must refresh it or auto-save
+        // and the unsaved-changes close warning act on stale state
+        engine.undo().isSuccess shouldBe true
+        engine.isModified.first() shouldBe true
+
+        engine.redo().isSuccess shouldBe true
+        engine.isModified.first() shouldBe false
     }
 
     @Test
