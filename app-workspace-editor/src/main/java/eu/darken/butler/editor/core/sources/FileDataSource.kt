@@ -17,6 +17,7 @@ import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.LineEnding
 import eu.darken.butler.editor.core.engine.text.CharsetDetector
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -119,6 +120,15 @@ class FileDataSource @AssistedInject constructor(
         log(tag) { "Opening file data source: $filePath" }
         try {
             if (!filePath.exists(gatewaySwitch)) {
+                // A save crash between backup-move and restore leaves the backup as the only
+                // copy; point the user at it instead of a bare not-found
+                val backups = scanSaveArtifacts()
+                if (backups.isNotEmpty()) {
+                    throw FileNotFoundException(
+                        "File does not exist: $filePath - a backup from an interrupted save " +
+                            "exists: ${backups.joinToString { it.name }}",
+                    )
+                }
                 throw FileNotFoundException("File does not exist: $filePath")
             }
 
@@ -132,6 +142,11 @@ class FileDataSource @AssistedInject constructor(
             // a missing mtime is fine (staleness skips the mtime comparison when null)
             val size = lookup.size
                 ?: throw IOException("Provider reported no size for $filePath")
+
+            // Scan BEFORE publishing the ContentSource - the engine snapshots it at load and
+            // late updates would never reach the UI
+            val staleBackups = scanSaveArtifacts()
+
             _contentSource.value = ContentSource.File(
                 path = filePath,
                 size = size,
@@ -140,7 +155,8 @@ class FileDataSource @AssistedInject constructor(
                 lineEnding = LineEnding.LF, // Updated by the engine after the block scan
                 detectedCharset = detectedCharset,
                 hasBOM = hasBOM,
-                bomBytes = bomBytes
+                bomBytes = bomBytes,
+                staleBackups = staleBackups,
             )
 
             log(tag, INFO) {
@@ -151,6 +167,44 @@ class FileDataSource @AssistedInject constructor(
             log(tag, ERROR) { "Failed to open - ${e.asLog()}" }
             throw e
         }
+    }
+
+    /**
+     * Best-effort scan for leftover save artifacts of THIS file. Temp artifacts never become
+     * authoritative and are deleted; backup artifacts may hold the only good copy after a
+     * crashed in-place save and are NEVER auto-deleted - they are surfaced to the UI instead.
+     * The token shape is matched exactly (escaped filename + 8 hex chars) so user files with
+     * similar names are never touched; names matching OUR exact artifact shape are treated as
+     * ours by definition (no provenance check is possible). Any failure degrades to an empty
+     * result; cancellation propagates.
+     */
+    private suspend fun scanSaveArtifacts(): List<APath<*>> = runCatching {
+        val parent = filePath.parent ?: return@runCatching emptyList<APath<*>>()
+        val pattern = Regex(
+            "^" + Regex.escape(filePath.name) +
+                "(" + Regex.escape(AtomicFileWriter.TEMP_INFIX) + "|" + Regex.escape(AtomicFileWriter.BACKUP_INFIX) + ")" +
+                "[0-9a-f]{8}$",
+        )
+        val staleBackups = mutableListOf<APath<*>>()
+        for (entry in gatewaySwitch.listFiles(parent)) {
+            val match = pattern.matchEntire(entry.name) ?: continue
+            if (match.groupValues[1] == AtomicFileWriter.TEMP_INFIX) {
+                log(tag, INFO) { "Removing stale save temp artifact: ${entry.name}" }
+                runCatching { gatewaySwitch.delete(entry) }
+                    .onFailure {
+                        if (it is CancellationException) throw it
+                        log(tag, WARN) { "Failed to remove temp artifact ${entry.name}: ${it.asLog()}" }
+                    }
+            } else {
+                log(tag, WARN) { "Found stale save backup: ${entry.name}" }
+                staleBackups += entry
+            }
+        }
+        staleBackups
+    }.getOrElse {
+        if (it is CancellationException) throw it
+        log(tag, WARN) { "Save artifact scan failed: ${it.asLog()}" }
+        emptyList()
     }
 
     override suspend fun getSize(): Long = _contentSource.value.size

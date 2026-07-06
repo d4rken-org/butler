@@ -40,9 +40,13 @@ sealed class ContentSource {
         val detectedCharset: Charset = Charsets.UTF_8,
         val hasBOM: Boolean = false,
         val bomBytes: ByteArray? = null,
+        /** Leftover backup artifacts from interrupted saves, found next to the file at open time. */
+        val staleBackups: List<APath<*>> = emptyList(),
     ) : ContentSource() {
         override val name: String get() = path.name
 
+        // Manual equals/hashCode for the ByteArray field. Every property MUST be included -
+        // a missed field makes StateFlow/Compose dedup its updates invisibly.
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -60,6 +64,7 @@ sealed class ContentSource {
                 if (other.bomBytes == null) return false
                 if (!bomBytes.contentEquals(other.bomBytes)) return false
             } else if (other.bomBytes != null) return false
+            if (staleBackups != other.staleBackups) return false
 
             return true
         }
@@ -73,6 +78,7 @@ sealed class ContentSource {
             result = 31 * result + detectedCharset.hashCode()
             result = 31 * result + hasBOM.hashCode()
             result = 31 * result + (bomBytes?.contentHashCode() ?: 0)
+            result = 31 * result + staleBackups.hashCode()
             return result
         }
     }

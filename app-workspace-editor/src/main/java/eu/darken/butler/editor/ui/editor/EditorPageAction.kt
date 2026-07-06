@@ -39,6 +39,9 @@ sealed interface EditorPageAction {
 
         /** Reopen the current file decoding it with the given charset */
         data class ReopenWithEncoding(val charsetName: String) : File
+
+        /** Dismiss the stale-backup notice for the current file */
+        data object DismissBackupNotice : File
     }
 
     /**

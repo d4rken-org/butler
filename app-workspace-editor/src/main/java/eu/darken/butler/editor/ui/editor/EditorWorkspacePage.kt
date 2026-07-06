@@ -33,6 +33,7 @@ import eu.darken.butler.editor.ui.editor.dialogs.SaveAsOverwriteDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
+import eu.darken.butler.editor.ui.editor.elements.EditorBackupBanner
 import eu.darken.butler.editor.ui.editor.elements.EditorErrorBanner
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorLoadingOverlay
@@ -260,6 +261,13 @@ fun EditorWorkspacePage(
                 EditorErrorBanner(
                     error = error,
                     onDismiss = { onPageAction(EditorPageAction.Error.Clear) },
+                )
+            }
+
+            if (state.showBackupNotice) {
+                EditorBackupBanner(
+                    backupNames = state.staleBackups.map { it.name },
+                    onDismiss = { onPageAction(EditorPageAction.File.DismissBackupNotice) },
                 )
             }
 

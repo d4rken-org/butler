@@ -44,8 +44,10 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
@@ -68,6 +70,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val _showEncodingDialog = MutableStateFlow(false)
     private val _pendingEncoding = MutableStateFlow<String?>(null)
     private val _pendingSaveAsOverwrite = MutableStateFlow<APath<*>?>(null)
+    private val _backupNoticeDismissed = MutableStateFlow(false)
     private val _searchQueryInput = MutableStateFlow(TextFieldValue(""))
     private val _currentSearchResultIndex = MutableStateFlow(0)
     private val _searchCaseSensitive = MutableStateFlow(false)
@@ -84,6 +87,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val showEncodingDialog: Boolean,
         val pendingEncoding: String?,
         val pendingSaveAsOverwrite: APath<*>?,
+        val backupNoticeDismissed: Boolean,
     )
 
     private val dialogStates = combine(
@@ -93,6 +97,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         _showEncodingDialog,
         _pendingEncoding,
         _pendingSaveAsOverwrite,
+        _backupNoticeDismissed,
     ) { values ->
         DialogStates(
             showGoToLineDialog = values[0] as Boolean,
@@ -101,6 +106,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             showEncodingDialog = values[3] as Boolean,
             pendingEncoding = values[4] as String?,
             pendingSaveAsOverwrite = values[5] as APath<*>?,
+            backupNoticeDismissed = values[6] as Boolean,
         )
     }
 
@@ -176,6 +182,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             showEncodingDialog = dialogs.showEncodingDialog,
             pendingEncoding = dialogs.pendingEncoding,
             pendingSaveAsOverwrite = dialogs.pendingSaveAsOverwrite,
+            backupNoticeDismissed = dialogs.backupNoticeDismissed,
             searchQueryInput = search.queryInput,
             currentSearchResultIndex = search.currentResultIndex,
             searchCaseSensitive = search.caseSensitive,
@@ -189,6 +196,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }.filterNotNull()
 
     init {
+        // A dismissed backup notice belongs to ONE path: any path change (open, Save-As,
+        // scratch-to-file) re-arms the notice for the new document
+        workspaceWithState
+            .map { (_, wsState) ->
+                ((wsState as? EditorWorkspace.State.Ready)?.editor?.contentSource as? ContentSource.File)?.path
+            }
+            .distinctUntilChanged()
+            .onEach { _backupNoticeDismissed.value = false }
+            .launchIn(vmScope)
+
         // Listen for picker results. `filename` is non-null exactly when the result came from a
         // SaveAs picker - stateless discrimination, immune to cancel/reopen races.
         workspaceRemote.events
@@ -702,6 +719,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.File.CancelOpen -> cancelFileOpen()
             is EditorPageAction.File.ShowEncodingPicker -> showEncodingDialog()
             is EditorPageAction.File.ReopenWithEncoding -> selectEncoding(action.charsetName)
+            is EditorPageAction.File.DismissBackupNotice -> _backupNoticeDismissed.value = true
 
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
@@ -783,6 +801,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val showEncodingDialog: Boolean = false,
         val pendingEncoding: String? = null,
         val pendingSaveAsOverwrite: APath<*>? = null,
+        val backupNoticeDismissed: Boolean = false,
         val searchQueryInput: TextFieldValue = TextFieldValue(""),
         val currentSearchResultIndex: Int = 0,
         val searchCaseSensitive: Boolean = false,
@@ -803,6 +822,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
         val hasError: Boolean get() = error != null
         val isSearchBarVisible: Boolean get() = showSearchDialog
+        val staleBackups: List<APath<*>>
+            get() = (contentSource as? ContentSource.File)?.staleBackups ?: emptyList()
+        val showBackupNotice: Boolean get() = staleBackups.isNotEmpty() && !backupNoticeDismissed
 
         // Info bar properties
         val fileSize: Long get() = contentSource.size

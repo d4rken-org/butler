@@ -31,6 +31,9 @@
     <string name="editor_dialog_save_as_overwrite_message">%1$s already exists. Its current content will be replaced.</string>
     <string name="editor_dialog_save_as_overwrite_action">Overwrite</string>
 
+    <!-- Stale save-backup notice -->
+    <string name="editor_backup_banner_message">A backup from an interrupted save was found:\n%1$s</string>
+
     <!-- Editor info bar -->
     <plurals name="editor_infobar_lines">
         <item quantity="one">%1$d line</item>
