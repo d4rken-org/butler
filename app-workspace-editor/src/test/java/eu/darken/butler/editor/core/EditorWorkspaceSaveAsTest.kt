@@ -44,6 +44,9 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
     private val fileSystemOps = LocalFileSystemOps(ownershipResolver = mockOwnershipResolver)
 
     private fun createMockGateway(): GatewaySwitch = mockk<GatewaySwitch>().apply {
+        coEvery { useRes(any<suspend (Any) -> Any?>()) } coAnswers {
+            firstArg<suspend (Any) -> Any?>().invoke(this@apply)
+        }
         coEvery { canWrite(any()) } returns true
         coEvery { exists(any()) } coAnswers { fileSystemOps.exists(firstArg<APath<*>>() as LocalPath) }
         @Suppress("UNCHECKED_CAST")
@@ -79,7 +82,11 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
         return settings
     }
 
-    private fun createWorkspace(filePath: APath<*>, gateway: GatewaySwitch): EditorWorkspace {
+    private fun createWorkspace(
+        filePath: APath<*>?,
+        gateway: GatewaySwitch,
+        initialContent: String? = null,
+    ): EditorWorkspace {
         val settings = createMockSettings()
         val inMemoryFactory = object : InMemoryDataSource.Factory {
             override fun create(workspaceId: Workspace.Id, initialContent: String) =
@@ -127,7 +134,7 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
         }
         return EditorWorkspace(
             id = workspaceId,
-            creationArguments = EditorArguments.Default(filePath = filePath),
+            creationArguments = EditorArguments.Default(filePath = filePath, initialContent = initialContent),
             gatewaySwitch = gateway,
             editorEngineFactory = engineFactory,
             editorSettings = settings,
@@ -229,6 +236,50 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
             target.readText() shouldBe "X$content"
             file.readText() shouldBe content
             tempDir.listFiles()!!.map { it.name }.filter { it.contains(".butler-save-") } shouldBe emptyList()
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `save-as turns a scratch buffer into a real file`(@TempDir tempDir: File) = runTest {
+        val target = File(tempDir, "untitled.txt")
+        val workspace = createWorkspace(null, createMockGateway(), initialContent = "scratch content")
+        try {
+            workspace.state.first { it is EditorWorkspace.State.Ready }
+            workspace.insertText("X")
+            workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
+
+            workspace.saveFileAs(LocalPath.build(target)).isSuccess shouldBe true
+
+            target.readText() shouldBe "Xscratch content"
+            // The workspace is now file-backed
+            workspace.state.first {
+                ((it as? EditorWorkspace.State.Ready)?.editor?.contentSource as? ContentSource.File)
+                    ?.path?.name == "untitled.txt"
+            }
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `inspectSaveAsTarget classifies destinations`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("content") }
+        val existingFile = File(tempDir, "existing.txt").apply { writeText("x") }
+        val existingDir = File(tempDir, "subdir").apply { mkdir() }
+        val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
+        try {
+            workspace.state.first {
+                (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File
+            }
+
+            workspace.inspectSaveAsTarget(LocalPath.build(File(tempDir, "new.txt"))) shouldBe
+                EditorWorkspace.SaveAsTarget.FREE
+            workspace.inspectSaveAsTarget(LocalPath.build(existingFile)) shouldBe
+                EditorWorkspace.SaveAsTarget.EXISTS_FILE
+            workspace.inspectSaveAsTarget(LocalPath.build(existingDir)) shouldBe
+                EditorWorkspace.SaveAsTarget.EXISTS_DIRECTORY
         } finally {
             workspace.release()
         }

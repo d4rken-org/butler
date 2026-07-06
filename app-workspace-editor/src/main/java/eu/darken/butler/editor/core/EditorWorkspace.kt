@@ -16,6 +16,10 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.extensions.exists
+import eu.darken.butler.common.files.extensions.lookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
@@ -537,6 +541,18 @@ class EditorWorkspace @AssistedInject constructor(
 
     /** Reads file content for pasting from clipboard. */
     suspend fun readFileContent(path: APath<*>): Result<String> = pasteFileReader.read(path)
+
+    enum class SaveAsTarget { FREE, EXISTS_FILE, EXISTS_DIRECTORY }
+
+    /** Classifies a Save-As destination so the UI can confirm overwrites and reject directories. */
+    suspend fun inspectSaveAsTarget(path: APath<*>): SaveAsTarget = gatewaySwitch.useRes {
+        if (!path.exists(gatewaySwitch)) {
+            SaveAsTarget.FREE
+        } else {
+            val lookup = path.lookup(gatewaySwitch, LookupOptions.BASE)
+            if (lookup.fileType == FileType.DIRECTORY) SaveAsTarget.EXISTS_DIRECTORY else SaveAsTarget.EXISTS_FILE
+        }
+    }
 
     override suspend fun release() {
         log(tag, INFO) { "release()" }

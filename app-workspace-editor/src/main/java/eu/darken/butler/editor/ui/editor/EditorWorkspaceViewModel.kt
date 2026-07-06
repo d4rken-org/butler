@@ -14,6 +14,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
@@ -55,6 +56,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val workspaceRemote: WorkspaceRemote,
     private val clipboardHelper: SystemClipboardHelper,
     private val clipboardRepo: ClipboardRepo,
+    private val filenameValidator: FilenameValidator,
 ) : ViewModel4(dispatchers, logTag("Editor", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<EditorWorkspace?> = workspaceProvider.retrieve(id).map { it as EditorWorkspace? }
@@ -65,6 +67,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private val _showCloseConfirmDialog = MutableStateFlow(false)
     private val _showEncodingDialog = MutableStateFlow(false)
     private val _pendingEncoding = MutableStateFlow<String?>(null)
+    private val _pendingSaveAsOverwrite = MutableStateFlow<APath<*>?>(null)
     private val _searchQueryInput = MutableStateFlow(TextFieldValue(""))
     private val _currentSearchResultIndex = MutableStateFlow(0)
     private val _searchCaseSensitive = MutableStateFlow(false)
@@ -80,6 +83,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val showCloseConfirmDialog: Boolean,
         val showEncodingDialog: Boolean,
         val pendingEncoding: String?,
+        val pendingSaveAsOverwrite: APath<*>?,
     )
 
     private val dialogStates = combine(
@@ -88,8 +92,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         _showCloseConfirmDialog,
         _showEncodingDialog,
         _pendingEncoding,
-    ) { showGoToLineDialog, showSearchDialog, showCloseConfirmDialog, showEncodingDialog, pendingEncoding ->
-        DialogStates(showGoToLineDialog, showSearchDialog, showCloseConfirmDialog, showEncodingDialog, pendingEncoding)
+        _pendingSaveAsOverwrite,
+    ) { values ->
+        DialogStates(
+            showGoToLineDialog = values[0] as Boolean,
+            showSearchDialog = values[1] as Boolean,
+            showCloseConfirmDialog = values[2] as Boolean,
+            showEncodingDialog = values[3] as Boolean,
+            pendingEncoding = values[4] as String?,
+            pendingSaveAsOverwrite = values[5] as APath<*>?,
+        )
     }
 
     private data class SearchStates(
@@ -163,6 +175,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             showCloseConfirmDialog = dialogs.showCloseConfirmDialog,
             showEncodingDialog = dialogs.showEncodingDialog,
             pendingEncoding = dialogs.pendingEncoding,
+            pendingSaveAsOverwrite = dialogs.pendingSaveAsOverwrite,
             searchQueryInput = search.queryInput,
             currentSearchResultIndex = search.currentResultIndex,
             searchCaseSensitive = search.caseSensitive,
@@ -176,13 +189,63 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }.filterNotNull()
 
     init {
-        // Listen for picker results
+        // Listen for picker results. `filename` is non-null exactly when the result came from a
+        // SaveAs picker - stateless discrimination, immune to cancel/reopen races.
         workspaceRemote.events
             .handleResult<WorkspaceEvent.PickerResult>(callerWorkspaceId = id) { result ->
-                log(tag) { "Received picker result: ${result.selectedPaths.firstOrNull()}" }
-                result.selectedPaths.firstOrNull()?.let { openFile(it) }
+                log(tag) { "Received picker result: ${result.selectedPaths.firstOrNull()} (filename=${result.filename})" }
+                val directory = result.selectedPaths.firstOrNull() ?: return@handleResult
+                val filename = result.filename
+                if (filename != null) {
+                    handleSaveAsDestination(directory, filename)
+                } else {
+                    openFile(directory)
+                }
             }
             .launchIn(vmScope)
+    }
+
+    fun saveFileAs() = launch {
+        val currentState = state.first()
+        val source = currentState.contentSource
+        val suggested = (source as? ContentSource.File)?.path?.name ?: "untitled.txt"
+        val startPath = (source as? ContentSource.File)?.path?.parent
+        workspaceRemote.launchPicker(id, startPath, PickerConfig.Selection.SaveAs(suggestedFilename = suggested))
+    }
+
+    private fun handleSaveAsDestination(directory: APath<*>, filename: String) = launch {
+        // A new Save-As result supersedes any overwrite decision still pending from an earlier one
+        _pendingSaveAsOverwrite.value = null
+        // The picker validates too; re-validating here means a malformed event can't produce a
+        // path with separators or storage-invalid characters
+        val validation = filenameValidator.validate(filename, directory)
+        if (validation is FilenameValidator.ValidationResult.Invalid) {
+            throw IllegalArgumentException(
+                "Filename contains invalid characters: ${validation.invalidChars.joinToString("")}",
+            )
+        }
+        val destination = directory.child(filename)
+        when (getWorkspace().inspectSaveAsTarget(destination)) {
+            EditorWorkspace.SaveAsTarget.EXISTS_DIRECTORY ->
+                throw IllegalArgumentException("A folder named \"$filename\" already exists here")
+            EditorWorkspace.SaveAsTarget.EXISTS_FILE -> _pendingSaveAsOverwrite.value = destination
+            EditorWorkspace.SaveAsTarget.FREE -> performSaveAs(destination)
+        }
+    }
+
+    private fun performSaveAs(destination: APath<*>) = launch {
+        getWorkspace().saveFileAs(destination).getOrThrow()
+        log(tag, INFO) { "Saved as: $destination" }
+    }
+
+    fun confirmSaveAsOverwrite() {
+        val destination = _pendingSaveAsOverwrite.value ?: return
+        _pendingSaveAsOverwrite.value = null
+        performSaveAs(destination)
+    }
+
+    fun dismissSaveAsOverwrite() {
+        _pendingSaveAsOverwrite.value = null
     }
 
     // All operations delegate to workspace
@@ -254,7 +317,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun saveFile() {
         launch {
-            getWorkspace().saveFile()  // Workspace handles loading state
+            val currentState = state.first()
+            if (currentState.contentSource is ContentSource.Memory) {
+                // A scratch buffer has no file to save into - route through Save-As
+                saveFileAs()
+            } else {
+                getWorkspace().saveFile()  // Workspace handles loading state
+            }
         }
     }
 
@@ -628,6 +697,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             // File actions
             is EditorPageAction.File.LaunchPicker -> launchFilePicker()
             is EditorPageAction.File.Save -> saveFile()
+            is EditorPageAction.File.SaveAs -> saveFileAs()
             is EditorPageAction.File.Close -> closeFile()
             is EditorPageAction.File.CancelOpen -> cancelFileOpen()
             is EditorPageAction.File.ShowEncodingPicker -> showEncodingDialog()
@@ -666,6 +736,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Dialog.DismissEncoding -> dismissEncodingDialog()
             is EditorPageAction.Dialog.ConfirmEncodingDiscard -> confirmEncodingDiscard()
             is EditorPageAction.Dialog.DismissEncodingDiscard -> dismissEncodingDiscard()
+            is EditorPageAction.Dialog.ConfirmSaveAsOverwrite -> confirmSaveAsOverwrite()
+            is EditorPageAction.Dialog.DismissSaveAsOverwrite -> dismissSaveAsOverwrite()
 
             // Clipboard actions
             is EditorPageAction.Clipboard.Paste -> pasteFromClipboard(action.clip)
@@ -710,6 +782,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val showCloseConfirmDialog: Boolean = false,
         val showEncodingDialog: Boolean = false,
         val pendingEncoding: String? = null,
+        val pendingSaveAsOverwrite: APath<*>? = null,
         val searchQueryInput: TextFieldValue = TextFieldValue(""),
         val currentSearchResultIndex: Int = 0,
         val searchCaseSensitive: Boolean = false,

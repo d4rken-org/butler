@@ -2038,6 +2038,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 log(tag, WARN) { "SaveAs mode requires a filename" }
                 return@launch
             }
+            val validation = validateFilename(fn)
+            if (validation is FilenameValidator.ValidationResult.Invalid) {
+                throw IllegalArgumentException(
+                    "Filename contains invalid characters: ${validation.invalidChars.joinToString("")}",
+                )
+            }
             fn
         } else {
             null

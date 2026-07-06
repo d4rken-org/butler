@@ -16,6 +16,7 @@ import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
 import androidx.compose.material.icons.twotone.KeyboardArrowUp
 import androidx.compose.material.icons.twotone.Save
+import androidx.compose.material.icons.twotone.SaveAs
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -266,6 +267,15 @@ fun EditorToolbarCard(
                             enabled = isModified
                         ) {
                             Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
+                        }
+
+                        if (hasContent || isModified) {
+                            IconButton(onClick = { onAction(EditorPageAction.File.SaveAs) }) {
+                                Icon(
+                                    Icons.TwoTone.SaveAs,
+                                    contentDescription = stringResource(R.string.editor_action_save_as)
+                                )
+                            }
                         }
 
                         if (hasContent) {

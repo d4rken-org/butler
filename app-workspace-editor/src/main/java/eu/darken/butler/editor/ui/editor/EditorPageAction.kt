@@ -25,6 +25,9 @@ sealed interface EditorPageAction {
         /** Save the current file */
         data object Save : File
 
+        /** Pick a destination and save the document there */
+        data object SaveAs : File
+
         /** Close the current file */
         data object Close : File
 
@@ -142,6 +145,12 @@ sealed interface EditorPageAction {
 
         /** Dismiss the encoding discard-confirmation dialog */
         data object DismissEncodingDiscard : Dialog
+
+        /** Confirm overwriting an existing file as the Save-As destination */
+        data object ConfirmSaveAsOverwrite : Dialog
+
+        /** Dismiss the Save-As overwrite confirmation */
+        data object DismissSaveAsOverwrite : Dialog
     }
 
     /**

@@ -29,6 +29,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.EncodingDialog
+import eu.darken.butler.editor.ui.editor.dialogs.SaveAsOverwriteDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
@@ -359,6 +360,14 @@ fun EditorWorkspacePage(
         CloseConfirmDialog(
             onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmEncodingDiscard) },
             onDismiss = { onPageAction(EditorPageAction.Dialog.DismissEncodingDiscard) },
+        )
+    }
+
+    state.pendingSaveAsOverwrite?.let { destination ->
+        SaveAsOverwriteDialog(
+            fileName = destination.name,
+            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmSaveAsOverwrite) },
+            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissSaveAsOverwrite) },
         )
     }
 
