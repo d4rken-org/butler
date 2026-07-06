@@ -15,6 +15,7 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.BuildConfig
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.EditorSettings
+import eu.darken.butler.editor.core.engine.text.WindowedSearch
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
@@ -73,6 +74,10 @@ class EditorEngine @AssistedInject constructor(
     // Monotonic search request id (guarded by stateMutex): a scan publishes its results only
     // if it is still the latest request when it finishes
     private var searchRequestCounter = 0L
+
+    // Structural version of the snapshot the current replace call expanded its regex against;
+    // passed to replaceMatches so any intervening mutation aborts the apply
+    private var regexSnapshotVersion: Long? = null
 
     private val _searchResults = MutableStateFlow<List<SearchResult>>(emptyList())
     val searchResults: StateFlow<List<SearchResult>> = _searchResults.asStateFlow()
@@ -1017,6 +1022,177 @@ class EditorEngine @AssistedInject constructor(
         return result
     }
 
+    data class ReplaceOutcome(
+        val results: List<SearchResult>,
+        /** Index of the first remaining match after the replacement, for cursor advancement. */
+        val nextIndex: Int,
+    )
+
+    data class ReplaceAllOutcome(
+        val count: Int,
+        /** False when the composite undo entry was evicted by the memory cap. */
+        val undoable: Boolean,
+    )
+
+    /**
+     * Replaces the single [match] with [replacement] as one undo step, then re-runs the search
+     * and reports where the cursor should land next. The match is re-verified against the live
+     * document; a divergence fails with [StaleMatchException] and nothing changes.
+     */
+    suspend fun replaceCurrent(
+        query: String,
+        options: SearchOptions,
+        match: SearchResult,
+        replacement: String,
+    ): Result<ReplaceOutcome> {
+        val buffer = stateMutex.withLock {
+            val loaded = _state.value as? EditorState.Loaded
+                ?: return Result.failure(IllegalStateException("Cannot replace - no file open"))
+            loaded.editabilityError()?.let { return Result.failure(it) }
+            loaded.resources.textBuffer
+        }
+
+        val newText = if (options.useRegex) {
+            expandRegexReplacementAt(buffer, query, options, match, replacement)
+                .getOrElse { return Result.failure(it) }
+        } else {
+            replacement
+        }
+
+        buffer.replaceMatches(
+            listOf(DocumentBuffer.MatchReplacement(match.position.offset, match.matchText, newText)),
+            expectedVersion = regexSnapshotVersion.takeIf { options.useRegex },
+        ).getOrElse { return Result.failure(it) }
+        regexSnapshotVersion = null
+
+        val replacementEnd = match.position.offset + newText.length
+        refreshAfterMutation(cursorOffset = replacementEnd)
+
+        val results = search(query, options).getOrElse { emptyList() }
+        val nextIndex = results.indexOfFirst { it.position.offset >= replacementEnd }
+            .let { if (it == -1) 0 else it }
+        return Result.success(ReplaceOutcome(results, nextIndex))
+    }
+
+    /**
+     * Replaces EVERY match of [query] with [replacement] as one undo step. The search is re-run
+     * internally (UI-held results are never trusted). Regex mode supports `$1` group references
+     * and `\$` literal dollars with Kotlin `Regex.replace` semantics, is precomputed before any
+     * mutation, and only works under the full-scan cap - above it windowed regex results are
+     * unreliable and replacing based on them could corrupt the document.
+     */
+    suspend fun replaceAll(
+        query: String,
+        options: SearchOptions,
+        replacement: String,
+    ): Result<ReplaceAllOutcome> {
+        val buffer = stateMutex.withLock {
+            val loaded = _state.value as? EditorState.Loaded
+                ?: return Result.failure(IllegalStateException("Cannot replace - no file open"))
+            loaded.editabilityError()?.let { return Result.failure(it) }
+            loaded.resources.textBuffer
+        }
+
+        val replacements: List<DocumentBuffer.MatchReplacement> = if (options.useRegex) {
+            if (buffer.totalLength.value > WindowedSearch.REGEX_FULL_SCAN_CAP) {
+                return Result.failure(
+                    IllegalStateException(
+                        "Replace all with regex is unavailable for documents over " +
+                            "${WindowedSearch.REGEX_FULL_SCAN_CAP} characters",
+                    ),
+                )
+            }
+            val (text, snapshotVersion) = buffer.getFullTextWithVersion().getOrElse { return Result.failure(it) }
+            val regexOptions = buildSet { if (!options.caseSensitive) add(RegexOption.IGNORE_CASE) }
+            val regex = try {
+                Regex(query, regexOptions)
+            } catch (e: Exception) {
+                return Result.failure(IllegalArgumentException("Invalid regex pattern: ${e.message}", e))
+            }
+            regexSnapshotVersion = snapshotVersion
+            try {
+                regex.findAll(text)
+                    .filter { it.value.isNotEmpty() }
+                    .map { m ->
+                        DocumentBuffer.MatchReplacement(
+                            startOffset = m.range.first.toLong(),
+                            oldText = m.value,
+                            newText = expandReplacementTemplate(replacement, m),
+                        )
+                    }
+                    .toList()
+            } catch (e: IllegalArgumentException) {
+                // Bad group reference: precomputation failed, the document is untouched
+                return Result.failure(e)
+            }
+        } else {
+            val matches = buffer.search(query, options).getOrElse { return Result.failure(it) }
+            matches.map { DocumentBuffer.MatchReplacement(it.position.offset, it.matchText, replacement) }
+        }
+
+        if (replacements.isEmpty()) return Result.success(ReplaceAllOutcome(0, undoable = true))
+
+        val stats = buffer.replaceMatches(replacements, expectedVersion = regexSnapshotVersion.takeIf { options.useRegex })
+            .getOrElse { return Result.failure(it) }
+        regexSnapshotVersion = null
+
+        refreshAfterMutation(cursorOffset = null)
+        search(query, options)
+
+        return Result.success(ReplaceAllOutcome(stats.count, stats.undoable))
+    }
+
+    /** Post-mutation UI refresh shared by the replace operations; one lock, no interleaving. */
+    private suspend fun refreshAfterMutation(cursorOffset: Long?) {
+        stateMutex.withLock {
+            val currentState = _state.value as? EditorState.Loaded ?: return@withLock
+            val buffer = currentState.resources.textBuffer
+            _totalLines.value = buffer.totalLines.value
+            _state.value = currentState.copy(isModified = true)
+            _selectionRange.value = null
+            selectionAnchor = null
+            cursorOffset?.let { _cursorPosition.value = buffer.findPosition(it) }
+            invalidateSearchResults()
+            refreshVisibleContent()
+        }
+    }
+
+    /**
+     * Resolves the regex match at the SearchResult's offset so group references can expand.
+     * Only valid under the full-scan cap - the same boundary the search side documents.
+     */
+    private suspend fun expandRegexReplacementAt(
+        buffer: DocumentBuffer,
+        query: String,
+        options: SearchOptions,
+        match: SearchResult,
+        replacement: String,
+    ): Result<String> {
+        if (buffer.totalLength.value > WindowedSearch.REGEX_FULL_SCAN_CAP) {
+            return Result.failure(
+                IllegalStateException(
+                    "Replace with regex is unavailable for documents over " +
+                        "${WindowedSearch.REGEX_FULL_SCAN_CAP} characters",
+                ),
+            )
+        }
+        val (text, snapshotVersion) = buffer.getFullTextWithVersion().getOrElse { return Result.failure(it) }
+        val regexOptions = buildSet { if (!options.caseSensitive) add(RegexOption.IGNORE_CASE) }
+        val regex = try {
+            Regex(query, regexOptions)
+        } catch (e: Exception) {
+            return Result.failure(IllegalArgumentException("Invalid regex pattern: ${e.message}", e))
+        }
+        regexSnapshotVersion = snapshotVersion
+        val liveMatch = regex.findAll(text).firstOrNull { it.range.first.toLong() == match.position.offset }
+            ?: return Result.failure(StaleMatchException())
+        return try {
+            Result.success(expandReplacementTemplate(replacement, liveMatch))
+        } catch (e: IllegalArgumentException) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun goToLine(lineNumber: Long): Result<Unit> {
         return try {
             val currentState = _state.value as? EditorState.Loaded
@@ -1251,5 +1427,52 @@ class EditorEngine @AssistedInject constructor(
             initialContent: String? = null,
             charsetOverride: Charset? = null,
         ): EditorEngine
+    }
+
+    companion object {
+        /**
+         * Expands `$N` group references with Kotlin `Regex.replace` semantics: `\$` is a
+         * literal dollar, a `$` must be followed by digits, unknown groups are an error.
+         * Throws [IllegalArgumentException] so callers can fail BEFORE mutating anything.
+         */
+        internal fun expandReplacementTemplate(template: String, match: MatchResult): String {
+            val sb = StringBuilder(template.length)
+            var i = 0
+            while (i < template.length) {
+                val c = template[i]
+                when {
+                    c == '\\' && i + 1 < template.length && template[i + 1] == '$' -> {
+                        sb.append('$')
+                        i += 2
+                    }
+                    c == '$' -> {
+                        // JVM semantics: consume the LONGEST digit run that still names an
+                        // existing group ("$12" with one group = group 1 + literal '2')
+                        var j = i + 1
+                        var group = -1
+                        while (j < template.length && template[j].isDigit()) {
+                            val candidate = group.coerceAtLeast(0) * 10 + (template[j] - '0')
+                            if (candidate >= match.groupValues.size) break
+                            group = candidate
+                            j++
+                        }
+                        require(group >= 0) {
+                            if (j < template.length && template[j].isDigit()) {
+                                "Group \$${template[j]} is not in the pattern"
+                            } else {
+                                "Lone '$' at index $i - use \\$ for a literal dollar"
+                            }
+                        }
+                        sb.append(match.groupValues[group])
+                        i = j
+                    }
+                    else -> {
+                        sb.append(c)
+                        i++
+                    }
+                }
+            }
+            return sb.toString()
+        }
     }
 }

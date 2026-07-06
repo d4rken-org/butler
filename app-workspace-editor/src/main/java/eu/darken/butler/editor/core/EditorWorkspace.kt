@@ -540,6 +540,16 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun search(query: String, options: SearchOptions = SearchOptions()) =
         currentEngine().search(query, options)
 
+    suspend fun replaceCurrent(
+        query: String,
+        options: SearchOptions,
+        match: SearchResult,
+        replacement: String,
+    ) = currentEngine().replaceCurrent(query, options, match, replacement)
+
+    suspend fun replaceAll(query: String, options: SearchOptions, replacement: String) =
+        currentEngine().replaceAll(query, options, replacement)
+
     suspend fun goToLine(lineNumber: Long) = currentEngine().goToLine(lineNumber)
     suspend fun undo() = currentEngine().undo()
     suspend fun redo() = currentEngine().redo()

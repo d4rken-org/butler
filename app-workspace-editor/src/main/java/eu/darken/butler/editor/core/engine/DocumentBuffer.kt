@@ -250,6 +250,20 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
+    /**
+     * Full text plus the structural version it corresponds to: callers computing
+     * context-sensitive work (regex expansion) from the text pass the version back to
+     * [replaceMatches] so ANY intervening mutation aborts the replace.
+     */
+    suspend fun getFullTextWithVersion(): Result<Pair<String, Long>> = bufferMutex.withLock {
+        try {
+            Result.success(table().readAll() to structuralVersion)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to assemble full text - ${e.asLog()}" }
+            Result.failure(e)
+        }
+    }
+
     suspend fun getTextForLine(lineNumber: Long): Result<String> = bufferMutex.withLock {
         getTextForLineInternal(lineNumber)
     }
@@ -425,6 +439,78 @@ class DocumentBuffer @AssistedInject constructor(
             throw e
         } catch (e: Exception) {
             log(tag, ERROR) { "Search failed for query: $query - ${e.asLog()}" }
+            Result.failure(e)
+        }
+    }
+
+    /** A single verified replacement: [oldText] must still sit at [startOffset] when applied. */
+    data class MatchReplacement(
+        val startOffset: Long,
+        val oldText: String,
+        val newText: String,
+    )
+
+    data class ReplaceStats(
+        val count: Int,
+        /** False when the composite entry was immediately evicted by the undo memory cap. */
+        val undoable: Boolean,
+    )
+
+    /**
+     * Applies all [replacements] as ONE undo step. Every target is verified against the live
+     * document BEFORE anything mutates - any divergence fails with [StaleMatchException] and
+     * the document is untouched. Application runs back-to-front so earlier offsets stay valid.
+     */
+    suspend fun replaceMatches(
+        replacements: List<MatchReplacement>,
+        expectedVersion: Long? = null,
+    ): Result<ReplaceStats> = bufferMutex.withLock {
+        try {
+            if (replacements.isEmpty()) return@withLock Result.success(ReplaceStats(0, undoable = true))
+            if (expectedVersion != null && expectedVersion != structuralVersion) {
+                // The replacement texts were computed from a stale snapshot (context-sensitive
+                // regex results can be invalidated even when oldText still matches)
+                return@withLock Result.failure(StaleMatchException())
+            }
+            val table = table()
+            val sorted = replacements.sortedByDescending { it.startOffset }
+
+            // Verify pass: all-or-nothing before the first mutation
+            var previousStart = Long.MAX_VALUE
+            for (replacement in sorted) {
+                val end = replacement.startOffset + replacement.oldText.length
+                if (replacement.startOffset < 0 || end > table.totalCharLength || end > previousStart) {
+                    return@withLock Result.failure(StaleMatchException())
+                }
+                if (table.read(replacement.startOffset, end) != replacement.oldText) {
+                    return@withLock Result.failure(StaleMatchException())
+                }
+                previousStart = replacement.startOffset
+            }
+
+            breakUndoRunLocked()
+            val ops = mutableListOf<EditOperation>()
+            for (replacement in sorted) {
+                val end = replacement.startOffset + replacement.oldText.length
+                val line = table.lineOfOffset(replacement.startOffset)
+                val column = (replacement.startOffset - table.lineStartOffset(line)).toInt()
+                table.delete(replacement.startOffset, end)
+                if (replacement.newText.isNotEmpty()) {
+                    table.insert(replacement.startOffset, replacement.newText)
+                }
+                ops += EditOperation.Replace(
+                    TextPosition(replacement.startOffset, line, column),
+                    replacement.oldText,
+                    replacement.newText,
+                )
+            }
+            commitNewEdit(ops)
+            // The lone-entry guard keeps an oversized composite until the NEXT edit; report
+            // honestly whether this step is still on the stack
+            val undoable = undoStack.peekLast()?.generationAfter == currentGeneration
+            Result.success(ReplaceStats(replacements.size, undoable))
+        } catch (e: Exception) {
+            log(tag, ERROR) { "replaceMatches failed - ${e.asLog()}" }
             Result.failure(e)
         }
     }
