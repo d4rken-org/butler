@@ -42,6 +42,12 @@ sealed interface EditorPageAction {
 
         /** Dismiss the stale-backup notice for the current file */
         data object DismissBackupNotice : File
+
+        /** Re-read the current file from disk after an external change (confirms if modified) */
+        data object ReloadFromDisk : File
+
+        /** Dismiss the external-change banner for the current detection, keeping local edits */
+        data object DismissExternalChange : File
     }
 
     /**
@@ -163,6 +169,12 @@ sealed interface EditorPageAction {
 
         /** Dismiss the Save-As overwrite confirmation */
         data object DismissSaveAsOverwrite : Dialog
+
+        /** Confirm reloading from disk, discarding unsaved changes */
+        data object ConfirmReload : Dialog
+
+        /** Dismiss the reload confirmation */
+        data object DismissReloadConfirm : Dialog
     }
 
     /**

@@ -579,10 +579,13 @@ class DocumentBuffer @AssistedInject constructor(
     /**
      * Streams the current document content (including unsaved edits) to [sink] - byte-identical
      * to what saving would write. Runs under the buffer mutex, so no commit can move the
-     * underlying file while originals are being read.
+     * underlying file while originals are being read. Guarded by [checkStaleness] like a save:
+     * splicing original byte ranges from an externally modified file would stream a corrupted
+     * old/new mix into the destination (Save-As).
      */
     suspend fun writeContentTo(sink: BufferedSink): Result<Unit> = bufferMutex.withLock {
         try {
+            checkStaleness()
             streamPieces(sink, table()) { offset -> dataSource.openByteSource(offset) }
             Result.success(Unit)
         } catch (e: CancellationException) {
@@ -733,6 +736,39 @@ class DocumentBuffer @AssistedInject constructor(
                 throw ExternalModificationException("File content changed externally (same size and mtime)")
             }
         }
+    }
+
+    /**
+     * Meta-only external-change probe: the size + mtime tiers of [checkStaleness] without the
+     * digest I/O, non-throwing - cheap enough to poll. Same-size changes under missing/coarse
+     * mtime stay save-time-guarded only. [ExternalChangeProbe.Unknown] (no baseline, lookup
+     * failed, file deleted) is distinct from [ExternalChangeProbe.Unchanged]: an unreadable file
+     * is no evidence the baseline was restored.
+     */
+    suspend fun checkExternalChange(): ExternalChangeProbe = bufferMutex.withLock {
+        val known = lastKnownMeta ?: return@withLock ExternalChangeProbe.Unknown
+        val current = try {
+            dataSource.getMeta()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, VERBOSE) { "checkExternalChange: getMeta failed - $e" }
+            return@withLock ExternalChangeProbe.Unknown
+        }
+        val changed = current.size != known.size ||
+            (known.modifiedAt != null && current.modifiedAt != null && current.modifiedAt != known.modifiedAt)
+        if (changed) ExternalChangeProbe.Changed(current) else ExternalChangeProbe.Unchanged
+    }
+
+    sealed interface ExternalChangeProbe {
+        /** The on-disk meta matches the open/rebase baseline. */
+        data object Unchanged : ExternalChangeProbe
+
+        /** The on-disk meta differs from the baseline. */
+        data class Changed(val meta: EditorDataSource.Meta) : ExternalChangeProbe
+
+        /** The disk state could not be determined; existing detections must not be cleared. */
+        data object Unknown : ExternalChangeProbe
     }
 
     suspend fun undo(): Result<EditOperation?> = bufferMutex.withLock {

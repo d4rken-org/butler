@@ -16,6 +16,7 @@ import eu.darken.butler.editor.BuildConfig
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.engine.text.WindowedSearch
+import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
@@ -92,6 +93,14 @@ class EditorEngine @AssistedInject constructor(
 
     private val _error = MutableStateFlow<Throwable?>(null)
     val error: StateFlow<Throwable?> = _error.asStateFlow()
+
+    private val _externalChange = MutableStateFlow<ExternalChange?>(null)
+
+    /** Non-null while the open file is known to differ from what the buffer loaded. */
+    val externalChange: StateFlow<ExternalChange?> = _externalChange.asStateFlow()
+
+    // Monotonic per engine so a dismissed generation can never collide with a later detection
+    private var externalChangeGeneration = 0
 
     private val _progress = MutableStateFlow<Progress.Data?>(null)
     val progress: StateFlow<Progress.Data?> = _progress.asStateFlow()
@@ -302,9 +311,14 @@ class EditorEngine @AssistedInject constructor(
                     val result = currentState.resources.textBuffer.saveFile()
                     if (result.isFailure) {
                         _error.value = result.exceptionOrNull()
+                        if (result.exceptionOrNull() is ExternalModificationException) {
+                            flagSaveTimeExternalChange(currentState.resources.textBuffer)
+                        }
                     } else {
                         // Update state with new isModified value
                         _state.value = currentState.copy(isModified = false)
+                        // The rebase re-baselined against the on-disk state
+                        _externalChange.value = null
                     }
                     result
                 } catch (e: Exception) {
@@ -333,13 +347,70 @@ class EditorEngine @AssistedInject constructor(
         when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 log(tag) { "Streaming current buffer content" }
-                currentState.resources.textBuffer.writeContentTo(sink).getOrThrow()
+                val result = currentState.resources.textBuffer.writeContentTo(sink)
+                result.exceptionOrNull()?.let { e ->
+                    if (e is ExternalModificationException) {
+                        flagSaveTimeExternalChange(currentState.resources.textBuffer)
+                    }
+                    throw e
+                }
             }
             else -> {
                 throw IllegalStateException("Cannot stream content - no content available")
             }
         }
     }
+
+    /**
+     * Meta-only probe for on-disk changes of the open file; cheap enough to poll from the UI.
+     * Serialized against saves via [stateMutex]. A re-observation with the same meta keeps the
+     * current generation (a dismissed banner stays dismissed); a different meta re-arms it. A
+     * probe matching the baseline again clears meta-based flags (the file was restored), but
+     * never save-time digest flags (observedMeta == null, same-meta content changes) - and an
+     * Unknown probe (deleted file, transient lookup failure) never clears anything.
+     */
+    suspend fun checkExternalChange(): Unit = stateMutex.withLock {
+        val currentState = _state.value as? EditorState.Loaded ?: return@withLock
+        if (currentState.contentSource !is ContentSource.File) return@withLock
+        val probe = currentState.resources.textBuffer.checkExternalChange()
+        val flagged = _externalChange.value
+        when (probe) {
+            is DocumentBuffer.ExternalChangeProbe.Unknown -> Unit
+            is DocumentBuffer.ExternalChangeProbe.Unchanged -> if (flagged?.observedMeta != null) {
+                log(tag, INFO) { "External change no longer observed, clearing" }
+                _externalChange.value = null
+            }
+            is DocumentBuffer.ExternalChangeProbe.Changed -> when (flagged?.observedMeta) {
+                // already flagged with this observation
+                probe.meta -> Unit
+                else -> {
+                    log(tag, WARN) { "External change detected: ${probe.meta}" }
+                    _externalChange.value = ExternalChange(++externalChangeGeneration, probe.meta)
+                }
+            }
+        }
+    }
+
+    /**
+     * A save/stream was refused because the file changed on disk; always re-arms the banner.
+     * The cheap meta is captured when available so the next poll keeps the generation instead
+     * of re-arming a dismissed banner for the same underlying change.
+     */
+    private suspend fun flagSaveTimeExternalChange(buffer: DocumentBuffer) {
+        val observed = (buffer.checkExternalChange() as? DocumentBuffer.ExternalChangeProbe.Changed)?.meta
+        _externalChange.value = ExternalChange(++externalChangeGeneration, observed)
+        log(tag, WARN) { "External change flagged at save time: ${_externalChange.value}" }
+    }
+
+    /**
+     * A detected on-disk change of the open file. [generation] is unique per detection event so
+     * the UI can key dismissals; [observedMeta] is the differing lookup for poll detections and
+     * null for save-time detections (which can have identical size and mtime).
+     */
+    data class ExternalChange(
+        val generation: Int,
+        val observedMeta: EditorDataSource.Meta?,
+    )
 
     suspend fun insertText(text: String) = stateMutex.withLock {
         when (val currentState = _state.value) {

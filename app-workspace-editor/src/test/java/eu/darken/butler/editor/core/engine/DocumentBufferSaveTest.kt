@@ -16,6 +16,7 @@ import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
@@ -606,6 +607,68 @@ class DocumentBufferSaveTest : BaseTest() {
 
         val result = buffer.saveFile()
         (result.exceptionOrNull() is ExternalModificationException).shouldBeTrue()
+    }
+
+    // ── external change probe (meta-only, poll-side) ────────────────────────────
+
+    @Test
+    fun `meta probe reports mtime-only change`(@TempDir tempDir: File) = runTest {
+        val content = blockContent(3)
+        val (file, buffer) = fileBuffer(tempDir, content.toByteArray(), blockSize = 10)
+
+        buffer.checkExternalChange() shouldBe DocumentBuffer.ExternalChangeProbe.Unchanged
+
+        file.setLastModified(file.lastModified() + 5_000)
+
+        val probe = buffer.checkExternalChange()
+        probe.shouldBeInstanceOf<DocumentBuffer.ExternalChangeProbe.Changed>()
+        probe.meta.size shouldBe content.length.toLong()
+    }
+
+    @Test
+    fun `meta probe misses same-size same-mtime change but save still refuses`(@TempDir tempDir: File) = runTest {
+        val original = "0123456789".repeat(3).toByteArray()
+        val (file, buffer) = fileBuffer(tempDir, original, blockSize = 10)
+        val originalMtime = file.lastModified()
+        buffer.insertText(TextPosition(0, 0, 0), "X").getOrThrow()
+
+        val tampered = "9876543210".repeat(3).toByteArray()
+        file.writeBytes(tampered)
+        file.setLastModified(originalMtime)
+
+        // Documented degradation: the cheap probe only compares size + mtime
+        buffer.checkExternalChange() shouldBe DocumentBuffer.ExternalChangeProbe.Unchanged
+        // The digest tier of the save-time guard still catches it
+        (buffer.saveFile().exceptionOrNull() is ExternalModificationException).shouldBeTrue()
+    }
+
+    @Test
+    fun `meta probe reports unknown for a deleted file`(@TempDir tempDir: File) = runTest {
+        val content = blockContent(3)
+        val (file, buffer) = fileBuffer(tempDir, content.toByteArray(), blockSize = 10)
+
+        file.delete()
+
+        // An unreadable file is no evidence the baseline was restored
+        buffer.checkExternalChange() shouldBe DocumentBuffer.ExternalChangeProbe.Unknown
+    }
+
+    @Test
+    fun `meta probe is unchanged for in-memory sources`() = runTest {
+        val dataSource = InMemoryDataSource(workspaceId, "draft")
+        dataSource.open()
+        val buffer = DocumentBuffer(
+            workspaceId = workspaceId,
+            dataSource = dataSource,
+            maxUndoStackSize = 100,
+            maxUndoMemoryBytes = 10_485_760,
+            blockSize = 10,
+            assertions = true,
+        )
+        buffer.initialize().getOrThrow()
+        buffer.insertText(TextPosition(0, 0, 0), "X").getOrThrow()
+
+        buffer.checkExternalChange() shouldBe DocumentBuffer.ExternalChangeProbe.Unchanged
     }
 
     // ── in-place (SAF-style) mode ───────────────────────────────────────────────

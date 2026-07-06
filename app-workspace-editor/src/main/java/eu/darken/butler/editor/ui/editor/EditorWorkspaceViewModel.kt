@@ -19,6 +19,7 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.ContentSource
+import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
@@ -103,6 +104,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             selectionRange = editorState.selectionRange,
             progress = readyState.progress,
             error = editorState.error,
+            externalChange = editorState.externalChange,
+            externalChangeDismissedGeneration = dialogs.externalChangeDismissedGeneration,
+            showReloadConfirmDialog = dialogs.showReloadConfirmDialog,
             searchQuery = editorState.searchQuery,
             searchResults = editorState.searchResults,
             visibleRange = editorState.visibleRange,
@@ -147,6 +151,15 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             }
             .distinctUntilChanged()
             .onEach { dialogsController.rearmBackupNotice() }
+            .launchIn(vmScope)
+
+        // A dismissed external-change banner belongs to ONE engine's detection generations:
+        // whenever the flag clears (reload, save, engine swap), forget the dismissal so the
+        // fresh engine's generation counter can't collide with a stale dismissed value
+        workspaceWithState
+            .map { (_, wsState) -> (wsState as? EditorWorkspace.State.Ready)?.editor?.externalChange }
+            .distinctUntilChanged()
+            .onEach { if (it == null) dialogsController.rearmExternalChangeNotice() }
             .launchIn(vmScope)
 
         // Listen for picker results. `filename` is non-null exactly when the result came from a
@@ -276,6 +289,36 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
+    // ==================== External change handling ====================
+
+    /** Probes whether the open file changed on disk; called on resume and by the page's poll loop. */
+    fun checkExternalChange() = launch {
+        getWorkspace().checkExternalChange()
+    }
+
+    fun reloadFromDisk() = launch {
+        val currentState = state.first()
+        if (currentState.isModified) {
+            dialogsController.showReloadConfirmDialog()
+        } else {
+            performReload()
+        }
+    }
+
+    private fun performReload() = launch {
+        getWorkspace().reloadFromDisk()
+    }
+
+    fun confirmReload() {
+        dialogsController.dismissReloadConfirmDialog()
+        performReload()
+    }
+
+    fun dismissExternalChange() = launch {
+        val generation = state.first().externalChange?.generation ?: return@launch
+        dialogsController.dismissExternalChange(generation)
+    }
+
     // ==================== Editing delegates ====================
 
     fun updateVisibleRange(startLine: Long, endLine: Long) = launch {
@@ -380,6 +423,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.File.ShowEncodingPicker -> dialogsController.showEncodingDialog()
             is EditorPageAction.File.ReopenWithEncoding -> dialogsController.selectEncoding(action.charsetName)
             is EditorPageAction.File.DismissBackupNotice -> dialogsController.dismissBackupNotice()
+            is EditorPageAction.File.ReloadFromDisk -> reloadFromDisk()
+            is EditorPageAction.File.DismissExternalChange -> dismissExternalChange()
 
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
@@ -419,6 +464,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Dialog.DismissEncodingDiscard -> dialogsController.dismissEncodingDiscard()
             is EditorPageAction.Dialog.ConfirmSaveAsOverwrite -> confirmSaveAsOverwrite()
             is EditorPageAction.Dialog.DismissSaveAsOverwrite -> dialogsController.dismissSaveAsOverwrite()
+            is EditorPageAction.Dialog.ConfirmReload -> confirmReload()
+            is EditorPageAction.Dialog.DismissReloadConfirm -> dialogsController.dismissReloadConfirmDialog()
 
             // Clipboard actions
             is EditorPageAction.Clipboard.Paste -> clipboardController.pasteFromClipboard(action.clip)
@@ -453,6 +500,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val selectionRange: Pair<TextPosition, TextPosition>? = null,
         val progress: Progress.Data? = null,
         val error: Throwable? = null,
+        val externalChange: EditorEngine.ExternalChange? = null,
+        val externalChangeDismissedGeneration: Int? = null,
+        val showReloadConfirmDialog: Boolean = false,
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
         val visibleRange: LongRange = 0L..50L,
@@ -495,6 +545,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val staleBackups: List<APath<*>>
             get() = (contentSource as? ContentSource.File)?.staleBackups ?: emptyList()
         val showBackupNotice: Boolean get() = staleBackups.isNotEmpty() && !backupNoticeDismissed
+        val showExternalChangeBanner: Boolean
+            get() = externalChange != null && externalChange.generation != externalChangeDismissedGeneration
 
         // Info bar properties
         val fileSize: Long get() = contentSource.size

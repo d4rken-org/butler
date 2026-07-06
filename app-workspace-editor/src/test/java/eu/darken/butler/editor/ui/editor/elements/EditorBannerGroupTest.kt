@@ -13,20 +13,26 @@ class EditorBannerGroupTest : ComposeTest() {
 
     private fun setGroup(
         error: Throwable? = null,
+        showExternalChange: Boolean = false,
         backupNames: List<String> = emptyList(),
         showBackupNotice: Boolean = false,
         isBinary: Boolean = false,
         onDismissError: () -> Unit = {},
+        onReloadFromDisk: () -> Unit = {},
+        onDismissExternalChange: () -> Unit = {},
         onDismissBackupNotice: () -> Unit = {},
     ) {
         composeTestRule.setContent {
             PreviewWrapper {
                 EditorBannerGroup(
                     error = error,
+                    showExternalChange = showExternalChange,
                     backupNames = backupNames,
                     showBackupNotice = showBackupNotice,
                     isBinary = isBinary,
                     onDismissError = onDismissError,
+                    onReloadFromDisk = onReloadFromDisk,
+                    onDismissExternalChange = onDismissExternalChange,
                     onDismissBackupNotice = onDismissBackupNotice,
                 )
             }
@@ -61,15 +67,42 @@ class EditorBannerGroupTest : ComposeTest() {
     }
 
     @Test
+    fun `external change banner triggers reload callback`() {
+        var reloaded = false
+        setGroup(
+            showExternalChange = true,
+            onReloadFromDisk = { reloaded = true },
+        )
+
+        composeTestRule.onNodeWithText("File changed on disk").assertExists()
+        composeTestRule.onNodeWithText("Reload").performClick()
+        reloaded.shouldBeTrue()
+    }
+
+    @Test
+    fun `external change banner triggers keep-editing callback`() {
+        var kept = false
+        setGroup(
+            showExternalChange = true,
+            onDismissExternalChange = { kept = true },
+        )
+
+        composeTestRule.onNodeWithText("Keep editing").performClick()
+        kept.shouldBeTrue()
+    }
+
+    @Test
     fun `all banners can be visible simultaneously`() {
         setGroup(
             error = RuntimeException("Disk full"),
+            showExternalChange = true,
             showBackupNotice = true,
             backupNames = listOf("notes.txt.butler-save-bak-1a2b3c4d"),
             isBinary = true,
         )
 
         composeTestRule.onNodeWithText("Disk full").assertExists()
+        composeTestRule.onNodeWithText("File changed on disk").assertExists()
         composeTestRule.onNodeWithText("notes.txt.butler-save-bak-1a2b3c4d", substring = true).assertExists()
         composeTestRule.onNodeWithText("Binary file — read-only view").assertExists()
         composeTestRule.onAllNodesWithContentDescription("Dismiss").assertCountEquals(2)

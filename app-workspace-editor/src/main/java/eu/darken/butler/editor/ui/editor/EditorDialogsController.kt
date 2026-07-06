@@ -24,6 +24,8 @@ class EditorDialogsController(
     private val _pendingEncoding = MutableStateFlow<String?>(null)
     private val _pendingSaveAsOverwrite = MutableStateFlow<APath<*>?>(null)
     private val _backupNoticeDismissed = MutableStateFlow(false)
+    private val _showReloadConfirmDialog = MutableStateFlow(false)
+    private val _externalChangeDismissedGeneration = MutableStateFlow<Int?>(null)
 
     data class DialogUiState(
         val showGoToLineDialog: Boolean = false,
@@ -32,6 +34,8 @@ class EditorDialogsController(
         val pendingEncoding: String? = null,
         val pendingSaveAsOverwrite: APath<*>? = null,
         val backupNoticeDismissed: Boolean = false,
+        val showReloadConfirmDialog: Boolean = false,
+        val externalChangeDismissedGeneration: Int? = null,
     )
 
     val state: Flow<DialogUiState> = combine(
@@ -41,6 +45,8 @@ class EditorDialogsController(
         _pendingEncoding,
         _pendingSaveAsOverwrite,
         _backupNoticeDismissed,
+        _showReloadConfirmDialog,
+        _externalChangeDismissedGeneration,
     ) { values ->
         DialogUiState(
             showGoToLineDialog = values[0] as Boolean,
@@ -49,6 +55,8 @@ class EditorDialogsController(
             pendingEncoding = values[3] as String?,
             pendingSaveAsOverwrite = values[4] as APath<*>?,
             backupNoticeDismissed = values[5] as Boolean,
+            showReloadConfirmDialog = values[6] as Boolean,
+            externalChangeDismissedGeneration = values[7] as Int?,
         )
     }
 
@@ -126,5 +134,23 @@ class EditorDialogsController(
 
     fun rearmBackupNotice() {
         _backupNoticeDismissed.value = false
+    }
+
+    fun showReloadConfirmDialog() {
+        _showReloadConfirmDialog.value = true
+    }
+
+    fun dismissReloadConfirmDialog() {
+        _showReloadConfirmDialog.value = false
+    }
+
+    /** Hides the external-change banner for exactly this detection; a later one re-shows it. */
+    fun dismissExternalChange(generation: Int) {
+        _externalChangeDismissedGeneration.value = generation
+    }
+
+    /** Called whenever the engine reports no external change (reload, save, engine swap). */
+    fun rearmExternalChangeNotice() {
+        _externalChangeDismissedGeneration.value = null
     }
 }

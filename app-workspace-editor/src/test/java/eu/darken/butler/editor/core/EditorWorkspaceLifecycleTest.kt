@@ -371,4 +371,74 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
         }
     }
 
+    @Test
+    fun `reload from disk shows the external content and drops modifications`(@TempDir tempDir: File): Unit =
+        runBlocking {
+            val file = File(tempDir, "doc.txt").apply { writeText("original") }
+            val workspace = createWorkspace(
+                EditorArguments.Default(filePath = LocalPath.build(file)),
+                createMockGateway(),
+            )
+            try {
+                workspace.awaitFile("doc.txt")
+                workspace.insertText("X")
+
+                file.writeText("externally changed content")
+                workspace.checkExternalChange()
+                withTimeout(10_000) {
+                    workspace.state.first {
+                        (it as? EditorWorkspace.State.Ready)?.editor?.externalChange != null
+                    }
+                }
+
+                workspace.reloadFromDisk()
+
+                withTimeout(10_000) {
+                    workspace.state.first {
+                        val editor = (it as? EditorWorkspace.State.Ready)?.editor
+                        editor?.currentContent == "externally changed content" &&
+                            !editor.isModified &&
+                            editor.externalChange == null
+                    }
+                }
+            } finally {
+                workspace.release()
+            }
+        }
+
+    @Test
+    fun `auto-save pauses while an external change is flagged`(@TempDir tempDir: File): Unit = runBlocking {
+        val file = File(tempDir, "doc.txt").apply { writeText("original") }
+        val workspace = createWorkspace(
+            EditorArguments.Default(filePath = LocalPath.build(file)),
+            createMockGateway(),
+            createMockSettings(autoSaveEnabled = true, autoSaveInterval = 100.milliseconds),
+        )
+        try {
+            workspace.awaitFile("doc.txt")
+
+            file.writeText("externally changed content")
+            workspace.checkExternalChange()
+            withTimeout(10_000) {
+                workspace.state.first {
+                    (it as? EditorWorkspace.State.Ready)?.editor?.externalChange != null
+                }
+            }
+
+            workspace.insertText("X")
+            withTimeout(10_000) {
+                workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
+            }
+
+            // No auto-save may fire: it would be refused by the staleness guard and surface a
+            // failed-save error on every interval. No attempt = no error and untouched file.
+            delay(500)
+            val editor = (workspace.state.value as EditorWorkspace.State.Ready).editor
+            editor.error shouldBe null
+            file.readText() shouldBe "externally changed content"
+        } finally {
+            workspace.release()
+        }
+    }
+
 }

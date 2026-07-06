@@ -20,16 +20,26 @@ import eu.darken.butler.common.compose.PreviewWrapper
 fun EditorBannerGroup(
     modifier: Modifier = Modifier,
     error: Throwable? = null,
+    showExternalChange: Boolean = false,
     backupNames: List<String> = emptyList(),
     showBackupNotice: Boolean = false,
     isBinary: Boolean = false,
     onDismissError: () -> Unit = {},
+    onReloadFromDisk: () -> Unit = {},
+    onDismissExternalChange: () -> Unit = {},
     onDismissBackupNotice: () -> Unit = {},
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        if (showExternalChange) {
+            EditorExternalChangeBanner(
+                onReload = onReloadFromDisk,
+                onKeepEditing = onDismissExternalChange,
+            )
+        }
+
         error?.let {
             EditorErrorBanner(
                 error = it,
@@ -56,6 +66,7 @@ fun EditorBannerGroup(
 private fun EditorBannerGroupPreview() {
     EditorBannerGroup(
         error = RuntimeException("Failed to save file: Permission denied"),
+        showExternalChange = true,
         backupNames = listOf("notes.txt.butler-save-bak-1a2b3c4d"),
         showBackupNotice = true,
         isBinary = true,

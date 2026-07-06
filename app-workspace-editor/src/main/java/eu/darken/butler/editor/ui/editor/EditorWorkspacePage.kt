@@ -12,7 +12,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -27,6 +30,7 @@ import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.EncodingDialog
+import eu.darken.butler.editor.ui.editor.dialogs.ReloadConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.SaveAsOverwriteDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
@@ -49,9 +53,13 @@ import eu.darken.butler.workspace.ui.floatingbar.FloatingBarStack
 import eu.darken.butler.workspace.ui.floatingbar.contentPaddingDp
 import eu.darken.butler.workspace.ui.floatingbar.rememberFloatingBarStackState
 import eu.darken.butler.workspace.ui.manager.WorkspaceDesign
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlin.time.Duration.Companion.seconds
+
+private val EXTERNAL_CHANGE_POLL_INTERVAL = 15.seconds
 
 @Composable
 fun EditorWorkspacePageHost(
@@ -69,6 +77,16 @@ fun EditorWorkspacePageHost(
     LifecycleResumeEffect(Unit) {
         vm.refreshClipboardState()
         onPauseOrDispose {}
+    }
+    // External-change polling only runs while this page is resumed; background tabs stay quiet
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            while (true) {
+                vm.checkExternalChange()
+                delay(EXTERNAL_CHANGE_POLL_INTERVAL)
+            }
+        }
     }
 
     val clipboardInfoClip by vm.clipboardInfoClip.collectAsState(null)
@@ -186,7 +204,8 @@ fun EditorWorkspacePage(
                 }
                 // Notices persist during scroll (Static) until dismissed; single stable bar, see EditorBannerGroup
                 FloatingBar(
-                    visible = state.error != null || state.showBackupNotice || state.isBinary,
+                    visible = state.error != null || state.showExternalChangeBanner ||
+                        state.showBackupNotice || state.isBinary,
                     scrollBehavior = BarScrollBehavior.Static,
                     estimatedHeight = 56.dp,
                     animation = BarAnimation.Slide(),
@@ -194,10 +213,13 @@ fun EditorWorkspacePage(
                 ) {
                     EditorBannerGroup(
                         error = state.error,
+                        showExternalChange = state.showExternalChangeBanner,
                         backupNames = state.staleBackups.map { it.name },
                         showBackupNotice = state.showBackupNotice,
                         isBinary = state.isBinary,
                         onDismissError = { onPageAction(EditorPageAction.Error.Clear) },
+                        onReloadFromDisk = { onPageAction(EditorPageAction.File.ReloadFromDisk) },
+                        onDismissExternalChange = { onPageAction(EditorPageAction.File.DismissExternalChange) },
                         onDismissBackupNotice = { onPageAction(EditorPageAction.File.DismissBackupNotice) },
                     )
                 }
@@ -344,6 +366,13 @@ fun EditorWorkspacePage(
         CloseConfirmDialog(
             onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmClose) },
             onDismiss = { onPageAction(EditorPageAction.Dialog.DismissCloseConfirm) },
+        )
+    }
+
+    if (state.showReloadConfirmDialog) {
+        ReloadConfirmDialog(
+            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmReload) },
+            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissReloadConfirm) },
         )
     }
 

@@ -169,13 +169,14 @@ class EditorWorkspace @AssistedInject constructor(
             engine.searchResults,
             engine.visibleRange,
             engine.error,
+            engine.externalChange,
             engine.progress,
             engine.canUndo,
             engine.canRedo,
             displaySettings,
         ) { contentSource, totalLines, isModified, currentContent, cursorPosition,
             selectionRange, searchQuery, searchResults, visibleRange, error,
-            progress, canUndo, canRedo, display ->
+            externalChange, progress, canUndo, canRedo, display ->
             EditorState(
                 contentSource = contentSource,
                 totalLines = totalLines,
@@ -187,6 +188,7 @@ class EditorWorkspace @AssistedInject constructor(
                 searchResults = searchResults,
                 visibleRange = visibleRange,
                 error = error,
+                externalChange = externalChange,
                 showLineNumbers = display.showLineNumbers,
                 wordWrap = display.wordWrap,
                 fontSize = display.fontSize,
@@ -274,11 +276,13 @@ class EditorWorkspace @AssistedInject constructor(
         // Auto-save logic: debounce after changes; read-only and binary files are skipped so
         // an edited unsaveable document doesn't produce a failing save on every interval.
         // Scratch buffers are skipped too: "saving" to the in-memory source persists nothing
-        // but clears the modified flag, disabling the Save/Save-As actions.
+        // but clears the modified flag, disabling the Save/Save-As actions. Files flagged as
+        // externally changed pause too: every save would be refused by the staleness guard.
         combine(
             editorStateInternal.map { state ->
                 val file = state.contentSource as? ContentSource.File
-                state.isModified && file != null && file.canWrite && !file.isLikelyBinary
+                state.isModified && file != null && file.canWrite && !file.isLikelyBinary &&
+                    state.externalChange == null
             }.distinctUntilChanged(),
             editorSettings.autoSaveEnabled.flow,
             editorSettings.autoSaveInterval.flow,
@@ -474,6 +478,22 @@ class EditorWorkspace @AssistedInject constructor(
         switchEngine(currentPath, charset, discardOld = true)
     }
 
+    /** Re-reads the current file from disk, discarding unsaved changes; only reached directly or after confirmation. */
+    suspend fun reloadFromDisk() {
+        val currentPath = ((_state.value as? State.Ready)?.editor?.contentSource as? ContentSource.File)?.path
+            ?: run {
+                log(tag, WARN) { "Cannot reload - no file open" }
+                return
+            }
+        log(tag, INFO) { "Reloading from disk: ${currentPath.name}" }
+        switchEngine(currentPath, charsetOverride, discardOld = true)
+    }
+
+    /** Probes whether the open file changed on disk; detections surface via the editor state. */
+    suspend fun checkExternalChange() {
+        _engine.value?.checkExternalChange()
+    }
+
     /**
      * Cancels an in-progress file open operation.
      * Safe to call even if no operation is running.
@@ -624,6 +644,7 @@ class EditorWorkspace @AssistedInject constructor(
         val searchResults: List<SearchResult> = emptyList(),
         val visibleRange: LongRange = 0L..50L,
         val error: Throwable? = null,
+        val externalChange: EditorEngine.ExternalChange? = null,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
         val fontSize: Int = 14,

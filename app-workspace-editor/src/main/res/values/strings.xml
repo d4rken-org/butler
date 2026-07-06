@@ -42,6 +42,15 @@
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Binary file — read-only view</string>
 
+    <!-- External change notice -->
+    <string name="editor_external_change_banner_title">File changed on disk</string>
+    <string name="editor_external_change_banner_message">Another app modified this file.</string>
+    <string name="editor_external_change_reload_action">Reload</string>
+    <string name="editor_external_change_keep_action">Keep editing</string>
+    <string name="editor_error_external_change">This file was changed by another app. Reload the file to continue.</string>
+    <string name="editor_dialog_reload_confirm_title">Reload file?</string>
+    <string name="editor_dialog_reload_confirm_message">Reloading discards your unsaved changes and shows the file\'s current content on disk.</string>
+
     <!-- Editor info bar -->
     <plurals name="editor_infobar_lines">
         <item quantity="one">%1$d line</item>
