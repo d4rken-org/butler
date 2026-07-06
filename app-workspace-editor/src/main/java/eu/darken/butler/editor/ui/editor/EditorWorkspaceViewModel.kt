@@ -66,7 +66,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     private suspend fun getWorkspace(): EditorWorkspace = workspaceSource.filterNotNull().first()
 
     private val _showGoToLineDialog = MutableStateFlow(false)
-    private val _showSearchDialog = MutableStateFlow(false)
+    private val _showSearchBar = MutableStateFlow(false)
     private val _showCloseConfirmDialog = MutableStateFlow(false)
     private val _showEncodingDialog = MutableStateFlow(false)
     private val _pendingEncoding = MutableStateFlow<String?>(null)
@@ -84,7 +84,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     private data class DialogStates(
         val showGoToLineDialog: Boolean,
-        val showSearchDialog: Boolean,
+        val showSearchBar: Boolean,
         val showCloseConfirmDialog: Boolean,
         val showEncodingDialog: Boolean,
         val pendingEncoding: String?,
@@ -94,7 +94,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     private val dialogStates = combine(
         _showGoToLineDialog,
-        _showSearchDialog,
+        _showSearchBar,
         _showCloseConfirmDialog,
         _showEncodingDialog,
         _pendingEncoding,
@@ -103,7 +103,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     ) { values ->
         DialogStates(
             showGoToLineDialog = values[0] as Boolean,
-            showSearchDialog = values[1] as Boolean,
+            showSearchBar = values[1] as Boolean,
             showCloseConfirmDialog = values[2] as Boolean,
             showEncodingDialog = values[3] as Boolean,
             pendingEncoding = values[4] as String?,
@@ -181,7 +181,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             fontSize = editorState.fontSize,
             tabSize = editorState.tabSize,
             showGoToLineDialog = dialogs.showGoToLineDialog,
-            showSearchDialog = dialogs.showSearchDialog,
+            showSearchBar = dialogs.showSearchBar,
             showCloseConfirmDialog = dialogs.showCloseConfirmDialog,
             showEncodingDialog = dialogs.showEncodingDialog,
             pendingEncoding = dialogs.pendingEncoding,
@@ -618,7 +618,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun closeSearch() {
         _searchQueryInput.value = TextFieldValue("")
-        _showSearchDialog.value = false
+        _showSearchBar.value = false
         // Clear via the tracked job so it cannot race a still-running scan
         search("")
     }
@@ -635,12 +635,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         _showGoToLineDialog.value = false
     }
 
-    fun showSearchDialog() {
-        _showSearchDialog.value = true
-    }
-
-    fun dismissSearchDialog() {
-        _showSearchDialog.value = false
+    fun showSearchBar() {
+        _showSearchBar.value = true
     }
 
     fun showEncodingDialog() {
@@ -701,7 +697,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             EditorActionBarItem.Delete -> deleteSelection()
             EditorActionBarItem.SelectAll -> selectAll()
             EditorActionBarItem.GoToLine -> showGoToLineDialog()
-            EditorActionBarItem.Search -> showSearchDialog()
+            EditorActionBarItem.Search -> showSearchBar()
         }
     }
 
@@ -761,7 +757,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
             // Dialog actions
             is EditorPageAction.Dialog.DismissGoToLine -> dismissGoToLineDialog()
-            is EditorPageAction.Dialog.DismissSearch -> dismissSearchDialog()
             is EditorPageAction.Dialog.DismissCloseConfirm -> dismissCloseConfirmDialog()
             is EditorPageAction.Dialog.ConfirmClose -> confirmCloseFile()
             is EditorPageAction.Dialog.DismissEncoding -> dismissEncodingDialog()
@@ -811,7 +806,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val fontSize: Int = 14,
         val tabSize: Int = 4,
         val showGoToLineDialog: Boolean = false,
-        val showSearchDialog: Boolean = false,
+        val showSearchBar: Boolean = false,
         val showCloseConfirmDialog: Boolean = false,
         val showEncodingDialog: Boolean = false,
         val pendingEncoding: String? = null,
@@ -838,7 +833,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val hasSearchResults: Boolean get() = searchResults.isNotEmpty()
         val isSearchActive: Boolean get() = searchQuery.isNotEmpty()
         val hasError: Boolean get() = error != null
-        val isSearchBarVisible: Boolean get() = showSearchDialog
+        val isSearchBarVisible: Boolean get() = showSearchBar
         val staleBackups: List<APath<*>>
             get() = (contentSource as? ContentSource.File)?.staleBackups ?: emptyList()
         val showBackupNotice: Boolean get() = staleBackups.isNotEmpty() && !backupNoticeDismissed

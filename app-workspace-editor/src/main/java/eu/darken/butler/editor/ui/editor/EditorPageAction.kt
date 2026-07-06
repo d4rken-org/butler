@@ -131,9 +131,6 @@ sealed interface EditorPageAction {
         /** Dismiss the Go To Line dialog */
         data object DismissGoToLine : Dialog
 
-        /** Dismiss the Search dialog */
-        data object DismissSearch : Dialog
-
         /** Dismiss the Close Confirm dialog */
         data object DismissCloseConfirm : Dialog
 

@@ -80,8 +80,6 @@
     <!-- Editor dialogs -->
     <string name="editor_dialog_go_to_line_title">Go to line</string>
     <string name="editor_dialog_go_to_line_label">Line number (1-%1$d)</string>
-    <string name="editor_dialog_search_title">Search</string>
-    <string name="editor_dialog_search_label">Search text</string>
     <string name="editor_dialog_action_go">Go</string>
     <string name="editor_dialog_action_cancel">Cancel</string>
     <string name="editor_dialog_close_confirm_title">Unsaved Changes</string>
