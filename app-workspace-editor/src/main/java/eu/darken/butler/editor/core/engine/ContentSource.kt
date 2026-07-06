@@ -42,6 +42,8 @@ sealed class ContentSource {
         val bomBytes: ByteArray? = null,
         /** Leftover backup artifacts from interrupted saves, found next to the file at open time. */
         val staleBackups: List<APath<*>> = emptyList(),
+        /** Null bytes in the detection sample (post-BOM, non-UTF-16): treated as read-only. */
+        val isLikelyBinary: Boolean = false,
     ) : ContentSource() {
         override val name: String get() = path.name
 
@@ -65,6 +67,7 @@ sealed class ContentSource {
                 if (!bomBytes.contentEquals(other.bomBytes)) return false
             } else if (other.bomBytes != null) return false
             if (staleBackups != other.staleBackups) return false
+            if (isLikelyBinary != other.isLikelyBinary) return false
 
             return true
         }
@@ -79,6 +82,7 @@ sealed class ContentSource {
             result = 31 * result + hasBOM.hashCode()
             result = 31 * result + (bomBytes?.contentHashCode() ?: 0)
             result = 31 * result + staleBackups.hashCode()
+            result = 31 * result + isLikelyBinary.hashCode()
             return result
         }
     }

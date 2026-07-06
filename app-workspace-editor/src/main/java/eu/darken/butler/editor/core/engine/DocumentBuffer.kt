@@ -423,6 +423,10 @@ class DocumentBuffer @AssistedInject constructor(
                 return Result.success(Unit)
             }
             (_contentSource.value as? ContentSource.File)?.let { source ->
+                if (source.isLikelyBinary) {
+                    // Editing a binary file through the text pipeline would corrupt it
+                    return Result.failure(ReadOnlyFileException("Binary file, saving is disabled: ${source.path}"))
+                }
                 if (!source.canWrite) {
                     return Result.failure(ReadOnlyFileException("File is read-only: ${source.path}"))
                 }

@@ -95,6 +95,7 @@ fun LazyTextEditor(
     visibleRange: LongRange,
     showLineNumbers: Boolean = true,
     wordWrap: Boolean = false,
+    readOnly: Boolean = false,
     fontSize: Int = 14,
     tabSize: Int = 4,
     searchResults: List<SearchResult> = emptyList(),
@@ -264,6 +265,7 @@ fun LazyTextEditor(
         focusRequester = focusRequester,
         showLineNumbers = showLineNumbers,
         wordWrap = wordWrap,
+        readOnly = readOnly,
         fontSize = fontSize,
         tabSize = tabSize,
         searchResultsByLine = searchResultsByLine,
@@ -291,6 +293,7 @@ private fun DualColumnEditorContent(
     focusRequester: FocusRequester,
     showLineNumbers: Boolean,
     wordWrap: Boolean,
+    readOnly: Boolean,
     fontSize: Int,
     tabSize: Int,
     searchResultsByLine: Map<Long, List<Pair<Int, SearchResult>>>,
@@ -433,6 +436,7 @@ private fun DualColumnEditorContent(
         // Hidden text field for keyboard input
         BasicTextField(
             value = textFieldValue,
+            readOnly = readOnly,
             onValueChange = { newValue ->
                 val oldText = textFieldValue.text
                 val newText = newValue.text

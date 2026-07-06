@@ -825,7 +825,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     ) {
         val isLoading: Boolean get() = progress != null
         val hasFile: Boolean get() = contentSource is ContentSource.File
-        val isReadOnly: Boolean get() = (contentSource as? ContentSource.File)?.canWrite == false
+        val isBinary: Boolean get() = (contentSource as? ContentSource.File)?.isLikelyBinary == true
+        val isReadOnly: Boolean
+            get() = (contentSource as? ContentSource.File)?.canWrite == false || isBinary
         val hasContent: Boolean get() = contentSource.hasContent
         val isFileReady: Boolean get() = contentSource is ContentSource.File && progress == null
         val hasSelection: Boolean get() = selectionRange != null
@@ -857,13 +859,13 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 return (end.line - start.line) + 1
             }
 
-        // Available actions based on current state
+        // Available actions based on current state; mutating actions vanish on read-only/binary
         val availableActions: List<EditorActionBarItem>
             get() = buildList {
                 if (hasSelection) add(EditorActionBarItem.Copy)
-                if (hasSelection) add(EditorActionBarItem.Cut)
-                if (hasSelection) add(EditorActionBarItem.Delete)
-                if (hasSystemClipboardContent) add(EditorActionBarItem.Paste)
+                if (hasSelection && !isReadOnly) add(EditorActionBarItem.Cut)
+                if (hasSelection && !isReadOnly) add(EditorActionBarItem.Delete)
+                if (hasSystemClipboardContent && !isReadOnly) add(EditorActionBarItem.Paste)
                 if (hasContent || currentContent.isNotEmpty()) add(EditorActionBarItem.SelectAll)
                 if (hasContent) add(EditorActionBarItem.GoToLine)
                 if (hasContent && !isSearchBarVisible) add(EditorActionBarItem.Search)

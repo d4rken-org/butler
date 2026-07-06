@@ -111,6 +111,35 @@ class FileDataSourceMetadataTest : BaseTest() {
     }
 
     @Test
+    fun `null bytes mark a file as likely binary`() = runTest {
+        val dataSource = FileDataSource(workspaceId, filePath, mockGateway(byteArrayOf(0x50, 0x00, 0x4B)))
+
+        dataSource.open()
+
+        (dataSource.contentSource.value as ContentSource.File).isLikelyBinary shouldBe true
+    }
+
+    @Test
+    fun `UTF-16 text is never flagged binary despite its null bytes`() = runTest {
+        val content = byteArrayOf(0xFF.toByte(), 0xFE.toByte()) +
+            "Hello".flatMap { listOf(it.code.toByte(), 0.toByte()) }.toByteArray()
+        val dataSource = FileDataSource(workspaceId, filePath, mockGateway(content))
+
+        dataSource.open()
+
+        (dataSource.contentSource.value as ContentSource.File).isLikelyBinary shouldBe false
+    }
+
+    @Test
+    fun `plain text is not flagged binary`() = runTest {
+        val dataSource = FileDataSource(workspaceId, filePath, mockGateway("just text".toByteArray()))
+
+        dataSource.open()
+
+        (dataSource.contentSource.value as ContentSource.File).isLikelyBinary shouldBe false
+    }
+
+    @Test
     fun `getMeta fails cleanly when the provider stops reporting size`() = runTest {
         val gateway = mockGateway("hello".toByteArray())
         val dataSource = FileDataSource(workspaceId, filePath, gateway)

@@ -25,6 +25,7 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
+import eu.darken.butler.editor.core.engine.ReadOnlyFileException
 import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
@@ -245,11 +246,12 @@ class EditorWorkspace @AssistedInject constructor(
             }
         }
 
-        // Auto-save logic: debounce after changes; read-only files are skipped so an edited
-        // read-only document doesn't produce a failing save on every interval
+        // Auto-save logic: debounce after changes; read-only and binary files are skipped so
+        // an edited unsaveable document doesn't produce a failing save on every interval
         combine(
             editorStateInternal.map { state ->
-                state.isModified && (state.contentSource as? ContentSource.File)?.canWrite != false
+                val file = state.contentSource as? ContentSource.File
+                state.isModified && file?.canWrite != false && file?.isLikelyBinary != true
             }.distinctUntilChanged(),
             editorSettings.autoSaveEnabled.flow,
             editorSettings.autoSaveInterval.flow,
@@ -475,7 +477,17 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> = saveMutex.withLock {
         val engine = currentEngine()
 
-        val currentPath = ((_state.value as? State.Ready)?.editor?.contentSource as? ContentSource.File)?.path
+        val editor = (_state.value as? State.Ready)?.editor
+        val fileSource = editor?.contentSource as? ContentSource.File
+        if (fileSource?.isLikelyBinary == true && editor.isModified) {
+            // An UNMODIFIED binary Save-As is a byte-exact copy (legitimate); a modified one
+            // would push text-pipeline corruption into the new file
+            return@withLock Result.failure(
+                ReadOnlyFileException("Binary file, saving modifications is disabled: ${fileSource.path}"),
+            )
+        }
+
+        val currentPath = fileSource?.path
         if (currentPath == newFilePath) {
             // Streaming into the current file would truncate the very source the original byte
             // ranges are read from; the normal atomic save handles this case

@@ -34,6 +34,7 @@ import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.editor.ui.editor.elements.EditorBackupBanner
+import eu.darken.butler.editor.ui.editor.elements.EditorBinaryBanner
 import eu.darken.butler.editor.ui.editor.elements.EditorErrorBanner
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorLoadingOverlay
@@ -271,6 +272,10 @@ fun EditorWorkspacePage(
                 )
             }
 
+            if (state.isBinary) {
+                EditorBinaryBanner()
+            }
+
             // Main editor content
             Box(
                 modifier = Modifier
@@ -292,6 +297,7 @@ fun EditorWorkspacePage(
                         visibleRange = state.visibleRange,
                         showLineNumbers = state.showLineNumbers,
                         wordWrap = state.wordWrap,
+                        readOnly = state.isReadOnly,
                         fontSize = 14,
                         tabSize = 4,
                         searchResults = state.searchResults,

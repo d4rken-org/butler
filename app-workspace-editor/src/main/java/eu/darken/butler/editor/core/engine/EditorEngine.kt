@@ -117,6 +117,21 @@ class EditorEngine @AssistedInject constructor(
     val textBuffer: DocumentBuffer?
         get() = (state.value as? EditorState.Loaded)?.resources?.textBuffer
 
+    /**
+     * Backstop for read-only/binary sources: the UI disables input, but nothing may bypass it -
+     * a mutation on an uneditable document is rejected here before touching the buffer.
+     * Deliberately does NOT set [_error]: the read-only state is already visible in the UI and
+     * a banner per swallowed keystroke would be noise.
+     */
+    private fun EditorState.Loaded.editabilityError(): ReadOnlyFileException? {
+        val source = contentSource as? ContentSource.File ?: return null
+        return when {
+            source.isLikelyBinary -> ReadOnlyFileException("Binary file, editing is disabled: ${source.path}")
+            !source.canWrite -> ReadOnlyFileException("File is read-only: ${source.path}")
+            else -> null
+        }
+    }
+
     private suspend fun createResourcesForFile(filePath: APath<*>?): EditorResources {
         log(tag) { "Creating resources for file: ${filePath?.name ?: "in-memory"}" }
 
@@ -322,6 +337,10 @@ class EditorEngine @AssistedInject constructor(
     suspend fun insertText(text: String) = stateMutex.withLock {
         when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                currentState.editabilityError()?.let {
+                    log(tag, VERBOSE) { "insertText rejected: ${it.message}" }
+                    return@withLock
+                }
                 // If there's a selection, delete it first (standard "replace selection" behavior)
                 val (hadSelection, deleteResult) = deleteSelectionIfPresent(currentState)
                 if (hadSelection && deleteResult?.isFailure == true) {
@@ -414,6 +433,10 @@ class EditorEngine @AssistedInject constructor(
             log(tag, WARN) { "Cannot replace text - no file open" }
             return@withLock
         }
+        currentState.editabilityError()?.let {
+            log(tag, VERBOSE) { "replaceText rejected: ${it.message}" }
+            return@withLock
+        }
         val buffer = currentState.resources.textBuffer
 
         // Resolve flat offsets from line/column - UI sends placeholder offset=0 with virtual scrolling.
@@ -498,6 +521,7 @@ class EditorEngine @AssistedInject constructor(
     suspend fun deleteSelection(): Result<String> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                currentState.editabilityError()?.let { return Result.failure(it) }
                 val selection = _selectionRange.value ?: return Result.failure(
                     IllegalStateException("No selection to delete")
                 )
@@ -533,6 +557,7 @@ class EditorEngine @AssistedInject constructor(
     suspend fun deleteAtCursor(count: Int): Result<String> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                currentState.editabilityError()?.let { return Result.failure(it) }
                 // If there's a selection, delete it instead of backspace (standard behavior)
                 val (hadSelection, deleteResult) = deleteSelectionIfPresent(currentState)
                 if (hadSelection) {
@@ -911,6 +936,7 @@ class EditorEngine @AssistedInject constructor(
         val currentState = _state.value as? EditorState.Loaded
             ?: return Result.failure(IllegalStateException("Cannot delete forward - no file open"))
 
+        currentState.editabilityError()?.let { return Result.failure(it) }
         // If there's a selection, delete it instead of forward-delete (standard behavior)
         val (hadSelection, deleteResult) = deleteSelectionIfPresent(currentState)
         if (hadSelection) {
@@ -1095,6 +1121,7 @@ class EditorEngine @AssistedInject constructor(
     suspend fun undo(): Result<EditOperation?> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                currentState.editabilityError()?.let { return Result.failure(it) }
                 try {
                     val result = currentState.resources.textBuffer.undo()
                     if (result.isSuccess) {
@@ -1131,6 +1158,7 @@ class EditorEngine @AssistedInject constructor(
     suspend fun redo(): Result<EditOperation?> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                currentState.editabilityError()?.let { return Result.failure(it) }
                 try {
                     val result = currentState.resources.textBuffer.redo()
                     if (result.isSuccess) {

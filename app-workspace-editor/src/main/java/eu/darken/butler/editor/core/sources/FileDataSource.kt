@@ -77,8 +77,7 @@ class FileDataSource @AssistedInject constructor(
      *
      * @return Triple of (Charset, hasBOM, bomBytes)
      */
-    private suspend fun detectCharset(): Triple<Charset, Boolean, ByteArray?> {
-        val sampleBytes = readDetectionSample()
+    private fun detectCharset(sampleBytes: ByteArray): Triple<Charset, Boolean, ByteArray?> {
         if (sampleBytes.isEmpty()) {
             // Empty file - default to UTF-8
             return Triple(Charsets.UTF_8, false, null)
@@ -105,8 +104,7 @@ class FileDataSource @AssistedInject constructor(
      * (and preserved on save) only when it belongs to the override's own family; any other
      * BOM bytes are treated as document content.
      */
-    private suspend fun applyOverride(override: Charset): Triple<Charset, Boolean, ByteArray?> {
-        val sampleBytes = readDetectionSample()
+    private fun applyOverride(override: Charset, sampleBytes: ByteArray): Triple<Charset, Boolean, ByteArray?> {
         val bom = if (sampleBytes.isEmpty()) null else CharsetDetector.detectBom(sampleBytes)
         log(tag, INFO) { "Using charset override $override (bom=${bom?.charset})" }
         return if (bom != null && bom.charset == override) {
@@ -134,9 +132,21 @@ class FileDataSource @AssistedInject constructor(
 
             val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
 
-            val (detectedCharset, hasBOM, bomBytes) = charsetOverride?.let { applyOverride(it) }
-                ?: detectCharset()
+            val sampleBytes = readDetectionSample()
+            val (detectedCharset, hasBOM, bomBytes) = charsetOverride?.let { applyOverride(it, sampleBytes) }
+                ?: detectCharset(sampleBytes)
             val canWrite = gatewaySwitch.canWrite(filePath)
+
+            // Null bytes mean binary - but only AFTER honoring the BOM and never for UTF-16,
+            // whose text legitimately contains 0x00. Runs on the TRIMMED sample: a zero-filled
+            // short-read tail would otherwise flag every short-reading file as binary.
+            val isLikelyBinary = when (detectedCharset) {
+                Charsets.UTF_16LE, Charsets.UTF_16BE -> false
+                else -> {
+                    val body = if (bomBytes != null) sampleBytes.copyOfRange(bomBytes.size, sampleBytes.size) else sampleBytes
+                    body.any { it == 0.toByte() }
+                }
+            }
 
             // A document without a reported size can't be block-indexed or staleness-checked;
             // a missing mtime is fine (staleness skips the mtime comparison when null)
@@ -157,6 +167,7 @@ class FileDataSource @AssistedInject constructor(
                 hasBOM = hasBOM,
                 bomBytes = bomBytes,
                 staleBackups = staleBackups,
+                isLikelyBinary = isLikelyBinary,
             )
 
             log(tag, INFO) {
