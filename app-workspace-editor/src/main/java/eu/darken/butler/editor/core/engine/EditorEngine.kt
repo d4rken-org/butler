@@ -461,9 +461,15 @@ class EditorEngine @AssistedInject constructor(
 
         log(tag, VERBOSE) { "replaceText $lowPos..$highPos -> ${text.take(50)} (caret=$caret)" }
 
+        // Only keystroke-SIZED edits coalesce (<= 2 UTF-16 units covers surrogate-pair input):
+        // platform paste and IME batch commits arrive through this same diff path as large pure
+        // inserts and must neither join a typing run nor anchor one
+        val keystrokeSized = text.length <= 2 && (highPos.offset - lowPos.offset) <= 2
         val result: Result<*> = when {
-            isEmptyRange -> buffer.insertText(lowPos, text) // pure insert
-            text.isEmpty() -> buffer.deleteText(lowPos, highPos) // pure delete
+            // Keystroke-sized inserts/deletes merge into the current typing run (one undo
+            // steps back over the run, not one character)
+            isEmptyRange -> buffer.insertText(lowPos, text, coalesce = keystrokeSized) // pure insert
+            text.isEmpty() -> buffer.deleteText(lowPos, highPos, coalesce = keystrokeSized) // pure delete
             else -> buffer.replaceText(lowPos, highPos, text) // genuine replace (delete + insert)
         }
 
@@ -696,6 +702,7 @@ class EditorEngine @AssistedInject constructor(
     }
 
     suspend fun setCursorPosition(position: TextPosition) = stateMutex.withLock {
+        textBuffer?.breakUndoRun()
         val correctedPosition = when (val currentState = _state.value) {
             is EditorState.Loaded -> TextPosition(
                 offset = currentState.resources.textBuffer.findOffset(position.line, position.column),
@@ -709,6 +716,7 @@ class EditorEngine @AssistedInject constructor(
     }
 
     suspend fun setSelection(start: TextPosition, end: TextPosition) = stateMutex.withLock {
+        textBuffer?.breakUndoRun()
         when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 // Recalculate actual offsets from line/column positions
@@ -743,6 +751,7 @@ class EditorEngine @AssistedInject constructor(
         }
         val currentPos = _cursorPosition.value
         log(tag) { "moveCursor: currentPos=$currentPos" }
+        currentState.resources.textBuffer.breakUndoRun()
 
         // Set anchor if starting selection
         if (extendSelection && selectionAnchor == null) {
@@ -1021,6 +1030,7 @@ class EditorEngine @AssistedInject constructor(
             }
 
             // Use textBuffer to find correct offset (works for any line, not just visible range)
+            currentState.resources.textBuffer.breakUndoRun()
             val offset = currentState.resources.textBuffer.findOffset(lineNumber, 0)
 
             val position = TextPosition(

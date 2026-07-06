@@ -111,6 +111,7 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
                 blockSize: Int,
                 assertions: Boolean,
                 staleSampleRandom: Random,
+                timeSource: kotlin.time.TimeSource,
             ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, 10, true)
         }
         val engineFactory = object : EditorEngine.Factory {

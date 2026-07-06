@@ -69,6 +69,7 @@ class EditorEngineContentStreamTest : DocumentBufferTestBase() {
             blockSize: Int,
             assertions: Boolean,
             staleSampleRandom: Random,
+                timeSource: kotlin.time.TimeSource,
         ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true, staleSampleRandom)
     }
 

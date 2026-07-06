@@ -96,6 +96,7 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
                 blockSize: Int,
                 assertions: Boolean,
                 staleSampleRandom: Random,
+                timeSource: kotlin.time.TimeSource,
             ) = DocumentBuffer(
                 workspaceId = workspaceId,
                 dataSource = dataSource,

@@ -97,6 +97,7 @@ class EditorEngineEditabilityTest : BaseTest() {
                     blockSize: Int,
                     assertions: Boolean,
                     staleSampleRandom: Random,
+                timeSource: kotlin.time.TimeSource,
                 ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, 1024, true)
             },
         )

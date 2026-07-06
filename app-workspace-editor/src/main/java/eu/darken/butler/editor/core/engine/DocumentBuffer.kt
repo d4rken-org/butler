@@ -39,6 +39,9 @@ import java.security.MessageDigest
 import java.util.LinkedList
 import kotlin.coroutines.coroutineContext
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 /**
  * Piece-table document buffer: same public surface as the previous ChunkedTextBuffer, backed by
@@ -56,6 +59,7 @@ class DocumentBuffer @AssistedInject constructor(
     @Assisted("blockSize") private val blockSize: Int,
     @Assisted private val assertions: Boolean,
     @Assisted private val staleSampleRandom: Random = Random.Default,
+    @Assisted private val timeSource: TimeSource = TimeSource.Monotonic,
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "DocumentBuffer")
@@ -98,6 +102,12 @@ class DocumentBuffer @AssistedInject constructor(
     private val redoStack = LinkedList<UndoEntry>()
     private var currentUndoMemoryBytes = 0L
     private var currentRedoMemoryBytes = 0L
+
+    // Typing-run coalescing: consecutive keystroke edits merge into the top undo entry so undo
+    // steps back word-wise instead of one keystroke at a time. Only edits flagged with the
+    // coalesce hint participate; any other action breaks the run.
+    private var coalesceAnchor: UndoEntry? = null
+    private var coalesceDeadline: TimeMark? = null
 
     // Save checkpoint: every edit gets a monotonic generation; isModified compares against the
     // generation recorded at save time (undo back to the saved state clears the flag)
@@ -168,6 +178,7 @@ class DocumentBuffer @AssistedInject constructor(
             redoStack.clear()
             currentUndoMemoryBytes = 0L
             currentRedoMemoryBytes = 0L
+            breakUndoRunLocked()
             generationCounter = 0L
             currentGeneration = 0L
             savedGeneration = 0L
@@ -256,7 +267,12 @@ class DocumentBuffer @AssistedInject constructor(
         Result.success(result.toString())
     }
 
-    suspend fun insertText(position: TextPosition, text: String): Result<TextPosition> = bufferMutex.withLock {
+    /** [coalesce] marks a keystroke-sized edit eligible to merge into the current typing run. */
+    suspend fun insertText(
+        position: TextPosition,
+        text: String,
+        coalesce: Boolean = false,
+    ): Result<TextPosition> = bufferMutex.withLock {
         try {
             val table = table()
             if (position.offset < 0 || position.offset > table.totalCharLength) {
@@ -267,7 +283,7 @@ class DocumentBuffer @AssistedInject constructor(
             }
             if (text.isNotEmpty()) {
                 table.insert(position.offset, text)
-                commitNewEdit(EditOperation.Insert(position, text))
+                commitNewEdit(EditOperation.Insert(position, text), coalesce)
             }
             Result.success(insertEndPosition(position, text))
         } catch (e: Exception) {
@@ -276,7 +292,12 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
-    suspend fun deleteText(startPosition: TextPosition, endPosition: TextPosition): Result<String> =
+    /** [coalesce] marks a keystroke-sized edit eligible to merge into the current typing run. */
+    suspend fun deleteText(
+        startPosition: TextPosition,
+        endPosition: TextPosition,
+        coalesce: Boolean = false,
+    ): Result<String> =
         bufferMutex.withLock {
             try {
                 val table = table()
@@ -289,6 +310,7 @@ class DocumentBuffer @AssistedInject constructor(
                             (endPosition.offset - startPosition.offset).toInt(),
                             deletedText,
                         ),
+                        coalesce,
                     )
                 }
                 Result.success(deletedText)
@@ -571,6 +593,7 @@ class DocumentBuffer @AssistedInject constructor(
         }
         savedGeneration = currentGeneration
         savedGenerationValid = true
+        breakUndoRunLocked()
         refreshStats()
         updateModified()
     }
@@ -627,23 +650,27 @@ class DocumentBuffer @AssistedInject constructor(
     }
 
     suspend fun undo(): Result<EditOperation?> = bufferMutex.withLock {
+        breakUndoRunLocked()
         val entry = undoStack.pollLast() ?: return@withLock Result.success(null)
         try {
             val table = table()
-            when (val operation = entry.operation) {
-                is EditOperation.Insert -> {
-                    table.delete(operation.position.offset, operation.position.offset + operation.text.length)
-                }
-                is EditOperation.Delete -> {
-                    table.insert(operation.position.offset, operation.deletedText)
-                }
-                is EditOperation.Replace -> {
-                    table.delete(operation.position.offset, operation.position.offset + operation.newText.length)
-                    table.insert(operation.position.offset, operation.oldText)
+            // Composite entries (typing runs, replace-all) revert as one step, newest op first
+            for (operation in entry.ops.asReversed()) {
+                when (operation) {
+                    is EditOperation.Insert -> {
+                        table.delete(operation.position.offset, operation.position.offset + operation.text.length)
+                    }
+                    is EditOperation.Delete -> {
+                        table.insert(operation.position.offset, operation.deletedText)
+                    }
+                    is EditOperation.Replace -> {
+                        table.delete(operation.position.offset, operation.position.offset + operation.newText.length)
+                        table.insert(operation.position.offset, operation.oldText)
+                    }
                 }
             }
             structuralVersion++
-            val memory = entry.operation.estimateMemoryBytes()
+            val memory = entry.estimateMemoryBytes()
             currentUndoMemoryBytes -= memory
             redoStack.addLast(entry)
             currentRedoMemoryBytes += memory
@@ -651,7 +678,7 @@ class DocumentBuffer @AssistedInject constructor(
             refreshStats()
             updateModified()
             refreshUndoRedo()
-            Result.success(entry.operation)
+            Result.success(entry.ops.first())
         } catch (e: Exception) {
             undoStack.addLast(entry)
             log(tag, ERROR) { "Undo failed - ${e.asLog()}" }
@@ -660,23 +687,26 @@ class DocumentBuffer @AssistedInject constructor(
     }
 
     suspend fun redo(): Result<EditOperation?> = bufferMutex.withLock {
+        breakUndoRunLocked()
         val entry = redoStack.pollLast() ?: return@withLock Result.success(null)
         try {
             val table = table()
-            when (val operation = entry.operation) {
-                is EditOperation.Insert -> {
-                    table.insert(operation.position.offset, operation.text)
-                }
-                is EditOperation.Delete -> {
-                    table.delete(operation.position.offset, operation.position.offset + operation.length)
-                }
-                is EditOperation.Replace -> {
-                    table.delete(operation.position.offset, operation.position.offset + operation.oldText.length)
-                    table.insert(operation.position.offset, operation.newText)
+            for (operation in entry.ops) {
+                when (operation) {
+                    is EditOperation.Insert -> {
+                        table.insert(operation.position.offset, operation.text)
+                    }
+                    is EditOperation.Delete -> {
+                        table.delete(operation.position.offset, operation.position.offset + operation.length)
+                    }
+                    is EditOperation.Replace -> {
+                        table.delete(operation.position.offset, operation.position.offset + operation.oldText.length)
+                        table.insert(operation.position.offset, operation.newText)
+                    }
                 }
             }
             structuralVersion++
-            val memory = entry.operation.estimateMemoryBytes()
+            val memory = entry.estimateMemoryBytes()
             currentRedoMemoryBytes -= memory
             undoStack.addLast(entry)
             currentUndoMemoryBytes += memory
@@ -684,12 +714,26 @@ class DocumentBuffer @AssistedInject constructor(
             refreshStats()
             updateModified()
             refreshUndoRedo()
-            Result.success(entry.operation)
+            Result.success(entry.ops.last())
         } catch (e: Exception) {
             redoStack.addLast(entry)
             log(tag, ERROR) { "Redo failed - ${e.asLog()}" }
             Result.failure(e)
         }
+    }
+
+    /**
+     * Ends the current typing run: the next coalescable edit starts a NEW undo entry. Called
+     * by the engine on cursor jumps, selection changes, save, and undo/redo - anything that
+     * semantically separates two runs of typing.
+     */
+    suspend fun breakUndoRun() = bufferMutex.withLock {
+        breakUndoRunLocked()
+    }
+
+    private fun breakUndoRunLocked() {
+        coalesceAnchor = null
+        coalesceDeadline = null
     }
 
     fun canUndo(): Boolean = _canUndo.value
@@ -729,7 +773,14 @@ class DocumentBuffer @AssistedInject constructor(
         return if (precedingTwo.endsWith("\r\n")) breakEnd - 2 else breakEnd - 1
     }
 
-    private fun commitNewEdit(operation: EditOperation) {
+    private fun commitNewEdit(operation: EditOperation, coalesce: Boolean = false) {
+        if (coalesce && tryCoalesce(operation)) return
+        commitNewEdit(listOf(operation))
+        coalesceAnchor = if (coalesce) undoStack.peekLast() else null
+        coalesceDeadline = if (coalesce) timeSource.markNow() + COALESCE_WINDOW else null
+    }
+
+    internal fun commitNewEdit(ops: List<EditOperation>) {
         structuralVersion++
         val before = currentGeneration
         currentGeneration = ++generationCounter
@@ -739,22 +790,84 @@ class DocumentBuffer @AssistedInject constructor(
         redoStack.clear()
         currentRedoMemoryBytes = 0L
 
-        undoStack.addLast(UndoEntry(operation, before, currentGeneration))
-        currentUndoMemoryBytes += operation.estimateMemoryBytes()
+        val entry = UndoEntry(ops, before, currentGeneration)
+        undoStack.addLast(entry)
+        currentUndoMemoryBytes += entry.estimateMemoryBytes()
+        enforceUndoLimits()
+        refreshStats()
+        updateModified()
+        refreshUndoRedo()
+    }
+
+    private fun enforceUndoLimits() {
         while ((undoStack.size > maxUndoStackSize || currentUndoMemoryBytes > maxUndoMemoryBytes) &&
             undoStack.size > 1
         ) {
             val evicted = undoStack.removeFirst()
-            currentUndoMemoryBytes -= evicted.operation.estimateMemoryBytes()
+            currentUndoMemoryBytes -= evicted.estimateMemoryBytes()
             if (evicted.generationBefore == savedGeneration) savedGenerationValid = false
             log(tag, VERBOSE) {
                 "Evicted old undo operation (stack: ${undoStack.size}/$maxUndoStackSize, " +
                     "memory: $currentUndoMemoryBytes/$maxUndoMemoryBytes bytes)"
             }
         }
+    }
+
+    /**
+     * Merges a keystroke edit into the current typing run's top entry. Runs merge only while
+     * uninterrupted: same anchor entry, within [COALESCE_WINDOW] of the previous keystroke, no
+     * newline, capped at [COALESCE_MAX_CHARS], and never across the saved checkpoint (merging
+     * over it would make "undo back to saved" unreachable).
+     */
+    private fun tryCoalesce(operation: EditOperation): Boolean {
+        val top = undoStack.peekLast() ?: return false
+        if (top !== coalesceAnchor) return false
+        if (coalesceDeadline?.hasPassedNow() != false) return false
+        if (savedGeneration == top.generationAfter) return false
+        val single = top.ops.singleOrNull() ?: return false
+
+        val merged: EditOperation? = when {
+            operation is EditOperation.Insert && single is EditOperation.Insert -> {
+                val contiguous = single.position.offset + single.text.length == operation.position.offset
+                // A newline ends a run on BOTH sides: it neither joins the previous run nor
+                // accumulates the following one
+                val clean = !operation.text.contains('\n') && !single.text.contains('\n')
+                val withinCap = single.text.length + operation.text.length <= COALESCE_MAX_CHARS
+                if (contiguous && clean && withinCap) {
+                    EditOperation.Insert(single.position, single.text + operation.text)
+                } else null
+            }
+            operation is EditOperation.Delete && single is EditOperation.Delete -> {
+                // Backspace run: the new deletion ends exactly where the previous one started
+                val contiguous = operation.position.offset + operation.length == single.position.offset
+                val clean = !operation.deletedText.contains('\n') && !single.deletedText.contains('\n')
+                val withinCap = single.deletedText.length + operation.deletedText.length <= COALESCE_MAX_CHARS
+                if (contiguous && clean && withinCap) {
+                    EditOperation.Delete(
+                        operation.position,
+                        single.length + operation.length,
+                        operation.deletedText + single.deletedText,
+                    )
+                } else null
+            }
+            else -> null
+        }
+        if (merged == null) return false
+
+        structuralVersion++
+        currentGeneration = ++generationCounter
+        currentUndoMemoryBytes -= top.estimateMemoryBytes()
+        undoStack.pollLast()
+        val replacement = UndoEntry(listOf(merged), top.generationBefore, currentGeneration)
+        undoStack.addLast(replacement)
+        currentUndoMemoryBytes += replacement.estimateMemoryBytes()
+        enforceUndoLimits()
+        coalesceAnchor = replacement
+        coalesceDeadline = timeSource.markNow() + COALESCE_WINDOW
         refreshStats()
         updateModified()
         refreshUndoRedo()
+        return true
     }
 
     private fun refreshStats() {
@@ -796,8 +909,11 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
+    private fun UndoEntry.estimateMemoryBytes(): Long = ops.sumOf { it.estimateMemoryBytes() }
+
+    /** One undo step; [ops] applied forward on redo, inverted in reverse on undo. */
     private data class UndoEntry(
-        val operation: EditOperation,
+        val ops: List<EditOperation>,
         val generationBefore: Long,
         val generationAfter: Long,
     )
@@ -812,10 +928,13 @@ class DocumentBuffer @AssistedInject constructor(
             @Assisted("blockSize") blockSize: Int = BlockIndexBuilder.DEFAULT_BLOCK_SIZE,
             assertions: Boolean = false,
             staleSampleRandom: Random = Random.Default,
+            timeSource: TimeSource = TimeSource.Monotonic,
         ): DocumentBuffer
     }
 
     companion object {
         const val STALENESS_SAMPLE_COUNT = 8
+        val COALESCE_WINDOW = 800.milliseconds
+        const val COALESCE_MAX_CHARS = 256
     }
 }
