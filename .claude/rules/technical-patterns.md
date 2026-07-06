@@ -97,7 +97,7 @@ private val tag = logTag("Explorer", "Workspace", id.shortTag)
 private val tag = logTag("Searcher", "Workspace", id.shortTag, "Page")
 ```
 
-Tags are automatically prefixed with "BUTLER:" creating output like: `BUTLER:Editor:Engine`
+Tags are automatically prefixed with "BTLR:" creating output like: `BTLR:Editor:Engine`
 
 ### Usage Patterns
 
