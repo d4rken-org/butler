@@ -1,7 +1,6 @@
 package eu.darken.butler.searcher.ui.search
 
 import android.content.Context
-import android.content.Intent
 import android.webkit.MimeTypeMap
 import androidx.compose.runtime.Stable
 import dagger.assisted.Assisted
@@ -9,7 +8,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
@@ -17,7 +15,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.TextFileDetector
@@ -70,11 +67,7 @@ import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
-import eu.darken.butler.workspace.core.operations.OperationsManager
-import eu.darken.butler.workspace.core.operations.get
-import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
-import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
-import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
+import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -106,18 +99,17 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val searchHistory: SearchHistory,
     private val searcherSettings: SearcherSettings,
     private val clipboardRepo: ClipboardRepo,
-    private val operationsManager: OperationsManager,
     private val workspaceRemote: WorkspaceRemote,
     private val workspaceProvider: WorkspaceProvider,
-    private val systemClipboardHelper: SystemClipboardHelper,
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val shareIntentUseCase: ShareIntentUseCase,
     private val trashSettings: TrashSettings,
-    private val errorReportTool: ErrorReportTool,
     itemSorterFactory: SearchItemSorter.Factory,
+    chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
 
     private val itemSorter = itemSorterFactory.create(id)
+    private val chrome = chromeFactory.create(id, vmScope)
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
         workspaceProvider.retrieve(id)
@@ -149,7 +141,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
-    val shareIntentEvent = SingleEventFlow<Intent>()
+    val shareIntentEvent = chrome.shareIntentEvent
 
     // Observe workspace search state
     private val workspaceSearchState: Flow<SearcherWorkspace.State> = workspaceSource
@@ -226,12 +218,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
 
         // Observe pending issues/conflicts from operations
-        workspaceSource
-            .filterNotNull()
-            .flatMapLatest { it.operations }
-            .map { operationsState ->
-                operationsState.pendingConflicts.entries.firstOrNull()
-            }
+        chrome.pendingConflicts
+            .map { it.entries.firstOrNull() }
             .onEach { pending ->
                 if (pending != null) {
                     log(TAG, INFO) { "Detected pending issue for operation ${pending.key}: ${pending.value}" }
@@ -316,16 +304,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
     }
 
-    val clipboard = clipboardRepo.state
-        .map { repoState -> ClipboardDisplayState(entries = repoState.entries) }
-        .asStateFlow()
+    val clipboard = chrome.clipboard.asStateFlow()
 
-    val operations = workspaceSource
-        .filterNotNull()
-        .flatMapLatest { it.operations }
-        .map { opsState -> opsState.operations }
-        .toOperationsDisplayState()
-        .asStateFlow()
+    val operations = chrome.operations.asStateFlow()
 
     // Flow for Ready state - only emits when workspace is initialized
     private val readyStateFlow: Flow<State.Ready> = combine(
@@ -764,7 +745,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherActionBarItem.CopyPath -> {
                 log(TAG, INFO) { "Copying path to system clipboard: ${action.result.path.path}" }
-                systemClipboardHelper.copyToClipboard(action.result.path.path)
+                chrome.copyToSystemClipboard(action.result.path.path)
             }
             is SearcherActionBarItem.ShowProperties -> {
                 dialogStateFlow.value = SearcherDialogState.ShowItemProperties(action.result)
@@ -1080,44 +1061,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     fun copyPathToSystemClipboard(text: String) {
         log(TAG) { "copyPathToSystemClipboard($text)" }
-        systemClipboardHelper.copyToClipboard(text)
+        chrome.copyToSystemClipboard(text)
     }
 
-    fun removeClipboardEntry(clip: ClipboardClip) = launch {
+    fun removeClipboardEntry(clip: ClipboardClip) {
         log(TAG) { "removeClipboardEntry($clip)" }
-        clipboardRepo.remove(clip.id)
+        chrome.removeClipboardEntry(clip)
         dismissDialog()
     }
 
-    fun cancelOperation(id: Operation.Id) = launch {
-        log(TAG) { "cancelOperation($id)" }
-        operationsManager.cancel(id)
-    }
+    fun cancelOperation(id: Operation.Id) = chrome.cancelOperation(id)
 
-    fun shareError(id: Operation.Id) = launch {
-        log(TAG) { "shareError($id)" }
-        val operation = operationsManager.get(id)
-        if (operation == null) {
-            log(TAG, ERROR) { "Operation with id $id not found" }
-            return@launch
-        }
-        val state = operation.state.value as? Operation.State.Completed ?: return@launch
-        val error = state.error ?: return@launch
-
-        val metadata = mapOf<String, String?>(
-            "OperationId" to operation.id.toString(),
-            "Source" to operation.metadata.origin.toString(),
-            "CompletedAt" to state.completedAt.toString(),
-        )
-        val report = errorReportTool.buildReport(
-            throwable = error,
-            message = "${operation.metadata.title.get(appContext)}\n${operation.metadata.description.get(appContext)}",
-            errorContext = "Operation error in workspace ${this@SearcherWorkspaceViewModel.id.shortTag}",
-            metadata = metadata,
-        )
-        val intent = errorReportTool.createShareChooserIntent(report)
-        shareIntentEvent.tryEmit(intent)
-    }
+    fun shareError(id: Operation.Id) = chrome.shareOperationError(id)
 
     fun showConflictSheet(operationId: Operation.Id) = launch {
         log(TAG) { "showConflictSheet($operationId): Conflict sheet is automatically shown via issueState observation" }
@@ -1136,21 +1091,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun shareWorkspaceError() = launch {
-        val error = (state.value as? State.Error)?.error ?: return@launch
-        log(TAG, INFO) { "Sharing workspace error: ${error.message}" }
-        val report = errorReportTool.buildReport(
-            throwable = error,
-            errorContext = "Workspace initialization failed: ${id.shortTag}",
-        )
-        val intent = errorReportTool.createShareChooserIntent(report)
-        shareIntentEvent.tryEmit(intent)
+    fun shareWorkspaceError() {
+        val error = (state.value as? State.Error)?.error ?: return
+        chrome.shareWorkspaceError(error, "Workspace initialization failed: ${id.shortTag}")
     }
 
-    fun closeWorkspace() = launch {
-        log(TAG, INFO) { "Closing workspace $id" }
-        workspaceRemote.execute(WorkspaceAction.Close(id))
-    }
+    fun closeWorkspace() = chrome.closeWorkspace()
 
     /**
      * Unified handler for all page-level actions.
@@ -1307,29 +1253,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 log(TAG) { "showClipboardInfo(${action.clip})" }
                 dialogStateFlow.value = SearcherDialogState.ClipboardInfo(action.clip)
             }
-            is SearcherPageAction.Clipboard.RemoveEntry -> launch {
-                log(TAG) { "removeClipboardEntry(${action.clip})" }
-                clipboardRepo.remove(action.clip.id)
-                dismissDialog()
-            }
-            is SearcherPageAction.Clipboard.ClearAll -> launch {
-                log(TAG) { "clearAllClipboard()" }
-                clipboardRepo.clear()
-            }
+            is SearcherPageAction.Clipboard.RemoveEntry -> removeClipboardEntry(action.clip)
+            is SearcherPageAction.Clipboard.ClearAll -> chrome.clearClipboard()
 
             // Operations
-            is SearcherPageAction.Operations.Cancel -> launch {
-                log(TAG) { "cancelOperation(${action.id})" }
-                operationsManager.cancel(action.id)
-            }
-            is SearcherPageAction.Operations.Dismiss -> launch {
-                log(TAG) { "dismissOperation(${action.id})" }
-                operationsManager.remove(action.id)
-            }
-            is SearcherPageAction.Operations.ClearCompleted -> launch {
-                log(TAG) { "clearCompletedOperations()" }
-                operationsManager.clearCompleted()
-            }
+            is SearcherPageAction.Operations.Cancel -> chrome.cancelOperation(action.id)
+            is SearcherPageAction.Operations.Dismiss -> chrome.dismissOperation(action.id)
+            is SearcherPageAction.Operations.ClearCompleted -> chrome.clearCompletedOperations()
 
             // Setup
             is SearcherPageAction.Setup.Open -> navTo(
@@ -1344,12 +1274,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             // Error
             is SearcherPageAction.Error.Share -> {
                 log(TAG) { "shareSearchError(${action.error.javaClass.simpleName})" }
-                val report = errorReportTool.buildReport(
-                    throwable = action.error,
-                    errorContext = "Search operation in workspace ${id.shortTag}",
-                )
-                val intent = errorReportTool.createShareChooserIntent(report)
-                shareIntentEvent.tryEmit(intent)
+                chrome.shareWorkspaceError(action.error, "Search operation in workspace ${id.shortTag}")
             }
 
             // Workspace actions (delegate to existing handler)
