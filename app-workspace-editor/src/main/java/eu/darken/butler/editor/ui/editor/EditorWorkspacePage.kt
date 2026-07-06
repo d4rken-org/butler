@@ -2,8 +2,10 @@ package eu.darken.butler.editor.ui.editor
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -154,7 +156,12 @@ fun EditorWorkspacePage(
         bottomBarStackState.resetScrollCollapse()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        // Stacked banners must never crowd out the editor in short (landscape) viewports; the
+        // group scrolls internally past this cap and the stack's measured height keeps the
+        // content padding in sync automatically
+        val bannerMaxHeight = maxHeight * 0.35f
+
         // Top floating bars
         FloatingBarStack(
             modifier = Modifier
@@ -212,6 +219,7 @@ fun EditorWorkspacePage(
                     modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
                     EditorBannerGroup(
+                        modifier = Modifier.heightIn(max = bannerMaxHeight),
                         error = state.error,
                         showExternalChange = state.showExternalChangeBanner,
                         backupNames = state.staleBackups.map { it.name },

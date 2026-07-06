@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.ui.editor.elements
 
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -106,6 +107,13 @@ class EditorBannerGroupTest : ComposeTest() {
         composeTestRule.onNodeWithText("notes.txt.butler-save-bak-1a2b3c4d", substring = true).assertExists()
         composeTestRule.onNodeWithText("Binary file — read-only view").assertExists()
         composeTestRule.onAllNodesWithContentDescription("Dismiss").assertCountEquals(2)
+    }
+
+    @Test
+    fun `banner group scrolls when capped by short viewports`() {
+        setGroup(isBinary = true)
+
+        composeTestRule.onNode(hasScrollAction()).assertExists()
     }
 
     @Test
