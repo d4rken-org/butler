@@ -41,7 +41,9 @@ import kotlin.math.abs
 
 class EditorEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
-    @Assisted private val filePath: APath<*>?,
+    // The engine's target file identity; stays authoritative even while contentSource still
+    // reads Memory during load or after a failed initialization
+    @Assisted val filePath: APath<*>?,
     @Assisted private val initialContent: String?,
     @Assisted private val charsetOverride: Charset? = null,
     private val gatewaySwitch: GatewaySwitch,

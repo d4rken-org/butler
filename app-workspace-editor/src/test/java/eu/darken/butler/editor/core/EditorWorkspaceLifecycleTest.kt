@@ -22,6 +22,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -242,6 +243,102 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
 
             delay(500)
             file.readText() shouldBe "original"
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `failed file init stays in error state`(@TempDir tempDir: File): Unit = runBlocking {
+        val workspace = createWorkspace(
+            EditorArguments.Default(filePath = LocalPath.build(File(tempDir, "missing.txt"))),
+            createMockGateway(),
+        )
+        try {
+            withTimeout(10_000) { workspace.state.first { it is EditorWorkspace.State.Error } }
+
+            // Poke an engine state flow: the resulting internal emission must not flip the
+            // tab back to a Ready scratch view
+            runCatching { workspace.updateVisibleRange(0, 10) }
+            delay(200)
+
+            (workspace.state.value is EditorWorkspace.State.Error).shouldBeTrue()
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `createArguments keeps file identity and session state after failed init`(
+        @TempDir tempDir: File,
+    ): Unit = runBlocking {
+        val missing = LocalPath.build(File(tempDir, "missing.txt"))
+        val workspace = createWorkspace(
+            EditorArguments.Default(filePath = missing, cursorLine = 5L, cursorColumn = 2),
+            createMockGateway(),
+        )
+        try {
+            withTimeout(10_000) { workspace.state.first { it is EditorWorkspace.State.Error } }
+
+            val arguments = workspace.createArguments() as EditorArguments.Default
+
+            arguments.filePath shouldBe missing
+            arguments.cursorLine shouldBe 5L
+            arguments.cursorColumn shouldBe 2
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `cancelled initial file load persists as a scratch tab`(@TempDir tempDir: File): Unit = runBlocking {
+        val file = File(tempDir, "doc.txt").apply { writeText("original") }
+        val lookupReached = CompletableDeferred<Unit>()
+        val gate = CompletableDeferred<Unit>()
+        val gateway = createMockGateway().apply {
+            coEvery { lookup(any(), any()) } coAnswers {
+                lookupReached.complete(Unit)
+                gate.await()
+                @Suppress("UNCHECKED_CAST")
+                fileSystemOps.lookup(
+                    firstArg<APath<*>>() as LocalPath,
+                    secondArg<LookupOptions>(),
+                ) as APathLookup<APath<*>>
+            }
+        }
+        val workspace = createWorkspace(
+            EditorArguments.Default(filePath = LocalPath.build(file)),
+            gateway,
+        )
+        try {
+            // The engine is provably mid-initialization once the gated lookup is reached
+            withTimeout(10_000) { lookupReached.await() }
+            workspace.cancelFileOpen()
+
+            // The user aborted the load; the persisted tab must not resurrect it on restore
+            (workspace.createArguments() as EditorArguments.Default).filePath shouldBe null
+        } finally {
+            gate.complete(Unit)
+            workspace.release()
+        }
+    }
+
+    @Test
+    fun `createArguments keeps a scratch tab scratch`(): Unit = runBlocking {
+        val workspace = createWorkspace(
+            EditorArguments.Default(initialContent = "draft"),
+            createMockGateway(),
+        )
+        try {
+            withTimeout(10_000) {
+                workspace.state.first {
+                    (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.Memory
+                }
+            }
+
+            val arguments = workspace.createArguments() as EditorArguments.Default
+
+            arguments.filePath shouldBe null
         } finally {
             workspace.release()
         }

@@ -25,6 +25,7 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
+import eu.darken.butler.editor.core.engine.EditorState as EngineState
 import eu.darken.butler.editor.core.engine.ReadOnlyFileException
 import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
@@ -79,13 +80,18 @@ class EditorWorkspace @AssistedInject constructor(
     private val atomicFileWriter = AtomicFileWriter(gatewaySwitch, tag)
 
     override suspend fun createArguments(): EditorArguments {
-        val currentState = (_state.value as? State.Ready)?.editor ?: return EditorArguments.Default()
-        val currentFilePath = (currentState.contentSource as? ContentSource.File)?.path
+        // A failed or still-loading file engine must not demote the tab to a scratch buffer:
+        // the engine's target path is the file identity even while contentSource reads Memory.
+        // Empty means no file is attached - either a scratch tab or a load the user cancelled -
+        // so only then does the persisted tab drop the path.
+        val engine = _engine.value ?: return creationArguments
+        val ready = (_state.value as? State.Ready)?.editor
+        val args = creationArguments as? EditorArguments.Default
         return EditorArguments.Default(
-            filePath = currentFilePath,
-            cursorLine = currentState.cursorPosition.line,
-            cursorColumn = currentState.cursorPosition.column,
-            scrollToLine = currentState.visibleRange.first,
+            filePath = if (engine.state.value is EngineState.Empty) null else engine.filePath,
+            cursorLine = ready?.cursorPosition?.line ?: args?.cursorLine,
+            cursorColumn = ready?.cursorPosition?.column ?: args?.cursorColumn,
+            scrollToLine = ready?.visibleRange?.first ?: args?.scrollToLine,
             charsetOverride = charsetOverride?.name(),
         )
     }
@@ -199,7 +205,9 @@ class EditorWorkspace @AssistedInject constructor(
         workspaceScope.launch {
             try {
                 editorStateInternal.collect { editorState ->
-                    _state.value = State.Ready(editorState)
+                    // A terminal init failure is final; later internal emissions (engine error
+                    // flow, settings changes) must not flip the tab back to a Ready scratch view
+                    _state.update { prev -> if (prev is State.Error) prev else State.Ready(editorState) }
                 }
             } catch (e: Exception) {
                 if (e !is CancellationException) {
