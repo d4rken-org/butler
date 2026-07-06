@@ -45,6 +45,7 @@ import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
+import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.keyboard.KeyboardShortcut
 import eu.darken.butler.common.keyboard.keyboardShortcuts
 import eu.darken.butler.common.navigation.NavigationEventHandler
@@ -101,7 +102,7 @@ fun SearcherWorkspacePage(
     stateSource: Flow<SearcherWorkspaceViewModel.State>,
     clipboardStateSource: Flow<ClipboardDisplayState?>,
     operationsStateSource: Flow<OperationsDisplayState?>,
-    vm: SearcherWorkspaceViewModel? = null,
+    issueStateSource: Flow<Issue?> = flowOf(null),
     onPageAction: (SearcherPageAction) -> Unit = {},
 ) {
     // StateFlow check: use current value as initial for single-frame renderers (screenshot tests, previews)
@@ -146,14 +147,6 @@ fun SearcherWorkspacePage(
 
     // Operation dialog state
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
-
-    // Handle share intent events
-    val context = LocalContext.current
-    LaunchedEffect(vm) {
-        vm?.shareIntentEvent?.collect { intent ->
-            context.startActivity(intent)
-        }
-    }
 
     // Use rememberUpdatedState for callback to avoid lambda recreation
     val currentOnPageAction by rememberUpdatedState(onPageAction)
@@ -681,7 +674,7 @@ fun SearcherWorkspacePage(
                         onOperationClick = { operation ->
                             when (operation.state) {
                                 is OperationDisplay.State.Waiting -> {
-                                    vm?.showConflictSheet(operation.id)
+                                    onPageAction(SearcherPageAction.Operations.ShowConflict(operation.id))
                                 }
                                 else -> {
                                     operationDialogState = OperationDialogState.OperationDetails(operation.id)
@@ -702,7 +695,7 @@ fun SearcherWorkspacePage(
                     ClipboardBar(
                         workspaceType = Workspace.Type.SEARCHER,
                         clipboardEntries = clipboardState.entries,
-                        onPasteClick = { clip -> vm?.openClipboardInExplorer(clip) },
+                        onPasteClick = { clip -> onPageAction(SearcherPageAction.Clipboard.OpenInExplorer(clip)) },
                         onRemoveClick = { onPageAction(SearcherPageAction.Clipboard.RemoveEntry(it)) },
                         onEntryClick = { onPageAction(SearcherPageAction.Clipboard.ClickEntry(it)) },
                         onClearAll = { onPageAction(SearcherPageAction.Clipboard.ClearAll) },
@@ -726,7 +719,7 @@ fun SearcherWorkspacePage(
                             }
                         },
                         onActionLongClick = { action ->
-                            vm?.onActionLongClick(action as SearcherActionBarItem)
+                            onPageAction(SearcherPageAction.WorkspaceActionLongClick(action as SearcherActionBarItem))
                         },
                     )
                 }
@@ -782,11 +775,13 @@ fun SearcherWorkspacePage(
     }
 
     // Issue/conflict resolution bottom sheet
-    val issueState by (vm?.issueState?.collectAsState() ?: remember { mutableStateOf(null) })
+    val issueState by issueStateSource.collectAsState(
+        initial = (issueStateSource as? StateFlow)?.value
+    )
     if (issueState != null) {
         IssuesBottomSheet(
             issue = issueState!!,
-            onResolution = { resolution -> vm?.resolveIssue(resolution) },
+            onResolution = { resolution -> onPageAction(SearcherPageAction.Issues.Resolve(resolution)) },
             onDismiss = { /* Issue will auto-clear when resolved or cancelled */ },
             topInset = statusBarInset,
             bottomInset = navBarInset,
@@ -797,13 +792,15 @@ fun SearcherWorkspacePage(
     SearcherDialogHost(
         dialogState = currentState.dialogState,
         trashEnabled = currentState.trashEnabled,
-        onDismiss = { vm?.dismissDialog() },
-        onDeleteConfirmed = { items, forcePermDelete -> vm?.onDeleteConfirmed(items, forcePermDelete) },
-        onCopyToClipboard = { text -> vm?.copyPathToSystemClipboard(text) },
-        onNavigateToClipboardSource = { clip -> vm?.navigateToClipboardSource(clip) },
-        onRemoveClipboardEntry = { clip -> vm?.removeClipboardEntry(clip) },
-        onSortOptionsConfirmed = { vm?.onSortOptions(it) },
-        onClearHistoryConfirmed = { vm?.onClearHistoryConfirmed() },
+        onDismiss = { onPageAction(SearcherPageAction.Dialogs.Dismiss) },
+        onDeleteConfirmed = { items, forcePermDelete ->
+            onPageAction(SearcherPageAction.Dialogs.DeleteConfirmed(items, forcePermDelete))
+        },
+        onCopyToClipboard = { text -> onPageAction(SearcherPageAction.Clipboard.CopyText(text)) },
+        onNavigateToClipboardSource = { clip -> onPageAction(SearcherPageAction.Clipboard.NavigateToSource(clip)) },
+        onRemoveClipboardEntry = { clip -> onPageAction(SearcherPageAction.Clipboard.RemoveEntry(clip)) },
+        onSortOptionsConfirmed = { onPageAction(SearcherPageAction.Dialogs.SortOptionsConfirmed(it)) },
+        onClearHistoryConfirmed = { onPageAction(SearcherPageAction.Dialogs.ClearHistoryConfirmed) },
         onConditionApply = { existing, new ->
             existing?.let { onPageAction(SearcherPageAction.Filter.RemoveCondition(it)) }
             onPageAction(SearcherPageAction.Filter.AddCondition(new))
@@ -819,11 +816,11 @@ fun SearcherWorkspacePage(
         onDismissDialog = { operationDialogState = OperationDialogState.None },
         onCancelOperation = { operationId ->
             operationDialogState = OperationDialogState.None
-            vm?.cancelOperation(operationId)
+            onPageAction(SearcherPageAction.Operations.Cancel(operationId))
         },
-        onShareError = { vm?.shareError(it) },
+        onShareError = { onPageAction(SearcherPageAction.Operations.ShareError(it)) },
         onHandleIssue = { operationId ->
-            vm?.showConflictSheet(operationId)
+            onPageAction(SearcherPageAction.Operations.ShowConflict(operationId))
         },
     )
 }
@@ -840,13 +837,21 @@ fun SearcherWorkspacePageHost(
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
+    // Handle share intent events
+    val context = LocalContext.current
+    LaunchedEffect(vm) {
+        vm.shareIntentEvent.collect { intent ->
+            context.startActivity(intent)
+        }
+    }
+
     SearcherWorkspacePage(
         workspaceId = id,
         design = design,
         stateSource = vm.state,
         clipboardStateSource = vm.clipboard,
         operationsStateSource = vm.operations,
-        vm = vm,
+        issueStateSource = vm.issueState,
         onPageAction = vm::onPageAction,
     )
 }

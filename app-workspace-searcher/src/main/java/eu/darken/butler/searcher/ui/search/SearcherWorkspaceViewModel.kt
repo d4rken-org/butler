@@ -403,7 +403,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
         .stateIn(vmScope, SharingStarted.Eagerly, State.Initializing)
 
-    fun restoreFromHistory(item: SearchHistory.SearchHistoryItem) {
+    private fun restoreFromHistory(item: SearchHistory.SearchHistoryItem) {
         log(TAG, INFO) { "Restoring search from history: ${item.baseQuery}" }
         item.searchQuery?.let { query ->
             // Update all parameters atomically
@@ -495,7 +495,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun performSearch(saveToHistory: Boolean = false) {
+    private fun performSearch(saveToHistory: Boolean = false) {
         val filenameText = filenameQuery.value
         val contentText = contentQuery.value
 
@@ -558,7 +558,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun cancelSearch() {
+    private fun cancelSearch() {
         log(TAG) { "Cancelling search" }
         vmScope.launch {
             val workspace = getWorkspace()
@@ -566,7 +566,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun clearResults() {
+    private fun clearResults() {
         log(TAG) { "Clearing search results" }
         filenameQuery.value = ""
         contentQuery.value = ""
@@ -579,35 +579,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateFilter(filter: SearchFilter) {
-        log(TAG) { "Updating filter: $filter" }
-        currentFilter.value = filter
-        // Clear selection state when filter changes
-        selectionState.value = SearcherSelectionState()
-    }
-
-
-    fun updateSearchTargets(targets: List<SearchTarget>) {
-        log(TAG) { "Updating search targets: ${targets.size} targets" }
-        // Clear selection state when targets change
-        selectionState.value = SearcherSelectionState()
-        vmScope.launch {
-            val workspace = getWorkspace()
-            workspace.updateTargets { targets }
-        }
-    }
-
-    fun addSearchTarget(path: APath<*>) {
-        log(TAG) { "Adding search target: $path" }
-        vmScope.launch {
-            val workspace = getWorkspace()
-            workspace.updateTargets { current ->
-                (current + SearchTarget.Path.from(path)).distinctBy { (it as? SearchTarget.Path)?.path }
-            }
-        }
-    }
-
-    fun removeSearchTarget(target: SearchTarget) {
+    private fun removeSearchTarget(target: SearchTarget) {
         log(TAG) { "Removing search target: ${(target as? SearchTarget.Path)?.path}" }
         vmScope.launch {
             val workspace = getWorkspace()
@@ -617,7 +589,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun toggleTargetEnabled(target: SearchTarget) {
+    private fun toggleTargetEnabled(target: SearchTarget) {
         log(TAG) { "Toggling target enabled: ${(target as? SearchTarget.Path)?.path}" }
         vmScope.launch {
             val workspace = getWorkspace()
@@ -634,27 +606,27 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     }
 
     // Selection and action methods
-    fun hideQuickActions() {
+    private fun hideQuickActions() {
         quickActionsResult.value = null
     }
 
-    fun enterSelectionMode(result: SearchItem) {
+    private fun enterSelectionMode(result: SearchItem) {
         log(TAG) { "Entering selection mode with: ${result.path}" }
         selectionState.update { it.enterSelectionMode(result) }
         hideQuickActions()
     }
 
-    fun toggleSelection(result: SearchItem) {
+    private fun toggleSelection(result: SearchItem) {
         log(TAG) { "Toggling selection for: ${result.path}" }
         selectionState.update { it.toggleSelection(result) }
     }
 
-    fun selectAll() {
+    private fun selectAll() {
         log(TAG) { "Selecting all results" }
         selectionState.update { it.selectAll() }
     }
 
-    fun selectAllFolders() {
+    private fun selectAllFolders() {
         log(TAG) { "Adding all folders to selection" }
         selectionState.update { state ->
             val folders = state.selectableResults.filterIsInstance<SearchItem.Directory>()
@@ -662,7 +634,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun selectAllFiles() {
+    private fun selectAllFiles() {
         log(TAG) { "Adding all files to selection" }
         selectionState.update { state ->
             val files = state.selectableResults.filterIsInstance<SearchItem.File>()
@@ -670,12 +642,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun deselectAll() {
+    private fun deselectAll() {
         log(TAG) { "Deselecting all results" }
         selectionState.update { it.deselectAll() }
     }
 
-    fun onAction(action: SearcherActionBarItem) {
+    private fun onAction(action: SearcherActionBarItem) {
         log(TAG) { "Executing action: ${action.javaClass.simpleName}" }
 
         when (action) {
@@ -799,7 +771,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         hideQuickActions()
     }
 
-    fun onActionLongClick(action: SearcherActionBarItem) {
+    private fun onActionLongClick(action: SearcherActionBarItem) {
         log(TAG) { "onActionLongClick(${action.javaClass.simpleName})" }
         when (action) {
             is SearcherActionBarItem.Delete -> {
@@ -965,11 +937,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun dismissDialog() {
+    private fun dismissDialog() {
         dialogStateFlow.value = SearcherDialogState.None
     }
 
-    fun onDeleteConfirmed(items: Set<APath<*>>, forcePermDelete: Boolean = false) = launch {
+    private fun onDeleteConfirmed(items: Set<APath<*>>, forcePermDelete: Boolean = false) = launch {
         log(TAG, INFO) { "onDeleteConfirmed(${items.size} items, forcePermDelete=$forcePermDelete)" }
         dialogStateFlow.value = SearcherDialogState.None
 
@@ -984,20 +956,20 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun onSortOptions(result: eu.darken.butler.searcher.ui.search.dialogs.SearchSortOptionsResult) = launch {
+    private fun onSortOptions(result: eu.darken.butler.searcher.ui.search.dialogs.SearchSortOptionsResult) = launch {
         log(tag) { "onSortOptions($result)" }
         dialogStateFlow.value = SearcherDialogState.None
         searcherSettings.defaultSort.value(result.sortSettings)
         currentSortSettings.value = result.sortSettings
     }
 
-    fun onClearHistoryConfirmed() = launch {
+    private fun onClearHistoryConfirmed() = launch {
         log(tag) { "onClearHistoryConfirmed()" }
         dialogStateFlow.value = SearcherDialogState.None
         searchHistory.clearHistory()
     }
 
-    fun navigateToClipboardSource(clip: ClipboardClip) = launch {
+    private fun navigateToClipboardSource(clip: ClipboardClip) = launch {
         log(TAG) { "navigateToClipboardSource($clip)" }
         dismissDialog()
 
@@ -1030,7 +1002,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun openClipboardInExplorer(clip: ClipboardClip) = launch {
+    private fun openClipboardInExplorer(clip: ClipboardClip) = launch {
         log(TAG) { "openClipboardInExplorer($clip)" }
 
         when (clip) {
@@ -1059,28 +1031,24 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun copyPathToSystemClipboard(text: String) {
+    private fun copyPathToSystemClipboard(text: String) {
         log(TAG) { "copyPathToSystemClipboard($text)" }
         chrome.copyToSystemClipboard(text)
     }
 
-    fun removeClipboardEntry(clip: ClipboardClip) {
+    private fun removeClipboardEntry(clip: ClipboardClip) {
         log(TAG) { "removeClipboardEntry($clip)" }
         chrome.removeClipboardEntry(clip)
         dismissDialog()
     }
 
-    fun cancelOperation(id: Operation.Id) = chrome.cancelOperation(id)
-
-    fun shareError(id: Operation.Id) = chrome.shareOperationError(id)
-
-    fun showConflictSheet(operationId: Operation.Id) = launch {
+    private fun showConflictSheet(operationId: Operation.Id) = launch {
         log(TAG) { "showConflictSheet($operationId): Conflict sheet is automatically shown via issueState observation" }
         // Note: Issue sheets are automatically displayed when issueState is set by the init block observer
         // No manual action needed here - the UI observes issueState and shows IssuesBottomSheet when non-null
     }
 
-    fun resolveIssue(resolution: eu.darken.butler.common.files.actions.PathActionIssue.Resolution) = launch {
+    private fun resolveIssue(resolution: eu.darken.butler.common.files.actions.PathActionIssue.Resolution) = launch {
         val operationId = currentIssueOperationId
         if (operationId != null) {
             log(TAG, INFO) { "Resolving issue for operation $operationId with resolution: $resolution" }
@@ -1090,13 +1058,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             log(TAG, WARN) { "Cannot resolve issue: no current issue operation ID" }
         }
     }
-
-    fun shareWorkspaceError() {
-        val error = (state.value as? State.Error)?.error ?: return
-        chrome.shareWorkspaceError(error, "Workspace initialization failed: ${id.shortTag}")
-    }
-
-    fun closeWorkspace() = chrome.closeWorkspace()
 
     /**
      * Unified handler for all page-level actions.
@@ -1255,11 +1216,25 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherPageAction.Clipboard.RemoveEntry -> removeClipboardEntry(action.clip)
             is SearcherPageAction.Clipboard.ClearAll -> chrome.clearClipboard()
+            is SearcherPageAction.Clipboard.NavigateToSource -> navigateToClipboardSource(action.clip)
+            is SearcherPageAction.Clipboard.OpenInExplorer -> openClipboardInExplorer(action.clip)
+            is SearcherPageAction.Clipboard.CopyText -> copyPathToSystemClipboard(action.text)
 
             // Operations
             is SearcherPageAction.Operations.Cancel -> chrome.cancelOperation(action.id)
             is SearcherPageAction.Operations.Dismiss -> chrome.dismissOperation(action.id)
             is SearcherPageAction.Operations.ClearCompleted -> chrome.clearCompletedOperations()
+            is SearcherPageAction.Operations.ShareError -> chrome.shareOperationError(action.id)
+            is SearcherPageAction.Operations.ShowConflict -> showConflictSheet(action.id)
+
+            // Dialogs
+            is SearcherPageAction.Dialogs.Dismiss -> dismissDialog()
+            is SearcherPageAction.Dialogs.DeleteConfirmed -> onDeleteConfirmed(action.paths, action.forcePermDelete)
+            is SearcherPageAction.Dialogs.SortOptionsConfirmed -> onSortOptions(action.result)
+            is SearcherPageAction.Dialogs.ClearHistoryConfirmed -> onClearHistoryConfirmed()
+
+            // Issues
+            is SearcherPageAction.Issues.Resolve -> resolveIssue(action.resolution)
 
             // Setup
             is SearcherPageAction.Setup.Open -> navTo(
@@ -1279,6 +1254,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
             // Workspace actions (delegate to existing handler)
             is SearcherPageAction.WorkspaceAction -> onAction(action.action)
+            is SearcherPageAction.WorkspaceActionLongClick -> onActionLongClick(action.action)
         }
     }
 

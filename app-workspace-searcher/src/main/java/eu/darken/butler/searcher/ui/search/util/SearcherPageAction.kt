@@ -1,9 +1,12 @@
 package eu.darken.butler.searcher.ui.search.util
 
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchTemplate
 import eu.darken.butler.searcher.core.history.SearchHistory
+import eu.darken.butler.searcher.ui.search.dialogs.SearchSortOptionsResult
 import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -215,6 +218,21 @@ sealed interface SearcherPageAction {
          * Clear all clipboard entries
          */
         data object ClearAll : Clipboard
+
+        /**
+         * Open a new Explorer workspace at the clip's source location
+         */
+        data class NavigateToSource(val clip: ClipboardClip) : Clipboard
+
+        /**
+         * Open a new Explorer workspace at the common parent of the clip's paths
+         */
+        data class OpenInExplorer(val clip: ClipboardClip) : Clipboard
+
+        /**
+         * Copy plain text (e.g. a path) to the system clipboard
+         */
+        data class CopyText(val text: String) : Clipboard
     }
 
     /**
@@ -235,6 +253,55 @@ sealed interface SearcherPageAction {
          * Clear all completed operations
          */
         data object ClearCompleted : Operations
+
+        /**
+         * Share the error report of a failed operation
+         */
+        data class ShareError(val id: Operation.Id) : Operations
+
+        /**
+         * Request the conflict sheet for a waiting operation
+         * (sheet display is driven by issue state; see ViewModel)
+         */
+        data class ShowConflict(val id: Operation.Id) : Operations
+    }
+
+    /**
+     * Dialog confirmations and dismissal
+     */
+    sealed interface Dialogs : SearcherPageAction {
+        /**
+         * Dismiss the currently shown dialog
+         */
+        data object Dismiss : Dialogs
+
+        /**
+         * Delete confirmed for the given paths
+         */
+        data class DeleteConfirmed(
+            val paths: Set<APath<*>>,
+            val forcePermDelete: Boolean = false,
+        ) : Dialogs
+
+        /**
+         * Sort options confirmed
+         */
+        data class SortOptionsConfirmed(val result: SearchSortOptionsResult) : Dialogs
+
+        /**
+         * Clear-history confirmed
+         */
+        data object ClearHistoryConfirmed : Dialogs
+    }
+
+    /**
+     * Operation issue/conflict resolution
+     */
+    sealed interface Issues : SearcherPageAction {
+        /**
+         * Resolve the currently pending operation issue
+         */
+        data class Resolve(val resolution: PathActionIssue.Resolution) : Issues
     }
 
     /**
@@ -262,4 +329,9 @@ sealed interface SearcherPageAction {
      * Delegates to existing [SearcherActionBarItem] for domain operations
      */
     data class WorkspaceAction(val action: SearcherActionBarItem) : SearcherPageAction
+
+    /**
+     * Long-press variant of [WorkspaceAction] (e.g. Delete long-press forces permanent delete)
+     */
+    data class WorkspaceActionLongClick(val action: SearcherActionBarItem) : SearcherPageAction
 }
