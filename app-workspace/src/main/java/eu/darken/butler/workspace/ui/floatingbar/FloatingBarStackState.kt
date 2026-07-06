@@ -85,18 +85,18 @@ class FloatingBarStackState(
             return@derivedStateOf if (estimatedContentPaddingPx > 0f) estimatedContentPaddingPx else totalHeight
         }
 
-        var hasVisibleBars = false
+        // Spacing only counts between visible bars; a hidden trailing bar must not leave a gap
+        val lastPresentIndex = barStates.indexOfLast { it.visibilityFraction > 0f || it.visible }
         barStates.forEachIndexed { index, bar ->
             if (bar.visibilityFraction > 0f || bar.visible) {
-                hasVisibleBars = true
                 totalHeight += bar.effectiveHeight
-                if (index < barStates.lastIndex) {
+                if (index < lastPresentIndex) {
                     totalHeight += defaultSpacingPx * bar.layoutPresence
                 }
             }
         }
         // Add content gap after the last visible bar
-        if (hasVisibleBars) {
+        if (lastPresentIndex >= 0) {
             totalHeight += contentGapPx
         }
         totalHeight.coerceAtLeast(0f)

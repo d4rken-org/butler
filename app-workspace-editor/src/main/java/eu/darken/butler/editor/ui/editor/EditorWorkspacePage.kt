@@ -2,10 +2,8 @@ package eu.darken.butler.editor.ui.editor
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,9 +31,7 @@ import eu.darken.butler.editor.ui.editor.dialogs.SaveAsOverwriteDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
-import eu.darken.butler.editor.ui.editor.elements.EditorBackupBanner
-import eu.darken.butler.editor.ui.editor.elements.EditorBinaryBanner
-import eu.darken.butler.editor.ui.editor.elements.EditorErrorBanner
+import eu.darken.butler.editor.ui.editor.elements.EditorBannerGroup
 import eu.darken.butler.editor.ui.editor.elements.EditorInfoBar
 import eu.darken.butler.editor.ui.editor.elements.EditorLoadingOverlay
 import eu.darken.butler.editor.ui.editor.elements.EditorSearchBar
@@ -188,6 +184,23 @@ fun EditorWorkspacePage(
                         onClearSelection = { onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition)) },
                     )
                 }
+                // Notices persist during scroll (Static) until dismissed; single stable bar, see EditorBannerGroup
+                FloatingBar(
+                    visible = state.error != null || state.showBackupNotice || state.isBinary,
+                    scrollBehavior = BarScrollBehavior.Static,
+                    estimatedHeight = 56.dp,
+                    animation = BarAnimation.Slide(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                ) {
+                    EditorBannerGroup(
+                        error = state.error,
+                        backupNames = state.staleBackups.map { it.name },
+                        showBackupNotice = state.showBackupNotice,
+                        isBinary = state.isBinary,
+                        onDismissError = { onPageAction(EditorPageAction.Error.Clear) },
+                        onDismissBackupNotice = { onPageAction(EditorPageAction.File.DismissBackupNotice) },
+                    )
+                }
             },
         )
 
@@ -264,88 +277,53 @@ fun EditorWorkspacePage(
         val topContentPadding = topBarStackState.contentPaddingDp()
         val bottomContentPadding = bottomBarStackState.contentPaddingDp()
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Error banner (soft errors within Ready state)
-            state.error?.let { error ->
-                EditorErrorBanner(
-                    error = error,
-                    onDismiss = { onPageAction(EditorPageAction.Error.Clear) },
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (!state.hasFile && state.isLoading) {
+                EditorLoadingOverlay()
+            } else {
+                LazyTextEditor(
+                    contentPadding = PaddingValues(
+                        top = topContentPadding,
+                        bottom = bottomContentPadding,
+                    ),
+                    content = state.currentContent,
+                    totalLines = state.totalLines,
+                    cursorPosition = state.cursorPosition,
+                    selection = state.selectionRange,
+                    visibleRange = state.visibleRange,
+                    showLineNumbers = state.showLineNumbers,
+                    wordWrap = state.wordWrap,
+                    readOnly = state.isReadOnly,
+                    fontSize = state.fontSize,
+                    tabSize = state.tabSize,
+                    searchResults = state.searchResults,
+                    currentSearchResultIndex = state.currentSearchResultIndex,
+                    scrollTrigger = state.scrollTrigger,
+                    onTextReplace = { start, end, inserted, caret ->
+                        onPageAction(EditorPageAction.Edit.ReplaceRange(start, end, inserted, caret))
+                    },
+                    onCursorPositionChange = { position ->
+                        onPageAction(EditorPageAction.Navigation.SetCursor(position))
+                    },
+                    onSelectionChange = { selection ->
+                        if (selection != null) {
+                            onPageAction(EditorPageAction.Navigation.SetSelection(selection.first, selection.second))
+                        } else {
+                            onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
+                        }
+                    },
+                    onVisibleRangeChange = { range ->
+                        onPageAction(EditorPageAction.Navigation.UpdateVisibleRange(range.first, range.last))
+                    },
+                    onCursorMove = { direction, extendSelection ->
+                        onPageAction(EditorPageAction.Navigation.MoveCursor(direction, extendSelection))
+                    },
+                    onForwardDelete = { onPageAction(EditorPageAction.Edit.ForwardDelete) },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(topBarStackState.nestedScrollConnection)
+                        .nestedScroll(bottomBarStackState.nestedScrollConnection),
                 )
-            }
-
-            if (state.showBackupNotice) {
-                EditorBackupBanner(
-                    backupNames = state.staleBackups.map { it.name },
-                    onDismiss = { onPageAction(EditorPageAction.File.DismissBackupNotice) },
-                )
-            }
-
-            if (state.isBinary) {
-                EditorBinaryBanner()
-            }
-
-            // Main editor content
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                if (!state.hasFile && state.isLoading) {
-                    EditorLoadingOverlay()
-                } else {
-                    LazyTextEditor(
-                        contentPadding = PaddingValues(
-                            top = topContentPadding,
-                            bottom = bottomContentPadding,
-                        ),
-                        content = state.currentContent,
-                        totalLines = state.totalLines,
-                        cursorPosition = state.cursorPosition,
-                        selection = state.selectionRange,
-                        visibleRange = state.visibleRange,
-                        showLineNumbers = state.showLineNumbers,
-                        wordWrap = state.wordWrap,
-                        readOnly = state.isReadOnly,
-                        fontSize = state.fontSize,
-                        tabSize = state.tabSize,
-                        searchResults = state.searchResults,
-                        currentSearchResultIndex = state.currentSearchResultIndex,
-                        scrollTrigger = state.scrollTrigger,
-                        onTextReplace = { start, end, inserted, caret ->
-                            onPageAction(EditorPageAction.Edit.ReplaceRange(start, end, inserted, caret))
-                        },
-                        onCursorPositionChange = { position ->
-                            onPageAction(
-                                EditorPageAction.Navigation.SetCursor(
-                                    position
-                                )
-                            )
-                        },
-                        onSelectionChange = { selection ->
-                            if (selection != null) {
-                                onPageAction(
-                                    EditorPageAction.Navigation.SetSelection(
-                                        selection.first,
-                                        selection.second
-                                    )
-                                )
-                            } else {
-                                onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition))
-                            }
-                        },
-                        onVisibleRangeChange = { range ->
-                            onPageAction(EditorPageAction.Navigation.UpdateVisibleRange(range.first, range.last))
-                        },
-                        onCursorMove = { direction, extendSelection ->
-                            onPageAction(EditorPageAction.Navigation.MoveCursor(direction, extendSelection))
-                        },
-                        onForwardDelete = { onPageAction(EditorPageAction.Edit.ForwardDelete) },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(topBarStackState.nestedScrollConnection)
-                            .nestedScroll(bottomBarStackState.nestedScrollConnection),
-                    )
-                }
             }
         }
     }

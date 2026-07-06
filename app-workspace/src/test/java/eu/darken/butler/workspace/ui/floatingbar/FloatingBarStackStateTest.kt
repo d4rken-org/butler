@@ -66,4 +66,45 @@ class FloatingBarStackStateTest : BaseTest() {
     }
 
     // endregion
+
+    // region Inter-bar spacing only counts between visible bars
+
+    private fun spacingTestState() = FloatingBarStackState(
+        position = BarPosition.TOP,
+        initialDefaultSpacingPx = 8f,
+        initialEdgePaddingPx = 0f,
+        initialContentGapPx = 0f,
+        initialSystemBarInsetPx = 0f,
+        initialImeExtraPx = 0f,
+    )
+
+    @Test
+    fun `hidden trailing bar adds neither height nor spacing`() {
+        val state = spacingTestState()
+        state.registerBar(FloatingBarState(id = "toolbar", initialVisible = true).apply { measuredHeight = 100f })
+        state.registerBar(FloatingBarState(id = "banners", initialVisible = false).apply { measuredHeight = 50f })
+
+        state.contentPaddingPx shouldBe 100f
+    }
+
+    @Test
+    fun `visible trailing bar adds height plus spacing`() {
+        val state = spacingTestState()
+        state.registerBar(FloatingBarState(id = "toolbar", initialVisible = true).apply { measuredHeight = 100f })
+        state.registerBar(FloatingBarState(id = "banners", initialVisible = true).apply { measuredHeight = 50f })
+
+        state.contentPaddingPx shouldBe 158f
+    }
+
+    @Test
+    fun `hidden middle bar adds no spacing between its neighbors`() {
+        val state = spacingTestState()
+        state.registerBar(FloatingBarState(id = "toolbar", initialVisible = true).apply { measuredHeight = 100f })
+        state.registerBar(FloatingBarState(id = "hidden", initialVisible = false).apply { measuredHeight = 50f })
+        state.registerBar(FloatingBarState(id = "info", initialVisible = true).apply { measuredHeight = 24f })
+
+        state.contentPaddingPx shouldBe 132f
+    }
+
+    // endregion
 }

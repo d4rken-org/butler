@@ -123,11 +123,11 @@ class FileDataSource @AssistedInject constructor(
                 val backups = scanSaveArtifacts()
                 if (backups.isNotEmpty()) {
                     throw FileNotFoundException(
-                        "File does not exist: $filePath - a backup from an interrupted save " +
+                        "File does not exist: ${filePath.path} - a backup from an interrupted save " +
                             "exists: ${backups.joinToString { it.name }}",
                     )
                 }
-                throw FileNotFoundException("File does not exist: $filePath")
+                throw FileNotFoundException("File does not exist: ${filePath.path}")
             }
 
             val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
