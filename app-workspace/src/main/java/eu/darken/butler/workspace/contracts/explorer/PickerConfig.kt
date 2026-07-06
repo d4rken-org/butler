@@ -221,9 +221,10 @@ data class PickerConfig(
                 PickerConstraint.IsWritable,
             )
 
+            // Files are NOT disabled here (unlike directory-only pickers): tapping a writable
+            // file prefills its name into the filename field, so the row must stay interactive.
             @IgnoredOnParcel
             override val disabledConstraint: PickerConstraint = anyOf(
-                PickerConstraint.IsFile,
                 allOf(PickerConstraint.IsShortcut, PickerConstraint.HasShortcutId("trash")),
                 not(PickerConstraint.IsWritable),
             )

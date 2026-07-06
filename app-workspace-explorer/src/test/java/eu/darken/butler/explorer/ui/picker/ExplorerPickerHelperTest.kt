@@ -8,6 +8,7 @@ import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -224,6 +225,18 @@ class ExplorerPickerHelperTest : BaseTest() {
                     selectedItems = emptySet(),
                     saveAsFilename = "my_file.pdf",
                 ) shouldBe false
+            }
+
+            @Test
+            fun `writable files stay interactive so their name can prefill the field`() {
+                val disabled = helper.computeDisabledItems(
+                    items = listOf(mockFile(), mockDirectory()),
+                    config = PickerConfig(
+                        callerWorkspaceId = mockk(),
+                        selection = PickerConfig.Selection.SaveAs("document.pdf"),
+                    ),
+                )
+                disabled.shouldBeEmpty()
             }
         }
 

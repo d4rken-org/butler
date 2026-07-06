@@ -29,13 +29,18 @@ class PickerConstraintEvaluatorTest : BaseTest() {
         }
     }
 
-    private fun mockFile(mimeType: String = "application/octet-stream", size: Long? = 1024L): ExplorerItem.File {
+    private fun mockFile(
+        mimeType: String = "application/octet-stream",
+        size: Long? = 1024L,
+        canWrite: Boolean? = null,
+    ): ExplorerItem.File {
         val lookup = mockk<APathLookup<*>> {
             every { this@mockk.size } returns size
         }
         return mockk<ExplorerItem.RegularFile> {
             every { this@mockk.lookup } returns lookup
             every { this@mockk.mimeType } returns MimeInfo(mimeType)
+            every { this@mockk.canWrite } returns canWrite
         }
     }
 
@@ -475,8 +480,11 @@ class PickerConstraintEvaluatorTest : BaseTest() {
             selection.isSelectable(mockStorage(canWrite = false)) shouldBe false
             selection.isSelectable(mockFile()) shouldBe false
 
-            // Disabled - files, trash shortcut, and non-writable items
-            selection.isDisabled(mockFile()) shouldBe true
+            // Disabled - trash shortcut and non-writable items. Writable files stay interactive
+            // (tapping one prefills its name into the filename field), read-only files do not.
+            selection.isDisabled(mockFile(canWrite = true)) shouldBe false
+            selection.isDisabled(mockFile(canWrite = null)) shouldBe false // unknown = writable
+            selection.isDisabled(mockFile(canWrite = false)) shouldBe true // read-only disabled
             selection.isDisabled(mockShortcut("trash")) shouldBe true
             selection.isDisabled(mockDirectory(canWrite = true)) shouldBe false
             selection.isDisabled(mockDirectory(canWrite = false)) shouldBe true // read-only disabled
