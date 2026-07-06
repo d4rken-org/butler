@@ -68,6 +68,7 @@ class EditorWorkspace @AssistedInject constructor(
     private val editorEngineFactory: EditorEngine.Factory,
     private val editorSettings: EditorSettings,
     private val operationsManager: OperationsManager,
+    private val pasteFileReader: PasteFileReader,
 ) : Workspace<EditorArguments> {
 
     private val tag = logTag("Editor", "Workspace", id.shortTag)
@@ -511,48 +512,8 @@ class EditorWorkspace @AssistedInject constructor(
 
     fun clearError() = _engine.value?.clearError()
 
-    /**
-     * Reads file content for pasting from clipboard.
-     * @param path The file path to read
-     * @return Result containing the file content as String, or an error
-     */
-    suspend fun readFileContent(path: APath<*>): Result<String> = try {
-        gatewaySwitch.useRes {
-            val lookup = gatewaySwitch.lookup(path, eu.darken.butler.common.files.LookupOptions())
-            val size = lookup.size ?: 0L
-
-            // Size limit: 1 MB
-            if (size > MAX_PASTE_FILE_SIZE) {
-                return@useRes Result.failure(
-                    IllegalArgumentException("File too large to paste (max ${MAX_PASTE_FILE_SIZE / 1024 / 1024} MB)")
-                )
-            }
-
-            val bytes = gatewaySwitch.openInputStream(path).use { inputStream ->
-                inputStream.readBytes()
-            }
-
-            // Binary detection: check for null bytes
-            if (bytes.any { it == 0.toByte() }) {
-                return@useRes Result.failure(
-                    IllegalArgumentException("Cannot paste binary file content")
-                )
-            }
-
-            // Try UTF-8 first, fallback to ISO-8859-1
-            val content = try {
-                String(bytes, Charsets.UTF_8)
-            } catch (e: Exception) {
-                log(tag, WARN) { "UTF-8 decode failed, falling back to ISO-8859-1" }
-                String(bytes, Charsets.ISO_8859_1)
-            }
-
-            Result.success(content)
-        }
-    } catch (e: Exception) {
-        log(tag, ERROR) { "Failed to read file content: ${e.asLog()}" }
-        Result.failure(e)
-    }
+    /** Reads file content for pasting from clipboard. */
+    suspend fun readFileContent(path: APath<*>): Result<String> = pasteFileReader.read(path)
 
     override suspend fun release() {
         log(tag, INFO) { "release()" }
@@ -588,10 +549,6 @@ class EditorWorkspace @AssistedInject constructor(
             val progress: Progress.Data? get() = editor.progress
         }
         data class Error(val error: Throwable) : State
-    }
-
-    companion object {
-        const val MAX_PASTE_FILE_SIZE = 1024 * 1024L // 1 MB
     }
 
     @AssistedFactory

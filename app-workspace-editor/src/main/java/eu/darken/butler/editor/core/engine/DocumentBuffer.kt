@@ -342,7 +342,7 @@ class DocumentBuffer @AssistedInject constructor(
         start + column.coerceIn(0, (end - start).coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
     }
 
-    suspend fun search(query: String, startFrom: TextPosition?, options: SearchOptions): List<SearchResult> =
+    suspend fun search(query: String, options: SearchOptions): List<SearchResult> =
         bufferMutex.withLock {
             val table = tableOrNull() ?: return@withLock emptyList()
             try {
@@ -735,7 +735,7 @@ class DocumentBuffer @AssistedInject constructor(
         val baseSize = 32L
         return when (this) {
             is EditOperation.Insert -> baseSize + (text.length * 2L)
-            is EditOperation.Delete -> baseSize + (deletedText.length * 2L) + 4L
+            is EditOperation.Delete -> baseSize + (deletedText.length * 2L)
             is EditOperation.Replace -> baseSize + (oldText.length * 2L) + (newText.length * 2L)
         }
     }

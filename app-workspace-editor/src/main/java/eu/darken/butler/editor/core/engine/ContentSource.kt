@@ -34,7 +34,7 @@ sealed class ContentSource {
     data class File(
         val path: APath<*>,
         override val size: Long,
-        val lastModified: Instant,
+        val lastModified: Instant?,
         val canWrite: Boolean,
         val lineEnding: LineEnding = LineEnding.LF,
         val detectedCharset: Charset = Charsets.UTF_8,
@@ -67,7 +67,7 @@ sealed class ContentSource {
         override fun hashCode(): Int {
             var result = path.hashCode()
             result = 31 * result + size.hashCode()
-            result = 31 * result + lastModified.hashCode()
+            result = 31 * result + (lastModified?.hashCode() ?: 0)
             result = 31 * result + canWrite.hashCode()
             result = 31 * result + lineEnding.hashCode()
             result = 31 * result + detectedCharset.hashCode()

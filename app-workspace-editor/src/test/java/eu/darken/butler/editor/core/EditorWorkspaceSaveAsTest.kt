@@ -132,6 +132,7 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
             editorEngineFactory = engineFactory,
             editorSettings = settings,
             operationsManager = operationsManager,
+            pasteFileReader = PasteFileReader(gateway),
         )
     }
 

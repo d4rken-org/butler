@@ -30,6 +30,7 @@ import okio.Source
 import okio.buffer
 import okio.use
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.nio.charset.Charset
 import kotlin.uuid.Uuid
 
@@ -48,18 +49,24 @@ class FileDataSource @AssistedInject constructor(
 
     private val accessMutex = Mutex()
 
-    /** Reads the first 8KB for charset detection (enough for BOM + content validation). */
+    /**
+     * Reads the first 8KB for charset detection (enough for BOM + content validation).
+     * Loops until the sample is full or EOF and trims to the bytes actually read - a single
+     * read() may return short, and a zero-filled tail would skew detection.
+     */
     private suspend fun readDetectionSample(): ByteArray {
-        val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
-        val sampleSize = minOf(8192L, lookup.size ?: 0L).toInt()
-        if (sampleSize == 0) return ByteArray(0)
-        val sampleBytes = ByteArray(sampleSize)
+        val sampleBytes = ByteArray(DETECTION_SAMPLE_SIZE)
+        var filled = 0
         gatewaySwitch.file(filePath, readWrite = false).use { handle ->
             handle.source().buffer().use { source ->
-                source.read(sampleBytes)
+                while (filled < sampleBytes.size) {
+                    val read = source.read(sampleBytes, filled, sampleBytes.size - filled)
+                    if (read == -1) break
+                    filled += read
+                }
             }
         }
-        return sampleBytes
+        return if (filled == sampleBytes.size) sampleBytes else sampleBytes.copyOf(filled)
     }
 
     /**
@@ -120,10 +127,14 @@ class FileDataSource @AssistedInject constructor(
                 ?: detectCharset()
             val canWrite = gatewaySwitch.canWrite(filePath)
 
+            // A document without a reported size can't be block-indexed or staleness-checked;
+            // a missing mtime is fine (staleness skips the mtime comparison when null)
+            val size = lookup.size
+                ?: throw IOException("Provider reported no size for $filePath")
             _contentSource.value = ContentSource.File(
                 path = filePath,
-                size = lookup.size!!,
-                lastModified = lookup.modifiedAt!!,
+                size = size,
+                lastModified = lookup.modifiedAt,
                 canWrite = canWrite,
                 lineEnding = LineEnding.LF, // Updated by the engine after the block scan
                 detectedCharset = detectedCharset,
@@ -145,8 +156,9 @@ class FileDataSource @AssistedInject constructor(
 
     override suspend fun getMeta(): EditorDataSource.Meta = withContext(Dispatchers.IO) {
         val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
+        // Coercing a missing size to 0 would fake a size-change staleness failure
         EditorDataSource.Meta(
-            size = lookup.size ?: 0L,
+            size = lookup.size ?: throw IOException("Provider reported no size for $filePath"),
             modifiedAt = lookup.modifiedAt,
         )
     }
@@ -198,8 +210,8 @@ class FileDataSource @AssistedInject constructor(
             runCatching {
                 val lookup = filePath.lookup(gatewaySwitch, LookupOptions.BASE)
                 _contentSource.value = fileSource.copy(
-                    size = lookup.size!!,
-                    lastModified = lookup.modifiedAt!!,
+                    size = lookup.size ?: fileSource.size,
+                    lastModified = lookup.modifiedAt,
                 )
             }.onFailure { log(tag, WARN) { "Post-commit metadata refresh failed: ${it.asLog()}" } }
             log(tag) { "Commit landed for $filePath" }
@@ -349,5 +361,9 @@ class FileDataSource @AssistedInject constructor(
             gatewaySwitch: GatewaySwitch,
             charsetOverride: Charset? = null,
         ): FileDataSource
+    }
+
+    companion object {
+        const val DETECTION_SAMPLE_SIZE = 8192
     }
 }
