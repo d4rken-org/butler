@@ -1150,7 +1150,9 @@ class EditorEngine @AssistedInject constructor(
             val currentState = _state.value as? EditorState.Loaded ?: return@withLock
             val buffer = currentState.resources.textBuffer
             _totalLines.value = buffer.totalLines.value
-            _state.value = currentState.copy(isModified = true)
+            // Read the flag from the buffer instead of assuming true: an undo/redo/save that
+            // interleaved between the buffer mutation and this refresh must not be overwritten
+            _state.value = currentState.copy(isModified = buffer.isModified.value)
             _selectionRange.value = null
             selectionAnchor = null
             cursorOffset?.let { _cursorPosition.value = buffer.findPosition(it) }
