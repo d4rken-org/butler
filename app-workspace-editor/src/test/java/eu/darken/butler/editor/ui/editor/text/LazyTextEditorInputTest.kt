@@ -1,10 +1,12 @@
 package eu.darken.butler.editor.ui.editor.text
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
@@ -59,11 +61,20 @@ class LazyTextEditorInputTest : ComposeTest() {
         }
     }
 
-    private fun ComposeContentTestRule.setEditor(engine: FakeEngine, readOnly: Boolean = false) {
+    /**
+     * [echoDelayMs] > 0 defers the engine echo like the real launched edit round-trip does -
+     * the window the isUserEditing arbitration exists to protect. 0 echoes synchronously.
+     */
+    private fun ComposeContentTestRule.setEditor(
+        engine: FakeEngine,
+        readOnly: Boolean = false,
+        echoDelayMs: Long = 0L,
+    ) {
         setContent {
             PreviewWrapper {
                 var content by remember { mutableStateOf(engine.content) }
                 var cursor by remember { mutableStateOf(TextPosition(0, 0, 0)) }
+                val scope = rememberCoroutineScope()
                 LazyTextEditor(
                     content = content,
                     totalLines = content.split('\n').size.toLong(),
@@ -72,8 +83,17 @@ class LazyTextEditorInputTest : ComposeTest() {
                     visibleRange = 0L..(content.split('\n').size.toLong() - 1),
                     readOnly = readOnly,
                     onTextReplace = { start, end, inserted, caret ->
-                        content = engine.apply(ReplaceEvent(start, end, inserted, caret))
-                        cursor = caret
+                        val echoed = engine.apply(ReplaceEvent(start, end, inserted, caret))
+                        if (echoDelayMs > 0) {
+                            scope.launch {
+                                delay(echoDelayMs)
+                                content = engine.content
+                                cursor = caret
+                            }
+                        } else {
+                            content = echoed
+                            cursor = caret
+                        }
                     },
                     onCursorPositionChange = { cursor = it },
                     onSelectionChange = {},
@@ -109,6 +129,21 @@ class LazyTextEditorInputTest : ComposeTest() {
         composeTestRule.waitForIdle()
 
         engine.content shouldBe "one two three base"
+    }
+
+    @Test
+    fun `input landing before the engine echo is not clobbered`() {
+        // The echo lags each edit like the real launched round-trip; typing continues while
+        // stale content flows back - the field must stay authoritative until it converges
+        val engine = FakeEngine("base")
+        composeTestRule.setEditor(engine, echoDelayMs = 50L)
+
+        val field = composeTestRule.onNodeWithTag(EDITOR_INPUT_TEST_TAG)
+        field.performTextInput("one ")
+        field.performTextInput("two ")
+        field.performTextInput("three ")
+
+        composeTestRule.waitUntil(timeoutMillis = 10_000) { engine.content == "one two three base" }
     }
 
     @Test
