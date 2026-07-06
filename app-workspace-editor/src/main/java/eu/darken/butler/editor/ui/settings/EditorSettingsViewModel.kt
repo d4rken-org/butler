@@ -22,12 +22,16 @@ constructor(
     val state = combine(
         editorSettings.showLineNumbers.flow,
         editorSettings.wordWrap.flow,
+        editorSettings.fontSize.flow,
+        editorSettings.tabSize.flow,
         editorSettings.autoSaveEnabled.flow,
         editorSettings.autoSaveInterval.flow,
-    ) { showLineNumbers, wordWrap, autoSaveEnabled, autoSaveInterval ->
+    ) { showLineNumbers, wordWrap, fontSize, tabSize, autoSaveEnabled, autoSaveInterval ->
         State(
             showLineNumbers = showLineNumbers,
             wordWrap = wordWrap,
+            fontSize = fontSize,
+            tabSize = tabSize,
             autoSaveEnabled = autoSaveEnabled,
             autoSaveIntervalSeconds = autoSaveInterval.inWholeSeconds.toInt(),
         )
@@ -44,6 +48,16 @@ constructor(
         editorSettings.wordWrap.value(enabled)
     }
 
+    fun updateFontSize(size: Int) = launch {
+        log(tag) { "updateFontSize($size)" }
+        editorSettings.fontSize.value(size)
+    }
+
+    fun updateTabSize(size: Int) = launch {
+        log(tag) { "updateTabSize($size)" }
+        editorSettings.tabSize.value(size)
+    }
+
     fun updateAutoSaveEnabled(enabled: Boolean) = launch {
         log(tag) { "updateAutoSaveEnabled($enabled)" }
         editorSettings.autoSaveEnabled.value(enabled)
@@ -57,7 +71,14 @@ constructor(
     data class State(
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
+        val fontSize: Int = 14,
+        val tabSize: Int = 4,
         val autoSaveEnabled: Boolean = false,
         val autoSaveIntervalSeconds: Int = 30,
     )
+
+    companion object {
+        val FONT_SIZE_OPTIONS = listOf(10, 12, 14, 16, 18, 20, 24)
+        val TAB_SIZE_OPTIONS = listOf(2, 4, 8)
+    }
 }

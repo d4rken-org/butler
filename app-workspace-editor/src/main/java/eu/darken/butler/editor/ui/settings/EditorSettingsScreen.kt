@@ -1,27 +1,41 @@
 package eu.darken.butler.editor.ui.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardTab
 import androidx.compose.material.icons.automirrored.filled.WrapText
 import androidx.compose.material.icons.twotone.FormatListNumbered
+import androidx.compose.material.icons.twotone.FormatSize
 import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material.icons.twotone.Timer
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,10 +59,14 @@ fun EditorSettingsScreen(
     onNavigateUp: () -> Unit,
     onShowLineNumbersChange: (Boolean) -> Unit,
     onWordWrapChange: (Boolean) -> Unit,
+    onFontSizeChange: (Int) -> Unit,
+    onTabSizeChange: (Int) -> Unit,
     onAutoSaveEnabledChange: (Boolean) -> Unit,
     onAutoSaveIntervalChange: (Int) -> Unit,
 ) {
     var showIntervalDialog by remember { mutableStateOf(false) }
+    var showFontSizeDialog by remember { mutableStateOf(false) }
+    var showTabSizeDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     Scaffold(
@@ -93,6 +111,28 @@ fun EditorSettingsScreen(
                     checked = state.wordWrap,
                     onCheckedChange = onWordWrapChange
                 )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsPreferenceItem(
+                    icon = Icons.TwoTone.FormatSize,
+                    title = stringResource(R.string.editor_settings_font_size_title),
+                    subtitle = stringResource(R.string.editor_settings_font_size_subtitle),
+                    value = stringResource(R.string.editor_settings_font_size_value, state.fontSize),
+                    onClick = { showFontSizeDialog = true },
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsPreferenceItem(
+                    icon = Icons.AutoMirrored.Filled.KeyboardTab,
+                    title = stringResource(R.string.editor_settings_tab_size_title),
+                    subtitle = stringResource(R.string.editor_settings_tab_size_subtitle),
+                    value = state.tabSize.toString(),
+                    onClick = { showTabSizeDialog = true },
+                )
             }
 
             item {
@@ -128,6 +168,34 @@ fun EditorSettingsScreen(
         }
     }
 
+    if (showFontSizeDialog) {
+        IntSelectorDialog(
+            title = stringResource(R.string.editor_settings_font_size_title),
+            options = EditorSettingsViewModel.FONT_SIZE_OPTIONS,
+            selected = state.fontSize,
+            optionLabel = { stringResource(R.string.editor_settings_font_size_value, it) },
+            onSelected = {
+                onFontSizeChange(it)
+                showFontSizeDialog = false
+            },
+            onDismiss = { showFontSizeDialog = false },
+        )
+    }
+
+    if (showTabSizeDialog) {
+        IntSelectorDialog(
+            title = stringResource(R.string.editor_settings_tab_size_title),
+            options = EditorSettingsViewModel.TAB_SIZE_OPTIONS,
+            selected = state.tabSize,
+            optionLabel = { it.toString() },
+            onSelected = {
+                onTabSizeChange(it)
+                showTabSizeDialog = false
+            },
+            onDismiss = { showTabSizeDialog = false },
+        )
+    }
+
     if (showIntervalDialog) {
         SecondsDurationInputDialog(
             title = stringResource(R.string.editor_settings_autosave_interval_dialog_title),
@@ -144,6 +212,46 @@ fun EditorSettingsScreen(
     }
 }
 
+@Composable
+private fun IntSelectorDialog(
+    title: String,
+    options: List<Int>,
+    selected: Int,
+    optionLabel: @Composable (Int) -> String,
+    onSelected: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column {
+                options.forEach { option ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelected(option) }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = option == selected,
+                            onClick = { onSelected(option) },
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(text = optionLabel(option), style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(eu.darken.butler.common.R.string.general_cancel_action))
+            }
+        },
+    )
+}
+
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
 @Composable
@@ -158,6 +266,8 @@ private fun EditorSettingsScreenPreview() {
         onNavigateUp = {},
         onShowLineNumbersChange = {},
         onWordWrapChange = {},
+        onFontSizeChange = {},
+        onTabSizeChange = {},
         onAutoSaveEnabledChange = {},
         onAutoSaveIntervalChange = {},
     )
@@ -176,6 +286,8 @@ fun EditorSettingsScreenHost(vm: EditorSettingsViewModel = hiltViewModel()) {
             onNavigateUp = { vm.navUp() },
             onShowLineNumbersChange = { vm.updateShowLineNumbers(it) },
             onWordWrapChange = { vm.updateWordWrap(it) },
+            onFontSizeChange = { vm.updateFontSize(it) },
+            onTabSizeChange = { vm.updateTabSize(it) },
             onAutoSaveEnabledChange = { vm.updateAutoSaveEnabled(it) },
             onAutoSaveIntervalChange = { vm.updateAutoSaveInterval(it) },
         )

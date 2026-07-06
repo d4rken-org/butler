@@ -133,6 +133,22 @@ class EditorWorkspace @AssistedInject constructor(
     private val _state = MutableStateFlow<State>(State.Initializing)
     val state: StateFlow<State> = _state.asStateFlow()
 
+    private data class DisplaySettings(
+        val showLineNumbers: Boolean,
+        val wordWrap: Boolean,
+        val fontSize: Int,
+        val tabSize: Int,
+    )
+
+    private val displaySettings: Flow<DisplaySettings> = combine(
+        editorSettings.showLineNumbers.flow,
+        editorSettings.wordWrap.flow,
+        editorSettings.fontSize.flow,
+        editorSettings.tabSize.flow,
+    ) { showLineNumbers, wordWrap, fontSize, tabSize ->
+        DisplaySettings(showLineNumbers, wordWrap, fontSize, tabSize)
+    }
+
     // Combined editor state for internal use
     private val editorStateInternal: Flow<EditorState> = _engine.flatMapLatest { engine ->
         if (engine == null) return@flatMapLatest emptyFlow()
@@ -150,11 +166,10 @@ class EditorWorkspace @AssistedInject constructor(
             engine.progress,
             engine.canUndo,
             engine.canRedo,
-            editorSettings.showLineNumbers.flow,
-            editorSettings.wordWrap.flow,
+            displaySettings,
         ) { contentSource, totalLines, isModified, currentContent, cursorPosition,
             selectionRange, searchQuery, searchResults, visibleRange, error,
-            progress, canUndo, canRedo, showLineNumbers, wordWrap ->
+            progress, canUndo, canRedo, display ->
             EditorState(
                 contentSource = contentSource,
                 totalLines = totalLines,
@@ -166,8 +181,10 @@ class EditorWorkspace @AssistedInject constructor(
                 searchResults = searchResults,
                 visibleRange = visibleRange,
                 error = error,
-                showLineNumbers = showLineNumbers,
-                wordWrap = wordWrap,
+                showLineNumbers = display.showLineNumbers,
+                wordWrap = display.wordWrap,
+                fontSize = display.fontSize,
+                tabSize = display.tabSize,
                 progress = progress,
                 canUndo = canUndo,
                 canRedo = canRedo,
@@ -589,6 +606,8 @@ class EditorWorkspace @AssistedInject constructor(
         val error: Throwable? = null,
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
+        val fontSize: Int = 14,
+        val tabSize: Int = 4,
         val progress: Progress.Data? = null,
         val canUndo: Boolean = false,
         val canRedo: Boolean = false,

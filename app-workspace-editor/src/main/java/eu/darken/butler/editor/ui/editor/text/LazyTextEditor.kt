@@ -605,7 +605,9 @@ private fun DualColumnEditorContent(
                 contentPadding = contentPadding,
                 modifier = modifier
                     .then(contentModifier)
-                    .pointerInput(isWorkspaceFocused, requestWorkspaceFocus, keyboardController) {
+                    // fontSize/tabSize are captured by the hit-testing math below: the gesture
+                    // scope must restart when they change or taps keep using stale metrics
+                    .pointerInput(isWorkspaceFocused, requestWorkspaceFocus, keyboardController, fontSize, tabSize) {
                         detectTapGestures(
                             onTap = { offset ->
                                 // Ignore taps during scroll fling to prevent accidental keyboard show

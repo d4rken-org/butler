@@ -75,6 +75,8 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
         }
         every { settings.showLineNumbers } returns value(true)
         every { settings.wordWrap } returns value(false)
+        every { settings.fontSize } returns value(14)
+        every { settings.tabSize } returns value(4)
         every { settings.autoSaveEnabled } returns value(false)
         every { settings.autoSaveInterval } returns value(30.seconds)
         every { settings.undoStackSize } returns value(100)
