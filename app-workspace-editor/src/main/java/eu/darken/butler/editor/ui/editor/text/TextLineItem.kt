@@ -68,7 +68,7 @@ internal fun TextLineItem(
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val density = LocalDensity.current
     val cursorColor = MaterialTheme.colorScheme.primary
-    remember(lineContent, tabSize) { lineContent.expandTabs(tabSize) }
+    remember(lineContent, tabSize) { lineContent.toDisplayText(tabSize) }
 
     // Blinking animation when focused
     val infiniteTransition = rememberInfiniteTransition(label = "cursor_blink")
@@ -106,7 +106,7 @@ internal fun TextLineItem(
 
     val cursorModifier = if (isCurrentLine && selection == null) {
         Modifier.drawWithContent {
-            val expandedText = lineContent.expandTabs(tabSize)
+            val expandedText = lineContent.toDisplayText(tabSize)
             // Engine columns are RAW char indices; the layout/text here is tab-EXPANDED.
             val position = rawToExpandedColumn(lineContent, cursorPosition.column, tabSize)
             val layoutResult = textLayoutResult
@@ -238,7 +238,7 @@ internal fun TextLineItem(
             }
     ) {
         SelectableText(
-            text = lineContent.expandTabs(tabSize).ifEmpty { " " },
+            text = lineContent.toDisplayText(tabSize).ifEmpty { " " },
             rawLineContent = lineContent,
             lineIndex = lineIndex,
             cursorPosition = cursorPosition,

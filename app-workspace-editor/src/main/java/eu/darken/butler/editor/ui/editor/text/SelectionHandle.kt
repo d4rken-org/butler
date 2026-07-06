@@ -90,7 +90,7 @@ internal fun SelectionHandle(
             val layout = textLayouts[position.line]!!
             // The layout is built from the tab-EXPANDED line, so work in expanded columns/length.
             val rawLine = visibleLineContent[position.line] ?: ""
-            val textLength = rawLine.expandTabs(tabSize).length
+            val textLength = rawLine.toDisplayText(tabSize).length
             if (textLength > 0) {
                 val columnForCalc = rawToExpandedColumn(rawLine, position.column, tabSize).coerceIn(0, textLength)
 

@@ -10,40 +10,67 @@ import org.junit.jupiter.api.Test
 class EditorPositionUtilsTest {
 
     @Nested
-    inner class ExpandTabs {
+    inner class ToDisplayText {
         @Test
         fun `expands single tab with default size`() {
-            "hello\tworld".expandTabs(4) shouldBe "hello    world"
+            "hello\tworld".toDisplayText(4) shouldBe "hello    world"
         }
 
         @Test
         fun `expands multiple tabs`() {
-            "\t\t".expandTabs(4) shouldBe "        "
+            "\t\t".toDisplayText(4) shouldBe "        "
         }
 
         @Test
         fun `handles tab size of 2`() {
-            "a\tb".expandTabs(2) shouldBe "a  b"
+            "a\tb".toDisplayText(2) shouldBe "a  b"
         }
 
         @Test
         fun `handles string without tabs`() {
-            "no tabs here".expandTabs(4) shouldBe "no tabs here"
+            "no tabs here".toDisplayText(4) shouldBe "no tabs here"
         }
 
         @Test
         fun `handles empty string`() {
-            "".expandTabs(4) shouldBe ""
+            "".toDisplayText(4) shouldBe ""
         }
 
         @Test
         fun `handles tab at start`() {
-            "\tindented".expandTabs(4) shouldBe "    indented"
+            "\tindented".toDisplayText(4) shouldBe "    indented"
         }
 
         @Test
         fun `handles tab at end`() {
-            "trailing\t".expandTabs(4) shouldBe "trailing    "
+            "trailing\t".toDisplayText(4) shouldBe "trailing    "
+        }
+
+        @Test
+        fun `renders NUL as a visible control picture`() {
+            "a\u0000b".toDisplayText(4) shouldBe "a␀b"
+        }
+
+        @Test
+        fun `renders the whole C0 block and DEL as control pictures`() {
+            "\u0001\u001F\u007F".toDisplayText(4) shouldBe "␁␟␡"
+        }
+
+        @Test
+        fun `control substitution keeps length 1 to 1`() {
+            val raw = "x\u0000y\u0007z"
+            raw.toDisplayText(4).length shouldBe raw.length
+        }
+
+        @Test
+        fun `mixed tabs and controls transform together`() {
+            "\ta\u0000".toDisplayText(2) shouldBe "  a␀"
+        }
+
+        @Test
+        fun `plain text returns the same instance`() {
+            val raw = "plain text"
+            (raw.toDisplayText(4) === raw) shouldBe true
         }
     }
 

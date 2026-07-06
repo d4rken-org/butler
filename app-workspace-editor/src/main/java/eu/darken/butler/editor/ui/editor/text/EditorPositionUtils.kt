@@ -21,9 +21,28 @@ private val tag = logTag("Editor", "PositionUtils")
  */
 internal fun Long.toIntSaturated(): Int = coerceIn(Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).toInt()
 
-internal fun String.expandTabs(tabSize: Int): String {
-    return this.replace("\t", " ".repeat(tabSize))
+/**
+ * The single raw→display transform: expands tabs and renders C0 control characters (and DEL) as
+ * visible Unicode Control Pictures (U+0000 → ␀ etc.). Every display, measurement, hit-testing,
+ * and selection-geometry site must use this same transform. Control substitution is 1 char →
+ * 1 char, so the raw↔expanded column mapping is unaffected - only tabs change width.
+ */
+internal fun String.toDisplayText(tabSize: Int): String {
+    if (none { it == '\t' || it.code < 0x20 || it.code == 0x7F }) return this
+    val ts = tabSize.coerceAtLeast(1)
+    val sb = StringBuilder(length + ts * 4)
+    for (ch in this) {
+        when {
+            ch == '\t' -> repeat(ts) { sb.append(' ') }
+            ch.code < 0x20 -> sb.append((CONTROL_PICTURES_BASE + ch.code).toChar())
+            ch.code == 0x7F -> sb.append('␡')
+            else -> sb.append(ch)
+        }
+    }
+    return sb.toString()
 }
+
+private const val CONTROL_PICTURES_BASE = 0x2400
 
 /**
  * Converts a RAW column (char index into the engine line) to the EXPANDED visual column used by the
@@ -227,7 +246,7 @@ internal fun calculatePositionFromOffset(
     val adjustedX = offset.x - contentPaddingPx
 
     val lineContent = visibleLineContent[lineIndex] ?: ""
-    val expandedContent = lineContent.expandTabs(tabSize)
+    val expandedContent = lineContent.toDisplayText(tabSize)
 
     // When word wrap is enabled and we have TextLayoutResult, use it for accurate position
     val clickedColumn = if (wordWrap && textLayouts.containsKey(lineIndex)) {
