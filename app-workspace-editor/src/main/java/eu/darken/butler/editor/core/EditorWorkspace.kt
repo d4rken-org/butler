@@ -26,6 +26,7 @@ import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.EditorState as EngineState
+import eu.darken.butler.editor.core.engine.LineEnding
 import eu.darken.butler.editor.core.engine.ReadOnlyFileException
 import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
@@ -476,6 +477,11 @@ class EditorWorkspace @AssistedInject constructor(
         // Discard is what the user confirmed; flushing here would ALSO corrupt the reopen -
         // the new engine indexes the file BEFORE the old one is released
         switchEngine(currentPath, charset, discardOld = true)
+    }
+
+    /** Converts the document's line endings to [target] and saves; serialized like every other save. */
+    suspend fun convertLineEndings(target: LineEnding): Result<Unit> = saveMutex.withLock {
+        currentEngine().convertLineEndings(target)
     }
 
     /** Re-reads the current file from disk, discarding unsaved changes; only reached directly or after confirmation. */

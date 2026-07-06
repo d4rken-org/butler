@@ -382,6 +382,48 @@ class EditorEngine @AssistedInject constructor(
     }
 
     /**
+     * Converts the document's line endings to [target] and saves (unsaved edits included).
+     * Undo history is cleared by the buffer - char content intentionally changes. Search
+     * results and the visible window are refreshed because char offsets shift.
+     */
+    suspend fun convertLineEndings(target: LineEnding): Result<Unit> = stateMutex.withLock {
+        val currentState = _state.value as? EditorState.Loaded
+            ?: return@withLock Result.failure(IllegalStateException("Cannot convert - no file open"))
+        currentState.editabilityError()?.let { return@withLock Result.failure(it) }
+        try {
+            _progress.value = Progress.Data(
+                primary = R.string.editor_progress_saving.toCaString(),
+                count = Progress.Count.Indeterminate(),
+            )
+            log(tag, INFO) { "Converting line endings to $target" }
+            val result = currentState.resources.textBuffer.convertLineEndings(target)
+            if (result.isFailure) {
+                _error.value = result.exceptionOrNull()
+                if (result.exceptionOrNull() is ExternalModificationException) {
+                    flagSaveTimeExternalChange(currentState.resources.textBuffer)
+                }
+            } else {
+                _state.value = currentState.copy(isModified = false)
+                _externalChange.value = null
+                _totalLines.value = currentState.resources.textBuffer.totalLines.value
+                // Char offsets shifted document-wide; line/column stay valid (line count and
+                // line content are unchanged), so re-derive the cursor's offset and drop the
+                // selection - raw offsets feed backspace/forward-delete and search
+                val cursor = _cursorPosition.value
+                val correctedOffset = currentState.resources.textBuffer.findOffset(cursor.line, cursor.column)
+                _cursorPosition.value = cursor.copy(offset = correctedOffset)
+                _selectionRange.value = null
+                selectionAnchor = null
+                invalidateSearchResults()
+                refreshVisibleContent()
+            }
+            result
+        } finally {
+            _progress.value = null
+        }
+    }
+
+    /**
      * Meta-only probe for on-disk changes of the open file; cheap enough to poll from the UI.
      * Serialized against saves via [stateMutex]. A re-observation with the same meta keeps the
      * current generation (a dismissed banner stays dismissed); a different meta re-arms it. A

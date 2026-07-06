@@ -108,6 +108,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             externalChange = editorState.externalChange,
             externalChangeDismissedGeneration = dialogs.externalChangeDismissedGeneration,
             showReloadConfirmDialog = dialogs.showReloadConfirmDialog,
+            showLineEndingDialog = dialogs.showLineEndingDialog,
             searchQuery = editorState.searchQuery,
             searchResults = editorState.searchResults,
             visibleRange = editorState.visibleRange,
@@ -320,6 +321,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         dialogsController.dismissExternalChange(generation)
     }
 
+    // ==================== Line endings ====================
+
+    fun convertLineEndings(target: LineEnding) = launch {
+        dialogsController.dismissLineEndingDialog()
+        // No UI-level same-target short-circuit: the buffer's no-op path still verifies the
+        // on-disk baseline, so a stale file surfaces instead of silently reporting success
+        getWorkspace().convertLineEndings(target).getOrThrow()
+        log(tag, INFO) { "Line endings converted to $target" }
+    }
+
     // ==================== Editing delegates ====================
 
     fun updateVisibleRange(startLine: Long, endLine: Long) = launch {
@@ -426,6 +437,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.File.DismissBackupNotice -> dialogsController.dismissBackupNotice()
             is EditorPageAction.File.ReloadFromDisk -> reloadFromDisk()
             is EditorPageAction.File.DismissExternalChange -> dismissExternalChange()
+            is EditorPageAction.File.ShowLineEndingPicker -> dialogsController.showLineEndingDialog()
+            is EditorPageAction.File.ConvertLineEndings -> convertLineEndings(action.target)
 
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
@@ -467,6 +480,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Dialog.DismissSaveAsOverwrite -> dialogsController.dismissSaveAsOverwrite()
             is EditorPageAction.Dialog.ConfirmReload -> confirmReload()
             is EditorPageAction.Dialog.DismissReloadConfirm -> dialogsController.dismissReloadConfirmDialog()
+            is EditorPageAction.Dialog.DismissLineEnding -> dialogsController.dismissLineEndingDialog()
 
             // Clipboard actions
             is EditorPageAction.Clipboard.Paste -> clipboardController.pasteFromClipboard(action.clip)
@@ -504,6 +518,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val externalChange: EditorEngine.ExternalChange? = null,
         val externalChangeDismissedGeneration: Int? = null,
         val showReloadConfirmDialog: Boolean = false,
+        val showLineEndingDialog: Boolean = false,
         val searchQuery: String = "",
         val searchResults: List<SearchResult> = emptyList(),
         val visibleRange: LongRange = 0L..50L,

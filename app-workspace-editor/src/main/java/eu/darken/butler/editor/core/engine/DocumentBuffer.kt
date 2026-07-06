@@ -13,6 +13,7 @@ import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.text.BlockIndex
 import eu.darken.butler.editor.core.engine.text.BlockIndexBuilder
 import eu.darken.butler.editor.core.engine.text.BlockOriginalDocument
+import eu.darken.butler.editor.core.engine.text.LineBreakTransformer
 import eu.darken.butler.editor.core.engine.text.Piece
 import eu.darken.butler.editor.core.engine.text.PieceTable
 import eu.darken.butler.editor.core.engine.text.WindowedSearch
@@ -32,6 +33,7 @@ import okio.BufferedSink
 import okio.Source
 import okio.buffer
 import okio.use
+import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
@@ -596,6 +598,165 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
+    /**
+     * Converts every line break in the document to [target] and saves - one atomic commit, then
+     * the usual rebase. Char content intentionally changes across this rebase, so undo/redo
+     * history is CLEARED (the rebase survive-invariant doesn't hold). Unsaved edits are saved as
+     * part of the conversion. Original pieces are decoded from the commit context (never the
+     * live data source - in-place commits read from the backup) and re-encoded; malformed byte
+     * sequences become U+FFFD, same as editing those regions.
+     */
+    suspend fun convertLineEndings(target: LineEnding): Result<Unit> = bufferMutex.withLock {
+        try {
+            require(target == LineEnding.LF || target == LineEnding.CRLF) {
+                "Unsupported conversion target: $target"
+            }
+            saveError?.let {
+                return Result.failure(IllegalStateException("Buffer requires reload after failed save", it))
+            }
+            val table = pieceTable
+                ?: return Result.failure(IllegalStateException("Buffer not initialized"))
+            (_contentSource.value as? ContentSource.File)?.let { source ->
+                if (source.isLikelyBinary) {
+                    return Result.failure(ReadOnlyFileException("Binary file, saving is disabled: ${source.path}"))
+                }
+                if (!source.canWrite) {
+                    return Result.failure(ReadOnlyFileException("File is read-only: ${source.path}"))
+                }
+            }
+
+            // Before the no-op path too: "nothing to convert" must not report success (and let
+            // callers clear their external-change state) over an unverified baseline
+            checkStaleness()
+            if (_lineEnding.value == target && !_isModified.value) {
+                log(tag) { "Document is already uniformly $target, nothing to convert" }
+                return Result.success(Unit)
+            }
+            val targetBreak = if (target == LineEnding.CRLF) "\r\n" else "\n"
+            dataSource.commit { context -> writeConverted(context, table, targetBreak) }
+
+            withContext(NonCancellable) {
+                try {
+                    rebase()
+                    clearUndoHistoryLocked()
+                } catch (e: Exception) {
+                    saveError = e
+                    log(tag, ERROR) { "Post-conversion rebase failed, buffer requires reload - ${e.asLog()}" }
+                    throw e
+                }
+            }
+            log(tag, INFO) { "Converted line endings to $target (${_totalLength.value} chars)" }
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: CommitIntegrityException) {
+            saveError = e
+            log(tag, ERROR) { "Commit left the target inconsistent, buffer requires reload - ${e.asLog()}" }
+            Result.failure(e)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to convert line endings - ${e.asLog()}" }
+            Result.failure(e)
+        }
+    }
+
+    /** Like [streamPieces], but every break is rewritten to [targetBreak] via [LineBreakTransformer]. */
+    private suspend fun writeConverted(
+        context: EditorDataSource.CommitContext,
+        table: PieceTable,
+        targetBreak: String,
+    ) {
+        (_contentSource.value as? ContentSource.File)?.bomBytes?.let { context.sink.write(it) }
+
+        val bomOffset = bomSize.toLong()
+        val transformer = LineBreakTransformer(targetBreak)
+        var position = 0L
+        var runStart = -1L
+
+        suspend fun flushAddedRun(end: Long) {
+            if (runStart < 0) return
+            val text = table.read(runStart, end)
+            context.sink.write(encodeAdded(transformer.transform(text)))
+            runStart = -1L
+        }
+
+        for (piece in table.pieceSnapshot()) {
+            coroutineContext.ensureActive()
+            when (piece) {
+                is Piece.Added -> if (runStart < 0) runStart = position
+                is Piece.Original -> {
+                    flushAddedRun(position)
+                    writeConvertedOriginal(context, bomOffset + piece.byteStart, piece.byteLen, transformer)
+                }
+            }
+            position += piece.charCount
+        }
+        flushAddedRun(position)
+        transformer.flushTrailing()?.let { context.sink.write(encodeAdded(it)) }
+    }
+
+    /**
+     * Decodes [byteLen] original bytes from the commit context in bounded chunks, rewrites their
+     * breaks, and re-encodes. The decoder carries partial multibyte sequences across chunk reads
+     * and never splits a surrogate pair across output buffers, so chunked re-encoding is exact.
+     */
+    private suspend fun writeConvertedOriginal(
+        context: EditorDataSource.CommitContext,
+        physicalOffset: Long,
+        byteLen: Long,
+        transformer: LineBreakTransformer,
+    ) {
+        val decoder = detectedCharset.newDecoder()
+            .onMalformedInput(CodingErrorAction.REPLACE)
+            .onUnmappableCharacter(CodingErrorAction.REPLACE)
+        context.openOriginalSource(physicalOffset).buffer().use { source ->
+            val byteBuf = ByteBuffer.allocate(CONVERT_CHUNK_BYTES)
+            val charBuf = CharBuffer.allocate(CONVERT_CHUNK_BYTES)
+            var remaining = byteLen
+            var endOfInput = remaining == 0L
+            while (true) {
+                coroutineContext.ensureActive()
+                if (!endOfInput) {
+                    val toRead = minOf(remaining, byteBuf.remaining().toLong()).toInt()
+                    val chunk = ByteArray(toRead)
+                    source.readFully(chunk)
+                    byteBuf.put(chunk)
+                    remaining -= toRead
+                    endOfInput = remaining == 0L
+                }
+                byteBuf.flip()
+                while (true) {
+                    val result = decoder.decode(byteBuf, charBuf, endOfInput)
+                    flushDecoded(context.sink, charBuf, transformer)
+                    if (!result.isOverflow) break
+                }
+                byteBuf.compact()
+                if (endOfInput) break
+            }
+            while (true) {
+                val result = decoder.flush(charBuf)
+                flushDecoded(context.sink, charBuf, transformer)
+                if (!result.isOverflow) break
+            }
+        }
+    }
+
+    private fun flushDecoded(sink: BufferedSink, charBuf: CharBuffer, transformer: LineBreakTransformer) {
+        charBuf.flip()
+        if (charBuf.hasRemaining()) {
+            sink.write(encodeAdded(transformer.transform(charBuf.toString())))
+        }
+        charBuf.clear()
+    }
+
+    private fun clearUndoHistoryLocked() {
+        undoStack.clear()
+        redoStack.clear()
+        currentUndoMemoryBytes = 0L
+        currentRedoMemoryBytes = 0L
+        breakUndoRunLocked()
+        refreshUndoRedo()
+    }
+
     /** Streams the document in original-file order: BOM once, Original byte ranges verbatim, contiguous Added runs encoded as one string. */
     private suspend fun streamPieces(
         sink: BufferedSink,
@@ -1056,6 +1217,9 @@ class DocumentBuffer @AssistedInject constructor(
 
     companion object {
         const val STALENESS_SAMPLE_COUNT = 8
+
+        // Bounded working memory for the streaming line-ending conversion
+        private const val CONVERT_CHUNK_BYTES = 64 * 1024
         val COALESCE_WINDOW = 800.milliseconds
         const val COALESCE_MAX_CHARS = 256
     }

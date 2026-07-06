@@ -13,6 +13,7 @@ import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
 import eu.darken.butler.workspace.core.Workspace
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
@@ -71,11 +72,14 @@ class EditorEngineLineEndingTest : BaseTest() {
         return settings
     }
 
-    private suspend fun createEngine(file: File): EditorEngine = EditorEngine(
+    private suspend fun createEngine(
+        file: File,
+        gateway: GatewaySwitch = createMockGateway(),
+    ): EditorEngine = EditorEngine(
         workspaceId = workspaceId,
         filePath = LocalPath.build(file),
         initialContent = null,
-        gatewaySwitch = createMockGateway(),
+        gatewaySwitch = gateway,
         editorSettings = createMockSettings(),
         fileDataSourceFactory = object : FileDataSource.Factory {
             override fun create(
@@ -191,5 +195,138 @@ class EditorEngineLineEndingTest : BaseTest() {
         engine.replaceAll("X", SearchOptions(), "\n").getOrThrow()
 
         engine.fullText() shouldBe "a\r\nb\r\nc\r\nd"
+    }
+
+    // ── explicit conversion ─────────────────────────────────────────────────────
+
+    @Test
+    fun `converts CRLF to LF byte-exact on disk`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("line1\r\nline2\r\nline3") }
+        val engine = createEngine(file)
+
+        engine.convertLineEndings(LineEnding.LF).getOrThrow()
+
+        file.readText() shouldBe "line1\nline2\nline3"
+        val source = engine.contentSource.first()
+        source.shouldBeInstanceOf<ContentSource.File>().lineEnding shouldBe LineEnding.LF
+        engine.isModified.first() shouldBe false
+    }
+
+    @Test
+    fun `converts LF to CRLF including unsaved edits`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("alpha\nbeta") }
+        val engine = createEngine(file)
+        engine.setCursorPosition(TextPosition(offset = 5, line = 0, column = 5))
+        engine.insertText("X")
+
+        engine.convertLineEndings(LineEnding.CRLF).getOrThrow()
+
+        file.readText() shouldBe "alphaX\r\nbeta"
+        engine.isModified.first() shouldBe false
+    }
+
+    @Test
+    fun `converts MIXED endings to a uniform target`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("a\nb\r\nc\rd") }
+        val engine = createEngine(file)
+
+        engine.convertLineEndings(LineEnding.LF).getOrThrow()
+
+        file.readText() shouldBe "a\nb\nc\nd"
+        val source = engine.contentSource.first()
+        source.shouldBeInstanceOf<ContentSource.File>().lineEnding shouldBe LineEnding.LF
+    }
+
+    @Test
+    fun `conversion clears undo history`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("a\r\nb") }
+        val engine = createEngine(file)
+        engine.setCursorPosition(TextPosition(offset = 1, line = 0, column = 1))
+        engine.insertText("X")
+        engine.canUndo.first() shouldBe true
+
+        engine.convertLineEndings(LineEnding.LF).getOrThrow()
+
+        engine.canUndo.first() shouldBe false
+        engine.canRedo.first() shouldBe false
+        engine.undo()
+        engine.fullText() shouldBe "aX\nb"
+    }
+
+    @Test
+    fun `conversion preserves the BOM`(@TempDir tempDir: File) = runTest {
+        val bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+        val file = File(tempDir, "doc.txt").apply { writeBytes(bom + "x\r\ny".toByteArray()) }
+        val engine = createEngine(file)
+
+        engine.convertLineEndings(LineEnding.LF).getOrThrow()
+
+        file.readBytes().toList() shouldBe (bom + "x\ny".toByteArray()).toList()
+    }
+
+    @Test
+    fun `conversion survives multibyte chars across streaming chunk boundaries`(@TempDir tempDir: File) = runTest {
+        // 20k repetitions of a 4-byte unit ("é" = 2 bytes in UTF-8 + CRLF) = ~80 KB, forcing the
+        // 64 KB conversion chunk boundary to land mid-content (and likely mid-multibyte-char)
+        val unit = "é\r\n"
+        val file = File(tempDir, "doc.txt").apply { writeText(unit.repeat(20_000)) }
+        val engine = createEngine(file)
+
+        engine.convertLineEndings(LineEnding.LF).getOrThrow()
+
+        file.readText() shouldBe "é\n".repeat(20_000)
+    }
+
+    @Test
+    fun `conversion is a no-op for an already uniform unmodified document`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("a\nb") }
+        val engine = createEngine(file)
+
+        engine.convertLineEndings(LineEnding.LF).getOrThrow()
+
+        file.readText() shouldBe "a\nb"
+    }
+
+    @Test
+    fun `conversion refuses read-only files`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("a\r\nb") }
+        val gateway = createMockGateway().apply {
+            coEvery { canWrite(any()) } returns false
+        }
+        val engine = createEngine(file, gateway)
+
+        val result = engine.convertLineEndings(LineEnding.LF)
+
+        result.exceptionOrNull().shouldBeInstanceOf<ReadOnlyFileException>()
+        file.readText() shouldBe "a\r\nb"
+    }
+
+    @Test
+    fun `cursor offset is recomputed after conversion`(@TempDir tempDir: File) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("a\r\nbc") }
+        val engine = createEngine(file)
+        // Offset 3 = start of line 1 in CRLF char space; after conversion the same line/column
+        // sits at offset 2 - forward delete must hit 'b', not 'c'
+        engine.setCursorPosition(TextPosition(offset = 3, line = 1, column = 0))
+
+        engine.convertLineEndings(LineEnding.LF).getOrThrow()
+        engine.deleteForward()
+
+        engine.fullText() shouldBe "a\nc"
+    }
+
+    @Test
+    fun `conversion refuses when the file changed on disk, even for a same-target no-op`(
+        @TempDir tempDir: File,
+    ) = runTest {
+        val file = File(tempDir, "doc.txt").apply { writeText("a\nb") }
+        val engine = createEngine(file)
+
+        file.writeText("externally grown content")
+
+        val result = engine.convertLineEndings(LineEnding.LF)
+
+        result.exceptionOrNull().shouldBeInstanceOf<ExternalModificationException>()
+        engine.externalChange.first().shouldNotBeNull()
     }
 }

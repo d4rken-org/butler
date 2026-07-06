@@ -111,6 +111,10 @@
     <string name="editor_encoding_dialog_message">Reopen the file with a different encoding. Unsaved changes are discarded; unedited bytes stay untouched on save.</string>
     <string name="editor_infobar_read_only">Read-only</string>
     <string name="editor_line_ending_mixed">Mixed</string>
+    <string name="editor_line_ending_dialog_title">Line endings</string>
+    <string name="editor_line_ending_dialog_message">Convert all line breaks and save the file, including unsaved changes. Undo history is cleared.</string>
+    <string name="editor_line_ending_lf_label">LF — Unix, Android, macOS</string>
+    <string name="editor_line_ending_crlf_label">CRLF — Windows</string>
 
     <!-- Editor File Names -->
     <string name="editor_file_untitled">Untitled</string>

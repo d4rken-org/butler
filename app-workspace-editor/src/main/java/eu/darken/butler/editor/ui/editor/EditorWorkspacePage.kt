@@ -33,6 +33,7 @@ import eu.darken.butler.common.navigation.NavigationEventHandler
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.ui.editor.dialogs.CloseConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.EncodingDialog
+import eu.darken.butler.editor.ui.editor.dialogs.LineEndingDialog
 import eu.darken.butler.editor.ui.editor.dialogs.ReloadConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.SaveAsOverwriteDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
@@ -214,6 +215,11 @@ fun EditorWorkspacePage(
                         lineEnding = state.lineEnding,
                         isReadOnly = state.isReadOnly,
                         onEncodingClick = { onPageAction(EditorPageAction.File.ShowEncodingPicker) },
+                        onLineEndingClick = if (state.isReadOnly) {
+                            null // conversion writes the file; read-only/binary documents can't
+                        } else {
+                            { onPageAction(EditorPageAction.File.ShowLineEndingPicker) }
+                        },
                         onClearSelection = { onPageAction(EditorPageAction.Navigation.ClearSelection(state.cursorPosition)) },
                     )
                 }
@@ -398,6 +404,16 @@ fun EditorWorkspacePage(
             onSelect = { charsetName -> onPageAction(EditorPageAction.File.ReopenWithEncoding(charsetName)) },
             onDismiss = { onPageAction(EditorPageAction.Dialog.DismissEncoding) },
         )
+    }
+
+    if (state.showLineEndingDialog) {
+        state.lineEnding?.let { current ->
+            LineEndingDialog(
+                currentLineEnding = current,
+                onSelect = { target -> onPageAction(EditorPageAction.File.ConvertLineEndings(target)) },
+                onDismiss = { onPageAction(EditorPageAction.Dialog.DismissLineEnding) },
+            )
+        }
     }
 
     if (state.pendingEncoding != null) {

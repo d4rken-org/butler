@@ -1,6 +1,7 @@
 package eu.darken.butler.editor.ui.editor
 
 import androidx.compose.ui.text.input.TextFieldValue
+import eu.darken.butler.editor.core.engine.LineEnding
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -48,6 +49,12 @@ sealed interface EditorPageAction {
 
         /** Dismiss the external-change banner for the current detection, keeping local edits */
         data object DismissExternalChange : File
+
+        /** Show the line-ending picker dialog */
+        data object ShowLineEndingPicker : File
+
+        /** Convert the document's line endings and save */
+        data class ConvertLineEndings(val target: LineEnding) : File
     }
 
     /**
@@ -175,6 +182,9 @@ sealed interface EditorPageAction {
 
         /** Dismiss the reload confirmation */
         data object DismissReloadConfirm : Dialog
+
+        /** Dismiss the line-ending picker dialog */
+        data object DismissLineEnding : Dialog
     }
 
     /**
