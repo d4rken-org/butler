@@ -272,11 +272,13 @@ class EditorWorkspace @AssistedInject constructor(
         }
 
         // Auto-save logic: debounce after changes; read-only and binary files are skipped so
-        // an edited unsaveable document doesn't produce a failing save on every interval
+        // an edited unsaveable document doesn't produce a failing save on every interval.
+        // Scratch buffers are skipped too: "saving" to the in-memory source persists nothing
+        // but clears the modified flag, disabling the Save/Save-As actions.
         combine(
             editorStateInternal.map { state ->
                 val file = state.contentSource as? ContentSource.File
-                state.isModified && file?.canWrite != false && file?.isLikelyBinary != true
+                state.isModified && file != null && file.canWrite && !file.isLikelyBinary
             }.distinctUntilChanged(),
             editorSettings.autoSaveEnabled.flow,
             editorSettings.autoSaveInterval.flow,

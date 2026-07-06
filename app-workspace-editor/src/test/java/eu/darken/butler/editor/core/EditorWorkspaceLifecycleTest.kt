@@ -291,6 +291,33 @@ class EditorWorkspaceLifecycleTest : BaseTest() {
     }
 
     @Test
+    fun `auto-save skips scratch buffers`(): Unit = runBlocking {
+        val workspace = createWorkspace(
+            EditorArguments.Default(initialContent = "draft"),
+            createMockGateway(),
+            createMockSettings(autoSaveEnabled = true, autoSaveInterval = 100.milliseconds),
+        )
+        try {
+            withTimeout(10_000) {
+                workspace.state.first {
+                    (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.Memory
+                }
+            }
+            workspace.insertText("X")
+            withTimeout(10_000) {
+                workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
+            }
+
+            // An in-memory "save" would persist nothing but clear the modified flag,
+            // disabling the Save/Save-As actions - the flag must survive the interval
+            delay(500)
+            (workspace.state.value as EditorWorkspace.State.Ready).editor.isModified shouldBe true
+        } finally {
+            workspace.release()
+        }
+    }
+
+    @Test
     fun `cancelled initial file load persists as a scratch tab`(@TempDir tempDir: File): Unit = runBlocking {
         val file = File(tempDir, "doc.txt").apply { writeText("original") }
         val lookupReached = CompletableDeferred<Unit>()
