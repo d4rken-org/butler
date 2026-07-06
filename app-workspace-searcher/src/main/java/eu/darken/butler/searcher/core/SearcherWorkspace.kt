@@ -14,7 +14,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.engine.SearchEngine
@@ -104,7 +103,7 @@ class SearcherWorkspace @AssistedInject constructor(
         val currentSearchQuery: SearchQuery? = null,
         val searchStatus: SearchStatus = SearchStatus.IDLE,
         val results: List<SearchItem> = emptyList(),
-        val progress: SearchProgress? = null,
+        val progress: SearchEngine.SearchProgress? = null,
         val error: Exception? = null,
         val searchTargets: List<SearchTarget> = emptyList(), // From engine
         val setupRequirements: PathRequirements = PathRequirements(), // From engine
@@ -113,12 +112,6 @@ class SearcherWorkspace @AssistedInject constructor(
         enum class SearchStatus {
             IDLE, SEARCHING, COMPLETED, ERROR, CANCELLED
         }
-
-        data class SearchProgress(
-            val currentPath: APath<*>,
-            val itemsScanned: Int,
-            val resultsFound: Int,
-        )
     }
 
     private val _searchState = MutableStateFlow(State())
@@ -222,7 +215,7 @@ class SearcherWorkspace @AssistedInject constructor(
 
         // Set initial progress with first target
         val initialProgress = (command.targets.firstOrNull() as? SearchTarget.Path)?.let { firstTarget ->
-            State.SearchProgress(
+            SearchEngine.SearchProgress(
                 currentPath = firstTarget.path,
                 itemsScanned = 0,
                 resultsFound = 0,
@@ -262,13 +255,7 @@ class SearcherWorkspace @AssistedInject constructor(
         // Delegate to engine
         when (val result = searchEngine.search(command, onProgress = { engineProgress ->
             _searchState.update { state ->
-                state.copy(
-                    progress = State.SearchProgress(
-                        currentPath = engineProgress.currentPath,
-                        itemsScanned = engineProgress.itemsScanned,
-                        resultsFound = engineProgress.resultsFound,
-                    )
-                )
+                state.copy(progress = engineProgress)
             }
         })) {
             is SearchEngine.Result.InvalidQuery -> {

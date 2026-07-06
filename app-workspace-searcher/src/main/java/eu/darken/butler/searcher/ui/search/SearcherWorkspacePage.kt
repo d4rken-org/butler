@@ -350,7 +350,7 @@ fun SearcherWorkspacePage(
         // Conditional rendering: Idle state (templates + history) vs Results mode
         val hasNoQuery = currentState.filenameQuery.isBlank() && currentState.contentQuery.isBlank()
         // Show idle state when idle with no results (regardless of query text in input)
-        val showIdleState = currentState.isIdle && !currentState.hasResults && currentState.searchTargets.isNotEmpty()
+        val showIdleState = currentState.isIdle && !currentState.hasResults && currentState.workspaceState.searchTargets.isNotEmpty()
 
         when {
             // Idle state - show templates card and optionally history
@@ -364,7 +364,7 @@ fun SearcherWorkspacePage(
                 contentPadding = contentPaddingValues
             ) {
                 // Show templates card when idle and have search targets
-                if (!currentState.isSearching && currentState.searchTargets.isNotEmpty()) {
+                if (!currentState.isSearching && currentState.workspaceState.searchTargets.isNotEmpty()) {
                     item {
                         TemplatesCard(
                             onClick = { showTemplatesSheet = true },
@@ -402,18 +402,18 @@ fun SearcherWorkspacePage(
                         contentPadding = contentPaddingValues
                     ) {
                         // Show setup card if needed
-                        if (currentState.needsSetup && currentState.searchTargets.isNotEmpty()) {
+                        if (currentState.needsSetup && currentState.workspaceState.searchTargets.isNotEmpty()) {
                             item {
                                 PermissionSetupCard(
-                                    setupRequirements = currentState.setupRequirements,
-                                    onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
+                                    setupRequirements = currentState.workspaceState.setupRequirements,
+                                    onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.workspaceState.setupRequirements)) },
                                     modifier = Modifier.padding(top = 8.dp)
                                 )
                             }
                         }
 
                         // Show empty state when no search targets configured
-                        if (currentState.searchTargets.isEmpty()) {
+                        if (currentState.workspaceState.searchTargets.isEmpty()) {
                             item {
                                 SearchTargetsEmptyStateCard(
                                     onAddDefaultPaths = { onPageAction(SearcherPageAction.Targets.AddDefaultPaths) },
@@ -515,18 +515,18 @@ fun SearcherWorkspacePage(
                         contentPadding = contentPaddingValues
                     ) {
                         // Show setup card if needed
-                        if (currentState.needsSetup && currentState.searchTargets.isNotEmpty()) {
+                        if (currentState.needsSetup && currentState.workspaceState.searchTargets.isNotEmpty()) {
                             item {
                                 PermissionSetupCard(
-                                    setupRequirements = currentState.setupRequirements,
-                                    onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.setupRequirements)) },
+                                    setupRequirements = currentState.workspaceState.setupRequirements,
+                                    onOpenSetup = { onPageAction(SearcherPageAction.Setup.Open(currentState.workspaceState.setupRequirements)) },
                                     modifier = Modifier.padding(top = 8.dp)
                                 )
                             }
                         }
 
                         // Show empty state when no search targets configured
-                        if (currentState.searchTargets.isEmpty()) {
+                        if (currentState.workspaceState.searchTargets.isEmpty()) {
                             item {
                                 SearchTargetsEmptyStateCard(
                                     onAddDefaultPaths = { onPageAction(SearcherPageAction.Targets.AddDefaultPaths) },

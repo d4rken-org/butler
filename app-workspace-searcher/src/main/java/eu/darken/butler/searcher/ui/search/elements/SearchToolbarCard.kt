@@ -40,6 +40,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.searcher.R
+import eu.darken.butler.searcher.core.SearcherWorkspace
 import eu.darken.butler.searcher.ui.search.SearcherWorkspaceViewModel
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.workspace.contracts.searcher.ContentQuery
@@ -229,7 +230,7 @@ fun SearchToolbarCard(
                 )
 
                 MultiPathChipBar(
-                    paths = state?.searchTargets.orEmpty(),
+                    paths = state?.workspaceState?.searchTargets.orEmpty(),
                     onPathRemove = { onAction(SearcherPageAction.Targets.Remove(it)) },
                     onPathToggle = { onAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
                     onAddPathClick = { onAction(SearcherPageAction.Targets.OpenPicker) },
@@ -249,9 +250,11 @@ private fun SearchToolbarCardPreview() {
         modifier = Modifier.padding(16.dp),
         workspaceId = Workspace.Id(),
         state = SearcherWorkspaceViewModel.State.Ready(
-            searchTargets = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+            workspaceState = SearcherWorkspace.State(
+                searchTargets = listOf(
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+                ),
             ),
             filenameQuery = "*.kt",
             contentQuery = "fun main",
@@ -272,9 +275,11 @@ private fun SearchToolbarCardCollapsedPreview() {
         modifier = Modifier.padding(16.dp),
         workspaceId = Workspace.Id(),
         state = SearcherWorkspaceViewModel.State.Ready(
-            searchTargets = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+            workspaceState = SearcherWorkspace.State(
+                searchTargets = listOf(
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+                ),
             ),
             filenameQuery = "*.kt",
             contentQuery = "fun main",
@@ -294,9 +299,11 @@ private fun SearchToolbarCardRtlPreview() {
             modifier = Modifier.padding(16.dp),
             workspaceId = Workspace.Id(),
             state = SearcherWorkspaceViewModel.State.Ready(
-                searchTargets = listOf(
-                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+                workspaceState = SearcherWorkspace.State(
+                    searchTargets = listOf(
+                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+                    ),
                 ),
                 filenameQuery = "*.kt",
                 contentQuery = "fun main",
@@ -319,9 +326,11 @@ private fun SearchToolbarCardCollapsedRtlPreview() {
             modifier = Modifier.padding(16.dp),
             workspaceId = Workspace.Id(),
             state = SearcherWorkspaceViewModel.State.Ready(
-                searchTargets = listOf(
-                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+                workspaceState = SearcherWorkspace.State(
+                    searchTargets = listOf(
+                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                        SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download")),
+                    ),
                 ),
                 filenameQuery = "*.kt",
                 contentQuery = "fun main",

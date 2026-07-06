@@ -59,7 +59,7 @@ import java.io.IOException
 @Composable
 fun SearchProgressCard(
     targetProgress: List<SearchEngine.SearchTargetProgress>,
-    overallProgress: SearcherWorkspace.State.SearchProgress?,
+    overallProgress: SearchEngine.SearchProgress?,
     searchStatus: SearcherWorkspace.State.SearchStatus,
     resultCount: Int,
     onCancel: () -> Unit,
@@ -407,7 +407,7 @@ private fun createSearchTargetProgress(
 )
 
 private fun createSearchProgress(scanned: Int, found: Int) =
-    SearcherWorkspace.State.SearchProgress(
+    SearchEngine.SearchProgress(
         currentPath = LocalPath.build("/sdcard"),
         itemsScanned = scanned,
         resultsFound = found

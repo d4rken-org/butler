@@ -137,9 +137,11 @@ object SearcherMockDataProvider {
      */
     fun createMockEmptyState(): SearcherWorkspaceViewModel.State.Ready =
         SearcherWorkspaceViewModel.State.Ready(
-            searchTargets = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
-            )
+            workspaceState = SearcherWorkspace.State(
+                searchTargets = listOf(
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
+                ),
+            ),
         )
 
     /**
@@ -147,8 +149,10 @@ object SearcherMockDataProvider {
      */
     fun createMockHistoryState(): SearcherWorkspaceViewModel.State.Ready =
         SearcherWorkspaceViewModel.State.Ready(
-            searchTargets = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
+            workspaceState = SearcherWorkspace.State(
+                searchTargets = listOf(
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
+                ),
             ),
             searchHistory = createMockSearchHistory()
         )
@@ -201,10 +205,10 @@ object SearcherMockDataProvider {
 
         return SearcherWorkspaceViewModel.State.Ready(
             filenameQuery = "config",
-            searchTargets = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
-            ),
             workspaceState = SearcherWorkspace.State(
+                searchTargets = listOf(
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0"))
+                ),
                 searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
                 results = results,
                 targetProgress = listOf(
@@ -250,12 +254,12 @@ object SearcherMockDataProvider {
     fun createMockSearchingWithProgressState(): SearcherWorkspaceViewModel.State.Ready =
         SearcherWorkspaceViewModel.State.Ready(
             filenameQuery = "log",
-            searchTargets = listOf(
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Android")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
-                SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download"))
-            ),
             workspaceState = SearcherWorkspace.State(
+                searchTargets = listOf(
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Android")),
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Documents")),
+                    SearchTarget.Path.from(LocalPath.build("/storage/emulated/0/Download"))
+                ),
                 searchStatus = SearcherWorkspace.State.SearchStatus.SEARCHING,
                 results = listOf(
                     createMockSearchResult(

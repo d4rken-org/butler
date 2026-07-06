@@ -27,7 +27,6 @@ import eu.darken.butler.common.navigation.Nav
 import eu.darken.butler.common.navigation.destSetup
 import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
-import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearchSortSettings
@@ -377,8 +376,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             workspaceState = updatedWorkspaceState,
             searchHistory = history,
             currentFilter = filter,
-            searchTargets = workspaceState.searchTargets,
-            setupRequirements = workspaceState.setupRequirements,
             selectionState = updatedSelectionState,
             quickActionsResult = quickActions,
             dialogState = dialogState,
@@ -876,8 +873,6 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             val workspaceState: SearcherWorkspace.State = SearcherWorkspace.State(),
             val searchHistory: List<SearchHistory.SearchHistoryItem> = emptyList(),
             val currentFilter: SearchFilter = SearchFilter(),
-            val searchTargets: List<SearchTarget> = emptyList(),
-            val setupRequirements: PathRequirements = PathRequirements(),
             val selectionState: SearcherSelectionState = SearcherSelectionState(),
             val quickActionsResult: SearchItem? = null,
             val dialogState: SearcherDialogState = SearcherDialogState.None,
@@ -899,7 +894,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 get() = currentFilter.hasConditions()
 
             val needsSetup: Boolean
-                get() = setupRequirements.needsSetup
+                get() = workspaceState.setupRequirements.needsSetup
 
             val listItems: List<SearchListItem>
                 get() = buildList {
