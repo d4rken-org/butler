@@ -48,6 +48,7 @@ class FileDataSource @AssistedInject constructor(
     override val contentSource: StateFlow<ContentSource> = _contentSource.asStateFlow()
 
     private val accessMutex = Mutex()
+    private val atomicFileWriter = AtomicFileWriter(gatewaySwitch, tag)
 
     /**
      * Reads the first 8KB for charset detection (enough for BOM + content validation).
@@ -191,19 +192,7 @@ class FileDataSource @AssistedInject constructor(
             val fileSource = _contentSource.value as? ContentSource.File
                 ?: error("ContentSource.File not initialized")
 
-            // Unique per-save artifact names so we never collide with or delete a user's own
-            // files, and never touch artifacts from a different (e.g. crashed) save.
-            val token = Uuid.random().toString().take(8)
-            val parent = filePath.parent
-                ?: throw IllegalStateException("Cannot save - no parent directory")
-            val backupPath = parent.child("${filePath.name}.butler-save-bak-$token")
-
-            if (filePath is LocalPath) {
-                val tempPath = parent.child("${filePath.name}.butler-save-tmp-$token")
-                commitViaBackupSwap(tempPath, backupPath, writer)
-            } else {
-                commitViaInPlace(backupPath, writer)
-            }
+            atomicFileWriter.replace(filePath, AtomicFileWriter.OriginalAccess.FromTarget, writer)
 
             // The commit has landed; a metadata refresh failure must not be reported as a
             // failed commit (consumers re-read metadata during their post-save rescan anyway)
@@ -218,134 +207,27 @@ class FileDataSource @AssistedInject constructor(
         }
     }
 
-    /**
-     * Local-path streaming commit: the writer streams into a uniquely-named temp while the original
-     * stays untouched and readable (cancellation-safe); the rename swap is the point of no return
-     * and runs non-cancellable, restoring the original on failure.
-     */
     internal suspend fun commitViaBackupSwap(
         tempPath: APath<*>,
         backupPath: APath<*>,
         writer: suspend (EditorDataSource.CommitContext) -> Unit,
-    ) {
-        try {
-            writeContent(tempPath) { sink ->
-                writer(GatewayCommitContext(sink, readPath = filePath))
-            }
-        } catch (e: Exception) {
-            cleanupArtifact(tempPath)
-            throw e
-        }
+    ) = atomicFileWriter.replaceViaTempSwap(
+        target = filePath,
+        tempPath = tempPath,
+        backupPath = backupPath,
+        originalAccess = AtomicFileWriter.OriginalAccess.FromTarget,
+        writer = writer,
+    )
 
-        withContext(NonCancellable) {
-            var backedUp = false
-            try {
-                if (filePath.exists(gatewaySwitch)) {
-                    check(gatewaySwitch.move(filePath, backupPath)) { "Backup move failed: $filePath -> $backupPath" }
-                    backedUp = true
-                }
-                check(gatewaySwitch.move(tempPath, filePath)) { "Commit move failed: $tempPath -> $filePath" }
-            } catch (e: Exception) {
-                // Moves are atomic, so a failure here means the commit never landed and the original
-                // path is free; if we had moved the original aside, put it back.
-                var restored = !backedUp
-                if (backedUp) {
-                    try {
-                        check(gatewaySwitch.move(backupPath, filePath)) { "Restore move returned false" }
-                        restored = true
-                    } catch (restoreError: Exception) {
-                        log(tag, ERROR) { "Restore failed - original preserved at $backupPath: ${restoreError.asLog()}" }
-                        e.addSuppressed(restoreError)
-                    }
-                }
-                cleanupArtifact(tempPath)
-                if (!restored) {
-                    throw CommitIntegrityException("Commit failed and the original could not be restored to $filePath", e)
-                }
-                throw e
-            }
-            cleanupArtifact(backupPath)
-        }
-    }
-
-    /**
-     * SAF/non-local streaming commit: the original is copied to a uniquely-named backup first
-     * (cancellation-safe), then the document is overwritten in place with the writer reading
-     * original ranges FROM THE BACKUP; the overwrite runs non-cancellable and the original is
-     * restored from the backup on failure (backup retained if the restore also fails).
-     */
     internal suspend fun commitViaInPlace(
         backupPath: APath<*>,
         writer: suspend (EditorDataSource.CommitContext) -> Unit,
-    ) {
-        var backupReady = false
-        try {
-            gatewaySwitch.createFile(backupPath, createParents = false)
-            writeContent(backupPath) { sink ->
-                gatewaySwitch.file(filePath, readWrite = false).use { handle ->
-                    handle.source().buffer().use { source -> sink.writeAll(source) }
-                }
-            }
-            backupReady = true
-
-            withContext(NonCancellable) {
-                writeContent(filePath) { sink ->
-                    writer(GatewayCommitContext(sink, readPath = backupPath))
-                }
-            }
-        } catch (e: Exception) {
-            if (backupReady) {
-                var restored = false
-                withContext(NonCancellable) {
-                    runCatching {
-                        writeContent(filePath) { sink ->
-                            gatewaySwitch.file(backupPath, readWrite = false).use { handle ->
-                                handle.source().buffer().use { source -> sink.writeAll(source) }
-                            }
-                        }
-                        restored = true
-                    }.onFailure {
-                        log(tag, ERROR) { "Restore failed - original preserved at $backupPath: ${it.asLog()}" }
-                        e.addSuppressed(it)
-                    }
-                }
-                if (!restored) {
-                    throw CommitIntegrityException("In-place commit failed and $filePath could not be restored", e)
-                }
-            } else {
-                // Backup never completed; the original was not touched, so the partial backup is junk.
-                cleanupArtifact(backupPath)
-            }
-            throw e
-        }
-
-        cleanupArtifact(backupPath)
-    }
-
-    private inner class GatewayCommitContext(
-        override val sink: BufferedSink,
-        private val readPath: APath<*>,
-    ) : EditorDataSource.CommitContext {
-        override suspend fun openOriginalSource(offset: Long): Source {
-            val handle = gatewaySwitch.file(readPath, readWrite = false)
-            val source = handle.source(fileOffset = offset)
-            return object : Source by source {
-                override fun close() {
-                    source.close()
-                    handle.close()
-                }
-            }
-        }
-    }
-
-    /** Best-effort removal of a save artifact; logs (never throws) if the delete fails or returns false. */
-    private suspend fun cleanupArtifact(path: APath<*>) {
-        runCatching {
-            if (path.exists(gatewaySwitch) && !gatewaySwitch.delete(path)) {
-                log(tag, WARN) { "Failed to delete leftover save artifact: $path" }
-            }
-        }.onFailure { log(tag, WARN) { "Error cleaning up save artifact $path: ${it.asLog()}" } }
-    }
+    ) = atomicFileWriter.replaceInPlace(
+        target = filePath,
+        backupPath = backupPath,
+        originalAccess = AtomicFileWriter.OriginalAccess.FromTarget,
+        writer = writer,
+    )
 
     override suspend fun close() = accessMutex.withLock {
         _contentSource.value = ContentSource.Memory(size = 0L)

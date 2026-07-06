@@ -29,15 +29,14 @@ import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
 import java.io.File
 import java.nio.charset.Charset
-import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Save-As at the workspace level: streaming into the CURRENT file would truncate the very
- * source the original byte ranges are read from, so save-as-to-self must route through the
- * atomic save path.
+ * Discard flows must actually discard: releasing an engine after the user explicitly chose to
+ * drop unsaved changes (close-with-discard, reopen-with-encoding) must NOT flush them to disk.
+ * The default flush-on-release stays as the safety net for unprompted teardown.
  */
-class EditorWorkspaceSaveAsTest : BaseTest() {
+class EditorWorkspaceDiscardTest : BaseTest() {
 
     private val workspaceId = Workspace.Id()
     private val mockOwnershipResolver = mockk<OwnershipResolver>(relaxed = true)
@@ -101,7 +100,7 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
                 maxUndoMemoryBytes: Long,
                 blockSize: Int,
                 assertions: Boolean,
-                staleSampleRandom: Random,
+                staleSampleRandom: kotlin.random.Random,
             ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, 10, true)
         }
         val engineFactory = object : EditorEngine.Factory {
@@ -136,43 +135,26 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
         )
     }
 
-    @Test
-    fun `save-as to the current path uses the atomic save and keeps content intact`(@TempDir tempDir: File) = runTest {
-        val content = "0123456789".repeat(10)
-        val file = File(tempDir, "doc.txt").apply { writeText(content) }
-        val path = LocalPath.build(file)
-        val workspace = createWorkspace(path, createMockGateway())
-        try {
-            workspace.state.first {
-                (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File
-            }
-            workspace.insertText("X")
-            workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
+    private suspend fun EditorWorkspace.awaitFileLoaded() {
+        state.first { (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File }
+    }
 
-            workspace.saveFileAs(path).isSuccess shouldBe true
-            file.readText() shouldBe "X$content"
-        } finally {
-            workspace.release()
-        }
+    private suspend fun EditorWorkspace.awaitModified() {
+        state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
     }
 
     @Test
-    fun `save-as to a different path streams the edited content`(@TempDir tempDir: File) = runTest {
-        val content = "0123456789".repeat(10)
+    fun `close-with-discard leaves the file byte-identical`(@TempDir tempDir: File) = runTest {
+        val content = "original content"
         val file = File(tempDir, "doc.txt").apply { writeText(content) }
-        val target = File(tempDir, "copy.txt")
         val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
         try {
-            workspace.state.first {
-                (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File
-            }
-            workspace.insertText("X")
-            workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
+            workspace.awaitFileLoaded()
+            workspace.insertText("DISCARD ME ")
+            workspace.awaitModified()
 
-            workspace.saveFileAs(LocalPath.build(target)).isSuccess shouldBe true
-            target.readText() shouldBe "X$content"
-            // The edits were redirected to the new file; the ORIGINAL must stay untouched
-            // (the old engine is released without flushing)
+            workspace.closeFile()
+
             file.readText() shouldBe content
         } finally {
             workspace.release()
@@ -180,57 +162,40 @@ class EditorWorkspaceSaveAsTest : BaseTest() {
     }
 
     @Test
-    fun `save-as failure leaves no partial target and stays on the original file`(@TempDir tempDir: File) = runTest {
-        val content = "0123456789".repeat(10)
+    fun `reopen with encoding discards unsaved changes without flushing them`(@TempDir tempDir: File) = runTest {
+        val content = "original content"
         val file = File(tempDir, "doc.txt").apply { writeText(content) }
-        val target = File(tempDir, "copy.txt")
-        val gateway = createMockGateway()
-        // Writing the temp artifact for the target fails mid-stream
-        coEvery {
-            gateway.file(match { it.name.startsWith("copy.txt.butler-save-tmp-") }, true)
-        } throws java.io.IOException("disk full")
-        val workspace = createWorkspace(LocalPath.build(file), gateway)
-        try {
-            workspace.state.first {
-                (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File
-            }
-            workspace.insertText("X")
-            workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
-
-            workspace.saveFileAs(LocalPath.build(target)).isFailure shouldBe true
-
-            target.exists() shouldBe false
-            file.readText() shouldBe content
-            tempDir.listFiles()!!.map { it.name }.filter { it.contains(".butler-save-") } shouldBe emptyList()
-            // Still on the original document with the edit intact
-            val state = workspace.state.first() as EditorWorkspace.State.Ready
-            (state.editor.contentSource as ContentSource.File).path.name shouldBe "doc.txt"
-            state.editor.isModified shouldBe true
-        } finally {
-            workspace.release()
-        }
-    }
-
-    @Test
-    fun `save-as over an existing file replaces its content atomically`(@TempDir tempDir: File) = runTest {
-        val content = "source content"
-        val file = File(tempDir, "doc.txt").apply { writeText(content) }
-        val target = File(tempDir, "existing.txt").apply { writeText("OLD TARGET CONTENT") }
         val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
         try {
-            workspace.state.first {
-                (it as? EditorWorkspace.State.Ready)?.editor?.contentSource is ContentSource.File
-            }
-            workspace.insertText("X")
-            workspace.state.first { (it as? EditorWorkspace.State.Ready)?.editor?.isModified == true }
+            workspace.awaitFileLoaded()
+            workspace.insertText("DISCARD ME ")
+            workspace.awaitModified()
 
-            workspace.saveFileAs(LocalPath.build(target)).isSuccess shouldBe true
+            workspace.reopenWithCharset("ISO-8859-1")
 
-            target.readText() shouldBe "X$content"
+            // File untouched on disk AND the reopened document shows the on-disk content
             file.readText() shouldBe content
-            tempDir.listFiles()!!.map { it.name }.filter { it.contains(".butler-save-") } shouldBe emptyList()
+            workspace.state.first {
+                val editor = (it as? EditorWorkspace.State.Ready)?.editor
+                editor?.contentSource is ContentSource.File && editor.isModified == false
+            }
         } finally {
             workspace.release()
         }
+    }
+
+    @Test
+    fun `unprompted release still flushes as a safety net`(@TempDir tempDir: File) = runTest {
+        val content = "original content"
+        val file = File(tempDir, "doc.txt").apply { writeText(content) }
+        val workspace = createWorkspace(LocalPath.build(file), createMockGateway())
+
+        workspace.awaitFileLoaded()
+        workspace.insertText("KEEP ME ")
+        workspace.awaitModified()
+
+        workspace.release()
+
+        file.readText() shouldBe "KEEP ME $content"
     }
 }

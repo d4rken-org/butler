@@ -149,12 +149,12 @@ class EditorEngine @AssistedInject constructor(
         )
     }
 
-    private suspend fun disposeResources(resources: EditorResources) {
-        log(tag) { "Disposing resources" }
+    private suspend fun disposeResources(resources: EditorResources, flush: Boolean = true) {
+        log(tag) { "Disposing resources (flush=$flush)" }
 
         // Clean up in reverse order, don't abort on failures
         try {
-            resources.textBuffer.release()
+            resources.textBuffer.release(flush)
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to release text buffer - ${e.asLog()}" }
         }
@@ -1176,12 +1176,13 @@ class EditorEngine @AssistedInject constructor(
         _error.value = null
     }
 
-    suspend fun release() = stateMutex.withLock {
-        log(tag, INFO) { "release()" }
+    /** Releases the engine; [flush] false discards unsaved changes (explicit user choice). */
+    suspend fun release(flush: Boolean = true) = stateMutex.withLock {
+        log(tag, INFO) { "release(flush=$flush)" }
         val currentState = _state.value
         if (currentState is EditorState.Loaded) {
             try {
-                disposeResources(currentState.resources)
+                disposeResources(currentState.resources, flush)
                 _state.value = EditorState.Empty
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to dispose resources: ${e.asLog()}" }

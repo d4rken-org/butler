@@ -56,8 +56,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
-import okio.buffer
-import okio.use
+import eu.darken.butler.editor.core.sources.AtomicFileWriter
 import java.nio.charset.Charset
 
 
@@ -72,6 +71,7 @@ class EditorWorkspace @AssistedInject constructor(
 ) : Workspace<EditorArguments> {
 
     private val tag = logTag("Editor", "Workspace", id.shortTag)
+    private val atomicFileWriter = AtomicFileWriter(gatewaySwitch, tag)
 
     override suspend fun createArguments(): EditorArguments {
         val currentState = (_state.value as? State.Ready)?.editor ?: return EditorArguments.Default()
@@ -120,6 +120,8 @@ class EditorWorkspace @AssistedInject constructor(
     private var pendingEngine: EditorEngine? = null
 
     private val engineMutex = Mutex()
+    // Serializes saveFile/auto-save against saveFileAs (see saveFileAs doc)
+    private val saveMutex = Mutex()
     private val _engine = MutableStateFlow<EditorEngine?>(null)
 
     // Unified workspace state - emits Initializing immediately
@@ -346,8 +348,18 @@ class EditorWorkspace @AssistedInject constructor(
         }
     }
 
-    private suspend fun switchEngine(newFilePath: APath<*>?, charset: Charset? = null) {
-        log(tag, INFO) { "Switching engine to: ${newFilePath?.name ?: "scratch buffer"} (charset=$charset)" }
+    /**
+     * Swaps in a fresh engine for [newFilePath]. [discardOld] releases the previous engine
+     * WITHOUT flushing unsaved changes - required for every flow where the user explicitly
+     * discarded (close-with-discard, reopen-with-encoding) or redirected them (Save-As);
+     * the default flush-on-release stays as the safety net for unprompted teardown.
+     */
+    private suspend fun switchEngine(
+        newFilePath: APath<*>?,
+        charset: Charset? = null,
+        discardOld: Boolean = false,
+    ) {
+        log(tag, INFO) { "Switching engine to: ${newFilePath?.name ?: "scratch buffer"} (charset=$charset, discardOld=$discardOld)" }
 
         val newEngine = editorEngineFactory.create(id, newFilePath, charsetOverride = charset)
         pendingEngine = newEngine
@@ -372,7 +384,7 @@ class EditorWorkspace @AssistedInject constructor(
             // Release old engine after successful init
             oldEngine?.let { old ->
                 try {
-                    old.release()
+                    old.release(flush = !discardOld)
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to release old engine: ${e.asLog()}" }
                 }
@@ -382,10 +394,10 @@ class EditorWorkspace @AssistedInject constructor(
             log(tag, DEBUG) { "Engine switched successfully" }
         } catch (e: CancellationException) {
             log(tag, INFO) { "Engine switch cancelled" }
-            // Restore old engine on cancellation
+            // Restore old engine on cancellation; the fresh engine has nothing worth flushing
             engineMutex.withLock { _engine.value = oldEngine }
             try {
-                newEngine.release()
+                newEngine.release(flush = false)
             } catch (releaseError: Exception) {
                 log(tag, ERROR) { "Failed to release cancelled engine: ${releaseError.asLog()}" }
             }
@@ -394,7 +406,7 @@ class EditorWorkspace @AssistedInject constructor(
             // Restore old engine on failure
             engineMutex.withLock { _engine.value = oldEngine }
             try {
-                newEngine.release()
+                newEngine.release(flush = false)
             } catch (releaseError: Exception) {
                 log(tag, ERROR) { "Failed to release failed engine: ${releaseError.asLog()}" }
             }
@@ -410,7 +422,8 @@ class EditorWorkspace @AssistedInject constructor(
         switchEngine(filePath)
     }
 
-    suspend fun closeFile() = switchEngine(null)
+    /** Closes the current file; only reached directly or after the user confirmed discarding changes. */
+    suspend fun closeFile() = switchEngine(null, discardOld = true)
 
     /** Reopens the current file decoding it with [charsetName]; unsaved changes are discarded. */
     suspend fun reopenWithCharset(charsetName: String) {
@@ -423,7 +436,9 @@ class EditorWorkspace @AssistedInject constructor(
                 log(tag, WARN) { "Cannot reopen with charset - no file open" }
                 return
             }
-        switchEngine(currentPath, charset)
+        // Discard is what the user confirmed; flushing here would ALSO corrupt the reopen -
+        // the new engine indexes the file BEFORE the old one is released
+        switchEngine(currentPath, charset, discardOld = true)
     }
 
     /**
@@ -445,10 +460,15 @@ class EditorWorkspace @AssistedInject constructor(
         // the global Operation History (kind = SAVE, intendedPaths = [filePath]). Same applies to
         // auto-save call sites. Out of scope for History v1.
         // Progress is emitted by EditorEngine during save
-        currentEngine().saveFile()
+        saveMutex.withLock { currentEngine().saveFile() }
     }
 
-    suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> {
+    /**
+     * [saveMutex] serializes this against saveFile/auto-save: without it a save landing between
+     * the destination write and the engine switch would flush the redirected edits back into
+     * the ORIGINAL file.
+     */
+    suspend fun saveFileAs(newFilePath: APath<*>): Result<Unit> = saveMutex.withLock {
         val engine = currentEngine()
 
         val currentPath = ((_state.value as? State.Ready)?.editor?.contentSource as? ContentSource.File)?.path
@@ -456,25 +476,28 @@ class EditorWorkspace @AssistedInject constructor(
             // Streaming into the current file would truncate the very source the original byte
             // ranges are read from; the normal atomic save handles this case
             log(tag) { "Save-as targets the current file, using the atomic save path" }
-            return engine.saveFile()
+            return@withLock engine.saveFile()
         }
 
-        return try {
+        return@withLock try {
             log(tag) { "Saving as: ${newFilePath.name}" }
 
-            // Engine streams content, Workspace handles file I/O
-            gatewaySwitch.file(newFilePath, readWrite = true).use { handle ->
-                handle.sink().buffer().use { sink ->
-                    engine.writeContentTo(sink)
-                }
+            // Atomic write: a crash mid-stream must not leave a truncated target or destroy a
+            // pre-existing file at the destination. The writer never reads the target's old
+            // content - everything comes from the current engine.
+            atomicFileWriter.replace(newFilePath, AtomicFileWriter.OriginalAccess.None) { context ->
+                engine.writeContentTo(context.sink)
             }
 
             log(tag) { "Content written to: ${newFilePath.name}" }
 
-            // Switch to new engine with the new file path, keeping the active charset override
-            switchEngine(newFilePath, charsetOverride)
+            // The unsaved changes now live in the new file; releasing the old engine must NOT
+            // flush them into the ORIGINAL file
+            switchEngine(newFilePath, charsetOverride, discardOld = true)
 
             Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to save as: ${newFilePath.name} - ${e.asLog()}" }
             Result.failure(e)

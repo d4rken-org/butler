@@ -174,12 +174,22 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
-    suspend fun release(): Result<Unit> = bufferMutex.withLock {
+    /**
+     * Releases the buffer. [flush] (default) writes unsaved changes to disk as a safety net for
+     * unprompted teardown; explicit discard flows (Save-As, close-with-discard, reopen-with-
+     * encoding) pass false - the user chose to drop these changes, silently persisting them
+     * would betray that choice.
+     */
+    suspend fun release(flush: Boolean = true): Result<Unit> = bufferMutex.withLock {
         try {
             if (_isModified.value) {
-                // Parity with the old engine: flush on close, but never block closing on failure
-                saveFileInternal().onFailure {
-                    log(tag, WARN) { "Failed to flush changes on release - ${it.asLog()}" }
+                if (flush) {
+                    // Parity with the old engine: flush on close, but never block closing on failure
+                    saveFileInternal().onFailure {
+                        log(tag, WARN) { "Failed to flush changes on release - ${it.asLog()}" }
+                    }
+                } else {
+                    log(tag, INFO) { "Releasing with unsaved changes explicitly discarded" }
                 }
             }
             dataSource.close()
