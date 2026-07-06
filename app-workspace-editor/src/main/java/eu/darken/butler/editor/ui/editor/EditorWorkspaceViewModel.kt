@@ -19,7 +19,6 @@ import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.editor.core.EditorWorkspace
 import eu.darken.butler.editor.core.engine.ContentSource
-import eu.darken.butler.editor.core.engine.SearchOptions
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
@@ -30,22 +29,19 @@ import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
-import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
-import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -57,100 +53,34 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     dispatchers: DispatcherProvider,
     private val workspaceProvider: WorkspaceProvider,
     private val workspaceRemote: WorkspaceRemote,
-    private val clipboardHelper: SystemClipboardHelper,
-    private val clipboardRepo: ClipboardRepo,
+    clipboardHelper: SystemClipboardHelper,
+    clipboardRepo: ClipboardRepo,
     private val filenameValidator: FilenameValidator,
 ) : ViewModel4(dispatchers, logTag("Editor", "Workspace", id.shortTag, "Page")) {
 
     private val workspaceSource: Flow<EditorWorkspace?> = workspaceProvider.retrieve(id).map { it as EditorWorkspace? }
     private suspend fun getWorkspace(): EditorWorkspace = workspaceSource.filterNotNull().first()
 
-    private val _showGoToLineDialog = MutableStateFlow(false)
-    private val _showSearchBar = MutableStateFlow(false)
-    private val _showCloseConfirmDialog = MutableStateFlow(false)
-    private val _showEncodingDialog = MutableStateFlow(false)
-    private val _pendingEncoding = MutableStateFlow<String?>(null)
-    private val _pendingSaveAsOverwrite = MutableStateFlow<APath<*>?>(null)
-    private val _backupNoticeDismissed = MutableStateFlow(false)
-    private val _searchQueryInput = MutableStateFlow(TextFieldValue(""))
-    private val _currentSearchResultIndex = MutableStateFlow(0)
-    private val _searchCaseSensitive = MutableStateFlow(false)
-    private val _searchRegexEnabled = MutableStateFlow(false)
-    private val _searchWholeWord = MutableStateFlow(false)
-    private val _scrollTrigger = MutableStateFlow(0)
-    private val _clipboardInfoClip = MutableStateFlow<ClipboardClip?>(null)
+    // Error-handled launch shared with the controllers so their failures surface like ours
+    private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit = { block -> launch(block = block) }
+
+    private val searchController = EditorSearchController(vmScope, doLaunch, ::getWorkspace, tag)
+    private val clipboardController =
+        EditorClipboardController(id, doLaunch, ::getWorkspace, clipboardHelper, clipboardRepo, tag)
+    private val dialogsController = EditorDialogsController(doLaunch, ::getWorkspace)
+
     private var openFileJob: Job? = null
-    private var searchJob: Job? = null
-
-    private data class DialogStates(
-        val showGoToLineDialog: Boolean,
-        val showSearchBar: Boolean,
-        val showCloseConfirmDialog: Boolean,
-        val showEncodingDialog: Boolean,
-        val pendingEncoding: String?,
-        val pendingSaveAsOverwrite: APath<*>?,
-        val backupNoticeDismissed: Boolean,
-    )
-
-    private val dialogStates = combine(
-        _showGoToLineDialog,
-        _showSearchBar,
-        _showCloseConfirmDialog,
-        _showEncodingDialog,
-        _pendingEncoding,
-        _pendingSaveAsOverwrite,
-        _backupNoticeDismissed,
-    ) { values ->
-        DialogStates(
-            showGoToLineDialog = values[0] as Boolean,
-            showSearchBar = values[1] as Boolean,
-            showCloseConfirmDialog = values[2] as Boolean,
-            showEncodingDialog = values[3] as Boolean,
-            pendingEncoding = values[4] as String?,
-            pendingSaveAsOverwrite = values[5] as APath<*>?,
-            backupNoticeDismissed = values[6] as Boolean,
-        )
-    }
-
-    private data class SearchStates(
-        val queryInput: TextFieldValue,
-        val currentResultIndex: Int,
-        val caseSensitive: Boolean,
-        val regexEnabled: Boolean,
-        val wholeWord: Boolean,
-        val scrollTrigger: Int,
-    )
-
-    private val searchStates = combine(
-        _searchQueryInput,
-        _currentSearchResultIndex,
-        _searchCaseSensitive,
-        _searchRegexEnabled,
-        _searchWholeWord,
-        _scrollTrigger,
-    ) { values ->
-        SearchStates(
-            queryInput = values[0] as TextFieldValue,
-            currentResultIndex = values[1] as Int,
-            caseSensitive = values[2] as Boolean,
-            regexEnabled = values[3] as Boolean,
-            wholeWord = values[4] as Boolean,
-            scrollTrigger = values[5] as Int,
-        )
-    }
 
     private val workspaceWithState: Flow<Pair<EditorWorkspace, EditorWorkspace.State>> = workspaceSource
         .filterNotNull()
         .flatMapLatest { ws -> ws.state.map { state -> ws to state } }
 
-    private val _hasSystemClipboardContent = MutableStateFlow(clipboardHelper.hasClipboardContent())
-
     val state: Flow<State> = combine(
         workspaceWithState,
-        dialogStates,
-        searchStates,
+        dialogsController.state,
+        searchController.state,
         flowOf(id),
-        _hasSystemClipboardContent,
+        clipboardController.hasSystemClipboardContent,
     ) { (workspace, wsState), dialogs, search, workspaceId, hasClipboardContent ->
         // Only emit Ready states - Init/Error are handled globally by WorkspaceMapper
         val readyState = wsState as? EditorWorkspace.State.Ready ?: return@combine null
@@ -181,7 +111,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             fontSize = editorState.fontSize,
             tabSize = editorState.tabSize,
             showGoToLineDialog = dialogs.showGoToLineDialog,
-            showSearchBar = dialogs.showSearchBar,
+            showSearchBar = search.showSearchBar,
             showCloseConfirmDialog = dialogs.showCloseConfirmDialog,
             showEncodingDialog = dialogs.showEncodingDialog,
             pendingEncoding = dialogs.pendingEncoding,
@@ -199,6 +129,12 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         )
     }.filterNotNull()
 
+    // Delegated surfaces consumed by the Host/Page
+    val clipboard = clipboardController.clipboard
+    val clipboardInfoClip = clipboardController.clipboardInfoClip
+    val pasteableClipboard = clipboardController.pasteableClipboard
+    fun refreshClipboardState() = clipboardController.refreshClipboardState()
+
     init {
         // A dismissed backup notice belongs to ONE path: any path change (open, Save-As,
         // scratch-to-file) re-arms the notice for the new document
@@ -207,7 +143,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 ((wsState as? EditorWorkspace.State.Ready)?.editor?.contentSource as? ContentSource.File)?.path
             }
             .distinctUntilChanged()
-            .onEach { _backupNoticeDismissed.value = false }
+            .onEach { dialogsController.rearmBackupNotice() }
             .launchIn(vmScope)
 
         // Listen for picker results. `filename` is non-null exactly when the result came from a
@@ -226,6 +162,14 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
     }
 
+    // ==================== File operations ====================
+
+    fun launchFilePicker() = launch {
+        val currentState = state.first()
+        val currentPath = (currentState.contentSource as? ContentSource.File)?.path?.parent
+        workspaceRemote.launchPicker(id, currentPath, PickerConfig.Selection.FileSingle)
+    }
+
     fun saveFileAs() = launch {
         val currentState = state.first()
         val source = currentState.contentSource
@@ -236,7 +180,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     private fun handleSaveAsDestination(directory: APath<*>, filename: String) = launch {
         // A new Save-As result supersedes any overwrite decision still pending from an earlier one
-        _pendingSaveAsOverwrite.value = null
+        dialogsController.setPendingSaveAsOverwrite(null)
         // The picker validates too; re-validating here means a malformed event can't produce a
         // path with separators or storage-invalid characters
         val validation = filenameValidator.validate(filename, directory)
@@ -249,7 +193,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         when (getWorkspace().inspectSaveAsTarget(destination)) {
             EditorWorkspace.SaveAsTarget.EXISTS_DIRECTORY ->
                 throw IllegalArgumentException("A folder named \"$filename\" already exists here")
-            EditorWorkspace.SaveAsTarget.EXISTS_FILE -> _pendingSaveAsOverwrite.value = destination
+            EditorWorkspace.SaveAsTarget.EXISTS_FILE -> dialogsController.setPendingSaveAsOverwrite(destination)
             EditorWorkspace.SaveAsTarget.FREE -> performSaveAs(destination)
         }
     }
@@ -260,21 +204,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun confirmSaveAsOverwrite() {
-        val destination = _pendingSaveAsOverwrite.value ?: return
-        _pendingSaveAsOverwrite.value = null
+        val destination = dialogsController.takePendingSaveAsOverwrite() ?: return
         performSaveAs(destination)
-    }
-
-    fun dismissSaveAsOverwrite() {
-        _pendingSaveAsOverwrite.value = null
-    }
-
-    // All operations delegate to workspace
-
-    fun launchFilePicker() = launch {
-        val currentState = state.first()
-        val currentPath = (currentState.contentSource as? ContentSource.File)?.path?.parent
-        workspaceRemote.launchPicker(id, currentPath, PickerConfig.Selection.FileSingle)
     }
 
     fun openFile(filePath: APath<*>) {
@@ -308,10 +239,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         launch {
             val currentState = state.first()
             if (currentState.isModified) {
-                // Show confirmation dialog
-                _showCloseConfirmDialog.value = true
+                dialogsController.showCloseConfirmDialog()
             } else {
-                // Close directly if no unsaved changes
                 performCloseFile()
             }
         }
@@ -328,12 +257,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun confirmCloseFile() {
-        _showCloseConfirmDialog.value = false
+        dialogsController.dismissCloseConfirmDialog()
         performCloseFile()
-    }
-
-    fun dismissCloseConfirmDialog() {
-        _showCloseConfirmDialog.value = false
     }
 
     fun saveFile() {
@@ -347,6 +272,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             }
         }
     }
+
+    // ==================== Editing delegates ====================
 
     fun updateVisibleRange(startLine: Long, endLine: Long) = launch {
         getWorkspace().updateVisibleRange(startLine, endLine)
@@ -369,140 +296,11 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun deleteForward() = launch {
-        log(tag) { "deleteForward() called" }
         getWorkspace().deleteForward()
     }
 
     fun moveCursor(direction: CursorDirection, extendSelection: Boolean) = launch {
-        log(tag) { "moveCursor(direction=$direction, extendSelection=$extendSelection) called" }
         getWorkspace().moveCursor(direction, extendSelection)
-    }
-
-    fun copyToClipboard() = launch {
-        val result = getWorkspace().copySelection()
-        result.fold(
-            onSuccess = { text ->
-                clipboardHelper.copyToClipboard(text)
-                _hasSystemClipboardContent.value = true
-                log(tag) { "Copied ${text.length} characters to system clipboard" }
-            },
-            onFailure = { e ->
-                log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" }
-            }
-        )
-    }
-
-    fun cutToClipboard() = launch {
-        val workspace = getWorkspace()
-        val copyResult = workspace.copySelection()
-        copyResult.fold(
-            onSuccess = { text ->
-                clipboardHelper.copyToClipboard(text)
-                _hasSystemClipboardContent.value = true
-                workspace.deleteSelection()
-                log(tag) { "Cut ${text.length} characters to system clipboard" }
-            },
-            onFailure = { e ->
-                log(tag, ERROR) { "Failed to cut selection - ${e.asLog()}" }
-            }
-        )
-    }
-
-    /**
-     * Copies selection to Butler clipboard only (for long-press action).
-     */
-    fun copyToButlerClipboard() = launch {
-        val result = getWorkspace().copySelection()
-        result.fold(
-            onSuccess = { text ->
-                addToButlerClipboard(text)
-            },
-            onFailure = { e ->
-                log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" }
-            }
-        )
-    }
-
-    /**
-     * Cuts selection to Butler clipboard only (for long-press action).
-     */
-    fun cutToButlerClipboard() = launch {
-        val workspace = getWorkspace()
-        val copyResult = workspace.copySelection()
-        copyResult.fold(
-            onSuccess = { text ->
-                addToButlerClipboard(text)
-                workspace.deleteSelection()
-                log(tag) { "Cut ${text.length} characters to Butler clipboard" }
-            },
-            onFailure = { e ->
-                log(tag, ERROR) { "Failed to cut selection - ${e.asLog()}" }
-            }
-        )
-    }
-
-    private suspend fun addToButlerClipboard(text: String) {
-        // Check size limit
-        if (text.toByteArray(Charsets.UTF_8).size > ClipboardClip.Text.MAX_SIZE_BYTES) {
-            log(tag, WARN) { "Text too large for Butler clipboard: ${text.length} chars" }
-            return
-        }
-
-        val currentFilePath = (state.first().contentSource as? ContentSource.File)?.path
-        val clip = ClipboardClip.Text(
-            origin = id,
-            content = text,
-            sourcePath = currentFilePath,
-        )
-        clipboardRepo.add(clip)
-        log(tag, INFO) { "Added ${text.length} characters to Butler clipboard" }
-    }
-
-    fun pasteFromClipboard() = launch {
-        val text = clipboardHelper.getClipboardText()
-        if (text != null) {
-            getWorkspace().insertText(text)
-            log(tag) { "Pasted ${text.length} characters from clipboard" }
-        } else {
-            log(tag) { "No text content in clipboard to paste" }
-        }
-    }
-
-    fun refreshClipboardState() {
-        _hasSystemClipboardContent.value = clipboardHelper.hasClipboardContent()
-    }
-
-    /**
-     * Clipboard entries that can be pasted into the editor (files only, not text).
-     */
-    val pasteableClipboard: Flow<List<ClipboardClip.Paths>> = clipboardRepo.state
-        .map { state ->
-            state.entries.filterIsInstance<ClipboardClip.Paths>()
-                .filter { clip ->
-                    clip.paths.any { path -> isLikelyTextFile(path) }
-                }
-        }
-
-    private fun isLikelyTextFile(path: APath<*>): Boolean {
-        val ext = path.name.substringAfterLast('.', "").lowercase()
-        return ext in TEXT_EXTENSIONS
-    }
-
-    /**
-     * Paste content from a file in the Butler clipboard into the editor.
-     */
-    fun pasteFromClipboardFile(path: APath<*>) = launch {
-        log(tag) { "pasteFromClipboardFile($path)" }
-        val result = getWorkspace().readFileContent(path)
-        result.fold(
-            onSuccess = { content ->
-                getWorkspace().insertText(content)
-                log(tag, INFO) { "Pasted ${content.length} characters from file: ${path.name}" }
-            },
-            onFailure = { e ->
-                log(tag, ERROR) { "Failed to paste from file: ${e.asLog()}" }
-            }
-        )
     }
 
     fun selectAll() = launch {
@@ -513,164 +311,12 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().setCursorPosition(position)
     }
 
-
     fun setSelection(start: TextPosition, end: TextPosition) = launch {
         getWorkspace().setSelection(start, end)
     }
 
-    private fun buildSearchOptions() = SearchOptions(
-        caseSensitive = _searchCaseSensitive.value,
-        useRegex = _searchRegexEnabled.value,
-        wholeWord = _searchWholeWord.value,
-    )
-
-    /**
-     * One tracked search at a time: a new query cancels the previous scan. Typing debounces
-     * so every keystroke doesn't start a whole-document scan; option toggles re-search
-     * immediately (deliberate single action).
-     */
-    private fun search(query: String, debounce: Boolean = false) {
-        searchJob?.cancel()
-        searchJob = vmScope.launch {
-            try {
-                if (debounce) delay(SEARCH_DEBOUNCE_MS)
-                val options = buildSearchOptions()
-                val result = getWorkspace().search(query, options)
-                result.onSuccess { searchResults ->
-                    // Auto-navigate to first result if available
-                    if (searchResults.isNotEmpty()) {
-                        _currentSearchResultIndex.value = 0
-                        getWorkspace().setCursorPosition(searchResults[0].position)
-                    } else {
-                        _currentSearchResultIndex.value = 0
-                    }
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                log(tag, ERROR) { "Search failed - ${e.asLog()}" }
-            }
-        }
-    }
-
-    fun updateSearchQuery(textFieldValue: TextFieldValue) {
-        _searchQueryInput.value = textFieldValue
-        val query = textFieldValue.text
-        if (query.isNotEmpty()) {
-            search(query, debounce = true)
-        } else {
-            // Clearing goes through the same tracked job - an untracked clear could otherwise
-            // race a newer search and purge its results
-            search("")
-        }
-    }
-
-    fun nextSearchResult() = launch {
-        val currentState = state.first()
-        if (currentState.searchResults.isNotEmpty()) {
-            val newIndex = (_currentSearchResultIndex.value + 1) % currentState.searchResults.size
-            _currentSearchResultIndex.value = newIndex
-            _scrollTrigger.value++
-            getWorkspace().setCursorPosition(currentState.searchResults[newIndex].position)
-        }
-    }
-
-    fun previousSearchResult() = launch {
-        val currentState = state.first()
-        if (currentState.searchResults.isNotEmpty()) {
-            val newIndex = if (_currentSearchResultIndex.value == 0) {
-                currentState.searchResults.size - 1
-            } else {
-                _currentSearchResultIndex.value - 1
-            }
-            _currentSearchResultIndex.value = newIndex
-            _scrollTrigger.value++
-            getWorkspace().setCursorPosition(currentState.searchResults[newIndex].position)
-        }
-    }
-
-    fun toggleCaseSensitivity() {
-        _searchCaseSensitive.value = !_searchCaseSensitive.value
-        // Re-run search with new case sensitivity if there's a query
-        val query = _searchQueryInput.value.text
-        if (query.isNotEmpty()) {
-            search(query)
-        }
-    }
-
-    fun toggleRegexMode() {
-        _searchRegexEnabled.value = !_searchRegexEnabled.value
-        // Re-run search with new regex mode if there's a query
-        val query = _searchQueryInput.value.text
-        if (query.isNotEmpty()) {
-            search(query)
-        }
-    }
-
-    fun toggleWholeWord() {
-        _searchWholeWord.value = !_searchWholeWord.value
-        // Re-run search with new whole word mode if there's a query
-        val query = _searchQueryInput.value.text
-        if (query.isNotEmpty()) {
-            search(query)
-        }
-    }
-
-    fun closeSearch() {
-        _searchQueryInput.value = TextFieldValue("")
-        _showSearchBar.value = false
-        // Clear via the tracked job so it cannot race a still-running scan
-        search("")
-    }
-
     fun goToLine(lineNumber: Long) = launch {
         getWorkspace().goToLine(lineNumber)
-    }
-
-    fun showGoToLineDialog() {
-        _showGoToLineDialog.value = true
-    }
-
-    fun dismissGoToLineDialog() {
-        _showGoToLineDialog.value = false
-    }
-
-    fun showSearchBar() {
-        _showSearchBar.value = true
-    }
-
-    fun showEncodingDialog() {
-        _showEncodingDialog.value = true
-    }
-
-    fun dismissEncodingDialog() {
-        _showEncodingDialog.value = false
-    }
-
-    fun selectEncoding(charsetName: String) {
-        _showEncodingDialog.value = false
-        launch {
-            val currentState = state.first()
-            if (currentState.fileEncoding.equals(charsetName, ignoreCase = true)) return@launch
-            if (currentState.isModified) {
-                // Reopening rescans from disk; let the user confirm losing unsaved changes
-                _pendingEncoding.value = charsetName
-            } else {
-                getWorkspace().reopenWithCharset(charsetName)
-            }
-        }
-    }
-
-    fun confirmEncodingDiscard() {
-        val charsetName = _pendingEncoding.value ?: return
-        _pendingEncoding.value = null
-        launch {
-            getWorkspace().reopenWithCharset(charsetName)
-        }
-    }
-
-    fun dismissEncodingDiscard() {
-        _pendingEncoding.value = null
     }
 
     fun undo() = launch {
@@ -685,19 +331,21 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().clearError()
     }
 
+    // ==================== Action dispatch ====================
+
     /**
      * Executes workspace-level domain actions from action bar.
      * Routes EditorAction objects to appropriate handlers.
      */
     fun executeAction(action: EditorActionBarItem) {
         when (action) {
-            EditorActionBarItem.Copy -> copyToClipboard()
-            EditorActionBarItem.Cut -> cutToClipboard()
-            EditorActionBarItem.Paste -> pasteFromClipboard()
+            EditorActionBarItem.Copy -> clipboardController.copyToClipboard()
+            EditorActionBarItem.Cut -> clipboardController.cutToClipboard()
+            EditorActionBarItem.Paste -> clipboardController.pasteFromClipboard()
             EditorActionBarItem.Delete -> deleteSelection()
             EditorActionBarItem.SelectAll -> selectAll()
-            EditorActionBarItem.GoToLine -> showGoToLineDialog()
-            EditorActionBarItem.Search -> showSearchBar()
+            EditorActionBarItem.GoToLine -> dialogsController.showGoToLineDialog()
+            EditorActionBarItem.Search -> searchController.showSearchBar()
         }
     }
 
@@ -707,8 +355,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
      */
     fun executeActionLongClick(action: EditorActionBarItem) {
         when (action) {
-            EditorActionBarItem.Copy -> copyToButlerClipboard()
-            EditorActionBarItem.Cut -> cutToButlerClipboard()
+            EditorActionBarItem.Copy -> clipboardController.copyToButlerClipboard()
+            EditorActionBarItem.Cut -> clipboardController.cutToButlerClipboard()
             else -> { /* Other actions don't have long press behavior */
             }
         }
@@ -726,9 +374,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.File.SaveAs -> saveFileAs()
             is EditorPageAction.File.Close -> closeFile()
             is EditorPageAction.File.CancelOpen -> cancelFileOpen()
-            is EditorPageAction.File.ShowEncodingPicker -> showEncodingDialog()
-            is EditorPageAction.File.ReopenWithEncoding -> selectEncoding(action.charsetName)
-            is EditorPageAction.File.DismissBackupNotice -> _backupNoticeDismissed.value = true
+            is EditorPageAction.File.ShowEncodingPicker -> dialogsController.showEncodingDialog()
+            is EditorPageAction.File.ReopenWithEncoding -> dialogsController.selectEncoding(action.charsetName)
+            is EditorPageAction.File.DismissBackupNotice -> dialogsController.dismissBackupNotice()
 
             // Edit actions
             is EditorPageAction.Edit.InsertText -> insertText(action.text)
@@ -747,30 +395,30 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Navigation.UpdateVisibleRange -> updateVisibleRange(action.startLine, action.endLine)
 
             // Search UI actions
-            is EditorPageAction.Search.UpdateQuery -> updateSearchQuery(action.query)
-            is EditorPageAction.Search.ToggleCaseSensitive -> toggleCaseSensitivity()
-            is EditorPageAction.Search.ToggleRegex -> toggleRegexMode()
-            is EditorPageAction.Search.ToggleWholeWord -> toggleWholeWord()
-            is EditorPageAction.Search.NextResult -> nextSearchResult()
-            is EditorPageAction.Search.PreviousResult -> previousSearchResult()
-            is EditorPageAction.Search.Close -> closeSearch()
+            is EditorPageAction.Search.UpdateQuery -> searchController.updateQuery(action.query)
+            is EditorPageAction.Search.ToggleCaseSensitive -> searchController.toggleCaseSensitivity()
+            is EditorPageAction.Search.ToggleRegex -> searchController.toggleRegexMode()
+            is EditorPageAction.Search.ToggleWholeWord -> searchController.toggleWholeWord()
+            is EditorPageAction.Search.NextResult -> searchController.nextResult()
+            is EditorPageAction.Search.PreviousResult -> searchController.previousResult()
+            is EditorPageAction.Search.Close -> searchController.closeSearch()
 
             // Dialog actions
-            is EditorPageAction.Dialog.DismissGoToLine -> dismissGoToLineDialog()
-            is EditorPageAction.Dialog.DismissCloseConfirm -> dismissCloseConfirmDialog()
+            is EditorPageAction.Dialog.DismissGoToLine -> dialogsController.dismissGoToLineDialog()
+            is EditorPageAction.Dialog.DismissCloseConfirm -> dialogsController.dismissCloseConfirmDialog()
             is EditorPageAction.Dialog.ConfirmClose -> confirmCloseFile()
-            is EditorPageAction.Dialog.DismissEncoding -> dismissEncodingDialog()
-            is EditorPageAction.Dialog.ConfirmEncodingDiscard -> confirmEncodingDiscard()
-            is EditorPageAction.Dialog.DismissEncodingDiscard -> dismissEncodingDiscard()
+            is EditorPageAction.Dialog.DismissEncoding -> dialogsController.dismissEncodingDialog()
+            is EditorPageAction.Dialog.ConfirmEncodingDiscard -> dialogsController.confirmEncodingDiscard()
+            is EditorPageAction.Dialog.DismissEncodingDiscard -> dialogsController.dismissEncodingDiscard()
             is EditorPageAction.Dialog.ConfirmSaveAsOverwrite -> confirmSaveAsOverwrite()
-            is EditorPageAction.Dialog.DismissSaveAsOverwrite -> dismissSaveAsOverwrite()
+            is EditorPageAction.Dialog.DismissSaveAsOverwrite -> dialogsController.dismissSaveAsOverwrite()
 
             // Clipboard actions
-            is EditorPageAction.Clipboard.Paste -> pasteFromClipboard(action.clip)
-            is EditorPageAction.Clipboard.Remove -> removeClipboardEntry(action.clip)
-            is EditorPageAction.Clipboard.ShowInfo -> showClipboardInfo(action.clip)
-            is EditorPageAction.Clipboard.DismissInfo -> dismissClipboardInfo()
-            is EditorPageAction.Clipboard.Clear -> clearAllClipboard()
+            is EditorPageAction.Clipboard.Paste -> clipboardController.pasteFromClipboard(action.clip)
+            is EditorPageAction.Clipboard.Remove -> clipboardController.removeClipboardEntry(action.clip)
+            is EditorPageAction.Clipboard.ShowInfo -> clipboardController.showClipboardInfo(action.clip)
+            is EditorPageAction.Clipboard.DismissInfo -> clipboardController.dismissClipboardInfo()
+            is EditorPageAction.Clipboard.Clear -> clipboardController.clearAllClipboard()
 
             // Workspace actions
             is EditorPageAction.Workspace.ShareError -> { /* Handled globally by WorkspaceMapper */
@@ -869,59 +517,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
                 if (hasContent) add(EditorActionBarItem.GoToLine)
                 if (hasContent && !isSearchBarVisible) add(EditorActionBarItem.Search)
             }
-    }
-
-    val clipboard: Flow<ClipboardDisplayState> = clipboardRepo.state.map { state ->
-        ClipboardDisplayState(entries = state.entries)
-    }
-
-    val clipboardInfoClip: Flow<ClipboardClip?> = _clipboardInfoClip
-
-    fun showClipboardInfo(clip: ClipboardClip) {
-        log(tag) { "showClipboardInfo($clip)" }
-        _clipboardInfoClip.value = clip
-    }
-
-    fun dismissClipboardInfo() {
-        _clipboardInfoClip.value = null
-    }
-
-    fun removeClipboardEntry(clip: ClipboardClip) = launch {
-        log(tag) { "removeClipboardEntry(${clip.id})" }
-        clipboardRepo.remove(clip.id)
-    }
-
-    fun clearAllClipboard() = launch {
-        log(tag) { "clearAllClipboard()" }
-        clipboardRepo.clear()
-    }
-
-    fun pasteFromClipboard(clip: ClipboardClip) = launch {
-        log(tag) { "pasteFromClipboard($clip)" }
-        when (clip) {
-            is ClipboardClip.Text -> {
-                getWorkspace().insertText(clip.content)
-                log(tag, INFO) { "Pasted ${clip.content.length} characters from Butler clipboard" }
-            }
-            is ClipboardClip.Paths -> {
-                // For file paths, read the first text file and paste its content
-                val textFile = clip.paths.firstOrNull { isLikelyTextFile(it) }
-                if (textFile != null) {
-                    pasteFromClipboardFile(textFile)
-                } else {
-                    log(tag, WARN) { "No text files found in clipboard paths" }
-                }
-            }
-        }
-    }
-
-    companion object {
-        private const val SEARCH_DEBOUNCE_MS = 200L
-        private val TEXT_EXTENSIONS = setOf(
-            "txt", "md", "json", "xml", "html", "css", "js", "kt", "java", "py", "sh",
-            "yml", "yaml", "csv", "log", "conf", "ini", "properties", "gradle", "toml",
-            "c", "cpp", "h", "hpp", "rs", "go", "rb", "php", "sql", "ts", "tsx", "jsx",
-        )
     }
 
     @AssistedFactory
