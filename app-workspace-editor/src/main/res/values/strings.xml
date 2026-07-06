@@ -74,6 +74,9 @@
 
     <!-- Editor UI elements -->
     <string name="editor_error_unknown">Unknown error</string>
+    <string name="editor_error_read_only">This file is read-only and can\'t be changed.</string>
+    <string name="editor_error_save_integrity_label">Save interrupted</string>
+    <string name="editor_error_save_integrity">Saving was interrupted and the file on disk may be incomplete. Reload the file before editing further.</string>
     <plurals name="editor_search_results_x_of_y">
         <item quantity="one">%1$d of %2$d result</item>
         <item quantity="other">%1$d of %2$d results</item>
