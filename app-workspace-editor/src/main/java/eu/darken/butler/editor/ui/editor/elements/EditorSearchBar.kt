@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,6 +16,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
+import androidx.compose.material.icons.twotone.ExpandLess
+import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
 import androidx.compose.material.icons.twotone.KeyboardArrowUp
 import androidx.compose.material.icons.twotone.MoreVert
@@ -27,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,6 +53,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
+import eu.darken.butler.editor.ui.editor.EditorSearchController
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 
 @Composable
@@ -60,6 +65,10 @@ fun EditorSearchBar(
     caseSensitive: Boolean,
     regexEnabled: Boolean,
     wholeWord: Boolean,
+    replaceQuery: TextFieldValue = TextFieldValue(""),
+    showReplaceRow: Boolean = false,
+    replaceAllowed: Boolean = true,
+    replaceNotice: EditorSearchController.ReplaceNotice? = null,
     onSearchQueryChange: (TextFieldValue) -> Unit,
     onCaseSensitiveToggle: () -> Unit,
     onRegexToggle: () -> Unit,
@@ -67,6 +76,10 @@ fun EditorSearchBar(
     onPrevious: () -> Unit,
     onNext: () -> Unit,
     onClose: () -> Unit,
+    onToggleReplaceRow: () -> Unit = {},
+    onReplaceQueryChange: (TextFieldValue) -> Unit = {},
+    onReplaceCurrent: () -> Unit = {},
+    onReplaceAll: () -> Unit = {},
 ) {
     val hasResults = searchResults.isNotEmpty()
     val canNavigate = hasResults
@@ -261,6 +274,107 @@ fun EditorSearchBar(
                         imageVector = Icons.TwoTone.Close,
                         contentDescription = stringResource(eu.darken.butler.common.R.string.general_close_action),
                     )
+                }
+            }
+
+            if (replaceAllowed) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = if (showReplaceRow) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
+                        contentDescription = stringResource(R.string.editor_search_replace_toggle),
+                        modifier = Modifier
+                            .clickable { onToggleReplaceRow() }
+                            .padding(4.dp)
+                            .size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = stringResource(R.string.editor_search_replace_label),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .clickable { onToggleReplaceRow() }
+                            .padding(vertical = 4.dp),
+                    )
+                    replaceNotice?.let { notice ->
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            text = if (notice.undoable) {
+                                pluralStringResource(
+                                    R.plurals.editor_search_replaced_count,
+                                    notice.count,
+                                    notice.count,
+                                )
+                            } else {
+                                stringResource(R.string.editor_search_replaced_not_undoable, notice.count)
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+
+            if (replaceAllowed && showReplaceRow) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                shape = RoundedCornerShape(8.dp),
+                            )
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        BasicTextField(
+                            value = replaceQuery,
+                            onValueChange = onReplaceQueryChange,
+                            modifier = Modifier.weight(1f),
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface,
+                            ),
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                            singleLine = true,
+                            decorationBox = { innerTextField ->
+                                Box(modifier = Modifier.padding(vertical = 8.dp)) {
+                                    if (replaceQuery.text.isEmpty()) {
+                                        Text(
+                                            text = stringResource(R.string.editor_search_replace_placeholder),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            },
+                        )
+                    }
+
+                    TextButton(
+                        onClick = onReplaceCurrent,
+                        enabled = hasResults,
+                    ) {
+                        Text(stringResource(R.string.editor_search_replace_one_action))
+                    }
+                    TextButton(
+                        onClick = onReplaceAll,
+                        enabled = hasResults,
+                    ) {
+                        Text(stringResource(R.string.editor_search_replace_all_action))
+                    }
                 }
             }
         }

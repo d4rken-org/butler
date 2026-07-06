@@ -76,6 +76,16 @@
     <string name="editor_search_regex_label">Regular expression</string>
     <string name="editor_search_whole_word_label">Whole word</string>
     <string name="editor_search_options_label">Search options</string>
+    <string name="editor_search_replace_label">Replace</string>
+    <string name="editor_search_replace_toggle">Toggle replace</string>
+    <string name="editor_search_replace_placeholder">Replace with…</string>
+    <string name="editor_search_replace_one_action">Replace</string>
+    <string name="editor_search_replace_all_action">All</string>
+    <string name="editor_search_replaced_not_undoable">%1$d replaced (too large to undo)</string>
+    <plurals name="editor_search_replaced_count">
+        <item quantity="one">%1$d replaced</item>
+        <item quantity="other">%1$d replaced</item>
+    </plurals>
 
     <!-- Editor dialogs -->
     <string name="editor_dialog_go_to_line_title">Go to line</string>

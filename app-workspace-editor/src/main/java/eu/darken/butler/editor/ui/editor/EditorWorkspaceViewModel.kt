@@ -123,6 +123,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             searchRegexEnabled = search.regexEnabled,
             searchWholeWord = search.wholeWord,
             scrollTrigger = search.scrollTrigger,
+            replaceQueryInput = search.replaceQueryInput,
+            showReplaceRow = search.showReplaceRow,
+            replaceNotice = search.replaceNotice,
             canUndo = editorState.canUndo,
             canRedo = editorState.canRedo,
             hasSystemClipboardContent = hasClipboardContent,
@@ -399,6 +402,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Search.ToggleCaseSensitive -> searchController.toggleCaseSensitivity()
             is EditorPageAction.Search.ToggleRegex -> searchController.toggleRegexMode()
             is EditorPageAction.Search.ToggleWholeWord -> searchController.toggleWholeWord()
+            is EditorPageAction.Search.ToggleReplaceRow -> searchController.toggleReplaceRow()
+            is EditorPageAction.Search.UpdateReplaceQuery -> searchController.updateReplaceQuery(action.query)
+            is EditorPageAction.Search.ReplaceCurrent -> searchController.replaceCurrent()
+            is EditorPageAction.Search.ReplaceAll -> searchController.replaceAll()
             is EditorPageAction.Search.NextResult -> searchController.nextResult()
             is EditorPageAction.Search.PreviousResult -> searchController.previousResult()
             is EditorPageAction.Search.Close -> searchController.closeSearch()
@@ -466,6 +473,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val searchRegexEnabled: Boolean = false,
         val searchWholeWord: Boolean = false,
         val scrollTrigger: Int = 0,
+        val replaceQueryInput: TextFieldValue = TextFieldValue(""),
+        val showReplaceRow: Boolean = false,
+        val replaceNotice: EditorSearchController.ReplaceNotice? = null,
         val canUndo: Boolean = false,
         val canRedo: Boolean = false,
         val hasSystemClipboardContent: Boolean = false,

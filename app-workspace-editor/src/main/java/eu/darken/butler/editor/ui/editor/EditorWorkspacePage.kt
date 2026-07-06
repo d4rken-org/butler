@@ -212,6 +212,10 @@ fun EditorWorkspacePage(
                         caseSensitive = state.searchCaseSensitive,
                         regexEnabled = state.searchRegexEnabled,
                         wholeWord = state.searchWholeWord,
+                        replaceQuery = state.replaceQueryInput,
+                        showReplaceRow = state.showReplaceRow,
+                        replaceAllowed = !state.isReadOnly,
+                        replaceNotice = state.replaceNotice,
                         onSearchQueryChange = { onPageAction(EditorPageAction.Search.UpdateQuery(it)) },
                         onCaseSensitiveToggle = { onPageAction(EditorPageAction.Search.ToggleCaseSensitive) },
                         onRegexToggle = { onPageAction(EditorPageAction.Search.ToggleRegex) },
@@ -219,6 +223,10 @@ fun EditorWorkspacePage(
                         onPrevious = { onPageAction(EditorPageAction.Search.PreviousResult) },
                         onNext = { onPageAction(EditorPageAction.Search.NextResult) },
                         onClose = { onPageAction(EditorPageAction.Search.Close) },
+                        onToggleReplaceRow = { onPageAction(EditorPageAction.Search.ToggleReplaceRow) },
+                        onReplaceQueryChange = { onPageAction(EditorPageAction.Search.UpdateReplaceQuery(it)) },
+                        onReplaceCurrent = { onPageAction(EditorPageAction.Search.ReplaceCurrent) },
+                        onReplaceAll = { onPageAction(EditorPageAction.Search.ReplaceAll) },
                     )
                 }
                 FloatingBar(

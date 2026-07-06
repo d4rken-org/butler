@@ -34,7 +34,22 @@ class EditorSearchController(
     private val _wholeWord = MutableStateFlow(false)
     private val _scrollTrigger = MutableStateFlow(0)
     private val _showSearchBar = MutableStateFlow(false)
+    private val _replaceQueryInput = MutableStateFlow(TextFieldValue(""))
+    private val _showReplaceRow = MutableStateFlow(false)
+    private val _replaceNotice = MutableStateFlow<ReplaceNotice?>(null)
     private var searchJob: Job? = null
+
+    // The query/options that produced the CURRENTLY published results. Replace operations use
+    // these, never the live input field - the user may have typed a new query whose search
+    // hasn't run yet, and replacing against mixed query/results would mutate the wrong match.
+    private var activeQuery: String = ""
+    private var activeOptions: SearchOptions = SearchOptions()
+
+    /** Outcome of the last replace-all, shown transiently in the search bar. */
+    data class ReplaceNotice(
+        val count: Int,
+        val undoable: Boolean,
+    )
 
     data class SearchUiState(
         val queryInput: TextFieldValue = TextFieldValue(""),
@@ -44,6 +59,9 @@ class EditorSearchController(
         val wholeWord: Boolean = false,
         val scrollTrigger: Int = 0,
         val showSearchBar: Boolean = false,
+        val replaceQueryInput: TextFieldValue = TextFieldValue(""),
+        val showReplaceRow: Boolean = false,
+        val replaceNotice: ReplaceNotice? = null,
     )
 
     val state: Flow<SearchUiState> = combine(
@@ -54,6 +72,9 @@ class EditorSearchController(
         _wholeWord,
         _scrollTrigger,
         _showSearchBar,
+        _replaceQueryInput,
+        _showReplaceRow,
+        _replaceNotice,
     ) { values ->
         SearchUiState(
             queryInput = values[0] as TextFieldValue,
@@ -63,6 +84,9 @@ class EditorSearchController(
             wholeWord = values[4] as Boolean,
             scrollTrigger = values[5] as Int,
             showSearchBar = values[6] as Boolean,
+            replaceQueryInput = values[7] as TextFieldValue,
+            showReplaceRow = values[8] as Boolean,
+            replaceNotice = values[9] as ReplaceNotice?,
         )
     }
 
@@ -85,12 +109,23 @@ class EditorSearchController(
         searchJob = scope.launch {
             try {
                 if (debounce) delay(SEARCH_DEBOUNCE_MS)
-                val result = workspace().search(query, buildSearchOptions())
+                val options = buildSearchOptions()
+                val result = workspace().search(query, options)
                 result.onSuccess { searchResults ->
-                    // Auto-navigate to first result if available
-                    _currentResultIndex.value = 0
+                    activeQuery = query
+                    activeOptions = options
                     if (searchResults.isNotEmpty()) {
-                        workspace().setCursorPosition(searchResults[0].position)
+                        // Start at the first match at or after the cursor instead of always
+                        // jumping back to the document start
+                        val cursorOffset = (workspace().state.value as? EditorWorkspace.State.Ready)
+                            ?.editor?.cursorPosition?.offset ?: 0L
+                        val startIndex = searchResults
+                            .indexOfFirst { it.position.offset >= cursorOffset }
+                            .let { if (it == -1) 0 else it }
+                        _currentResultIndex.value = startIndex
+                        workspace().setCursorPosition(searchResults[startIndex].position)
+                    } else {
+                        _currentResultIndex.value = 0
                     }
                 }
             } catch (e: CancellationException) {
@@ -102,6 +137,7 @@ class EditorSearchController(
     }
 
     fun updateQuery(textFieldValue: TextFieldValue) {
+        _replaceNotice.value = null
         _queryInput.value = textFieldValue
         val query = textFieldValue.text
         if (query.isNotEmpty()) {
@@ -149,6 +185,8 @@ class EditorSearchController(
     }
 
     private fun reSearchIfActive() {
+        // The outcome notice belongs to the previous result set
+        _replaceNotice.value = null
         val query = _queryInput.value.text
         if (query.isNotEmpty()) {
             search(query)
@@ -159,8 +197,53 @@ class EditorSearchController(
         _showSearchBar.value = true
     }
 
+    fun toggleReplaceRow() {
+        _showReplaceRow.value = !_showReplaceRow.value
+        _replaceNotice.value = null
+    }
+
+    fun updateReplaceQuery(textFieldValue: TextFieldValue) {
+        _replaceQueryInput.value = textFieldValue
+    }
+
+    fun replaceCurrent() = doLaunch {
+        _replaceNotice.value = null
+        if (activeQuery.isEmpty()) return@doLaunch
+        // Index and results flow independently; a desync means we no longer know which match
+        // the user is looking at - do nothing rather than silently replacing another one
+        val match = currentResults().getOrNull(_currentResultIndex.value) ?: return@doLaunch
+
+        val outcome = workspace()
+            .replaceCurrent(activeQuery, activeOptions, match, _replaceQueryInput.value.text)
+            .getOrThrow()
+
+        if (outcome.results.isNotEmpty()) {
+            _currentResultIndex.value = outcome.nextIndex
+            _scrollTrigger.value++
+            workspace().setCursorPosition(outcome.results[outcome.nextIndex].position)
+        } else {
+            _currentResultIndex.value = 0
+        }
+    }
+
+    fun replaceAll() = doLaunch {
+        _replaceNotice.value = null
+        if (activeQuery.isEmpty()) return@doLaunch
+
+        val outcome = workspace()
+            .replaceAll(activeQuery, activeOptions, _replaceQueryInput.value.text)
+            .getOrThrow()
+
+        _currentResultIndex.value = 0
+        _replaceNotice.value = ReplaceNotice(count = outcome.count, undoable = outcome.undoable)
+    }
+
     fun closeSearch() {
+        activeQuery = ""
         _queryInput.value = TextFieldValue("")
+        _replaceQueryInput.value = TextFieldValue("")
+        _showReplaceRow.value = false
+        _replaceNotice.value = null
         _showSearchBar.value = false
         // Clear via the tracked job so it cannot race a still-running scan
         search("")

@@ -114,6 +114,18 @@ sealed interface EditorPageAction {
         /** Toggle whole word matching in search */
         data object ToggleWholeWord : Search
 
+        /** Toggle the replace input row */
+        data object ToggleReplaceRow : Search
+
+        /** Update the replacement text field */
+        data class UpdateReplaceQuery(val query: TextFieldValue) : Search
+
+        /** Replace the current match and advance */
+        data object ReplaceCurrent : Search
+
+        /** Replace every match in the document */
+        data object ReplaceAll : Search
+
         /** Navigate to next search result */
         data object NextResult : Search
 

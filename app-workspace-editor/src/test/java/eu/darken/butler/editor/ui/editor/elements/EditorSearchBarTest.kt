@@ -1,6 +1,10 @@
 package eu.darken.butler.editor.ui.editor.elements
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onParent
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -80,6 +84,69 @@ class EditorSearchBarTest : ComposeTest() {
 
         next.shouldBeTrue()
         previous.shouldBeTrue()
+    }
+
+    @Test
+    fun `replace row fires replace callbacks`() {
+        var replacedOne = false
+        var replacedAll = false
+        composeTestRule.setContent {
+            PreviewWrapper {
+                EditorSearchBar(
+                    searchQuery = TextFieldValue("needle"),
+                    searchResults = results(2),
+                    currentIndex = 0,
+                    caseSensitive = false,
+                    regexEnabled = false,
+                    wholeWord = false,
+                    showReplaceRow = true,
+                    onSearchQueryChange = {},
+                    onCaseSensitiveToggle = {},
+                    onRegexToggle = {},
+                    onWholeWordToggle = {},
+                    onPrevious = {},
+                    onNext = {},
+                    onClose = {},
+                    onReplaceCurrent = { replacedOne = true },
+                    onReplaceAll = { replacedAll = true },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Replace", useUnmergedTree = true).onParent()
+        composeTestRule.onAllNodesWithText("Replace")[1].performClick()
+        composeTestRule.onNodeWithText("All").performClick()
+
+        replacedOne.shouldBeTrue()
+        replacedAll.shouldBeTrue()
+    }
+
+    @Test
+    fun `read-only editors get no replace affordance`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                EditorSearchBar(
+                    searchQuery = TextFieldValue("needle"),
+                    searchResults = results(2),
+                    currentIndex = 0,
+                    caseSensitive = false,
+                    regexEnabled = false,
+                    wholeWord = false,
+                    showReplaceRow = true,
+                    replaceAllowed = false,
+                    onSearchQueryChange = {},
+                    onCaseSensitiveToggle = {},
+                    onRegexToggle = {},
+                    onWholeWordToggle = {},
+                    onPrevious = {},
+                    onNext = {},
+                    onClose = {},
+                )
+            }
+        }
+
+        composeTestRule.onAllNodesWithText("Replace").assertCountEquals(0)
+        composeTestRule.onAllNodesWithText("All").assertCountEquals(0)
     }
 
     @Test
