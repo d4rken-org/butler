@@ -91,18 +91,20 @@ class EditorClipboardController(
         val ws = workspace()
         ws.copySelection().fold(
             onSuccess = { text ->
-                addToButlerClipboard(text)
-                ws.deleteSelection()
-                log(tag) { "Cut ${text.length} characters to Butler clipboard" }
+                // Deleting after a rejected copy (size cap) would silently drop the text
+                if (addToButlerClipboard(text)) {
+                    ws.deleteSelection()
+                    log(tag) { "Cut ${text.length} characters to Butler clipboard" }
+                }
             },
             onFailure = { e -> log(tag, ERROR) { "Failed to cut selection - ${e.asLog()}" } },
         )
     }
 
-    private suspend fun addToButlerClipboard(text: String) {
+    private suspend fun addToButlerClipboard(text: String): Boolean {
         if (text.toByteArray(Charsets.UTF_8).size > ClipboardClip.Text.MAX_SIZE_BYTES) {
             log(tag, WARN) { "Text too large for Butler clipboard: ${text.length} chars" }
-            return
+            return false
         }
 
         val currentSource = (workspace().state.value as? EditorWorkspace.State.Ready)?.editor?.contentSource
@@ -113,6 +115,7 @@ class EditorClipboardController(
         )
         clipboardRepo.add(clip)
         log(tag, INFO) { "Added ${text.length} characters to Butler clipboard" }
+        return true
     }
 
     fun pasteFromClipboard() = doLaunch {

@@ -331,8 +331,15 @@ class WindowedSearchTest : BaseTest() {
         // Plain patterns still work windowed above the cap
         searchAll(content, "foo", SearchOptions(useRegex = true), windowSize = 16, minOverlap = 4, regexFullScanCap = 8)
             .map { it.offset } shouldBe listOf(0L, 65L)
-        // Documented limitation: anchors are unreliable above the cap (window starts anchor)
+        // Documented limitation, pinned EXACTLY: above the cap `^` anchors at every window
+        // start, so the fallback finds the true document-start match AND nothing else here -
+        // the trailing "foo" starts mid-window (offset 65 is not a window boundary with
+        // stride 12). If this output changes, the windowed-fallback contract changed.
         val anchored = searchAll(content, "^foo", SearchOptions(useRegex = true), windowSize = 16, minOverlap = 4, regexFullScanCap = 8)
-        anchored.map { it.offset }.contains(0L).shouldBeTrue()
+        anchored.map { it.offset } shouldBe listOf(0L)
+
+        // The same anchored pattern under the full scan (cap not exceeded) is exact
+        val exact = searchAll(content, "^foo", SearchOptions(useRegex = true), windowSize = 16, minOverlap = 4)
+        exact.map { it.offset } shouldBe listOf(0L)
     }
 }

@@ -55,6 +55,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -83,6 +84,9 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
 private val tag = logTag("Editor", "LazyTextEditor")
+
+/** Semantics tag for the hidden input field, used by Compose regression tests. */
+const val EDITOR_INPUT_TEST_TAG = "editor.input.field"
 
 @Composable
 fun LazyTextEditor(
@@ -462,6 +466,7 @@ private fun DualColumnEditorContent(
                 }
             },
             modifier = Modifier
+                .testTag(EDITOR_INPUT_TEST_TAG)
                 .onPreviewKeyEvent { event ->
                     // Use onPreviewKeyEvent to intercept BEFORE focus traversal consumes arrow keys
                     if (event.type == KeyEventType.KeyDown) {
