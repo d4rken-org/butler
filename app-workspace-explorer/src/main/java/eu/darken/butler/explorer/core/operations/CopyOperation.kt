@@ -17,14 +17,13 @@ import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.copy
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
-import eu.darken.butler.common.formatByteSpeed
-import eu.darken.butler.common.formatItemSpeed
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.buildTransferProgressMetrics
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.last
@@ -108,87 +107,32 @@ class CopyOperation @AssistedInject constructor(
                 val perfHistory = copyState.primaryProgress.extra as? PerformanceHistory
                 lastPerformanceHistory = perfHistory
 
-                // Calculate overall metrics using PerformanceHistory
-                val avgBytesSpeed = perfHistory?.getRecentBytesPerSecond() ?: 0L
-                val avgItemsSpeed = perfHistory?.getRecentItemsPerSecond()?.toLong() ?: 0L
-
-                val overallEta = if (avgBytesSpeed > 0 && copyState.totalBytes > 0) {
-                    val remaining = copyState.totalBytes - copyState.copiedBytes
-                    (remaining / avgBytesSpeed) // seconds
-                } else null
-
-                // Calculate per-file metrics
-                val now = Clock.System.now()
-                val fileStartTime = copyState.currentFileStartTime
-                val (fileSpeed, fileEta) = if (fileStartTime != null && copyState.currentFileSize > 0) {
-                    val fileElapsed = (now - fileStartTime).inWholeMilliseconds / 1000.0
-                    if (fileElapsed > 0) {
-                        val speed = (copyState.currentFileBytes / fileElapsed).toLong()
-                        val remaining = copyState.currentFileSize - copyState.currentFileBytes
-                        val eta = if (speed > 0) (remaining / speed).toLong() else null
-                        speed to eta
-                    } else 0L to null
-                } else 0L to null
-
-                // Format overall metrics for primary progress
-                val overallMetrics = if (avgBytesSpeed > 0) {
-                    caString { ctx ->
-                        val bytesSpeedPart = formatByteSpeed(ctx, avgBytesSpeed)
-
-                        val itemsSpeedPart = if (avgItemsSpeed > 0) {
-                            " • " + formatItemSpeed(ctx, avgItemsSpeed.toDouble())
-                        } else ""
-
-                        val etaPart = if (overallEta != null) {
-                            val duration = ctx.getQuantityString2(
-                                eu.darken.butler.common.R.plurals.common_duration_seconds_full,
-                                overallEta.toInt(),
-                                overallEta
-                            )
-                            " • " + ctx.getString(
-                                eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
-                                duration
-                            )
-                        } else ""
-
-                        bytesSpeedPart + itemsSpeedPart + etaPart
-                    }
-                } else null
-
-                // Format per-file metrics for secondary progress
-                val fileMetrics = if (fileSpeed > 0) {
-                    caString { ctx ->
-                        val speedPart = formatByteSpeed(ctx, fileSpeed)
-                        val etaPart = if (fileEta != null) {
-                            val duration = ctx.getQuantityString2(
-                                eu.darken.butler.common.R.plurals.common_duration_seconds_full,
-                                fileEta.toInt(),
-                                fileEta
-                            )
-                            " • " + ctx.getString(
-                                eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
-                                duration
-                            )
-                        } else ""
-                        speedPart + etaPart
-                    }
-                } else null
+                val metrics = buildTransferProgressMetrics(
+                    performanceHistory = perfHistory,
+                    totalBytes = copyState.totalBytes,
+                    processedBytes = copyState.copiedBytes,
+                    currentFileSize = copyState.currentFileSize,
+                    currentFileBytes = copyState.currentFileBytes,
+                    currentFileStartTime = copyState.currentFileStartTime,
+                    truncateItemSpeed = true,
+                    requireTotalBytesForEta = true,
+                )
 
                 // Build enhanced primary progress with overall metrics
                 val enhancedPrimary = copyState.primaryProgress.copy(
-                    secondary = overallMetrics ?: copyState.primaryProgress.secondary
+                    secondary = metrics.overall ?: copyState.primaryProgress.secondary
                 )
 
                 // Build enhanced secondary progress with file metrics
                 val enhancedSecondary = copyState.secondaryProgress?.let { secondaryProgress ->
                     secondaryProgress.copy(
-                        secondary = fileMetrics ?: secondaryProgress.secondary,
+                        secondary = metrics.currentFile ?: secondaryProgress.secondary,
                         extra = mapOf(
-                            "overallBytesSpeed" to avgBytesSpeed,
-                            "overallItemsSpeed" to avgItemsSpeed,
-                            "fileSpeed" to fileSpeed,
-                            "overallEta" to overallEta,
-                            "fileEta" to fileEta
+                            "overallBytesSpeed" to metrics.overallBytesSpeed,
+                            "overallItemsSpeed" to metrics.overallItemsSpeed.toLong(),
+                            "fileSpeed" to metrics.fileSpeed,
+                            "overallEta" to metrics.overallEta,
+                            "fileEta" to metrics.fileEta
                         )
                     )
                 }
