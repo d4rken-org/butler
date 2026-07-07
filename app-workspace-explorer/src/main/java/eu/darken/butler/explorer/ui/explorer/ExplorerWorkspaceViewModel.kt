@@ -95,16 +95,12 @@ import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import java.io.File
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emptyFlow
@@ -116,8 +112,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch as coroutineLaunch
+import kotlinx.coroutines.CoroutineScope
 
 @HiltViewModel(assistedFactory = ExplorerWorkspaceViewModel.Factory::class)
 class ExplorerWorkspaceViewModel @AssistedInject constructor(
@@ -149,22 +144,41 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val chrome = chromeFactory.create(id, vmScope)
 
+    private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit = { block -> launch(block = block) }
+
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
-    private val focusedItemIndexFlow = MutableStateFlow<Int?>(null)
     private val viewStyleFlow = MutableStateFlow<ExplorerViewStyle>(explorerSettings.defaultViewStyle.valueBlocking)
-    private val dialogStateFlow = MutableStateFlow<ExplorerDialogState>(None)
-    private val issueStateFlow = MutableStateFlow<Issue?>(null)
     private val filterStateFlow = MutableStateFlow(FilterState())
-    val issueState = issueStateFlow
-    private var currentConflictOperationId: Operation.Id? = null
-    // Durable (StateFlow) rather than a transient event so a notification-driven open isn't lost
-    // if the page's collector subscribes after the request is issued.
-    private val showIssueSheetFlow = MutableStateFlow(false)
-    val showIssueSheet: StateFlow<Boolean> = showIssueSheetFlow
+
+    private val dialogs = ExplorerDialogController(
+        filterState = { filterStateFlow.value },
+        useRegexPatterns = { cachedUseRegexPatterns },
+        clearSelection = ::clearSelection,
+        tag = tag,
+    )
+    private val focus = ExplorerFocusController()
+    private val favoritesController = ExplorerFavoritesController(
+        favoritesRepo = favoritesRepo,
+        scope = vmScope,
+        doLaunch = doLaunch,
+        isPickerActive = { cachedPickerConfig != null },
+        tag = tag,
+    )
+    private val conflicts = ExplorerOperationConflictController(
+        workspaceId = id,
+        pendingConflicts = chrome.pendingConflicts,
+        operationFocusRequest = operationFocusRequest,
+        workspace = ::getWorkspace,
+        doLaunch = doLaunch,
+        tag = tag,
+    )
+
+    val issueState: StateFlow<Issue?> get() = conflicts.issueState
+    val showIssueSheet: StateFlow<Boolean> get() = conflicts.showIssueSheet
     private val showAddStorageSheetFlow = MutableStateFlow(false)
     val showAddStorageSheet = showAddStorageSheetFlow
 
-    val dialogEvents = SingleEventFlow<ExplorerDialogEvent>()
+    val dialogEvents get() = dialogs.events
 
     val safPickerEvents = SingleEventFlow<Intent>()
 
@@ -184,12 +198,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
     val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
-
-    // Undo prompt for "X" dismissal of a Home favorite. Latest-wins: a new removal
-    // supersedes any pending undo. The id field guards against stale-timer clobbering.
-    private val pendingFavoriteRemovalFlow = MutableStateFlow<PendingFavoriteRemoval?>(null)
-    private var pendingRemovalJob: Job? = null
-    private val removalIdGen = AtomicLong(0L)
 
     private val workspaceSource: Flow<ExplorerWorkspace?> =
         workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
@@ -224,10 +232,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 // When the picker becomes active, finalize any pending favorite removal.
                 // The bar is hidden in picker mode anyway; without this, returning to
                 // non-picker mode within the 5s window would resurface a stale bar.
-                if (config != null && pendingFavoriteRemovalFlow.value != null) {
-                    pendingRemovalJob?.cancel()
-                    pendingRemovalJob = null
-                    pendingFavoriteRemovalFlow.value = null
+                if (config != null) {
+                    favoritesController.finalizePendingRemoval()
                 }
             }
             .launchInViewModel()
@@ -243,7 +249,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // Handle dialog events
         dialogEvents
             .onEach { event ->
-                handleDialogEvent(event)
+                dialogs.handle(event)
             }
             .launchInViewModel()
 
@@ -260,31 +266,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         // distinctUntilChanged needed; drop(1) skips the initial value.)
         favoritesRepo.favoritePaths
             .drop(1)
-            .onEach { focusedItemIndexFlow.value = null }
+            .onEach { focus.clear() }
             .launchInViewModel()
 
-        // A "tap to resolve" conflict notification routes here. Wait until the conflict is actually
-        // present for this workspace before surfacing it, then consume the request.
-        operationFocusRequest.requests
-            .filterNotNull()
-            .filter { it.workspaceId == id }
-            .flatMapLatest { request ->
-                chrome.pendingConflicts.map { request to it[request.operationId] }
-            }
-            .distinctUntilChanged()
-            .onEach { (request, issue) ->
-                if (issue != null) {
-                    currentConflictOperationId = request.operationId
-                    issueStateFlow.value = issue
-                    showIssueSheetFlow.value = true
-                    operationFocusRequest.consume(request)
-                }
-            }
-            .launchInViewModel()
+        // A "tap to resolve" conflict notification routes here (see the controller).
+        conflicts.focusRequestHandler.launchInViewModel()
     }
 
     override fun onCleared() {
-        operationFocusRequest.clearForWorkspace(id)
+        conflicts.onCleared()
         super.onCleared()
     }
 
@@ -366,6 +356,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             ?.let { applyFavoritePriority(it, location, pickerConfig, favoritePaths) }
     }.shareIn(vmScope, SharingStarted.Lazily, replay = 1)
 
+    init {
+        // Keep the focus controller's item count in sync so wrap-around math and
+        // shrink-clamping always see the same list the page renders.
+        processedItemsFlow
+            .onEach { focus.updateItemCount(it?.size ?: 0) }
+            .launchInViewModel()
+    }
+
     // applyFavoritePriority lives in eu.darken.butler.explorer.core.favorites for
     // independent unit-testing without VM scaffolding.
 
@@ -395,7 +393,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     processedItemsFlow,
                     derivedSelectionStateFlow,
                     viewStyleFlow,
-                    dialogStateFlow,
+                    dialogs.state,
                     currentSortSettings,
                     upgradeRepo.upgradeInfo,
                     filterStateFlow,
@@ -405,9 +403,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     trashManager.isEnabled,
                     saveAsFilenameFlow,
                     highlightedItemIds,
-                    focusedItemIndexFlow,
+                    focus.focusedIndex,
                     favoritesRepo.favorites,
-                    pendingFavoriteRemovalFlow,
+                    favoritesController.pendingRemoval,
                 ) { wsStateInner, items, selectionState, viewStyle, dialogState, sortSetting, upgradeInfo, filterState, useRegexPatterns, useBackButtonForNavigation, pickerConfig, recycleBinEnabled, saveAsFilename, highlightedItemIds, focusedItemIndex, favorites, pendingFavoriteRemoval ->
                     val disabledItems = items?.let { pickerHelper.computeDisabledItems(it, pickerConfig) } ?: emptySet()
 
@@ -584,7 +582,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         )
                     } else {
                         // Normal mode or other picker modes: show file options dialog
-                        dialogStateFlow.value = FileOptions(item)
+                        dialogs.show(FileOptions(item))
                     }
                 }
                 is ExplorerItem.Peek -> {
@@ -608,7 +606,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     getWorkspace().navigate(ExplorerNavigation.Target.Trash.Nested(ref, ""))
                     clearSelection()
                 } else {
-                    dialogStateFlow.value = TrashItemOptions(item)
+                    dialogs.show(TrashItemOptions(item))
                 }
             }
             is ExplorerItem.Trash.Nested -> {
@@ -620,7 +618,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     clearSelection()
                 } else {
                     // Show options for nested files
-                    dialogStateFlow.value = TrashNestedItemOptions(item)
+                    dialogs.show(TrashNestedItemOptions(item))
                 }
             }
         }
@@ -740,69 +738,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    /**
-     * Remove a favorite via the Home X button, queueing an undo prompt for [UNDO_TIMEOUT].
-     *
-     * Latest-wins on rapid taps: a fresh removal supersedes any pending undo, finalising
-     * the previous removal silently. The atomic [ExplorerFavoritesRepo.removeForUndo]
-     * captures the original index inside a single DataStore transaction so position
-     * restoration via [undoFavoriteRemoval] is race-free.
-     */
-    fun onFavoriteRemove(fav: FavoriteItem) = launch {
-        log(tag) { "onFavoriteRemove($fav)" }
-        // Don't surface undo in picker mode — the favorites section isn't even visible there.
-        if (cachedPickerConfig != null) {
-            log(tag, WARN) { "onFavoriteRemove called in picker mode; ignoring" }
-            return@launch
-        }
-        // Latest-wins: previous pending removal becomes permanent.
-        pendingRemovalJob?.cancel()
-        pendingRemovalJob = null
+    fun onFavoriteRemove(fav: FavoriteItem) = favoritesController.remove(fav)
 
-        val removed = favoritesRepo.removeForUndo(fav.path) ?: run {
-            log(tag) { "onFavoriteRemove: path not present, nothing to undo" }
-            // Previous pending removal's timeout was just cancelled — without a fresh
-            // timeout the bar would stay visible forever. Clear it explicitly.
-            pendingFavoriteRemovalFlow.value = null
-            return@launch
-        }
-
-        val displayName = when (val s = fav.state) {
-            is FavoriteItem.State.Available -> s.item.displayName
-            else -> fav.path.userReadableName
-        }
-        val id = removalIdGen.incrementAndGet()
-        pendingFavoriteRemovalFlow.value = PendingFavoriteRemoval(
-            id = id,
-            path = removed.path,
-            displayName = displayName,
-            originalIndex = removed.originalIndex,
-        )
-
-        pendingRemovalJob = vmScope.coroutineLaunch {
-            delay(UNDO_TIMEOUT)
-            // Only clear if THIS removal is still pending; a newer removal must not be wiped.
-            pendingFavoriteRemovalFlow.update { current -> if (current?.id == id) null else current }
-        }
-    }
-
-    /** Restore the last-removed favorite at its original position. */
-    fun undoFavoriteRemoval() = launch {
-        val pending = pendingFavoriteRemovalFlow.value ?: return@launch
-        log(tag) { "undoFavoriteRemoval(${pending.path.path})" }
-        try {
-            favoritesRepo.addAt(pending.path, pending.originalIndex)
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to restore favorite ${pending.path.path}: ${e.asLog()}" }
-            // fall through and clear regardless — leaving the bar visible without a
-            // restored entry is worse than the user discovering the failure via no-bar.
-        }
-        // Cancel the timeout job AFTER the addAt attempt so we don't leak a stuck bar
-        // if addAt throws partway. Id-checked clear avoids clobbering a newer removal.
-        pendingRemovalJob?.cancel()
-        pendingRemovalJob = null
-        pendingFavoriteRemovalFlow.update { current -> if (current?.id == pending.id) null else current }
-    }
+    fun undoFavoriteRemoval() = favoritesController.undo()
 
     fun clearSelection() {
         selectedItemsFlow.value = emptySet()
@@ -831,62 +769,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         selectedItemsFlow.value += files
     }
 
-    // Focus navigation methods
-    fun moveFocusUp() = launch {
-        val itemCount = getState().items?.size ?: return@launch
-        if (itemCount == 0) return@launch
-        focusedItemIndexFlow.value = when (val current = focusedItemIndexFlow.value) {
-            null -> itemCount - 1
-            0 -> itemCount - 1
-            else -> current - 1
-        }
-    }
+    // Focus navigation methods (wrap-around math lives in FocusNavigationState)
+    fun moveFocusUp() = focus.moveUp()
 
-    fun moveFocusDown() = launch {
-        val itemCount = getState().items?.size ?: return@launch
-        if (itemCount == 0) return@launch
-        focusedItemIndexFlow.value = when (val current = focusedItemIndexFlow.value) {
-            null -> 0
-            itemCount - 1 -> 0
-            else -> current + 1
-        }
-    }
+    fun moveFocusDown() = focus.moveDown()
 
-    fun moveFocusLeft(gridColumns: Int) = launch {
-        val itemCount = getState().items?.size ?: return@launch
-        if (itemCount == 0) return@launch
-        focusedItemIndexFlow.value = when {
-            focusedItemIndexFlow.value == null -> itemCount - 1
-            focusedItemIndexFlow.value!! < gridColumns -> itemCount - 1
-            else -> focusedItemIndexFlow.value!! - gridColumns
-        }
-    }
+    fun moveFocusLeft(gridColumns: Int) = focus.moveLeft(gridColumns)
 
-    fun moveFocusRight(gridColumns: Int) = launch {
-        val itemCount = getState().items?.size ?: return@launch
-        if (itemCount == 0) return@launch
-        focusedItemIndexFlow.value = when {
-            focusedItemIndexFlow.value == null -> 0
-            focusedItemIndexFlow.value!! >= itemCount - gridColumns -> 0
-            else -> minOf(focusedItemIndexFlow.value!! + gridColumns, itemCount - 1)
-        }
-    }
+    fun moveFocusRight(gridColumns: Int) = focus.moveRight(gridColumns)
 
-    fun moveFocusToFirst() = launch {
-        val itemCount = getState().items?.size ?: return@launch
-        if (itemCount == 0) return@launch
-        focusedItemIndexFlow.value = 0
-    }
+    fun moveFocusToFirst() = focus.moveToFirst()
 
-    fun moveFocusToLast() = launch {
-        val itemCount = getState().items?.size ?: return@launch
-        if (itemCount == 0) return@launch
-        focusedItemIndexFlow.value = itemCount - 1
-    }
+    fun moveFocusToLast() = focus.moveToLast()
 
-    fun clearFocus() {
-        focusedItemIndexFlow.value = null
-    }
+    fun clearFocus() = focus.clear()
 
     fun deleteFocusedItem(forcePermDelete: Boolean = false) = launch {
         val stateSnap = getState()
@@ -1077,17 +973,21 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 executeOpenInNewTabs(analysis)
             }
             is ExplorerActionBarItem.Common.Sort -> {
-                dialogStateFlow.value = EditSortOptions(
-                    currentSortSettings = currentSortSettings.value
+                dialogs.show(
+                    EditSortOptions(
+                        currentSortSettings = currentSortSettings.value
+                    )
                 )
             }
             is ExplorerActionBarItem.Common.Filter -> {
                 val filterState = filterStateFlow.value
-                dialogStateFlow.value = FilterOptions(
-                    includePattern = filterState.includePattern,
-                    excludePattern = filterState.excludePattern,
-                    fileTypeFilter = filterState.fileTypeFilter,
-                    useRegexPatterns = cachedUseRegexPatterns,
+                dialogs.show(
+                    FilterOptions(
+                        includePattern = filterState.includePattern,
+                        excludePattern = filterState.excludePattern,
+                        fileTypeFilter = filterState.fileTypeFilter,
+                        useRegexPatterns = cachedUseRegexPatterns,
+                    )
                 )
             }
             is ExplorerActionBarItem.Common.UpdateViewStyle -> {
@@ -1119,7 +1019,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
                     val infoContext = itemInfoCalculator.calculateInfo(selectedItems, stateSnap.items)
                     infoContext?.let { context ->
-                        dialogStateFlow.value = ItemInfo(context)
+                        dialogs.show(ItemInfo(context))
                     }
                 }
             }
@@ -1141,7 +1041,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         .filterIsInstance<ExplorerItem.Storage.SAF>()
 
                     if (selectedSAFItems.isNotEmpty()) {
-                        dialogStateFlow.value = RemoveLocationConfirmation(selectedSAFItems)
+                        dialogs.show(RemoveLocationConfirmation(selectedSAFItems))
                     }
                 }
             }
@@ -1151,9 +1051,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     .filterIsInstance<ExplorerItem.Storage.SAF>()
                     .single()
 
-                dialogStateFlow.value = LocationStorageName(
-                    locationId = selectedItem.location.id,
-                    currentName = selectedItem.location.userLabel,
+                dialogs.show(
+                    LocationStorageName(
+                        locationId = selectedItem.location.id,
+                        currentName = selectedItem.location.userLabel,
+                    )
                 )
             }
             is ExplorerActionBarItem.Trash.SelectAll -> {
@@ -1216,7 +1118,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerActionBarItem.Trash.EmptyBin -> {
                 log(tag) { "Showing empty trash confirmation" }
-                dialogStateFlow.value = EmptyTrashConfirmation
+                dialogs.show(EmptyTrashConfirmation)
             }
             is ExplorerActionBarItem.TrashNested.SelectAll -> {
                 selectedItemsFlow.value = stateSnap.selectionState.selectableItems
@@ -1386,7 +1288,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerActionBarItem.File.ShowProperties -> {
                 val infoContext = ItemInfo.InfoContext.SingleFile(action.item)
-                dialogStateFlow.value = ItemInfo(infoContext)
+                dialogs.show(ItemInfo(infoContext))
             }
         }
     }
@@ -1457,41 +1359,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         clearSelection()
     }
 
-    private suspend fun handleDialogEvent(event: ExplorerDialogEvent) {
-        log(tag) { "handleDialogEvent($event)" }
-        when (event) {
-            is ExplorerDialogEvent.ShowCreateItem -> {
-                dialogStateFlow.value = CreateItem
-            }
-            is ExplorerDialogEvent.ShowDeleteConfirmation -> {
-                dialogStateFlow.value = DeleteConfirmation(event.items, event.forcePermDelete)
-            }
-            is ExplorerDialogEvent.ShowRename -> {
-                dialogStateFlow.value = Rename(event.item)
-                clearSelection()
-            }
-            is ExplorerDialogEvent.ShowFilterOptions -> {
-                val filterState = filterStateFlow.value
-                dialogStateFlow.value = FilterOptions(
-                    includePattern = filterState.includePattern,
-                    excludePattern = filterState.excludePattern,
-                    fileTypeFilter = filterState.fileTypeFilter,
-                    useRegexPatterns = cachedUseRegexPatterns,
-                )
-            }
-            is ExplorerDialogEvent.Dismiss -> {
-                dialogStateFlow.value = None
-            }
-        }
-    }
-
-    fun dismissDialog() {
-        dialogStateFlow.value = None
-    }
+    fun dismissDialog() = dialogs.dismiss()
 
     fun onCreateItem(result: CreateItemResult) = launch {
         log(tag) { "onCreateItem($result)" }
-        dialogStateFlow.value = None
+        dialogs.dismiss()
 
         val currentLocation = getState().currentLocation
         if (currentLocation is ExplorerLocation.Directory) {
@@ -1522,7 +1394,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onDeleteConfirmed(items: Set<APath<*>>, forcePermDelete: Boolean = false) = launch {
         log(tag) { "onDeleteConfirmed($items, forcePermDelete=$forcePermDelete)" }
-        dialogStateFlow.value = None
+        dialogs.dismiss()
 
         if (items.isNotEmpty()) {
             getWorkspace().execute(
@@ -1536,10 +1408,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun onRemoveLocationConfirmed() = launch {
-        val dialogState = dialogStateFlow.value as? RemoveLocationConfirmation ?: return@launch
+        val dialogState = dialogs.current() as? RemoveLocationConfirmation ?: return@launch
         log(tag) { "onRemoveLocationConfirmed(): Removing ${dialogState.items.size} locations" }
 
-        dialogStateFlow.value = None
+        dialogs.dismiss()
 
         dialogState.items.forEach { item ->
             safLocationManager.revokePermission(item.location.id)
@@ -1551,7 +1423,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onEmptyTrashConfirmed() = launch {
         log(tag) { "onEmptyTrashConfirmed()" }
-        dialogStateFlow.value = None
+        dialogs.dismiss()
 
         try {
             val deletedCount = trashManager.emptyTrash()
@@ -1564,10 +1436,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun onLocationStorageName(name: String?) = launch {
-        val dialogState = dialogStateFlow.value as? LocationStorageName ?: return@launch
+        val dialogState = dialogs.current() as? LocationStorageName ?: return@launch
         log(tag) { "onLocationStorageName(locationId=${dialogState.locationId}, name=$name)" }
 
-        dialogStateFlow.value = None
+        dialogs.dismiss()
 
         // Empty or whitespace-only = use default name (null)
         val trimmedName = name?.trim()?.takeIf { it.isNotEmpty() }
@@ -1580,7 +1452,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onRename(result: RenameResult) = launch {
         log(tag) { "onRename($result)" }
-        dialogStateFlow.value = None
+        dialogs.dismiss()
 
         val currentLocation = getState().currentLocation as ExplorerLocation.Directory
         getWorkspace().execute(
@@ -1594,14 +1466,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun onSortOptions(result: SortOptionsResult) = launch {
         log(tag) { "onSortOptions($result)" }
-        dialogStateFlow.value = None
+        dialogs.dismiss()
         explorerSettings.sortSettings.value(result.sortSettings)
         currentSortSettings.value = result.sortSettings
     }
 
     fun onFilterOptions(result: FilterOptionsResult) = launch {
         log(tag) { "onFilterOptions($result)" }
-        dialogStateFlow.value = None
+        dialogs.dismiss()
         filterStateFlow.value = FilterState(
             includePattern = result.includePattern,
             excludePattern = result.excludePattern,
@@ -1657,7 +1529,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
             is ClipboardClip.Text -> {
                 // Show filename dialog for text snippet paste
-                dialogStateFlow.value = CreateFileFromText(clip)
+                dialogs.show(CreateFileFromText(clip))
             }
         }
     }
@@ -1699,45 +1571,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun clearAllClipboard() = chrome.clearClipboard()
 
-    fun resolveConflict(resolution: PathActionIssue.Resolution) = launch {
-        log(tag) { "resolveConflict(): $resolution" }
+    fun resolveConflict(resolution: PathActionIssue.Resolution) = conflicts.resolve(resolution)
 
-        val operationId = currentConflictOperationId
-        if (operationId != null) {
-            // Forward resolution to workspace
-            getWorkspace().resolveConflict(operationId, resolution)
-        } else {
-            log(tag, WARN) { "Cannot resolve conflict: no current operation ID" }
-        }
+    fun showConflictSheet(operationId: Operation.Id) = conflicts.showSheet(operationId)
 
-        // Clear conflict UI state (it will be updated by workspace state observer if needed)
-        issueStateFlow.value = null
-        currentConflictOperationId = null
-        showIssueSheetFlow.value = false
-    }
-
-    fun showConflictSheet(operationId: Operation.Id) = launch {
-        log(tag) { "showConflictSheet($operationId): Requesting to show conflict sheet" }
-
-        // Get current conflicts map
-        val conflicts = chrome.pendingConflicts.first()
-        val issue = conflicts[operationId]
-
-        if (issue != null) {
-            currentConflictOperationId = operationId
-            issueStateFlow.value = issue
-            showIssueSheetFlow.value = true
-        } else {
-            log(tag, WARN) { "Cannot show conflict sheet: no conflict for operation $operationId" }
-        }
-    }
-
-    fun dismissConflictSheet() {
-        log(tag) { "dismissConflictSheet()" }
-        showIssueSheetFlow.value = false
-        issueStateFlow.value = null
-        currentConflictOperationId = null
-    }
+    fun dismissConflictSheet() = conflicts.dismissSheet()
 
     fun navigateToSetup(requirements: PathRequirements) = launch {
         log(tag) { "navigateToSetup(): Opening setup for $requirements" }
@@ -1780,7 +1618,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
             val locationId = safLocationManager.grantPermission(treeUri)
 
-            dialogStateFlow.value = LocationStorageName(locationId, currentName = null)
+            dialogs.show(LocationStorageName(locationId, currentName = null))
 
             // Auto-refresh if currently viewing Device location to show new SAF storage immediately
             val currentLocation = getState().currentLocation
@@ -1869,7 +1707,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun showClipboardInfo(clip: ClipboardClip) {
         log(tag) { "showClipboardInfo($clip)" }
-        dialogStateFlow.value = ClipboardInfo(clip)
+        dialogs.show(ClipboardInfo(clip))
     }
 
     fun navigateToClipboardSource(clip: ClipboardClip) = launch {
@@ -2073,10 +1911,5 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     @AssistedFactory
     interface Factory {
         fun create(id: Workspace.Id): ExplorerWorkspaceViewModel
-    }
-
-    companion object {
-        /** Window during which a Home favorite removal can still be undone. */
-        private val UNDO_TIMEOUT = 5.seconds
     }
 }
