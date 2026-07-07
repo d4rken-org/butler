@@ -250,11 +250,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
             .debounce(1000)
             .distinctUntilChanged()
-            .filter { (filename, content) -> filename.isNotBlank() || content.isNotBlank() }
-            .filter { (filename, content) -> "$filename|$content" != lastAutoExecutedQuery }
+            .filter { (filename, content) ->
+                filename.isNotBlank() || (contentSearchEnabled.value && content.isNotBlank())
+            }
+            // Key on the EFFECTIVE query: a disabled hidden content pattern must not make two
+            // visually identical searches look different (or identical ones look the same)
+            .filter { (filename, content) -> autoSearchKey(filename, content) != lastAutoExecutedQuery }
             .onEach { (filename, content) ->
                 log(tag, INFO) { "Auto-triggering search for filename: $filename, content: $content" }
-                lastAutoExecutedQuery = "$filename|$content"
+                lastAutoExecutedQuery = autoSearchKey(filename, content)
                 performSearch(saveToHistory = false)
             }
             .launchIn(vmScope)
@@ -265,7 +269,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .distinctUntilChanged()
             .drop(1) // Skip initial state to avoid triggering on setup
             .debounce(300) // Short debounce for rapid changes
-            .filter { filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank() }
+            .filter { filenameQuery.value.isNotBlank() || effectiveContentText().isNotBlank() }
             .onEach { targets ->
                 log(tag, INFO) { "Auto-triggering search due to target change: ${targets.size} targets" }
                 performSearch(saveToHistory = false)
@@ -291,7 +295,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 val hadPermissionError = prev.second == SearcherWorkspace.State.SearchStatus.ERROR
                 wasNeedingSetup && noLongerNeedsSetup && hadPermissionError
             }
-            .filter { filenameQuery.value.isNotBlank() || contentQuery.value.isNotBlank() }
+            .filter { filenameQuery.value.isNotBlank() || effectiveContentText().isNotBlank() }
             .onEach {
                 log(tag, INFO) { "Permissions granted after setup, auto-retrying search" }
                 performSearch(saveToHistory = false)
@@ -506,11 +510,45 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    private fun performSearch(saveToHistory: Boolean = false) {
-        val filenameText = filenameQuery.value
-        val contentText = contentQuery.value
+    // Content search only participates while its toggle is enabled; the typed pattern stays in
+    // contentQuery so re-enabling the toggle restores it.
+    private fun effectiveContentText(): String = if (contentSearchEnabled.value) contentQuery.value else ""
 
-        log(TAG, INFO) { "Performing search: filename=$filenameText, content=$contentText" }
+    private fun autoSearchKey(filename: String, content: String): String =
+        "$filename|${if (contentSearchEnabled.value) content else ""}"
+
+    private fun hasExecutableSearch(): Boolean = filenameQuery.value.isNotBlank() ||
+        effectiveContentText().isNotBlank() ||
+        currentFilter.value.hasConditions()
+
+    // Clears executed results and selection but keeps the entered query text
+    private fun clearExecutedResults() {
+        selectionState.value = SearcherSelectionState()
+        // Re-running the same query after a clear must not be suppressed by auto-search dedupe
+        lastAutoExecutedQuery = null
+        vmScope.launch {
+            getWorkspace().execute(SearcherCommand.Clear)
+        }
+    }
+
+    private fun performSearch(saveToHistory: Boolean = false) {
+        // Snapshot all inputs before launching: the coroutine runs on Default, and a rapid
+        // toggle/option change must not make the guard and the assembled query disagree
+        val filenameText = filenameQuery.value
+        val rawContentText = contentQuery.value
+        val contentEnabled = contentSearchEnabled.value
+        val filter = currentFilter.value
+        val fnOptions = filenameOptions.value
+        val ctOptions = contentOptions.value
+        val effectiveContent = if (contentEnabled) rawContentText else ""
+
+        if (filenameText.isBlank() && effectiveContent.isBlank() && !filter.hasConditions()) {
+            log(TAG, INFO) { "Nothing to search for (no patterns, no filters) - clearing results" }
+            clearExecutedResults()
+            return
+        }
+
+        log(TAG, INFO) { "Performing search: filename=$filenameText, content=$effectiveContent" }
 
         // Clear selection state when starting new search
         selectionState.value = SearcherSelectionState()
@@ -526,19 +564,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
 
             // Build pattern queries with per-field options
-            val fnOpts = filenameOptions.value
-            val filenameQueryValue = FilenameQuery(
-                pattern = filenameText,
-                caseSensitive = fnOpts.caseSensitive,
-                wholeWord = fnOpts.wholeWord,
-                useRegex = fnOpts.useRegex,
-            )
-            val ctOpts = contentOptions.value
-            val contentQueryValue = ContentQuery(
-                pattern = contentText,
-                caseSensitive = ctOpts.caseSensitive,
-                wholeWord = ctOpts.wholeWord,
-                useRegex = ctOpts.useRegex,
+            val (filenameQueryValue, contentQueryValue) = buildQueries(
+                filenameText = filenameText,
+                contentText = rawContentText,
+                contentSearchEnabled = contentEnabled,
+                filenameOptions = fnOptions,
+                contentOptions = ctOptions,
             )
 
             // Build search command
@@ -546,7 +577,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 filenameQuery = filenameQueryValue,
                 contentQuery = contentQueryValue,
                 targets = targets,
-                filter = currentFilter.value,
+                filter = filter,
                 options = SearchQuery.Options(
                     maxResults = searcherSettings.maxSearchResults.value(),
                 ),
@@ -581,13 +612,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         log(TAG) { "Clearing search results" }
         filenameQuery.value = ""
         contentQuery.value = ""
-        // Clear selection state
-        selectionState.value = SearcherSelectionState()
-        // Clear workspace state via command
-        vmScope.launch {
-            val workspace = getWorkspace()
-            workspace.execute(SearcherCommand.Clear)
-        }
+        clearExecutedResults()
     }
 
     private fun removeSearchTarget(target: SearchTarget) {
@@ -1081,9 +1106,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             is SearcherPageAction.Search.UpdateFilenameQuery -> {
                 log(TAG, INFO) { "Updating filename query: ${action.text}" }
                 filenameQuery.value = action.text
-                // Auto-clear results when both queries become empty
-                if (action.text.isBlank() && contentQuery.value.isBlank()) {
-                    clearResults()
+                // Auto-clear results when both queries become effectively empty
+                if (action.text.isBlank() && effectiveContentText().isBlank()) {
+                    clearExecutedResults()
                 }
             }
             is SearcherPageAction.Search.UpdateContentQuery -> {
@@ -1091,7 +1116,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 contentQuery.value = action.text
                 // Auto-clear results when both queries become empty
                 if (action.text.isBlank() && filenameQuery.value.isBlank()) {
-                    clearResults()
+                    clearExecutedResults()
                 }
             }
             is SearcherPageAction.Search.Perform -> performSearch()
@@ -1276,5 +1301,28 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
 
     companion object {
         private val TAG = logTag("Searcher", "Workspace", "ViewModel")
+
+        // Assembles the executed pattern queries; the content pattern only applies while the
+        // content-search toggle is enabled.
+        internal fun buildQueries(
+            filenameText: String,
+            contentText: String,
+            contentSearchEnabled: Boolean,
+            filenameOptions: FilenameQuery,
+            contentOptions: ContentQuery,
+        ): Pair<FilenameQuery, ContentQuery> = Pair(
+            FilenameQuery(
+                pattern = filenameText,
+                caseSensitive = filenameOptions.caseSensitive,
+                wholeWord = filenameOptions.wholeWord,
+                useRegex = filenameOptions.useRegex,
+            ),
+            ContentQuery(
+                pattern = if (contentSearchEnabled) contentText else "",
+                caseSensitive = contentOptions.caseSensitive,
+                wholeWord = contentOptions.wholeWord,
+                useRegex = contentOptions.useRegex,
+            ),
+        )
     }
 }

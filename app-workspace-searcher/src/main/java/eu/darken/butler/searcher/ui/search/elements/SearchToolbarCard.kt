@@ -102,7 +102,7 @@ fun SearchToolbarCard(
 
                 val displayText = buildString {
                     val hasFilename = state?.filenameQuery?.isNotBlank() == true
-                    val hasContent = state?.contentQuery?.isNotBlank() == true
+                    val hasContent = state?.contentSearchEnabled == true && state.contentQuery.isNotBlank()
                     when {
                         hasFilename && hasContent -> {
                             append(state.filenameQuery)

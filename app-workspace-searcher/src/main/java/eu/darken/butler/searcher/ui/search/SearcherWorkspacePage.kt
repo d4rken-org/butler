@@ -348,7 +348,8 @@ fun SearcherWorkspacePage(
         )
 
         // Conditional rendering: Idle state (templates + history) vs Results mode
-        val hasNoQuery = currentState.filenameQuery.isBlank() && currentState.contentQuery.isBlank()
+        val hasNoQuery = currentState.filenameQuery.isBlank() &&
+            (!currentState.contentSearchEnabled || currentState.contentQuery.isBlank())
         // Show idle state when idle with no results (regardless of query text in input)
         val showIdleState = currentState.isIdle && !currentState.hasResults && currentState.workspaceState.searchTargets.isNotEmpty()
 
