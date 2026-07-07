@@ -24,14 +24,13 @@ import eu.darken.butler.common.files.local.operations.core.PathOperationIssueRes
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.files.permissions.PermissionErrorClassifier
-import eu.darken.butler.common.formatByteSpeed
-import eu.darken.butler.common.formatItemSpeed
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.saver.R
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import eu.darken.butler.workspace.core.operations.buildTransferProgressMetrics
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -402,67 +401,16 @@ class SaveFilesOperation @AssistedInject constructor(
         val snapshot = progressTracker.createSnapshot()
         val perfHistory = progressTracker.performanceHistory
 
-        val avgBytesSpeed = perfHistory.getRecentBytesPerSecond()
-        val avgItemsSpeed = perfHistory.getRecentItemsPerSecond()
-
-        val remainingBytes = snapshot.totalBytes - snapshot.processedBytes
-        val overallEta = if (avgBytesSpeed > 0) remainingBytes / avgBytesSpeed else null
-
-        // Format overall metrics for primary progress
-        val overallMetrics = if (avgBytesSpeed > 0) {
-            caString { ctx ->
-                val bytesSpeedPart = formatByteSpeed(ctx, avgBytesSpeed)
-
-                val itemsSpeedPart = if (avgItemsSpeed > 0) {
-                    " • " + formatItemSpeed(ctx, avgItemsSpeed.toDouble())
-                } else ""
-
-                val etaPart = if (overallEta != null) {
-                    val duration = ctx.getQuantityString2(
-                        eu.darken.butler.common.R.plurals.common_duration_seconds_full,
-                        overallEta.toInt(),
-                        overallEta
-                    )
-                    " • " + ctx.getString(
-                        eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
-                        duration
-                    )
-                } else ""
-
-                bytesSpeedPart + itemsSpeedPart + etaPart
-            }
-        } else null
-
-        // Calculate per-file metrics
-        val now = Clock.System.now()
-        val fileStartTime = snapshot.currentFileStartTime
-        val (fileSpeed, fileEta) = if (fileStartTime != null && snapshot.currentFileSize > 0) {
-            val fileElapsed = (now - fileStartTime).inWholeMilliseconds / 1000.0
-            if (fileElapsed > 0) {
-                val speed = (snapshot.currentFileBytes / fileElapsed).toLong()
-                val remaining = snapshot.currentFileSize - snapshot.currentFileBytes
-                val eta = if (speed > 0) (remaining / speed).toLong() else null
-                speed to eta
-            } else 0L to null
-        } else 0L to null
-
-        val fileMetrics = if (fileSpeed > 0) {
-            caString { ctx ->
-                val speedPart = formatByteSpeed(ctx, fileSpeed)
-                val etaPart = if (fileEta != null) {
-                    val duration = ctx.getQuantityString2(
-                        eu.darken.butler.common.R.plurals.common_duration_seconds_full,
-                        fileEta.toInt(),
-                        fileEta
-                    )
-                    " • " + ctx.getString(
-                        eu.darken.butler.workspace.R.string.workspace_operation_progress_time_remaining,
-                        duration
-                    )
-                } else ""
-                speedPart + etaPart
-            }
-        } else null
+        val metrics = buildTransferProgressMetrics(
+            performanceHistory = perfHistory,
+            totalBytes = snapshot.totalBytes,
+            processedBytes = snapshot.processedBytes,
+            currentFileSize = snapshot.currentFileSize,
+            currentFileBytes = snapshot.currentFileBytes,
+            currentFileStartTime = snapshot.currentFileStartTime,
+            truncateItemSpeed = false,
+            requireTotalBytesForEta = false,
+        )
 
         val primaryProgress = Progress.Data(
             primary = caString { "${snapshot.itemsProcessed + 1} / ${snapshot.totalItems}" },
@@ -472,7 +420,7 @@ class SaveFilesOperation @AssistedInject constructor(
             ),
             extra = perfHistory,
         ).let { progress ->
-            overallMetrics?.let { progress.copy(secondary = it) } ?: progress
+            metrics.overall?.let { progress.copy(secondary = it) } ?: progress
         }
 
         val secondaryProgress = Progress.Data(
@@ -482,7 +430,7 @@ class SaveFilesOperation @AssistedInject constructor(
                 max = snapshot.currentFileSize,
             ),
         ).let { progress ->
-            fileMetrics?.let { progress.copy(secondary = it) } ?: progress
+            metrics.currentFile?.let { progress.copy(secondary = it) } ?: progress
         }
 
         return State.Active(
