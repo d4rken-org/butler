@@ -17,8 +17,6 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.actions.PathActionIssue
-import eu.darken.butler.common.flow.shareLatest
-import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -37,14 +35,12 @@ import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
 import eu.darken.butler.workspace.core.initialInfo
 import eu.darken.butler.workspace.core.operations.IssueHandler
-import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.awaitCompletion
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.submitAndGet
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
-import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.core.stateInWorkspace
 import eu.darken.butler.workspace.core.tracker.PathAccessTracker
 import kotlin.time.Duration.Companion.seconds
@@ -130,28 +126,6 @@ class ExplorerWorkspace @AssistedInject constructor(
         _saveAsFilename.value = filename
     }
 
-
-    data class OperationsState(
-        val operations: Collection<ManagedOperation> = emptySet(),
-        val states: Map<Operation.Id, Operation.State> = emptyMap(),
-        val pendingConflicts: Map<Operation.Id, Issue>,
-    )
-
-    val operations: Flow<OperationsState> = operationsManager.operationsForWorkspace(id)
-        .withStateUpdates()
-        .map { operations ->
-            OperationsState(
-                operations = operations,
-                states = operations.associate { it.id to it.state.value },
-                pendingConflicts = operations.map { it to it.state.value }
-                    .filter { it.second is Operation.State.Waiting }
-                    .associate {
-                        val waitingState = it.second as Operation.State.Waiting
-                        it.first.id to waitingState.issue
-                    },
-            )
-        }
-        .shareLatest(scope)
 
     override val info: StateFlow<Workspace.Info> = combine(
         _state,

@@ -8,7 +8,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -18,7 +17,6 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
-import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
@@ -93,12 +91,9 @@ import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.clipboard.ClipboardSettings
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationFocusRequest
-import eu.darken.butler.workspace.core.operations.OperationsManager
-import eu.darken.butler.workspace.core.operations.get
+import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import eu.darken.butler.workspace.core.returnResult
-import eu.darken.butler.workspace.ui.clipboard.ClipboardDisplayState
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
-import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
 import java.io.File
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.milliseconds
@@ -139,8 +134,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val fileIntentHelper: FileIntentHelper,
     private val explorerSettings: ExplorerSettings,
     itemSorterFactory: ExplorerItemSorter.Factory,
-    private val operationsManager: OperationsManager,
-    private val systemClipboardHelper: SystemClipboardHelper,
     private val upgradeRepo: UpgradeRepo,
     private val filenameValidator: FilenameValidator,
     private val gatewaySwitch: GatewaySwitch,
@@ -149,10 +142,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val trashRepo: TrashRepo,
     private val itemInfoCalculator: ItemInfoCalculator,
     private val pickerHelper: ExplorerPickerHelper,
-    private val errorReportTool: ErrorReportTool,
     private val favoritesRepo: ExplorerFavoritesRepo,
     private val operationFocusRequest: OperationFocusRequest,
+    chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
+
+    private val chrome = chromeFactory.create(id, vmScope)
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
     private val focusedItemIndexFlow = MutableStateFlow<Int?>(null)
@@ -173,7 +168,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     val safPickerEvents = SingleEventFlow<Intent>()
 
-    val shareIntentEvent = SingleEventFlow<Intent>()
+    val shareIntentEvent = chrome.shareIntentEvent
 
     val toastEvents = SingleEventFlow<CaString>()
 
@@ -274,9 +269,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             .filterNotNull()
             .filter { it.workspaceId == id }
             .flatMapLatest { request ->
-                workspaceSource.filterNotNull()
-                    .flatMapLatest { it.operations }
-                    .map { request to it.pendingConflicts[request.operationId] }
+                chrome.pendingConflicts.map { request to it[request.operationId] }
             }
             .distinctUntilChanged()
             .onEach { (request, issue) ->
@@ -541,17 +534,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    val clipboard = clipboardRepo.state
-        .map { repoState -> ClipboardDisplayState(entries = repoState.entries) }
-        .distinctUntilChanged()
-        .asStateFlow()
+    val clipboard = chrome.clipboard.asStateFlow()
 
-    val operations = workspaceSource
-        .filterNotNull()
-        .flatMapLatest { it.operations }
-        .map { opsState -> opsState.operations }
-        .toOperationsDisplayState()
-        .asStateFlow()
+    val operations = chrome.operations.asStateFlow()
 
     fun navigate(item: ExplorerItem) = launch {
         log(tag) { "navigate($item)" }
@@ -1702,16 +1687,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun removeClipboardEntry(clip: ClipboardClip) = launch {
+    fun removeClipboardEntry(clip: ClipboardClip) {
         log(tag) { "removeClipboardEntry($clip)" }
         dismissDialog()
-        clipboardRepo.remove(clip.id)
+        chrome.removeClipboardEntry(clip)
     }
 
-    fun clearAllClipboard() = launch {
-        log(tag) { "clearAllClipboard()" }
-        clipboardRepo.clear()
-    }
+    fun clearAllClipboard() = chrome.clearClipboard()
 
     fun resolveConflict(resolution: PathActionIssue.Resolution) = launch {
         log(tag) { "resolveConflict(): $resolution" }
@@ -1734,9 +1716,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "showConflictSheet($operationId): Requesting to show conflict sheet" }
 
         // Get current conflicts map
-        val workspace = getWorkspace()
-        val operationsState = workspace.operations.first()
-        val conflicts = operationsState.pendingConflicts
+        val conflicts = chrome.pendingConflicts.first()
         val issue = conflicts[operationId]
 
         if (issue != null) {
@@ -1875,45 +1855,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun shareError(id: Operation.Id) = launch {
-        log(tag) { "shareError($id)" }
-        val operation = operationsManager.get(id)
-        if (operation == null) {
-            log(tag, ERROR) { "Operation with id $id not found" }
-            return@launch
-        }
-        val state = operation.state.value as? Operation.State.Completed ?: return@launch
-        val error = state.error ?: return@launch
+    fun shareError(id: Operation.Id) = chrome.shareOperationError(id)
 
-        val metadata = mapOf<String, String?>(
-            "OperationId" to operation.id.toString(),
-            "Source" to operation.metadata.origin.toString(),
-            "CompletedAt" to state.completedAt.toString(),
-        )
-        val report = errorReportTool.buildReport(
-            throwable = error,
-            message = "${operation.metadata.title.get(context)}\n${operation.metadata.description.get(context)}",
-            errorContext = "Operation error in workspace ${this@ExplorerWorkspaceViewModel.id.shortTag}",
-            metadata = metadata,
-        )
-        val intent = errorReportTool.createShareChooserIntent(report)
-        shareIntentEvent.tryEmit(intent)
-    }
+    fun cancelOperation(id: Operation.Id) = chrome.cancelOperation(id)
 
-    fun cancelOperation(id: Operation.Id) = launch {
-        log(tag) { "cancelOperation($id)" }
-        operationsManager.cancel(id)
-    }
+    fun dismissOperation(id: Operation.Id) = chrome.dismissOperation(id)
 
-    fun dismissOperation(id: Operation.Id) = launch {
-        log(tag) { "dismissOperation($id)" }
-        operationsManager.remove(id)
-    }
-
-    fun clearCompletedOperations() = launch {
-        log(tag) { "clearCompletedOperations()" }
-        operationsManager.clearCompleted()
-    }
+    fun clearCompletedOperations() = chrome.clearCompletedOperations()
 
     fun showClipboardInfo(clip: ClipboardClip) {
         log(tag) { "showClipboardInfo($clip)" }
@@ -1948,7 +1896,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun copyPathToSystemClipboard(path: String) = launch {
         log(tag) { "copyPathToSystemClipboard($path)" }
-        systemClipboardHelper.copyToClipboard(path)
+        chrome.copyToSystemClipboard(path)
         toastEvents.emit(R.string.explorer_breadcrumb_copy_path_confirmation.toCaString())
     }
 
@@ -1966,12 +1914,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun shareNavigationError() = launch {
         log(tag) { "shareNavigationError()" }
         workspaceReadyState.first()?.error?.let { throwable ->
-            val report = errorReportTool.buildReport(
-                throwable = throwable,
-                errorContext = "Navigation error in workspace ${id.shortTag}",
-            )
-            val intent = errorReportTool.createShareChooserIntent(report)
-            shareIntentEvent.tryEmit(intent)
+            chrome.shareWorkspaceError(throwable, "Navigation error in workspace ${id.shortTag}")
         }
     }
 
@@ -2105,10 +2048,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun closeWorkspace() = launch {
-        log(tag) { "closeWorkspace()" }
-        workspaceRemote.execute(WorkspaceAction.Close(id))
-    }
+    fun closeWorkspace() = chrome.closeWorkspace()
 
     fun revealItems(paths: List<APath<*>>, highlight: Boolean = true) = launch {
         if (paths.isEmpty()) return@launch
