@@ -15,7 +15,9 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.flow.chunked
 import eu.darken.butler.permissions.core.PathRequirements
+import eu.darken.butler.searcher.core.engine.SearchConfig
 import eu.darken.butler.searcher.core.engine.SearchEngine
 import eu.darken.butler.searcher.core.operations.DeleteOperation
 import eu.darken.butler.searcher.core.operations.SearcherCommand
@@ -301,12 +303,14 @@ class SearcherWorkspace @AssistedInject constructor(
             is SearchEngine.Result.Success -> {
                 try {
                     val results = mutableListOf<SearchItem>()
-                    result.results.collect { item ->
-                        results.add(item)
-                        _searchState.update { state ->
-                            state.copy(results = state.results + item)
+                    result.results
+                        .chunked(SearchConfig.RESULT_BATCH_SIZE, SearchConfig.RESULT_BATCH_INTERVAL)
+                        .collect { batch ->
+                            results += batch
+                            _searchState.update { state ->
+                                state.copy(results = results.toList())
+                            }
                         }
-                    }
 
                     // Check if all targets failed with errors
                     val targetProgress = searchEngine.targetProgressState.value

@@ -146,11 +146,24 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val workspaceSearchState: Flow<SearcherWorkspace.State> = workspaceSource
         .filterNotNull()
         .flatMapLatest { it.state }
-        // Deduplicate results by absolute path at the single source: overlapping search roots
-        // (e.g. /storage/emulated/0 and /storage/emulated/0/Download) can surface the same file
-        // twice. This keeps the displayed list, counts, selection, and history consistent and
-        // makes the path-keyed results LazyColumn safe.
-        .map { it.copy(results = it.results.distinctByPath()) }
+
+    // Display results are deduplicated by absolute path (overlapping search roots, e.g.
+    // /storage/emulated/0 and /storage/emulated/0/Download, can surface the same file twice —
+    // dedup keeps the list, counts, selection, and history consistent and makes the path-keyed
+    // results LazyColumn safe) and then sorted. The workspace only publishes a NEW list instance
+    // when results actually change (once per batch), so memoizing on list identity plus sort
+    // settings means progress-only state emissions don't re-run dedup or sorting.
+    @Volatile
+    private var displayResultsCache: Triple<List<SearchItem>, SearchSortSettings, List<SearchItem>>? = null
+
+    private fun displayResults(raw: List<SearchItem>, sort: SearchSortSettings): List<SearchItem> {
+        displayResultsCache?.let { (cachedRaw, cachedSort, cachedValue) ->
+            if (cachedRaw === raw && cachedSort == sort) return cachedValue
+        }
+        val computed = itemSorter.sortItems(raw.distinctByPath(), sort)
+        displayResultsCache = Triple(raw, sort, computed)
+        return computed
+    }
 
     init {
         // Initialize UI state from workspace (source of truth, already has defaults applied)
@@ -288,16 +301,17 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         // Update history with result counts when search completes
         workspaceSearchState
             .onEach { wsState ->
+                val displayed = displayResults(wsState.results, currentSortSettings.value)
                 if (wsState.searchStatus == SearcherWorkspace.State.SearchStatus.COMPLETED) {
                     currentSearchId?.let { id ->
-                        searchHistory.updateResultCount(id, wsState.results.size)
+                        searchHistory.updateResultCount(id, displayed.size)
                         currentSearchId = null
                     }
                 }
 
                 // Update selection state when results change
                 selectionState.update { selection ->
-                    selection.copy(selectableResults = wsState.results)
+                    selection.copy(selectableResults = displayed)
                 }
             }
             .launchIn(vmScope)
@@ -324,7 +338,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         viewStyleFlow,
         trashSettings.enabled.flow,
     ) { filenameQ: String, contentQ: String, fnOptions: FilenameQuery, ctOptions: ContentQuery, contentSearchOn: Boolean, workspaceState: SearcherWorkspace.State, history: List<SearchHistory.SearchHistoryItem>, filter: SearchFilter, selection: SearcherSelectionState, quickActions: SearchItem?, dialogState: SearcherDialogState, sortSettings: SearchSortSettings, viewStyle: SearcherViewStyle, trashEnabled: Boolean ->
-        val sortedResults = itemSorter.sortItems(workspaceState.results, sortSettings)
+        val sortedResults = displayResults(workspaceState.results, sortSettings)
         val updatedWorkspaceState = workspaceState.copy(results = sortedResults)
         val updatedSelectionState = selection.copy(selectableResults = sortedResults)
 
@@ -896,8 +910,9 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             val needsSetup: Boolean
                 get() = workspaceState.setupRequirements.needsSetup
 
-            val listItems: List<SearchListItem>
-                get() = buildList {
+            // lazy: computed once per State.Ready instance instead of on every Compose read
+            val listItems: List<SearchListItem> by lazy {
+                buildList {
                     // Add error item at the top if there's an error
                     // Skip permission errors when setup card is already visible
                     workspaceState.error?.let { error ->
@@ -908,7 +923,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     }
 
                     // Results are already deduplicated by absolute path upstream (see
-                    // workspaceSearchState), so keying the LazyColumn by path is safe here.
+                    // displayResults), so keying the LazyColumn by path is safe here.
                     workspaceState.results.forEach { result ->
                         add(
                             SearchListItem.Result(
@@ -917,6 +932,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                         )
                     }
                 }
+            }
         }
     }
 
