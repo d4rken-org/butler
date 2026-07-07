@@ -621,6 +621,7 @@ fun SearcherWorkspacePage(
                         overallProgress = currentState.workspaceState.progress,
                         searchStatus = currentState.workspaceState.searchStatus,
                         resultCount = currentState.workspaceState.results.size,
+                        limitReached = currentState.workspaceState.limitReached,
                         onCancel = { onPageAction(SearcherPageAction.Search.Cancel) },
                         onClear = { onPageAction(SearcherPageAction.Search.ClearResults) },
                         onErrorClick = { path, exception ->

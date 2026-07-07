@@ -131,6 +131,7 @@
     <string name="searcher_progress_action_searching">Searching</string>
     <string name="searcher_progress_action_searched">Searched</string>
     <string name="searcher_progress_status_completed_with_errors">Completed with errors</string>
+    <string name="searcher_result_limit_reached">Result limit reached</string>
     <string name="searcher_progress_clear_action">Clear</string>
 
     <plurals name="searcher_progress_failed_count">

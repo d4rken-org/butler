@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
@@ -105,6 +106,7 @@ class SearcherWorkspace @AssistedInject constructor(
         val currentSearchQuery: SearchQuery? = null,
         val searchStatus: SearchStatus = SearchStatus.IDLE,
         val results: List<SearchItem> = emptyList(),
+        val limitReached: Boolean = false,
         val progress: SearchEngine.SearchProgress? = null,
         val error: Exception? = null,
         val searchTargets: List<SearchTarget> = emptyList(), // From engine
@@ -239,6 +241,7 @@ class SearcherWorkspace @AssistedInject constructor(
                 currentSearchQuery = searchQuery,
                 searchStatus = State.SearchStatus.SEARCHING,
                 results = emptyList(),
+                limitReached = false,
                 progress = initialProgress,
                 error = null,
             )
@@ -302,15 +305,30 @@ class SearcherWorkspace @AssistedInject constructor(
 
             is SearchEngine.Result.Success -> {
                 try {
+                    // The engine streams unlimited; the cap is enforced here so that stopping at
+                    // the limit is a normal completion, not a cancellation. One extra item is
+                    // requested to tell "exactly the limit exists" apart from actual truncation.
+                    val maxResults = command.options.maxResults?.takeIf { it > 0 }
+                    val cappedResults = when (maxResults) {
+                        null -> result.results
+                        else -> result.results.take(maxResults + 1)
+                    }
+
                     val results = mutableListOf<SearchItem>()
-                    result.results
+                    cappedResults
                         .chunked(SearchConfig.RESULT_BATCH_SIZE, SearchConfig.RESULT_BATCH_INTERVAL)
                         .collect { batch ->
                             results += batch
                             _searchState.update { state ->
-                                state.copy(results = results.toList())
+                                // The truncation sentinel item is never displayed
+                                state.copy(results = results.take(maxResults ?: results.size))
                             }
                         }
+
+                    val limitReached = maxResults != null && results.size > maxResults
+                    if (limitReached) {
+                        results.removeAt(results.size - 1)
+                    }
 
                     // Check if all targets failed with errors
                     val targetProgress = searchEngine.targetProgressState.value
@@ -331,8 +349,14 @@ class SearcherWorkspace @AssistedInject constructor(
                             )
                         }
                     } else {
-                        log(tag, INFO) { "Search completed: ${results.size} results" }
-                        _searchState.update { it.copy(searchStatus = State.SearchStatus.COMPLETED) }
+                        log(tag, INFO) { "Search completed: ${results.size} results, limitReached=$limitReached" }
+                        _searchState.update {
+                            it.copy(
+                                searchStatus = State.SearchStatus.COMPLETED,
+                                results = results.toList(),
+                                limitReached = limitReached,
+                            )
+                        }
                     }
                 } catch (e: CancellationException) {
                     log(tag, INFO) { "Search cancelled" }

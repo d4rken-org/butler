@@ -21,10 +21,8 @@ import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.core.Workspace
-import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -167,6 +165,12 @@ class SearchEngine @AssistedInject constructor(
         return volumes.map { SearchTarget.Path.from(it) }
     }
 
+    /**
+     * Starts a search and streams results until the targets are exhausted or the returned flow
+     * is cancelled. The engine does NOT enforce [SearchQuery.Options.maxResults] — the caller
+     * owns the result cap (see SearcherWorkspace), so stopping at the cap is a normal
+     * completion rather than a cancellation.
+     */
     suspend fun search(
         command: SearcherCommand.Search,
         onProgress: ((SearchProgress) -> Unit)? = null
@@ -274,8 +278,6 @@ class SearchEngine @AssistedInject constructor(
         _targetProgressState.value = initialProgress
 
         val progressAggregator = ProgressAggregator()
-        val foundCounter = AtomicInteger(0)
-        val maxResults = searchQuery.options.maxResults
         val includeBinaries = searcherSettings.contentSearchBinaries.value()
 
         // Launch concurrent scanner for each path
@@ -314,13 +316,6 @@ class SearchEngine @AssistedInject constructor(
                             }
                         }
                     ).collect { result ->
-                        // Check max results across all scanners
-                        val found = foundCounter.incrementAndGet()
-                        if (maxResults != null && found > maxResults) {
-                            log(tag, INFO) { "Max results reached ($found), skipping item" }
-                            cancel("Max results reached")
-                            return@collect // Don't send this result
-                        }
                         send(result) // Send to channelFlow
                     }
 

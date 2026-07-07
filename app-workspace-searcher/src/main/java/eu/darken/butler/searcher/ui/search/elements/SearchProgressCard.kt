@@ -67,6 +67,7 @@ fun SearchProgressCard(
     onErrorClick: (path: String, exception: Throwable) -> Unit,
     modifier: Modifier = Modifier,
     initiallyExpanded: Boolean = false,
+    limitReached: Boolean = false,
 ) {
     // Auto-collapse when search completes, but expand during active search
     var isExpanded by rememberSaveable(searchStatus) {
@@ -91,6 +92,7 @@ fun SearchProgressCard(
                 totalFound = resultCount,
                 searchStatus = searchStatus,
                 failedCount = targetProgress.count { it.status == SearchEngine.SearchTargetProgress.Status.ERROR },
+                limitReached = limitReached,
                 isExpanded = isExpanded,
                 onExpandClick = { isExpanded = !isExpanded },
                 onCancelClick = onCancel,
@@ -115,11 +117,23 @@ fun SearchProgressCard(
                         verticalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
                         itemsIndexed(targetProgress) { index, pathProgress ->
+                            // A scan stopped by the result cap is not a user cancellation:
+                            // "Completed + limit reached" above rows saying "Cancelled" would
+                            // read as contradictory
+                            val displayStatus = if (
+                                limitReached &&
+                                searchStatus == SearcherWorkspace.State.SearchStatus.COMPLETED &&
+                                pathProgress.status == SearchEngine.SearchTargetProgress.Status.CANCELLED
+                            ) {
+                                SearchEngine.SearchTargetProgress.Status.COMPLETED
+                            } else {
+                                pathProgress.status
+                            }
                             SearchPathProgressRow(
                                 path = pathProgress.target.path.userReadablePath.get(context),
                                 itemsScanned = pathProgress.itemsScanned,
                                 resultsFound = pathProgress.resultsFound,
-                                status = pathProgress.status,
+                                status = displayStatus,
                                 exception = pathProgress.exception,
                                 onErrorClick = if (pathProgress.exception != null) {
                                     {
@@ -152,6 +166,7 @@ private fun SearchProgressHeader(
     totalFound: Int,
     searchStatus: SearcherWorkspace.State.SearchStatus,
     failedCount: Int,
+    limitReached: Boolean,
     isExpanded: Boolean,
     onExpandClick: () -> Unit,
     onCancelClick: () -> Unit,
@@ -253,8 +268,11 @@ private fun SearchProgressHeader(
             } else {
                 foundText
             }
+            val limitText = if (limitReached) {
+                " • ${stringResource(R.string.searcher_result_limit_reached)}"
+            } else ""
             Text(
-                text = statsText,
+                text = "$statsText$limitText",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -412,6 +430,36 @@ private fun createSearchProgress(scanned: Int, found: Int) =
         itemsScanned = scanned,
         resultsFound = found
     )
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun SearchProgressCardLimitReachedPreview() {
+    SearchProgressCard(
+        targetProgress = listOf(
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.COMPLETED,
+                "/sdcard",
+                5000,
+                800
+            ),
+            createSearchTargetProgress(
+                SearchEngine.SearchTargetProgress.Status.CANCELLED,
+                "/storage/emulated/0",
+                3200,
+                200
+            ),
+        ),
+        overallProgress = createSearchProgress(8200, 1000),
+        resultCount = 1000,
+        searchStatus = SearcherWorkspace.State.SearchStatus.COMPLETED,
+        limitReached = true,
+        onCancel = {},
+        onClear = {},
+        onErrorClick = { _, _ -> },
+        initiallyExpanded = true
+    )
+}
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)
