@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.elements
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ScrollState
@@ -145,6 +146,11 @@ fun BreadcrumbBar(
                 hadFocusWhileEditing = false
             }
         }
+    }
+
+    BackHandler(enabled = isEditMode) {
+        isEditMode = false
+        keyboardController?.hide()
     }
 
     Box(

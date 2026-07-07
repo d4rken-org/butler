@@ -1,5 +1,8 @@
 package eu.darken.butler.explorer.ui.explorer
 
+import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Home
@@ -315,5 +318,42 @@ class BreadcrumbBarTest : ComposeTest() {
 
         homeTarget shouldBe ExplorerNavigation.Target.Device
         composeTestRule.onNodeWithText("Set as home").assertDoesNotExist()
+    }
+
+    @Test
+    fun `back press exits edit mode without committing and is consumed before outer handlers`() {
+        var committed: Pair<APath<*>, String>? = null
+        var outerBackFired = false
+        var dispatcher: OnBackPressedDispatcher? = null
+
+        composeTestRule.setContent {
+            dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+            PreviewWrapper {
+                BackHandler(enabled = true) { outerBackFired = true }
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        directoryBreadcrumb("/", "/"),
+                        directoryBreadcrumb("storage", "/storage"),
+                    ),
+                    onBreadcrumbClick = {},
+                    onNavigateToPath = {},
+                    onCommitEditedPath = { path, text -> committed = path to text },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("storage").performClick()
+        composeTestRule.onNode(hasSetTextAction()).assertIsDisplayed()
+
+        composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
+
+        composeTestRule.onNode(hasSetTextAction()).assertDoesNotExist()
+        composeTestRule.onNodeWithText("storage").assertIsDisplayed()
+        committed shouldBe null
+        outerBackFired shouldBe false
+
+        composeTestRule.runOnIdle { dispatcher!!.onBackPressed() }
+
+        composeTestRule.runOnIdle { outerBackFired shouldBe true }
     }
 }
