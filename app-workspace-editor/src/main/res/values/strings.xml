@@ -77,6 +77,12 @@
     <string name="editor_error_read_only">This file is read-only and can\'t be changed.</string>
     <string name="editor_error_save_integrity_label">Save interrupted</string>
     <string name="editor_error_save_integrity">Saving was interrupted and the file on disk may be incomplete. Reload the file before editing further.</string>
+    <string name="editor_error_clipboard_too_large_label">Selection too large</string>
+    <string name="editor_error_clipboard_too_large">The selection is too large to copy (limit %1$s).</string>
+    <string name="editor_error_paste_too_large_label">File too large</string>
+    <string name="editor_error_paste_too_large">This file is too large to paste (max %1$s).</string>
+    <string name="editor_error_paste_binary_label">Not a text file</string>
+    <string name="editor_error_paste_binary">Binary file content can\'t be pasted.</string>
     <plurals name="editor_search_results_x_of_y">
         <item quantity="one">%1$d of %2$d result</item>
         <item quantity="other">%1$d of %2$d results</item>

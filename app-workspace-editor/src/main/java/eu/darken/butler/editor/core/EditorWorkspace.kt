@@ -624,7 +624,7 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun redo() = currentEngine().redo()
     suspend fun deleteSelection() = currentEngine().deleteSelection()
     suspend fun deleteAtCursor(count: Int) = currentEngine().deleteAtCursor(count)
-    suspend fun copySelection() = currentEngine().copySelection()
+    suspend fun copySelection(maxChars: Long? = null) = currentEngine().copySelection(maxChars)
     suspend fun selectAll() = currentEngine().selectAll()
 
     suspend fun insertText(text: String) = currentEngine().insertText(text)

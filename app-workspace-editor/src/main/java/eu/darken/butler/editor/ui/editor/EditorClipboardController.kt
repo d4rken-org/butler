@@ -8,6 +8,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.editor.core.engine.ClipboardCapacityException
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
@@ -55,56 +56,69 @@ class EditorClipboardController(
     }
 
     fun copyToClipboard() = doLaunch {
-        workspace().copySelection().fold(
-            onSuccess = { text ->
-                clipboardHelper.copyToClipboard(text)
-                _hasSystemClipboardContent.value = true
-                log(tag) { "Copied ${text.length} characters to system clipboard" }
-            },
-            onFailure = { e -> log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" } },
-        )
+        val text = extractSelection(maxChars = MAX_SYSTEM_CLIPBOARD_CHARS) ?: return@doLaunch
+        copyToSystemClipboard(text)
+        log(tag) { "Copied ${text.length} characters to system clipboard" }
     }
 
     fun cutToClipboard() = doLaunch {
         val ws = workspace()
-        ws.copySelection().fold(
-            onSuccess = { text ->
-                clipboardHelper.copyToClipboard(text)
-                _hasSystemClipboardContent.value = true
-                ws.deleteSelection()
-                log(tag) { "Cut ${text.length} characters to system clipboard" }
-            },
-            onFailure = { e -> log(tag, ERROR) { "Failed to cut selection - ${e.asLog()}" } },
-        )
+        val text = extractSelection(maxChars = MAX_SYSTEM_CLIPBOARD_CHARS) ?: return@doLaunch
+        // Any copy refusal or write failure throws above/inside, so the delete never runs
+        copyToSystemClipboard(text)
+        ws.deleteSelection().getOrElse { e ->
+            // The engine surfaced the failure via its error banner; the copy already succeeded
+            log(tag, ERROR) { "Cut copied but failed to delete - ${e.asLog()}" }
+            return@doLaunch
+        }
+        log(tag) { "Cut ${text.length} characters to system clipboard" }
     }
 
     /** Copies selection to Butler clipboard only (for long-press action). */
     fun copyToButlerClipboard() = doLaunch {
-        workspace().copySelection().fold(
-            onSuccess = { text -> addToButlerClipboard(text) },
-            onFailure = { e -> log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" } },
-        )
+        val text = extractSelection(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@doLaunch
+        addToButlerClipboard(text)
     }
 
     /** Cuts selection to Butler clipboard only (for long-press action). */
     fun cutToButlerClipboard() = doLaunch {
         val ws = workspace()
-        ws.copySelection().fold(
-            onSuccess = { text ->
-                // Deleting after a rejected copy (size cap) would silently drop the text
-                if (addToButlerClipboard(text)) {
-                    ws.deleteSelection()
-                    log(tag) { "Cut ${text.length} characters to Butler clipboard" }
-                }
-            },
-            onFailure = { e -> log(tag, ERROR) { "Failed to cut selection - ${e.asLog()}" } },
-        )
+        val text = extractSelection(maxChars = BUTLER_CLIPBOARD_PREFILTER_CHARS) ?: return@doLaunch
+        // Deleting after a rejected copy (size cap throws) would silently drop the text
+        addToButlerClipboard(text)
+        ws.deleteSelection().getOrElse { e ->
+            log(tag, ERROR) { "Cut copied but failed to delete - ${e.asLog()}" }
+            return@doLaunch
+        }
+        log(tag) { "Cut ${text.length} characters to Butler clipboard" }
     }
 
-    private suspend fun addToButlerClipboard(text: String): Boolean {
+    /**
+     * Extracts the selection under the engine's cap: capacity refusals throw (surfacing through
+     * the ViewModel's error handler), other failures (e.g. no selection) stay log-only as before.
+     */
+    private suspend fun extractSelection(maxChars: Long): String? =
+        workspace().copySelection(maxChars).getOrElse { e ->
+            if (e is ClipboardCapacityException) throw e
+            log(tag, ERROR) { "Failed to extract selection - ${e.asLog()}" }
+            null
+        }
+
+    /** The char cap is a heuristic; setPrimaryClip can still fail across the binder for large clips. */
+    private fun copyToSystemClipboard(text: String) {
+        try {
+            clipboardHelper.copyToClipboard(text)
+        } catch (e: Exception) {
+            throw ClipboardCapacityException(limitBytes = MAX_SYSTEM_CLIPBOARD_CHARS, cause = e)
+        }
+        _hasSystemClipboardContent.value = true
+    }
+
+    private suspend fun addToButlerClipboard(text: String) {
+        // The char pre-filter can't be exact (UTF-8 is 1-3 bytes per UTF-16 unit); this is the
+        // authoritative check
         if (text.toByteArray(Charsets.UTF_8).size > ClipboardClip.Text.MAX_SIZE_BYTES) {
-            log(tag, WARN) { "Text too large for Butler clipboard: ${text.length} chars" }
-            return false
+            throw ClipboardCapacityException(limitBytes = ClipboardClip.Text.MAX_SIZE_BYTES.toLong())
         }
 
         val currentSource = (workspace().state.value as? EditorWorkspace.State.Ready)?.editor?.contentSource
@@ -115,7 +129,6 @@ class EditorClipboardController(
         )
         clipboardRepo.add(clip)
         log(tag, INFO) { "Added ${text.length} characters to Butler clipboard" }
-        return true
     }
 
     fun pasteFromClipboard() = doLaunch {
@@ -138,7 +151,7 @@ class EditorClipboardController(
             is ClipboardClip.Paths -> {
                 val textFile = clip.paths.firstOrNull { isLikelyTextFile(it) }
                 if (textFile != null) {
-                    pasteFromClipboardFile(textFile)
+                    pasteFileContent(textFile)
                 } else {
                     log(tag, WARN) { "No text files found in clipboard paths" }
                 }
@@ -148,14 +161,19 @@ class EditorClipboardController(
 
     /** Paste content from a file in the Butler clipboard into the editor. */
     fun pasteFromClipboardFile(path: APath<*>) = doLaunch {
-        log(tag) { "pasteFromClipboardFile($path)" }
-        workspace().readFileContent(path).fold(
-            onSuccess = { content ->
-                workspace().insertText(content)
-                log(tag, INFO) { "Pasted ${content.length} characters from file: ${path.name}" }
-            },
-            onFailure = { e -> log(tag, ERROR) { "Failed to paste from file: ${e.asLog()}" } },
-        )
+        pasteFileContent(path)
+    }
+
+    /**
+     * Shared paste-from-file path: failures (file too large, binary content, I/O) throw so they
+     * reach the launching coroutine's error handler and become visible - they were silently
+     * logged before.
+     */
+    private suspend fun pasteFileContent(path: APath<*>) {
+        log(tag) { "pasteFileContent($path)" }
+        val content = workspace().readFileContent(path).getOrThrow()
+        workspace().insertText(content)
+        log(tag, INFO) { "Pasted ${content.length} characters from file: ${path.name}" }
     }
 
     fun showClipboardInfo(clip: ClipboardClip) {
@@ -183,6 +201,19 @@ class EditorClipboardController(
     }
 
     companion object {
+        /**
+         * System-clipboard cap in UTF-16 units (~500KB in the parcel) - comfortable margin under
+         * the ~1MB binder transaction limit that makes setPrimaryClip throw.
+         */
+        const val MAX_SYSTEM_CLIPBOARD_CHARS = 250_000L
+
+        /**
+         * Pre-materialization filter for the Butler clipboard: UTF-8 output is always >= 1 byte
+         * per UTF-16 unit, so more chars than [ClipboardClip.Text.MAX_SIZE_BYTES] can never fit.
+         * Selections passing this may still fail the exact byte check in [addToButlerClipboard].
+         */
+        val BUTLER_CLIPBOARD_PREFILTER_CHARS = ClipboardClip.Text.MAX_SIZE_BYTES.toLong()
+
         internal val TEXT_EXTENSIONS = setOf(
             "txt", "md", "json", "xml", "html", "css", "js", "kt", "java", "py", "sh",
             "yml", "yaml", "csv", "log", "conf", "ini", "properties", "gradle", "toml",

@@ -45,9 +45,7 @@ class PasteFileReader @Inject constructor(
                 val read = input.read(buf)
                 if (read == -1) break
                 if (out.size() + read > MAX_PASTE_FILE_SIZE) {
-                    throw IllegalArgumentException(
-                        "File too large to paste (max ${MAX_PASTE_FILE_SIZE / 1024 / 1024} MB)",
-                    )
+                    throw PasteTooLargeException(MAX_PASTE_FILE_SIZE)
                 }
                 out.write(buf, 0, read)
             }
@@ -62,7 +60,7 @@ class PasteFileReader @Inject constructor(
         }
         val body = if (bom != null) bytes.copyOfRange(bom.bomSize, bytes.size) else bytes
         if (body.any { it == 0.toByte() }) {
-            throw IllegalArgumentException("Cannot paste binary file content")
+            throw PasteBinaryException()
         }
         return try {
             Charsets.UTF_8.newDecoder()

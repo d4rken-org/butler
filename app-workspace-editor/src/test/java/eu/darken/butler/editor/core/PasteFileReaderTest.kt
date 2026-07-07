@@ -68,7 +68,7 @@ class PasteFileReaderTest : BaseTest() {
     @Test
     fun `null bytes without a UTF-16 BOM are rejected as binary`() {
         val bytes = byteArrayOf(0x48, 0x00, 0x65)
-        val error = shouldThrow<IllegalArgumentException> { decoder.decodeBytes(bytes) }
+        val error = shouldThrow<PasteBinaryException> { decoder.decodeBytes(bytes) }
         error.message shouldContain "binary"
     }
 
@@ -89,7 +89,7 @@ class PasteFileReaderTest : BaseTest() {
         val result = reader.read(path)
 
         result.isFailure shouldBe true
-        result.exceptionOrNull().shouldBeInstanceOf<IllegalArgumentException>()
-            .message shouldContain "too large"
+        result.exceptionOrNull().shouldBeInstanceOf<PasteTooLargeException>()
+            .maxBytes shouldBe PasteFileReader.MAX_PASTE_FILE_SIZE
     }
 }

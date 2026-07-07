@@ -44,7 +44,8 @@ class InMemoryDataSource @AssistedInject constructor(
         _contentSource.value = ContentSource.Memory(size = content.length.toLong())
     }
 
-    override suspend fun getSize(): Long = content.length.toLong()
+    // Byte size like getMeta(); ContentSource.Memory.size intentionally stays char-based (display)
+    override suspend fun getSize(): Long = getMeta().size
 
     override suspend fun getMeta(): EditorDataSource.Meta = EditorDataSource.Meta(
         size = content.toByteArray(Charsets.UTF_8).size.toLong(),

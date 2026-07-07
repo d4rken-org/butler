@@ -78,10 +78,6 @@ class EditorEngine @AssistedInject constructor(
     // if it is still the latest request when it finishes
     private var searchRequestCounter = 0L
 
-    // Structural version of the snapshot the current replace call expanded its regex against;
-    // passed to replaceMatches so any intervening mutation aborts the apply
-    private var regexSnapshotVersion: Long? = null
-
     private val _searchResults = MutableStateFlow<List<SearchResult>>(emptyList())
     val searchResults: StateFlow<List<SearchResult>> = _searchResults.asStateFlow()
 
@@ -648,10 +644,14 @@ class EditorEngine @AssistedInject constructor(
      * Must be called within stateMutex.withLock.
      * @return Pair of (selection was deleted, deleted text result). If no selection, returns (false, null).
      */
+    /** [setSelection] stores the received order; buffer ranges and cursor placement need start <= end. */
+    private fun Pair<TextPosition, TextPosition>.normalized(): Pair<TextPosition, TextPosition> =
+        if (first.offset <= second.offset) this else second to first
+
     private suspend fun deleteSelectionIfPresent(
         currentState: EditorState.Loaded,
     ): Pair<Boolean, Result<String>?> {
-        val selection = _selectionRange.value ?: return false to null
+        val selection = _selectionRange.value?.normalized() ?: return false to null
 
         val result = currentState.resources.textBuffer.deleteText(selection.first, selection.second)
         if (result.isSuccess) {
@@ -671,7 +671,7 @@ class EditorEngine @AssistedInject constructor(
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 currentState.editabilityError()?.let { return Result.failure(it) }
-                val selection = _selectionRange.value ?: return Result.failure(
+                val selection = _selectionRange.value?.normalized() ?: return Result.failure(
                     IllegalStateException("No selection to delete")
                 )
 
@@ -780,7 +780,13 @@ class EditorEngine @AssistedInject constructor(
         }
     }
 
-    suspend fun copySelection(): Result<String> = stateMutex.withLock {
+    /**
+     * Extracts the selection, refusing BEFORE materialization when it exceeds [maxChars] (UTF-16
+     * units). The check shares [stateMutex] with the read, so it can never race a selection
+     * change. Callers pick char caps that numerically approximate their clipboard's byte
+     * capacity - the refusal's [ClipboardCapacityException.limitBytes] is displayed as a size.
+     */
+    suspend fun copySelection(maxChars: Long? = null): Result<String> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 val selection = _selectionRange.value ?: return Result.failure(
@@ -788,8 +794,15 @@ class EditorEngine @AssistedInject constructor(
                 )
 
                 try {
+                    // setSelection can store a reversed range; normalize before measuring/reading
+                    val start = minOf(selection.first.offset, selection.second.offset)
+                    val end = maxOf(selection.first.offset, selection.second.offset)
+                    if (maxChars != null && end - start > maxChars) {
+                        log(tag, WARN) { "Selection too large to copy: ${end - start} chars (cap $maxChars)" }
+                        return Result.failure(ClipboardCapacityException(limitBytes = maxChars))
+                    }
                     log(tag) { "Copying selection: ${selection.first} to ${selection.second}" }
-                    currentState.resources.textBuffer.getText(selection.first.offset, selection.second.offset)
+                    currentState.resources.textBuffer.getText(start, end)
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to copy selection - ${e.asLog()}" }
                     _error.value = e
@@ -1190,21 +1203,22 @@ class EditorEngine @AssistedInject constructor(
             loaded.resources.textBuffer
         }
 
-        val newText = matchDocumentLineEnding(
-            if (options.useRegex) {
-                expandRegexReplacementAt(buffer, query, options, match, replacement)
-                    .getOrElse { return Result.failure(it) }
-            } else {
-                replacement
-            },
-            buffer,
-        )
+        val expandedVersion: Long?
+        val newText: String
+        if (options.useRegex) {
+            val (expanded, snapshotVersion) = expandRegexReplacementAt(buffer, query, options, match, replacement)
+                .getOrElse { return Result.failure(it) }
+            expandedVersion = snapshotVersion
+            newText = matchDocumentLineEnding(expanded, buffer)
+        } else {
+            expandedVersion = null
+            newText = matchDocumentLineEnding(replacement, buffer)
+        }
 
         buffer.replaceMatches(
             listOf(DocumentBuffer.MatchReplacement(match.position.offset, match.matchText, newText)),
-            expectedVersion = regexSnapshotVersion.takeIf { options.useRegex },
+            expectedVersion = expandedVersion,
         ).getOrElse { return Result.failure(it) }
-        regexSnapshotVersion = null
 
         val replacementEnd = match.position.offset + newText.length
         refreshAfterMutation(cursorOffset = replacementEnd)
@@ -1234,6 +1248,7 @@ class EditorEngine @AssistedInject constructor(
             loaded.resources.textBuffer
         }
 
+        var expectedVersion: Long? = null
         val replacements: List<DocumentBuffer.MatchReplacement> = if (options.useRegex) {
             if (buffer.totalLength.value > WindowedSearch.REGEX_FULL_SCAN_CAP) {
                 return Result.failure(
@@ -1250,7 +1265,7 @@ class EditorEngine @AssistedInject constructor(
             } catch (e: Exception) {
                 return Result.failure(IllegalArgumentException("Invalid regex pattern: ${e.message}", e))
             }
-            regexSnapshotVersion = snapshotVersion
+            expectedVersion = snapshotVersion
             try {
                 regex.findAll(text)
                     .filter { it.value.isNotEmpty() }
@@ -1274,9 +1289,8 @@ class EditorEngine @AssistedInject constructor(
 
         if (replacements.isEmpty()) return Result.success(ReplaceAllOutcome(0, undoable = true))
 
-        val stats = buffer.replaceMatches(replacements, expectedVersion = regexSnapshotVersion.takeIf { options.useRegex })
+        val stats = buffer.replaceMatches(replacements, expectedVersion = expectedVersion)
             .getOrElse { return Result.failure(it) }
-        regexSnapshotVersion = null
 
         refreshAfterMutation(cursorOffset = null)
         search(query, options)
@@ -1304,6 +1318,8 @@ class EditorEngine @AssistedInject constructor(
     /**
      * Resolves the regex match at the SearchResult's offset so group references can expand.
      * Only valid under the full-scan cap - the same boundary the search side documents.
+     * Returns the expanded text plus the structural version of the snapshot it was computed
+     * from; callers pass that version to replaceMatches so any intervening mutation aborts.
      */
     private suspend fun expandRegexReplacementAt(
         buffer: DocumentBuffer,
@@ -1311,7 +1327,7 @@ class EditorEngine @AssistedInject constructor(
         options: SearchOptions,
         match: SearchResult,
         replacement: String,
-    ): Result<String> {
+    ): Result<Pair<String, Long>> {
         if (buffer.totalLength.value > WindowedSearch.REGEX_FULL_SCAN_CAP) {
             return Result.failure(
                 IllegalStateException(
@@ -1327,17 +1343,16 @@ class EditorEngine @AssistedInject constructor(
         } catch (e: Exception) {
             return Result.failure(IllegalArgumentException("Invalid regex pattern: ${e.message}", e))
         }
-        regexSnapshotVersion = snapshotVersion
         val liveMatch = regex.findAll(text).firstOrNull { it.range.first.toLong() == match.position.offset }
             ?: return Result.failure(StaleMatchException())
         return try {
-            Result.success(expandReplacementTemplate(replacement, liveMatch))
+            Result.success(expandReplacementTemplate(replacement, liveMatch) to snapshotVersion)
         } catch (e: IllegalArgumentException) {
             Result.failure(e)
         }
     }
 
-    suspend fun goToLine(lineNumber: Long): Result<Unit> {
+    suspend fun goToLine(lineNumber: Long): Result<Unit> = stateMutex.withLock {
         return try {
             val currentState = _state.value as? EditorState.Loaded
                 ?: return Result.failure(IllegalStateException("Cannot go to line - no file open"))
@@ -1363,7 +1378,7 @@ class EditorEngine @AssistedInject constructor(
             // Update visible range to include this line
             val visibleStart = (lineNumber - 25).coerceAtLeast(0)
             val visibleEnd = (lineNumber + 25).coerceAtMost(totalLines - 1)
-            updateVisibleRange(visibleStart, visibleEnd)
+            updateVisibleRangeLocked(visibleStart, visibleEnd)
 
             Result.success(Unit)
         } catch (e: Exception) {
@@ -1406,6 +1421,11 @@ class EditorEngine @AssistedInject constructor(
     }
 
     suspend fun updateVisibleRange(startLine: Long, endLine: Long) = stateMutex.withLock {
+        updateVisibleRangeLocked(startLine, endLine)
+    }
+
+    /** Body of [updateVisibleRange]; [stateMutex] must be held (convention like [refreshVisibleContent]). */
+    private suspend fun updateVisibleRangeLocked(startLine: Long, endLine: Long) {
         if (isInitializing.get()) {
             log(tag) { "Ignoring visible range update during initialization: $startLine..$endLine" }
             return

@@ -3,12 +3,16 @@ package eu.darken.butler.editor.ui.editor
 import eu.darken.butler.common.SystemClipboardHelper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.editor.core.EditorWorkspace
+import eu.darken.butler.editor.core.PasteFileReader
+import eu.darken.butler.editor.core.PasteTooLargeException
+import eu.darken.butler.editor.core.engine.ClipboardCapacityException
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -31,7 +35,13 @@ class EditorClipboardControllerTest : BaseTest() {
 
     private fun path(name: String) = LocalPath.build(File("/tmp/clip-test", name))
 
-    private fun mockWorkspace(selection: String = "selected text"): EditorWorkspace {
+    /** Mirrors ViewModel3's error handler: thrown controller errors surface here, not as crashes. */
+    private val surfacedErrors = mutableListOf<Throwable>()
+
+    private fun mockWorkspace(
+        selection: String = "selected text",
+        copyResult: Result<String> = Result.success(selection),
+    ): EditorWorkspace {
         val wsState = MutableStateFlow<EditorWorkspace.State>(
             EditorWorkspace.State.Ready(
                 EditorWorkspace.EditorState(
@@ -46,7 +56,7 @@ class EditorClipboardControllerTest : BaseTest() {
         )
         return mockk<EditorWorkspace>().apply {
             every { state } returns wsState
-            coEvery { copySelection() } returns Result.success(selection)
+            coEvery { copySelection(any()) } returns copyResult
             coEvery { deleteSelection() } returns Result.success(selection)
             coEvery { insertText(any()) } returns Unit
             coEvery { readFileContent(any()) } returns Result.success("file content")
@@ -65,7 +75,15 @@ class EditorClipboardControllerTest : BaseTest() {
         repo: ClipboardRepo = mockRepo(),
     ) = EditorClipboardController(
         id = workspaceId,
-        doLaunch = { block -> launch { block() } },
+        doLaunch = { block ->
+            launch {
+                try {
+                    block()
+                } catch (e: Exception) {
+                    surfacedErrors += e
+                }
+            }
+        },
         workspace = { workspace },
         clipboardHelper = helper,
         clipboardRepo = repo,
@@ -99,8 +117,83 @@ class EditorClipboardControllerTest : BaseTest() {
         coVerify { workspace.deleteSelection() }
     }
 
+    // ==================== System clipboard size guard ====================
+
     @Test
-    fun `butler-clipboard copy respects the size cap`() = runTest {
+    fun `system copy passes the char cap to the engine and surfaces refusals`() = runTest {
+        val workspace = mockWorkspace(
+            copyResult = Result.failure(ClipboardCapacityException(EditorClipboardController.MAX_SYSTEM_CLIPBOARD_CHARS)),
+        )
+        val helper = mockk<SystemClipboardHelper>(relaxed = true)
+        val controller = controller(workspace, helper)
+
+        controller.copyToClipboard()
+        runCurrent()
+
+        coVerify { workspace.copySelection(EditorClipboardController.MAX_SYSTEM_CLIPBOARD_CHARS) }
+        coVerify(exactly = 0) { helper.copyToClipboard(any()) }
+        surfacedErrors.single().shouldBeInstanceOf<ClipboardCapacityException>()
+    }
+
+    @Test
+    fun `system cut must not delete when the engine refuses the copy`() = runTest {
+        val workspace = mockWorkspace(
+            copyResult = Result.failure(ClipboardCapacityException(EditorClipboardController.MAX_SYSTEM_CLIPBOARD_CHARS)),
+        )
+        val controller = controller(workspace)
+
+        controller.cutToClipboard()
+        runCurrent()
+
+        coVerify(exactly = 0) { workspace.deleteSelection() }
+        surfacedErrors.single().shouldBeInstanceOf<ClipboardCapacityException>()
+    }
+
+    @Test
+    fun `system cut must not delete when setPrimaryClip throws`() = runTest {
+        // The char cap is a heuristic - a binder failure past it must still surface and keep the text
+        val workspace = mockWorkspace(selection = "hello")
+        val helper = mockk<SystemClipboardHelper>(relaxed = true).apply {
+            every { copyToClipboard(any()) } throws RuntimeException("TransactionTooLarge")
+        }
+        val controller = controller(workspace, helper)
+
+        controller.cutToClipboard()
+        runCurrent()
+
+        coVerify(exactly = 0) { workspace.deleteSelection() }
+        controller.hasSystemClipboardContent.value shouldBe false
+        surfacedErrors.single().shouldBeInstanceOf<ClipboardCapacityException>()
+    }
+
+    @Test
+    fun `non-capacity copy failures stay log-only`() = runTest {
+        val workspace = mockWorkspace(copyResult = Result.failure(IllegalStateException("No selection to copy")))
+        val helper = mockk<SystemClipboardHelper>(relaxed = true)
+        val controller = controller(workspace, helper)
+
+        controller.copyToClipboard()
+        runCurrent()
+
+        coVerify(exactly = 0) { helper.copyToClipboard(any()) }
+        surfacedErrors shouldHaveSize 0
+    }
+
+    // ==================== Butler clipboard size guard ====================
+
+    @Test
+    fun `butler copy passes the byte-cap prefilter to the engine`() = runTest {
+        val workspace = mockWorkspace()
+        val controller = controller(workspace)
+
+        controller.copyToButlerClipboard()
+        runCurrent()
+
+        coVerify { workspace.copySelection(EditorClipboardController.BUTLER_CLIPBOARD_PREFILTER_CHARS) }
+    }
+
+    @Test
+    fun `butler-clipboard copy respects the size cap and surfaces the refusal`() = runTest {
         val huge = "x".repeat(ClipboardClip.Text.MAX_SIZE_BYTES + 1)
         val workspace = mockWorkspace(selection = huge)
         val repo = mockRepo()
@@ -110,6 +203,21 @@ class EditorClipboardControllerTest : BaseTest() {
         runCurrent()
 
         coVerify(exactly = 0) { repo.add(any()) }
+        surfacedErrors.single().shouldBeInstanceOf<ClipboardCapacityException>()
+    }
+
+    @Test
+    fun `butler-clipboard copy accepts content exactly at the byte cap`() = runTest {
+        val atCap = "x".repeat(ClipboardClip.Text.MAX_SIZE_BYTES)
+        val workspace = mockWorkspace(selection = atCap)
+        val repo = mockRepo()
+        val controller = controller(workspace, repo = repo)
+
+        controller.copyToButlerClipboard()
+        runCurrent()
+
+        coVerify { repo.add(any()) }
+        surfacedErrors shouldHaveSize 0
     }
 
     @Test
@@ -125,6 +233,23 @@ class EditorClipboardControllerTest : BaseTest() {
         coVerify(exactly = 0) { repo.add(any()) }
         // Nothing was clipped, so nothing may be deleted - otherwise the text is silently lost
         coVerify(exactly = 0) { workspace.deleteSelection() }
+        surfacedErrors.single().shouldBeInstanceOf<ClipboardCapacityException>()
+    }
+
+    @Test
+    fun `multibyte content under the char prefilter is still rejected by the exact byte check`() = runTest {
+        // 100k CJK chars pass the char prefilter (262144) but encode to ~300KB UTF-8 (> 256KB)
+        val cjk = "好".repeat(100_000)
+        val workspace = mockWorkspace(selection = cjk)
+        val repo = mockRepo()
+        val controller = controller(workspace, repo = repo)
+
+        controller.cutToButlerClipboard()
+        runCurrent()
+
+        coVerify(exactly = 0) { repo.add(any()) }
+        coVerify(exactly = 0) { workspace.deleteSelection() }
+        surfacedErrors.single().shouldBeInstanceOf<ClipboardCapacityException>()
     }
 
     @Test
@@ -171,6 +296,22 @@ class EditorClipboardControllerTest : BaseTest() {
 
         coVerify { workspace.readFileContent(match { it.name == "notes.txt" }) }
         coVerify { workspace.insertText("file content") }
+    }
+
+    @Test
+    fun `paste-from-file failures surface instead of being swallowed`() = runTest {
+        val workspace = mockWorkspace().apply {
+            coEvery { readFileContent(any()) } returns Result.failure(
+                PasteTooLargeException(PasteFileReader.MAX_PASTE_FILE_SIZE),
+            )
+        }
+        val controller = controller(workspace)
+
+        controller.pasteFromClipboardFile(path("big.txt"))
+        runCurrent()
+
+        coVerify(exactly = 0) { workspace.insertText(any()) }
+        surfacedErrors.single().shouldBeInstanceOf<PasteTooLargeException>()
     }
 
     @Test
