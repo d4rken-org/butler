@@ -1,7 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -47,7 +46,6 @@ import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
-import eu.darken.butler.explorer.core.PatternMatcher
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerItem.Path.Companion.toPathItemId
@@ -95,8 +93,6 @@ import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
 import java.io.File
-import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -147,11 +143,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit = { block -> launch(block = block) }
 
     private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
-    private val viewStyleFlow = MutableStateFlow<ExplorerViewStyle>(explorerSettings.defaultViewStyle.valueBlocking)
-    private val filterStateFlow = MutableStateFlow(FilterState())
 
+    private val viewSettings = ExplorerViewSettingsController(
+        explorerSettings = explorerSettings,
+        doLaunch = doLaunch,
+    )
     private val dialogs = ExplorerDialogController(
-        filterState = { filterStateFlow.value },
+        filterState = { viewSettings.filterState.value },
         useRegexPatterns = { cachedUseRegexPatterns },
         clearSelection = ::clearSelection,
         tag = tag,
@@ -172,15 +170,35 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         doLaunch = doLaunch,
         tag = tag,
     )
+    private val safLocations = ExplorerSafLocationController(
+        context = context,
+        safLocationManager = safLocationManager,
+        dialogs = dialogs,
+        workspace = ::getWorkspace,
+        currentLocation = { getState().currentLocation },
+        clearSelection = ::clearSelection,
+        onError = { errorEvents.tryEmit(it) },
+        doLaunch = doLaunch,
+        tag = tag,
+    )
+    private val trash = ExplorerTrashController(
+        context = context,
+        trashManager = trashManager,
+        trashRepo = trashRepo,
+        workspace = ::getWorkspace,
+        clearSelection = ::clearSelection,
+        onError = { errorEvents.tryEmit(it) },
+        doLaunch = doLaunch,
+        tag = tag,
+    )
 
     val issueState: StateFlow<Issue?> get() = conflicts.issueState
     val showIssueSheet: StateFlow<Boolean> get() = conflicts.showIssueSheet
-    private val showAddStorageSheetFlow = MutableStateFlow(false)
-    val showAddStorageSheet = showAddStorageSheetFlow
+    val showAddStorageSheet get() = safLocations.showAddStorageSheet
 
     val dialogEvents get() = dialogs.events
 
-    val safPickerEvents = SingleEventFlow<Intent>()
+    val safPickerEvents get() = safLocations.safPickerEvents
 
     val shareIntentEvent = chrome.shareIntentEvent
 
@@ -196,13 +214,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     val revealRequests = SingleEventFlow<RevealRequest>()
     private val highlightedItemIds = MutableStateFlow<Set<String>>(emptySet())
 
-    private val _pendingSAFPickerGrant = MutableStateFlow<SAFPickerGrant?>(null)
-    val pendingSAFPickerGrant: Flow<SAFPickerGrant?> = _pendingSAFPickerGrant
+    val pendingSAFPickerGrant: Flow<SAFPickerGrant?> get() = safLocations.pendingSAFPickerGrant
 
     private val workspaceSource: Flow<ExplorerWorkspace?> =
         workspaceProvider.retrieve(id).map { it as ExplorerWorkspace? }
     private val itemSorter = itemSorterFactory.create(id)
-    private val currentSortSettings = MutableStateFlow(explorerSettings.sortSettings.valueBlocking)
     private suspend fun getWorkspace() = workspaceSource.filterNotNull().first()
     private suspend fun getState(): State = state.filterNotNull().first()
 
@@ -343,15 +359,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         workspaceReadyState
             .map { it?.currentLocation?.items }
             .distinctUntilChanged { old, new -> old.hasSameItemsAs(new) },
-        currentSortSettings,
-        filterStateFlow,
+        viewSettings.sortSettings,
+        viewSettings.filterState,
         explorerSettings.useRegexPatterns.flow,
         favoritesRepo.favoritePaths,
         workspaceReadyState.map { it?.currentLocation }.distinctUntilChanged { a, b -> a?.locationId == b?.locationId },
         pickerConfigFlow,
     ) { items, sortSetting, filterState, useRegexPatterns, favoritePaths, location, pickerConfig ->
         items
-            ?.let { applyFilters(it, filterState, useRegexPatterns) }
+            ?.let { viewSettings.applyFilters(it, filterState, useRegexPatterns) }
             ?.let { itemSorter.sortItems(it, sortSetting) }
             ?.let { applyFavoritePriority(it, location, pickerConfig, favoritePaths) }
     }.shareIn(vmScope, SharingStarted.Lazily, replay = 1)
@@ -392,11 +408,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     flowOf(wsState),
                     processedItemsFlow,
                     derivedSelectionStateFlow,
-                    viewStyleFlow,
+                    viewSettings.viewStyle,
                     dialogs.state,
-                    currentSortSettings,
+                    viewSettings.sortSettings,
                     upgradeRepo.upgradeInfo,
-                    filterStateFlow,
+                    viewSettings.filterState,
                     explorerSettings.useRegexPatterns.flow,
                     explorerSettings.useBackButtonForNavigation.flow,
                     pickerConfigFlow,
@@ -483,54 +499,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     }
         .distinctUntilChanged()
         .asStateFlow()
-
-    private fun applyFilters(
-        items: List<ExplorerItem>,
-        filterState: FilterState,
-        useRegexPatterns: Boolean,
-    ): List<ExplorerItem> {
-        return items.filter { item ->
-            val itemName = when (item) {
-                is ExplorerItem.Path -> item.path.name
-                is ExplorerItem.Trash.Root -> item.originalLookup.name
-                is ExplorerItem.Trash.Nested -> item.lookup.name
-                else -> return@filter true // Keep non-path items (like peek items)
-            }
-
-            // Apply exclude pattern first
-            if (filterState.excludePattern.isNotBlank()) {
-                val excludeRegex = PatternMatcher.toRegexPattern(filterState.excludePattern, useRegexPatterns)
-                if (PatternMatcher.matches(itemName, excludeRegex)) {
-                    return@filter false
-                }
-            }
-
-            // Apply include pattern
-            if (filterState.includePattern.isNotBlank()) {
-                val includeRegex = PatternMatcher.toRegexPattern(filterState.includePattern, useRegexPatterns)
-                if (!PatternMatcher.matches(itemName, includeRegex)) {
-                    return@filter false
-                }
-            }
-
-            // Apply file type filter
-            when (filterState.fileTypeFilter) {
-                FileTypeFilter.FILES_ONLY -> {
-                    if (item is ExplorerItem.Directory) return@filter false
-                    if (item is ExplorerItem.Trash.Root && item.originalLookup.fileType == FileType.DIRECTORY) return@filter false
-                    if (item is ExplorerItem.Trash.Nested && item.isDirectory) return@filter false
-                }
-                FileTypeFilter.FOLDERS_ONLY -> {
-                    if (item is ExplorerItem.File) return@filter false
-                    if (item is ExplorerItem.Trash.Root && item.originalLookup.fileType == FileType.FILE) return@filter false
-                    if (item is ExplorerItem.Trash.Nested && item.isFile) return@filter false
-                }
-                FileTypeFilter.ALL -> {} // No filtering needed
-            }
-
-            true
-        }
-    }
 
     val clipboard = chrome.clipboard.asStateFlow()
 
@@ -975,12 +943,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             is ExplorerActionBarItem.Common.Sort -> {
                 dialogs.show(
                     EditSortOptions(
-                        currentSortSettings = currentSortSettings.value
+                        currentSortSettings = viewSettings.sortSettings.value
                     )
                 )
             }
             is ExplorerActionBarItem.Common.Filter -> {
-                val filterState = filterStateFlow.value
+                val filterState = viewSettings.filterState.value
                 dialogs.show(
                     FilterOptions(
                         includePattern = filterState.includePattern,
@@ -991,10 +959,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 )
             }
             is ExplorerActionBarItem.Common.UpdateViewStyle -> {
-                viewStyleFlow.value = action.viewStyle
-                launch {
-                    explorerSettings.defaultViewStyle.value(action.viewStyle)
-                }
+                viewSettings.updateViewStyle(action.viewStyle)
             }
             is ExplorerActionBarItem.Common.Refresh -> {
                 performRefresh()
@@ -1062,59 +1027,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 selectedItemsFlow.value = stateSnap.selectionState.selectableItems
             }
             is ExplorerActionBarItem.Trash.Restore -> {
-                log(tag) { "restoreTrashItems(): ${action.items.size} items" }
                 dismissDialog()
-                if (action.items.isNotEmpty()) {
-                    try {
-                        val repoItems = action.items.mapNotNull { trashRepo.getById(it.itemId) }
-                        if (repoItems.isEmpty()) {
-                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_items_not_found)))
-                            clearSelection()
-                            return@launch
-                        }
-                        val result = trashManager.restore(repoItems)
-                        if (result.restored.isNotEmpty()) {
-                            log(tag, INFO) { "Successfully restored ${result.restored.size} items" }
-                            getWorkspace().navigate(ExplorerNavigation.Refresh)
-                            clearSelection()
-                        } else if (result.failed.isNotEmpty()) {
-                            log(tag, ERROR) { "Failed to restore ${result.failed.size} items" }
-                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_restore_failed)))
-                        } else if (result.conflicts.isNotEmpty()) {
-                            log(tag, WARN) { "Conflicts when restoring ${result.conflicts.size} items" }
-                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
-                        }
-                    } catch (e: Exception) {
-                        log(tag, ERROR) { "Error restoring trash items: ${e.asLog()}" }
-                        errorEvents.emit(e)
-                    }
-                }
+                trash.restoreRoot(action.items)
             }
             is ExplorerActionBarItem.Trash.DeletePermanently -> {
-                log(tag) { "deleteTrashItemsPermanently(): ${action.items.size} items" }
                 dismissDialog()
-                if (action.items.isNotEmpty()) {
-                    try {
-                        val repoItems = action.items.mapNotNull { trashRepo.getById(it.itemId) }
-                        if (repoItems.isEmpty()) {
-                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_items_not_found)))
-                            clearSelection()
-                            return@launch
-                        }
-                        val deletedCount = trashManager.deletePermanently(repoItems)
-                        if (deletedCount > 0) {
-                            log(tag, INFO) { "Successfully deleted $deletedCount items permanently" }
-                            getWorkspace().navigate(ExplorerNavigation.Refresh)
-                            clearSelection()
-                        } else {
-                            log(tag, ERROR) { "Failed to delete items permanently" }
-                            errorEvents.emit(Exception(context.getString(R.string.explorer_trash_error_delete_failed)))
-                        }
-                    } catch (e: Exception) {
-                        log(tag, ERROR) { "Error deleting trash items permanently: ${e.asLog()}" }
-                        errorEvents.emit(e)
-                    }
-                }
+                trash.deleteRootPermanently(action.items)
             }
             is ExplorerActionBarItem.Trash.EmptyBin -> {
                 log(tag) { "Showing empty trash confirmation" }
@@ -1124,98 +1042,12 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 selectedItemsFlow.value = stateSnap.selectionState.selectableItems
             }
             is ExplorerActionBarItem.TrashNested.Restore -> {
-                log(tag) { "restoreNestedItems(): ${action.items.size} items" }
                 dismissDialog()
-                if (action.items.isNotEmpty()) {
-                    try {
-                        var totalRestored = 0
-                        // Group items by parent to reduce duplicate repo lookups
-                        val itemsByParent = action.items.groupBy { it.parentRef.itemId }
-
-                        for ((parentId, items) in itemsByParent) {
-                            val parentRepoItem = trashRepo.getById(parentId)
-                            if (parentRepoItem == null) {
-                                log(tag, ERROR) { "Parent trash item not found: $parentId" }
-                                errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_parent_missing)))
-                                continue
-                            }
-
-                            for (item in items) {
-                                val result = trashManager.restoreNested(parentRepoItem, item.relativePath)
-                                if (result.restored.isNotEmpty()) {
-                                    totalRestored += result.restored.size
-                                    log(tag, INFO) { "Successfully restored nested item" }
-                                } else if (result.conflicts.isNotEmpty()) {
-                                    log(tag, WARN) { "Conflict when restoring nested item" }
-                                    errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
-                                } else {
-                                    log(tag, ERROR) { "Failed to restore nested item" }
-                                    errorEvents.emit(
-                                        Exception(
-                                            context.getString(
-                                                R.string.explorer_trash_nested_error_restore_failed,
-                                                item.displayName.get(context)
-                                            )
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                        if (totalRestored > 0) {
-                            getWorkspace().navigate(ExplorerNavigation.Refresh)
-                            clearSelection()
-                        }
-                    } catch (e: Exception) {
-                        log(tag, ERROR) { "Error restoring nested trash items: ${e.asLog()}" }
-                        errorEvents.emit(e)
-                    }
-                }
+                trash.restoreNested(action.items)
             }
             is ExplorerActionBarItem.TrashNested.DeletePermanently -> {
-                log(tag) { "deleteNestedItemsPermanently(): ${action.items.size} items" }
                 dismissDialog()
-                if (action.items.isNotEmpty()) {
-                    try {
-                        var totalDeleted = 0
-                        // Group items by parent to reduce duplicate repo lookups
-                        val itemsByParent = action.items.groupBy { it.parentRef.itemId }
-
-                        for ((parentId, items) in itemsByParent) {
-                            val parentRepoItem = trashRepo.getById(parentId)
-                            if (parentRepoItem == null) {
-                                log(tag, ERROR) { "Parent trash item not found: $parentId" }
-                                errorEvents.emit(Exception(context.getString(R.string.explorer_trash_nested_parent_missing)))
-                                continue
-                            }
-
-                            for (item in items) {
-                                val deletedCount =
-                                    trashManager.deleteNestedPermanently(parentRepoItem, item.relativePath)
-                                if (deletedCount > 0) {
-                                    totalDeleted += deletedCount
-                                    log(tag, INFO) { "Successfully deleted nested item permanently" }
-                                } else {
-                                    log(tag, ERROR) { "Failed to delete nested item permanently" }
-                                    errorEvents.emit(
-                                        Exception(
-                                            context.getString(
-                                                R.string.explorer_trash_nested_error_delete_failed,
-                                                item.displayName.get(context)
-                                            )
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                        if (totalDeleted > 0) {
-                            getWorkspace().navigate(ExplorerNavigation.Refresh)
-                            clearSelection()
-                        }
-                    } catch (e: Exception) {
-                        log(tag, ERROR) { "Error deleting nested trash items: ${e.asLog()}" }
-                        errorEvents.emit(e)
-                    }
-                }
+                trash.deleteNestedPermanently(action.items)
             }
             is ExplorerActionBarItem.File.OpenInEditor -> {
                 try {
@@ -1407,48 +1239,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun onRemoveLocationConfirmed() = launch {
-        val dialogState = dialogs.current() as? RemoveLocationConfirmation ?: return@launch
-        log(tag) { "onRemoveLocationConfirmed(): Removing ${dialogState.items.size} locations" }
-
-        dialogs.dismiss()
-
-        dialogState.items.forEach { item ->
-            safLocationManager.revokePermission(item.location.id)
-        }
-        clearSelection()
-
-        getWorkspace().navigate(ExplorerNavigation.Refresh)
-    }
+    fun onRemoveLocationConfirmed() = safLocations.onRemoveLocationConfirmed()
 
     fun onEmptyTrashConfirmed() = launch {
         log(tag) { "onEmptyTrashConfirmed()" }
         dialogs.dismiss()
-
-        try {
-            val deletedCount = trashManager.emptyTrash()
-            log(tag, INFO) { "Emptied trash: $deletedCount items deleted" }
-            getWorkspace().navigate(ExplorerNavigation.Refresh)
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to empty trash: ${e.asLog()}" }
-            errorEvents.emit(e)
-        }
+        trash.emptyTrash()
     }
 
-    fun onLocationStorageName(name: String?) = launch {
-        val dialogState = dialogs.current() as? LocationStorageName ?: return@launch
-        log(tag) { "onLocationStorageName(locationId=${dialogState.locationId}, name=$name)" }
-
-        dialogs.dismiss()
-
-        // Empty or whitespace-only = use default name (null)
-        val trimmedName = name?.trim()?.takeIf { it.isNotEmpty() }
-        safLocationManager.setLocationLabel(dialogState.locationId, trimmedName)
-
-        clearSelection()
-        delay(500.milliseconds)
-        getWorkspace().navigate(ExplorerNavigation.Refresh)
-    }
+    fun onLocationStorageName(name: String?) = safLocations.onLocationStorageName(name)
 
     fun onRename(result: RenameResult) = launch {
         log(tag) { "onRename($result)" }
@@ -1467,23 +1266,24 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun onSortOptions(result: SortOptionsResult) = launch {
         log(tag) { "onSortOptions($result)" }
         dialogs.dismiss()
-        explorerSettings.sortSettings.value(result.sortSettings)
-        currentSortSettings.value = result.sortSettings
+        viewSettings.applySortSettings(result.sortSettings)
     }
 
     fun onFilterOptions(result: FilterOptionsResult) = launch {
         log(tag) { "onFilterOptions($result)" }
         dialogs.dismiss()
-        filterStateFlow.value = FilterState(
-            includePattern = result.includePattern,
-            excludePattern = result.excludePattern,
-            fileTypeFilter = result.fileTypeFilter,
+        viewSettings.applyFilterState(
+            FilterState(
+                includePattern = result.includePattern,
+                excludePattern = result.excludePattern,
+                fileTypeFilter = result.fileTypeFilter,
+            )
         )
     }
 
     fun resetFilters() = launch {
         log(tag) { "resetFilters()" }
-        filterStateFlow.value = FilterState()
+        viewSettings.resetFilters()
     }
 
     fun pasteClipboard(clip: ClipboardClip) = launch {
@@ -1588,114 +1388,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         )
     }
 
-    fun showAddStorageSheet() {
-        log(tag) { "showAddStorageSheet(): Showing add storage sheet" }
-        showAddStorageSheetFlow.value = true
-    }
+    fun showAddStorageSheet() = safLocations.showAddStorageSheet()
 
-    fun dismissAddStorageSheet() {
-        log(tag) { "dismissAddStorageSheet(): Dismissing add storage sheet" }
-        showAddStorageSheetFlow.value = false
-    }
+    fun dismissAddStorageSheet() = safLocations.dismissAddStorageSheet()
 
-    fun addSAFLocation() = launch {
-        log(tag) { "addSAFLocation(): Launching SAF directory picker" }
-        _pendingSAFPickerGrant.value = null  // Clear grant for manual addition
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-            putExtra("android.content.extra.SHOW_ADVANCED", true)
-        }
-        safPickerEvents.emit(intent)
-    }
+    fun addSAFLocation() = safLocations.addSAFLocation()
 
-    suspend fun handleSAFPickerResult(treeUri: Uri) {
-        log(tag) { "handleSAFPickerResult(treeUri=$treeUri)" }
-        try {
-            // Take persistable permission
-            context.contentResolver.takePersistableUriPermission(
-                treeUri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            )
+    suspend fun handleSAFPickerResult(treeUri: Uri) = safLocations.handleSAFPickerResult(treeUri)
 
-            val locationId = safLocationManager.grantPermission(treeUri)
-
-            dialogs.show(LocationStorageName(locationId, currentName = null))
-
-            // Auto-refresh if currently viewing Device location to show new SAF storage immediately
-            val currentLocation = getState().currentLocation
-            if (currentLocation is ExplorerLocation.Device) {
-                log(tag) { "Auto-refreshing Device location to show new SAF storage" }
-                getWorkspace().navigate(ExplorerNavigation.Refresh)
-            }
-
-            log(tag, INFO) { "Successfully added SAF location: $treeUri (locationId=$locationId)" }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to handle SAF picker result: ${e.message}" }
-            errorEvents.tryEmit(e)
-        }
-    }
-
-    fun launchAndroidDataSAFPicker(grant: SAFPickerGrant) = launch {
-        log(tag) { "launchAndroidDataSAFPicker(): Launching SAF picker for ${grant.targetPath}" }
-        _pendingSAFPickerGrant.value = grant  // Store grant for auto-labeling
-        safPickerEvents.emit(grant.intent)
-    }
+    fun launchAndroidDataSAFPicker(grant: SAFPickerGrant) = safLocations.launchAndroidDataSAFPicker(grant)
 
     suspend fun handleAndroidDataSAFPickerResult(
         treeUri: Uri?,
         grant: SAFPickerGrant
-    ) {
-        if (treeUri == null) {
-            log(tag, WARN) { "SAF picker cancelled for ${grant.targetPath}" }
-            return
-        }
-
-        log(tag) { "handleAndroidDataSAFPickerResult(): $treeUri for ${grant.targetPath}" }
-
-        try {
-            // Take persistable permission
-            context.contentResolver.takePersistableUriPermission(
-                treeUri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            )
-
-            log(tag, INFO) { "Successfully granted SAF permission for ${grant.targetPath}" }
-
-            // Register with SAFLocationManager and auto-label
-            val locationId = safLocationManager.grantPermission(treeUri)
-            log(tag, VERBOSE) { "SAF location registered with ID: $locationId" }
-
-            // Auto-label based on target path
-            val label = when {
-                grant.targetPath.path.contains("/Android/data") ->
-                    context.getString(R.string.explorer_saf_location_android_data_label)
-                grant.targetPath.path.contains("/Android/obb") ->
-                    context.getString(R.string.explorer_saf_location_android_obb_label)
-                else -> null
-            }
-
-            if (label != null) {
-                safLocationManager.setLocationLabel(locationId, label)
-                log(tag) { "Auto-labeled SAF location as: $label" }
-            }
-
-            // Convert to SAF path and navigate there
-            val safPath = safLocationManager.toSAFPath(grant.targetPath)
-
-            if (safPath != null) {
-                log(tag) { "Navigating to SAF path: $safPath" }
-                getWorkspace().navigate(ExplorerNavigation.Target.Directory(safPath))
-            } else {
-                log(tag, WARN) { "Failed to convert ${grant.targetPath} to SAFPath after permission grant" }
-                // Fallback: just refresh current location
-                getWorkspace().navigate(ExplorerNavigation.Refresh)
-            }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to handle Android/data SAF picker result: ${e.message}" }
-            errorEvents.tryEmit(e)
-        } finally {
-            _pendingSAFPickerGrant.value = null  // Clear grant after handling
-        }
-    }
+    ) = safLocations.handleAndroidDataSAFPickerResult(treeUri, grant)
 
     fun shareError(id: Operation.Id) = chrome.shareOperationError(id)
 
