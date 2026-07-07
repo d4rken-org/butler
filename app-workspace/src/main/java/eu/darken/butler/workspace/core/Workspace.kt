@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core
 
 import android.os.Parcelable
 import eu.darken.butler.common.ca.CaString
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.parcel.UuidParceler
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.parcelize.Parcelize
@@ -198,6 +199,16 @@ interface Workspace<ArgT : Workspace.Arguments> {
             get() = ModalPresentationMode.FULL_SCREEN
     }
 
+    /**
+     * Arguments that bind the workspace to one content path. A [WorkspaceAction.Create] carrying
+     * these dedups against open same-type workspaces publishing the same [Info.contentPath],
+     * returning [WorkspaceAction.Create.Result.AlreadyOpen] instead of creating a duplicate.
+     */
+    interface ArgumentsWithContentPath : Arguments {
+        /** The content path this workspace would represent; null disables dedup (e.g. scratch tabs). */
+        val contentPath: APath<*>?
+    }
+
     data class Info(
         val id: Id,
         val type: Type,
@@ -241,6 +252,15 @@ interface Workspace<ArgT : Workspace.Arguments> {
          * @see ModalPresentationMode
          */
         val modalPresentation: ModalPresentationMode = ModalPresentationMode.PANE_LOCAL,
+        /**
+         * Content path this workspace currently holds (e.g. the editor's open file), making it
+         * eligible for duplicate-open focusing: a Create/claim for the same path resolves to a
+         * workspace publishing it instead of opening a duplicate. NOT an exclusivity guarantee -
+         * Save-As convergence or restored sessions can legitimately produce several workspaces on
+         * one path; matches resolve to the first in workspace order. Comparison is plain [APath]
+         * equality (no canonicalization of symlinks, mount aliases, case, or URI encoding).
+         */
+        val contentPath: APath<*>? = null,
     ) {
         /**
          * True if this workspace is a sub-workspace created by another workspace

@@ -2,6 +2,8 @@ package eu.darken.butler.workspace.core
 
 import android.os.Parcel
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import io.kotest.matchers.collections.shouldHaveSize
@@ -43,6 +45,14 @@ class WorkspaceRepoTest : BaseTest() {
         override fun writeToParcel(dest: Parcel, flags: Int) = Unit
     }
 
+    private data class FakeContentArguments(
+        override val type: Workspace.Type,
+        override val contentPath: APath<*>?,
+    ) : Workspace.ArgumentsWithContentPath {
+        override fun describeContents(): Int = 0
+        override fun writeToParcel(dest: Parcel, flags: Int) = Unit
+    }
+
     private class FakeWorkspace(
         override val id: Workspace.Id,
         private val arguments: Workspace.Arguments,
@@ -59,6 +69,7 @@ class WorkspaceRepoTest : BaseTest() {
                 callerWorkspaceId = (arguments as? Workspace.ArgumentsWithCaller)?.callerWorkspaceId,
                 modalPresentation = (arguments as? Workspace.ArgumentsWithCaller)?.modalPresentation
                     ?: Workspace.ModalPresentationMode.PANE_LOCAL,
+                contentPath = (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath,
             )
         )
 
@@ -480,6 +491,268 @@ class WorkspaceRepoTest : BaseTest() {
             .shouldBeInstanceOf<WorkspaceAction.CreateBatch.CreationResult.Success>()
         success.workspaceId shouldBe explicitId
         createdWorkspaces.single().id shouldBe explicitId
+    }
+
+    // ==================== Content-path dedup ====================
+
+    private val pathA = LocalPath.build("/test/a.txt")
+    private val pathB = LocalPath.build("/test/b.txt")
+
+    private fun contentReq(
+        path: APath<*>?,
+        type: Workspace.Type = Workspace.Type.EDITOR,
+        id: Workspace.Id? = null,
+        skipLimitCheck: Boolean = false,
+        replace: Workspace.Id? = null,
+    ): WorkspaceAction.Create = WorkspaceAction.Create(
+        type = type,
+        arguments = FakeContentArguments(type, path),
+        id = id,
+        skipLimitCheck = skipLimitCheck,
+        replace = replace,
+    )
+
+    private suspend fun WorkspaceRepo.createContentTab(path: APath<*>?): Workspace.Id =
+        (execute(contentReq(path)) as WorkspaceAction.Create.Result.Success).newId
+
+    @Test
+    fun `same content path returns AlreadyOpen instead of duplicating`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val firstId = repo.createContentTab(pathA)
+
+        val second = repo.execute(contentReq(pathA))
+
+        second.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+        second.existingId shouldBe firstId
+    }
+
+    @Test
+    fun `different content paths create separate workspaces`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        repo.createContentTab(pathA)
+
+        repo.execute(contentReq(pathB)).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+        createdWorkspaces shouldHaveSize 2
+    }
+
+    @Test
+    fun `null content path never dedups`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        repo.createContentTab(null)
+
+        repo.execute(contentReq(null)).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+        createdWorkspaces shouldHaveSize 2
+    }
+
+    @Test
+    fun `same content path with a different type creates separately`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        repo.createContentTab(pathA)
+
+        repo.execute(contentReq(pathA, type = Workspace.Type.EXPLORER))
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+    }
+
+    @Test
+    fun `session restore bypasses content dedup`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        repo.createContentTab(pathA)
+
+        // Saved sessions are the source of truth; a restored duplicate must come back as a tab
+        repo.execute(contentReq(pathA, skipLimitCheck = true))
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+        createdWorkspaces shouldHaveSize 2
+    }
+
+    @Test
+    fun `replace targeting the content holder itself proceeds`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val holderId = repo.createContentTab(pathA)
+
+        repo.execute(contentReq(pathA, replace = holderId))
+            .shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+    }
+
+    @Test
+    fun `content dedup wins over the free-tier limit`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        val holderId = repo.createContentTab(pathA)
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT - 1) { repo.createTab() }
+
+        // At the limit, re-opening an open file must focus it, never show the upgrade dialog
+        val result = repo.execute(contentReq(pathA))
+        result.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+        result.existingId shouldBe holderId
+        repo.pendingConfirmations.first() shouldBe emptyMap()
+    }
+
+    // ==================== Content-path claims ====================
+
+    private val claimantId = Workspace.Id()
+
+    @Test
+    fun `claim on an open path returns AlreadyOpen`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val holderId = repo.createContentTab(pathA)
+
+        val result = repo.execute(WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, pathA, claimantId))
+
+        result.shouldBeInstanceOf<WorkspaceAction.ClaimContentPath.Result.AlreadyOpen>()
+        result.existingId shouldBe holderId
+    }
+
+    @Test
+    fun `granted claim blocks Create and second claim until released`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        repo.execute(WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, pathA, claimantId))
+            .shouldBeInstanceOf<WorkspaceAction.ClaimContentPath.Result.Granted>()
+
+        val blockedCreate = repo.execute(contentReq(pathA))
+        blockedCreate.shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+        blockedCreate.existingId shouldBe claimantId
+
+        val blockedClaim = repo.execute(WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, pathA, Workspace.Id()))
+        blockedClaim.shouldBeInstanceOf<WorkspaceAction.ClaimContentPath.Result.AlreadyOpen>()
+
+        repo.execute(WorkspaceAction.ReleaseContentPath(claimantId, pathA))
+        repo.execute(contentReq(pathA)).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+    }
+
+    @Test
+    fun `re-claiming an own claim stays granted`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        repo.execute(WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, pathA, claimantId))
+        repo.execute(WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, pathA, claimantId))
+            .shouldBeInstanceOf<WorkspaceAction.ClaimContentPath.Result.Granted>()
+    }
+
+    @Test
+    fun `release by non-owner is a no-op`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        repo.execute(WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, pathA, claimantId))
+
+        repo.execute(WorkspaceAction.ReleaseContentPath(Workspace.Id(), pathA))
+
+        repo.execute(contentReq(pathA)).shouldBeInstanceOf<WorkspaceAction.Create.Result.AlreadyOpen>()
+    }
+
+    @Test
+    fun `replacing the claimant releases its claims`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val tabId = repo.createTab(type = Workspace.Type.EDITOR)
+        repo.execute(WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, pathA, tabId))
+
+        repo.execute(
+            WorkspaceAction.Create(
+                type = Workspace.Type.EXPLORER,
+                arguments = FakeArguments(Workspace.Type.EXPLORER),
+                replace = tabId,
+            )
+        ).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+
+        repo.execute(contentReq(pathA)).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+    }
+
+    @Test
+    fun `closing the claimant releases its claims`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo()
+        val tabId = repo.createTab(type = Workspace.Type.EDITOR)
+        repo.execute(WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, pathA, tabId))
+
+        repo.execute(WorkspaceAction.Close(tabId))
+
+        repo.execute(contentReq(pathA)).shouldBeInstanceOf<WorkspaceAction.Create.Result.Success>()
+    }
+
+    // ==================== Content-path dedup in batches ====================
+
+    @Test
+    fun `batch pre-resolves an already-open content path without consuming a slot`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val holderId = repo.createContentTab(pathA)
+            // One slot stays free: it must go to pathB because the pathA re-open resolves
+            // to AlreadyOpen without consuming it
+            repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT - 2) { repo.createTab() }
+
+            val result = repo.createBatch(contentReq(pathA), contentReq(pathB))
+
+            result.skippedCount shouldBe 0
+            val values = result.results.values.toList()
+            values.filterIsInstance<WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen>()
+                .single().existingId shouldBe holderId
+            values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success } shouldBe 1
+        }
+
+    @Test
+    fun `distinct same-path requests in one batch create once and defer duplicates to AlreadyOpen`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+
+            val result = repo.createBatch(
+                contentReq(pathA, id = Workspace.Id()),
+                contentReq(pathA, id = Workspace.Id()),
+            )
+
+            createdWorkspaces shouldHaveSize 1
+            val values = result.results.values.toList()
+            values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success } shouldBe 1
+            val alreadyOpen = values
+                .filterIsInstance<WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen>()
+                .single()
+            alreadyOpen.existingId shouldBe createdWorkspaces.single().id
+        }
+
+    @Test
+    fun `identical same-path requests in one batch collapse to a single Success`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            val request = contentReq(pathA)
+
+            val result = repo.createBatch(request, request)
+
+            createdWorkspaces shouldHaveSize 1
+            result.results.size shouldBe 1
+            result.results.values.single()
+                .shouldBeInstanceOf<WorkspaceAction.CreateBatch.CreationResult.Success>()
+        }
+
+    @Test
+    fun `deferred dupe of a limit-skipped primary counts as skipped, not failed`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val repo = createRepo(isPro = false)
+            repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT - 1) { repo.createTab() }
+
+            // One slot: B takes it, A is limit-filtered, so A's deferred dup has no instance to
+            // resolve to - it must count as skipped instead of surfacing a bogus Failure
+            val result = repo.createBatch(
+                contentReq(pathB, id = Workspace.Id()),
+                contentReq(pathA, id = Workspace.Id()),
+                contentReq(pathA, id = Workspace.Id()),
+            )
+
+            result.skippedCount shouldBe 2
+            val values = result.results.values.toList()
+            values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success } shouldBe 1
+            values.count { it is WorkspaceAction.CreateBatch.CreationResult.Failure } shouldBe 0
+        }
+
+    @Test
+    fun `deferred same-path duplicates do not consume quota slots`() = runTest(UnconfinedTestDispatcher()) {
+        val repo = createRepo(isPro = false)
+        repeat(WorkspaceRepo.FREE_TIER_WORKSPACE_LIMIT - 2) { repo.createTab() }
+
+        // Two slots left: dupA must not burn one, so A + dupA + B all resolve without skips
+        val result = repo.createBatch(
+            contentReq(pathA, id = Workspace.Id()),
+            contentReq(pathA, id = Workspace.Id()),
+            contentReq(pathB, id = Workspace.Id()),
+        )
+
+        result.skippedCount shouldBe 0
+        val values = result.results.values.toList()
+        values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success } shouldBe 2
+        values.count { it is WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen } shouldBe 1
     }
 
     @Test

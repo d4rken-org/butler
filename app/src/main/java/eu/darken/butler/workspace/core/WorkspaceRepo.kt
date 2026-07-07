@@ -2,6 +2,7 @@ package eu.darken.butler.workspace.core
 
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
@@ -40,6 +41,11 @@ class WorkspaceRepo @Inject constructor(
     private val lock = Mutex()
     private val _workspaces = MutableStateFlow<List<Workspace<*>>>(emptyList())
     private val _events = MutableSharedFlow<WorkspaceEvent>()
+
+    // Content paths reserved via ClaimContentPath, keyed by (type, path). Guarded by [lock].
+    // A claim stands in for a workspace that is about to publish the path in its Info (e.g. an
+    // editor tab switching files) so concurrent Creates/claims dedup to the claimant meanwhile.
+    private val contentClaims = mutableMapOf<Pair<Workspace.Type, APath<*>>, Workspace.Id>()
 
     private val _pendingConfirmations = MutableStateFlow<Map<String, PendingWorkspaceConfirmation>>(emptyMap())
     val pendingConfirmations: Flow<Map<String, PendingWorkspaceConfirmation>> = _pendingConfirmations
@@ -111,6 +117,8 @@ class WorkspaceRepo @Inject constructor(
             wip[index] = newWorkspace
             replaced.release()
             operationsManager.removeWorkspace(replaced.id)
+            // Same leak guard as executeClose: the replaced instance's claims die with it
+            contentClaims.entries.removeAll { (_, owner) -> owner == replaced.id }
         } else {
             wip.add(newWorkspace)
         }
@@ -182,6 +190,13 @@ class WorkspaceRepo @Inject constructor(
                     return@withLock WorkspaceAction.Create.Result.AlreadyOpen(existingId)
                 }
 
+                // Content-path dedup: refuse duplicates of an already-open content path.
+                // Before the limit check so re-opening an open file never triggers the upgrade dialog.
+                findExistingContentMatch(action)?.let { existingId ->
+                    log(TAG, INFO) { "Content of ${action.type} create already open as $existingId, returning AlreadyOpen" }
+                    return@withLock WorkspaceAction.Create.Result.AlreadyOpen(existingId)
+                }
+
                 // Check workspace limit for non-pro users
                 if (!canCreateWorkspace(action, isPro)) {
                     log(TAG, INFO) { "Workspace limit reached, showing upgrade dialog" }
@@ -216,21 +231,24 @@ class WorkspaceRepo @Inject constructor(
                     }
                 }
 
-                // Pre-resolve singletons that already exist BEFORE applying the free-tier limit.
-                // AlreadyOpen entries do not consume tab slots — they just refocus an existing tab.
-                // A singleton type appearing more than once in the same batch (with no existing
-                // instance) is deduped here: the first occurrence stays in pendingCreates, later ones
-                // are deferred and resolved to AlreadyOpen once the instance exists. This keeps quota
-                // and confirmation accounting from counting the same singleton twice.
-                val preResolvedSingletons = mutableMapOf<WorkspaceAction.Create, Workspace.Id>()
+                // Pre-resolve singletons and already-open content paths BEFORE applying the
+                // free-tier limit. AlreadyOpen entries do not consume tab slots — they just refocus
+                // an existing tab. A singleton type or content path appearing more than once in the
+                // same batch (with no existing instance) is deduped here: the first occurrence stays
+                // in pendingCreates, later ones are deferred and resolved to AlreadyOpen once the
+                // instance exists. This keeps quota and confirmation accounting from counting the
+                // same tab twice.
+                val preResolved = mutableMapOf<WorkspaceAction.Create, Workspace.Id>()
                 val pendingCreates = mutableListOf<WorkspaceAction.Create>()
-                val deferredSingletonDupes = mutableListOf<WorkspaceAction.Create>()
+                val deferredDupes = mutableListOf<WorkspaceAction.Create>()
                 val queuedSingletonTypes = mutableSetOf<Workspace.Type>()
+                val queuedContentKeys = mutableSetOf<Pair<Workspace.Type, APath<*>>>()
                 action.requests.forEach { req ->
-                    val existingId = findExistingSingleton(req)
+                    val existingId = findExistingSingleton(req) ?: findExistingContentMatch(req)
                     when {
-                        existingId != null -> preResolvedSingletons[req] = existingId
-                        req.createsSingletonTab && !queuedSingletonTypes.add(req.type) -> deferredSingletonDupes += req
+                        existingId != null -> preResolved[req] = existingId
+                        req.createsSingletonTab && !queuedSingletonTypes.add(req.type) -> deferredDupes += req
+                        req.batchContentKey?.let { !queuedContentKeys.add(it) } == true -> deferredDupes += req
                         else -> pendingCreates += req
                     }
                 }
@@ -248,7 +266,7 @@ class WorkspaceRepo @Inject constructor(
                     val confirmationId = Uuid.random().toString()
 
                     pendingActions[confirmationId] = {
-                        finalizeBatch(pendingCreates, preResolvedSingletons, deferredSingletonDupes, isPro, action.sourceWorkspaceId)
+                        finalizeBatch(pendingCreates, preResolved, deferredDupes, isPro, action.sourceWorkspaceId)
                     }
 
                     _pendingConfirmations.update {
@@ -265,7 +283,27 @@ class WorkspaceRepo @Inject constructor(
                     return@withLock WorkspaceAction.CreateBatch.Result.AwaitingConfirmation
                 }
 
-                finalizeBatch(pendingCreates, preResolvedSingletons, deferredSingletonDupes, isPro, action.sourceWorkspaceId)
+                finalizeBatch(pendingCreates, preResolved, deferredDupes, isPro, action.sourceWorkspaceId)
+            }
+
+            is WorkspaceAction.ClaimContentPath -> {
+                val existing = findContentPathHolder(action.type, action.contentPath, excludeId = action.claimantId)
+                if (existing != null) {
+                    log(TAG, INFO) { "Claim on ${action.contentPath} denied for ${action.claimantId}: open as $existing" }
+                    WorkspaceAction.ClaimContentPath.Result.AlreadyOpen(existing)
+                } else {
+                    contentClaims[action.type to action.contentPath] = action.claimantId
+                    log(TAG) { "Claim on ${action.contentPath} granted to ${action.claimantId}" }
+                    WorkspaceAction.ClaimContentPath.Result.Granted
+                }
+            }
+
+            is WorkspaceAction.ReleaseContentPath -> {
+                val removed = contentClaims.entries.removeAll { (key, owner) ->
+                    owner == action.claimantId && key.second == action.contentPath
+                }
+                log(TAG) { "Claim release on ${action.contentPath} by ${action.claimantId}: removed=$removed" }
+                WorkspaceAction.ReleaseContentPath.Result
             }
 
             is WorkspaceAction.Close -> {
@@ -349,6 +387,7 @@ class WorkspaceRepo @Inject constructor(
                     operationsManager.removeWorkspace(it.id)
                 }
                 _workspaces.value = emptyList()
+                contentClaims.clear()
                 _events.emit(WorkspaceEvent.AllClosed)
 
                 WorkspaceAction.CloseAll.Result
@@ -427,6 +466,52 @@ class WorkspaceRepo @Inject constructor(
         return existingId
     }
 
+    /**
+     * Content path this create dedups on, or null when dedup doesn't apply. Mirrors
+     * [findExistingSingleton]'s gating: sub-workspace creates and session restoration
+     * ([WorkspaceAction.Create.skipLimitCheck]) never dedup.
+     */
+    private val WorkspaceAction.Create.dedupContentPath: APath<*>?
+        get() {
+            if (arguments.isForSubWorkspace) return null
+            if (skipLimitCheck) return null
+            return (arguments as? Workspace.ArgumentsWithContentPath)?.contentPath
+        }
+
+    /** In-batch dedup key for content-path creates; null for replaces (legitimately distinct). */
+    private val WorkspaceAction.Create.batchContentKey: Pair<Workspace.Type, APath<*>>?
+        get() = if (replace != null) null else dedupContentPath?.let { type to it }
+
+    /**
+     * Id of a live non-sub-workspace of [type] publishing [contentPath] via [Workspace.Info.contentPath],
+     * or holding a claim on it. [excludeId] keeps a workspace from matching itself (claim flows).
+     * Content paths are not exclusive (Save-As convergence, restored duplicates) — ties resolve to
+     * the first workspace in list order. Must be called while holding [lock].
+     */
+    private fun findContentPathHolder(
+        type: Workspace.Type,
+        contentPath: APath<*>,
+        excludeId: Workspace.Id? = null,
+    ): Workspace.Id? {
+        _workspaces.value.firstOrNull { ws ->
+            ws.id != excludeId && ws.type == type && !ws.info.value.isSubWorkspace &&
+                ws.info.value.contentPath == contentPath
+        }?.id?.let { return it }
+        return contentClaims[type to contentPath]?.takeIf { it != excludeId }
+    }
+
+    /**
+     * Returns the id of an existing workspace already holding the content path [action] would open
+     * (see [Workspace.ArgumentsWithContentPath]), or null when creation should proceed. Same skip
+     * rules as [findExistingSingleton], including replace targeting the holder itself.
+     */
+    private fun findExistingContentMatch(action: WorkspaceAction.Create): Workspace.Id? {
+        val path = action.dedupContentPath ?: return null
+        val existingId = findContentPathHolder(action.type, path) ?: return null
+        if (action.replace == existingId) return null
+        return existingId
+    }
+
     private fun postLimitDialog() {
         val confirmationId = Uuid.random().toString()
         val currentCount = countedTabCount()
@@ -480,51 +565,53 @@ class WorkspaceRepo @Inject constructor(
      */
     private suspend fun finalizeBatch(
         pendingCreates: List<WorkspaceAction.Create>,
-        preResolvedSingletons: Map<WorkspaceAction.Create, Workspace.Id>,
-        deferredSingletonDupes: List<WorkspaceAction.Create>,
+        preResolved: Map<WorkspaceAction.Create, Workspace.Id>,
+        deferredDupes: List<WorkspaceAction.Create>,
         isPro: Boolean,
         sourceWorkspaceId: Workspace.Id?,
     ): WorkspaceAction.CreateBatch.Result.Success {
         val allowedCreates = applyFreeTierLimit(pendingCreates, isPro)
         val limitSkipped = pendingCreates.size - allowedCreates.size
         if (limitSkipped > 0) {
-            log(TAG, INFO) { "Workspace limit: allowing ${allowedCreates.size} new + ${preResolvedSingletons.size} singleton-already-open, skipping $limitSkipped" }
+            log(TAG, INFO) { "Workspace limit: allowing ${allowedCreates.size} new + ${preResolved.size} already-open, skipping $limitSkipped" }
             postLimitDialog()
         }
 
-        // Nothing left to create: surface already-open singletons without running a creation pass, so
+        // Nothing left to create: surface already-open entries without running a creation pass, so
         // no BatchCreationCompleted event fires (avoids a misleading "Opened 0 tabs" banner).
+        // Deferred dupes count as skipped too - their primaries were all limit-filtered.
         if (allowedCreates.isEmpty()) {
             return WorkspaceAction.CreateBatch.Result.Success(
-                results = preResolvedSingletons.mapValues { (_, id) ->
+                results = preResolved.mapValues { (_, id) ->
                     WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(id)
                 },
-                skippedCount = limitSkipped,
+                skippedCount = limitSkipped + deferredDupes.size,
             )
         }
 
-        return executeBatchCreation(allowedCreates, preResolvedSingletons, deferredSingletonDupes, limitSkipped, sourceWorkspaceId)
+        return executeBatchCreation(allowedCreates, preResolved, deferredDupes, limitSkipped, sourceWorkspaceId)
     }
 
     private suspend fun executeBatchCreation(
         requests: List<WorkspaceAction.Create>,
-        preResolvedSingletons: Map<WorkspaceAction.Create, Workspace.Id>,
-        deferredSingletonDupes: List<WorkspaceAction.Create>,
+        preResolved: Map<WorkspaceAction.Create, Workspace.Id>,
+        deferredDupes: List<WorkspaceAction.Create>,
         limitSkipped: Int,
         sourceWorkspaceId: Workspace.Id?,
     ): WorkspaceAction.CreateBatch.Result.Success {
         val results = mutableMapOf<WorkspaceAction.Create, WorkspaceAction.CreateBatch.CreationResult>()
 
-        // Seed results with pre-resolved singletons (instances that existed before this batch ran)
-        preResolvedSingletons.forEach { (req, existingId) ->
+        // Seed results with pre-resolved entries (instances that existed before this batch ran)
+        preResolved.forEach { (req, existingId) ->
             results[req] = WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(existingId)
         }
 
         requests.forEach { createRequest ->
-            // Catches the case where two requests in the same batch target the same singleton type:
-            // first iteration creates the instance, subsequent iterations see it via this check.
-            findExistingSingleton(createRequest)?.let { existingId ->
-                log(TAG) { "Batch: ${createRequest.type} singleton already open as $existingId, returning AlreadyOpen" }
+            // Catches the case where two requests in the same batch target the same singleton type
+            // or content path: first iteration creates the instance, subsequent iterations see it
+            // via this check.
+            (findExistingSingleton(createRequest) ?: findExistingContentMatch(createRequest))?.let { existingId ->
+                log(TAG) { "Batch: ${createRequest.type} already open as $existingId, returning AlreadyOpen" }
                 results[createRequest] = WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(existingId)
                 return@forEach
             }
@@ -551,22 +638,26 @@ class WorkspaceRepo @Inject constructor(
             }
         }
 
-        // Resolve same-type singleton duplicates that were deduped out of [requests] for accounting:
-        // each maps to the now-created (or pre-existing) instance of its type. A dup that is
-        // data-class-equal to an already-recorded request collapses onto its key — keep that entry
-        // (it is the Success) instead of overwriting it with AlreadyOpen.
-        deferredSingletonDupes.forEach { dup ->
+        // Resolve same-type singleton and same-content-path duplicates that were deduped out of
+        // [requests] for accounting: each maps to the now-created (or pre-existing) instance. A dup
+        // that is data-class-equal to an already-recorded request collapses onto its key — keep that
+        // entry (it is the Success) instead of overwriting it with AlreadyOpen.
+        var deferredSkipped = 0
+        deferredDupes.forEach { dup ->
             if (results.containsKey(dup)) return@forEach
-            val instanceId = _workspaces.value.firstOrNull { it.type == dup.type && !it.info.value.isSubWorkspace }?.id
-            results[dup] = if (instanceId != null) {
-                WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(instanceId)
+            val instanceId = dup.dedupContentPath?.let { findContentPathHolder(dup.type, it) }
+                ?: _workspaces.value.firstOrNull { it.type == dup.type && !it.info.value.isSubWorkspace }
+                    ?.id?.takeIf { dup.createsSingletonTab }
+            if (instanceId != null) {
+                results[dup] = WorkspaceAction.CreateBatch.CreationResult.AlreadyOpen(instanceId)
             } else {
-                log(TAG, ERROR) { "Batch: deferred singleton dup ${dup.type} has no instance to resolve to" }
-                WorkspaceAction.CreateBatch.CreationResult.Failure(
-                    IllegalStateException("No ${dup.type} instance for deferred duplicate"),
-                )
+                // No instance means the dup's primary never opened (limit-filtered or failed);
+                // the duplicate shares that fate instead of surfacing a bogus Failure of its own
+                log(TAG, INFO) { "Batch: deferred dup ${dup.type} has no instance, counting as skipped" }
+                deferredSkipped++
             }
         }
+        val totalSkipped = limitSkipped + deferredSkipped
 
         val successCount = results.values.count { it is WorkspaceAction.CreateBatch.CreationResult.Success }
         val failureCount = results.values.count { it is WorkspaceAction.CreateBatch.CreationResult.Failure }
@@ -580,14 +671,14 @@ class WorkspaceRepo @Inject constructor(
             WorkspaceEvent.BatchCreationCompleted(
                 successCount = successCount,
                 failureCount = failureCount,
-                skippedCount = limitSkipped,
+                skippedCount = totalSkipped,
                 sourceWorkspaceId = sourceWorkspaceId,
             )
         )
 
         return WorkspaceAction.CreateBatch.Result.Success(
             results = results,
-            skippedCount = limitSkipped,
+            skippedCount = totalSkipped,
         )
     }
 
@@ -614,6 +705,8 @@ class WorkspaceRepo @Inject constructor(
 
         closingWorkspace?.release()
         closingWorkspace?.let { operationsManager.removeWorkspace(it.id) }
+        // Leak guard: a claimant that closes mid-open must not block its path forever
+        contentClaims.entries.removeAll { (_, owner) -> owner == workspaceId }
         _workspaces.value = _workspaces.value.filter { it.id != workspaceId }
         _events.emit(WorkspaceEvent.Closed(workspaceId = workspaceId, callerWorkspaceId = callerWorkspaceId))
     }

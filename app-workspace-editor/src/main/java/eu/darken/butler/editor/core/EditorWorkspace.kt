@@ -112,9 +112,21 @@ class EditorWorkspace @AssistedInject constructor(
             id = id,
             type = type,
             title = generateTitle(),
+            // Seeded synchronously so per-path open dedup sees this tab's file before the engine
+            // finishes loading (rapid double-open, in-batch duplicates)
+            contentPath = (creationArguments as? Workspace.ArgumentsWithContentPath)?.contentPath,
         )
     )
     override val info: MutableStateFlow<Workspace.Info> = _info
+
+    /**
+     * Publishes the file identity for per-path open dedup ([Workspace.Info.contentPath]). Called
+     * synchronously wherever the current engine changes - claim flows rely on the path being
+     * visible the moment an open completes, without waiting for an async observer.
+     */
+    private fun publishContentPath(path: APath<*>?) {
+        _info.update { if (it.contentPath == path) it else it.copy(contentPath = path) }
+    }
 
     val filePath: APath<*>? get() = (creationArguments as? EditorArguments.Default)?.filePath
 
@@ -328,7 +340,12 @@ class EditorWorkspace @AssistedInject constructor(
 
                 if (result.isFailure) {
                     val error = result.exceptionOrNull() ?: Exception("Engine initialization failed")
-                    if (error is CancellationException) return@launch
+                    if (error is CancellationException) {
+                        // The engine stays current but Empty: no file is attached, so the tab
+                        // must stop claiming the path (mirrors createArguments())
+                        publishContentPath(null)
+                        return@launch
+                    }
                     log(tag, ERROR) { "Engine initialization failed: ${error.asLog()}" }
                     _state.value = State.Error(error)
                     return@launch
@@ -408,6 +425,9 @@ class EditorWorkspace @AssistedInject constructor(
             _engine.value = newEngine
             old
         }
+        // Intent-based: a still-loading (or later failed) engine keeps the identity so duplicate
+        // opens focus this tab instead of spawning a sibling
+        publishContentPath(newFilePath)
 
         try {
             val initResult = newEngine.initialize()
@@ -433,7 +453,7 @@ class EditorWorkspace @AssistedInject constructor(
         } catch (e: CancellationException) {
             log(tag, INFO) { "Engine switch cancelled" }
             // Restore old engine on cancellation; the fresh engine has nothing worth flushing
-            engineMutex.withLock { _engine.value = oldEngine }
+            rollbackEngine(newEngine, oldEngine)
             try {
                 newEngine.release(flush = false)
             } catch (releaseError: Exception) {
@@ -442,7 +462,7 @@ class EditorWorkspace @AssistedInject constructor(
             throw e
         } catch (e: Exception) {
             // Restore old engine on failure
-            engineMutex.withLock { _engine.value = oldEngine }
+            rollbackEngine(newEngine, oldEngine)
             try {
                 newEngine.release(flush = false)
             } catch (releaseError: Exception) {
@@ -451,6 +471,19 @@ class EditorWorkspace @AssistedInject constructor(
             throw e
         } finally {
             pendingEngine = null
+        }
+    }
+
+    /**
+     * Rolls a failed/cancelled switch back to [oldEngine] - but only if [newEngine] is still the
+     * current one: a newer switch may have installed its own engine meanwhile, and restoring over
+     * it would strand the tab on a stale engine and publish a stale contentPath.
+     */
+    private suspend fun rollbackEngine(newEngine: EditorEngine, oldEngine: EditorEngine?) {
+        engineMutex.withLock {
+            if (_engine.value !== newEngine) return
+            _engine.value = oldEngine
+            publishContentPath(oldEngine?.takeUnless { it.state.value is EngineState.Empty }?.filePath)
         }
     }
 

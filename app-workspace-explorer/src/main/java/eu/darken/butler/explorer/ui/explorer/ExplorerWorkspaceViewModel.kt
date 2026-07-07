@@ -1322,7 +1322,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         arguments = EditorArguments.Default(filePath = action.item.lookup.lookedUp),
                         autoFocus = true,
                     )
-                    workspaceRemote.execute(wsAction)
+                    val result = workspaceRemote.execute(wsAction)
+                    if (result is WorkspaceAction.Create.Result.AlreadyOpen) {
+                        // The file is already open in an editor tab; focus it instead
+                        workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(result.existingId))
+                    }
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to create editor workspace: ${e.asLog()}" }
                     errorEvents.emit(e)

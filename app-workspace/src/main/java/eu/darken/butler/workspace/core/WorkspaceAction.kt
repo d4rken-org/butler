@@ -1,5 +1,6 @@
 package eu.darken.butler.workspace.core
 
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.workspace.contracts.templates.TemplatesArguments
 
 sealed interface WorkspaceAction {
@@ -20,9 +21,10 @@ sealed interface WorkspaceAction {
             data object LimitReached : Result
 
             /**
-             * Returned when [Create.type] is a singleton ([Workspace.Type.isSingleton]) and an
-             * instance already exists. Callers should focus the existing tab instead of
-             * creating a duplicate.
+             * Returned when a matching instance already exists: [Create.type] is a singleton
+             * ([Workspace.Type.isSingleton]), or a same-type workspace already publishes the
+             * requested [Workspace.ArgumentsWithContentPath.contentPath]. Callers should focus
+             * the existing tab instead of creating a duplicate.
              */
             data class AlreadyOpen(val existingId: Workspace.Id) : Result
         }
@@ -57,11 +59,41 @@ sealed interface WorkspaceAction {
             data class Failure(val exception: Exception) : CreationResult
 
             /**
-             * The request targeted a singleton type whose instance already exists (or was created
-             * earlier in the same batch). The caller should focus [existingId].
+             * The request targeted a singleton type or an already-published content path whose
+             * instance already exists (or was created earlier in the same batch). The caller
+             * should focus [existingId].
              */
             data class AlreadyOpen(val existingId: Workspace.Id) : CreationResult
         }
+    }
+
+    /**
+     * Atomically resolves [contentPath] for [claimantId]: if a same-type workspace (other than
+     * the claimant) already publishes or has claimed the path, returns [Result.AlreadyOpen];
+     * otherwise reserves the path for the claimant so concurrent Creates/claims dedup to it
+     * until [ReleaseContentPath] or the claimant closes. Used by in-tab open flows (e.g. the
+     * editor's Open picker) that change content without going through [Create].
+     */
+    data class ClaimContentPath(
+        val type: Workspace.Type,
+        val contentPath: APath<*>,
+        val claimantId: Workspace.Id,
+    ) : WorkspaceAction {
+        sealed interface Result : WorkspaceAction.Result {
+            /** The path is reserved for the claimant; callers must release it when done. */
+            data object Granted : Result
+
+            /** Another workspace already holds or claimed the path; focus it instead. */
+            data class AlreadyOpen(val existingId: Workspace.Id) : Result
+        }
+    }
+
+    /** Releases a claim made via [ClaimContentPath]; no-op when not owned by [claimantId]. */
+    data class ReleaseContentPath(
+        val claimantId: Workspace.Id,
+        val contentPath: APath<*>,
+    ) : WorkspaceAction {
+        data object Result : WorkspaceAction.Result
     }
 
     data class Close(

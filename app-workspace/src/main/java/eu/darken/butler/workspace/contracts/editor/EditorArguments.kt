@@ -25,5 +25,9 @@ sealed interface EditorArguments : Workspace.Arguments {
         val initialContent: String? = null,
         val suggestedTitle: String? = null,
         val charsetOverride: String? = null,
-    ) : EditorArguments
+    ) : EditorArguments, Workspace.ArgumentsWithContentPath {
+        // Get-only (no backing field): invisible to kotlinx-serialization and Parcelize, so
+        // persisted session arguments are unaffected
+        override val contentPath: APath<*>? get() = filePath
+    }
 }

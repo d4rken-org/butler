@@ -90,6 +90,17 @@ class EditorArgumentsSerializationTest : BaseTest() {
     }
 
     @Test
+    fun `contentPath is a computed view and never serializes`() {
+        val original = EditorArguments.Default(filePath = LocalPath.build("/sdcard/document.md"))
+
+        val serialized = json.encodeToJsonElement<EditorArguments>(original)
+        serialized.toString().contains("contentPath") shouldBe false
+
+        val deserialized = json.decodeFromString<EditorArguments>(serialized.toString())
+        (deserialized as Workspace.ArgumentsWithContentPath).contentPath shouldBe original.filePath
+    }
+
+    @Test
     fun `roundtrip Default with cursor and scroll position`() {
         val original = EditorArguments.Default(
             filePath = LocalPath.build("/sdcard/document.md"),

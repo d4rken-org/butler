@@ -37,6 +37,8 @@ import eu.darken.butler.workspace.core.launchPicker
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -48,6 +50,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
 class EditorWorkspaceViewModel @AssistedInject constructor(
@@ -227,17 +230,44 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun openFile(filePath: APath<*>) {
-        openFileJob?.cancel()
+        val previousJob = openFileJob
         openFileJob = vmScope.launch {
             try {
-                getWorkspace().openFile(filePath)  // Workspace handles loading state
+                val workspace = getWorkspace()
+                if (workspace.info.value.contentPath == filePath) {
+                    // Re-picking the tab's own (or currently loading) file must not re-open it:
+                    // switchEngine would show stale disk content and the old engine's release
+                    // would then flush unsaved edits over it - and cancelling an in-flight load
+                    // of this very path would roll the tab back to the previous file
+                    log(tag, INFO) { "File already open(ing) in this tab: $filePath" }
+                    return@launch
+                }
+                // A different target supersedes any in-flight open; await its rollback so the
+                // engine switches can't interleave
+                previousJob?.cancelAndJoin()
+                val claim = workspaceRemote.execute(
+                    WorkspaceAction.ClaimContentPath(Workspace.Type.EDITOR, filePath, id),
+                )
+                if (claim is WorkspaceAction.ClaimContentPath.Result.AlreadyOpen) {
+                    log(tag, INFO) { "File already open in ${claim.existingId}, focusing it: $filePath" }
+                    workspaceRemote.emitEvent(WorkspaceEvent.SelectionRequested(claim.existingId))
+                    return@launch
+                }
+                try {
+                    workspace.openFile(filePath)  // Workspace handles loading state
+                } finally {
+                    // The engine swap published contentPath before openFile returned, so the
+                    // claim is redundant from here on; on failure/cancel it must not keep
+                    // blocking the path
+                    withContext(NonCancellable) {
+                        workspaceRemote.execute(WorkspaceAction.ReleaseContentPath(id, filePath))
+                    }
+                }
             } catch (e: CancellationException) {
                 log(tag, INFO) { "File open cancelled: $filePath" }
                 throw e
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to open file: $filePath - ${e.asLog()}" }
-            } finally {
-                openFileJob = null
             }
         }
     }
