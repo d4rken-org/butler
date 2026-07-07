@@ -1,0 +1,126 @@
+package eu.darken.butler.explorer.ui.explorer.elements
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
+import androidx.compose.ui.unit.dp
+import eu.darken.butler.common.compose.ButlerPreviewWrapper
+import eu.darken.butler.common.compose.Preview2
+import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.ui.explorer.ExplorerWorkspaceViewModel
+import eu.darken.butler.explorer.ui.explorer.items.ExplorerItemRenderer
+import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+
+/**
+ * The list-style main content of the Explorer page.
+ * Moves the whole LazyColumn so item/span DSL semantics stay intact.
+ */
+@Composable
+internal fun ExplorerListContent(
+    modifier: Modifier = Modifier,
+    state: ExplorerWorkspaceViewModel.State,
+    vm: ExplorerWorkspaceViewModel?,
+    contentFocusedItem: ExplorerItem?,
+    listState: LazyListState,
+    contentPadding: PaddingValues,
+) {
+    LazyColumn(
+        state = listState,
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = contentPadding,
+    ) {
+        if (state.items == null) {
+            if (state.error == null) {
+                items(10, key = { "skeleton-$it" }) {
+                    SkeletonListItem()
+                }
+            }
+        } else if (state.items.isEmpty()) {
+            item(key = "empty") {
+                // When favorites are visible below, don't fill the viewport
+                // — otherwise the empty-state pushes favorites below the fold.
+                val emptyModifier = if (state.showHomeFavoritesSection) {
+                    Modifier.fillMaxSize().padding(vertical = 48.dp)
+                } else {
+                    Modifier.fillParentMaxSize()
+                }
+                Box(
+                    modifier = emptyModifier,
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (state.isFilteredEmpty) {
+                        EmptyFilteredState(
+                            onResetFilters = { vm?.resetFilters() },
+                        )
+                    } else {
+                        EmptyDirectoryState()
+                    }
+                }
+            }
+        } else {
+            items(
+                items = state.items,
+                key = { it.id },
+                contentType = ExplorerItem::contentType,
+            ) { item ->
+                ExplorerItemRenderer(
+                    item = item,
+                    viewStyle = state.viewStyle,
+                    state = state,
+                    isFocused = item == contentFocusedItem,
+                    onItemClick = { vm?.onItemClick(it) },
+                    onItemLongClick = { vm?.onItemLongClick(it) },
+                    onNavigate = { vm?.navigate(it) },
+                    onToggleSelection = { vm?.toggleItemSelection(it) },
+                )
+            }
+        }
+        if (state.showHomeFavoritesSection) {
+            item(key = "favorites:divider") {
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            }
+            favoritesSection(
+                favorites = state.favorites,
+                onClick = { vm?.onFavoriteClick(it) },
+                onRemove = { vm?.onFavoriteRemove(it) },
+            )
+        }
+    }
+}
+
+internal fun ExplorerItem.contentType(): String = when (this) {
+    is ExplorerItem.Lookup -> "lookup"
+    is ExplorerItem.Peek -> "peek"
+    is ExplorerItem.Shortcut -> "shortcut"
+    is ExplorerItem.Storage -> "storage"
+    is ExplorerItem.Trash.Root -> "trashRoot"
+    is ExplorerItem.Trash.Nested -> "trashNested"
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun ExplorerListContentPreview() {
+    PreviewWrapper {
+        ExplorerListContent(
+            state = MockDataProvider.createReadyState(),
+            vm = null,
+            contentFocusedItem = null,
+            listState = rememberLazyListState(),
+            contentPadding = PaddingValues(12.dp),
+        )
+    }
+}

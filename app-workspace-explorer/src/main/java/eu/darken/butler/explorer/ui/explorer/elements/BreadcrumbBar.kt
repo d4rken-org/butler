@@ -2,9 +2,11 @@ package eu.darken.butler.explorer.ui.explorer.elements
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -18,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.ContentCopy
@@ -31,11 +32,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,16 +60,15 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.BadgedIcon
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
+import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
-import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import kotlinx.coroutines.delay
@@ -89,7 +89,6 @@ fun BreadcrumbBar(
     cutoutWidth: Dp = 0.dp,
 ) {
     val scrollState = rememberScrollState()
-    val context = LocalContext.current
     var isEditMode by remember { mutableStateOf(false) }
     var editTextValue by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
@@ -110,61 +109,7 @@ fun BreadcrumbBar(
         }
     }
 
-    // Detect current path type and extract relevant information
-    data class PathInfo(
-        val displayPath: String,
-        val path: APath<*>?,
-        val prefixIcon: ImageVector? = null,
-        val prefixLabel: String? = null,
-    )
-
-    val pathInfo = remember(breadcrumbs, safLocationManager) {
-        when (val lastTarget = breadcrumbs.lastOrNull()?.target) {
-            is ExplorerNavigation.Target.Directory -> {
-                when (val path = lastTarget.path) {
-                    is SAFPath -> {
-                        // For SAF paths, show only the relative segments
-                        val segmentsPath = path.segments.joinToString("/")
-
-                        // Find the SAF root breadcrumb by matching the tree root path
-                        val safRootPath = SAFPath.build(path.treeRootUri)
-                        val rootBreadcrumb = breadcrumbs.find {
-                            it.target is ExplorerNavigation.Target.Directory &&
-                                it.target.path == safRootPath
-                        }
-                        val locationName =
-                            safLocationManager?.findPermissionFor(path)?.location?.displayName?.get(context)
-
-                        PathInfo(
-                            displayPath = segmentsPath, // Empty when at SAF root
-                            path = path,
-                            prefixIcon = rootBreadcrumb?.icon,
-                            prefixLabel = locationName,
-                        )
-                    }
-                    is LocalPath -> {
-                        // For local paths, split the leading "/" from the rest
-                        val pathAfterRoot = path.path.removePrefix("/")
-
-                        // Find the "/" root breadcrumb
-                        val rootBreadcrumb = breadcrumbs.find {
-                            it.target is ExplorerNavigation.Target.Directory &&
-                                it.target.path is LocalPath &&
-                                it.target.path.path == "/"
-                        }
-
-                        PathInfo(
-                            displayPath = pathAfterRoot, // Everything after the first "/"
-                            path = path,
-                            prefixIcon = rootBreadcrumb?.icon,
-                            prefixLabel = rootBreadcrumb?.label?.get(context),
-                        )
-                    }
-                }
-            }
-            else -> PathInfo(displayPath = "", path = null)
-        }
-    }
+    val pathInfo = rememberBreadcrumbPathInfo(breadcrumbs, safLocationManager)
 
     LaunchedEffect(breadcrumbs) {
         if (breadcrumbs.isNotEmpty() && !isEditMode) {
@@ -217,263 +162,78 @@ fun BreadcrumbBar(
             .padding(horizontal = 8.dp),
         contentAlignment = Alignment.TopStart
     ) {
-        if (isEditMode && onCommitEditedPath != null) {
-            // Edit mode - unified UI for both SAF and Local paths
-            if (pathInfo.prefixIcon != null && pathInfo.prefixLabel != null) {
-                // Show icon + label prefix + editable suffix
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    // Non-editable clickable prefix showing root location
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .clickable {
-                                requestWorkspaceFocus?.invoke()
-                                // Navigate to root when clicking prefix
-                                when (val path = pathInfo.path) {
-                                    is SAFPath -> {
-                                        // Navigate to SAF root
-                                        val rootPath = SAFPath.build(path.treeRootUri)
-                                        onBreadcrumbClick(ExplorerNavigation.Target.Directory(rootPath))
-                                        isEditMode = false
-                                    }
-                                    is LocalPath -> {
-                                        // Navigate to filesystem root
-                                        onBreadcrumbClick(ExplorerNavigation.Target.Directory(LocalPath.build("/")))
-                                        isEditMode = false
-                                    }
-                                    else -> {
-                                        // Fallback: just exit edit mode
-                                        isEditMode = false
-                                    }
-                                }
-                            }
-                            .padding(horizontal = 2.dp, vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = pathInfo.prefixIcon,
-                            contentDescription = pathInfo.prefixLabel,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(
-                            text = pathInfo.prefixLabel,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = File.separator,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Editable suffix (path after root)
-                    BasicTextField(
-                        value = editTextValue,
-                        onValueChange = { editTextValue = it },
-                        modifier = Modifier
-                            .weight(1f)
-                            .focusRequester(focusRequester)
-                            .onKeyEvent { keyEvent ->
-                                if (keyEvent.key == Key.Escape) {
-                                    keyboardController?.hide()
-                                    isEditMode = false
-                                    true
-                                } else {
-                                    false
-                                }
-                            },
-                        textStyle = MaterialTheme.typography.labelLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurface
-                        ),
-                        singleLine = true,
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                keyboardController?.hide()
-                                pathInfo.path?.let { onCommitEditedPath(it, editTextValue.text) }
-                                isEditMode = false
-                            }
-                        )
-                    )
-                }
-            }
-        } else {
-            // Display mode - show breadcrumbs or loading state
-            if (breadcrumbs.isEmpty()) {
-                // Show loading state when breadcrumbs are empty
-                // Match the height of regular breadcrumbs (icon 20.dp + padding 8.dp vertical)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 6.dp, vertical = 4.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.explorer_loading),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            } else {
-                // Show actual breadcrumbs
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .propagateScrollAtBoundary(scrollState, enabled = isWorkspaceFocused)
-                        .horizontalScroll(scrollState)
-                        .padding(end = cutoutWidth),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    breadcrumbs.forEachIndexed { index, breadcrumb ->
-                        val isLast = index == breadcrumbs.lastIndex
-                        val isDirectory = breadcrumb.target is ExplorerNavigation.Target.Directory
-                        val supportsContextMenu = when (breadcrumb.target) {
-                            is ExplorerNavigation.Target.Home,
-                            is ExplorerNavigation.Target.Device,
-                            is ExplorerNavigation.Target.Directory -> true
-                            else -> false // Trash doesn't support context menu
+        when {
+            isEditMode && onCommitEditedPath != null -> BreadcrumbEditRow(
+                pathInfo = pathInfo,
+                textValue = editTextValue,
+                onTextValueChange = { editTextValue = it },
+                focusRequester = focusRequester,
+                onPrefixClick = {
+                    requestWorkspaceFocus?.invoke()
+                    // Navigate to root when clicking prefix
+                    when (val path = pathInfo.path) {
+                        is SAFPath -> {
+                            // Navigate to SAF root
+                            val rootPath = SAFPath.build(path.treeRootUri)
+                            onBreadcrumbClick(ExplorerNavigation.Target.Directory(rootPath))
+                            isEditMode = false
                         }
-
-                        // Wrap breadcrumb + chevron in a Row for vertical alignment
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box {
-                                Row(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .combinedClickable(
-                                            onClick = {
-                                                requestWorkspaceFocus?.invoke()
-                                                when {
-                                                    // Only allow edit mode for actual directory paths, not Home/Device
-                                                    isLast && onNavigateToPath != null && isDirectory -> {
-                                                        // Click on last breadcrumb that is a directory enters edit mode
-                                                        isEditMode = true
-                                                    }
-                                                    !isLast -> {
-                                                        // Click on non-last breadcrumbs always navigates
-                                                        onBreadcrumbClick(breadcrumb.target)
-                                                    }
-                                                    // For Home/Device when last, clicking does nothing
-                                                    // (could optionally refresh by calling onBreadcrumbClick)
-                                                }
-                                            },
-                                            onLongClick = {
-                                                // Show context menu for Home, Device, and Directory targets (not Trash)
-                                                if (supportsContextMenu) {
-                                                    showContextMenuForIndex = index
-                                                }
-                                            },
-                                        )
-                                        .padding(horizontal = 2.dp, vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // Animation state for this breadcrumb
-                                    val isAnimating = animatingBreadcrumbIndex == index
-                                    val animatedScale by animateFloatAsState(
-                                        targetValue = if (isAnimating) 1.3f else 1f,
-                                        animationSpec = tween(durationMillis = 200),
-                                        label = "breadcrumbScale",
-                                    )
-                                    val animatedColor = when {
-                                        isAnimating -> MaterialTheme.colorScheme.primary
-                                        isLast -> MaterialTheme.colorScheme.tertiary
-                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
-                                    }
-
-                                    // Always show icon if available
-                                    BadgedIcon(
-                                        modifier = Modifier.scale(animatedScale),
-                                        icon = breadcrumb.icon,
-                                        badge = breadcrumb.badgeIcon,
-                                        iconSize = 16.dp,
-                                        badgeSize = 10.dp,
-                                        iconTint = animatedColor,
-                                        badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-
-                                    Text(
-                                        text = breadcrumb.label.get(context),
-                                        style = MaterialTheme.typography.labelMedium.copy(color = animatedColor),
-                                    )
-                                }
-
-                                // Context menu for Home, Device, and Directory breadcrumbs
-                                if (showContextMenuForIndex == index && supportsContextMenu) {
-                                    DropdownMenu(
-                                        expanded = true,
-                                        onDismissRequest = { showContextMenuForIndex = null },
-                                    ) {
-                                        // "Set as home" available for all supported targets
-                                        if (onSetAsHome != null) {
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.explorer_breadcrumb_set_as_home_action)) },
-                                                onClick = {
-                                                    showContextMenuForIndex = null
-                                                    animatingBreadcrumbIndex = index
-                                                    onSetAsHome(breadcrumb.target as ExplorerNavigation.Target)
-                                                },
-                                                leadingIcon = {
-                                                    Icon(
-                                                        imageVector = Icons.TwoTone.Home,
-                                                        contentDescription = null,
-                                                    )
-                                                },
-                                            )
-                                        }
-                                        // "Copy path" only available for Directory targets
-                                        if (isDirectory && onCopyPath != null) {
-                                            val directoryTarget =
-                                                breadcrumb.target as ExplorerNavigation.Target.Directory
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(R.string.explorer_breadcrumb_copy_path_action)) },
-                                                onClick = {
-                                                    showContextMenuForIndex = null
-                                                    onCopyPath(directoryTarget.path.path)
-                                                },
-                                                leadingIcon = {
-                                                    Icon(
-                                                        imageVector = Icons.TwoTone.ContentCopy,
-                                                        contentDescription = null,
-                                                    )
-                                                },
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (!isLast) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
+                        is LocalPath -> {
+                            // Navigate to filesystem root
+                            onBreadcrumbClick(ExplorerNavigation.Target.Directory(LocalPath.build("/")))
+                            isEditMode = false
+                        }
+                        else -> {
+                            // Fallback: just exit edit mode
+                            isEditMode = false
                         }
                     }
-                }
-            }
+                },
+                onEscape = {
+                    keyboardController?.hide()
+                    isEditMode = false
+                },
+                onCommit = {
+                    keyboardController?.hide()
+                    pathInfo.path?.let { onCommitEditedPath(it, editTextValue.text) }
+                    isEditMode = false
+                },
+            )
+            breadcrumbs.isEmpty() -> BreadcrumbLoadingRow()
+            else -> BreadcrumbDisplayRow(
+                breadcrumbs = breadcrumbs,
+                scrollState = scrollState,
+                isWorkspaceFocused = isWorkspaceFocused,
+                cutoutWidth = cutoutWidth,
+                animatingBreadcrumbIndex = animatingBreadcrumbIndex,
+                showContextMenuForIndex = showContextMenuForIndex,
+                onShowContextMenu = { showContextMenuForIndex = it },
+                onChipClick = { index, breadcrumb ->
+                    requestWorkspaceFocus?.invoke()
+                    val isLast = index == breadcrumbs.lastIndex
+                    val isDirectory = breadcrumb.target is ExplorerNavigation.Target.Directory
+                    when {
+                        // Only allow edit mode for actual directory paths, not Home/Device
+                        isLast && onNavigateToPath != null && isDirectory -> {
+                            // Click on last breadcrumb that is a directory enters edit mode
+                            isEditMode = true
+                        }
+                        !isLast -> {
+                            // Click on non-last breadcrumbs always navigates
+                            onBreadcrumbClick(breadcrumb.target)
+                        }
+                        // For Home/Device when last, clicking does nothing
+                        // (could optionally refresh by calling onBreadcrumbClick)
+                    }
+                },
+                onSetAsHome = onSetAsHome?.let { setAsHome ->
+                    { index, target ->
+                        animatingBreadcrumbIndex = index
+                        setAsHome(target)
+                    }
+                },
+                onCopyPath = onCopyPath,
+            )
         }
     }
 }
@@ -506,4 +266,421 @@ private fun BreadcrumbBarEmptyPreview() {
         breadcrumbs = emptyList(),
         onBreadcrumbClick = {},
     )
+}
+
+private data class BreadcrumbPathInfo(
+    val displayPath: String,
+    val path: APath<*>?,
+    val prefixIcon: ImageVector? = null,
+    val prefixLabel: String? = null,
+)
+
+/**
+ * Detect the current path type and extract display path plus root prefix info.
+ */
+@Composable
+private fun rememberBreadcrumbPathInfo(
+    breadcrumbs: List<ExplorerBreadcrumb>,
+    safLocationManager: SAFLocationManager?,
+): BreadcrumbPathInfo {
+    val context = LocalContext.current
+    return remember(breadcrumbs, safLocationManager) {
+        when (val lastTarget = breadcrumbs.lastOrNull()?.target) {
+            is ExplorerNavigation.Target.Directory -> {
+                when (val path = lastTarget.path) {
+                    is SAFPath -> {
+                        // For SAF paths, show only the relative segments
+                        val segmentsPath = path.segments.joinToString("/")
+
+                        // Find the SAF root breadcrumb by matching the tree root path
+                        val safRootPath = SAFPath.build(path.treeRootUri)
+                        val rootBreadcrumb = breadcrumbs.find {
+                            it.target is ExplorerNavigation.Target.Directory &&
+                                it.target.path == safRootPath
+                        }
+                        val locationName =
+                            safLocationManager?.findPermissionFor(path)?.location?.displayName?.get(context)
+
+                        BreadcrumbPathInfo(
+                            displayPath = segmentsPath, // Empty when at SAF root
+                            path = path,
+                            prefixIcon = rootBreadcrumb?.icon,
+                            prefixLabel = locationName,
+                        )
+                    }
+                    is LocalPath -> {
+                        // For local paths, split the leading "/" from the rest
+                        val pathAfterRoot = path.path.removePrefix("/")
+
+                        // Find the "/" root breadcrumb
+                        val rootBreadcrumb = breadcrumbs.find {
+                            it.target is ExplorerNavigation.Target.Directory &&
+                                it.target.path is LocalPath &&
+                                it.target.path.path == "/"
+                        }
+
+                        BreadcrumbPathInfo(
+                            displayPath = pathAfterRoot, // Everything after the first "/"
+                            path = path,
+                            prefixIcon = rootBreadcrumb?.icon,
+                            prefixLabel = rootBreadcrumb?.label?.get(context),
+                        )
+                    }
+                }
+            }
+            else -> BreadcrumbPathInfo(displayPath = "", path = null)
+        }
+    }
+}
+
+/**
+ * Edit mode - unified UI for both SAF and Local paths.
+ * Renders nothing when the path has no resolvable root prefix.
+ */
+@Composable
+private fun BreadcrumbEditRow(
+    modifier: Modifier = Modifier,
+    pathInfo: BreadcrumbPathInfo,
+    textValue: TextFieldValue,
+    onTextValueChange: (TextFieldValue) -> Unit,
+    focusRequester: FocusRequester,
+    onPrefixClick: () -> Unit,
+    onEscape: () -> Unit,
+    onCommit: () -> Unit,
+) {
+    if (pathInfo.prefixIcon == null || pathInfo.prefixLabel == null) return
+
+    // Show icon + label prefix + editable suffix
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        // Non-editable clickable prefix showing root location
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .clickable { onPrefixClick() }
+                .padding(horizontal = 2.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = pathInfo.prefixIcon,
+                contentDescription = pathInfo.prefixLabel,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = pathInfo.prefixLabel,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = File.separator,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Editable suffix (path after root)
+        BasicTextField(
+            value = textValue,
+            onValueChange = onTextValueChange,
+            modifier = Modifier
+                .weight(1f)
+                .focusRequester(focusRequester)
+                .onKeyEvent { keyEvent ->
+                    if (keyEvent.key == Key.Escape) {
+                        onEscape()
+                        true
+                    } else {
+                        false
+                    }
+                },
+            textStyle = MaterialTheme.typography.labelLarge.copy(
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            singleLine = true,
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { onCommit() }
+            )
+        )
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun BreadcrumbEditRowPreview() {
+    BreadcrumbEditRow(
+        pathInfo = BreadcrumbPathInfo(
+            displayPath = "storage/emulated/0/Documents",
+            path = LocalPath.build("/storage/emulated/0/Documents"),
+            prefixIcon = Icons.TwoTone.Home,
+            prefixLabel = "/",
+        ),
+        textValue = TextFieldValue("storage/emulated/0/Documents"),
+        onTextValueChange = {},
+        focusRequester = FocusRequester(),
+        onPrefixClick = {},
+        onEscape = {},
+        onCommit = {},
+    )
+}
+
+/**
+ * Loading state shown while breadcrumbs are empty.
+ * Matches the height of regular breadcrumbs (icon 20.dp + padding 8.dp vertical).
+ */
+@Composable
+private fun BreadcrumbLoadingRow(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 6.dp, vertical = 4.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.explorer_loading),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+/**
+ * Display mode - the scrollable breadcrumb trail.
+ *
+ * [showContextMenuForIndex] and [animatingBreadcrumbIndex] are single shared values owned by
+ * [BreadcrumbBar] so that at most one context menu is open and one chip animates at a time —
+ * do not localize them into per-chip state.
+ */
+@Composable
+private fun BreadcrumbDisplayRow(
+    modifier: Modifier = Modifier,
+    breadcrumbs: List<ExplorerBreadcrumb>,
+    scrollState: ScrollState,
+    isWorkspaceFocused: Boolean,
+    cutoutWidth: Dp,
+    animatingBreadcrumbIndex: Int?,
+    showContextMenuForIndex: Int?,
+    onShowContextMenu: (Int?) -> Unit,
+    onChipClick: (Int, ExplorerBreadcrumb) -> Unit,
+    onSetAsHome: ((Int, ExplorerNavigation.Target) -> Unit)?,
+    onCopyPath: ((String) -> Unit)?,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .propagateScrollAtBoundary(scrollState, enabled = isWorkspaceFocused)
+            .horizontalScroll(scrollState)
+            .padding(end = cutoutWidth),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        breadcrumbs.forEachIndexed { index, breadcrumb ->
+            val isLast = index == breadcrumbs.lastIndex
+            val isDirectory = breadcrumb.target is ExplorerNavigation.Target.Directory
+            val supportsContextMenu = when (breadcrumb.target) {
+                is ExplorerNavigation.Target.Home,
+                is ExplorerNavigation.Target.Device,
+                is ExplorerNavigation.Target.Directory -> true
+                else -> false // Trash doesn't support context menu
+            }
+
+            // Wrap breadcrumb + chevron in a Row for vertical alignment
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                BreadcrumbChip(
+                    breadcrumb = breadcrumb,
+                    isLast = isLast,
+                    isAnimating = animatingBreadcrumbIndex == index,
+                    showContextMenu = showContextMenuForIndex == index && supportsContextMenu,
+                    onClick = { onChipClick(index, breadcrumb) },
+                    onLongClick = {
+                        // Show context menu for Home, Device, and Directory targets (not Trash)
+                        if (supportsContextMenu) {
+                            onShowContextMenu(index)
+                        }
+                    },
+                    onDismissContextMenu = { onShowContextMenu(null) },
+                    onSetAsHome = onSetAsHome?.let { setAsHome ->
+                        {
+                            onShowContextMenu(null)
+                            setAsHome(index, breadcrumb.target as ExplorerNavigation.Target)
+                        }
+                    },
+                    onCopyPath = if (isDirectory && onCopyPath != null) {
+                        {
+                            onShowContextMenu(null)
+                            onCopyPath((breadcrumb.target as ExplorerNavigation.Target.Directory).path.path)
+                        }
+                    } else null,
+                )
+
+                if (!isLast) {
+                    Icon(
+                        imageVector = Icons.TwoTone.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * A single clickable breadcrumb with "Set as home" animation feedback and an optional context menu.
+ */
+@Composable
+private fun BreadcrumbChip(
+    modifier: Modifier = Modifier,
+    breadcrumb: ExplorerBreadcrumb,
+    isLast: Boolean,
+    isAnimating: Boolean,
+    showContextMenu: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onDismissContextMenu: () -> Unit,
+    onSetAsHome: (() -> Unit)?,
+    onCopyPath: (() -> Unit)?,
+) {
+    val context = LocalContext.current
+    Box(modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                )
+                .padding(horizontal = 2.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val animatedScale by animateFloatAsState(
+                targetValue = if (isAnimating) 1.3f else 1f,
+                animationSpec = tween(durationMillis = 200),
+                label = "breadcrumbScale",
+            )
+            val animatedColor = when {
+                isAnimating -> MaterialTheme.colorScheme.primary
+                isLast -> MaterialTheme.colorScheme.tertiary
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
+            }
+
+            // Always show icon if available
+            BadgedIcon(
+                modifier = Modifier.scale(animatedScale),
+                icon = breadcrumb.icon,
+                badge = breadcrumb.badgeIcon,
+                iconSize = 16.dp,
+                badgeSize = 10.dp,
+                iconTint = animatedColor,
+                badgeTint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Text(
+                text = breadcrumb.label.get(context),
+                style = MaterialTheme.typography.labelMedium.copy(color = animatedColor),
+            )
+        }
+
+        if (showContextMenu) {
+            BreadcrumbContextMenu(
+                onDismiss = onDismissContextMenu,
+                onSetAsHome = onSetAsHome,
+                onCopyPath = onCopyPath,
+            )
+        }
+    }
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun BreadcrumbChipPreview() {
+    Row {
+        BreadcrumbChip(
+            breadcrumb = MockDataProvider.createHomeBreadcrumb(),
+            isLast = false,
+            isAnimating = false,
+            showContextMenu = false,
+            onClick = {},
+            onLongClick = {},
+            onDismissContextMenu = {},
+            onSetAsHome = null,
+            onCopyPath = null,
+        )
+        BreadcrumbChip(
+            breadcrumb = MockDataProvider.createHomeBreadcrumb(),
+            isLast = true,
+            isAnimating = true,
+            showContextMenu = false,
+            onClick = {},
+            onLongClick = {},
+            onDismissContextMenu = {},
+            onSetAsHome = null,
+            onCopyPath = null,
+        )
+    }
+}
+
+/**
+ * Context menu for Home, Device, and Directory breadcrumbs.
+ * A null action callback hides the corresponding menu item.
+ */
+@Composable
+private fun BreadcrumbContextMenu(
+    onDismiss: () -> Unit,
+    onSetAsHome: (() -> Unit)?,
+    onCopyPath: (() -> Unit)?,
+) {
+    DropdownMenu(
+        expanded = true,
+        onDismissRequest = onDismiss,
+    ) {
+        // "Set as home" available for all supported targets
+        if (onSetAsHome != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.explorer_breadcrumb_set_as_home_action)) },
+                onClick = onSetAsHome,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.Home,
+                        contentDescription = null,
+                    )
+                },
+            )
+        }
+        // "Copy path" only available for Directory targets
+        if (onCopyPath != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.explorer_breadcrumb_copy_path_action)) },
+                onClick = onCopyPath,
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.TwoTone.ContentCopy,
+                        contentDescription = null,
+                    )
+                },
+            )
+        }
+    }
 }

@@ -4,10 +4,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.FolderOpen
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PhoneAndroid
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.pressKey
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
@@ -199,5 +209,111 @@ class BreadcrumbBarTest : ComposeTest() {
 
         navigatedTargets.size shouldBe 1
         (navigatedTargets[0] as? ExplorerNavigation.Target.Directory)?.path?.path shouldBe "/storage"
+    }
+
+    @Test
+    fun `clicking last directory breadcrumb enters edit mode and commit fires callback`() {
+        var committed: Pair<APath<*>, String>? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        directoryBreadcrumb("/", "/"),
+                        directoryBreadcrumb("storage", "/storage"),
+                    ),
+                    onBreadcrumbClick = {},
+                    onNavigateToPath = {},
+                    onCommitEditedPath = { path, text -> committed = path to text },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("storage").performClick()
+
+        composeTestRule.onNode(hasSetTextAction()).assertIsDisplayed()
+        composeTestRule.onNode(hasSetTextAction()).performTextReplacement("storage/Documents")
+        composeTestRule.onNode(hasSetTextAction()).performImeAction()
+
+        committed?.first?.path shouldBe "/storage"
+        committed?.second shouldBe "storage/Documents"
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun `escape cancels edit mode without committing`() {
+        var committed: Pair<APath<*>, String>? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        directoryBreadcrumb("/", "/"),
+                        directoryBreadcrumb("storage", "/storage"),
+                    ),
+                    onBreadcrumbClick = {},
+                    onNavigateToPath = {},
+                    onCommitEditedPath = { path, text -> committed = path to text },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("storage").performClick()
+        composeTestRule.onNode(hasSetTextAction()).assertIsDisplayed()
+
+        composeTestRule.onNode(hasSetTextAction()).performKeyInput { pressKey(Key.Escape) }
+
+        composeTestRule.onNode(hasSetTextAction()).assertDoesNotExist()
+        composeTestRule.onNodeWithText("storage").assertIsDisplayed()
+        committed shouldBe null
+    }
+
+    @Test
+    fun `long press on directory breadcrumb offers copy path`() {
+        var copiedPath: String? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        homeBreadcrumb,
+                        directoryBreadcrumb("storage", "/storage"),
+                    ),
+                    onBreadcrumbClick = {},
+                    onCopyPath = { copiedPath = it },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("storage").performTouchInput { longClick() }
+        composeTestRule.onNodeWithText("Copy path").performClick()
+
+        copiedPath shouldBe "/storage"
+        composeTestRule.onNodeWithText("Copy path").assertDoesNotExist()
+    }
+
+    @Test
+    fun `set as home from context menu fires callback and closes menu`() {
+        var homeTarget: ExplorerNavigation.Target? = null
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                BreadcrumbBar(
+                    breadcrumbs = listOf(
+                        homeBreadcrumb,
+                        deviceBreadcrumb,
+                        directoryBreadcrumb("storage", "/storage"),
+                    ),
+                    onBreadcrumbClick = {},
+                    onSetAsHome = { homeTarget = it },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText("Device").performTouchInput { longClick() }
+        composeTestRule.onNodeWithText("Set as home").performClick()
+
+        homeTarget shouldBe ExplorerNavigation.Target.Device
+        composeTestRule.onNodeWithText("Set as home").assertDoesNotExist()
     }
 }
