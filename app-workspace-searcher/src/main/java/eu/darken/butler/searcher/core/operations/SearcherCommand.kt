@@ -14,7 +14,6 @@ sealed interface SearcherCommand {
         val targets: List<SearchTarget>,
         val filter: SearchFilter = SearchFilter(),
         val options: SearchQuery.Options = SearchQuery.Options(),
-        val saveToHistory: Boolean = false,
     ) : SearcherCommand
 
     data object Cancel : SearcherCommand

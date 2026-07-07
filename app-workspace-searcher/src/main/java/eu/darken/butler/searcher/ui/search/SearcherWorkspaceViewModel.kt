@@ -306,11 +306,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         workspaceSearchState
             .onEach { wsState ->
                 val displayed = displayResults(wsState.results, currentSortSettings.value)
-                if (wsState.searchStatus == SearcherWorkspace.State.SearchStatus.COMPLETED) {
-                    currentSearchId?.let { id ->
+                when (wsState.searchStatus) {
+                    SearcherWorkspace.State.SearchStatus.COMPLETED -> currentSearchId?.let { id ->
                         searchHistory.updateResultCount(id, displayed.size)
                         currentSearchId = null
                     }
+                    // A failed or aborted search must not leave a pending id behind that a later
+                    // search's completion could mistakenly consume
+                    SearcherWorkspace.State.SearchStatus.ERROR,
+                    SearcherWorkspace.State.SearchStatus.CANCELLED,
+                        -> currentSearchId = null
+
+                    else -> Unit
                 }
 
                 // Update selection state when results change
@@ -495,18 +502,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             // Prevent auto-search from double-triggering
             lastAutoExecutedQuery = "${query.filenameQuery.pattern}|${query.contentQuery.pattern}"
 
-            // Execute search via workspace command (bypass performSearch to use template's query directly)
-            val searchCommand = SearcherCommand.Search(
-                filenameQuery = query.filenameQuery,
-                contentQuery = query.contentQuery,
-                targets = targets,
-                filter = query.filter,
-                options = SearchQuery.Options(
-                    maxResults = searcherSettings.maxSearchResults.value(),
-                ),
-                saveToHistory = true,
-            )
-            workspace.execute(searchCommand)
+            // Execute the template's query directly so its patterns and filters apply verbatim
+            executeSearchQuery(workspace, query, saveToHistory = true)
         }
     }
 
@@ -572,32 +569,56 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 contentOptions = ctOptions,
             )
 
-            // Build search command
-            val searchCommand = SearcherCommand.Search(
-                filenameQuery = filenameQueryValue,
-                contentQuery = contentQueryValue,
-                targets = targets,
-                filter = filter,
-                options = SearchQuery.Options(
-                    maxResults = searcherSettings.maxSearchResults.value(),
-                ),
-                saveToHistory = saveToHistory,
-            )
-
-            workspace.execute(searchCommand)
-
-            // Record search in history only if explicitly requested
-            if (saveToHistory) {
-                val searchRequest = SearchQuery(
+            executeSearchQuery(
+                workspace = workspace,
+                query = SearchQuery(
                     filenameQuery = filenameQueryValue,
                     contentQuery = contentQueryValue,
                     targets = targets,
-                    options = searchCommand.options,
-                    filter = searchCommand.filter,
-                )
-                currentSearchId = searchHistory.addSearch(searchRequest)
+                    filter = filter,
+                ),
+                saveToHistory = saveToHistory,
+            )
+        }
+    }
+
+    // Single execution path for assembled queries (user input and templates): applies the
+    // configured result limit, records history, then starts the workspace search.
+    private suspend fun executeSearchQuery(
+        workspace: SearcherWorkspace,
+        query: SearchQuery,
+        saveToHistory: Boolean,
+    ) {
+        // A new search supersedes any still-pending history id, saved or not - otherwise this
+        // search's completion could update the previous search's history row
+        currentSearchId = null
+
+        val finalQuery = query.copy(
+            options = query.options.copy(maxResults = searcherSettings.maxSearchResults.value()),
+        )
+
+        // Record history BEFORE executing - a fast search could complete before the id is set,
+        // which would lose the result count. A history failure must not block the search itself.
+        if (saveToHistory && searcherSettings.saveHistory.value()) {
+            currentSearchId = try {
+                searchHistory.addSearch(finalQuery)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, ERROR) { "Failed to record search in history: ${e.asLog()}" }
+                null
             }
         }
+
+        workspace.execute(
+            SearcherCommand.Search(
+                filenameQuery = finalQuery.filenameQuery,
+                contentQuery = finalQuery.contentQuery,
+                targets = finalQuery.targets,
+                filter = finalQuery.filter,
+                options = finalQuery.options,
+            )
+        )
     }
 
     private fun cancelSearch() {
