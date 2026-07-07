@@ -18,14 +18,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.common.files.LookupOptions
-import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.isDirectory
-import eu.darken.butler.common.files.extensions.matches
-import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.files.validation.FilenameValidator
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -48,9 +43,7 @@ import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
-import eu.darken.butler.explorer.core.engine.ExplorerItem.Path.Companion.toPathItemId
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.engine.TrashItemReference
 import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import eu.darken.butler.explorer.core.favorites.PendingFavoriteRemoval
@@ -92,9 +85,7 @@ import eu.darken.butler.workspace.core.operations.OperationFocusRequest
 import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import eu.darken.butler.workspace.core.returnResult
 import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
-import java.io.File
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -141,8 +132,6 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val chrome = chromeFactory.create(id, vmScope)
 
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit = { block -> launch(block = block) }
-
-    private val selectedItemsFlow = MutableStateFlow<Set<ExplorerItem>>(emptySet())
 
     private val viewSettings = ExplorerViewSettingsController(
         explorerSettings = explorerSettings,
@@ -191,6 +180,28 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         doLaunch = doLaunch,
         tag = tag,
     )
+    private val selection: ExplorerSelectionController = ExplorerSelectionController(
+        pickerConfig = { cachedPickerConfig },
+        workspace = ::getWorkspace,
+        selectableItems = { getState().selectionState.selectableItems },
+        navigate = { navigate(it) },
+        doLaunch = doLaunch,
+        tag = tag,
+    )
+    private val navigation: ExplorerNavigationController = ExplorerNavigationController(
+        workspaceId = id,
+        workspace = ::getWorkspace,
+        workspaceRemote = workspaceRemote,
+        gatewaySwitch = gatewaySwitch,
+        dialogs = dialogs,
+        favoritesRepo = favoritesRepo,
+        selectedItems = { selection.selectedItems.value },
+        toggleSelection = { selection.toggle(it) },
+        clearSelection = ::clearSelection,
+        getState = ::getState,
+        doLaunch = doLaunch,
+        tag = tag,
+    )
 
     val issueState: StateFlow<Issue?> get() = conflicts.issueState
     val showIssueSheet: StateFlow<Boolean> get() = conflicts.showIssueSheet
@@ -211,8 +222,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val highlightDurationMs: Long = 2000L,
     )
 
-    val revealRequests = SingleEventFlow<RevealRequest>()
-    private val highlightedItemIds = MutableStateFlow<Set<String>>(emptySet())
+    val revealRequests get() = navigation.revealRequests
 
     val pendingSAFPickerGrant: Flow<SAFPickerGrant?> get() = safLocations.pendingSAFPickerGrant
 
@@ -273,7 +283,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         workspaceReadyState
             .map { it?.currentLocation?.locationId }
             .distinctUntilChanged()
-            .onEach { clearHighlights() }
+            .onEach { navigation.clearHighlights() }
             .launchInViewModel()
 
         // Favorite-path changes can reorder the directory listing (favorited dirs move
@@ -386,7 +396,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     // Optimization: Selection state only updates when items or selection changes
     private val derivedSelectionStateFlow: Flow<ExplorerSelectionState> = combine(
         processedItemsFlow,
-        selectedItemsFlow,
+        selection.selectedItems,
         pickerConfigFlow,
     ) { items, selectedItems, pickerConfig ->
         ExplorerSelectionState(
@@ -418,7 +428,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     pickerConfigFlow,
                     trashManager.isEnabled,
                     saveAsFilenameFlow,
-                    highlightedItemIds,
+                    navigation.highlightedItemIds,
                     focus.focusedIndex,
                     favoritesRepo.favorites,
                     favoritesController.pendingRemoval,
@@ -504,194 +514,20 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     val operations = chrome.operations.asStateFlow()
 
-    fun navigate(item: ExplorerItem) = launch {
-        log(tag) { "navigate($item)" }
-        when (item) {
-            is ExplorerItem.Path -> when (item) {
-                is ExplorerItem.Directory -> {
-                    getWorkspace().navigate(ExplorerNavigation.Target.Directory(item.lookup.lookedUp))
-                    clearSelection()
-                }
-                is ExplorerItem.File -> {
-                    // Special handling for symlinks: check if target is directory
-                    if (item is ExplorerItem.SymbolicLink && !item.isBroken) {
-                        val target = item.lookup.target
-                        if (target != null) {
-                            // Perform lookup to determine if target is a directory or file
-                            val targetLookup = gatewaySwitch.lookup(
-                                target,
-                                LookupOptions(continueOnError = false)
-                            )
+    fun navigate(item: ExplorerItem) = navigation.navigate(item)
 
-                            if (targetLookup.isDirectory) {
-                                log(tag, INFO) { "Following symlink to directory: ${item.targetPath}" }
-                                getWorkspace().navigate(ExplorerNavigation.Target.Directory(target))
-                                clearSelection()
-                                return@launch
-                            } else {
-                                log(tag, INFO) { "Symlink points to file: ${item.targetPath}" }
-                                // Fall through to show file options dialog
-                            }
-                        }
-                    }
+    fun navigateToPath(path: APath<*>) = navigation.navigateToPath(path)
 
-                    val workspace = getWorkspace()
-                    val config = workspace.pickerConfig
+    fun navigateToEditedPath(currentPath: APath<*>, editedPath: String) =
+        navigation.navigateToEditedPath(currentPath, editedPath)
 
-                    // FileSingle mode: instant selection on file tap
-                    if (config?.selection?.instantFileSelection == true) {
-                        log(tag, INFO) { "FileSingle instant selection: ${item.lookup.name}" }
-                        workspaceRemote.returnResult(
-                            WorkspaceEvent.PickerResult(
-                                workspaceId = id,
-                                callerWorkspaceId = config.callerWorkspaceId,
-                                selectedPaths = listOf(item.lookup.lookedUp),
-                            )
-                        )
-                    } else {
-                        // Normal mode or other picker modes: show file options dialog
-                        dialogs.show(FileOptions(item))
-                    }
-                }
-                is ExplorerItem.Peek -> {
-                    // NOOP
-                }
-            }
-            is ExplorerItem.Shortcut -> {
-                getWorkspace().navigate(item.target)
-                clearSelection()
-            }
-            is ExplorerItem.Storage -> {
-                getWorkspace().navigate(item.target)
-                clearSelection()
-            }
-            is ExplorerItem.Trash.Root -> {
-                if (selectedItemsFlow.value.isNotEmpty()) {
-                    toggleItemSelection(item)
-                } else if (item.trashLookup?.fileType == FileType.DIRECTORY && item.isAvailable) {
-                    // Navigate into trashed folder
-                    val ref = TrashItemReference.from(item)
-                    getWorkspace().navigate(ExplorerNavigation.Target.Trash.Nested(ref, ""))
-                    clearSelection()
-                } else {
-                    dialogs.show(TrashItemOptions(item))
-                }
-            }
-            is ExplorerItem.Trash.Nested -> {
-                if (selectedItemsFlow.value.isNotEmpty()) {
-                    toggleItemSelection(item)
-                } else if (item.isDirectory) {
-                    // Navigate deeper into nested trash
-                    getWorkspace().navigate(ExplorerNavigation.Target.Trash.Nested(item.parentRef, item.relativePath))
-                    clearSelection()
-                } else {
-                    // Show options for nested files
-                    dialogs.show(TrashNestedItemOptions(item))
-                }
-            }
-        }
-    }
+    fun navigate(target: ExplorerNavigation) = navigation.navigate(target)
 
-    fun navigateToPath(path: APath<*>) = launch {
-        log(tag) { "navigateToPath($path)" }
-        getWorkspace().navigate(ExplorerNavigation.Target.Directory(path))
-        clearSelection()
-    }
+    fun toggleItemSelection(item: ExplorerItem) = selection.toggle(item)
 
-    fun navigateToEditedPath(currentPath: APath<*>, editedPath: String) {
-        val trimmed = editedPath.trim()
-        val newPath = when (currentPath) {
-            is SAFPath -> {
-                val segments = if (trimmed.isEmpty() || trimmed == "/") {
-                    emptyArray()
-                } else {
-                    trimmed.split("/").filter { it.isNotEmpty() }.toTypedArray()
-                }
-                SAFPath.build(currentPath.treeRootUri, *segments)
-            }
-            is LocalPath -> LocalPath.build(File("/$trimmed"))
-        }
-        navigateToPath(newPath)
-    }
+    fun onItemClick(item: ExplorerItem) = selection.onItemClick(item)
 
-    fun navigate(target: ExplorerNavigation) = launch {
-        log(tag) { "navigate($target)" }
-        getWorkspace().navigate(target)
-        clearSelection()
-    }
-
-    fun toggleItemSelection(item: ExplorerItem) {
-        if (!item.isSelectable()) {
-            log(tag, WARN) { "toggleItemSelection($item) is not selectable" }
-            return
-        }
-        val pickerConfig = cachedPickerConfig
-        val currentSelection = selectedItemsFlow.value
-
-        // In DirectorySingle mode with Storage items, enforce single selection (radio button behavior)
-        val newSelection =
-            if (pickerConfig?.selection is PickerConfig.Selection.DirectorySingle && item is ExplorerItem.Storage) {
-                if (currentSelection.contains(item)) {
-                    emptySet() // Deselect if clicking the same item
-                } else {
-                    setOf(item) // Replace selection with new item
-                }
-            } else {
-                // Normal toggle behavior for multi-select modes
-                if (currentSelection.contains(item)) {
-                    currentSelection - item
-                } else {
-                    currentSelection + item
-                }
-            }
-        selectedItemsFlow.value = newSelection
-    }
-
-    fun onItemClick(item: ExplorerItem) = launch {
-        log(tag) { "onItemClick($item)" }
-        val workspace = getWorkspace()
-        val pickerConfig = workspace.pickerConfig
-
-        when {
-            // FileMulti mode: tap file to toggle selection
-            pickerConfig?.selection is PickerConfig.Selection.FileMulti && item is ExplorerItem.File -> {
-                toggleItemSelection(item)
-            }
-            // MixedMulti mode: tap file to toggle selection, tap folder to navigate
-            pickerConfig?.selection is PickerConfig.Selection.MixedMulti && item is ExplorerItem.File -> {
-                toggleItemSelection(item)
-            }
-            // SaveAs mode: tap file to prefill the filename field (folders navigate)
-            pickerConfig?.selection is PickerConfig.Selection.SaveAs && item is ExplorerItem.File -> {
-                workspace.updateSaveAsFilename(item.lookup.name)
-            }
-            // Selection mode active: toggle selection
-            selectedItemsFlow.value.isNotEmpty() -> {
-                toggleItemSelection(item)
-            }
-            // Normal mode: navigate
-            else -> {
-                navigate(item)
-            }
-        }
-    }
-
-    fun onItemLongClick(item: ExplorerItem) {
-        log(tag) { "onItemLongClick($item)" }
-        val pickerConfig = cachedPickerConfig
-
-        // Enable long-press selection in:
-        // - Normal mode (no picker)
-        // - Multi-select picker modes
-        // - DirectorySingle mode with Storage items (allows selecting storage volumes at Device level)
-        val allowLongPress = pickerConfig == null
-            || pickerConfig.selection.isMultiSelect
-            || (pickerConfig.selection is PickerConfig.Selection.DirectorySingle && item is ExplorerItem.Storage)
-
-        if (allowLongPress) {
-            toggleItemSelection(item)
-        }
-    }
+    fun onItemLongClick(item: ExplorerItem) = selection.onItemLongClick(item)
 
     fun onFavoriteClick(fav: FavoriteItem) {
         log(tag) { "onFavoriteClick($fav)" }
@@ -710,32 +546,13 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun undoFavoriteRemoval() = favoritesController.undo()
 
-    fun clearSelection() {
-        selectedItemsFlow.value = emptySet()
-    }
+    fun clearSelection() = selection.clear()
 
-    fun selectAll() = launch {
-        val stateSnap = getState()
-        selectedItemsFlow.value = stateSnap.selectionState.selectableItems
-    }
+    fun selectAll() = selection.selectAll()
 
-    fun selectAllFolders() = launch {
-        val stateSnap = getState()
-        val folders = stateSnap.selectionState.selectableItems.filter { item ->
-            item is ExplorerItem.Directory ||
-                (item is ExplorerItem.Trash.Nested && item.isDirectory)
-        }
-        selectedItemsFlow.value += folders
-    }
+    fun selectAllFolders() = selection.selectAllFolders()
 
-    fun selectAllFiles() = launch {
-        val stateSnap = getState()
-        val files = stateSnap.selectionState.selectableItems.filter { item ->
-            item is ExplorerItem.File ||
-                (item is ExplorerItem.Trash.Nested && item.isFile)
-        }
-        selectedItemsFlow.value += files
-    }
+    fun selectAllFiles() = selection.selectAllFiles()
 
     // Focus navigation methods (wrap-around math lives in FocusNavigationState)
     fun moveFocusUp() = focus.moveUp()
@@ -769,7 +586,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     fun permanentDeleteSelectedItems() = launch {
         val stateSnap = getState()
-        val selectedItems = selectedItemsFlow.value
+        val selectedItems = selection.selectedItems.value
         if (selectedItems.isEmpty()) return@launch
         if (stateSnap.currentLocation !is ExplorerLocation.Directory) return@launch
 
@@ -811,8 +628,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 dialogEvents.emit(event)
             }
             is ExplorerActionBarItem.Directory.Copy -> {
-                log(tag) { "copySelectedItems(): ${selectedItemsFlow.value.size} items" }
-                val selected = selectedItemsFlow.value
+                log(tag) { "copySelectedItems(): ${selection.selectedItems.value.size} items" }
+                val selected = selection.selectedItems.value
                 if (selected.isEmpty()) return@launch
                 val clip = ClipboardClip.Paths(
                     mode = ClipboardClip.Paths.Mode.COPY,
@@ -825,8 +642,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 clearSelection()
             }
             is ExplorerActionBarItem.Directory.Cut -> {
-                log(tag) { "cutSelectedItems(): ${selectedItemsFlow.value.size} items" }
-                val selected = selectedItemsFlow.value
+                log(tag) { "cutSelectedItems(): ${selection.selectedItems.value.size} items" }
+                val selected = selection.selectedItems.value
                 if (selected.isEmpty()) return@launch
                 val clip = ClipboardClip.Paths(
                     mode = ClipboardClip.Paths.Mode.CUT,
@@ -839,8 +656,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 clearSelection()
             }
             is ExplorerActionBarItem.Directory.Delete -> {
-                log(tag) { "deleteSelectedItems(): ${selectedItemsFlow.value.size} items" }
-                val selectedItems = selectedItemsFlow.value
+                log(tag) { "deleteSelectedItems(): ${selection.selectedItems.value.size} items" }
+                val selectedItems = selection.selectedItems.value
                 if (selectedItems.isNotEmpty()) {
                     val currentLocation = stateSnap.currentLocation
                     if (currentLocation is ExplorerLocation.Directory) {
@@ -856,9 +673,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 }
             }
             is ExplorerActionBarItem.Directory.Share -> {
-                log(tag) { "shareSelectedItems(): ${selectedItemsFlow.value.size} items" }
+                log(tag) { "shareSelectedItems(): ${selection.selectedItems.value.size} items" }
 
-                val selectedFiles = selectedItemsFlow.value.filterIsInstance<ExplorerItem.File>()
+                val selectedFiles = selection.selectedItems.value.filterIsInstance<ExplorerItem.File>()
                 if (selectedFiles.isEmpty()) {
                     log(tag, WARN) { "No files selected for sharing (directories cannot be shared)" }
                     return@launch
@@ -891,15 +708,15 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 }
             }
             is ExplorerActionBarItem.Directory.SelectAll -> {
-                selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+                selection.set(stateSnap.selectionState.selectableItems)
             }
             is ExplorerActionBarItem.Directory.DeselectAll -> {
-                selectedItemsFlow.value = emptySet()
+                selection.clear()
             }
             is ExplorerActionBarItem.Directory.OpenInNewTabs -> {
-                log(tag) { "openInNewTabs(): ${selectedItemsFlow.value.size} items" }
-                val selectedLookups = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Lookup>()
-                val selectedStorages = selectedItemsFlow.value.filterIsInstance<ExplorerItem.Storage>()
+                log(tag) { "openInNewTabs(): ${selection.selectedItems.value.size} items" }
+                val selectedLookups = selection.selectedItems.value.filterIsInstance<ExplorerItem.Lookup>()
+                val selectedStorages = selection.selectedItems.value.filterIsInstance<ExplorerItem.Storage>()
                 if (selectedLookups.isEmpty() && selectedStorages.isEmpty()) return@launch
 
                 // Convert Explorer items to use case items
@@ -962,7 +779,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 viewSettings.updateViewStyle(action.viewStyle)
             }
             is ExplorerActionBarItem.Common.Refresh -> {
-                performRefresh()
+                navigation.refresh()
             }
             is ExplorerActionBarItem.Common.AddToFavorites -> {
                 favoritesRepo.addAll(action.items)
@@ -976,11 +793,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 favoritesRepo.toggle(action.path)
             }
             is ExplorerActionBarItem.Common.Info -> {
-                log(tag) { "showInfo(): ${selectedItemsFlow.value.size} items selected" }
+                log(tag) { "showInfo(): ${selection.selectedItems.value.size} items selected" }
 
                 // Only show info when items are selected
-                if (selectedItemsFlow.value.isNotEmpty()) {
-                    val selectedItems = selectedItemsFlow.value.toList()
+                if (selection.selectedItems.value.isNotEmpty()) {
+                    val selectedItems = selection.selectedItems.value.toList()
 
                     val infoContext = itemInfoCalculator.calculateInfo(selectedItems, stateSnap.items)
                     infoContext?.let { context ->
@@ -999,8 +816,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 showAddStorageSheet()
             }
             is ExplorerActionBarItem.Device.RemoveLocation -> {
-                log(tag) { "removeDeviceStorageLocation(): ${selectedItemsFlow.value.size} items" }
-                val selectedItems = selectedItemsFlow.value
+                log(tag) { "removeDeviceStorageLocation(): ${selection.selectedItems.value.size} items" }
+                val selectedItems = selection.selectedItems.value
                 if (selectedItems.isNotEmpty()) {
                     val selectedSAFItems = selectedItems
                         .filterIsInstance<ExplorerItem.Storage.SAF>()
@@ -1012,7 +829,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerActionBarItem.Device.RenameLocation -> {
                 log(tag) { "renameDeviceStorageLocation()" }
-                val selectedItem = selectedItemsFlow.value
+                val selectedItem = selection.selectedItems.value
                     .filterIsInstance<ExplorerItem.Storage.SAF>()
                     .single()
 
@@ -1024,7 +841,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 )
             }
             is ExplorerActionBarItem.Trash.SelectAll -> {
-                selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+                selection.set(stateSnap.selectionState.selectableItems)
             }
             is ExplorerActionBarItem.Trash.Restore -> {
                 dismissDialog()
@@ -1039,7 +856,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 dialogs.show(EmptyTrashConfirmation)
             }
             is ExplorerActionBarItem.TrashNested.SelectAll -> {
-                selectedItemsFlow.value = stateSnap.selectionState.selectableItems
+                selection.set(stateSnap.selectionState.selectableItems)
             }
             is ExplorerActionBarItem.TrashNested.Restore -> {
                 dismissDialog()
@@ -1129,8 +946,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         log(tag) { "executeActionLongClick($action)" }
         when (action) {
             is ExplorerActionBarItem.Directory.Delete -> {
-                log(tag) { "longPress deleteSelectedItems(): ${selectedItemsFlow.value.size} items (forcePermDelete)" }
-                val selectedItems = selectedItemsFlow.value
+                log(tag) { "longPress deleteSelectedItems(): ${selection.selectedItems.value.size} items (forcePermDelete)" }
+                val selectedItems = selection.selectedItems.value
                 if (selectedItems.isNotEmpty()) {
                     val currentLocation = getState().currentLocation
                     if (currentLocation is ExplorerLocation.Directory) {
@@ -1466,30 +1283,9 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun retryNavigation() = launch {
-        log(tag) { "retryNavigation()" }
-        performRefresh()
-    }
+    fun retryNavigation() = navigation.retryNavigation()
 
-    /**
-     * Centralized refresh: re-resolves favorites (so unavailable ones may become available
-     * after a SAF re-grant or SD card remount) AND triggers the workspace re-navigation.
-     * Use this from every user-initiated refresh entry point.
-     */
-    private suspend fun performRefresh() {
-        favoritesRepo.refresh()
-        getWorkspace().navigate(ExplorerNavigation.Refresh)
-    }
-
-    fun dismissNavigationError() = launch {
-        log(tag) { "dismissNavigationError()" }
-        val workspace = getWorkspace()
-        if (getState().canGoBack) {
-            workspace.navigate(ExplorerNavigation.Back)
-        } else {
-            workspace.navigate(ExplorerNavigation.Target.Home)
-        }
-    }
+    fun dismissNavigationError() = navigation.dismissNavigationError()
 
     fun validateFilename(name: String): FilenameValidator.ValidationResult {
         val currentPath = cachedCurrentLocation?.let {
@@ -1580,39 +1376,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().updateSaveAsFilename(filename)
     }
 
-    fun goBack() = launch {
-        log(tag) { "goBack()" }
-        // Capture current path before navigating back
-        val currentLocation = getState().currentLocation
-        val currentPath = (currentLocation as? ExplorerLocation.Directory)?.path
-
-        // Navigate back
-        getWorkspace().navigate(ExplorerNavigation.Back)
-        clearSelection()
-
-        // Reveal the directory we came from (if applicable)
-        if (currentPath != null) {
-            revealItems(listOf(currentPath), highlight = false)
-        }
-    }
+    fun goBack() = navigation.goBack()
 
     fun closeWorkspace() = chrome.closeWorkspace()
 
-    fun revealItems(paths: List<APath<*>>, highlight: Boolean = true) = launch {
-        if (paths.isEmpty()) return@launch
-        log(tag) { "revealItems(${paths.map { it.path }}, highlight=$highlight)" }
-        revealRequests.emit(RevealRequest(paths.first(), highlight))
-        if (highlight) {
-            highlightedItemIds.value = paths.map { it.toPathItemId() }.toSet()
-        }
-    }
-
-    private fun clearHighlights() {
-        if (highlightedItemIds.value.isNotEmpty()) {
-            log(tag) { "clearHighlights()" }
-            highlightedItemIds.value = emptySet()
-        }
-    }
+    fun revealItems(paths: List<APath<*>>, highlight: Boolean = true) = navigation.revealItems(paths, highlight)
 
     @AssistedFactory
     interface Factory {
