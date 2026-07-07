@@ -15,7 +15,7 @@ import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.editor.core.engine.ContentSource
 import eu.darken.butler.editor.core.engine.LineEnding
-import eu.darken.butler.editor.core.engine.text.CharsetDetector
+import eu.darken.butler.common.files.text.CharsetDetector
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers

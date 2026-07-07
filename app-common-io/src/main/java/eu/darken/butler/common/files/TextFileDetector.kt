@@ -9,17 +9,17 @@ object TextFileDetector {
         "json", "xml", "yml", "yaml", "toml", "ini", "cfg", "conf", "config",
 
         // Web
-        "html", "htm", "css", "js", "jsx", "ts", "tsx",
+        "html", "htm", "css", "js", "jsx", "ts", "tsx", "scss", "sass", "less",
 
         // Programming languages
         "kt", "kts", "java", "py", "c", "cpp", "cc", "cxx", "h", "hpp",
-        "cs", "php", "rb", "go", "rs", "swift", "m", "mm",
+        "cs", "php", "rb", "go", "rs", "swift", "m", "mm", "sql",
 
         // Shell scripts
-        "sh", "bash", "zsh", "fish",
+        "sh", "bash", "zsh", "fish", "bat", "cmd", "ps1",
 
         // Build files
-        "gradle", "cmake", "make", "mk",
+        "gradle", "cmake", "make", "mk", "properties", "env",
 
         // Documentation
         "log", "rst", "adoc", "tex",

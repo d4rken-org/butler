@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.core.engine.text
+package eu.darken.butler.common.files.text
 
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException

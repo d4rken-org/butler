@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
 
 class PathScanner @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
@@ -183,17 +182,19 @@ class PathScanner @AssistedInject constructor(
         }
     }
 
+    // No per-file dispatcher hop: the flow already runs on IO via flowOn, filename matching is
+    // trivial, and content matching manages its own dispatch internally.
     private suspend fun matchesSearch(
         lookup: APathLookup<*>,
         searchQuery: SearchQuery,
         includeBinaries: Boolean,
-    ): SearchItem.MatchContext? = withContext(dispatcherProvider.Default) {
+    ): SearchItem.MatchContext? {
         val filenameQuery = searchQuery.filenameQuery
         val contentQuery = searchQuery.contentQuery
         val hasFilenameQuery = filenameQuery.isNotEmpty
         val hasContentQuery = contentQuery.isNotEmpty
 
-        when {
+        return when {
             // Case 1: Only filename pattern - match filename only
             hasFilenameQuery && !hasContentQuery -> {
                 if (matchesFilename(lookup.name, filenameQuery)) {
@@ -205,7 +206,7 @@ class PathScanner @AssistedInject constructor(
 
             // Case 2: Only content pattern - match content only (for files)
             !hasFilenameQuery && hasContentQuery -> {
-                if (lookup.fileType != FileType.FILE) return@withContext null
+                if (lookup.fileType != FileType.FILE) return null
                 contentMatcher.matchesContent(lookup, contentQuery, includeBinaries)
             }
 
@@ -213,12 +214,12 @@ class PathScanner @AssistedInject constructor(
             hasFilenameQuery && hasContentQuery -> {
                 // First: filename must match
                 if (!matchesFilename(lookup.name, filenameQuery)) {
-                    return@withContext null
+                    return null
                 }
 
                 // Only files can have content matches
                 if (lookup.fileType != FileType.FILE) {
-                    return@withContext null
+                    return null
                 }
 
                 // Second: content must match

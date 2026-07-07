@@ -1,5 +1,6 @@
 package eu.darken.butler.editor.core.engine.text
 
+import eu.darken.butler.common.files.text.CharsetDetector
 import eu.darken.butler.editor.core.engine.LineEnding
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue

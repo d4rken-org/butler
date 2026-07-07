@@ -1,4 +1,4 @@
-package eu.darken.butler.editor.core.engine.text
+package eu.darken.butler.common.files.text
 
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test

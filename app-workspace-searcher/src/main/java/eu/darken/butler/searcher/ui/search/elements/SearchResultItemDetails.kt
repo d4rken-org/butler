@@ -30,6 +30,7 @@ import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.compose.TintedAsyncImage
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatDate
@@ -301,15 +302,7 @@ private fun QuickActionItem(
     }
 }
 
-private fun isTextFile(result: SearchItem): Boolean {
-    // Simple heuristic - in a real implementation, this could be more sophisticated
-    val extension = result.path.name.substringAfterLast('.', "").lowercase()
-    return extension in setOf(
-        "txt", "md", "json", "xml", "html", "css", "js", "kt", "java",
-        "py", "c", "cpp", "h", "hpp", "cs", "php", "rb", "go", "rs",
-        "yml", "yaml", "toml", "ini", "cfg", "conf", "log"
-    )
-}
+private fun isTextFile(result: SearchItem): Boolean = TextFileDetector.isTextFile(result.path)
 
 @Preview2
 @ComposePreviewWrapper(ButlerPreviewWrapper::class)

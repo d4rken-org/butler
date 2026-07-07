@@ -10,10 +10,13 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.TextFileDetector
+import eu.darken.butler.common.files.text.CharsetDetector
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.workspace.contracts.searcher.ContentQuery
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.withContext
+import okio.BufferedSource
 import okio.buffer
 import okio.use
 
@@ -26,6 +29,10 @@ class ContentMatcher @AssistedInject constructor(
 
     /**
      * Checks if file content matches the pattern and returns match context if found.
+     *
+     * The file is opened exactly once: a small head sample is read first for binary detection
+     * (each open is an IPC round-trip in ROOT/ADB modes), and only files that pass it read the
+     * full content buffer.
      *
      * @param lookup The file to search within
      * @param query The content query with search text and options
@@ -43,63 +50,54 @@ class ContentMatcher @AssistedInject constructor(
             return@withContext null
         }
 
-        // 2. Binary detection - skip binary files to avoid wasting time
-        if (!includeBinaries && isBinaryFile(lookup)) {
-            log(tag, VERBOSE) { "Skipping ${lookup.name} - detected as binary file" }
-            return@withContext null
-        }
+        // 2. Known text extensions skip binary detection entirely
+        val knownTextExtension = TextFileDetector.isTextFile(lookup.name)
 
-        // 3. Read file content (first buffer only for performance)
-        val content = try {
-            readFileContent(lookup)
+        // 3. Single open: sniff the head for binary content, then read the rest
+        val content: String? = try {
+            gatewaySwitch.file(lookup.lookedUp, readWrite = false).use { handle ->
+                handle.source().buffer().use { source ->
+                    val head = source.readUpTo(minOf(BINARY_SNIFF_SIZE, SearchConfig.CONTENT_READ_BUFFER))
+                    if (!includeBinaries && !knownTextExtension && detectBinary(head)) {
+                        log(tag, VERBOSE) { "Skipping ${lookup.name} - detected as binary file" }
+                        null
+                    } else {
+                        val rest = source.readUpTo(SearchConfig.CONTENT_READ_BUFFER - head.size)
+                        val bytes = if (rest.isEmpty()) head else head + rest
+                        decodeContent(bytes, truncated = bytes.size == SearchConfig.CONTENT_READ_BUFFER)
+                    }
+                }
+            }
         } catch (e: Exception) {
             log(tag, WARN) { "Failed to read ${lookup.name}: ${e.asLog()}" }
             return@withContext null
         }
+        if (content == null) return@withContext null
 
         // 4. Search for match in content
         findMatch(content, query)
     }
 
     /**
-     * Reads file content up to buffer size limit.
-     * Uses UTF-8 with fallback to ISO-8859-1 (single-byte encoding that never fails).
+     * Reads up to [limit] bytes, looping until the buffer is full or EOF — a single read call
+     * can return short and would skew detection.
      */
-    private suspend fun readFileContent(lookup: APathLookup<*>): String {
-        return gatewaySwitch.file(lookup.lookedUp, readWrite = false).use { handle ->
-            handle.source().buffer().use { source ->
-                val bytes = ByteArray(SearchConfig.CONTENT_READ_BUFFER)
-                val bytesRead = source.read(bytes)
-                if (bytesRead > 0) {
-                    val contentBytes = if (bytesRead == bytes.size) bytes else bytes.copyOf(bytesRead)
-                    // Try UTF-8 first, fall back to ISO-8859-1 (never fails)
-                    tryDecodeUtf8(contentBytes) ?: String(contentBytes, Charsets.ISO_8859_1)
-                } else {
-                    ""
-                }
-            }
+    private fun BufferedSource.readUpTo(limit: Int): ByteArray {
+        if (limit <= 0) return ByteArray(0)
+        val bytes = ByteArray(limit)
+        var filled = 0
+        while (filled < limit) {
+            val read = read(bytes, filled, limit - filled)
+            if (read == -1) break
+            filled += read
         }
-    }
-
-    /**
-     * Attempts UTF-8 decoding with strict validation.
-     * Returns null if the bytes are not valid UTF-8.
-     */
-    private fun tryDecodeUtf8(bytes: ByteArray): String? {
-        return try {
-            val decoder = Charsets.UTF_8.newDecoder()
-                .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
-                .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
-            decoder.decode(java.nio.ByteBuffer.wrap(bytes)).toString()
-        } catch (e: java.nio.charset.CharacterCodingException) {
-            null
-        }
+        return if (filled == bytes.size) bytes else bytes.copyOf(filled)
     }
 
     /**
      * Searches for pattern in content and returns match context with line information.
      */
-    private fun findMatch(
+    internal fun findMatch(
         content: String,
         query: ContentQuery,
     ): SearchItem.MatchContext? {
@@ -152,48 +150,64 @@ class ContentMatcher @AssistedInject constructor(
         return null // No match found
     }
 
-    private val searchableExtensions = setOf(
-        "txt", "log", "md", "markdown", "rst",
-        "json", "xml", "yaml", "yml", "toml", "ini", "conf", "config",
-        "kt", "kts", "java", "py", "js", "ts", "jsx", "tsx", "c", "cpp", "h", "hpp",
-        "html", "css", "scss", "sass", "less",
-        "sh", "bash", "zsh", "fish", "bat", "cmd", "ps1",
-        "sql", "gradle", "properties", "env",
-    )
-
-    /**
-     * Detects if a file is likely binary (non-text) based on extension and content.
-     */
-    private suspend fun isBinaryFile(lookup: APathLookup<*>): Boolean {
-        // Fast check: whitelist common text file extensions
-        val extension = lookup.name.substringAfterLast('.', "").lowercase()
-        if (extension in searchableExtensions) {
-            return false // Definitely text
-        }
-
-        // For unknown extensions, check for null bytes (indicates binary)
-        return try {
-            val sampleSize = 512
-            gatewaySwitch.file(lookup.lookedUp, readWrite = false).use { handle ->
-                handle.source().buffer().use { source ->
-                    val bytes = ByteArray(sampleSize)
-                    val bytesRead = source.read(bytes)
-                    if (bytesRead > 0) {
-                        // Check for null bytes - strong indicator of binary file
-                        bytes.take(bytesRead).contains(0.toByte())
-                    } else {
-                        false // Empty file, treat as text
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            log(tag, WARN) { "Failed binary detection for ${lookup.name}: ${e.asLog()}" }
-            true // Assume binary if we can't read it
-        }
-    }
-
     @AssistedFactory
     interface Factory {
         fun create(workspaceId: Workspace.Id): ContentMatcher
+    }
+
+    companion object {
+        /** Binary detection samples at most this many bytes from the head of the file */
+        internal const val BINARY_SNIFF_SIZE = 512
+
+        /**
+         * Null-byte sniff on the head sample, BOM-aware: UTF-16 text legitimately contains
+         * null bytes, so files with a BOM are never classified as binary.
+         */
+        internal fun detectBinary(head: ByteArray): Boolean {
+            if (head.isEmpty()) return false
+            if (CharsetDetector.detectBom(head) != null) return false
+            return head.any { it == 0.toByte() }
+        }
+
+        /**
+         * Decodes content bytes: BOM charset first (BOM stripped), then strict UTF-8, falling
+         * back to ISO-8859-1 (a single-byte encoding that never fails).
+         *
+         * With [truncated], a multibyte UTF-8 sequence cut off at the buffer boundary is trimmed
+         * before validation — otherwise a valid UTF-8 file read up to the buffer limit would fail
+         * strict validation and the WHOLE buffer would decode as ISO-8859-1 mojibake.
+         */
+        internal fun decodeContent(bytes: ByteArray, truncated: Boolean = false): String {
+            if (bytes.isEmpty()) return ""
+            CharsetDetector.detectBom(bytes)?.let { detection ->
+                return String(bytes.copyOfRange(detection.bomSize, bytes.size), detection.charset)
+            }
+            val candidate = if (truncated) trimIncompleteUtf8Tail(bytes) else bytes
+            return if (CharsetDetector.isValidUtf8(candidate)) {
+                String(candidate, Charsets.UTF_8)
+            } else {
+                String(bytes, Charsets.ISO_8859_1)
+            }
+        }
+
+        private fun trimIncompleteUtf8Tail(bytes: ByteArray): ByteArray {
+            var leadIndex = bytes.size - 1
+            var continuations = 0
+            while (leadIndex >= 0 && continuations < 3 && (bytes[leadIndex].toInt() and 0xC0) == 0x80) {
+                leadIndex--
+                continuations++
+            }
+            if (leadIndex < 0) return bytes
+            val lead = bytes[leadIndex].toInt() and 0xFF
+            val expected = when {
+                lead >= 0xF0 -> 4
+                lead >= 0xE0 -> 3
+                lead >= 0xC0 -> 2
+                // ASCII or invalid lead byte: nothing that could be an incomplete tail
+                else -> return bytes
+            }
+            val available = bytes.size - leadIndex
+            return if (available < expected) bytes.copyOf(leadIndex) else bytes
+        }
     }
 }

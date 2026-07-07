@@ -7,7 +7,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
-import eu.darken.butler.editor.core.engine.text.CharsetDetector
+import eu.darken.butler.common.files.text.CharsetDetector
 import kotlinx.coroutines.CancellationException
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
