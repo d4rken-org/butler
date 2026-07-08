@@ -62,6 +62,36 @@ class EditorEngineDisplayCapTest : EditorEngineTestBase() {
     }
 
     @Test
+    fun `End after goToLine onto a mid-file truncated line clamps to the prefix`() = runTest {
+        // Mirrors the on-device sequence: a long line surrounded by short lines, jumped to via
+        // goToLine (cursor lands at col 0), then LINE_END. Must clamp to the cap, not the full end.
+        val midFile = "a\nb\n" + "x".repeat(50) + "\nc\nd"
+        val engine = createEngine(midFile, displayLineCap = cap)
+
+        engine.goToLine(2).getOrThrow()
+        engine.cursorPosition.value.line shouldBe 2L
+        engine.cursorPosition.value.column shouldBe 0
+
+        engine.moveCursor(CursorDirection.LINE_END, extendSelection = false)
+
+        engine.cursorPosition.value.column shouldBe cap
+    }
+
+    @Test
+    fun `typing after End on a truncated line inserts at the marker, not the full end`() = runTest {
+        val midFile = "a\nb\n" + "x".repeat(50) + "\nc\nd"
+        val engine = createEngine(midFile, displayLineCap = cap)
+        engine.goToLine(2).getOrThrow()
+
+        engine.moveCursor(CursorDirection.LINE_END, extendSelection = false)
+        engine.insertText("Z")
+
+        // Z lands at the cap boundary (real offset for col 10), NOT at the full line end (col 50)
+        engine.textBuffer!!.getTextForLine(2).getOrThrow() shouldBe
+            "x".repeat(cap) + "Z" + "x".repeat(50 - cap)
+    }
+
+    @Test
     fun `cursor set into the hidden region normalizes to the marker`() = runTest {
         val engine = createEngine(content, displayLineCap = cap)
 
