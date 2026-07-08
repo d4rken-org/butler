@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.InsertDriveFile
 import androidx.compose.material3.Card
@@ -77,8 +76,11 @@ internal fun SourceFileCard(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    AccessibilityCaption(isAccessible = sourceInfo.isAccessible)
+                    // Accessibility is assumed; only surface a caption when the source is gone.
+                    if (!sourceInfo.isAccessible) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        InaccessibleCaption()
+                    }
                 }
             }
         }
@@ -86,15 +88,9 @@ internal fun SourceFileCard(
 }
 
 @Composable
-private fun AccessibilityCaption(
+private fun InaccessibleCaption(
     modifier: Modifier = Modifier,
-    isAccessible: Boolean,
 ) {
-    val (icon, tint, textRes) = if (isAccessible) {
-        Triple(Icons.TwoTone.CheckCircle, MaterialTheme.colorScheme.primary, R.string.saver_source_accessible)
-    } else {
-        Triple(Icons.TwoTone.Error, MaterialTheme.colorScheme.error, R.string.saver_error_source_expired)
-    }
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
@@ -102,14 +98,14 @@ private fun AccessibilityCaption(
     ) {
         Icon(
             modifier = Modifier.size(16.dp),
-            imageVector = icon,
+            imageVector = Icons.TwoTone.Error,
             contentDescription = null,
-            tint = tint,
+            tint = MaterialTheme.colorScheme.error,
         )
         Text(
-            text = stringResource(textRes),
+            text = stringResource(R.string.saver_error_source_expired),
             style = MaterialTheme.typography.bodySmall,
-            color = tint,
+            color = MaterialTheme.colorScheme.error,
         )
     }
 }

@@ -143,6 +143,7 @@ class SaverWorkspace @AssistedInject constructor(
         val filename: String = "",
         val saveState: SaveState = SaveState.Idle,
         val callerLabel: String? = null,
+        val callerPackage: Pkg.Id? = null,
         val createdAt: Instant? = null,
     ) {
         val isBatchMode: Boolean get() = sourceInfos.size > 1
@@ -255,6 +256,7 @@ class SaverWorkspace @AssistedInject constructor(
                 filename = filename,
                 saveState = saveState,
                 callerLabel = callerLabel,
+                callerPackage = creationArguments.callerPackage?.takeIf { !isUnknownCaller(it) },
                 createdAt = createdAt,
             )
         }

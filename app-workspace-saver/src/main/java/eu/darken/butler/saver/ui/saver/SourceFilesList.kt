@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.FileCopy
 import androidx.compose.material.icons.twotone.InsertDriveFile
@@ -96,16 +95,9 @@ internal fun SourceFilesList(
                         )
                     }
                 }
-                // Show status indicator
-                val allAccessible = sourceInfos.all { it.isAccessible }
-                val anyInaccessible = sourceInfos.any { !it.isAccessible }
-                when {
-                    allAccessible -> Icon(
-                        imageVector = Icons.TwoTone.CheckCircle,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                    anyInaccessible -> Icon(
+                // Accessibility is assumed; only flag when some source is gone.
+                if (sourceInfos.any { !it.isAccessible }) {
+                    Icon(
                         imageVector = Icons.TwoTone.Error,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,

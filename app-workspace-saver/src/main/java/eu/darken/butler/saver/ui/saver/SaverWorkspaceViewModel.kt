@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.navigation.NavEvent
+import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.saver.core.ContentUriHelper
@@ -82,6 +83,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
         val filename: String = "",
         val saveState: SaverWorkspace.SaveState = SaverWorkspace.SaveState.Idle,
         val callerLabel: String? = null,
+        val callerPackage: Pkg.Id? = null,
         val createdAt: Instant? = null,
         val operationDisplay: OperationDisplay? = null,
     ) {
@@ -136,6 +138,7 @@ class SaverWorkspaceViewModel @AssistedInject constructor(
                     filename = wsState.filename,
                     saveState = wsState.saveState,
                     callerLabel = wsState.callerLabel,
+                    callerPackage = wsState.callerPackage,
                     createdAt = wsState.createdAt,
                     operationDisplay = managedOp?.toDisplayModel(),
                 )

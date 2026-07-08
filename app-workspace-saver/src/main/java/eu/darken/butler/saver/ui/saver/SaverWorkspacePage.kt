@@ -182,6 +182,7 @@ private fun SingleFileModeContent(
     ) {
         SaverHeader(
             callerLabel = state.callerLabel,
+            callerPackage = state.callerPackage,
             createdAt = state.createdAt,
             workspaceId = workspaceId,
         )
@@ -263,6 +264,7 @@ private fun BatchModeContent(
     ) {
         SaverHeader(
             callerLabel = state.callerLabel,
+            callerPackage = state.callerPackage,
             createdAt = state.createdAt,
             workspaceId = workspaceId,
         )
