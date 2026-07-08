@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.InsertDriveFile
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,14 +20,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.previews.SharedContentPreview
 import eu.darken.butler.saver.R
 import eu.darken.butler.saver.core.ContentUriHelper
 
@@ -56,21 +56,34 @@ internal fun FilePreviewCard(
                 contentAlignment = Alignment.Center,
             ) {
                 if (sourceInfo != null) {
-                    val isImage = sourceInfo.mimeType?.startsWith("image/") == true
-                    if (isImage) {
-                        AsyncImage(
-                            model = sourceInfo.uri,
+                    val mime = sourceInfo.mimeType
+                    val name = sourceInfo.displayName
+                    val ext = name.substringAfterLast('.', "").lowercase()
+                    val isMedia = mime?.startsWith("image/") == true || mime?.startsWith("video/") == true
+                    val isApk = mime == "application/vnd.android.package-archive" || ext == "apk"
+                    val isPdf = mime == "application/pdf" || ext == "pdf"
+                    val typeIcon = fileTypeIcon(mime, name)
+
+                    // Don't open an expired source; images/videos preview zero-copy via the content URI,
+                    // apk/pdf via the no-copy SharedContentPreview fetcher. Anything else -> type glyph.
+                    val model: Any? = when {
+                        !sourceInfo.isAccessible -> null
+                        isMedia -> sourceInfo.uri
+                        isApk || isPdf -> SharedContentPreview(sourceInfo.uri, mime, name, sourceInfo.size)
+                        else -> null
+                    }
+
+                    if (model != null) {
+                        SubcomposeAsyncImage(
+                            model = model,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Fit,
+                            loading = { CircularProgressIndicator() },
+                            error = { TypeGlyph(typeIcon) },
                         )
                     } else {
-                        Icon(
-                            modifier = Modifier.size(64.dp),
-                            imageVector = Icons.TwoTone.InsertDriveFile,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        TypeGlyph(typeIcon)
                     }
                 } else {
                     CircularProgressIndicator()
@@ -78,6 +91,16 @@ internal fun FilePreviewCard(
             }
         }
     }
+}
+
+@Composable
+private fun TypeGlyph(icon: ImageVector) {
+    Icon(
+        modifier = Modifier.size(64.dp),
+        imageVector = icon,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Preview2

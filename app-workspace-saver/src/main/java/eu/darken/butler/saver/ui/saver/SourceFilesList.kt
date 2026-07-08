@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.FileCopy
-import androidx.compose.material.icons.twotone.InsertDriveFile
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -156,8 +155,7 @@ private fun SourceFileRow(
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
         ) {
-            val isImage = info.mimeType?.startsWith("image/") == true
-            if (isImage) {
+            if (info.isMedia()) {
                 AsyncImage(
                     model = info.uri,
                     contentDescription = null,
@@ -167,7 +165,7 @@ private fun SourceFileRow(
             } else {
                 Icon(
                     modifier = Modifier.size(24.dp),
-                    imageVector = Icons.TwoTone.InsertDriveFile,
+                    imageVector = fileTypeIcon(info.mimeType, info.displayName),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
