@@ -59,8 +59,18 @@ class EditorEngine @AssistedInject constructor(
     private val _state = MutableStateFlow<EditorState>(EditorState.Empty)
     val state: StateFlow<EditorState> = _state.asStateFlow()
 
-    private val _currentContent = MutableStateFlow("")
-    val currentContent: StateFlow<String> = _currentContent.asStateFlow()
+    /**
+     * The visible window's display text plus its per-line truncation map as ONE value: two
+     * independent flows could pair capped text with a stale map mid-combine (SearchState
+     * precedent). [truncatedLines] is keyed by ABSOLUTE line number, non-zero entries only.
+     */
+    data class VisibleContent(
+        val text: String = "",
+        val truncatedLines: Map<Long, Long> = emptyMap(),
+    )
+
+    private val _visibleContent = MutableStateFlow(VisibleContent())
+    val visibleContent: StateFlow<VisibleContent> = _visibleContent.asStateFlow()
 
     private val _cursorPosition = MutableStateFlow(TextPosition.ZERO)
     val cursorPosition: StateFlow<TextPosition> = _cursorPosition.asStateFlow()
@@ -271,13 +281,13 @@ class EditorEngine @AssistedInject constructor(
             if (endLine >= 0) {
                 _visibleRange.value = 0L..endLine
                 currentCoroutineContext().ensureActive()
-                val contentResult = resources.textBuffer.getTextForRange(0, endLine)
-                if (contentResult.isSuccess) {
-                    _currentContent.value = contentResult.getOrNull() ?: ""
+                val contentResult = resources.textBuffer.getDisplayRange(0, endLine)
+                contentResult.getOrNull()?.let { window ->
+                    _visibleContent.value = VisibleContent(window.text, window.truncatedLines)
                 }
             } else {
                 _visibleRange.value = 0L..0L
-                _currentContent.value = ""
+                _visibleContent.value = VisibleContent()
             }
 
             // Transition to Loaded state
@@ -535,15 +545,22 @@ class EditorEngine @AssistedInject constructor(
                         // Update visible content - use in-place update for small edits
                         if (insert.length <= 10 && !insert.contains('\n')) {
                             val cursorLine = correctedPosition.line
+                            val visible = _visibleContent.value
                             val visibleStart = _visibleRange.value.first
-                            val lines = _currentContent.value.split('\n').toMutableList()
+                            val lines = visible.text.split('\n').toMutableList()
                             // Index into the loaded window; bounded by the window size, safe to narrow
                             val lineIndex = (cursorLine - visibleStart).toInt()
-                            if (cursorLine in _visibleRange.value && lineIndex in lines.indices) {
+                            // Truncated lines (and patches that would cross the cap) bypass to a
+                            // full refresh: an in-place patch diverges from the capped re-read
+                            val cap = currentState.resources.textBuffer.maxDisplayLineChars
+                            if (cursorLine in _visibleRange.value && lineIndex in lines.indices &&
+                                !visible.truncatedLines.containsKey(cursorLine) &&
+                                lines[lineIndex].length + insert.length <= cap
+                            ) {
                                 val line = lines[lineIndex]
                                 val col = correctedPosition.column.coerceAtMost(line.length)
                                 lines[lineIndex] = line.substring(0, col) + insert + line.substring(col)
-                                _currentContent.value = lines.joinToString("\n")
+                                _visibleContent.value = visible.copy(text = lines.joinToString("\n"))
                             } else {
                                 refreshVisibleContent()
                             }
@@ -592,8 +609,8 @@ class EditorEngine @AssistedInject constructor(
         // Resolve flat offsets from line/column - UI sends placeholder offset=0 with virtual scrolling.
         val startOffset = buffer.findOffset(start.line, start.column)
         val endOffset = buffer.findOffset(end.line, end.column)
-        val lowPos: TextPosition
-        val highPos: TextPosition
+        var lowPos: TextPosition
+        var highPos: TextPosition
         if (startOffset <= endOffset) {
             lowPos = TextPosition(startOffset, start.line, start.column)
             highPos = TextPosition(endOffset, end.line, end.column)
@@ -609,33 +626,70 @@ class EditorEngine @AssistedInject constructor(
             return@withLock
         }
 
-        log(tag, VERBOSE) { "replaceText $lowPos..$highPos -> ${newText.take(50)} (caret=$caret)" }
-
         // Only keystroke-SIZED edits coalesce (<= 2 UTF-16 units covers surrogate-pair input):
         // platform paste and IME batch commits arrive through this same diff path as large pure
         // inserts and must neither join a typing run nor anchor one
         val keystrokeSized = newText.length <= 2 && (highPos.offset - lowPos.offset) <= 2
-        val result: Result<*> = when {
+
+        // Boundary disambiguation for display-truncated lines: the capped field cannot address
+        // offsets past the visible prefix - EVERY hidden position maps to the boundary column.
+        // When the engine cursor sits deeper in the SAME line (boundary-append typing or a
+        // hidden-region replace put it there; taps/arrow keys normalize it back to the marker),
+        // a KEYSTROKE-SIZED insert/delete touching the boundary column continues that
+        // hidden-region input and resolves relative to the ENGINE cursor - consistent with the
+        // hardware-key paths, which already edit at the real cursor. Without this, the second
+        // keystroke of a boundary-typing run would land BEFORE the first ("AB" -> "BA").
+        // Anything larger (genuine replaces/autocorrect, word-swipe deletes, selection deletes,
+        // pastes) operates on text the IME actually SAW and is never redirected.
+        val redirected = run {
+            if (!keystrokeSized) return@run false
+            if (!isEmptyRange && newText.isNotEmpty()) return@run false // genuine replace
+            if (lowPos.line != highPos.line) return@run false
+            val visible = _visibleContent.value
+            if (!visible.truncatedLines.containsKey(highPos.line)) return@run false
+            val cursor = _cursorPosition.value
+            if (cursor.line != highPos.line || cursor.offset <= highPos.offset) return@run false
+            val lineIndex = (highPos.line - _visibleRange.value.first).toInt()
+            val displayLength = visible.text.split('\n').getOrNull(lineIndex)?.length ?: return@run false
+            if (highPos.column != displayLength) return@run false
+            val delta = cursor.offset - highPos.offset
+            val lineStart = cursor.offset - cursor.column
+            if (lowPos.offset + delta < lineStart) return@run false
+            lowPos = TextPosition(lowPos.offset + delta, lowPos.line, lowPos.column + delta.toInt())
+            highPos = TextPosition(cursor.offset, highPos.line, cursor.column)
+            true
+        }
+
+        log(tag, VERBOSE) { "replaceText $lowPos..$highPos -> ${newText.take(50)} (caret=$caret, redirected=$redirected)" }
+        val result: Result<TextPosition> = when {
             // Keystroke-sized inserts/deletes merge into the current typing run (one undo
             // steps back over the run, not one character)
             isEmptyRange -> buffer.insertText(lowPos, newText, coalesce = keystrokeSized) // pure insert
-            newText.isEmpty() -> buffer.deleteText(lowPos, highPos, coalesce = keystrokeSized) // pure delete
+            newText.isEmpty() -> buffer.deleteText(lowPos, highPos, coalesce = keystrokeSized).map { lowPos } // pure delete
             else -> buffer.replaceText(lowPos, highPos, newText) // genuine replace (delete + insert)
         }
 
-        if (result.isSuccess) {
-            _totalLines.value = buffer.totalLines.value
-            updateCursorFromCaret(buffer, caret)
-            _selectionRange.value = null
-            selectionAnchor = null
-            _state.value = currentState.copy(isModified = true)
-            invalidateSearchResults()
-            refreshVisibleContent()
-        } else {
-            val e = result.exceptionOrNull() ?: IllegalStateException("Unknown error replacing text")
-            log(tag, ERROR) { "Failed to replace text - ${e.asLog()}" }
-            _error.value = e
-        }
+        result.fold(
+            onSuccess = { editEnd ->
+                _totalLines.value = buffer.totalLines.value
+                if (redirected) {
+                    // The field caret cannot express hidden-region positions; place the cursor
+                    // from the actual edit (after the insert / at the delete start)
+                    _cursorPosition.value = editEnd
+                } else {
+                    updateCursorFromCaret(buffer, caret)
+                }
+                _selectionRange.value = null
+                selectionAnchor = null
+                _state.value = currentState.copy(isModified = true)
+                invalidateSearchResults()
+                refreshVisibleContent()
+            },
+            onFailure = { e ->
+                log(tag, ERROR) { "Failed to replace text - ${e.asLog()}" }
+                _error.value = e
+            },
+        )
     }
 
     /** Resolves [caret] (line/column from the visible field) to a buffer offset and sets it as the cursor. */
@@ -757,16 +811,21 @@ class EditorEngine @AssistedInject constructor(
                         // Update visible content - use in-place update for small single-line deletes
                         if (actualCount <= 10 && !deletedText.contains('\n') && startPosition.line == endPosition.line) {
                             val cursorLine = startPosition.line
+                            val visible = _visibleContent.value
                             val visibleStart = _visibleRange.value.first
-                            val lines = _currentContent.value.split('\n').toMutableList()
+                            val lines = visible.text.split('\n').toMutableList()
                             // Index into the loaded window; bounded by the window size, safe to narrow
                             val lineIndex = (cursorLine - visibleStart).toInt()
-                            if (cursorLine in _visibleRange.value && lineIndex in lines.indices) {
+                            // A delete on a truncated line pulls hidden chars into view - the
+                            // in-place patch can't know them, so bypass to a full refresh
+                            if (cursorLine in _visibleRange.value && lineIndex in lines.indices &&
+                                !visible.truncatedLines.containsKey(cursorLine)
+                            ) {
                                 val line = lines[lineIndex]
                                 val startCol = startPosition.column.coerceAtMost(line.length)
                                 val endCol = endPosition.column.coerceAtMost(line.length)
                                 lines[lineIndex] = line.substring(0, startCol) + line.substring(endCol)
-                                _currentContent.value = lines.joinToString("\n")
+                                _visibleContent.value = visible.copy(text = lines.joinToString("\n"))
                             } else {
                                 refreshVisibleContent()
                             }
@@ -837,15 +896,17 @@ class EditorEngine @AssistedInject constructor(
                     val totalLength = currentState.resources.textBuffer.totalLength.value
                     val totalLines = _totalLines.value
 
-                    // Get the last line to calculate its length for the column
+                    // Length-only read: materializing the whole last line just for its length
+                    // would allocate the full 100MB for a single-giant-line file
                     val lastLineNumber = (totalLines - 1).coerceAtLeast(0)
-                    val lastLineResult = currentState.resources.textBuffer.getTextForLine(lastLineNumber)
-                    val lastLineLength = lastLineResult.getOrNull()?.length ?: 0
+                    val lastLineLength = currentState.resources.textBuffer.getLineLength(lastLineNumber)
+                        .getOrNull() ?: 0L
 
                     val endPosition = TextPosition(
                         offset = totalLength,
                         line = lastLineNumber,
-                        column = lastLineLength
+                        // Saturated at the UI edge; the OFFSET stays exact for buffer ranges
+                        column = lastLineLength.coerceAtMost(Int.MAX_VALUE.toLong()).toInt(),
                     )
 
                     log(tag) { "Selecting all text: $startPosition to $endPosition" }
@@ -871,11 +932,15 @@ class EditorEngine @AssistedInject constructor(
     suspend fun setCursorPosition(position: TextPosition) = stateMutex.withLock {
         textBuffer?.breakUndoRun()
         val correctedPosition = when (val currentState = _state.value) {
-            is EditorState.Loaded -> TextPosition(
-                offset = currentState.resources.textBuffer.findOffset(position.line, position.column),
-                line = position.line,
-                column = position.column
-            )
+            is EditorState.Loaded -> {
+                val buffer = currentState.resources.textBuffer
+                val column = displayBoundedColumn(position.line, position.column, buffer)
+                TextPosition(
+                    offset = buffer.findOffset(position.line, column),
+                    line = position.line,
+                    column = column,
+                )
+            }
             else -> position
         }
         _cursorPosition.value = correctedPosition
@@ -916,9 +981,22 @@ class EditorEngine @AssistedInject constructor(
             log(tag, WARN) { "moveCursor: No file loaded, ignoring" }
             return
         }
-        val currentPos = _cursorPosition.value
+        val buffer = currentState.resources.textBuffer
+        val rawPos = _cursorPosition.value
+        // Display-bound the starting point: from a hidden-region cursor, LEFT/WORD_LEFT would
+        // otherwise decrement invisibly inside the hidden suffix while RIGHT/END clamp
+        val boundedColumn = displayBoundedColumn(rawPos.line, rawPos.column, buffer)
+        val currentPos = if (boundedColumn == rawPos.column) {
+            rawPos
+        } else {
+            TextPosition(
+                offset = buffer.findOffset(rawPos.line, boundedColumn),
+                line = rawPos.line,
+                column = boundedColumn,
+            )
+        }
         log(tag) { "moveCursor: currentPos=$currentPos" }
-        currentState.resources.textBuffer.breakUndoRun()
+        buffer.breakUndoRun()
 
         // Set anchor if starting selection
         if (extendSelection && selectionAnchor == null) {
@@ -964,7 +1042,7 @@ class EditorEngine @AssistedInject constructor(
             TextPosition(offset = newOffset, line = pos.line, column = pos.column - 1)
         } else if (pos.line > 0) {
             // Move to end of previous line
-            val prevLineLength = getLineLength(pos.line - 1, state)
+            val prevLineLength = getDisplayLineLength(pos.line - 1, state)
             val newOffset = state.resources.textBuffer.findOffset(pos.line - 1, prevLineLength)
             TextPosition(offset = newOffset, line = pos.line - 1, column = prevLineLength)
         } else {
@@ -974,7 +1052,7 @@ class EditorEngine @AssistedInject constructor(
     }
 
     private suspend fun moveCursorRight(pos: TextPosition, state: EditorState.Loaded): TextPosition {
-        val lineLength = getLineLength(pos.line, state)
+        val lineLength = getDisplayLineLength(pos.line, state)
         val totalLines = _totalLines.value
 
         return if (pos.column < lineLength) {
@@ -994,7 +1072,7 @@ class EditorEngine @AssistedInject constructor(
     private suspend fun moveCursorUp(pos: TextPosition, state: EditorState.Loaded): TextPosition {
         return if (pos.line > 0) {
             val newLine = pos.line - 1
-            val prevLineLength = getLineLength(newLine, state)
+            val prevLineLength = getDisplayLineLength(newLine, state)
             val newColumn = minOf(pos.column, prevLineLength)
             val newOffset = state.resources.textBuffer.findOffset(newLine, newColumn)
             TextPosition(offset = newOffset, line = newLine, column = newColumn)
@@ -1008,7 +1086,7 @@ class EditorEngine @AssistedInject constructor(
         val totalLines = _totalLines.value
         return if (pos.line < totalLines - 1) {
             val newLine = pos.line + 1
-            val nextLineLength = getLineLength(newLine, state)
+            val nextLineLength = getDisplayLineLength(newLine, state)
             val newColumn = minOf(pos.column, nextLineLength)
             val newOffset = state.resources.textBuffer.findOffset(newLine, newColumn)
             TextPosition(offset = newOffset, line = newLine, column = newColumn)
@@ -1019,7 +1097,7 @@ class EditorEngine @AssistedInject constructor(
     }
 
     private suspend fun moveCursorWordLeft(pos: TextPosition, state: EditorState.Loaded): TextPosition {
-        val lineContent = getLineContent(pos.line, state)
+        val lineContent = getDisplayLineContent(pos.line, state)
         var column = pos.column
         var line = pos.line
 
@@ -1031,7 +1109,7 @@ class EditorEngine @AssistedInject constructor(
         // If at start of line, move to end of previous line
         if (column == 0 && line > 0) {
             line--
-            val prevLineContent = getLineContent(line, state)
+            val prevLineContent = getDisplayLineContent(line, state)
             column = prevLineContent.length
             // Skip whitespace at end of previous line
             while (column > 0 && prevLineContent.getOrNull(column - 1)?.isWhitespace() == true) {
@@ -1053,7 +1131,7 @@ class EditorEngine @AssistedInject constructor(
     }
 
     private suspend fun moveCursorWordRight(pos: TextPosition, state: EditorState.Loaded): TextPosition {
-        val lineContent = getLineContent(pos.line, state)
+        val lineContent = getDisplayLineContent(pos.line, state)
         var column = pos.column
         var line = pos.line
         val totalLines = _totalLines.value
@@ -1072,7 +1150,7 @@ class EditorEngine @AssistedInject constructor(
         if (column >= lineContent.length && line < totalLines - 1) {
             line++
             column = 0
-            val nextLineContent = getLineContent(line, state)
+            val nextLineContent = getDisplayLineContent(line, state)
             // Skip leading whitespace
             while (column < nextLineContent.length && nextLineContent.getOrNull(column)?.isWhitespace() == true) {
                 column++
@@ -1089,19 +1167,34 @@ class EditorEngine @AssistedInject constructor(
     }
 
     private suspend fun moveCursorToLineEnd(pos: TextPosition, state: EditorState.Loaded): TextPosition {
-        val lineLength = getLineLength(pos.line, state)
+        val lineLength = getDisplayLineLength(pos.line, state)
         val newOffset = state.resources.textBuffer.findOffset(pos.line, lineLength)
         return TextPosition(offset = newOffset, line = pos.line, column = lineLength)
     }
 
-    private suspend fun getLineLength(lineNumber: Long, state: EditorState.Loaded): Int {
-        val result = state.resources.textBuffer.getTextForLine(lineNumber)
-        return result.getOrNull()?.length ?: 0
+    /** DISPLAY-bounded line length: navigation (End, up/down clamping) stops at the visible prefix. */
+    private suspend fun getDisplayLineLength(lineNumber: Long, state: EditorState.Loaded): Int {
+        val result = state.resources.textBuffer.getLineSlice(lineNumber)
+        return result.getOrNull()?.text?.length ?: 0
     }
 
-    private suspend fun getLineContent(lineNumber: Long, state: EditorState.Loaded): String {
-        val result = state.resources.textBuffer.getTextForLine(lineNumber)
-        return result.getOrNull() ?: ""
+    /** DISPLAY-bounded line content: word-nav walks the visible prefix only. */
+    private suspend fun getDisplayLineContent(lineNumber: Long, state: EditorState.Loaded): String {
+        val result = state.resources.textBuffer.getLineSlice(lineNumber)
+        return result.getOrNull()?.text ?: ""
+    }
+
+    /**
+     * Display-bounds a column: on truncated lines the cursor normalizes to the visible slice
+     * (it lands at the marker), so LEFT/WORD_LEFT never walk the hidden suffix invisibly and
+     * hardware-key edits (deleteAtCursor/insertText act on the ENGINE cursor, unlike IME edits
+     * whose caret the field clamps) never mutate hidden regions. Search RESULT columns stay
+     * real - only the cursor is display-bounded.
+     */
+    private suspend fun displayBoundedColumn(line: Long, column: Int, buffer: DocumentBuffer): Int {
+        if (column <= 0) return column
+        val slice = buffer.getLineSlice(line).getOrNull() ?: return column
+        return if (slice.hiddenChars > 0) column.coerceAtMost(slice.text.length) else column
     }
 
     private fun Char.isWordChar(): Boolean {
@@ -1451,13 +1544,16 @@ class EditorEngine @AssistedInject constructor(
 
         try {
             currentCoroutineContext().ensureActive()
-            val contentResult = currentState.resources.textBuffer.getTextForRange(range.first, range.last)
-            if (contentResult.isSuccess) {
-                _currentContent.value = contentResult.getOrNull() ?: ""
-                log(tag) { "Refreshed visible content for range: ${range.first}..${range.last}" }
-            } else {
-                log(tag, WARN) { "Failed to refresh content: ${contentResult.exceptionOrNull()?.asLog()}" }
-            }
+            val contentResult = currentState.resources.textBuffer.getDisplayRange(range.first, range.last)
+            contentResult.fold(
+                onSuccess = { window ->
+                    _visibleContent.value = VisibleContent(window.text, window.truncatedLines)
+                    log(tag) { "Refreshed visible content for range: ${range.first}..${range.last}" }
+                },
+                onFailure = { e ->
+                    log(tag, WARN) { "Failed to refresh content: ${e.asLog()}" }
+                },
+            )
         } catch (e: Exception) {
             log(tag, ERROR) { "Error refreshing visible content - ${e.asLog()}" }
         }
@@ -1498,13 +1594,16 @@ class EditorEngine @AssistedInject constructor(
 
             // Load content for the new visible range
             try {
-                val contentResult = currentState.resources.textBuffer.getTextForRange(constrainedStart, constrainedEnd)
-                if (contentResult.isSuccess) {
-                    _currentContent.value = contentResult.getOrNull() ?: ""
-                    log(tag) { "Loaded content for range: $constrainedStart..$constrainedEnd" }
-                } else {
-                    log(tag, WARN) { "Failed to load content for range: ${contentResult.exceptionOrNull()?.asLog()}" }
-                }
+                val contentResult = currentState.resources.textBuffer.getDisplayRange(constrainedStart, constrainedEnd)
+                contentResult.fold(
+                    onSuccess = { window ->
+                        _visibleContent.value = VisibleContent(window.text, window.truncatedLines)
+                        log(tag) { "Loaded content for range: $constrainedStart..$constrainedEnd" }
+                    },
+                    onFailure = { e ->
+                        log(tag, WARN) { "Failed to load content for range: ${e.asLog()}" }
+                    },
+                )
             } catch (e: Exception) {
                 log(tag, ERROR) { "Error loading content for visible range - ${e.asLog()}" }
             }

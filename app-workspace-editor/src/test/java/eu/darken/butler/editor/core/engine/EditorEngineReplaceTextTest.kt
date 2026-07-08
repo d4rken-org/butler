@@ -50,6 +50,7 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
                 assertions: Boolean,
                 staleSampleRandom: Random,
                 timeSource: kotlin.time.TimeSource,
+                maxDisplayLineChars: Int,
             ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true, staleSampleRandom)
         }
 
@@ -190,7 +191,7 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
         // grow the loaded window to include the new line, otherwise the new line renders blank (its content
         // is never read into currentContent).
         val engine = createEngine("abcdef")
-        engine.currentContent.value shouldBe "abcdef"
+        engine.visibleContent.value.text shouldBe "abcdef"
 
         // Split after "abc": insert "\n" at (0,3), caret lands at start of the new line.
         engine.replaceText(start = pos(0, 3), end = pos(0, 3), text = "\n", caret = pos(1, 0))
@@ -198,7 +199,7 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
         engine.fullContent() shouldBe "abc\ndef"
         engine.totalLines.value shouldBe 2L
         // Both lines must be present in the visible content that drives rendering.
-        engine.currentContent.value shouldBe "abc\ndef"
+        engine.visibleContent.value.text shouldBe "abc\ndef"
     }
 
     @Test

@@ -506,4 +506,148 @@ class EditorPositionUtilsTest {
             expandedColumnFromX(adjustedX = 500f, charWidthPx = 10f, maxColumn = 0) shouldBe 0
         }
     }
+
+    /**
+     * Cap-agnostic convergence between the field text and the display-capped engine echo -
+     * the release rule for typing authority. Scenarios use a conceptual cap of 5 chars.
+     */
+    @Nested
+    inner class ContentsConverged {
+
+        @Test
+        fun `identical texts converge`() {
+            contentsConverged("abc\ndef", "abc\ndef", 0L, emptyMap(), emptyMap()) shouldBe true
+        }
+
+        @Test
+        fun `divergent untruncated content does not converge`() {
+            contentsConverged("abc", "abd", 0L, emptyMap(), emptyMap()) shouldBe false
+        }
+
+        @Test
+        fun `line count mismatch does not converge`() {
+            contentsConverged("abcde\nfgh", "abcde", 0L, mapOf(0L to 3L), mapOf(0L to 3L)) shouldBe false
+        }
+
+        @Test
+        fun `prefix-insert on a truncated line converges (field ahead by the pushed-out char)`() {
+            // Line "abcdefgh", user typed X at col 1: field grew past the cap, echo re-capped
+            contentsConverged(
+                fieldText = "aXbcde",
+                engineText = "aXbcd",
+                visibleRangeStart = 0L,
+                engineTruncatedLines = mapOf(0L to 4L),
+                priorTruncatedLines = mapOf(0L to 3L),
+            ) shouldBe true
+        }
+
+        @Test
+        fun `prefix-delete on a truncated line converges (engine pulls a hidden char in)`() {
+            contentsConverged(
+                fieldText = "bcde",
+                engineText = "bcdef",
+                visibleRangeStart = 0L,
+                engineTruncatedLines = mapOf(0L to 2L),
+                priorTruncatedLines = mapOf(0L to 3L),
+            ) shouldBe true
+        }
+
+        @Test
+        fun `boundary-append converges (typed char is hidden in the echo)`() {
+            contentsConverged(
+                fieldText = "abcdeX",
+                engineText = "abcde",
+                visibleRangeStart = 0L,
+                engineTruncatedLines = mapOf(0L to 4L),
+                priorTruncatedLines = mapOf(0L to 3L),
+            ) shouldBe true
+        }
+
+        @Test
+        fun `newline-at-cap converges when the revealed suffix stays under the cap`() {
+            // Line "abcdefgh" split at col 5: the echo reveals "fgh" on a NEW untruncated
+            // line the field shows empty - only the prior truncation map knows why
+            contentsConverged(
+                fieldText = "abcde\n",
+                engineText = "abcde\nfgh",
+                visibleRangeStart = 0L,
+                engineTruncatedLines = emptyMap(),
+                priorTruncatedLines = mapOf(0L to 3L),
+            ) shouldBe true
+        }
+
+        @Test
+        fun `newline-at-cap converges when the revealed suffix is itself truncated`() {
+            contentsConverged(
+                fieldText = "abcde\n",
+                engineText = "abcde\nfghij",
+                visibleRangeStart = 0L,
+                engineTruncatedLines = mapOf(1L to 2L),
+                priorTruncatedLines = mapOf(0L to 7L),
+            ) shouldBe true
+        }
+
+        @Test
+        fun `surrogate-backoff at the cap converges (echo one char shorter than the cap)`() {
+            // The echo dropped a trailing high surrogate; the field still holds the full pair
+            contentsConverged(
+                fieldText = "abcd😀",
+                engineText = "abcd",
+                visibleRangeStart = 0L,
+                engineTruncatedLines = mapOf(0L to 4L),
+                priorTruncatedLines = mapOf(0L to 2L),
+            ) shouldBe true
+        }
+
+        @Test
+        fun `mid-burst divergent mid-line content does not converge even on truncated lines`() {
+            // Field has an un-echoed mid-line insert: neither string is a prefix of the other
+            contentsConverged(
+                fieldText = "abXcde",
+                engineText = "abcde",
+                visibleRangeStart = 0L,
+                engineTruncatedLines = mapOf(0L to 3L),
+                priorTruncatedLines = mapOf(0L to 3L),
+            ) shouldBe false
+        }
+
+        @Test
+        fun `divergence on a line ABOVE any truncation requires exact equality`() {
+            // Line 0 is clean, truncation only on line 5: a stale-echo mismatch on line 0
+            // must not release authority
+            contentsConverged(
+                fieldText = "typed\nabcde",
+                engineText = "typd\nabcde",
+                visibleRangeStart = 0L,
+                engineTruncatedLines = mapOf(5L to 3L),
+                priorTruncatedLines = mapOf(5L to 3L),
+            ) shouldBe false
+        }
+
+        @Test
+        fun `repeated-char prefix against a stale echo converges trivially - callers must gate`() {
+            // Documents WHY release additionally requires the echo to have CHANGED since
+            // authority was taken: on repeated-char lines, prefix-consistency against the
+            // STALE echo is vacuously true
+            contentsConverged(
+                fieldText = "aaa",
+                engineText = "aaaaa",
+                visibleRangeStart = 0L,
+                engineTruncatedLines = mapOf(0L to 2L),
+                priorTruncatedLines = mapOf(0L to 2L),
+            ) shouldBe true
+        }
+
+        @Test
+        fun `absolute line keys respect the visible range start`() {
+            // Window starts at line 100; the truncated line is 100, not 0
+            contentsConverged(
+                fieldText = "abcdeX",
+                engineText = "abcde",
+                visibleRangeStart = 100L,
+                engineTruncatedLines = mapOf(100L to 4L),
+                priorTruncatedLines = mapOf(100L to 3L),
+            ) shouldBe true
+        }
+    }
 }

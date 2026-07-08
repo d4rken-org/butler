@@ -69,6 +69,7 @@ class EditorEngineReplaceOpsTest : BaseTest() {
                     assertions: Boolean,
                     staleSampleRandom: Random,
                     timeSource: TimeSource,
+                    maxDisplayLineChars: Int,
                 ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, 1024, true)
             },
         )
@@ -334,6 +335,7 @@ class EditorEngineReplaceOpsTest : BaseTest() {
                     assertions: Boolean,
                     staleSampleRandom: Random,
                     timeSource: TimeSource,
+                    maxDisplayLineChars: Int,
                 ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, 1024, true)
             },
         )

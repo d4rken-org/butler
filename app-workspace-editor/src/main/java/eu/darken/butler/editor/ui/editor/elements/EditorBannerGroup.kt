@@ -26,10 +26,12 @@ fun EditorBannerGroup(
     backupNames: List<String> = emptyList(),
     showBackupNotice: Boolean = false,
     isBinary: Boolean = false,
+    showLongLinesNotice: Boolean = false,
     onDismissError: () -> Unit = {},
     onReloadFromDisk: () -> Unit = {},
     onDismissExternalChange: () -> Unit = {},
     onDismissBackupNotice: () -> Unit = {},
+    onDismissLongLinesNotice: () -> Unit = {},
 ) {
     Column(
         // Scrollable so a height cap from the caller (short viewports) never hides a banner
@@ -62,6 +64,12 @@ fun EditorBannerGroup(
         if (isBinary) {
             EditorBinaryBanner()
         }
+
+        if (showLongLinesNotice) {
+            EditorLongLinesBanner(
+                onDismiss = onDismissLongLinesNotice,
+            )
+        }
     }
 }
 
@@ -75,5 +83,6 @@ private fun EditorBannerGroupPreview() {
         backupNames = listOf("notes.txt.butler-save-bak-1a2b3c4d"),
         showBackupNotice = true,
         isBinary = true,
+        showLongLinesNotice = true,
     )
 }

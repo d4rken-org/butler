@@ -62,6 +62,7 @@ class DocumentBuffer @AssistedInject constructor(
     @Assisted private val assertions: Boolean,
     @Assisted private val staleSampleRandom: Random = Random.Default,
     @Assisted private val timeSource: TimeSource = TimeSource.Monotonic,
+    @Assisted("maxDisplayLineChars") val maxDisplayLineChars: Int = MAX_DISPLAY_LINE_CHARS,
 ) {
 
     private val tag = logTag("Editor", "Workspace", workspaceId.shortTag, "Engine", "DocumentBuffer")
@@ -171,7 +172,10 @@ class DocumentBuffer @AssistedInject constructor(
 
             _lineEnding.value = index.lineEnding
             (_contentSource.value as? ContentSource.File)?.let {
-                _contentSource.value = it.copy(lineEnding = index.lineEnding)
+                _contentSource.value = it.copy(
+                    lineEnding = index.lineEnding,
+                    hasLongLines = index.maxLineLength > maxDisplayLineChars,
+                )
             }
             saveError = null
             lastKnownMeta = dataSource.getMeta()
@@ -276,11 +280,95 @@ class DocumentBuffer @AssistedInject constructor(
         }
         val result = StringBuilder()
         for (lineNumber in startLine..endLine) {
-            if (result.isNotEmpty()) result.append('\n')
+            // Separator per line PAIR, not per non-empty builder: gating on isNotEmpty()
+            // silently swallowed the separators after leading EMPTY lines, shifting every
+            // subsequent line of the window up by one
+            if (lineNumber > startLine) result.append('\n')
             val line = getTextForLineInternal(lineNumber).getOrElse { return@withLock Result.failure(it) }
             result.append(line)
         }
         Result.success(result.toString())
+    }
+
+    /**
+     * A line's display slice: at most [maxDisplayLineChars] chars of its content. Chunk-shaped
+     * for a future scroll-driven horizontal chunking package - [startColumn] is the slice's
+     * first raw column (fixed 0 until chunking decides it) and [hiddenChars] counts the line's
+     * content chars NOT in [text].
+     */
+    data class LineSlice(
+        val text: String,
+        val startColumn: Long = 0L,
+        val hiddenChars: Long,
+    )
+
+    /**
+     * A display window: line range joined by '\n' with each line capped at
+     * [maxDisplayLineChars], plus per-line hidden char counts (non-zero entries only,
+     * keyed by ABSOLUTE line number).
+     */
+    data class DisplayWindow(
+        val text: String,
+        val truncatedLines: Map<Long, Long> = emptyMap(),
+    )
+
+    /** Like [getTextForRange], but every line is capped at [maxDisplayLineChars] for display. */
+    suspend fun getDisplayRange(startLine: Long, endLine: Long): Result<DisplayWindow> = bufferMutex.withLock {
+        if (startLine < 0 || endLine >= _totalLines.value || startLine > endLine) {
+            return@withLock Result.failure(IndexOutOfBoundsException("Invalid line range: $startLine-$endLine"))
+        }
+        val result = StringBuilder()
+        val truncatedLines = mutableMapOf<Long, Long>()
+        for (lineNumber in startLine..endLine) {
+            // Separator per line PAIR (see getTextForRange): leading empty lines must keep theirs
+            if (lineNumber > startLine) result.append('\n')
+            val slice = getLineSliceInternal(lineNumber).getOrElse { return@withLock Result.failure(it) }
+            result.append(slice.text)
+            if (slice.hiddenChars > 0) truncatedLines[lineNumber] = slice.hiddenChars
+        }
+        Result.success(DisplayWindow(result.toString(), truncatedLines))
+    }
+
+    suspend fun getLineSlice(lineNumber: Long): Result<LineSlice> = bufferMutex.withLock {
+        getLineSliceInternal(lineNumber)
+    }
+
+    /** EXACT content length of a line (breaks excluded) via pure offset math, no materialization. */
+    suspend fun getLineLength(lineNumber: Long): Result<Long> = bufferMutex.withLock {
+        if (lineNumber < 0 || lineNumber >= _totalLines.value) {
+            return@withLock Result.failure(IndexOutOfBoundsException("Line number $lineNumber is out of bounds"))
+        }
+        try {
+            val table = table()
+            val start = table.lineStartOffset(lineNumber)
+            val end = lineContentEnd(table, lineNumber)
+            Result.success(end - start)
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to get line length for $lineNumber - ${e.asLog()}" }
+            Result.failure(e)
+        }
+    }
+
+    private suspend fun getLineSliceInternal(lineNumber: Long): Result<LineSlice> {
+        if (lineNumber < 0 || lineNumber >= _totalLines.value) {
+            return Result.failure(IndexOutOfBoundsException("Line number $lineNumber is out of bounds"))
+        }
+        return try {
+            val table = table()
+            val start = table.lineStartOffset(lineNumber)
+            val end = lineContentEnd(table, lineNumber)
+            val realLength = end - start
+            val sliceEnd = minOf(end, start + maxDisplayLineChars)
+            var text = table.read(start, sliceEnd)
+            // The cap must not split a surrogate pair (precedent: computeTextEdit boundary nudging)
+            if (realLength > text.length && text.isNotEmpty() && text.last().isHighSurrogate()) {
+                text = text.dropLast(1)
+            }
+            Result.success(LineSlice(text = text, startColumn = 0L, hiddenChars = realLength - text.length))
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to get line slice for $lineNumber - ${e.asLog()}" }
+            Result.failure(e)
+        }
     }
 
     /** [coalesce] marks a keystroke-sized edit eligible to merge into the current typing run. */
@@ -850,6 +938,7 @@ class DocumentBuffer @AssistedInject constructor(
                 lineEnding = index.lineEnding,
                 size = lastKnownMeta?.size ?: freshSource.size,
                 lastModified = lastKnownMeta?.modifiedAt ?: freshSource.lastModified,
+                hasLongLines = index.maxLineLength > maxDisplayLineChars,
             )
         } else {
             freshSource
@@ -1225,11 +1314,20 @@ class DocumentBuffer @AssistedInject constructor(
             assertions: Boolean = false,
             staleSampleRandom: Random = Random.Default,
             timeSource: TimeSource = TimeSource.Monotonic,
+            @Assisted("maxDisplayLineChars") maxDisplayLineChars: Int = MAX_DISPLAY_LINE_CHARS,
         ): DocumentBuffer
     }
 
     companion object {
         const val STALENESS_SAMPLE_COUNT = 8
+
+        /**
+         * Longest line prefix (UTF-16 chars) the display-read API returns per line. Lines are
+         * capped at the buffer read level so a single-giant-line file can never flood the UI
+         * pipeline (VSCode stopRenderingLineAfter precedent). Edits remain offset-exact against
+         * the FULL line; only display reads are sliced.
+         */
+        const val MAX_DISPLAY_LINE_CHARS = 10_000
 
         // Bounded working memory for the streaming line-ending conversion
         private const val CONVERT_CHUNK_BYTES = 64 * 1024

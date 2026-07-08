@@ -18,7 +18,7 @@ class EditorEngineVisibleRangeTest : EditorEngineTestBase() {
         val engine = createEngine(content)
 
         engine.visibleRange.value shouldBe 0L..50L
-        engine.currentContent.value shouldBe lines.subList(0, 51).joinToString("\n")
+        engine.visibleContent.value.text shouldBe lines.subList(0, 51).joinToString("\n")
     }
 
     @Test
@@ -28,7 +28,7 @@ class EditorEngineVisibleRangeTest : EditorEngineTestBase() {
         engine.updateVisibleRange(200, 260)
 
         engine.visibleRange.value shouldBe 200L..260L
-        engine.currentContent.value shouldBe lines.subList(200, 261).joinToString("\n")
+        engine.visibleContent.value.text shouldBe lines.subList(200, 261).joinToString("\n")
     }
 
     @Test
@@ -39,7 +39,7 @@ class EditorEngineVisibleRangeTest : EditorEngineTestBase() {
         engine.updateVisibleRange(202, 262)
 
         engine.visibleRange.value shouldBe 200L..260L
-        engine.currentContent.value shouldBe lines.subList(200, 261).joinToString("\n")
+        engine.visibleContent.value.text shouldBe lines.subList(200, 261).joinToString("\n")
     }
 
     @Test
@@ -49,7 +49,7 @@ class EditorEngineVisibleRangeTest : EditorEngineTestBase() {
         engine.updateVisibleRange(480, 600)
 
         engine.visibleRange.value shouldBe 480L..499L
-        engine.currentContent.value shouldBe lines.subList(480, 500).joinToString("\n")
+        engine.visibleContent.value.text shouldBe lines.subList(480, 500).joinToString("\n")
     }
 
     @Test
@@ -60,6 +60,6 @@ class EditorEngineVisibleRangeTest : EditorEngineTestBase() {
         engine.setCursorPosition(TextPosition(offset = 0, line = 120, column = 0))
         engine.insertText("XX")
 
-        engine.currentContent.value.lineSequence().first { it.contains("120") } shouldBe "XXLine 120 content"
+        engine.visibleContent.value.text.lineSequence().first { it.contains("120") } shouldBe "XXLine 120 content"
     }
 }

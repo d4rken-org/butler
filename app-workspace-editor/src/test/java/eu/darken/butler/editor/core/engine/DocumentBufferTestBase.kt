@@ -21,6 +21,7 @@ abstract class DocumentBufferTestBase : BaseTest() {
     protected suspend fun createBuffer(
         content: String,
         blockSize: Int = BlockIndexBuilder.DEFAULT_BLOCK_SIZE,
+        maxDisplayLineChars: Int = DocumentBuffer.MAX_DISPLAY_LINE_CHARS,
     ): DocumentBuffer {
         val dataSource = InMemoryDataSource(workspaceId, content)
         dataSource.open()
@@ -32,6 +33,7 @@ abstract class DocumentBufferTestBase : BaseTest() {
             maxUndoMemoryBytes = 10_485_760,
             blockSize = blockSize,
             assertions = true,
+            maxDisplayLineChars = maxDisplayLineChars,
         )
         buffer.initialize().getOrThrow()
         return buffer

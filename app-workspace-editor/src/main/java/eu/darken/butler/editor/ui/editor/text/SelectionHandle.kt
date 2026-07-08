@@ -64,9 +64,11 @@ internal fun SelectionHandle(
     val handleHalfWidth = with(density) { 12.dp.toPx() }  // Half of 24.dp handle width
 
     // Engine columns are RAW char indices; the rendered line is tab-EXPANDED, so convert for all
-    // pixel math (column * charWidth and layout indexing below).
+    // pixel math (column * charWidth and layout indexing below). Clamped into the line FIRST:
+    // display-truncated lines can carry columns far past the visible prefix, and multiplying an
+    // unclamped expanded column by charWidth translates the handle kilometers off-screen.
     val currentPositionColumn by rememberUpdatedState(
-        rawToExpandedColumn(visibleLineContent[position.line] ?: "", position.column, tabSize)
+        rawToExpandedColumnClamped(visibleLineContent[position.line] ?: "", position.column, tabSize)
     )
 
     // Use simple state to store Y position, updated via LaunchedEffect observing layout
@@ -92,7 +94,7 @@ internal fun SelectionHandle(
             val rawLine = visibleLineContent[position.line] ?: ""
             val textLength = rawLine.toDisplayText(tabSize).length
             if (textLength > 0) {
-                val columnForCalc = rawToExpandedColumn(rawLine, position.column, tabSize).coerceIn(0, textLength)
+                val columnForCalc = rawToExpandedColumnClamped(rawLine, position.column, tabSize).coerceIn(0, textLength)
 
                 // Calculate visual line, handling boundary case
                 // getLineForOffset(N) returns the line where char N starts, but if N equals

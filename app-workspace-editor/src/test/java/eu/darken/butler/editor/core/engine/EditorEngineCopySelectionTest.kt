@@ -45,6 +45,7 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
                 assertions: Boolean,
                 staleSampleRandom: Random,
                 timeSource: kotlin.time.TimeSource,
+                maxDisplayLineChars: Int,
             ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true, staleSampleRandom)
         }
         val engine = EditorEngine(

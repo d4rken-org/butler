@@ -27,6 +27,7 @@ class EditorDialogsController(
     private val _showReloadConfirmDialog = MutableStateFlow(false)
     private val _externalChangeDismissedGeneration = MutableStateFlow<Int?>(null)
     private val _showLineEndingDialog = MutableStateFlow(false)
+    private val _longLinesNoticeDismissed = MutableStateFlow(false)
 
     data class DialogUiState(
         val showGoToLineDialog: Boolean = false,
@@ -38,6 +39,7 @@ class EditorDialogsController(
         val showReloadConfirmDialog: Boolean = false,
         val externalChangeDismissedGeneration: Int? = null,
         val showLineEndingDialog: Boolean = false,
+        val longLinesNoticeDismissed: Boolean = false,
     )
 
     val state: Flow<DialogUiState> = combine(
@@ -50,6 +52,7 @@ class EditorDialogsController(
         _showReloadConfirmDialog,
         _externalChangeDismissedGeneration,
         _showLineEndingDialog,
+        _longLinesNoticeDismissed,
     ) { values ->
         DialogUiState(
             showGoToLineDialog = values[0] as Boolean,
@@ -61,6 +64,7 @@ class EditorDialogsController(
             showReloadConfirmDialog = values[6] as Boolean,
             externalChangeDismissedGeneration = values[7] as Int?,
             showLineEndingDialog = values[8] as Boolean,
+            longLinesNoticeDismissed = values[9] as Boolean,
         )
     }
 
@@ -138,6 +142,14 @@ class EditorDialogsController(
 
     fun rearmBackupNotice() {
         _backupNoticeDismissed.value = false
+    }
+
+    fun dismissLongLinesNotice() {
+        _longLinesNoticeDismissed.value = true
+    }
+
+    fun rearmLongLinesNotice() {
+        _longLinesNoticeDismissed.value = false
     }
 
     fun showReloadConfirmDialog() {
