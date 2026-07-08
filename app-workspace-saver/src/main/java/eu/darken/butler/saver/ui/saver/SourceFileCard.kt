@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -14,7 +15,6 @@ import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.InsertDriveFile
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -77,27 +77,40 @@ internal fun SourceFileCard(
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    AccessibilityCaption(isAccessible = sourceInfo.isAccessible)
                 }
             }
-            if (sourceInfo?.isAccessible == true) {
-                Icon(
-                    imageVector = Icons.TwoTone.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            } else if (sourceInfo?.isAccessible == false) {
-                Icon(
-                    imageVector = Icons.TwoTone.Error,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                )
-            } else {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp,
-                )
-            }
         }
+    }
+}
+
+@Composable
+private fun AccessibilityCaption(
+    modifier: Modifier = Modifier,
+    isAccessible: Boolean,
+) {
+    val (icon, tint, textRes) = if (isAccessible) {
+        Triple(Icons.TwoTone.CheckCircle, MaterialTheme.colorScheme.primary, R.string.saver_source_accessible)
+    } else {
+        Triple(Icons.TwoTone.Error, MaterialTheme.colorScheme.error, R.string.saver_error_source_expired)
+    }
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            modifier = Modifier.size(16.dp),
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+        )
+        Text(
+            text = stringResource(textRes),
+            style = MaterialTheme.typography.bodySmall,
+            color = tint,
+        )
     }
 }
 

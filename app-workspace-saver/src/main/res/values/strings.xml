@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="saver_workspace_title">Save as</string>
+    <string name="saver_workspace_description">Content shared from another app — pick where to save it.</string>
     <string name="saver_preview_label">Preview</string>
     <string name="saver_loading">Loading…</string>
+    <string name="saver_source_accessible">Butler can access this file</string>
     <string name="saver_shared_from">Shared from %1$s</string>
     <string name="saver_destination_label">Destination</string>
     <string name="saver_select_destination_hint">Select destination folder</string>

@@ -45,6 +45,11 @@ internal fun SaverHeader(
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Text(
+                text = stringResource(R.string.saver_workspace_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             if (callerLabel != null && callerLabel != "?") {
                 Text(
                     text = stringResource(R.string.saver_shared_from, callerLabel),
