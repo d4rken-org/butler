@@ -25,10 +25,13 @@ import eu.darken.butler.common.files.saf.SAFGateway
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
 import eu.darken.butler.common.sharedresource.SharedResource
 import eu.darken.butler.common.sharedresource.adoptChildResource
+import android.os.ParcelFileDescriptor
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.withContext
 import okio.FileHandle
 import okio.IOException
 import java.io.InputStream
@@ -40,7 +43,7 @@ import kotlin.time.Instant
 @Singleton
 class GatewaySwitch @Inject constructor(
     @AppScope private val appScope: CoroutineScope,
-    dispatcherProvider: DispatcherProvider,
+    private val dispatcherProvider: DispatcherProvider,
     private val safGateway: SAFGateway,
     private val localGateway: LocalGateway,
     private val safLocationManager: SAFLocationManager,
@@ -199,6 +202,34 @@ class GatewaySwitch @Inject constructor(
     override suspend fun file(path: APath<*>, readWrite: Boolean): FileHandle {
         return useGateway(path) { file(path, readWrite) }
     }
+
+    /**
+     * Best-effort seekable, read-only [ParcelFileDescriptor] for streaming previews (APK icon, PDF, …).
+     *
+     * NOTE: this intentionally bypasses gateway routing — a [LocalPath] opens its backing file directly,
+     * so root/ADB-only files return null. It also returns null for non-seekable descriptors (statSize < 0)
+     * and any failure. Callers MUST treat null as "no preview" and fall back to a placeholder; they own
+     * closing the returned descriptor.
+     */
+    suspend fun openReadPFD(path: APath<*>): ParcelFileDescriptor? = when (path) {
+        is LocalPath -> withContext(dispatcherProvider.IO) {
+            try {
+                val file = path.file
+                if (!file.isFile || !file.canRead()) return@withContext null
+                ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).seekableOrNull()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(TAG, WARN) { "openReadPFD($path) failed: ${e.asLog()}" }
+                null
+            }
+        }
+
+        is SAFPath -> safGateway.openReadPFD(path)?.seekableOrNull()
+    }
+
+    private fun ParcelFileDescriptor.seekableOrNull(): ParcelFileDescriptor? =
+        if (statSize >= 0) this else this.also { runCatching { it.close() } }.let { null }
 
     override suspend fun delete(
         targets: Set<APath<*>>,

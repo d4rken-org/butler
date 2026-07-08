@@ -23,8 +23,9 @@ class PathPreviewKeyer @Inject constructor(
         val sizeWidth = (options.size.width as? Dimension.Pixels)?.px ?: 0
         val sizeHeight = (options.size.height as? Dimension.Pixels)?.px ?: 0
 
-        // Include path, theme, and size in cache key
-        // Format: "path-preview-<path-hash>-<mode>-<style>-<color>-<w>x<h>"
+        // Include path, theme, request size, plus file size + mtime so a replaced file at the same
+        // path invalidates its cached (generated) preview.
+        // Format: "path-preview-<path-hash>-<mode>-<style>-<color>-<w>x<h>-<bytes>-<mtimeMs>"
         return buildString {
             append("path-preview-")
             append(data.path.hashCode())
@@ -38,6 +39,10 @@ class PathPreviewKeyer @Inject constructor(
             append(sizeWidth)
             append("x")
             append(sizeHeight)
+            append("-")
+            append(data.size ?: -1L)
+            append("-")
+            append(data.modifiedAt?.toEpochMilliseconds() ?: -1L)
         }
     }
 }

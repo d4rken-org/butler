@@ -15,6 +15,7 @@ import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.coil.fetchers.AppIconFetcher
 import eu.darken.butler.common.coil.fetchers.BitmapFetcher
 import eu.darken.butler.common.coil.fetchers.PathPreviewFetcher
+import eu.darken.butler.common.coil.fetchers.SharedContentPreviewFetcher
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.asLog
@@ -37,9 +38,11 @@ class CoilModule {
         generalSettings: GeneralSettings,
         appIconFetcherFactory: AppIconFetcher.Factory,
         pathPreviewFetcher: PathPreviewFetcher.Factory,
+        sharedContentPreviewFetcher: SharedContentPreviewFetcher.Factory,
         bitmapFetcher: BitmapFetcher.Factory,
         workspacePreviewFetcher: WorkspacePreviewFetcher.Factory,
         pathPreviewKeyer: PathPreviewKeyer,
+        sharedContentPreviewKeyer: SharedContentPreviewKeyer,
         workspacePreviewKeyer: WorkspacePreviewKeyer,
         dispatcherProvider: DispatcherProvider,
     ): ImageLoader = ImageLoader.Builder(context).apply {
@@ -66,11 +69,13 @@ class CoilModule {
         components {
             // Keyers - determine cache keys before lookup
             add(pathPreviewKeyer)
+            add(sharedContentPreviewKeyer)
             add(workspacePreviewKeyer)
 
             // Fetchers - load images from various sources
             add(appIconFetcherFactory)
             add(pathPreviewFetcher)
+            add(sharedContentPreviewFetcher)
             add(bitmapFetcher)
             add(workspacePreviewFetcher)
 

@@ -2,6 +2,7 @@ package eu.darken.butler.common.coil.fetchers
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.Build
 import androidx.appcompat.content.res.AppCompatResources
 import coil3.ImageLoader
 import coil3.annotation.ExperimentalCoilApi
@@ -18,6 +19,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.R
 import eu.darken.butler.common.MimeTypeTool
 import eu.darken.butler.common.coil.PathPreviewKeyer
+import eu.darken.butler.common.coil.targetEdgePx
 import eu.darken.butler.common.coil.toImageSource
 import eu.darken.butler.common.coil.use
 import eu.darken.butler.common.debug.logging.log
@@ -29,6 +31,7 @@ import eu.darken.butler.common.files.extensions.extension
 import eu.darken.butler.common.files.iconRes
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.hashing.Hasher
+import eu.darken.butler.common.pkgs.ApkIconExtractor
 import eu.darken.butler.common.hashing.hash
 import okio.Buffer
 import okio.FileSystem
@@ -42,6 +45,8 @@ class PathPreviewFetcher @Inject constructor(
     private val mimeTypeTool: MimeTypeTool,
     private val textPreviewGenerator: TextPreviewGenerator,
     private val apkPreviewGenerator: ApkPreviewGenerator,
+    private val apkIconExtractor: ApkIconExtractor,
+    private val pdfPreviewGenerator: PdfPreviewGenerator,
     private val keyer: PathPreviewKeyer,
     private val diskCache: Lazy<DiskCache?>,
     private val data: APathLookup<*>,
@@ -100,13 +105,45 @@ class PathPreviewFetcher @Inject constructor(
                 )
             }
 
-            mimeType == "application/octet-stream" && data.lookedUp.extension == "apk" && data.lookedUp is LocalPath -> {
-                val bitmap = apkPreviewGenerator.generate(data.lookedUp as LocalPath)
+            data.lookedUp.extension.equals("apk", ignoreCase = true) ||
+                mimeType == "application/vnd.android.package-archive" -> {
+                // Preferred: no-copy icon via a seekable PFD (API 30+), works for SAF and local.
+                val extracted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    gatewaySwitch.openReadPFD(data.lookedUp)?.use { pfd ->
+                        apkIconExtractor.extract(pfd, options.targetEdgePx())
+                    }
+                } else {
+                    null
+                }
+                when {
+                    extracted != null -> ImageFetchResult(
+                        image = extracted.asImage(),
+                        isSampled = true,
+                        dataSource = DataSource.DISK,
+                    )
+                    // Legacy fallback: getPackageArchiveInfo needs a real path -> LocalPath only.
+                    data.lookedUp is LocalPath -> apkPreviewGenerator.generate(data.lookedUp as LocalPath)
+                        ?.let {
+                            ImageFetchResult(
+                                image = it.asImage(),
+                                isSampled = false,
+                                dataSource = DataSource.DISK,
+                            )
+                        } ?: fallbackIcon
+
+                    else -> fallbackIcon
+                }
+            }
+
+            mimeType == "application/pdf" || data.lookedUp.extension.equals("pdf", ignoreCase = true) -> {
+                val bitmap = gatewaySwitch.openReadPFD(data.lookedUp)?.let { pfd ->
+                    pdfPreviewGenerator.renderFirstPage(pfd, options.targetEdgePx()) // owns + closes pfd
+                }
                 bitmap?.let {
                     ImageFetchResult(
                         image = it.asImage(),
-                        isSampled = false,
-                        dataSource = DataSource.DISK
+                        isSampled = true,
+                        dataSource = DataSource.DISK,
                     )
                 } ?: fallbackIcon
             }
@@ -167,6 +204,8 @@ class PathPreviewFetcher @Inject constructor(
         private val mimeTypeTool: MimeTypeTool,
         private val textPreviewGenerator: TextPreviewGenerator,
         private val apkPreviewGenerator: ApkPreviewGenerator,
+        private val apkIconExtractor: ApkIconExtractor,
+        private val pdfPreviewGenerator: PdfPreviewGenerator,
         private val keyer: PathPreviewKeyer,
     ) : Fetcher.Factory<APathLookup<*>> {
 
@@ -180,6 +219,8 @@ class PathPreviewFetcher @Inject constructor(
             mimeTypeTool,
             textPreviewGenerator,
             apkPreviewGenerator,
+            apkIconExtractor,
+            pdfPreviewGenerator,
             keyer,
             lazy { imageLoader.diskCache },
             data,

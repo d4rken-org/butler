@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.saf
 
 import android.content.Intent
+import android.os.ParcelFileDescriptor
 import android.system.Os
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -25,6 +26,7 @@ import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.operations.createGeneric
 import eu.darken.butler.common.files.saf.SAFFileSystemOps.*
 import eu.darken.butler.common.sharedresource.SharedResource
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -152,6 +154,22 @@ class SAFGateway @Inject constructor(
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to access from $path: ${e.asLog()}" }
             throw ReadException(path = path, cause = e)
+        }
+    }
+
+    /**
+     * Best-effort read-only [ParcelFileDescriptor] for streaming previews. Returns null (instead of
+     * throwing) when the descriptor can't be opened, so preview callers can fall back to a placeholder.
+     */
+    suspend fun openReadPFD(path: SAFPath): ParcelFileDescriptor? = runIO {
+        try {
+            if (!fileSystemOps.canRead(path)) return@runIO null
+            fileSystemOps.openPFD(path, FileMode.READ)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(TAG, WARN) { "openReadPFD failed for $path: ${e.asLog()}" }
+            null
         }
     }
 

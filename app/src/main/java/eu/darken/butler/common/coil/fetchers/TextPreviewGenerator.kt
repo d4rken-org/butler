@@ -22,6 +22,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.preview.PreviewBudget
 import eu.darken.butler.common.theming.ThemeColor
 import eu.darken.butler.common.theming.ThemeColorProvider
 import eu.darken.butler.common.theming.ThemeMode
@@ -143,17 +144,11 @@ class TextPreviewGenerator @Inject constructor(
     private fun extractDimensions(options: Options?): Pair<Int, Int> {
         if (options == null) return 512 to 512
 
-        val width = when (val w = options.size.width) {
-            is Dimension.Pixels -> w.px
-            else -> 512
-        }
-
-        val height = when (val h = options.size.height) {
-            is Dimension.Pixels -> h.px
-            else -> 512
-        }
-
-        return width to height
+        // Clamp via PreviewBudget so a Size.ORIGINAL / oversized request can't allocate an unbounded
+        // bitmap (undefined stays at the previous 512 default).
+        val width = (options.size.width as? Dimension.Pixels)?.px ?: 0
+        val height = (options.size.height as? Dimension.Pixels)?.px ?: 0
+        return PreviewBudget.resolveEdge(width, default = 512) to PreviewBudget.resolveEdge(height, default = 512)
     }
 
     private suspend fun readTextContent(lookup: APathLookup<*>, maxBytes: Long = 4096L): String? = try {
