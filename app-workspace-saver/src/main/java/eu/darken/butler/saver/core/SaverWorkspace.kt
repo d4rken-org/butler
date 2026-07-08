@@ -22,7 +22,6 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.flow.DynamicStateFlow
 import eu.darken.butler.common.getQuantityString2
-import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.pkgops.PkgOps
 import eu.darken.butler.common.storage.StorageEnvironment
@@ -38,8 +37,6 @@ import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
-import eu.darken.butler.workspace.core.operations.operationsForWorkspace
-import eu.darken.butler.workspace.core.operations.withStateUpdates
 import eu.darken.butler.workspace.core.stateInWorkspace
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -121,24 +118,6 @@ class SaverWorkspace @AssistedInject constructor(
                         }
                     }
             }
-        }
-
-    data class OperationsState(
-        val operations: Collection<ManagedOperation> = emptySet(),
-        val states: Map<Operation.Id, Operation.State> = emptyMap(),
-        val pendingConflicts: Map<Operation.Id, Issue>,
-    )
-
-    val operations: Flow<OperationsState> = operationsManager.operationsForWorkspace(id)
-        .withStateUpdates()
-        .map { operations ->
-            OperationsState(
-                operations = operations,
-                states = operations.associate { it.id to it.state.value },
-                pendingConflicts = operations.map { it to it.state.value }
-                    .filter { it.second is Operation.State.Waiting }
-                    .associate { it.first.id to (it.second as Operation.State.Waiting).issue }
-            )
         }
 
     private val _callerLabel = MutableStateFlow<String?>(UNKNOWN_CALLER_LABEL)
