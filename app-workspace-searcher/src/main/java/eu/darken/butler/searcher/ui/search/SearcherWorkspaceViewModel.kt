@@ -134,9 +134,13 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private var currentSearchId: String? = null
 
     // Issue/conflict handling
-    private val issueStateFlow = MutableStateFlow<eu.darken.butler.common.issue.Issue?>(null)
-    val issueState = issueStateFlow
-    private var currentIssueOperationId: Operation.Id? = null
+    private val conflicts = SearcherOperationConflictController(
+        pendingConflicts = chrome.pendingConflicts,
+        workspace = ::getWorkspace,
+        doLaunch = { block -> launch(block = block) },
+        tag = TAG,
+    )
+    val issueState = conflicts.issueState
 
     val dialogEvents = SingleEventFlow<SearcherDialogEvent>()
 
@@ -230,19 +234,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             .launchIn(vmScope)
 
         // Observe pending issues/conflicts from operations
-        chrome.pendingConflicts
-            .map { it.entries.firstOrNull() }
-            .onEach { pending ->
-                if (pending != null) {
-                    log(TAG, INFO) { "Detected pending issue for operation ${pending.key}: ${pending.value}" }
-                    issueStateFlow.value = pending.value
-                    currentIssueOperationId = pending.key
-                } else {
-                    issueStateFlow.value = null
-                    currentIssueOperationId = null
-                }
-            }
-            .launchIn(vmScope)
+        conflicts.conflictObserver.launchIn(vmScope)
 
         // Auto-search on query text changes with debouncing
         kotlinx.coroutines.flow.combine(filenameQuery, contentQuery) { filename, content ->
@@ -1105,16 +1097,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         // No manual action needed here - the UI observes issueState and shows IssuesBottomSheet when non-null
     }
 
-    private fun resolveIssue(resolution: eu.darken.butler.common.files.actions.PathActionIssue.Resolution) = launch {
-        val operationId = currentIssueOperationId
-        if (operationId != null) {
-            log(TAG, INFO) { "Resolving issue for operation $operationId with resolution: $resolution" }
-            val workspace = getWorkspace()
-            workspace.resolveConflict(operationId, resolution)
-        } else {
-            log(TAG, WARN) { "Cannot resolve issue: no current issue operation ID" }
-        }
-    }
+    private fun resolveIssue(resolution: eu.darken.butler.common.files.actions.PathActionIssue.Resolution) =
+        conflicts.resolve(resolution)
 
     /**
      * Unified handler for all page-level actions.
