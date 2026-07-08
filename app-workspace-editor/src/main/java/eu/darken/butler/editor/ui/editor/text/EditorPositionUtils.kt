@@ -6,7 +6,6 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -219,14 +218,27 @@ internal data class PositionCalculationResult(
     val position: TextPosition
 )
 
+/**
+ * Pre-layout fallback for tap hit-testing: maps a tab-expanded X (px, relative to the line's text
+ * start) to an expanded column using a fixed monospace advance. Past-center rounding matches the
+ * layout branch (advance to the next column only once the tap passes the cell midpoint). Only used
+ * for the one frame before a line's [TextLayoutResult] is available; once it is, exact glyph
+ * geometry takes over.
+ */
+internal fun expandedColumnFromX(adjustedX: Float, charWidthPx: Float, maxColumn: Int): Int {
+    if (charWidthPx <= 0f || adjustedX <= 0f) return 0
+    val cell = (adjustedX / charWidthPx).toInt()
+    val column = if (adjustedX > cell * charWidthPx + charWidthPx / 2f) cell + 1 else cell
+    return column.coerceIn(0, maxColumn.coerceAtLeast(0))
+}
+
 internal fun calculatePositionFromOffset(
     offset: Offset,
     contentListState: LazyListState,
     visibleLineContent: Map<Long, String>,
     density: Density,
-    fontSize: Int,
+    charWidthPx: Float,
     tabSize: Int,
-    wordWrap: Boolean = false,
     textLayouts: Map<Long, TextLayoutResult> = emptyMap(),
     contentPaddingTop: Float = 0f,
 ): PositionCalculationResult? {
@@ -248,9 +260,12 @@ internal fun calculatePositionFromOffset(
     val lineContent = visibleLineContent[lineIndex] ?: ""
     val expandedContent = lineContent.toDisplayText(tabSize)
 
-    // When word wrap is enabled and we have TextLayoutResult, use it for accurate position
-    val clickedColumn = if (wordWrap && textLayouts.containsKey(lineIndex)) {
-        val layout = textLayouts[lineIndex]!!
+    // Use the line's real TextLayoutResult for exact glyph geometry, but only when it matches the
+    // CURRENT display text (same length). A stale layout from just-changed content — or the " "
+    // placeholder rendered for an empty line — would otherwise map a far-right tap to the stale line
+    // end; the measured-advance fallback covers that one frame until the layout catches up.
+    val layout = textLayouts[lineIndex]
+    val clickedColumn = if (layout != null && layout.layoutInput.text.length == expandedContent.length) {
         // Calculate Y position relative to the item (not the list)
         val relativeY = adjustedY - clickedItem.offset
         // Use TextLayoutResult to get character offset at tap position
@@ -301,14 +316,8 @@ internal fun calculatePositionFromOffset(
 
         adjustedOffset.coerceIn(0, expandedContent.length)
     } else {
-        // Fallback: estimate column from X position
-        val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-        if (adjustedX < 0) {
-            0
-        } else {
-            val calculatedColumn = (adjustedX / charWidth).toInt()
-            calculatedColumn.coerceIn(0, expandedContent.length)
-        }
+        // Pre-layout fallback: map X to a column via the measured monospace advance.
+        expandedColumnFromX(adjustedX, charWidthPx, expandedContent.length)
     }
 
     // clickedColumn is an EXPANDED (tab-expanded) visual column; the engine expects a RAW char index.

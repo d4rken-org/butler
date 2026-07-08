@@ -447,4 +447,63 @@ class EditorPositionUtilsTest {
             end.line shouldBe 99L
         }
     }
+
+    @Nested
+    inner class ExpandedColumnFromX {
+        @Test
+        fun `negative X returns zero`() {
+            expandedColumnFromX(adjustedX = -5f, charWidthPx = 10f, maxColumn = 100) shouldBe 0
+        }
+
+        @Test
+        fun `zero X returns zero`() {
+            expandedColumnFromX(adjustedX = 0f, charWidthPx = 10f, maxColumn = 100) shouldBe 0
+        }
+
+        @Test
+        fun `non-positive charWidth is guarded`() {
+            expandedColumnFromX(adjustedX = 500f, charWidthPx = 0f, maxColumn = 100) shouldBe 0
+            expandedColumnFromX(adjustedX = 500f, charWidthPx = -3f, maxColumn = 100) shouldBe 0
+        }
+
+        @Test
+        fun `before the cell midpoint stays on the cell`() {
+            // cell 0 spans [0,10); midpoint 5 - 4 is before center
+            expandedColumnFromX(adjustedX = 4f, charWidthPx = 10f, maxColumn = 100) shouldBe 0
+        }
+
+        @Test
+        fun `exactly at the midpoint stays on the cell`() {
+            // strict > matches the layout branch: an exact half does not advance
+            expandedColumnFromX(adjustedX = 5f, charWidthPx = 10f, maxColumn = 100) shouldBe 0
+        }
+
+        @Test
+        fun `past the cell midpoint advances`() {
+            expandedColumnFromX(adjustedX = 6f, charWidthPx = 10f, maxColumn = 100) shouldBe 1
+        }
+
+        @Test
+        fun `past-center rounding on a later cell`() {
+            // cell 1 spans [10,20); midpoint 15
+            expandedColumnFromX(adjustedX = 14f, charWidthPx = 10f, maxColumn = 100) shouldBe 1
+            expandedColumnFromX(adjustedX = 16f, charWidthPx = 10f, maxColumn = 100) shouldBe 2
+        }
+
+        @Test
+        fun `clamps past end of line to maxColumn`() {
+            expandedColumnFromX(adjustedX = 100_000f, charWidthPx = 10f, maxColumn = 9500) shouldBe 9500
+        }
+
+        @Test
+        fun `resolves a large column exactly - the drift core`() {
+            // 9500 cells * 10px, just at the left edge of cell 9500 -> exactly 9500, no drift
+            expandedColumnFromX(adjustedX = 95_000f, charWidthPx = 10f, maxColumn = 20_000) shouldBe 9500
+        }
+
+        @Test
+        fun `empty line clamps to zero`() {
+            expandedColumnFromX(adjustedX = 500f, charWidthPx = 10f, maxColumn = 0) shouldBe 0
+        }
+    }
 }

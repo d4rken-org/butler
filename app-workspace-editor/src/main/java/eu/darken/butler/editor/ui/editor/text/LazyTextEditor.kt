@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -138,9 +139,11 @@ fun LazyTextEditor(
     rememberCoroutineScope()
     val density = LocalDensity.current
 
-    // Measure character width for horizontal scroll calculations
+    // The single measured monospace advance ("M" width). Used by the horizontal auto-scroll and, as
+    // the pre-layout fallback, by tap hit-testing / selection handles / geometry. Keyed on density too
+    // so a font-scale or density change re-measures.
     val textMeasurer = rememberTextMeasurer()
-    val charWidth = remember(fontSize) {
+    val charWidth = remember(fontSize, density) {
         val measured = textMeasurer.measure(
             text = "M",
             style = TextStyle(
@@ -150,6 +153,11 @@ fun LazyTextEditor(
         )
         measured.size.width.toFloat()
     }
+
+    // Real per-line TextLayoutResults, shared across the auto-scroll (cursor X), tap hit-testing, and
+    // selection handles. Populated for BOTH wrap modes by the line items and bounded to composed lines
+    // via their DisposableEffect, so it never grows unbounded on huge files.
+    val textLayouts = remember { mutableStateMapOf<Long, TextLayoutResult>() }
 
     // Update visible range when scroll position changes (debounced to reduce load frequency)
     @OptIn(FlowPreview::class)
@@ -213,7 +221,18 @@ fun LazyTextEditor(
             } else {
                 cursorPosition.column
             }
-            val cursorX = textPaddingPx + (expandedCursorColumn * charWidth)
+            // Use the cursor line's real layout when available so the scroll decision uses the SAME
+            // glyph geometry as tap hit-testing; the measured advance is only the pre-layout fallback.
+            // (Matching metrics is what stops the same-point tap drift on long horizontally-scrolled lines.)
+            // Only trust the layout when the cursor column fits within it: a stale/placeholder layout
+            // (e.g. the " " rendered for a not-yet-updated line) would otherwise collapse cursorX to ~0
+            // right after a jump/search to a long line; the measured fallback stays roughly correct there.
+            val cursorLayout = textLayouts[cursorPosition.line]
+            val cursorX = textPaddingPx + if (cursorLayout != null && expandedCursorColumn <= cursorLayout.layoutInput.text.length) {
+                cursorLayout.getHorizontalPosition(expandedCursorColumn, usePrimaryDirection = true)
+            } else {
+                expandedCursorColumn * charWidth
+            }
 
             val currentScrollX = horizontalScrollState.value.toFloat()
             val visibleRight = currentScrollX + viewportWidth
@@ -272,6 +291,8 @@ fun LazyTextEditor(
         readOnly = readOnly,
         fontSize = fontSize,
         tabSize = tabSize,
+        charWidthPx = charWidth,
+        textLayouts = textLayouts,
         searchResultsByLine = searchResultsByLine,
         currentSearchResultIndex = currentSearchResultIndex,
         onTextReplace = onTextReplace,
@@ -300,6 +321,8 @@ private fun DualColumnEditorContent(
     readOnly: Boolean,
     fontSize: Int,
     tabSize: Int,
+    charWidthPx: Float,
+    textLayouts: MutableMap<Long, TextLayoutResult>,
     searchResultsByLine: Map<Long, List<Pair<Int, SearchResult>>>,
     currentSearchResultIndex: Int,
     onTextReplace: (start: TextPosition, end: TextPosition, inserted: String, caret: TextPosition) -> Unit,
@@ -333,22 +356,6 @@ private fun DualColumnEditorContent(
 
     // Track measured heights for each line when word wrap is enabled
     val lineHeights = remember { mutableStateMapOf<Long, Int>() }
-
-    // Track TextLayoutResults for accurate tap position calculation when word wrap is enabled
-    val textLayouts = remember { mutableStateMapOf<Long, TextLayoutResult>() }
-
-    // Measure actual character width for accurate positioning
-    val textMeasurer = rememberTextMeasurer()
-    val actualCharWidth = remember(fontSize) {
-        val measured = textMeasurer.measure(
-            text = "M",  // Measure a typical monospace character
-            style = TextStyle(
-                fontSize = fontSize.sp,
-                fontFamily = FontFamily.Monospace
-            )
-        )
-        measured.size.width.toFloat()
-    }
 
     // The hidden field text is the visible lines joined by '\n'.
     val currentContent = remember(visibleLineContent) {
@@ -610,9 +617,9 @@ private fun DualColumnEditorContent(
                 contentPadding = contentPadding,
                 modifier = modifier
                     .then(contentModifier)
-                    // fontSize/tabSize are captured by the hit-testing math below: the gesture
-                    // scope must restart when they change or taps keep using stale metrics
-                    .pointerInput(isWorkspaceFocused, requestWorkspaceFocus, keyboardController, fontSize, tabSize) {
+                    // charWidthPx/tabSize feed the hit-testing math below: the gesture scope must
+                    // restart when they change or taps keep using stale metrics
+                    .pointerInput(isWorkspaceFocused, requestWorkspaceFocus, keyboardController, charWidthPx, tabSize) {
                         detectTapGestures(
                             onTap = { offset ->
                                 // Ignore taps during scroll fling to prevent accidental keyboard show
@@ -651,9 +658,8 @@ private fun DualColumnEditorContent(
                                     contentListState = contentListState,
                                     visibleLineContent = currentVisibleLineContent,
                                     density = density,
-                                    fontSize = fontSize,
+                                    charWidthPx = charWidthPx,
                                     tabSize = tabSize,
-                                    wordWrap = wordWrap,
                                     textLayouts = textLayouts,
                                     contentPaddingTop = contentPaddingTopPx,
                                 )
@@ -709,9 +715,8 @@ private fun DualColumnEditorContent(
                                     contentListState = contentListState,
                                     visibleLineContent = currentVisibleLineContent,
                                     density = density,
-                                    fontSize = fontSize,
+                                    charWidthPx = charWidthPx,
                                     tabSize = tabSize,
-                                    wordWrap = wordWrap,
                                     textLayouts = textLayouts,
                                     contentPaddingTop = contentPaddingTopPx,
                                 )
@@ -736,6 +741,12 @@ private fun DualColumnEditorContent(
                     val lineIndex = itemIndex.toLong()
                     val lineContent = visibleLineContent[lineIndex] ?: ""
 
+                    // Bound the textLayouts map to composed (visible + buffer) lines: drop this line's
+                    // layout when the item leaves composition so results can't accumulate on huge files.
+                    DisposableEffect(lineIndex) {
+                        onDispose { textLayouts.remove(lineIndex) }
+                    }
+
                     TextLineItem(
                         lineIndex = lineIndex,
                         lineContent = lineContent,
@@ -746,15 +757,18 @@ private fun DualColumnEditorContent(
                         wordWrap = wordWrap,
                         fontSize = fontSize,
                         tabSize = tabSize,
+                        charWidthPx = charWidthPx,
                         searchHighlights = searchResultsByLine[lineIndex] ?: emptyList(),
                         currentSearchResultIndex = currentSearchResultIndex,
                         modifier = Modifier.fillMaxWidth(),
                         onHeightMeasured = if (wordWrap) { height ->
                             lineHeights[lineIndex] = height
                         } else null,
-                        onTextLayoutResult = if (wordWrap) { layoutResult ->
+                        // Report the layout for BOTH wrap modes so tap/scroll hit-testing has exact
+                        // glyph geometry (not just the measured-advance fallback).
+                        onTextLayoutResult = { layoutResult ->
                             textLayouts[lineIndex] = layoutResult
-                        } else null,
+                        },
                     )
                 }
             }
@@ -770,16 +784,15 @@ private fun DualColumnEditorContent(
                 contentListState = contentListState,
                 lineNumberWidth = lineNumberWidth,
                 horizontalScrollState = horizontalScrollState,
-                actualCharWidth = actualCharWidth,
+                actualCharWidth = charWidthPx,
                 onDrag = { offset ->
                     val result = calculatePositionFromOffset(
                         offset = offset,
                         contentListState = contentListState,
                         visibleLineContent = currentVisibleLineContent,
                         density = density,
-                        fontSize = fontSize,
+                        charWidthPx = charWidthPx,
                         tabSize = tabSize,
-                        wordWrap = wordWrap,
                         textLayouts = textLayouts,
                         contentPaddingTop = contentPaddingTopPx,
                     )
@@ -810,16 +823,15 @@ private fun DualColumnEditorContent(
                 contentListState = contentListState,
                 lineNumberWidth = lineNumberWidth,
                 horizontalScrollState = horizontalScrollState,
-                actualCharWidth = actualCharWidth,
+                actualCharWidth = charWidthPx,
                 onDrag = { offset ->
                     val result = calculatePositionFromOffset(
                         offset = offset,
                         contentListState = contentListState,
                         visibleLineContent = currentVisibleLineContent,
                         density = density,
-                        fontSize = fontSize,
+                        charWidthPx = charWidthPx,
                         tabSize = tabSize,
-                        wordWrap = wordWrap,
                         textLayouts = textLayouts,
                         contentPaddingTop = contentPaddingTopPx,
                     )

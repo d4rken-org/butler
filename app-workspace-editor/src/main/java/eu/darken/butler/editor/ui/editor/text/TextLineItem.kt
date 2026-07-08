@@ -59,6 +59,7 @@ internal fun TextLineItem(
     wordWrap: Boolean,
     fontSize: Int,
     tabSize: Int,
+    charWidthPx: Float,
     searchHighlights: List<Pair<Int, SearchResult>> = emptyList(),
     currentSearchResultIndex: Int = 0,
     modifier: Modifier = Modifier,
@@ -165,8 +166,8 @@ internal fun TextLineItem(
                     layoutResult.getBoundingBox(expandedText.length - 1).right
                 }
                 else -> {
-                    val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
-                    position * charWidth
+                    // Pre-layout fallback only (real glyph geometry used above once laid out).
+                    position * charWidthPx
                 }
             }
 
@@ -205,11 +206,11 @@ internal fun TextLineItem(
                             layoutResultForWidth.getBoundingBox(position - 1)
                             (box.right - box.left).coerceAtLeast(0f)
                         } else {
-                            with(density) { (fontSize * 0.6f).sp.toPx() }
+                            charWidthPx
                         }
                     }
                     else -> {
-                        with(density) { (fontSize * 0.6f).sp.toPx() }
+                        charWidthPx
                     }
                 }
 
@@ -250,6 +251,7 @@ internal fun TextLineItem(
             wordWrap = wordWrap,
             fontSize = fontSize,
             tabSize = tabSize,
+            charWidthPx = charWidthPx,
             onTextLayout = { layoutResult ->
                 textLayoutResult = layoutResult
                 onTextLayoutResult?.invoke(layoutResult)
@@ -271,6 +273,7 @@ internal fun SelectableText(
     wordWrap: Boolean,
     fontSize: Int,
     tabSize: Int = 4,
+    charWidthPx: Float,
     onTextLayout: (TextLayoutResult) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -458,8 +461,8 @@ internal fun SelectableText(
                                     .background(selectionColor)
                             )
                         } else {
-                            // Fallback to character width estimation
-                            val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
+                            // Pre-layout fallback only (bounds path above uses real glyph geometry).
+                            val charWidth = charWidthPx
                             Box(
                                 modifier = Modifier
                                     .offset(x = with(density) { (selectionStart * charWidth).toDp() })
@@ -469,8 +472,8 @@ internal fun SelectableText(
                             )
                         }
                     } else {
-                        // Fallback to character width estimation
-                        val charWidth = with(density) { (fontSize * 0.6f).sp.toPx() }
+                        // Pre-layout fallback only (bounds path above uses real glyph geometry).
+                        val charWidth = charWidthPx
                         Box(
                             modifier = Modifier
                                 .offset(x = with(density) { (selectionStart * charWidth).toDp() })
@@ -523,6 +526,7 @@ private fun TextLineItemPreview() {
         wordWrap = false,
         fontSize = 14,
         tabSize = 4,
+        charWidthPx = 8.4f,
         modifier = Modifier.fillMaxWidth()
     )
 }
@@ -543,6 +547,7 @@ private fun SelectableTextPreview() {
         ),
         wordWrap = false,
         fontSize = 14,
+        charWidthPx = 8.4f,
         onTextLayout = {},
         modifier = Modifier.fillMaxWidth()
     )
