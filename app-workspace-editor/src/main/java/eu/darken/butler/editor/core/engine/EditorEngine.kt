@@ -78,8 +78,19 @@ class EditorEngine @AssistedInject constructor(
     // if it is still the latest request when it finishes
     private var searchRequestCounter = 0L
 
-    private val _searchResults = MutableStateFlow<List<SearchResult>>(emptyList())
-    val searchResults: StateFlow<List<SearchResult>> = _searchResults.asStateFlow()
+    /**
+     * The published results and their truncation flag as ONE value: two independent flows
+     * could pair capped results with a stale flag mid-combine. When [truncated], [results]
+     * are the first [WindowedSearch.MAX_RESULTS] matches of the document - navigation
+     * operates within them; matches beyond the cap are reachable by narrowing the query.
+     */
+    data class SearchState(
+        val results: List<SearchResult> = emptyList(),
+        val truncated: Boolean = false,
+    )
+
+    private val _searchState = MutableStateFlow(SearchState())
+    val searchState: StateFlow<SearchState> = _searchState.asStateFlow()
 
     private val _visibleRange = MutableStateFlow(0L..50L)
     val visibleRange: StateFlow<LongRange> = _visibleRange.asStateFlow()
@@ -1143,7 +1154,7 @@ class EditorEngine @AssistedInject constructor(
             val id = ++searchRequestCounter
 
             if (query.isEmpty()) {
-                _searchResults.value = emptyList()
+                _searchState.value = SearchState()
                 return Result.success(emptyList())
             }
             val loaded = _state.value as? EditorState.Loaded ?: run {
@@ -1159,10 +1170,12 @@ class EditorEngine @AssistedInject constructor(
         stateMutex.withLock {
             val isLatest = requestId == searchRequestCounter && _searchQuery.value == query
             result.fold(
-                onSuccess = { if (isLatest) _searchResults.value = it },
+                onSuccess = { outcome ->
+                    if (isLatest) _searchState.value = SearchState(outcome.results, outcome.truncated)
+                },
                 onFailure = { e ->
                     // Never leave stale positions highlighted under the failed (latest) query
-                    if (isLatest) _searchResults.value = emptyList()
+                    if (isLatest) _searchState.value = SearchState()
                     if (e !is SearchInvalidatedException) {
                         log(tag, ERROR) { "Failed to search - ${e.asLog()}" }
                         _error.value = e
@@ -1170,7 +1183,7 @@ class EditorEngine @AssistedInject constructor(
                 },
             )
         }
-        return result
+        return result.map { it.results }
     }
 
     data class ReplaceOutcome(
@@ -1235,6 +1248,11 @@ class EditorEngine @AssistedInject constructor(
      * and `\$` literal dollars with Kotlin `Regex.replace` semantics, is precomputed before any
      * mutation, and only works under the full-scan cap - above it windowed regex results are
      * unreliable and replacing based on them could corrupt the document.
+     *
+     * Documents with more matches than [WindowedSearch.MAX_RESULTS] (or match/replacement text
+     * beyond [WindowedSearch.MAX_TOTAL_MATCH_CHARS]) are REFUSED with [TooManyMatchesException]
+     * before anything mutates - a partial replace would silently corrupt user expectations and
+     * materializing millions of replacements would exhaust the heap.
      */
     suspend fun replaceAll(
         query: String,
@@ -1267,24 +1285,49 @@ class EditorEngine @AssistedInject constructor(
             }
             expectedVersion = snapshotVersion
             try {
-                regex.findAll(text)
-                    .filter { it.value.isNotEmpty() }
-                    .map { m ->
-                        DocumentBuffer.MatchReplacement(
-                            startOffset = m.range.first.toLong(),
-                            oldText = m.value,
-                            newText = matchDocumentLineEnding(expandReplacementTemplate(replacement, m), buffer),
-                        )
+                // Manual iteration so the caps refuse BEFORE further replacements materialize -
+                // a dense pattern over a large document must not build millions of objects
+                // first, and refused matches never get their text or expansion allocated.
+                // Mirrors the search-side bounds: the first replacement is exempt from the
+                // char bound so a single oversized match stays replaceable.
+                val collected = mutableListOf<DocumentBuffer.MatchReplacement>()
+                var accumulatedChars = 0L
+                for (m in regex.findAll(text)) {
+                    if (m.range.isEmpty()) continue
+                    if (collected.size >= WindowedSearch.MAX_RESULTS) {
+                        return Result.failure(TooManyMatchesException(WindowedSearch.MAX_RESULTS))
                     }
-                    .toList()
+                    val oldLength = m.range.last - m.range.first + 1
+                    if (collected.isNotEmpty() &&
+                        accumulatedChars + oldLength > WindowedSearch.MAX_TOTAL_MATCH_CHARS
+                    ) {
+                        return Result.failure(TooManyMatchesException(WindowedSearch.MAX_RESULTS))
+                    }
+                    val newText = matchDocumentLineEnding(expandReplacementTemplate(replacement, m), buffer)
+                    if (collected.isNotEmpty() &&
+                        accumulatedChars + oldLength + newText.length > WindowedSearch.MAX_TOTAL_MATCH_CHARS
+                    ) {
+                        return Result.failure(TooManyMatchesException(WindowedSearch.MAX_RESULTS))
+                    }
+                    accumulatedChars += oldLength + newText.length
+                    collected += DocumentBuffer.MatchReplacement(
+                        startOffset = m.range.first.toLong(),
+                        oldText = m.value,
+                        newText = newText,
+                    )
+                }
+                collected
             } catch (e: IllegalArgumentException) {
                 // Bad group reference: precomputation failed, the document is untouched
                 return Result.failure(e)
             }
         } else {
             val translated = matchDocumentLineEnding(replacement, buffer)
-            val matches = buffer.search(query, options).getOrElse { return Result.failure(it) }
-            matches.map { DocumentBuffer.MatchReplacement(it.position.offset, it.matchText, translated) }
+            val outcome = buffer.search(query, options).getOrElse { return Result.failure(it) }
+            if (outcome.truncated) {
+                return Result.failure(TooManyMatchesException(WindowedSearch.MAX_RESULTS))
+            }
+            outcome.results.map { DocumentBuffer.MatchReplacement(it.position.offset, it.matchText, translated) }
         }
 
         if (replacements.isEmpty()) return Result.success(ReplaceAllOutcome(0, undoable = true))
@@ -1389,7 +1432,7 @@ class EditorEngine @AssistedInject constructor(
     }
 
     private fun invalidateSearchResults() {
-        _searchResults.value = emptyList()
+        _searchState.value = SearchState()
         _searchQuery.value = ""
     }
 

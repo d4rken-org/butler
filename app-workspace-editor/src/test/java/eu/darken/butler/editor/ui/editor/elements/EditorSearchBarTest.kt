@@ -26,6 +26,8 @@ class EditorSearchBarTest : ComposeTest() {
     private fun setBar(
         query: String = "",
         searchResults: List<SearchResult> = emptyList(),
+        currentIndex: Int = 0,
+        searchTruncated: Boolean = false,
         onQueryChange: (TextFieldValue) -> Unit = {},
         onNext: () -> Unit = {},
         onPrevious: () -> Unit = {},
@@ -36,7 +38,8 @@ class EditorSearchBarTest : ComposeTest() {
                 EditorSearchBar(
                     searchQuery = TextFieldValue(query),
                     searchResults = searchResults,
-                    currentIndex = 0,
+                    currentIndex = currentIndex,
+                    searchTruncated = searchTruncated,
                     caseSensitive = false,
                     regexEnabled = false,
                     wholeWord = false,
@@ -157,5 +160,27 @@ class EditorSearchBarTest : ComposeTest() {
         composeTestRule.onNodeWithContentDescription("Close").performClick()
 
         closed.shouldBeTrue()
+    }
+
+    @Test
+    fun `truncated results show the capped counter`() {
+        setBar(query = "e", searchResults = results(10), searchTruncated = true)
+
+        composeTestRule.onNodeWithText("1 of 10+ results").assertExists()
+    }
+
+    @Test
+    fun `untruncated results keep the plural counter`() {
+        setBar(query = "e", searchResults = results(3))
+
+        composeTestRule.onNodeWithText("1 of 3 results").assertExists()
+    }
+
+    @Test
+    fun `capped counter clamps an out-of-range index`() {
+        // Async state skew can briefly pair a stale index with a fresh capped list
+        setBar(query = "e", searchResults = results(10), currentIndex = 25, searchTruncated = true)
+
+        composeTestRule.onNodeWithText("10 of 10+ results").assertExists()
     }
 }

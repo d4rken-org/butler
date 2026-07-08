@@ -178,11 +178,11 @@ class DocumentBufferLargeFileTest : BaseTest() {
         val (_, buffer) = openLargeBuffer(tempDir, content)
 
         // "Zeile 059000" exists exactly once; the multibyte marker lines exist LINE_COUNT/1000 times
-        val single = buffer.search("Zeile 059000", SearchOptions()).getOrThrow()
+        val single = buffer.search("Zeile 059000", SearchOptions()).getOrThrow().results
         single shouldHaveSize 1
         single.single().position.offset shouldBe content.indexOf("Zeile 059000").toLong()
 
-        val all = buffer.search("☃", SearchOptions()).getOrThrow()
+        val all = buffer.search("☃", SearchOptions()).getOrThrow().results
         all shouldHaveSize LINE_COUNT / 1000
     }
 }

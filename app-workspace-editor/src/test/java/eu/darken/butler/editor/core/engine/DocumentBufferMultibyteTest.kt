@@ -135,7 +135,7 @@ class DocumentBufferMultibyteTest : BaseTest() {
     fun `search offsets are char based on multibyte content`(@TempDir tempDir: File) = runTest {
         val content = "中文 abc 中文 abc"
         val buffer = fileBuffer(tempDir, bytes(content), blockSize = 8)
-        val results = buffer.search("abc", options = SearchOptions(caseSensitive = true)).getOrThrow()
+        val results = buffer.search("abc", options = SearchOptions(caseSensitive = true)).getOrThrow().results
         results.map { it.position.offset } shouldBe listOf(
             content.indexOf("abc").toLong(),
             content.lastIndexOf("abc").toLong(),

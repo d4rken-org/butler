@@ -4,6 +4,7 @@ import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.editor.core.EditorSettings
+import eu.darken.butler.editor.core.engine.text.WindowedSearch
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
@@ -216,8 +217,76 @@ class EditorEngineReplaceOpsTest : BaseTest() {
 
         engine.replaceAll("cat", options, "cathedral").getOrThrow()
 
-        engine.searchResults.value.size shouldBe 2
+        engine.searchState.value.results.size shouldBe 2
         engine.fullText() shouldBe "cathedral dog cathedral"
+    }
+
+    @Test
+    fun `replace-all refuses over the match cap and leaves the document untouched`() = runTest {
+        val content = "cat ".repeat(5)
+        val engine = createEngine(content)
+        engine.textBuffer!!.windowedSearchFactory = { readText ->
+            WindowedSearch(maxResults = 4, readText = readText)
+        }
+
+        val result = engine.replaceAll("cat", SearchOptions(caseSensitive = true), "dog")
+
+        result.exceptionOrNull().shouldBeInstanceOf<TooManyMatchesException>()
+        engine.fullText() shouldBe content
+    }
+
+    @Test
+    fun `replace-all at exactly the match cap succeeds`() = runTest {
+        val engine = createEngine("cat ".repeat(4))
+        engine.textBuffer!!.windowedSearchFactory = { readText ->
+            WindowedSearch(maxResults = 4, readText = readText)
+        }
+
+        val outcome = engine.replaceAll("cat", SearchOptions(caseSensitive = true), "dog").getOrThrow()
+
+        outcome.count shouldBe 4
+        engine.fullText() shouldBe "dog ".repeat(4)
+    }
+
+    @Test
+    fun `regex replace-all over the match cap refuses without touching the document`() = runTest {
+        // Every char matches: the manual findAll iteration must refuse at the (cap+1)-th match
+        // instead of materializing a replacement per char first
+        val content = "a".repeat(WindowedSearch.MAX_RESULTS + 1)
+        val engine = createEngine(content)
+        val options = SearchOptions(caseSensitive = true, useRegex = true)
+
+        val result = engine.replaceAll("a", options, "b")
+
+        result.exceptionOrNull().shouldBeInstanceOf<TooManyMatchesException>()
+        engine.fullText() shouldBe content
+    }
+
+    @Test
+    fun `regex replace-all over the char bound refuses without touching the document`() = runTest {
+        // Two matches whose combined text blows the char bound long before the count cap
+        val big = "x".repeat((WindowedSearch.MAX_TOTAL_MATCH_CHARS * 3 / 4).toInt())
+        val content = "$big $big"
+        val engine = createEngine(content)
+        val options = SearchOptions(caseSensitive = true, useRegex = true)
+
+        val result = engine.replaceAll("x+", options, "y")
+
+        result.exceptionOrNull().shouldBeInstanceOf<TooManyMatchesException>()
+        engine.fullText() shouldBe content
+    }
+
+    @Test
+    fun `regex replace-all of a single oversized match succeeds`() = runTest {
+        // The first replacement is exempt from the char bound: one huge match stays replaceable
+        val content = "x".repeat(WindowedSearch.MAX_TOTAL_MATCH_CHARS.toInt() + 1)
+        val engine = createEngine(content)
+        val options = SearchOptions(caseSensitive = true, useRegex = true)
+
+        val outcome = engine.replaceAll("x+", options, "y").getOrThrow()
+
+        outcome.count shouldBe 1
+        engine.fullText() shouldBe "y"
     }
 
     @Test

@@ -87,6 +87,9 @@
         <item quantity="one">%1$d of %2$d result</item>
         <item quantity="other">%1$d of %2$d results</item>
     </plurals>
+    <string name="editor_search_results_x_of_capped">%1$d of %2$d+ results</string>
+    <string name="editor_search_too_many_matches_label">Too many matches</string>
+    <string name="editor_search_too_many_matches">More than %1$d matches or too much matched text — narrow the search to replace all.</string>
     <string name="editor_search_placeholder">Search…</string>
     <string name="editor_search_previous">Previous result</string>
     <string name="editor_search_next">Next result</string>

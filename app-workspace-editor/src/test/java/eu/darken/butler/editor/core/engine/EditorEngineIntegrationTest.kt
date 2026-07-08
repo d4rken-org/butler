@@ -9,6 +9,7 @@ import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.editor.core.EditorSettings
+import eu.darken.butler.editor.core.engine.text.WindowedSearch
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
@@ -185,12 +186,30 @@ class EditorEngineIntegrationTest : DocumentBufferTestBase() {
         val engine = createEngine(content = "cat dog cat")
 
         engine.search("cat").getOrThrow().size shouldBe 2
-        engine.searchResults.value.size shouldBe 2
+        engine.searchState.value.results.size shouldBe 2
 
         engine.setCursorPosition(TextPosition(0, 0, 0))
         engine.insertText("X")
 
-        engine.searchResults.value.size shouldBe 0
+        engine.searchState.value.results.size shouldBe 0
+    }
+
+    @Test
+    fun `truncated search state publishes as one value and resets on edit`() = runTest {
+        val engine = createEngine(content = "cat ".repeat(5))
+        engine.textBuffer!!.windowedSearchFactory = { readText ->
+            WindowedSearch(maxResults = 3, readText = readText)
+        }
+
+        engine.search("cat").getOrThrow().size shouldBe 3
+        val published = engine.searchState.value
+        published.truncated shouldBe true
+        published.results.map { it.position.offset } shouldBe listOf(0L, 4L, 8L)
+
+        engine.setCursorPosition(TextPosition(0, 0, 0))
+        engine.insertText("X")
+
+        engine.searchState.value shouldBe EditorEngine.SearchState()
     }
 
     @Test

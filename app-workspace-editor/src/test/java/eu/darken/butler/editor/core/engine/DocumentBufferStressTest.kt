@@ -47,7 +47,7 @@ class DocumentBufferStressTest : DocumentBufferTestBase() {
             }
         }
         val searchTime = measureTime {
-            buffer.search("content", options = SearchOptions(caseSensitive = true)).getOrThrow()
+            buffer.search("content", options = SearchOptions(caseSensitive = true)).getOrThrow().results
         }
         log("DocumentBufferStressTest", INFO) {
             "2000 edits=$editTime, 500 line lookups=$lineTime, one search=$searchTime"

@@ -400,6 +400,12 @@ class DocumentBuffer @AssistedInject constructor(
         start + column.coerceIn(0, (end - start).coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
     }
 
+    /** Search results plus whether the scan stopped at the result caps before covering the document. */
+    data class SearchOutcome(
+        val results: List<SearchResult>,
+        val truncated: Boolean,
+    )
+
     /**
      * Scans the whole document WITHOUT holding [bufferMutex] across the scan: the lock is taken
      * per window read, and [structuralVersion] is validated each time. A concurrent edit makes
@@ -407,12 +413,13 @@ class DocumentBuffer @AssistedInject constructor(
      * of stalling the edit for the scan's duration. Edits can still wait for at most one
      * window's decode (~64KB) - bounded and acceptable.
      */
-    suspend fun search(query: String, options: SearchOptions): Result<List<SearchResult>> {
+    suspend fun search(query: String, options: SearchOptions): Result<SearchOutcome> {
         // tableOrNull() throws when the buffer requires a reload - that must surface as a
         // Result too, the engine no longer wraps this call
         val (table, version, totalLength) = try {
             bufferMutex.withLock {
-                val t = tableOrNull() ?: return Result.success(emptyList())
+                val t = tableOrNull()
+                    ?: return Result.success(SearchOutcome(emptyList(), truncated = false))
                 Triple(t, structuralVersion, t.totalCharLength)
             }
         } catch (e: CancellationException) {
@@ -427,13 +434,19 @@ class DocumentBuffer @AssistedInject constructor(
                     table.read(start, end)
                 }
             }
-            val matches = windowedSearch.search(totalLength, query, options).map { match ->
+            val outcome = windowedSearch.search(totalLength, query, options)
+            // An edit landing between the last window read and completion invalidates like a
+            // mid-scan edit - the buffer API must not return matches known to be stale
+            bufferMutex.withLock {
+                if (structuralVersion != version) throw SearchInvalidatedException()
+            }
+            val matches = outcome.matches.map { match ->
                 SearchResult(
                     position = TextPosition(match.offset, match.line, match.column),
                     matchText = match.matchText,
                 )
             }
-            Result.success(matches)
+            Result.success(SearchOutcome(matches, outcome.truncated))
         } catch (e: SearchInvalidatedException) {
             log(tag) { "Search invalidated by a concurrent edit" }
             Result.failure(e)

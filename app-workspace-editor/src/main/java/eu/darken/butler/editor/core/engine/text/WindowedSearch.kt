@@ -22,17 +22,30 @@ import kotlin.coroutines.coroutineContext
  * truncated). Documents up to [regexFullScanCap] chars are therefore materialized once and
  * scanned whole — exact findAll semantics. Above the cap the windowed scan is used as a
  * fallback: anchors, lookaround, and matches longer than the overlap are unreliable there.
+ *
+ * Results are bounded: the scan stops the moment the ([maxResults]+1)-th match is found or a
+ * match would push the accumulated match text past [maxTotalMatchChars] (a regex matching
+ * whole lines can exhaust memory long before the count cap). The truncating match is dropped,
+ * no further windows are decoded, and [Outcome.truncated] is set; completing within both
+ * bounds — including exactly at [maxResults] — is not truncated. The FIRST match is exempt
+ * from the char bound (a single oversized match is retained), so a truncated outcome always
+ * carries at least one result — the UI never faces "truncated but nothing to show".
  */
 class WindowedSearch(
     private val baseWindowSize: Int = DEFAULT_WINDOW_SIZE,
     private val minOverlap: Int = DEFAULT_MIN_OVERLAP,
     private val regexFullScanCap: Int = REGEX_FULL_SCAN_CAP,
+    private val maxResults: Int = MAX_RESULTS,
+    private val maxTotalMatchChars: Long = MAX_TOTAL_MATCH_CHARS,
     private val readText: suspend (charStart: Long, charEnd: Long) -> String,
 ) {
 
     init {
         require(minOverlap >= 1 && baseWindowSize > minOverlap) {
             "Invalid window config: size=$baseWindowSize, overlap=$minOverlap"
+        }
+        require(maxResults >= 1 && maxTotalMatchChars >= 1) {
+            "Invalid result caps: maxResults=$maxResults, maxTotalMatchChars=$maxTotalMatchChars"
         }
     }
 
@@ -43,8 +56,13 @@ class WindowedSearch(
         val matchText: String,
     )
 
-    suspend fun search(totalLength: Long, query: String, options: SearchOptions): List<Match> {
-        if (query.isEmpty()) return emptyList()
+    data class Outcome(
+        val matches: List<Match>,
+        val truncated: Boolean,
+    )
+
+    suspend fun search(totalLength: Long, query: String, options: SearchOptions): Outcome {
+        if (query.isEmpty()) return Outcome(emptyList(), truncated = false)
 
         val pattern = buildSearchPattern(query, options)
         val regexOptions = buildSet {
@@ -54,7 +72,7 @@ class WindowedSearch(
             Regex(pattern, regexOptions)
         } catch (e: Exception) {
             log(TAG, WARN) { "Invalid regex pattern: $query - ${e.message}" }
-            return emptyList()
+            return Outcome(emptyList(), truncated = false)
         }
 
         val fullScan = options.useRegex && totalLength <= regexFullScanCap
@@ -75,6 +93,7 @@ class WindowedSearch(
         val stride = windowSize - overlap
 
         val results = mutableListOf<Match>()
+        var totalMatchChars = 0L
         var windowStart = 0L
         var line = 0L
         var lineStart = 0L
@@ -130,9 +149,28 @@ class WindowedSearch(
                 .toInt()
                 .coerceAtMost(text.length)
             for (match in regex.findAll(text, matchFrom)) {
-                if (match.value.isEmpty()) continue
+                // Range-based checks: match.value materializes a string, which the caps exist
+                // to avoid - only accepted matches get their text extracted
+                if (match.range.isEmpty()) continue
                 val absolute = padStart + match.range.first
+                // Caps apply only to ACCEPTED matches: an overlap-region match can be false
+                // (whole-word \b at the window-text edge has no trailing context), so it must
+                // not count as truncation evidence - the next window re-evaluates it properly,
+                // at the cost of one extra window decode in this boundary case. The first
+                // match is exempt from the char bound so a truncated outcome always carries
+                // at least one result.
                 if (absolute < windowStart || absolute >= acceptLimit) continue
+                val matchLength = match.range.last - match.range.first + 1
+                if (results.size >= maxResults ||
+                    (results.isNotEmpty() && totalMatchChars + matchLength > maxTotalMatchChars)
+                ) {
+                    // The truncating match is dropped and the scan stops here - no further
+                    // windows are decoded
+                    log(TAG, WARN) {
+                        "Search truncated at ${results.size} matches ($totalMatchChars match chars)"
+                    }
+                    return Outcome(results, truncated = true)
+                }
                 advanceTo(match.range.first)
                 results += Match(
                     offset = absolute,
@@ -140,6 +178,7 @@ class WindowedSearch(
                     column = (absolute - lineStart).toInt(),
                     matchText = match.value,
                 )
+                totalMatchChars += matchLength
                 lastMatchEnd = padStart + match.range.last + 1
             }
 
@@ -147,7 +186,7 @@ class WindowedSearch(
             advanceTo(coreOffset + stride)
             windowStart += stride
         }
-        return results
+        return Outcome(results, truncated = false)
     }
 
     private fun buildSearchPattern(query: String, options: SearchOptions): String = when {
@@ -160,6 +199,8 @@ class WindowedSearch(
         const val DEFAULT_WINDOW_SIZE = 64 * 1024
         const val DEFAULT_MIN_OVERLAP = 4 * 1024
         const val REGEX_FULL_SCAN_CAP = 8 * 1024 * 1024
+        const val MAX_RESULTS = 10_000
+        const val MAX_TOTAL_MATCH_CHARS = 2_000_000L
         private val TAG = logTag("Editor", "Engine", "WindowedSearch")
     }
 }

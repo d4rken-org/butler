@@ -163,6 +163,23 @@ class EditorSearchControllerTest : BaseTest() {
     }
 
     @Test
+    fun `a cursor beyond the last match starts at the first match`() = runTest {
+        // Pins the capped-search navigation semantics: the cursor-anchored start index
+        // operates within the retained results only - a cursor past the last retained match
+        // (e.g. beyond a truncated result list) wraps to index 0
+        val matches = results(3) // offsets 0, 10, 20
+        val workspace = mockWorkspace(matches, cursorOffset = 99L)
+        val controller = controller(workspace)
+
+        controller.updateQuery(TextFieldValue("match"))
+        advanceTimeBy(EditorSearchController.SEARCH_DEBOUNCE_MS + 1)
+        runCurrent()
+
+        controller.state.first().currentResultIndex shouldBe 0
+        coVerify { workspace.setCursorPosition(matches[0].position) }
+    }
+
+    @Test
     fun `replace-current adopts the engine outcome and advances`() = runTest {
         val matches = results(3)
         val workspace = mockWorkspace(matches)

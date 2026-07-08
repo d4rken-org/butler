@@ -265,6 +265,7 @@ fun EditorWorkspacePage(
                     EditorSearchBar(
                         searchQuery = state.searchQueryInput,
                         searchResults = state.searchResults,
+                        searchTruncated = state.searchTruncated,
                         currentIndex = state.currentSearchResultIndex,
                         caseSensitive = state.searchCaseSensitive,
                         regexEnabled = state.searchRegexEnabled,

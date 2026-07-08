@@ -84,7 +84,7 @@ class DocumentBufferSearchConcurrencyTest : BaseTest() {
             WindowedSearch(baseWindowSize = 64, minOverlap = 8, readText = lockedRead)
         }
 
-        val results = buffer.search("needle", SearchOptions(caseSensitive = true)).getOrThrow()
+        val results = buffer.search("needle", SearchOptions(caseSensitive = true)).getOrThrow().results
 
         results.size shouldBe 50
         results.first().position.offset shouldBe 0L

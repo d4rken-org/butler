@@ -11,6 +11,30 @@ import kotlin.random.Random
 
 class WindowedSearchTest : BaseTest() {
 
+    private suspend fun searchOutcome(
+        content: String,
+        query: String,
+        options: SearchOptions = SearchOptions(caseSensitive = true),
+        windowSize: Int = 32,
+        minOverlap: Int = 8,
+        regexFullScanCap: Int = WindowedSearch.REGEX_FULL_SCAN_CAP,
+        maxResults: Int = WindowedSearch.MAX_RESULTS,
+        maxTotalMatchChars: Long = WindowedSearch.MAX_TOTAL_MATCH_CHARS,
+        onRead: () -> Unit = {},
+    ): WindowedSearch.Outcome {
+        val search = WindowedSearch(
+            windowSize,
+            minOverlap,
+            regexFullScanCap,
+            maxResults,
+            maxTotalMatchChars,
+        ) { start, end ->
+            onRead()
+            content.substring(start.toInt(), end.toInt())
+        }
+        return search.search(content.length.toLong(), query, options)
+    }
+
     private suspend fun searchAll(
         content: String,
         query: String,
@@ -18,12 +42,8 @@ class WindowedSearchTest : BaseTest() {
         windowSize: Int = 32,
         minOverlap: Int = 8,
         regexFullScanCap: Int = WindowedSearch.REGEX_FULL_SCAN_CAP,
-    ): List<WindowedSearch.Match> {
-        val search = WindowedSearch(windowSize, minOverlap, regexFullScanCap) { start, end ->
-            content.substring(start.toInt(), end.toInt())
-        }
-        return search.search(content.length.toLong(), query, options)
-    }
+    ): List<WindowedSearch.Match> =
+        searchOutcome(content, query, options, windowSize, minOverlap, regexFullScanCap).matches
 
     private fun refPosition(content: String, offset: Int): Pair<Long, Int> {
         var line = 0L
@@ -323,6 +343,116 @@ class WindowedSearchTest : BaseTest() {
         val results = searchAll(content, "L+", SearchOptions(useRegex = true), windowSize = 8, minOverlap = 2)
         results.map { it.offset } shouldBe listOf(10L)
         results[0].matchText shouldBe "L".repeat(40)
+    }
+
+    @Test
+    fun `exactly at the result cap is not truncated`() = runTest {
+        val content = "hit ".repeat(5)
+        val outcome = searchOutcome(content, "hit", maxResults = 5)
+        outcome.truncated shouldBe false
+        outcome.matches.map { it.offset } shouldBe listOf(0L, 4L, 8L, 12L, 16L)
+    }
+
+    @Test
+    fun `one match past the cap truncates to exactly the cap results`() = runTest {
+        val content = "hit ".repeat(6)
+        val capped = searchOutcome(content, "hit", maxResults = 5)
+        capped.truncated shouldBe true
+        capped.matches.size shouldBe 5
+
+        // The retained matches are identical to an uncapped scan's first five
+        val uncapped = searchOutcome(content, "hit")
+        uncapped.truncated shouldBe false
+        capped.matches shouldBe uncapped.matches.take(5)
+    }
+
+    @Test
+    fun `huge matches trip the char bound before the count cap`() = runTest {
+        val block = "L".repeat(40)
+        val content = "$block $block $block"
+        val outcome = searchOutcome(content, block, maxResults = 100, maxTotalMatchChars = 100L)
+        outcome.truncated shouldBe true
+        // 40 + 40 = 80 chars fit the bound; the third match would push it to 120
+        outcome.matches.size shouldBe 2
+    }
+
+    @Test
+    fun `a single oversized match is exempt from the char bound`() = runTest {
+        // One match over the bound alone: retained, not truncated - a truncated outcome must
+        // always carry at least one result
+        val content = "L".repeat(200)
+        val lone = searchOutcome(content, "L+", SearchOptions(useRegex = true), maxTotalMatchChars = 100L)
+        lone.truncated shouldBe false
+        lone.matches.size shouldBe 1
+        lone.matches[0].matchText shouldBe content
+
+        // With a second match following, the oversized first is retained and truncation
+        // happens there instead
+        val two = searchOutcome(
+            "${"L".repeat(200)} ${"L".repeat(50)}",
+            "L+",
+            SearchOptions(useRegex = true),
+            maxTotalMatchChars = 100L,
+        )
+        two.truncated shouldBe true
+        two.matches.size shouldBe 1
+        two.matches[0].offset shouldBe 0L
+    }
+
+    @Test
+    fun `truncation stops decoding further windows`() = runTest {
+        val content = "hit ".repeat(3) + "x".repeat(300)
+        var reads = 0
+        val outcome = searchOutcome(
+            content,
+            "hit",
+            windowSize = 32,
+            minOverlap = 8,
+            maxResults = 2,
+            onRead = { reads++ },
+        )
+        outcome.truncated shouldBe true
+        outcome.matches.map { it.offset } shouldBe listOf(0L, 4L)
+        // The third match in the first window trips the cap; no further window is read
+        reads shouldBe 1
+    }
+
+    @Test
+    fun `a truncating match first seen in the overlap is confirmed in the next window`() = runTest {
+        // Window size 32, overlap 8 -> stride 24: the third match sits at offset 24, exactly at
+        // window 1's accept limit. Overlap matches can be false (see the whole-word test below),
+        // so the caps deliberately count only accepted matches - the scan decodes exactly one
+        // more window and truncates there.
+        val content = "hit hit " + "x".repeat(16) + "hit" + "x".repeat(200)
+        var reads = 0
+        val outcome = searchOutcome(
+            content,
+            "hit",
+            windowSize = 32,
+            minOverlap = 8,
+            maxResults = 2,
+            onRead = { reads++ },
+        )
+        outcome.truncated shouldBe true
+        outcome.matches.map { it.offset } shouldBe listOf(0L, 4L)
+        reads shouldBe 2
+    }
+
+    @Test
+    fun `a false whole-word match in the overlap never causes truncation`() = runTest {
+        // "abc" at offset 4 looks word-bounded at window 1's text edge, but the real document
+        // continues with 'd' - counting it as truncation evidence would falsely refuse a
+        // replace-all on a document with a single genuine match
+        val outcome = searchOutcome(
+            "abc abcd",
+            "abc",
+            SearchOptions(caseSensitive = true, wholeWord = true),
+            windowSize = 6,
+            minOverlap = 2,
+            maxResults = 1,
+        )
+        outcome.truncated shouldBe false
+        outcome.matches.map { it.offset } shouldBe listOf(0L)
     }
 
     @Test

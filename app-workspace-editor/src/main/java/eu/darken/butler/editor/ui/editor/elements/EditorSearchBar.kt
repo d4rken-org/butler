@@ -56,12 +56,19 @@ import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.ui.editor.EditorSearchController
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 
+/**
+ * [searchTruncated] marks a result list capped by the engine: the counter shows "N of M+" and
+ * next/previous navigate WITHIN the retained matches only - matches beyond the cap are reached
+ * by narrowing the query. Replace buttons stay enabled; Replace All over the cap surfaces an
+ * explanatory error dialog, which is more discoverable than a silently disabled button.
+ */
 @Composable
 fun EditorSearchBar(
     modifier: Modifier = Modifier,
     searchQuery: TextFieldValue,
     searchResults: List<SearchResult>,
     currentIndex: Int,
+    searchTruncated: Boolean = false,
     caseSensitive: Boolean,
     regexEnabled: Boolean,
     wholeWord: Boolean,
@@ -105,12 +112,21 @@ fun EditorSearchBar(
             // Result counter (above input row)
             if (hasResults) {
                 Text(
-                    text = pluralStringResource(
-                        R.plurals.editor_search_results_x_of_y,
-                        searchResults.size,
-                        currentIndex + 1,
-                        searchResults.size
-                    ),
+                    text = if (searchTruncated) {
+                        // Index clamped: async state skew must never render "10001 of 10000+"
+                        stringResource(
+                            R.string.editor_search_results_x_of_capped,
+                            (currentIndex + 1).coerceAtMost(searchResults.size),
+                            searchResults.size,
+                        )
+                    } else {
+                        pluralStringResource(
+                            R.plurals.editor_search_results_x_of_y,
+                            searchResults.size,
+                            currentIndex + 1,
+                            searchResults.size
+                        )
+                    },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 12.dp, top = 8.dp)
@@ -436,6 +452,33 @@ private fun EditorSearchBarWithResultsPreview() {
             )
         },
         currentIndex = 2,
+        caseSensitive = false,
+        regexEnabled = false,
+        wholeWord = false,
+        onSearchQueryChange = {},
+        onCaseSensitiveToggle = {},
+        onRegexToggle = {},
+        onWholeWordToggle = {},
+        onPrevious = {},
+        onNext = {},
+        onClose = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EditorSearchBarTruncatedPreview() {
+    EditorSearchBar(
+        searchQuery = TextFieldValue("e"),
+        searchResults = List(100) {
+            SearchResult(
+                position = eu.darken.butler.editor.core.engine.TextPosition.ZERO,
+                matchText = "e",
+            )
+        },
+        currentIndex = 4,
+        searchTruncated = true,
         caseSensitive = false,
         regexEnabled = false,
         wholeWord = false,

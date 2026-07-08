@@ -95,7 +95,7 @@ class DocumentBufferCacheTest : DocumentBufferTestBase() {
         }
 
         // Search for pattern (may span evicted chunks)
-        val results = buffer.search("Line", options = SearchOptions(caseSensitive = true)).getOrThrow()
+        val results = buffer.search("Line", options = SearchOptions(caseSensitive = true)).getOrThrow().results
 
         results.size shouldBe 10
         for (i in 0 until 10) {
