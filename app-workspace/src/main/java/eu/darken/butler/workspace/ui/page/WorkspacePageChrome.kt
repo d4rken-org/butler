@@ -12,7 +12,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.error.ErrorReportTool
 import eu.darken.butler.common.flow.SingleEventFlow
-import eu.darken.butler.common.flow.shareLatest
+import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.issue.Issue
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
@@ -58,9 +58,12 @@ class WorkspacePageChrome @AssistedInject constructor(
         .map { repoState -> ClipboardDisplayState(entries = repoState.entries) }
         .distinctUntilChanged()
 
+    // replayingShare, NOT shareLatest: withStateUpdates() re-emits the SAME list instance on
+    // operation state changes, and shareLatest's stateIn conflates equal values - state-only
+    // transitions (Queued->Running->Waiting->Completed) would never reach collectors.
     private val managedOps = operationsManager.operationsForWorkspace(workspaceId)
         .withStateUpdates()
-        .shareLatest(scope)
+        .replayingShare(scope)
 
     val operations: Flow<OperationsDisplayState> = managedOps.toOperationsDisplayState()
 
