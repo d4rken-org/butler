@@ -357,22 +357,6 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().clearDataApps(apps)
     }
 
-    fun shareWorkspaceError() = launch {
-        log(tag) { "Sharing workspace error" }
-        val errorState = state.first() as? State.Error ?: return@launch
-        val shareText = errorState.error.stackTraceToString()
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, shareText)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(
-            Intent.createChooser(intent, null).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-        )
-    }
-
     fun closeWorkspace() = launch {
         log(tag) { "Closing workspace" }
         workspaceRemote.execute(WorkspaceAction.Close(id))
@@ -387,7 +371,7 @@ class AppsWorkspaceViewModel @AssistedInject constructor(
 
         when (action) {
             // Workspace lifecycle
-            is AppsPageAction.Workspace.ShareError -> shareWorkspaceError()
+            is AppsPageAction.Workspace.ShareError -> { /* Handled globally by WorkspaceMapper */ }
             is AppsPageAction.Workspace.Close -> closeWorkspace()
 
             // Search
