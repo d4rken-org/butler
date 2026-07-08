@@ -24,21 +24,17 @@ import eu.darken.butler.workspace.contracts.developer.DeveloperArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
-import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.operationsForWorkspace
 import eu.darken.butler.workspace.core.operations.withOnlyStateChanges
-import eu.darken.butler.workspace.core.operations.withStateUpdates
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
@@ -124,14 +120,6 @@ class DeveloperWorkspace @AssistedInject constructor(
         scope.cancel()
     }
 
-    data class OperationsState(
-        val operations: List<ManagedOperation> = emptyList(),
-    )
-
-    val operations: Flow<OperationsState> = operationsManager.operationsForWorkspace(id)
-        .withStateUpdates()
-        .map { ops -> OperationsState(operations = ops) }
-
     suspend fun execute(command: DeveloperCommand): Operation.Id {
         log(tag) { "execute(): $command" }
         val operation = when (command) {
@@ -149,18 +137,6 @@ class DeveloperWorkspace @AssistedInject constructor(
             )
         }
         return operationsManager.submit(operation)
-    }
-
-    fun cancelOperation(operationId: Operation.Id) {
-        scope.launch { operationsManager.cancel(operationId) }
-    }
-
-    fun dismissOperation(operationId: Operation.Id) {
-        scope.launch { operationsManager.remove(operationId) }
-    }
-
-    fun clearCompletedOperations() {
-        scope.launch { operationsManager.clearCompleted() }
     }
 
     @AssistedFactory

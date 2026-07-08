@@ -41,16 +41,13 @@ import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.handleResult
 import eu.darken.butler.workspace.core.launchPicker
 import eu.darken.butler.workspace.core.operations.Operation
-import eu.darken.butler.workspace.core.operations.OperationsManager
 import eu.darken.butler.workspace.core.operations.history.HistoryEntry
 import eu.darken.butler.workspace.core.operations.history.HistoryOutcome
 import eu.darken.butler.workspace.core.operations.history.HistorySettings
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryDao
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryEntity
 import eu.darken.butler.workspace.core.operations.history.db.OperationHistoryPathEntity
-import eu.darken.butler.workspace.ui.operations.OperationDisplay
-import eu.darken.butler.workspace.ui.operations.OperationsDisplayState
-import eu.darken.butler.workspace.ui.operations.toOperationsDisplayState
+import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -62,7 +59,6 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -79,10 +75,15 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     private val shizukuManager: ShizukuManager,
     private val workspaceRemote: WorkspaceRemote,
     private val workspaceProvider: WorkspaceProvider,
-    private val operationsManager: OperationsManager,
     private val operationHistoryDao: OperationHistoryDao,
     private val historySettings: HistorySettings,
+    chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Developer", "Workspace", id.shortTag, "Page")) {
+
+    private val chrome = chromeFactory.create(id, vmScope)
+
+    val shareIntentEvent = chrome.shareIntentEvent
+    val operations = chrome.operations.asStateFlow()
 
     private val selectedTab = MutableStateFlow(DeveloperTab.SYSTEM)
     private val pausedLogSnapshot = MutableStateFlow<List<String>?>(null)
@@ -101,11 +102,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         .map { it as? DeveloperWorkspace }
         .filterNotNull()
 
-    private val operationsState = workspaceSource
-        .flatMapLatest { it.operations }
-        .map { opsState -> opsState.operations }
-        .toOperationsDisplayState()
-
     // Options state
     private val rootTestResult = MutableStateFlow<RootTestResult?>(null)
     private val isRootTesting = MutableStateFlow(false)
@@ -121,7 +117,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         largeFilesEnabled,
         nestedStructureEnabled,
         textFilesEnabled,
-        operationsState,
         debugSettings.isDebugMode.flow,
         debugSettings.isTraceMode.flow,
         rootTestResult,
@@ -130,7 +125,7 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         isShizukuTesting,
         developerSettings.isDeveloperModeUnlocked.flow,
     ) { tab, liveLogs, snapshot, paused, paths, largeFiles, nested, text,
-        ops, isDebugMode, isTraceMode, rootResult,
+        isDebugMode, isTraceMode, rootResult,
         rootTesting, shizukuResult, shizukuTesting, isDeveloperModeUnlocked ->
         val displayLogs = if (paused && snapshot != null) snapshot else liveLogs
         val systemInfo = getSystemInfo()
@@ -164,7 +159,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
                 isShizukuTesting = shizukuTesting,
                 canHideDeveloperMode = isDeveloperModeUnlocked,
             ),
-            operationsState = ops,
         )
     }.asStateFlow()
 
@@ -390,17 +384,13 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         }
     }
 
-    fun cancelOperation(operationId: Operation.Id) = launch {
-        operationsManager.cancel(operationId)
-    }
+    fun cancelOperation(operationId: Operation.Id) = chrome.cancelOperation(operationId)
 
-    fun dismissOperation(operationId: Operation.Id) = launch {
-        operationsManager.remove(operationId)
-    }
+    fun dismissOperation(operationId: Operation.Id) = chrome.dismissOperation(operationId)
 
-    fun clearCompletedOperations() = launch {
-        operationsManager.clearCompleted()
-    }
+    fun clearCompletedOperations() = chrome.clearCompletedOperations()
+
+    fun shareOperationError(operationId: Operation.Id) = chrome.shareOperationError(operationId)
 
     fun toggleDebugMode(enabled: Boolean) {
         log(tag) { "Debug mode toggled: $enabled" }
@@ -566,7 +556,6 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         val isLogPaused: Boolean,
         val testDataState: TestDataState,
         val optionsState: OptionsState,
-        val operationsState: OperationsDisplayState,
     )
 
     data class TestDataState(

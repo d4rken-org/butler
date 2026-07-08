@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -24,7 +26,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import eu.darken.butler.common.compose.ButlerChip
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
-import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.NavigationEventHandler
 import androidx.compose.runtime.collectAsState
@@ -64,7 +65,17 @@ fun DeveloperWorkspacePageHost(
     ErrorEventHandler(vm)
     NavigationEventHandler(vm)
 
+    // Handle share intent events
+    val context = LocalContext.current
+    LaunchedEffect(vm) {
+        vm.shareIntentEvent.collect { intent ->
+            context.startActivity(intent)
+        }
+    }
+
     val state by vm.state.collectAsState(initial = null)
+    val operationsStateRaw by vm.operations.collectAsState(initial = null)
+    val operationsState = operationsStateRaw ?: OperationsDisplayState()
 
     var operationDialogState by remember { mutableStateOf<OperationDialogState>(OperationDialogState.None) }
 
@@ -79,6 +90,7 @@ fun DeveloperWorkspacePageHost(
             workspaceId = id,
             design = design,
             state = state,
+            operationsState = operationsState,
             onTabSelected = { vm.selectTab(it) },
             onToggleLogPause = { vm.toggleLogPause() },
             onClearLogs = { vm.clearLogs() },
@@ -104,13 +116,13 @@ fun DeveloperWorkspacePageHost(
 
         OperationDialogHost(
             dialogState = operationDialogState,
-            operations = state.operationsState.operations,
+            operations = operationsState.operations,
             onDismissDialog = { operationDialogState = OperationDialogState.None },
             onCancelOperation = { operationId ->
                 operationDialogState = OperationDialogState.None
                 vm.cancelOperation(operationId)
             },
-            onShareError = {},
+            onShareError = { vm.shareOperationError(it) },
             onHandleIssue = {},
             bottomInset = navBarInset,
         )
@@ -122,6 +134,7 @@ fun DeveloperWorkspacePage(
     workspaceId: Workspace.Id,
     design: WorkspaceDesign = WorkspaceDesign(),
     state: State,
+    operationsState: OperationsDisplayState = OperationsDisplayState(),
     onTabSelected: (DeveloperTab) -> Unit = {},
     onToggleLogPause: () -> Unit = {},
     onClearLogs: () -> Unit = {},
@@ -152,7 +165,7 @@ fun DeveloperWorkspacePage(
     } else 0.dp
 
     // Calculate bottom padding for content sections
-    val hasOperations = state.operationsState.operations.isNotEmpty()
+    val hasOperations = operationsState.operations.isNotEmpty()
     val bottomPadding = navBarInset + if (hasOperations) 80.dp else 16.dp
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -241,13 +254,13 @@ fun DeveloperWorkspacePage(
         }
 
         // Operations bar at bottom
-        if (state.operationsState.operations.isNotEmpty()) {
+        if (operationsState.operations.isNotEmpty()) {
             OperationsBar(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = 16.dp)
                     .padding(bottom = navBarInset + 16.dp),
-                operations = state.operationsState.operations,
+                operations = operationsState.operations,
                 onCancelOperation = onCancelOperation,
                 onDismissOperation = onDismissOperation,
                 onOperationClick = { onShowOperationDetails(it.id) },
@@ -310,7 +323,6 @@ private fun DeveloperWorkspacePagePreview() {
                 isShizukuTesting = false,
                 canHideDeveloperMode = false,
             ),
-            operationsState = OperationsDisplayState(),
         ),
     )
 }
