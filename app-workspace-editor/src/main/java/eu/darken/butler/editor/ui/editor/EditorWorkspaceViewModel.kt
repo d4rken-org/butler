@@ -104,6 +104,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             totalLines = editorState.totalLines,
             isModified = editorState.isModified,
             currentContent = editorState.currentContent,
+            truncatedLines = editorState.truncatedLines,
             cursorPosition = editorState.cursorPosition,
             selectionRange = editorState.selectionRange,
             progress = readyState.progress,
@@ -127,6 +128,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             pendingEncoding = dialogs.pendingEncoding,
             pendingSaveAsOverwrite = dialogs.pendingSaveAsOverwrite,
             backupNoticeDismissed = dialogs.backupNoticeDismissed,
+            longLinesNoticeDismissed = dialogs.longLinesNoticeDismissed,
             searchQueryInput = search.queryInput,
             currentSearchResultIndex = search.currentResultIndex,
             searchCaseSensitive = search.caseSensitive,
@@ -149,14 +151,17 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     fun refreshClipboardState() = clipboardController.refreshClipboardState()
 
     init {
-        // A dismissed backup notice belongs to ONE path: any path change (open, Save-As,
-        // scratch-to-file) re-arms the notice for the new document
+        // Dismissed backup/long-lines notices belong to ONE path: any path change (open,
+        // Save-As, scratch-to-file) re-arms the notices for the new document
         workspaceWithState
             .map { (_, wsState) ->
                 ((wsState as? EditorWorkspace.State.Ready)?.editor?.contentSource as? ContentSource.File)?.path
             }
             .distinctUntilChanged()
-            .onEach { dialogsController.rearmBackupNotice() }
+            .onEach {
+                dialogsController.rearmBackupNotice()
+                dialogsController.rearmLongLinesNotice()
+            }
             .launchIn(vmScope)
 
         // A dismissed external-change banner belongs to ONE engine's detection generations:
@@ -466,6 +471,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.File.ShowEncodingPicker -> dialogsController.showEncodingDialog()
             is EditorPageAction.File.ReopenWithEncoding -> dialogsController.selectEncoding(action.charsetName)
             is EditorPageAction.File.DismissBackupNotice -> dialogsController.dismissBackupNotice()
+            is EditorPageAction.File.DismissLongLinesNotice -> dialogsController.dismissLongLinesNotice()
             is EditorPageAction.File.ReloadFromDisk -> reloadFromDisk()
             is EditorPageAction.File.DismissExternalChange -> dismissExternalChange()
             is EditorPageAction.File.ShowLineEndingPicker -> dialogsController.showLineEndingDialog()
@@ -542,6 +548,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val totalLines: Long = 0,
         val isModified: Boolean = false,
         val currentContent: String = "",
+        /** Absolute line number -> hidden char count for display-truncated lines in the window. */
+        val truncatedLines: Map<Long, Long> = emptyMap(),
         val cursorPosition: TextPosition = TextPosition.ZERO,
         val selectionRange: Pair<TextPosition, TextPosition>? = null,
         val progress: Progress.Data? = null,
@@ -565,6 +573,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val pendingEncoding: String? = null,
         val pendingSaveAsOverwrite: APath<*>? = null,
         val backupNoticeDismissed: Boolean = false,
+        val longLinesNoticeDismissed: Boolean = false,
         val searchQueryInput: TextFieldValue = TextFieldValue(""),
         val currentSearchResultIndex: Int = 0,
         val searchCaseSensitive: Boolean = false,
@@ -593,6 +602,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val staleBackups: List<APath<*>>
             get() = (contentSource as? ContentSource.File)?.staleBackups ?: emptyList()
         val showBackupNotice: Boolean get() = staleBackups.isNotEmpty() && !backupNoticeDismissed
+        val hasLongLines: Boolean get() = (contentSource as? ContentSource.File)?.hasLongLines == true
+        val showLongLinesNotice: Boolean get() = hasLongLines && !longLinesNoticeDismissed
         val showExternalChangeBanner: Boolean
             get() = externalChange != null && externalChange.generation != externalChangeDismissedGeneration
 

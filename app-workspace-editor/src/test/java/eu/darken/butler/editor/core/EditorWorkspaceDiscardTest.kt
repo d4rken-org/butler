@@ -104,6 +104,7 @@ class EditorWorkspaceDiscardTest : BaseTest() {
                 assertions: Boolean,
                 staleSampleRandom: kotlin.random.Random,
                 timeSource: kotlin.time.TimeSource,
+                maxDisplayLineChars: Int,
             ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, 10, true)
         }
         val engineFactory = object : EditorEngine.Factory {

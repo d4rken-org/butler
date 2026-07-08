@@ -185,4 +185,21 @@ class DocumentBufferLargeFileTest : BaseTest() {
         val all = buffer.search("☃", SearchOptions()).getOrThrow().results
         all shouldHaveSize LINE_COUNT / 1000
     }
+
+    @Test
+    fun `multi-MB single-line file stays bounded through the display API`(@TempDir tempDir: File) = runTest {
+        // One giant line at the PRODUCTION block size and PRODUCTION display cap
+        val content = buildString(3_000_000) { repeat(300_000) { append("0123456789") } }
+        val (_, buffer) = openLargeBuffer(tempDir, content)
+
+        buffer.totalLines.value shouldBe 1L
+        val window = buffer.getDisplayRange(0, 0).getOrThrow()
+        window.text.length shouldBe DocumentBuffer.MAX_DISPLAY_LINE_CHARS
+        window.text shouldBe content.substring(0, DocumentBuffer.MAX_DISPLAY_LINE_CHARS)
+        window.truncatedLines shouldBe
+            mapOf(0L to (content.length - DocumentBuffer.MAX_DISPLAY_LINE_CHARS).toLong())
+
+        buffer.getLineLength(0).getOrThrow() shouldBe content.length.toLong()
+        (buffer.contentSource.value as ContentSource.File).hasLongLines shouldBe true
+    }
 }

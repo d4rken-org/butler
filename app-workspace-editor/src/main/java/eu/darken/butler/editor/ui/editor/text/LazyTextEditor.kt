@@ -97,6 +97,7 @@ fun LazyTextEditor(
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     visibleRange: LongRange,
+    truncatedLines: Map<Long, Long> = emptyMap(),
     showLineNumbers: Boolean = true,
     wordWrap: Boolean = false,
     readOnly: Boolean = false,
@@ -206,10 +207,12 @@ fun LazyTextEditor(
             val textPaddingPx = with(density) { 8.dp.toPx() } // Match TextLineItem padding
             val margin = charWidth * 3 // 3 character margin from edge
 
-            // Cursor X position. Engine column is a RAW char index; expand it for the tab-rendered line.
+            // Cursor X position. Engine column is a RAW char index; expand it for the tab-rendered
+            // line, clamped into the line FIRST (a display-truncated line's cursor column can sit
+            // far past the visible prefix - expanding it unclamped computes huge scroll targets).
             val cursorLineContent = visibleLineContent[cursorPosition.line]
             val expandedCursorColumn = if (cursorLineContent != null) {
-                rawToExpandedColumn(cursorLineContent, cursorPosition.column, tabSize)
+                rawToExpandedColumnClamped(cursorLineContent, cursorPosition.column, tabSize)
             } else {
                 cursorPosition.column
             }
@@ -261,6 +264,7 @@ fun LazyTextEditor(
         totalLines = totalLines,
         visibleLineContent = visibleLineContent,
         visibleRange = visibleRange,
+        truncatedLines = truncatedLines,
         cursorPosition = cursorPosition,
         selection = selection,
         lineNumbersListState = lineNumbersListState,
@@ -289,6 +293,7 @@ private fun DualColumnEditorContent(
     totalLines: Long,
     visibleLineContent: Map<Long, String>,
     visibleRange: LongRange,
+    truncatedLines: Map<Long, Long>,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     lineNumbersListState: LazyListState,
@@ -324,6 +329,11 @@ private fun DualColumnEditorContent(
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     var isFocused by remember { mutableStateOf(false) }
     var isUserEditing by remember { mutableStateOf(false) }
+
+    // Engine echo (text + truncation map) captured when typing authority was taken: convergence
+    // checks against the display-capped echo only run once the echo has CHANGED from this -
+    // repeated-char lines would make prefix-consistency against a STALE echo trivially true.
+    var authorityEcho by remember { mutableStateOf<Pair<String, Map<Long, Long>>?>(null) }
     var lastTapTime by remember { mutableLongStateOf(0L) }
     var lastTapPosition by remember { mutableStateOf<Offset?>(null) }
     var tapCount by remember { mutableIntStateOf(0) }
@@ -359,15 +369,40 @@ private fun DualColumnEditorContent(
 
     // Ownership model arbitrated by isUserEditing:
     //  - While the user is typing (isUserEditing): the hidden field is authoritative. We skip syncing so
-    //    we never clobber in-flight input (incl. IME composition). Authority is released only once the
-    //    engine echo has caught up with the field (texts match), so fast multi-keystroke bursts don't
-    //    drop characters.
+    //    we never clobber in-flight input (incl. IME composition). Authority is released once the engine
+    //    echo has caught up with the field: exact text match, or - because a display-truncated line's
+    //    capped echo can never equal the field again - capped-projection convergence (contentsConverged),
+    //    gated on the echo having changed since authority was taken. On a capped release the field is
+    //    REBUILT from the echo with the caret clamped into its line; mid-burst that rebuild is transient
+    //    and lossless (edits are already dispatched, the next echo resyncs).
     //  - Otherwise (tap, arrows, undo/redo, programmatic): the engine is authoritative. Rebuild the field
     //    text and map the field selection from the engine cursor/selection so the IME composes in the
     //    right place.
-    LaunchedEffect(currentContent, visibleRange, cursorPosition, selection) {
+    LaunchedEffect(currentContent, truncatedLines, visibleRange, cursorPosition, selection) {
         if (isUserEditing) {
-            if (textFieldValue.text == currentContent) isUserEditing = false
+            val prior = authorityEcho
+            val echoChanged = prior == null || prior.first != currentContent || prior.second != truncatedLines
+            val converged = textFieldValue.text == currentContent || (
+                echoChanged && contentsConverged(
+                    fieldText = textFieldValue.text,
+                    engineText = currentContent,
+                    visibleRangeStart = visibleRange.first,
+                    engineTruncatedLines = truncatedLines,
+                    priorTruncatedLines = prior?.second ?: emptyMap(),
+                )
+                )
+            if (converged) {
+                isUserEditing = false
+                authorityEcho = null
+                if (textFieldValue.text != currentContent) {
+                    val oldLines = textFieldValue.text.split('\n')
+                    val newLines = currentContent.split('\n')
+                    val caret = flatOffsetToPosition(oldLines, visibleRange.first, textFieldValue.selection.end)
+                    val caretOffset = positionToFlatOffset(newLines, visibleRange.first, caret)
+                        ?: currentContent.length
+                    textFieldValue = TextFieldValue(text = currentContent, selection = TextRange(caretOffset))
+                }
+            }
             return@LaunchedEffect
         }
 
@@ -453,7 +488,10 @@ private fun DualColumnEditorContent(
                 // delete, equal-length/autocorrect replace, and predictive rewrites).
                 val edit = computeTextEdit(oldText, newText)
                 if (edit != null) {
-                    isUserEditing = true
+                    if (!isUserEditing) {
+                        isUserEditing = true
+                        authorityEcho = currentContent to truncatedLines
+                    }
                     val rangeStart = visibleRange.first
                     val oldLines = oldText.split('\n')
                     val newLines = newText.split('\n')
@@ -739,6 +777,7 @@ private fun DualColumnEditorContent(
                     TextLineItem(
                         lineIndex = lineIndex,
                         lineContent = lineContent,
+                        hiddenChars = truncatedLines[lineIndex] ?: 0L,
                         cursorPosition = cursorPosition,
                         selection = selection,
                         isCurrentLine = lineIndex == cursorPosition.line,

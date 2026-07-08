@@ -246,4 +246,66 @@ class BlockIndexBuilderTest : BaseTest() {
         build(ByteArray(0)).blockDigests.size shouldBe 0
         build("abc".toByteArray()).blockDigests.size shouldBe 1
     }
+
+    @Test
+    fun `max line length for a run straddling block edges`() = runTest {
+        // blockSize 8: the 20-char line spans three decoded blocks; the run must carry across
+        val content = "ab\n" + "x".repeat(20) + "\ncd"
+        build(content.toByteArray(), blockSize = 8).maxLineLength shouldBe 20L
+    }
+
+    @Test
+    fun `max line length with CRLF straddling a block edge does not double-end the run`() = runTest {
+        // blockSize 8 splits "aaaaaaa\r" | "\nbb": the pending CR ends the run at the '\r';
+        // resolving it in the next block must not end (or extend) anything again
+        val content = "aaaaaaa\r\nbbb"
+        val index = build(content.toByteArray(), blockSize = 8)
+        index.maxLineLength shouldBe 7L
+    }
+
+    @Test
+    fun `max line length counts the unterminated final line`() = runTest {
+        build("ab\ncdef".toByteArray()).maxLineLength shouldBe 4L
+    }
+
+    @Test
+    fun `max line length with lone CR breaks`() = runTest {
+        build("aaa\rbb\rc".toByteArray()).maxLineLength shouldBe 3L
+    }
+
+    @Test
+    fun `max line length of an empty file is zero`() = runTest {
+        build(ByteArray(0)).maxLineLength shouldBe 0L
+    }
+
+    @Test
+    fun `max line length of a breaks-only file is zero`() = runTest {
+        build("\n\n\n".toByteArray()).maxLineLength shouldBe 0L
+        build("\r\n\r\n".toByteArray()).maxLineLength shouldBe 0L
+    }
+
+    @Test
+    fun `max line length with a trailing break`() = runTest {
+        build("abc\n".toByteArray()).maxLineLength shouldBe 3L
+    }
+
+    @Test
+    fun `max line length with consecutive empty lines`() = runTest {
+        build("a\n\n\nbb".toByteArray()).maxLineLength shouldBe 2L
+    }
+
+    @Test
+    fun `max line length with CRLF followed by an empty line`() = runTest {
+        build("abc\r\n\r\nd".toByteArray()).maxLineLength shouldBe 3L
+    }
+
+    @Test
+    fun `max line length with a pending CR at EOF`() = runTest {
+        build("abcd\r".toByteArray()).maxLineLength shouldBe 4L
+    }
+
+    @Test
+    fun `max line length for a single line without breaks`() = runTest {
+        build("0123456789".repeat(5).toByteArray(), blockSize = 8).maxLineLength shouldBe 50L
+    }
 }

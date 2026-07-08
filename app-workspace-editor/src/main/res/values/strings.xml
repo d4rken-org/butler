@@ -42,6 +42,11 @@
     <!-- Binary file notice -->
     <string name="editor_binary_banner_message">Binary file — read-only view</string>
 
+    <!-- Long-lines notice -->
+    <string name="editor_long_lines_banner_title">Very long lines</string>
+    <string name="editor_long_lines_banner_message">Very long lines are shortened for display; the full content is preserved and saved.</string>
+    <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+
     <!-- External change notice -->
     <string name="editor_external_change_banner_title">File changed on disk</string>
     <string name="editor_external_change_banner_message">Another app modified this file.</string>

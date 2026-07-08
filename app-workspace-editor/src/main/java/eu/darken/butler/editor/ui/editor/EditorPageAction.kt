@@ -44,6 +44,9 @@ sealed interface EditorPageAction {
         /** Dismiss the stale-backup notice for the current file */
         data object DismissBackupNotice : File
 
+        /** Dismiss the long-lines notice for the current file */
+        data object DismissLongLinesNotice : File
+
         /** Re-read the current file from disk after an external change (confirms if modified) */
         data object ReloadFromDisk : File
 

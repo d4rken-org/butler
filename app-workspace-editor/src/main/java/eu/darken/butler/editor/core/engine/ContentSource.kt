@@ -44,6 +44,12 @@ sealed class ContentSource {
         val staleBackups: List<APath<*>> = emptyList(),
         /** Null bytes in the detection sample (post-BOM, non-UTF-16): treated as read-only. */
         val isLikelyBinary: Boolean = false,
+        /**
+         * True when the file (as of open/rebase) has at least one line longer than the display
+         * cap. Deliberately stale in-session: lines grown past the cap by edits update this only
+         * after the next save's rebase - the display cap itself is applied unconditionally.
+         */
+        val hasLongLines: Boolean = false,
     ) : ContentSource() {
         override val name: String get() = path.name
 
@@ -68,6 +74,7 @@ sealed class ContentSource {
             } else if (other.bomBytes != null) return false
             if (staleBackups != other.staleBackups) return false
             if (isLikelyBinary != other.isLikelyBinary) return false
+            if (hasLongLines != other.hasLongLines) return false
 
             return true
         }
@@ -83,6 +90,7 @@ sealed class ContentSource {
             result = 31 * result + (bomBytes?.contentHashCode() ?: 0)
             result = 31 * result + staleBackups.hashCode()
             result = 31 * result + isLikelyBinary.hashCode()
+            result = 31 * result + hasLongLines.hashCode()
             return result
         }
     }

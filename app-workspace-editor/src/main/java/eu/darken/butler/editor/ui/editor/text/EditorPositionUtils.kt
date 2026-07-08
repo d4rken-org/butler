@@ -61,6 +61,16 @@ internal fun rawToExpandedColumn(line: String, rawCol: Int, tabSize: Int): Int {
 }
 
 /**
+ * [rawToExpandedColumn] with the raw column clamped into the line FIRST. Engine columns can sit
+ * far past a display-truncated line's visible prefix (search results, selectAll); clamping the
+ * EXPANDED value afterwards would still compute huge/Int-overflowing intermediates via the
+ * past-end 1:1 mapping. Use for every pixel-math conversion (cursor draw, selection geometry,
+ * handles, scroll-to-cursor).
+ */
+internal fun rawToExpandedColumnClamped(line: String, rawCol: Int, tabSize: Int): Int =
+    rawToExpandedColumn(line, rawCol.coerceIn(0, line.length), tabSize)
+
+/**
  * Inverse of [rawToExpandedColumn]: maps an EXPANDED visual column back to a RAW char index.
  * Tie-break: a column that falls *inside* a tab's expanded cells snaps to that tab's raw index (its
  * left edge). Columns past the expanded line width map 1:1.
@@ -173,6 +183,55 @@ internal fun positionToFlatOffset(
         offset += visibleLines[i].length + 1 // +1 for the joining '\n'
     }
     return offset + position.column.coerceIn(0, visibleLines[lineIndex].length)
+}
+
+/**
+ * Convergence check between the hidden field text and the engine's display-capped echo, used to
+ * release typing authority (`isUserEditing`). Plain equality is impossible once the display cap
+ * bites: editing a truncated line makes the field and the capped engine echo differ permanently
+ * (boundary-append keeps the typed char only in the field; a prefix delete pulls a hidden char
+ * into the engine echo; a newline split reveals hidden content on a NEW line the field shows as
+ * empty/short). Requiring exact equality there wedges authority forever and all engine-
+ * authoritative caret syncs get skipped.
+ *
+ * Cap-agnostic rule - converged iff the line counts match AND per line:
+ *  - exact equality; or
+ *  - prefix-consistency (one string is a prefix of the other) for cap-affected lines: lines
+ *    truncated in the CURRENT echo ([engineTruncatedLines]), plus - because a line split only
+ *    ever pushes revealed hidden content DOWN - every line at/below the first line that was
+ *    truncated when authority was taken ([priorTruncatedLines]).
+ *
+ * Exact equality stays required for unaffected lines so a mid-burst stale echo (field ahead of
+ * the engine) never releases prematurely there. Within cap-affected lines a mid-burst release
+ * is possible but lossless: edits are already dispatched, the release rebuild is transient and
+ * the next echo resyncs. Callers must additionally gate on the visible content having CHANGED
+ * since authority was taken - repeated-char lines make prefix-consistency against a STALE echo
+ * trivially true.
+ */
+internal fun contentsConverged(
+    fieldText: String,
+    engineText: String,
+    visibleRangeStart: Long,
+    engineTruncatedLines: Map<Long, Long>,
+    priorTruncatedLines: Map<Long, Long>,
+): Boolean {
+    if (fieldText == engineText) return true
+    if (engineTruncatedLines.isEmpty() && priorTruncatedLines.isEmpty()) return false
+    val fieldLines = fieldText.split('\n')
+    val engineLines = engineText.split('\n')
+    if (fieldLines.size != engineLines.size) return false
+    val firstPriorTruncated = priorTruncatedLines.keys.minOrNull()
+    for (i in fieldLines.indices) {
+        val field = fieldLines[i]
+        val engine = engineLines[i]
+        if (field == engine) continue
+        val absoluteLine = visibleRangeStart + i
+        val capAffected = engineTruncatedLines.containsKey(absoluteLine) ||
+            (firstPriorTruncated != null && absoluteLine >= firstPriorTruncated)
+        if (!capAffected) return false
+        if (!field.startsWith(engine) && !engine.startsWith(field)) return false
+    }
+    return true
 }
 
 /**

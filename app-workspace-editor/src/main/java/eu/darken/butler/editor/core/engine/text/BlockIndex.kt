@@ -10,11 +10,15 @@ import eu.darken.butler.editor.core.engine.LineEnding
  * [blockDigests] holds a truncated SHA-256 per block, captured for free during the scan and
  * used for sampled external-modification checks at save time. Synthetic indexes built in tests
  * may omit it (zeros); they are never staleness-verified.
+ *
+ * [maxLineLength] is the longest line's content length in UTF-16 chars (breaks excluded),
+ * captured for free during the scan; synthetic test indexes may omit it (0).
  */
 class BlockIndex(
     val blocks: List<Block>,
     val lineEnding: LineEnding,
     val blockDigests: LongArray = LongArray(blocks.size),
+    val maxLineLength: Long = 0L,
 ) {
 
     init {

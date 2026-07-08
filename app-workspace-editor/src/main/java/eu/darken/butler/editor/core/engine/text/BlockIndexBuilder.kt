@@ -49,6 +49,15 @@ class BlockIndexBuilder(
         var lf = 0L
         var cr = 0L
         var pendingCr = false
+        // Longest line's content length in UTF-16 chars; a run ends at each break's FIRST char,
+        // so a pending '\r' resolved in the next block must not end the (already ended) run again
+        var currentRun = 0L
+        var maxLineLength = 0L
+
+        fun endLineRun() {
+            if (currentRun > maxLineLength) maxLineLength = currentRun
+            currentRun = 0L
+        }
 
         while (true) {
             coroutineContext.ensureActive()
@@ -93,15 +102,22 @@ class BlockIndexBuilder(
             }
             while (i < text.length) {
                 when (text[i]) {
-                    '\r' -> when {
-                        i + 1 >= text.length -> pendingCr = true
-                        text[i + 1] == '\n' -> {
-                            crlf++
-                            i++
+                    '\r' -> {
+                        when {
+                            i + 1 >= text.length -> pendingCr = true
+                            text[i + 1] == '\n' -> {
+                                crlf++
+                                i++
+                            }
+                            else -> cr++
                         }
-                        else -> cr++
+                        endLineRun()
                     }
-                    '\n' -> lf++
+                    '\n' -> {
+                        lf++
+                        endLineRun()
+                    }
+                    else -> currentRun++
                 }
                 i++
             }
@@ -125,8 +141,9 @@ class BlockIndexBuilder(
             if (eof) break
         }
         if (pendingCr) cr++
+        endLineRun()
 
-        return BlockIndex(blocks, TextMetrics.detectLineEnding(crlf, lf, cr), digests.toLongArray())
+        return BlockIndex(blocks, TextMetrics.detectLineEnding(crlf, lf, cr), digests.toLongArray(), maxLineLength)
     }
 
     private fun decodeRange(bytes: ByteArray, length: Int, charset: Charset): String {

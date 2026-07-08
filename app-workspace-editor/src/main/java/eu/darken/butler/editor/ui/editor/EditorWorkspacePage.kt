@@ -226,7 +226,7 @@ fun EditorWorkspacePage(
                 // Notices persist during scroll (Static) until dismissed; single stable bar, see EditorBannerGroup
                 FloatingBar(
                     visible = state.error != null || state.showExternalChangeBanner ||
-                        state.showBackupNotice || state.isBinary,
+                        state.showBackupNotice || state.isBinary || state.showLongLinesNotice,
                     scrollBehavior = BarScrollBehavior.Static,
                     estimatedHeight = 56.dp,
                     animation = BarAnimation.Slide(),
@@ -239,10 +239,12 @@ fun EditorWorkspacePage(
                         backupNames = state.staleBackups.map { it.name },
                         showBackupNotice = state.showBackupNotice,
                         isBinary = state.isBinary,
+                        showLongLinesNotice = state.showLongLinesNotice,
                         onDismissError = { onPageAction(EditorPageAction.Error.Clear) },
                         onReloadFromDisk = { onPageAction(EditorPageAction.File.ReloadFromDisk) },
                         onDismissExternalChange = { onPageAction(EditorPageAction.File.DismissExternalChange) },
                         onDismissBackupNotice = { onPageAction(EditorPageAction.File.DismissBackupNotice) },
+                        onDismissLongLinesNotice = { onPageAction(EditorPageAction.File.DismissLongLinesNotice) },
                     )
                 }
             },
@@ -336,6 +338,7 @@ fun EditorWorkspacePage(
                     cursorPosition = state.cursorPosition,
                     selection = state.selectionRange,
                     visibleRange = state.visibleRange,
+                    truncatedLines = state.truncatedLines,
                     showLineNumbers = state.showLineNumbers,
                     wordWrap = state.wordWrap,
                     readOnly = state.isReadOnly,

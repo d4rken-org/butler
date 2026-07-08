@@ -24,7 +24,10 @@ abstract class EditorEngineTestBase : DocumentBufferTestBase() {
         return settings
     }
 
-    protected suspend fun createEngine(content: String): EditorEngine {
+    protected suspend fun createEngine(
+        content: String,
+        displayLineCap: Int = DocumentBuffer.MAX_DISPLAY_LINE_CHARS,
+    ): EditorEngine {
         val inMemoryDataSourceFactory = object : InMemoryDataSource.Factory {
             override fun create(workspaceId: Workspace.Id, initialContent: String) =
                 InMemoryDataSource(workspaceId, initialContent)
@@ -39,7 +42,17 @@ abstract class EditorEngineTestBase : DocumentBufferTestBase() {
                 assertions: Boolean,
                 staleSampleRandom: Random,
                 timeSource: kotlin.time.TimeSource,
-            ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, blockSize, true, staleSampleRandom)
+                maxDisplayLineChars: Int,
+            ) = DocumentBuffer(
+                workspaceId,
+                dataSource,
+                maxUndoStackSize,
+                maxUndoMemoryBytes,
+                blockSize,
+                true,
+                staleSampleRandom,
+                maxDisplayLineChars = displayLineCap,
+            )
         }
         val engine = EditorEngine(
             workspaceId = workspaceId,

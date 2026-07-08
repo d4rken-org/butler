@@ -103,6 +103,7 @@ class EditorEngineLineEndingTest : BaseTest() {
                 assertions: Boolean,
                 staleSampleRandom: Random,
                 timeSource: kotlin.time.TimeSource,
+                maxDisplayLineChars: Int,
             ) = DocumentBuffer(workspaceId, dataSource, maxUndoStackSize, maxUndoMemoryBytes, 10, true)
         },
     ).apply { initialize().getOrThrow() }
