@@ -108,6 +108,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             isModified = editorState.isModified,
             currentContent = editorState.currentContent,
             truncatedLines = editorState.truncatedLines,
+            startColumns = editorState.startColumns,
             cursorPosition = editorState.cursorPosition,
             selectionRange = editorState.selectionRange,
             progress = readyState.progress,
@@ -395,6 +396,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().updateVisibleRange(startLine, endLine)
     }
 
+    fun revealMoreColumns(forward: Boolean) = launch {
+        getWorkspace().revealMoreColumns(forward)
+    }
+
     fun insertText(text: String) = launch {
         editActivity.tryEmit(Unit)
         getWorkspace().insertText(text)
@@ -519,6 +524,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Navigation.ClearSelection -> setCursorPosition(action.cursorPosition)
             is EditorPageAction.Navigation.GoToLine -> goToLine(action.lineNumber)
             is EditorPageAction.Navigation.UpdateVisibleRange -> updateVisibleRange(action.startLine, action.endLine)
+            is EditorPageAction.Navigation.RevealMoreColumns -> revealMoreColumns(action.forward)
 
             // Search UI actions
             is EditorPageAction.Search.UpdateQuery -> searchController.updateQuery(action.query)
@@ -575,8 +581,10 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val totalLines: Long = 0,
         val isModified: Boolean = false,
         val currentContent: String = "",
-        /** Absolute line number -> hidden char count for display-truncated lines in the window. */
+        /** Absolute line number -> chars hidden AFTER the window on display-truncated lines. */
         val truncatedLines: Map<Long, Long> = emptyMap(),
+        /** Absolute line number -> chars hidden BEFORE the window (the window's anchor column). */
+        val startColumns: Map<Long, Long> = emptyMap(),
         val cursorPosition: TextPosition = TextPosition.ZERO,
         val selectionRange: Pair<TextPosition, TextPosition>? = null,
         val progress: Progress.Data? = null,

@@ -70,6 +70,80 @@ class TextLineItemTruncationTest : ComposeTest() {
     }
 
     @Test
+    fun `leading marker is shown exactly for lines anchored past column 0`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Column {
+                    TextLineItem(
+                        lineIndex = 0,
+                        lineContent = cappedLine,
+                        hiddenChars = 200L,
+                        lineStartColumn = 1234L,
+                        cursorPosition = TextPosition(0, 0, 0),
+                        selection = null,
+                        isCurrentLine = false,
+                        isFocused = false,
+                        wordWrap = false,
+                        fontSize = 14,
+                        tabSize = 4,
+                        charWidthPx = 8.4f,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    TextLineItem(
+                        lineIndex = 1,
+                        lineContent = "normal line",
+                        hiddenChars = 0L,
+                        lineStartColumn = 0L,
+                        cursorPosition = TextPosition(0, 0, 0),
+                        selection = null,
+                        isCurrentLine = false,
+                        isFocused = false,
+                        wordWrap = false,
+                        fontSize = 14,
+                        tabSize = 4,
+                        charWidthPx = 8.4f,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onAllNodesWithTag(EDITOR_LEADING_TRUNCATION_MARKER_TEST_TAG).assertCountEquals(1)
+    }
+
+    @Test
+    fun `windowed line with a non-zero anchor renders cursor, selection and search without crashing`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TextLineItem(
+                    lineIndex = 0,
+                    lineContent = cappedLine, // the rendered window; absolute columns are anchor-relative
+                    hiddenChars = 500L,
+                    lineStartColumn = 1000L,
+                    cursorPosition = TextPosition(0, 0, 1005), // local column 5
+                    selection = TextPosition(0, 0, 1002) to TextPosition(0, 0, 1008),
+                    isCurrentLine = true,
+                    isFocused = true,
+                    wordWrap = false,
+                    fontSize = 14,
+                    tabSize = 4,
+                    charWidthPx = 8.4f,
+                    searchHighlights = listOf(
+                        0 to SearchResult(
+                            position = TextPosition(offset = 0L, line = 0, column = 1003),
+                            matchText = "34",
+                        ),
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.onAllNodesWithTag(EDITOR_LEADING_TRUNCATION_MARKER_TEST_TAG).assertCountEquals(1)
+        composeTestRule.onAllNodesWithTag(EDITOR_TRUNCATION_MARKER_TEST_TAG).assertCountEquals(1)
+    }
+
+    @Test
     fun `cursor column far past the cap does not crash`() {
         composeTestRule.setContent {
             PreviewWrapper {
