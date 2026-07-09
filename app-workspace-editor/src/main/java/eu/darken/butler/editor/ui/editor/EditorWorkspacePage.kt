@@ -191,6 +191,8 @@ fun EditorWorkspacePage(
                         title = state.title,
                         subTitle = state.subTitle,
                         isModified = state.isModified,
+                        isReadOnly = state.isReadOnly,
+                        isBackingLost = state.isBackingLost,
                         progress = state.progress,
                         hasContent = state.hasContent,
                         canUndo = state.canUndo,
@@ -226,7 +228,7 @@ fun EditorWorkspacePage(
                 }
                 // Notices persist during scroll (Static) until dismissed; single stable bar, see EditorBannerGroup
                 FloatingBar(
-                    visible = state.error != null || state.showExternalChangeBanner ||
+                    visible = state.isBackingLost || state.error != null || state.showExternalChangeBanner ||
                         state.showBackupNotice || state.isBinary || state.showLongLinesNotice,
                     scrollBehavior = BarScrollBehavior.Static,
                     estimatedHeight = 56.dp,
@@ -235,13 +237,17 @@ fun EditorWorkspacePage(
                 ) {
                     EditorBannerGroup(
                         modifier = Modifier.heightIn(max = bannerMaxHeight),
-                        error = state.error,
+                        // The backing-lost banner already explains the vanished file; the raw
+                        // read error underneath it would just be a cryptic duplicate.
+                        error = state.error.takeUnless { state.isBackingLost },
+                        showBackingLost = state.isBackingLost,
                         showExternalChange = state.showExternalChangeBanner,
                         backupNames = state.staleBackups.map { it.name },
                         showBackupNotice = state.showBackupNotice,
                         isBinary = state.isBinary,
                         showLongLinesNotice = state.showLongLinesNotice,
                         onDismissError = { onPageAction(EditorPageAction.Error.Clear) },
+                        onCloseBackingLost = { onPageAction(EditorPageAction.Workspace.Close) },
                         onReloadFromDisk = { onPageAction(EditorPageAction.File.ReloadFromDisk) },
                         onDismissExternalChange = { onPageAction(EditorPageAction.File.DismissExternalChange) },
                         onDismissBackupNotice = { onPageAction(EditorPageAction.File.DismissBackupNotice) },

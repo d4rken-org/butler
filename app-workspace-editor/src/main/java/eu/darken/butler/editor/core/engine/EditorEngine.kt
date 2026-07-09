@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okio.BufferedSink
+import java.io.IOException
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.coroutineContext
@@ -186,7 +187,12 @@ class EditorEngine @AssistedInject constructor(
      * Deliberately does NOT set [_error]: the read-only state is already visible in the UI and
      * a banner per swallowed keystroke would be noise.
      */
-    private fun EditorState.Loaded.editabilityError(): ReadOnlyFileException? {
+    private fun EditorState.Loaded.editabilityError(): IOException? {
+        // Read live: the backing file can vanish mid-session, long after this snapshot's canWrite
+        // was captured at open. Refusing edits here keeps the field and buffer from desyncing.
+        if (resources.textBuffer.isBackingLost.value) {
+            return BackingUnavailableException("Backing file is no longer available")
+        }
         val source = contentSource as? ContentSource.File ?: return null
         return when {
             source.isLikelyBinary -> ReadOnlyFileException("Binary file, editing is disabled: ${source.path}")
@@ -349,6 +355,10 @@ class EditorEngine @AssistedInject constructor(
     suspend fun saveFile(): Result<Unit> = stateMutex.withLock {
         return when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                currentState.editabilityError()?.let {
+                    log(tag, VERBOSE) { "saveFile rejected: ${it.message}" }
+                    return@withLock Result.failure(it)
+                }
                 try {
                     _progress.value = Progress.Data(
                         primary = R.string.editor_progress_saving.toCaString(),
@@ -393,6 +403,11 @@ class EditorEngine @AssistedInject constructor(
     suspend fun writeContentTo(sink: BufferedSink): Unit = stateMutex.withLock {
         when (val currentState = _state.value) {
             is EditorState.Loaded -> {
+                // Save-As of a read-only/binary file is allowed (it exports the original bytes),
+                // but not once the backing file is gone - its original ranges can't be read.
+                if (currentState.resources.textBuffer.isBackingLost.value) {
+                    throw BackingUnavailableException("Backing file is no longer available")
+                }
                 log(tag) { "Streaming current buffer content" }
                 val result = currentState.resources.textBuffer.writeContentTo(sink)
                 result.exceptionOrNull()?.let { e ->
@@ -643,8 +658,19 @@ class EditorEngine @AssistedInject constructor(
         val newText = matchDocumentLineEnding(text, buffer)
 
         // Resolve flat offsets from line/column - UI sends placeholder offset=0 with virtual scrolling.
-        val startOffset = buffer.findOffset(start.line, start.column)
-        val endOffset = buffer.findOffset(end.line, end.column)
+        // The field can diverge from the buffer (e.g. failed edits accumulate locally) and hand us a
+        // line past the document; dropping the edit beats an uncaught IndexOutOfBounds from findOffset.
+        val startOffset: Long
+        val endOffset: Long
+        try {
+            startOffset = buffer.findOffset(start.line, start.column)
+            endOffset = buffer.findOffset(end.line, end.column)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, WARN) { "replaceText: position resolve failed, dropping edit - ${e.message}" }
+            return@withLock
+        }
         var lowPos: TextPosition
         var highPos: TextPosition
         if (startOffset <= endOffset) {
@@ -974,12 +1000,21 @@ class EditorEngine @AssistedInject constructor(
         val correctedPosition = when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 val buffer = currentState.resources.textBuffer
-                val column = displayBoundedColumn(position.line, position.column, buffer)
-                TextPosition(
-                    offset = buffer.findOffset(position.line, column),
-                    line = position.line,
-                    column = column,
-                )
+                try {
+                    val column = displayBoundedColumn(position.line, position.column, buffer)
+                    TextPosition(
+                        offset = buffer.findOffset(position.line, column),
+                        line = position.line,
+                        column = column,
+                    )
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // Stale line/column or an unreadable backing file: keep the current cursor
+                    // rather than surface an error for a tap that just can't be resolved.
+                    log(tag, VERBOSE) { "setCursorPosition: resolve failed, ignoring - ${e.message}" }
+                    return@withLock
+                }
             }
             else -> position
         }
@@ -991,20 +1026,28 @@ class EditorEngine @AssistedInject constructor(
         textBuffer?.breakUndoRun()
         when (val currentState = _state.value) {
             is EditorState.Loaded -> {
-                // Recalculate actual offsets from line/column positions
-                // UI may send placeholder offset=0 with virtual scrolling
-                val correctedStart = TextPosition(
-                    offset = currentState.resources.textBuffer.findOffset(start.line, start.column),
-                    line = start.line,
-                    column = start.column
-                )
-                val correctedEnd = TextPosition(
-                    offset = currentState.resources.textBuffer.findOffset(end.line, end.column),
-                    line = end.line,
-                    column = end.column
-                )
-                _selectionRange.value = correctedStart to correctedEnd
-                _cursorPosition.value = correctedEnd
+                val buffer = currentState.resources.textBuffer
+                // Recalculate actual offsets from line/column positions (UI may send placeholder
+                // offset=0 with virtual scrolling). A stale position or unreadable backing must
+                // not crash selection - leave the current selection/cursor untouched.
+                val corrected = try {
+                    TextPosition(
+                        offset = buffer.findOffset(start.line, start.column),
+                        line = start.line,
+                        column = start.column,
+                    ) to TextPosition(
+                        offset = buffer.findOffset(end.line, end.column),
+                        line = end.line,
+                        column = end.column,
+                    )
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    log(tag, VERBOSE) { "setSelection: resolve failed, ignoring - ${e.message}" }
+                    return@withLock
+                }
+                _selectionRange.value = corrected.first to corrected.second
+                _cursorPosition.value = corrected.second
             }
             else -> {
                 // No file loaded, store as-is
@@ -1023,37 +1066,45 @@ class EditorEngine @AssistedInject constructor(
         }
         val buffer = currentState.resources.textBuffer
         val rawPos = _cursorPosition.value
-        // Display-bound the starting point: from a hidden-region cursor, LEFT/WORD_LEFT would
-        // otherwise decrement invisibly inside the hidden suffix while RIGHT/END clamp
-        val boundedColumn = displayBoundedColumn(rawPos.line, rawPos.column, buffer)
-        val currentPos = if (boundedColumn == rawPos.column) {
-            rawPos
-        } else {
-            TextPosition(
-                offset = buffer.findOffset(rawPos.line, boundedColumn),
-                line = rawPos.line,
-                column = boundedColumn,
-            )
+        // Resolve the display-bounded start and the moved target together. findOffset and the
+        // line reads inside the move helpers can throw when the position is stale or the backing
+        // file is unreadable - a movement that can't be resolved is dropped, never crashed.
+        val currentPos: TextPosition
+        val newPos: TextPosition
+        try {
+            // Display-bound the starting point: from a hidden-region cursor, LEFT/WORD_LEFT would
+            // otherwise decrement invisibly inside the hidden suffix while RIGHT/END clamp
+            val boundedColumn = displayBoundedColumn(rawPos.line, rawPos.column, buffer)
+            currentPos = if (boundedColumn == rawPos.column) {
+                rawPos
+            } else {
+                TextPosition(
+                    offset = buffer.findOffset(rawPos.line, boundedColumn),
+                    line = rawPos.line,
+                    column = boundedColumn,
+                )
+            }
+            newPos = when (direction) {
+                CursorDirection.LEFT -> moveCursorLeft(currentPos, currentState)
+                CursorDirection.RIGHT -> moveCursorRight(currentPos, currentState)
+                CursorDirection.UP -> moveCursorUp(currentPos, currentState)
+                CursorDirection.DOWN -> moveCursorDown(currentPos, currentState)
+                CursorDirection.WORD_LEFT -> moveCursorWordLeft(currentPos, currentState)
+                CursorDirection.WORD_RIGHT -> moveCursorWordRight(currentPos, currentState)
+                CursorDirection.LINE_START -> moveCursorToLineStart(currentPos, currentState)
+                CursorDirection.LINE_END -> moveCursorToLineEnd(currentPos, currentState)
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log(tag, VERBOSE) { "moveCursor: resolve failed, ignoring - ${e.message}" }
+            return@withLock
         }
-        log(tag) { "moveCursor: currentPos=$currentPos" }
         buffer.breakUndoRun()
 
         // Set anchor if starting selection
         if (extendSelection && selectionAnchor == null) {
             selectionAnchor = currentPos
-            log(tag) { "moveCursor: Set selection anchor to $currentPos" }
-        }
-
-        // Calculate new position based on direction
-        val newPos = when (direction) {
-            CursorDirection.LEFT -> moveCursorLeft(currentPos, currentState)
-            CursorDirection.RIGHT -> moveCursorRight(currentPos, currentState)
-            CursorDirection.UP -> moveCursorUp(currentPos, currentState)
-            CursorDirection.DOWN -> moveCursorDown(currentPos, currentState)
-            CursorDirection.WORD_LEFT -> moveCursorWordLeft(currentPos, currentState)
-            CursorDirection.WORD_RIGHT -> moveCursorWordRight(currentPos, currentState)
-            CursorDirection.LINE_START -> moveCursorToLineStart(currentPos, currentState)
-            CursorDirection.LINE_END -> moveCursorToLineEnd(currentPos, currentState)
         }
 
         log(tag) { "moveCursor: newPos=$newPos (was $currentPos)" }

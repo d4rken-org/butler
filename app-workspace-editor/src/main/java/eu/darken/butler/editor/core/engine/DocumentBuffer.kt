@@ -8,6 +8,10 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.errors.PathPermissionDeniedException
+import eu.darken.butler.common.files.errors.ReadException
+import eu.darken.butler.common.files.errors.ServiceConnectionLostException
+import eu.darken.butler.common.files.saf.MissingUriPermissionException
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.text.BlockIndex
@@ -33,10 +37,12 @@ import okio.BufferedSink
 import okio.Source
 import okio.buffer
 import okio.use
+import java.io.FileNotFoundException
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
+import java.nio.file.NoSuchFileException
 import java.security.MessageDigest
 import java.util.LinkedList
 import kotlin.coroutines.coroutineContext
@@ -109,6 +115,13 @@ class DocumentBuffer @AssistedInject constructor(
      * before the user can discard it (undo can't recover it).
      */
     val nonUndoableEditPending: StateFlow<Boolean> = _nonUndoableEditPending.asStateFlow()
+
+    // Latches once the backing file becomes unreadable mid-session (deleted / permission lost):
+    // original bytes can no longer be materialized, so the document goes read-only. Cleared only
+    // by a successful initialize().
+    private val _isBackingLost = MutableStateFlow(false)
+    val isBackingLost: StateFlow<Boolean> = _isBackingLost.asStateFlow()
+    private var backingLostCause: Throwable? = null
 
     private val bufferMutex = Mutex()
     private var pieceTable: PieceTable? = null
@@ -200,6 +213,10 @@ class DocumentBuffer @AssistedInject constructor(
                 )
             }
             saveError = null
+            // A fresh load is the only recovery from backing loss: reopening re-reads the file, so
+            // the read-only latch is cleared here (never on rebase, which reads before it succeeds)
+            backingLostCause = null
+            _isBackingLost.value = false
             lastKnownMeta = dataSource.getMeta()
 
             undoStack.clear()
@@ -473,21 +490,28 @@ class DocumentBuffer @AssistedInject constructor(
         endPosition: TextPosition,
         newText: String,
     ): Result<TextPosition> = bufferMutex.withLock {
-        try {
-            val table = table()
-            if (endPosition.offset - startPosition.offset > maxUndoableEditChars) {
-                // Non-undoable replace: never materialize the removed text. Insert BEFORE delete so
-                // a failed insert leaves the original range intact (nothing to roll back), then
-                // delete the old range shifted right by the inserted length. NonCancellable keeps a
-                // cancellation from landing between the two and leaving both old and new content.
-                if (startPosition.offset < 0 ||
-                    startPosition.offset > endPosition.offset ||
-                    endPosition.offset > table.totalCharLength
-                ) {
-                    return@withLock Result.failure(
-                        IllegalArgumentException("Replace range out of bounds: $startPosition-$endPosition"),
-                    )
-                }
+        val table = try {
+            table()
+        } catch (e: Exception) {
+            log(tag, ERROR) { "Failed to replace text from $startPosition to $endPosition - ${e.asLog()}" }
+            return@withLock Result.failure(e)
+        }
+        // Oversized replace runs BEFORE taking a checkpoint: checkpoint() snapshots the whole add
+        // buffer, so routing a huge replace through it would allocate a full duplicate - the very
+        // OOM this guard exists to prevent. Self-contained insert-before-delete rollback needs no
+        // snapshot. The removed text is never materialized; no undo entry, history is cleared.
+        if (endPosition.offset - startPosition.offset > maxUndoableEditChars) {
+            if (startPosition.offset < 0 ||
+                startPosition.offset > endPosition.offset ||
+                endPosition.offset > table.totalCharLength
+            ) {
+                return@withLock Result.failure(
+                    IllegalArgumentException("Replace range out of bounds: $startPosition-$endPosition"),
+                )
+            }
+            return@withLock try {
+                // Insert BEFORE delete so a failed insert leaves the original range intact; then
+                // delete the old range shifted right by the inserted length under NonCancellable.
                 if (newText.isNotEmpty()) table.insert(startPosition.offset, newText)
                 try {
                     withContext(NonCancellable) {
@@ -497,10 +521,8 @@ class DocumentBuffer @AssistedInject constructor(
                         )
                     }
                 } catch (e: Exception) {
-                    // The delete failed AFTER the insert already ran (e.g. an original-byte read
-                    // error while splitting mid-piece). Roll the insert back so the document is
-                    // left unchanged; this rollback deletes only the just-inserted Added piece
-                    // (clean boundaries, no original reads), so it can't fail the same way.
+                    // Delete failed after the insert ran; roll the insert back (deletes only the
+                    // just-inserted Added piece - clean boundaries, no original reads).
                     if (newText.isNotEmpty()) {
                         withContext(NonCancellable) {
                             table.delete(startPosition.offset, startPosition.offset + newText.length)
@@ -509,21 +531,22 @@ class DocumentBuffer @AssistedInject constructor(
                     throw e
                 }
                 discardHistoryForUnrecordedEdit()
-                return@withLock Result.success(insertEndPosition(startPosition, newText))
+                Result.success(insertEndPosition(startPosition, newText))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                log(tag, ERROR) { "Failed oversized replace from $startPosition to $endPosition - ${e.asLog()}" }
+                Result.failure(e)
             }
+        }
+        val checkpoint = table.checkpoint()
+        try {
             val deletedText = table.read(startPosition.offset, endPosition.offset)
             if (deletedText.isNotEmpty()) {
                 table.delete(startPosition.offset, endPosition.offset)
             }
             if (newText.isNotEmpty()) {
-                try {
-                    table.insert(startPosition.offset, newText)
-                } catch (e: Exception) {
-                    if (deletedText.isNotEmpty()) {
-                        withContext(NonCancellable) { table.insert(startPosition.offset, deletedText) }
-                    }
-                    throw e
-                }
+                table.insert(startPosition.offset, newText)
             }
             if (deletedText.isNotEmpty()) {
                 commitNewEdit(
@@ -541,7 +564,11 @@ class DocumentBuffer @AssistedInject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            log(tag, ERROR) { "Failed to replace text from $startPosition to $endPosition - ${e.asLog()}" }
+            // Roll back the partial delete/insert. Restore is purely in-memory, so it holds even
+            // when the failure IS the backing file vanishing mid-splice (unlike re-inserting the
+            // deleted text, which would re-read the gone original and double-fault).
+            table.restore(checkpoint)
+            log(tag, ERROR) { "Failed to replace text from $startPosition to $endPosition, rolled back - ${e.asLog()}" }
             Result.failure(e)
         }
     }
@@ -669,19 +696,28 @@ class DocumentBuffer @AssistedInject constructor(
 
             breakUndoRunLocked()
             val ops = mutableListOf<EditOperation>()
-            for (replacement in sorted) {
-                val end = replacement.startOffset + replacement.oldText.length
-                val line = table.lineOfOffset(replacement.startOffset)
-                val column = (replacement.startOffset - table.lineStartOffset(line)).toInt()
-                table.delete(replacement.startOffset, end)
-                if (replacement.newText.isNotEmpty()) {
-                    table.insert(replacement.startOffset, replacement.newText)
+            // Snapshot before the first mutation: a mid-batch original read can fail (the backing
+            // file vanished), and applying N replacements is otherwise non-atomic - an earlier
+            // replacement would land with no undo entry. Roll back fully on any failure.
+            val checkpoint = table.checkpoint()
+            try {
+                for (replacement in sorted) {
+                    val end = replacement.startOffset + replacement.oldText.length
+                    val line = table.lineOfOffset(replacement.startOffset)
+                    val column = (replacement.startOffset - table.lineStartOffset(line)).toInt()
+                    table.delete(replacement.startOffset, end)
+                    if (replacement.newText.isNotEmpty()) {
+                        table.insert(replacement.startOffset, replacement.newText)
+                    }
+                    ops += EditOperation.Replace(
+                        TextPosition(replacement.startOffset, line, column),
+                        replacement.oldText,
+                        replacement.newText,
+                    )
                 }
-                ops += EditOperation.Replace(
-                    TextPosition(replacement.startOffset, line, column),
-                    replacement.oldText,
-                    replacement.newText,
-                )
+            } catch (e: Exception) {
+                table.restore(checkpoint)
+                throw e
             }
             commitNewEdit(ops)
             // The lone-entry guard keeps an oversized composite until the NEXT edit; report
@@ -702,6 +738,10 @@ class DocumentBuffer @AssistedInject constructor(
         return try {
             saveError?.let {
                 return Result.failure(IllegalStateException("Buffer requires reload after failed save", it))
+            }
+            // Also covers the release() flush path, which bypasses the engine's editability gate
+            if (_isBackingLost.value) {
+                return Result.failure(BackingUnavailableException("Backing file is no longer available"))
             }
             val table = pieceTable
                 ?: return Result.failure(IllegalStateException("Buffer not initialized"))
@@ -1062,7 +1102,16 @@ class DocumentBuffer @AssistedInject constructor(
      */
     private suspend fun checkStaleness() {
         val known = lastKnownMeta ?: return
-        val current = dataSource.getMeta()
+        val current = try {
+            dataSource.getMeta()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Save/convert/stream reach here before touching original bytes; a vanished file must
+            // latch read-only here too, not only via the readOriginalBytes backstop.
+            if (e.isBackingUnavailable()) latchBackingLost(e)
+            throw e
+        }
         if (current.size != known.size) {
             throw ExternalModificationException(
                 "File size changed externally: ${known.size} -> ${current.size} bytes",
@@ -1110,6 +1159,9 @@ class DocumentBuffer @AssistedInject constructor(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            // Proactive detection: the polled metadata read is where a deleted/denied file first
+            // shows up, before the user touches an original-byte range (e.g. typing at EOF).
+            if (e.isBackingUnavailable()) latchBackingLost(e)
             log(tag, VERBOSE) { "checkExternalChange: getMeta failed - $e" }
             return@withLock ExternalChangeProbe.Unknown
         }
@@ -1228,7 +1280,57 @@ class DocumentBuffer @AssistedInject constructor(
     }
 
     private suspend fun readOriginalBytes(physicalOffset: Long, byteLen: Int): ByteArray =
-        dataSource.openByteSource(physicalOffset).buffer().use { it.readByteArray(byteLen.toLong()) }
+        try {
+            dataSource.openByteSource(physicalOffset).buffer().use { it.readByteArray(byteLen.toLong()) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Backstop: an edit/read that needs original bytes hit a vanished/denied file. Latch
+            // read-only so subsequent edits are refused up front instead of failing one-by-one.
+            if (e.isBackingUnavailable()) latchBackingLost(e)
+            throw e
+        }
+
+    /**
+     * Classifies a read failure as "the backing file is gone / access lost" (vs a transient blip).
+     * Deliberately narrow: latching is sticky until reopen, so a transient read error on a
+     * still-present file must NOT lock the document read-only. Definitive signals only -
+     * [PathPermissionDeniedException] and the not-found family by type, plus the characteristic
+     * missing/unreadable messages the local & SAF layers wrap in a generic [ReadException]
+     * (local "Does not exist…", SAF cause "readable=false", raw "ENOENT"). A dropped root/ADB
+     * service ([ServiceConnectionLostException]) is transient and never latches, even when
+     * re-wrapped; a generic [ReadException] with no not-found signal stays recoverable.
+     */
+    private fun Throwable.isBackingUnavailable(): Boolean {
+        val chain = generateSequence(this) { it.cause }.take(16).toList()
+        if (chain.any { it is ServiceConnectionLostException }) return false
+        if (chain.any {
+                it is PathPermissionDeniedException ||
+                    it is MissingUriPermissionException ||
+                    it is FileNotFoundException ||
+                    it is NoSuchFileException
+            }
+        ) {
+            return true
+        }
+        return chain.any { link ->
+            link.message?.let { m ->
+                m.contains("does not exist", ignoreCase = true) ||
+                    m.contains("no such file", ignoreCase = true) ||
+                    m.contains("readable=false", ignoreCase = true) ||
+                    m.contains("ENOENT", ignoreCase = true)
+            } == true
+        }
+    }
+
+    /** Idempotently latches the read-only backing-lost state and publishes it on [contentSource]. */
+    private fun latchBackingLost(cause: Throwable) {
+        if (_isBackingLost.value) return
+        backingLostCause = cause
+        _isBackingLost.value = true
+        (_contentSource.value as? ContentSource.File)?.let { _contentSource.value = it.copy(isBackingLost = true) }
+        log(tag, WARN) { "Backing file became unavailable, document is now read-only - ${cause.asLog()}" }
+    }
 
     private suspend fun getTextForLineInternal(lineNumber: Long): Result<String> {
         if (lineNumber < 0 || lineNumber >= _totalLines.value) {

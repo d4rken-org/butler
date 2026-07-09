@@ -39,7 +39,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -49,6 +51,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -152,7 +155,26 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     val pasteableClipboard = clipboardController.pasteableClipboard
     fun refreshClipboardState() = clipboardController.refreshClipboardState()
 
+    // Pulsed on every user edit; sampled to poll backing availability while actively typing.
+    private val editActivity = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    /**
+     * Append/EOF edits need no original bytes, so they can't trip the buffer's read backstop, and
+     * the resumed-page external-change poll is coarse (15s). Sampling edit activity checks the
+     * file every ~1.5s while typing, so a document whose backing file vanished flips read-only
+     * quickly instead of accumulating edits that can never be saved.
+     */
+    @OptIn(FlowPreview::class)
+    private fun observeEditActivityForAvailability() {
+        editActivity
+            .sample(1_500L)
+            .onEach { getWorkspace().checkExternalChange() }
+            .launchIn(vmScope)
+    }
+
     init {
+        observeEditActivityForAvailability()
+
         // Dismissed backup/long-lines notices belong to ONE path: any path change (open,
         // Save-As, scratch-to-file) re-arms the notices for the new document
         workspaceWithState
@@ -376,14 +398,17 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun insertText(text: String) = launch {
+        editActivity.tryEmit(Unit)
         getWorkspace().insertText(text)
     }
 
     fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) = launch {
+        editActivity.tryEmit(Unit)
         getWorkspace().replaceText(start, end, text, caret)
     }
 
     fun deleteSelection() = launch {
+        editActivity.tryEmit(Unit)
         getWorkspace().deleteSelection()
     }
 
@@ -415,13 +440,16 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     fun deleteAtCursor(count: Int) = launch {
         // Backspace over an oversized selection deletes non-undoably; confirm like the Delete button.
-        // A plain backspace (no selection) is never gated.
+        // A plain backspace (no selection) is never gated. editActivity fires only on the actual
+        // delete, not when we stop to show the confirm dialog.
         if (confirmIfLargeSelection()) return@launch
+        editActivity.tryEmit(Unit)
         getWorkspace().deleteAtCursor(count)
     }
 
     fun deleteForward() = launch {
         if (confirmIfLargeSelection()) return@launch
+        editActivity.tryEmit(Unit)
         getWorkspace().deleteForward()
     }
 
@@ -627,8 +655,11 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val isLoading: Boolean get() = progress != null
         val hasFile: Boolean get() = contentSource is ContentSource.File
         val isBinary: Boolean get() = (contentSource as? ContentSource.File)?.isLikelyBinary == true
+
+        /** The backing file vanished/lost read access mid-session: read-only, save disabled. */
+        val isBackingLost: Boolean get() = (contentSource as? ContentSource.File)?.isBackingLost == true
         val isReadOnly: Boolean
-            get() = (contentSource as? ContentSource.File)?.canWrite == false || isBinary
+            get() = (contentSource as? ContentSource.File)?.canWrite == false || isBinary || isBackingLost
         val hasContent: Boolean get() = contentSource.hasContent
         val isFileReady: Boolean get() = contentSource is ContentSource.File && progress == null
         val hasSelection: Boolean get() = selectionRange != null
