@@ -22,12 +22,14 @@ import eu.darken.butler.common.compose.PreviewWrapper
 fun EditorBannerGroup(
     modifier: Modifier = Modifier,
     error: Throwable? = null,
+    showBackingLost: Boolean = false,
     showExternalChange: Boolean = false,
     backupNames: List<String> = emptyList(),
     showBackupNotice: Boolean = false,
     isBinary: Boolean = false,
     showLongLinesNotice: Boolean = false,
     onDismissError: () -> Unit = {},
+    onCloseBackingLost: () -> Unit = {},
     onReloadFromDisk: () -> Unit = {},
     onDismissExternalChange: () -> Unit = {},
     onDismissBackupNotice: () -> Unit = {},
@@ -40,6 +42,13 @@ fun EditorBannerGroup(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        // Backing-lost is terminal for editing; surface it above the transient notices
+        if (showBackingLost) {
+            EditorBackingLostBanner(
+                onClose = onCloseBackingLost,
+            )
+        }
+
         if (showExternalChange) {
             EditorExternalChangeBanner(
                 onReload = onReloadFromDisk,
@@ -79,6 +88,7 @@ fun EditorBannerGroup(
 private fun EditorBannerGroupPreview() {
     EditorBannerGroup(
         error = RuntimeException("Failed to save file: Permission denied"),
+        showBackingLost = true,
         showExternalChange = true,
         backupNames = listOf("notes.txt.butler-save-bak-1a2b3c4d"),
         showBackupNotice = true,

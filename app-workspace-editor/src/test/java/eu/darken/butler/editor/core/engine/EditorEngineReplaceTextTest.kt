@@ -111,6 +111,18 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
     }
 
     @Test
+    fun `out-of-range line from a diverged field is dropped, not thrown`() = runTest {
+        // Repro of the crash: the field diverged and asked for a line the buffer never had
+        // (findOffset(line=8, total=2) threw IndexOutOfBoundsException). It must be a no-op now.
+        val engine = createEngine("first line\nsecond line")
+
+        engine.replaceText(start = pos(8, 0), end = pos(8, 0), text = "\n", caret = pos(9, 0))
+
+        engine.fullContent() shouldBe "first line\nsecond line"
+        (engine.state.value as EditorState.Loaded).isModified shouldBe false
+    }
+
+    @Test
     fun `replace with newline adds a line`() = runTest {
         val engine = createEngine("abc")
 

@@ -297,7 +297,7 @@ class EditorWorkspace @AssistedInject constructor(
             editorStateInternal.map { state ->
                 val file = state.contentSource as? ContentSource.File
                 state.isModified && file != null && file.canWrite && !file.isLikelyBinary &&
-                    state.externalChange == null
+                    !file.isBackingLost && state.externalChange == null
             }.distinctUntilChanged(),
             editorSettings.autoSaveEnabled.flow,
             editorSettings.autoSaveInterval.flow,

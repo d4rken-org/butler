@@ -50,6 +50,12 @@ sealed class ContentSource {
          * after the next save's rebase - the display cap itself is applied unconditionally.
          */
         val hasLongLines: Boolean = false,
+        /**
+         * Set once the backing file becomes unreadable mid-session (deleted or read permission
+         * lost). Latches: the piece table can no longer read original bytes, so the document goes
+         * read-only and edits/saves are refused. Cleared only by a successful reopen/reload.
+         */
+        val isBackingLost: Boolean = false,
     ) : ContentSource() {
         override val name: String get() = path.name
 
@@ -75,6 +81,7 @@ sealed class ContentSource {
             if (staleBackups != other.staleBackups) return false
             if (isLikelyBinary != other.isLikelyBinary) return false
             if (hasLongLines != other.hasLongLines) return false
+            if (isBackingLost != other.isBackingLost) return false
 
             return true
         }
@@ -91,6 +98,7 @@ sealed class ContentSource {
             result = 31 * result + staleBackups.hashCode()
             result = 31 * result + isLikelyBinary.hashCode()
             result = 31 * result + hasLongLines.hashCode()
+            result = 31 * result + isBackingLost.hashCode()
             return result
         }
     }

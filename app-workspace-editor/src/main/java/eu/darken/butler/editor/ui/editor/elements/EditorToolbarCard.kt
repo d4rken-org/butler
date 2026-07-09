@@ -58,6 +58,8 @@ fun EditorToolbarCard(
     title: CaString,
     subTitle: CaString,
     isModified: Boolean,
+    isReadOnly: Boolean = false,
+    isBackingLost: Boolean = false,
     progress: Progress.Data?,
     hasContent: Boolean,
     canUndo: Boolean,
@@ -264,12 +266,14 @@ fun EditorToolbarCard(
 
                         IconButton(
                             onClick = { onAction(EditorPageAction.File.Save) },
-                            enabled = isModified
+                            enabled = isModified && !isReadOnly
                         ) {
                             Icon(Icons.TwoTone.Save, contentDescription = stringResource(R.string.editor_action_save))
                         }
 
-                        if (hasContent || isModified) {
+                        // Save-As can export a read-only file elsewhere, but not a vanished one -
+                        // its original bytes can no longer be read.
+                        if ((hasContent || isModified) && !isBackingLost) {
                             IconButton(onClick = { onAction(EditorPageAction.File.SaveAs) }) {
                                 Icon(
                                     Icons.TwoTone.SaveAs,
