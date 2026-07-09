@@ -46,6 +46,7 @@
     <string name="editor_long_lines_banner_title">Very long lines</string>
     <string name="editor_long_lines_banner_message">Very long lines are shortened for display; the full content is preserved and saved.</string>
     <string name="editor_line_truncated_marker">⋯ +%1$d</string>
+    <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
 
     <!-- External change notice -->
     <string name="editor_external_change_banner_title">File changed on disk</string>
@@ -64,6 +65,10 @@
     <plurals name="editor_infobar_characters">
         <item quantity="one">%1$d character</item>
         <item quantity="other">%1$d characters</item>
+    </plurals>
+    <plurals name="editor_infobar_hidden_chars">
+        <item quantity="one">+%1$d hidden char</item>
+        <item quantity="other">+%1$d hidden chars</item>
     </plurals>
 
     <string name="editor_infobar_selected_x_y">Selected %1$s, %2$s</string>

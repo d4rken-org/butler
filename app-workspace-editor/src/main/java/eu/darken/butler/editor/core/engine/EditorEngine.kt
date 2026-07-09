@@ -60,13 +60,15 @@ class EditorEngine @AssistedInject constructor(
     val state: StateFlow<EditorState> = _state.asStateFlow()
 
     /**
-     * The visible window's display text plus its per-line truncation map as ONE value: two
-     * independent flows could pair capped text with a stale map mid-combine (SearchState
-     * precedent). [truncatedLines] is keyed by ABSOLUTE line number, non-zero entries only.
+     * The visible window's display text plus its per-line hidden-char maps as ONE value: independent
+     * flows could pair capped text with a stale map mid-combine (SearchState precedent). Both maps are
+     * keyed by ABSOLUTE line number, non-zero entries only. [truncatedLines] is the trailing-hidden
+     * count per line; [startColumns] is the leading-hidden count (the window's anchor column).
      */
     data class VisibleContent(
         val text: String = "",
         val truncatedLines: Map<Long, Long> = emptyMap(),
+        val startColumns: Map<Long, Long> = emptyMap(),
     )
 
     private val _visibleContent = MutableStateFlow(VisibleContent())
@@ -80,6 +82,14 @@ class EditorEngine @AssistedInject constructor(
 
     // Selection anchor for shift+arrow key selection
     private var selectionAnchor: TextPosition? = null
+
+    /**
+     * Raw column the display window starts at for long lines (horizontal chunking). A SINGLE shared
+     * viewport anchor (matches the one shared horizontal scrollbar): cursor movement slides it via
+     * [ensureColumnVisible] so the caret is always in the loaded slice; lines shorter than the cap
+     * ignore it (their slice clamps to column 0). Mutated only under [stateMutex].
+     */
+    private var viewportColumnAnchor: Long = 0L
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -283,7 +293,7 @@ class EditorEngine @AssistedInject constructor(
                 currentCoroutineContext().ensureActive()
                 val contentResult = resources.textBuffer.getDisplayRange(0, endLine)
                 contentResult.getOrNull()?.let { window ->
-                    _visibleContent.value = VisibleContent(window.text, window.truncatedLines)
+                    _visibleContent.value = VisibleContent(window.text, window.truncatedLines, window.startColumns)
                 }
             } else {
                 _visibleRange.value = 0L..0L
@@ -555,6 +565,7 @@ class EditorEngine @AssistedInject constructor(
                             val cap = currentState.resources.textBuffer.maxDisplayLineChars
                             if (cursorLine in _visibleRange.value && lineIndex in lines.indices &&
                                 !visible.truncatedLines.containsKey(cursorLine) &&
+                                !visible.startColumns.containsKey(cursorLine) &&
                                 lines[lineIndex].length + insert.length <= cap
                             ) {
                                 val line = lines[lineIndex]
@@ -631,34 +642,12 @@ class EditorEngine @AssistedInject constructor(
         // inserts and must neither join a typing run nor anchor one
         val keystrokeSized = newText.length <= 2 && (highPos.offset - lowPos.offset) <= 2
 
-        // Boundary disambiguation for display-truncated lines: the capped field cannot address
-        // offsets past the visible prefix - EVERY hidden position maps to the boundary column.
-        // When the engine cursor sits deeper in the SAME line (boundary-append typing or a
-        // hidden-region replace put it there; taps/arrow keys normalize it back to the marker),
-        // a KEYSTROKE-SIZED insert/delete touching the boundary column continues that
-        // hidden-region input and resolves relative to the ENGINE cursor - consistent with the
-        // hardware-key paths, which already edit at the real cursor. Without this, the second
-        // keystroke of a boundary-typing run would land BEFORE the first ("AB" -> "BA").
-        // Anything larger (genuine replaces/autocorrect, word-swipe deletes, selection deletes,
-        // pastes) operates on text the IME actually SAW and is never redirected.
-        val redirected = run {
-            if (!keystrokeSized) return@run false
-            if (!isEmptyRange && newText.isNotEmpty()) return@run false // genuine replace
-            if (lowPos.line != highPos.line) return@run false
-            val visible = _visibleContent.value
-            if (!visible.truncatedLines.containsKey(highPos.line)) return@run false
-            val cursor = _cursorPosition.value
-            if (cursor.line != highPos.line || cursor.offset <= highPos.offset) return@run false
-            val lineIndex = (highPos.line - _visibleRange.value.first).toInt()
-            val displayLength = visible.text.split('\n').getOrNull(lineIndex)?.length ?: return@run false
-            if (highPos.column != displayLength) return@run false
-            val delta = cursor.offset - highPos.offset
-            val lineStart = cursor.offset - cursor.column
-            if (lowPos.offset + delta < lineStart) return@run false
-            lowPos = TextPosition(lowPos.offset + delta, lowPos.line, lowPos.column + delta.toInt())
-            highPos = TextPosition(cursor.offset, highPos.line, cursor.column)
-            true
-        }
+        // Horizontal chunking makes the hidden field window-relative, so the IME caret already
+        // expresses the real edit position (flatOffsetToPosition re-adds the line's window anchor).
+        // The old boundary-redirect - which reinterpreted a keystroke at the truncation marker as
+        // hidden-region input - is therefore obsolete: every caret is directly addressable.
+        @Suppress("UNUSED_VARIABLE")
+        val redirected = false
 
         log(tag, VERBOSE) { "replaceText $lowPos..$highPos -> ${newText.take(50)} (caret=$caret, redirected=$redirected)" }
         val result: Result<TextPosition> = when {
@@ -816,10 +805,11 @@ class EditorEngine @AssistedInject constructor(
                             val lines = visible.text.split('\n').toMutableList()
                             // Index into the loaded window; bounded by the window size, safe to narrow
                             val lineIndex = (cursorLine - visibleStart).toInt()
-                            // A delete on a truncated line pulls hidden chars into view - the
-                            // in-place patch can't know them, so bypass to a full refresh
+                            // A delete on a truncated OR horizontally-windowed line pulls hidden chars
+                            // into view / patches at the wrong local column, so bypass to a full refresh.
                             if (cursorLine in _visibleRange.value && lineIndex in lines.indices &&
-                                !visible.truncatedLines.containsKey(cursorLine)
+                                !visible.truncatedLines.containsKey(cursorLine) &&
+                                !visible.startColumns.containsKey(cursorLine)
                             ) {
                                 val line = lines[lineIndex]
                                 val startCol = startPosition.column.coerceAtMost(line.length)
@@ -934,17 +924,18 @@ class EditorEngine @AssistedInject constructor(
         val correctedPosition = when (val currentState = _state.value) {
             is EditorState.Loaded -> {
                 val buffer = currentState.resources.textBuffer
-                val column = displayBoundedColumn(position.line, position.column, buffer)
+                // No display fence: the caret may sit anywhere on the real line; the window follows it.
                 TextPosition(
-                    offset = buffer.findOffset(position.line, column),
+                    offset = buffer.findOffset(position.line, position.column),
                     line = position.line,
-                    column = column,
+                    column = position.column,
                 )
             }
             else -> position
         }
         _cursorPosition.value = correctedPosition
         _selectionRange.value = null
+        refreshVisibleContent()
     }
 
     suspend fun setSelection(start: TextPosition, end: TextPosition) = stateMutex.withLock {
@@ -972,6 +963,7 @@ class EditorEngine @AssistedInject constructor(
                 _cursorPosition.value = end
             }
         }
+        refreshVisibleContent()
     }
 
     suspend fun moveCursor(direction: CursorDirection, extendSelection: Boolean) = stateMutex.withLock {
@@ -983,18 +975,8 @@ class EditorEngine @AssistedInject constructor(
         }
         val buffer = currentState.resources.textBuffer
         val rawPos = _cursorPosition.value
-        // Display-bound the starting point: from a hidden-region cursor, LEFT/WORD_LEFT would
-        // otherwise decrement invisibly inside the hidden suffix while RIGHT/END clamp
-        val boundedColumn = displayBoundedColumn(rawPos.line, rawPos.column, buffer)
-        val currentPos = if (boundedColumn == rawPos.column) {
-            rawPos
-        } else {
-            TextPosition(
-                offset = buffer.findOffset(rawPos.line, boundedColumn),
-                line = rawPos.line,
-                column = boundedColumn,
-            )
-        }
+        // No display fence: the caret can start anywhere on the real line; the window follows it.
+        val currentPos = rawPos
         log(tag) { "moveCursor: currentPos=$currentPos" }
         buffer.breakUndoRun()
 
@@ -1033,6 +1015,9 @@ class EditorEngine @AssistedInject constructor(
             selectionAnchor = null
             _selectionRange.value = null
         }
+
+        // Slide the horizontal window to follow the caret (reveals content past the display cap).
+        refreshVisibleContent()
     }
 
     private suspend fun moveCursorLeft(pos: TextPosition, state: EditorState.Loaded): TextPosition {
@@ -1097,68 +1082,72 @@ class EditorEngine @AssistedInject constructor(
     }
 
     private suspend fun moveCursorWordLeft(pos: TextPosition, state: EditorState.Loaded): TextPosition {
-        val lineContent = getDisplayLineContent(pos.line, state)
-        var column = pos.column
         var line = pos.line
+        var slice = getDisplayLineWindow(line, state)
+        var lineContent = slice?.text ?: ""
+        var startCol = (slice?.startColumn ?: 0L).toInt()
+        var column = (pos.column - startCol).coerceAtLeast(0) // local index into the window
 
         // Skip whitespace backwards
-        while (column > 0 && lineContent.getOrNull(column - 1)?.isWhitespace() == true) {
-            column--
+        while (column > 0 && lineContent.getOrNull(column - 1)?.isWhitespace() == true) column--
+
+        if (column == 0 && startCol > 0) {
+            // Window's left edge with content hidden before it: stop here; the next keystroke slides
+            // the window left (ensureColumnVisible) and word-nav continues into the revealed text.
+            val col = startCol
+            return TextPosition(state.resources.textBuffer.findOffset(line, col), line, col)
         }
 
-        // If at start of line, move to end of previous line
         if (column == 0 && line > 0) {
+            // Real start of the line: move to the end of the previous line's window.
             line--
-            val prevLineContent = getDisplayLineContent(line, state)
-            column = prevLineContent.length
-            // Skip whitespace at end of previous line
-            while (column > 0 && prevLineContent.getOrNull(column - 1)?.isWhitespace() == true) {
-                column--
-            }
-            // Skip word chars
-            while (column > 0 && prevLineContent.getOrNull(column - 1)?.isWordChar() == true) {
-                column--
-            }
+            slice = getDisplayLineWindow(line, state)
+            lineContent = slice?.text ?: ""
+            startCol = (slice?.startColumn ?: 0L).toInt()
+            column = lineContent.length
+            while (column > 0 && lineContent.getOrNull(column - 1)?.isWhitespace() == true) column--
+            while (column > 0 && lineContent.getOrNull(column - 1)?.isWordChar() == true) column--
         } else {
-            // Skip word characters backwards
-            while (column > 0 && lineContent.getOrNull(column - 1)?.isWordChar() == true) {
-                column--
-            }
+            while (column > 0 && lineContent.getOrNull(column - 1)?.isWordChar() == true) column--
         }
 
-        val newOffset = state.resources.textBuffer.findOffset(line, column)
-        return TextPosition(offset = newOffset, line = line, column = column)
+        val col = startCol + column
+        return TextPosition(state.resources.textBuffer.findOffset(line, col), line, col)
     }
 
     private suspend fun moveCursorWordRight(pos: TextPosition, state: EditorState.Loaded): TextPosition {
-        val lineContent = getDisplayLineContent(pos.line, state)
-        var column = pos.column
         var line = pos.line
+        var slice = getDisplayLineWindow(line, state)
+        var lineContent = slice?.text ?: ""
+        var startCol = (slice?.startColumn ?: 0L).toInt()
+        val hiddenAfter = (slice?.hiddenChars ?: 0L) > 0L
+        var column = (pos.column - startCol).coerceIn(0, lineContent.length) // local index into the window
         val totalLines = _totalLines.value
 
         // Skip word chars forwards
-        while (column < lineContent.length && lineContent.getOrNull(column)?.isWordChar() == true) {
-            column++
-        }
-
+        while (column < lineContent.length && lineContent.getOrNull(column)?.isWordChar() == true) column++
         // Skip whitespace forwards
-        while (column < lineContent.length && lineContent.getOrNull(column)?.isWhitespace() == true) {
-            column++
+        while (column < lineContent.length && lineContent.getOrNull(column)?.isWhitespace() == true) column++
+
+        if (column >= lineContent.length && hiddenAfter) {
+            // Window's right edge with content hidden after it: stop here; the next keystroke slides
+            // the window right and word-nav continues into the revealed text.
+            val col = startCol + lineContent.length
+            return TextPosition(state.resources.textBuffer.findOffset(line, col), line, col)
         }
 
-        // If at end of line, move to start of next line
         if (column >= lineContent.length && line < totalLines - 1) {
+            // Real end of the line: move to the start of the next line's window.
             line++
+            slice = getDisplayLineWindow(line, state)
+            lineContent = slice?.text ?: ""
+            startCol = (slice?.startColumn ?: 0L).toInt()
             column = 0
-            val nextLineContent = getDisplayLineContent(line, state)
-            // Skip leading whitespace
-            while (column < nextLineContent.length && nextLineContent.getOrNull(column)?.isWhitespace() == true) {
-                column++
-            }
+            while (column < lineContent.length && lineContent.getOrNull(column)?.isWhitespace() == true) column++
         }
 
-        val newOffset = state.resources.textBuffer.findOffset(line, column)
-        return TextPosition(offset = newOffset, line = line, column = column)
+        val col = startCol + column
+        return TextPosition(state.resources.textBuffer.findOffset(line, col), line, col)
     }
 
     private suspend fun moveCursorToLineStart(pos: TextPosition, state: EditorState.Loaded): TextPosition {
@@ -1172,29 +1161,19 @@ class EditorEngine @AssistedInject constructor(
         return TextPosition(offset = newOffset, line = pos.line, column = lineLength)
     }
 
-    /** DISPLAY-bounded line length: navigation (End, up/down clamping) stops at the visible prefix. */
-    private suspend fun getDisplayLineLength(lineNumber: Long, state: EditorState.Loaded): Int {
-        val result = state.resources.textBuffer.getLineSlice(lineNumber)
-        return result.getOrNull()?.text?.length ?: 0
-    }
-
-    /** DISPLAY-bounded line content: word-nav walks the visible prefix only. */
-    private suspend fun getDisplayLineContent(lineNumber: Long, state: EditorState.Loaded): String {
-        val result = state.resources.textBuffer.getLineSlice(lineNumber)
-        return result.getOrNull()?.text ?: ""
-    }
-
     /**
-     * Display-bounds a column: on truncated lines the cursor normalizes to the visible slice
-     * (it lands at the marker), so LEFT/WORD_LEFT never walk the hidden suffix invisibly and
-     * hardware-key edits (deleteAtCursor/insertText act on the ENGINE cursor, unlike IME edits
-     * whose caret the field clamps) never mutate hidden regions. Search RESULT columns stay
-     * real - only the cursor is display-bounded.
+     * Real line length (content chars, breaks excluded). Navigation (End, RIGHT, up/down column
+     * clamping) now reaches the true line end because the display window follows the caret. Saturated
+     * to Int for column math; a line longer than Int.MAX_VALUE chars (>4 GB) is not addressable.
      */
-    private suspend fun displayBoundedColumn(line: Long, column: Int, buffer: DocumentBuffer): Int {
-        if (column <= 0) return column
-        val slice = buffer.getLineSlice(line).getOrNull() ?: return column
-        return if (slice.hiddenChars > 0) column.coerceAtMost(slice.text.length) else column
+    private suspend fun getDisplayLineLength(lineNumber: Long, state: EditorState.Loaded): Int {
+        val length = state.resources.textBuffer.getLineLength(lineNumber).getOrDefault(0L)
+        return length.coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
+    }
+
+    /** The line's display window at the current [viewportColumnAnchor]; word-nav scans it locally. */
+    private suspend fun getDisplayLineWindow(lineNumber: Long, state: EditorState.Loaded): DocumentBuffer.LineSlice? {
+        return state.resources.textBuffer.getLineSlice(lineNumber, viewportColumnAnchor).getOrNull()
     }
 
     private fun Char.isWordChar(): Boolean {
@@ -1515,6 +1494,8 @@ class EditorEngine @AssistedInject constructor(
             val visibleStart = (lineNumber - 25).coerceAtLeast(0)
             val visibleEnd = (lineNumber + 25).coerceAtMost(totalLines - 1)
             updateVisibleRangeLocked(visibleStart, visibleEnd)
+            // Settle the horizontal window on the target line (jumped to column 0 -> show the start).
+            refreshVisibleContent()
 
             Result.success(Unit)
         } catch (e: Exception) {
@@ -1529,7 +1510,59 @@ class EditorEngine @AssistedInject constructor(
         _searchQuery.value = ""
     }
 
-    private suspend fun refreshVisibleContent() {
+    /**
+     * Slides [viewportColumnAnchor] so [column] on [line] stays inside the display window. Cursor-driven:
+     * a line that fits within the cap keeps the current anchor (its slice clamps to 0 anyway), so moving
+     * onto a short line never disturbs a horizontal scroll position. Pure - only updates the field; the
+     * caller re-fetches. A hysteresis margin avoids re-slicing on every keystroke near the window centre.
+     */
+    private suspend fun ensureColumnVisible(line: Long, column: Int, buffer: DocumentBuffer) {
+        val cap = buffer.maxDisplayLineChars.toLong()
+        val lineLength = buffer.getLineLength(line).getOrDefault(0L)
+        if (lineLength <= cap) return
+        val maxAnchor = lineLength - cap
+        val margin = cap / 4
+        val col = column.toLong()
+        val current = viewportColumnAnchor
+        viewportColumnAnchor = when {
+            col < current + margin -> col - margin
+            col > current + cap - margin -> col - cap + margin
+            else -> current
+        }.coerceIn(0L, maxAnchor)
+    }
+
+    /** Per-line column anchors for a display range: the shared [viewportColumnAnchor] for every line, or
+     * empty when unscrolled. [DocumentBuffer.getLineSliceInternal] clamps it per line, so short lines stay at 0. */
+    private fun columnAnchorsFor(range: LongRange): Map<Long, Long> {
+        val anchor = viewportColumnAnchor
+        if (anchor <= 0L) return emptyMap()
+        return range.associateWith { anchor }
+    }
+
+    /**
+     * Scroll-driven horizontal reveal: pan the shared window by half a cap in [forward] direction so the
+     * user can browse a long line past the display cap WITHOUT moving the caret. Bounded by the longest
+     * visible line's furthest full-window start; a no-op at the bound. Does NOT re-centre on the caret
+     * (that would fight the scroll) - [refreshVisibleContent] is called with ensureCursor=false.
+     */
+    suspend fun revealMoreColumns(forward: Boolean) = stateMutex.withLock {
+        val currentState = _state.value as? EditorState.Loaded ?: return
+        val buffer = currentState.resources.textBuffer
+        val cap = buffer.maxDisplayLineChars.toLong()
+        val page = (cap / 2).coerceAtLeast(1L)
+        var maxAnchor = 0L
+        for (line in _visibleRange.value) {
+            val len = buffer.getLineLength(line).getOrDefault(0L)
+            val lineMax = (len - cap).coerceAtLeast(0L)
+            if (lineMax > maxAnchor) maxAnchor = lineMax
+        }
+        val newAnchor = (viewportColumnAnchor + if (forward) page else -page).coerceIn(0L, maxAnchor)
+        if (newAnchor == viewportColumnAnchor) return
+        viewportColumnAnchor = newAnchor
+        refreshVisibleContent(ensureCursor = false)
+    }
+
+    private suspend fun refreshVisibleContent(ensureCursor: Boolean = true) {
         val currentState = _state.value as? EditorState.Loaded ?: return
         val maxLine = (_totalLines.value - 1).coerceAtLeast(0)
         val currentRange = _visibleRange.value
@@ -1542,12 +1575,19 @@ class EditorEngine @AssistedInject constructor(
         val range = first..last
         _visibleRange.value = range
 
+        // Slide the horizontal window so the caret stays inside the loaded slice on long lines - unless a
+        // scroll-driven reveal is positioning the anchor itself (re-centring would undo the user's scroll).
+        if (ensureCursor) {
+            ensureColumnVisible(cursorLine, _cursorPosition.value.column, currentState.resources.textBuffer)
+        }
+
         try {
             currentCoroutineContext().ensureActive()
-            val contentResult = currentState.resources.textBuffer.getDisplayRange(range.first, range.last)
+            val contentResult =
+                currentState.resources.textBuffer.getDisplayRange(range.first, range.last, columnAnchorsFor(range))
             contentResult.fold(
                 onSuccess = { window ->
-                    _visibleContent.value = VisibleContent(window.text, window.truncatedLines)
+                    _visibleContent.value = VisibleContent(window.text, window.truncatedLines, window.startColumns)
                     log(tag) { "Refreshed visible content for range: ${range.first}..${range.last}" }
                 },
                 onFailure = { e ->
@@ -1592,12 +1632,13 @@ class EditorEngine @AssistedInject constructor(
         if (rangeChanged && significantChange) {
             _visibleRange.value = newRange
 
-            // Load content for the new visible range
+            // Load content for the new visible range (keep the current horizontal anchor).
             try {
-                val contentResult = currentState.resources.textBuffer.getDisplayRange(constrainedStart, constrainedEnd)
+                val contentResult = currentState.resources.textBuffer
+                    .getDisplayRange(constrainedStart, constrainedEnd, columnAnchorsFor(newRange))
                 contentResult.fold(
                     onSuccess = { window ->
-                        _visibleContent.value = VisibleContent(window.text, window.truncatedLines)
+                        _visibleContent.value = VisibleContent(window.text, window.truncatedLines, window.startColumns)
                         log(tag) { "Loaded content for range: $constrainedStart..$constrainedEnd" }
                     },
                     onFailure = { e ->

@@ -144,44 +144,56 @@ internal fun computeTextEdit(old: String, new: String): TextEdit? {
  *
  * The synthetic '\n' between lines occupies the gap: in "abc\ndef" offset 3 → (line0, col3) and
  * offset 4 → (line1, col0). Columns are RAW char indices (the hidden field is never tab-expanded).
- * Offsets past the end clamp to the end of the last visible line.
+ * Offsets past the end clamp to the end of the last visible line. [lineStartColumns] gives the raw
+ * column each rendered line's window begins at (absolute line -> anchor, 0 when absent); it is added
+ * so returned columns are absolute engine columns even for horizontally-windowed lines.
  */
 internal fun flatOffsetToPosition(
     visibleLines: List<String>,
     visibleRangeStart: Long,
     flatOffset: Int,
+    lineStartColumns: Map<Long, Long> = emptyMap(),
 ): TextPosition {
     if (visibleLines.isEmpty()) return createUiTextPosition(line = visibleRangeStart, column = 0)
     var remaining = flatOffset.coerceAtLeast(0)
     for (i in visibleLines.indices) {
         val line = visibleLines[i]
         if (remaining <= line.length) {
-            return createUiTextPosition(line = visibleRangeStart + i, column = remaining)
+            val absoluteLine = visibleRangeStart + i
+            val startColumn = (lineStartColumns[absoluteLine] ?: 0L).toInt()
+            return createUiTextPosition(line = absoluteLine, column = remaining + startColumn)
         }
         remaining -= line.length + 1 // +1 for the joining '\n'
     }
     val lastIndex = visibleLines.lastIndex
-    return createUiTextPosition(line = visibleRangeStart + lastIndex, column = visibleLines[lastIndex].length)
+    val absoluteLine = visibleRangeStart + lastIndex
+    val startColumn = (lineStartColumns[absoluteLine] ?: 0L).toInt()
+    return createUiTextPosition(line = absoluteLine, column = visibleLines[lastIndex].length + startColumn)
 }
 
 /**
  * Inverse of [flatOffsetToPosition]: maps an engine [position] to a flat offset into the joined visible
  * field text. Returns null when [position] falls outside the visible window so callers can skip syncing
- * rather than emit a bogus offset.
+ * rather than emit a bogus offset - including when the position's column sits BEFORE the line's rendered
+ * window (its window anchor in [lineStartColumns]); a column past the window's end clamps to the end.
  */
 internal fun positionToFlatOffset(
     visibleLines: List<String>,
     visibleRangeStart: Long,
     position: TextPosition,
+    lineStartColumns: Map<Long, Long> = emptyMap(),
 ): Int? {
     val lineOffset = position.line - visibleRangeStart
     if (lineOffset < 0 || lineOffset > visibleLines.lastIndex) return null
     val lineIndex = lineOffset.toInt()
+    val startColumn = (lineStartColumns[position.line] ?: 0L).toInt()
+    val localColumn = position.column - startColumn
+    if (localColumn < 0) return null // column is hidden before the rendered window
     var offset = 0
     for (i in 0 until lineIndex) {
         offset += visibleLines[i].length + 1 // +1 for the joining '\n'
     }
-    return offset + position.column.coerceIn(0, visibleLines[lineIndex].length)
+    return offset + localColumn.coerceAtMost(visibleLines[lineIndex].length)
 }
 
 /**
@@ -300,6 +312,7 @@ internal fun calculatePositionFromOffset(
     tabSize: Int,
     textLayouts: Map<Long, TextLayoutResult> = emptyMap(),
     contentPaddingTop: Float = 0f,
+    lineStartColumns: Map<Long, Long> = emptyMap(),
 ): PositionCalculationResult? {
     val layoutInfo = contentListState.layoutInfo
     // Adjust Y for content padding - tap offset includes padding, item.offset doesn't
@@ -380,7 +393,9 @@ internal fun calculatePositionFromOffset(
     }
 
     // clickedColumn is an EXPANDED (tab-expanded) visual column; the engine expects a RAW char index.
-    val rawColumn = expandedToRawColumn(lineContent, clickedColumn, tabSize)
+    // The rendered line begins at its window anchor, so shift the local index to an absolute column.
+    val startColumn = (lineStartColumns[lineIndex] ?: 0L).toInt()
+    val rawColumn = expandedToRawColumn(lineContent, clickedColumn, tabSize) + startColumn
     val position = createUiTextPosition(
         line = lineIndex,
         column = rawColumn
@@ -418,31 +433,37 @@ internal fun findWordBoundaries(text: String, column: Int): Pair<Int, Int> {
 internal fun selectWordAt(
     lineIndex: Long,
     column: Int,
-    visibleLineContent: Map<Long, String>
+    visibleLineContent: Map<Long, String>,
+    lineStartColumns: Map<Long, Long> = emptyMap(),
 ): Pair<TextPosition, TextPosition> {
     val lineContent = visibleLineContent[lineIndex] ?: ""
-    val (start, end) = findWordBoundaries(lineContent, column)
+    // [column] is an absolute engine column; word scanning runs over the local rendered window.
+    val startColumn = (lineStartColumns[lineIndex] ?: 0L).toInt()
+    val (start, end) = findWordBoundaries(lineContent, column - startColumn)
 
     return createUiTextPosition(
         line = lineIndex,
-        column = start
+        column = start + startColumn
     ) to createUiTextPosition(
         line = lineIndex,
-        column = end
+        column = end + startColumn
     )
 }
 
 internal fun selectLineAt(
     lineIndex: Long,
-    visibleLineContent: Map<Long, String>
+    visibleLineContent: Map<Long, String>,
+    lineStartColumns: Map<Long, Long> = emptyMap(),
 ): Pair<TextPosition, TextPosition> {
     val lineContent = visibleLineContent[lineIndex] ?: ""
+    // Selects the rendered window's extent (absolute columns); at anchor 0 this is the whole prefix.
+    val startColumn = (lineStartColumns[lineIndex] ?: 0L).toInt()
 
     return createUiTextPosition(
         line = lineIndex,
-        column = 0
+        column = startColumn
     ) to createUiTextPosition(
         line = lineIndex,
-        column = lineContent.length
+        column = startColumn + lineContent.length
     )
 }

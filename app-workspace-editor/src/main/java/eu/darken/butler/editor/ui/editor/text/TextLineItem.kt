@@ -53,8 +53,11 @@ private data class SelectionBounds(
     val height: Float,
 )
 
-/** Semantics tag for the "⋯ +N" truncation marker chip, used by Compose regression tests. */
+/** Semantics tag for the trailing "⋯ +N" truncation marker chip, used by Compose regression tests. */
 internal const val EDITOR_TRUNCATION_MARKER_TEST_TAG = "editor.line.truncationMarker"
+
+/** Semantics tag for the leading "+N ⋯" marker shown when a line's window is anchored past column 0. */
+internal const val EDITOR_LEADING_TRUNCATION_MARKER_TEST_TAG = "editor.line.leadingTruncationMarker"
 
 @Composable
 internal fun TextLineItem(
@@ -69,6 +72,7 @@ internal fun TextLineItem(
     tabSize: Int,
     charWidthPx: Float,
     hiddenChars: Long = 0L,
+    lineStartColumn: Long = 0L,
     searchHighlights: List<Pair<Int, SearchResult>> = emptyList(),
     currentSearchResultIndex: Int = 0,
     modifier: Modifier = Modifier,
@@ -119,10 +123,11 @@ internal fun TextLineItem(
     val cursorModifier = if (isCurrentLine && selection == null) {
         Modifier.drawWithContent {
             val expandedText = displayText
-            // Engine columns are RAW char indices; the layout/text here is tab-EXPANDED. Clamped
-            // into the line: on display-truncated lines the column can sit far past the visible
-            // prefix, and unclamped expansion would draw the cursor kilometers off-screen.
-            val position = rawToExpandedColumnClamped(lineContent, cursorPosition.column, tabSize)
+            // Engine columns are RAW char indices absolute to the real line; the layout/text here is
+            // the tab-EXPANDED window starting at [lineStartColumn]. Localize then clamp: on windowed
+            // lines the column can sit far past the visible prefix, and unclamped expansion would draw
+            // the cursor kilometers off-screen.
+            val position = rawToExpandedColumnClamped(lineContent, cursorPosition.column - lineStartColumn.toInt(), tabSize)
             val layoutResult = textLayoutResult
 
             // When word wrap is enabled, draw highlight only for the visual line containing cursor
@@ -264,6 +269,7 @@ internal fun TextLineItem(
             tabSize = tabSize,
             charWidthPx = charWidthPx,
             hiddenChars = hiddenChars,
+            lineStartColumn = lineStartColumn,
             onTextLayout = { layoutResult ->
                 textLayoutResult = layoutResult
                 onTextLayoutResult?.invoke(layoutResult)
@@ -287,6 +293,7 @@ internal fun SelectableText(
     tabSize: Int = 4,
     charWidthPx: Float,
     hiddenChars: Long = 0L,
+    lineStartColumn: Long = 0L,
     onTextLayout: (TextLayoutResult) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -318,8 +325,10 @@ internal fun SelectableText(
             val isCurrentResult = resultIndex == currentSearchResultIndex
             val highlightColor = if (isCurrentResult) currentSearchHighlightColor else searchHighlightColor
 
-            // result.position.column is a RAW char index; the rendered text is tab-EXPANDED.
-            val rawColumn = result.position.column
+            // result.position.column is an absolute RAW char index; localize to the rendered window
+            // (may go negative/past-end for a match straddling the window - the coerceIn below clips
+            // it to the visible intersection). The rendered text is tab-EXPANDED.
+            val rawColumn = result.position.column - lineStartColumn.toInt()
             val matchLength = result.matchText.length
             val highlightStart = rawToExpandedColumn(rawLineContent, rawColumn, tabSize)
             val highlightEnd = rawToExpandedColumn(rawLineContent, rawColumn + matchLength, tabSize)
@@ -407,9 +416,17 @@ internal fun SelectableText(
                 // far past the visible prefix, and the unguarded fallback below would then build a
                 // Box wider than Compose Constraints can represent. Selections end at the marker.
                 val selectionStart =
-                    if (lineIndex == start.line) rawToExpandedColumnClamped(rawLineContent, start.column, tabSize) else 0
+                    if (lineIndex == start.line) {
+                        rawToExpandedColumnClamped(rawLineContent, start.column - lineStartColumn.toInt(), tabSize)
+                    } else {
+                        0
+                    }
                 val selectionEnd =
-                    if (lineIndex == end.line) rawToExpandedColumnClamped(rawLineContent, end.column, tabSize) else text.length
+                    if (lineIndex == end.line) {
+                        rawToExpandedColumnClamped(rawLineContent, end.column - lineStartColumn.toInt(), tabSize)
+                    } else {
+                        text.length
+                    }
 
                 if (selectionStart < selectionEnd) {
                     val layout = layoutResult
@@ -562,6 +579,31 @@ internal fun SelectableText(
                 softWrap = false,
                 modifier = markerModifier
                     .testTag(EDITOR_TRUNCATION_MARKER_TEST_TAG)
+                    .background(
+                        MaterialTheme.colorScheme.secondaryContainer,
+                        RoundedCornerShape(4.dp),
+                    )
+                    .padding(horizontal = 6.dp),
+            )
+        }
+
+        // Leading truncation marker: chars hidden BEFORE the window (line anchored past column 0).
+        // Like the trailing marker it's a non-interactive OVERLAY outside the measured Text - it
+        // reserves no start padding, so glyph/getBoundingBox indices are never shifted. Pinned to
+        // the window's start edge; taps fall through to line hit-testing (which self-clamps).
+        if (lineStartColumn > 0) {
+            Text(
+                text = stringResource(R.string.editor_line_leading_truncated_marker, lineStartColumn),
+                style = TextStyle(
+                    fontSize = fontSize.sp,
+                    fontFamily = FontFamily.Monospace,
+                ),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                maxLines = 1,
+                softWrap = false,
+                modifier = Modifier
+                    .align(if (wordWrap) Alignment.TopStart else Alignment.CenterStart)
+                    .testTag(EDITOR_LEADING_TRUNCATION_MARKER_TEST_TAG)
                     .background(
                         MaterialTheme.colorScheme.secondaryContainer,
                         RoundedCornerShape(4.dp),

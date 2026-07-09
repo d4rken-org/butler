@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Description
 import androidx.compose.material.icons.twotone.KeyboardReturn
 import androidx.compose.material.icons.twotone.Lock
+import androidx.compose.material.icons.twotone.MoreHoriz
 import androidx.compose.material.icons.twotone.TextFields
 import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ fun EditorInfoBar(
     totalLines: Long = 0,
     cursorLine: Long = 0,
     cursorColumn: Int = 0,
+    hiddenChars: Long = 0,
     selectedCharacterCount: Long = 0,
     selectedLineCount: Long = 0,
     fileEncoding: String? = null,
@@ -65,6 +67,18 @@ fun EditorInfoBar(
                     icon = Icons.TwoTone.TextFields,
                     label = "${cursorLine + 1}:${cursorColumn + 1}",
                 )
+                // Surfaces hidden content on the cursor's line even before the off-screen "⋯" marker
+                // is scrolled into view (the marker sits up to maxDisplayLineChars away in wrap-off).
+                if (hiddenChars > 0) {
+                    InfoChip(
+                        icon = Icons.TwoTone.MoreHoriz,
+                        label = pluralStringResource(
+                            R.plurals.editor_infobar_hidden_chars,
+                            hiddenChars.toIntSaturated(),
+                            hiddenChars,
+                        ),
+                    )
+                }
             }
         },
         trailingContent = {
@@ -122,6 +136,19 @@ private fun EditorInfoBarWithFilePreview() {
         totalLines = 42,
         cursorLine = 10,
         cursorColumn = 5,
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun EditorInfoBarWithHiddenCharsPreview() {
+    EditorInfoBar(
+        fileSize = 1024L * 512L,
+        totalLines = 42,
+        cursorLine = 10,
+        cursorColumn = 5,
+        hiddenChars = 1234,
     )
 }
 
