@@ -37,6 +37,7 @@ import eu.darken.butler.editor.ui.editor.dialogs.LineEndingDialog
 import eu.darken.butler.editor.ui.editor.dialogs.ReloadConfirmDialog
 import eu.darken.butler.editor.ui.editor.dialogs.SaveAsOverwriteDialog
 import eu.darken.butler.editor.ui.editor.dialogs.GoToLineDialog
+import eu.darken.butler.editor.ui.editor.dialogs.LargeDeleteConfirmDialog
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBar
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.editor.ui.editor.elements.EditorBannerGroup
@@ -399,6 +400,13 @@ fun EditorWorkspacePage(
         ReloadConfirmDialog(
             onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmReload) },
             onDismiss = { onPageAction(EditorPageAction.Dialog.DismissReloadConfirm) },
+        )
+    }
+
+    if (state.showLargeDeleteConfirmDialog) {
+        LargeDeleteConfirmDialog(
+            onConfirm = { onPageAction(EditorPageAction.Dialog.ConfirmLargeDelete) },
+            onDismiss = { onPageAction(EditorPageAction.Dialog.DismissLargeDeleteConfirm) },
         )
     }
 

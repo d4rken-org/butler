@@ -13,12 +13,12 @@ import kotlin.random.Random
 /** Shared harness for tests running a full [EditorEngine] over an in-memory document. */
 abstract class EditorEngineTestBase : DocumentBufferTestBase() {
 
-    protected fun createMockSettings(): EditorSettings {
+    protected fun createMockSettings(undoMaxMemoryBytes: Long = 10 * 1_048_576L): EditorSettings {
         val settings = mockk<EditorSettings>()
         val undoStackSize = mockk<DataStoreValue<Int>>()
         val undoMaxMemory = mockk<DataStoreValue<Long>>()
         every { undoStackSize.flow } returns flowOf(100)
-        every { undoMaxMemory.flow } returns flowOf(10 * 1_048_576L)
+        every { undoMaxMemory.flow } returns flowOf(undoMaxMemoryBytes)
         every { settings.undoStackSize } returns undoStackSize
         every { settings.undoMaxMemory } returns undoMaxMemory
         return settings
@@ -27,6 +27,7 @@ abstract class EditorEngineTestBase : DocumentBufferTestBase() {
     protected suspend fun createEngine(
         content: String,
         displayLineCap: Int = DocumentBuffer.MAX_DISPLAY_LINE_CHARS,
+        undoMaxMemoryBytes: Long = 10 * 1_048_576L,
     ): EditorEngine {
         val inMemoryDataSourceFactory = object : InMemoryDataSource.Factory {
             override fun create(workspaceId: Workspace.Id, initialContent: String) =
@@ -59,7 +60,7 @@ abstract class EditorEngineTestBase : DocumentBufferTestBase() {
             filePath = null,
             initialContent = content,
             gatewaySwitch = mockk(),
-            editorSettings = createMockSettings(),
+            editorSettings = createMockSettings(undoMaxMemoryBytes),
             fileDataSourceFactory = mockk(),
             inMemoryDataSourceFactory = inMemoryDataSourceFactory,
             documentBufferFactory = documentBufferFactory,

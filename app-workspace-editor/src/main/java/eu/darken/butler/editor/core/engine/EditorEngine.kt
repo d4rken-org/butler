@@ -147,6 +147,16 @@ class EditorEngine @AssistedInject constructor(
         (s as? EditorState.Loaded)?.resources?.textBuffer?.canRedo ?: flowOf(false)
     }
 
+    /** Size above which a delete/replace is applied non-undoably; null until a file is loaded. */
+    val maxUndoableEditChars: Flow<Long?> = state.flatMapLatest { s ->
+        flowOf((s as? EditorState.Loaded)?.resources?.textBuffer?.maxUndoableEditChars)
+    }
+
+    /** True while an unrecorded (non-undoable) edit is pending a manual save / next recorded edit. */
+    val nonUndoableEditPending: Flow<Boolean> = state.flatMapLatest { s ->
+        (s as? EditorState.Loaded)?.resources?.textBuffer?.nonUndoableEditPending ?: flowOf(false)
+    }
+
     val textBuffer: DocumentBuffer?
         get() = (state.value as? EditorState.Loaded)?.resources?.textBuffer
 
@@ -498,20 +508,46 @@ class EditorEngine @AssistedInject constructor(
                     log(tag, VERBOSE) { "insertText rejected: ${it.message}" }
                     return@withLock
                 }
-                // If there's a selection, delete it first (standard "replace selection" behavior)
-                val (hadSelection, deleteResult) = deleteSelectionIfPresent(currentState)
-                if (hadSelection && deleteResult?.isFailure == true) {
-                    return@withLock // Selection delete failed, error already set
+                val buffer = currentState.resources.textBuffer
+                val insert = matchDocumentLineEnding(text, buffer)
+
+                // Replace an existing selection atomically through the buffer so the oversized-edit
+                // guard (and its history clearing) covers the WHOLE delete+insert as one unit: a
+                // separate delete-then-insert would leave a misleading partial undo after a
+                // non-undoable selection delete (undo would only revert the insert).
+                val selection = _selectionRange.value?.normalized()
+                if (selection != null) {
+                    try {
+                        buffer.replaceText(selection.first, selection.second, insert).fold(
+                            onSuccess = { editEnd ->
+                                _selectionRange.value = null
+                                selectionAnchor = null
+                                _cursorPosition.value = editEnd
+                                _state.value = currentState.copy(isModified = true)
+                                _totalLines.value = buffer.totalLines.value
+                                invalidateSearchResults()
+                                refreshVisibleContent()
+                            },
+                            onFailure = { e ->
+                                log(tag, ERROR) { "Failed to replace selection on insert - ${e.asLog()}" }
+                                _error.value = e
+                            },
+                        )
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        log(tag, ERROR) { "Failed to insert over selection - ${e.asLog()}" }
+                        _error.value = e
+                    }
+                    return@withLock
                 }
 
-                val insert = matchDocumentLineEnding(text, currentState.resources.textBuffer)
-
-                // Use current cursor position (will be at selection.first if selection was deleted)
+                // Use current cursor position
                 val cursorPos = _cursorPosition.value
 
                 // Recalculate correct offset from line/column via the buffer
                 // UI may send placeholder offset=0 with virtual scrolling
-                val correctedOffset = currentState.resources.textBuffer.findOffset(
+                val correctedOffset = buffer.findOffset(
                     cursorPos.line,
                     cursorPos.column
                 )
@@ -524,7 +560,7 @@ class EditorEngine @AssistedInject constructor(
 
                 log(tag, VERBOSE) { "Inserting text at position $correctedPosition: ${insert.take(50)}..." }
 
-                val result = currentState.resources.textBuffer.insertText(correctedPosition, insert)
+                val result = buffer.insertText(correctedPosition, insert)
 
                 result.fold(
                     onSuccess = { newPosition ->
@@ -754,6 +790,8 @@ class EditorEngine @AssistedInject constructor(
                         _error.value = result.exceptionOrNull()
                     }
                     result
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to delete selection - ${e.asLog()}" }
                     _error.value = e
@@ -836,6 +874,8 @@ class EditorEngine @AssistedInject constructor(
                         _error.value = result.exceptionOrNull()
                     }
                     result
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     log(tag, ERROR) { "Failed to delete at cursor - ${e.asLog()}" }
                     _error.value = e

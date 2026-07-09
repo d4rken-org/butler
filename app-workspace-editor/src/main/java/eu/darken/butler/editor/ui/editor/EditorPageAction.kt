@@ -188,6 +188,12 @@ sealed interface EditorPageAction {
 
         /** Dismiss the line-ending picker dialog */
         data object DismissLineEnding : Dialog
+
+        /** Confirm deleting a selection too large to undo */
+        data object ConfirmLargeDelete : Dialog
+
+        /** Dismiss the large-delete confirmation */
+        data object DismissLargeDeleteConfirm : Dialog
     }
 
     /**

@@ -28,6 +28,7 @@ class EditorDialogsController(
     private val _externalChangeDismissedGeneration = MutableStateFlow<Int?>(null)
     private val _showLineEndingDialog = MutableStateFlow(false)
     private val _longLinesNoticeDismissed = MutableStateFlow(false)
+    private val _showLargeDeleteConfirmDialog = MutableStateFlow(false)
 
     data class DialogUiState(
         val showGoToLineDialog: Boolean = false,
@@ -40,6 +41,7 @@ class EditorDialogsController(
         val externalChangeDismissedGeneration: Int? = null,
         val showLineEndingDialog: Boolean = false,
         val longLinesNoticeDismissed: Boolean = false,
+        val showLargeDeleteConfirmDialog: Boolean = false,
     )
 
     val state: Flow<DialogUiState> = combine(
@@ -53,6 +55,7 @@ class EditorDialogsController(
         _externalChangeDismissedGeneration,
         _showLineEndingDialog,
         _longLinesNoticeDismissed,
+        _showLargeDeleteConfirmDialog,
     ) { values ->
         DialogUiState(
             showGoToLineDialog = values[0] as Boolean,
@@ -65,6 +68,7 @@ class EditorDialogsController(
             externalChangeDismissedGeneration = values[7] as Int?,
             showLineEndingDialog = values[8] as Boolean,
             longLinesNoticeDismissed = values[9] as Boolean,
+            showLargeDeleteConfirmDialog = values[10] as Boolean,
         )
     }
 
@@ -176,5 +180,13 @@ class EditorDialogsController(
 
     fun dismissLineEndingDialog() {
         _showLineEndingDialog.value = false
+    }
+
+    fun showLargeDeleteConfirmDialog() {
+        _showLargeDeleteConfirmDialog.value = true
+    }
+
+    fun dismissLargeDeleteConfirmDialog() {
+        _showLargeDeleteConfirmDialog.value = false
     }
 }

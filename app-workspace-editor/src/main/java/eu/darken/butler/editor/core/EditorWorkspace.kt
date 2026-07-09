@@ -186,10 +186,13 @@ class EditorWorkspace @AssistedInject constructor(
             engine.progress,
             engine.canUndo,
             engine.canRedo,
+            engine.maxUndoableEditChars,
+            engine.nonUndoableEditPending,
             displaySettings,
         ) { contentSource, totalLines, isModified, visibleContent, cursorPosition,
             selectionRange, searchQuery, searchState, visibleRange, error,
-            externalChange, progress, canUndo, canRedo, display ->
+            externalChange, progress, canUndo, canRedo, maxUndoableEditChars,
+            nonUndoableEditPending, display ->
             EditorState(
                 contentSource = contentSource,
                 totalLines = totalLines,
@@ -211,6 +214,8 @@ class EditorWorkspace @AssistedInject constructor(
                 progress = progress,
                 canUndo = canUndo,
                 canRedo = canRedo,
+                maxUndoableEditChars = maxUndoableEditChars,
+                nonUndoableEditPending = nonUndoableEditPending,
             )
         }
     }
@@ -293,11 +298,13 @@ class EditorWorkspace @AssistedInject constructor(
         // Scratch buffers are skipped too: "saving" to the in-memory source persists nothing
         // but clears the modified flag, disabling the Save/Save-As actions. Files flagged as
         // externally changed pause too: every save would be refused by the staleness guard.
+        // A pending non-undoable edit pauses auto-save so an accidental oversized replace isn't
+        // silently persisted before the user can discard it (undo can't recover it).
         combine(
             editorStateInternal.map { state ->
                 val file = state.contentSource as? ContentSource.File
                 state.isModified && file != null && file.canWrite && !file.isLikelyBinary &&
-                    state.externalChange == null
+                    state.externalChange == null && !state.nonUndoableEditPending
             }.distinctUntilChanged(),
             editorSettings.autoSaveEnabled.flow,
             editorSettings.autoSaveInterval.flow,
@@ -696,6 +703,10 @@ class EditorWorkspace @AssistedInject constructor(
         val progress: Progress.Data? = null,
         val canUndo: Boolean = false,
         val canRedo: Boolean = false,
+        /** Delete/replace larger than this is applied non-undoably; null until a file is loaded. */
+        val maxUndoableEditChars: Long? = null,
+        /** True while a non-undoable edit is pending a save/recorded edit; pauses auto-save. */
+        val nonUndoableEditPending: Boolean = false,
     )
 
     sealed interface State {

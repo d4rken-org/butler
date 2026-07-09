@@ -88,6 +88,28 @@ class DocumentBuffer @AssistedInject constructor(
     private val _canRedo = MutableStateFlow(false)
     val canRedo: StateFlow<Boolean> = _canRedo.asStateFlow()
 
+    /**
+     * A delete/replace whose removed span exceeds this many chars is applied WITHOUT reading the
+     * removed text into memory and WITHOUT an undo entry (history is cleared instead) - the
+     * transient String for a 100MB single-line delete would OOM. Half the undo memory budget (a
+     * JVM String is 2 bytes/char, so this is "the delete would blow the undo budget"), floored so
+     * cut stays undoable and a tiny budget doesn't over-trigger, and ceiled so a misconfigured huge
+     * budget can't reintroduce the OOM (and stays under [PieceTable.read]'s Int.MAX_VALUE cap).
+     */
+    val maxUndoableEditChars: Long = (maxUndoMemoryBytes / 2).coerceIn(
+        MIN_UNDOABLE_EDIT_CHARS,
+        MAX_UNDOABLE_EDIT_CHARS,
+    )
+
+    private val _nonUndoableEditPending = MutableStateFlow(false)
+
+    /**
+     * True after a non-undoable delete/replace until the next recorded edit or a save. The periodic
+     * auto-save loop pauses while set, so an accidental oversized replace isn't silently persisted
+     * before the user can discard it (undo can't recover it).
+     */
+    val nonUndoableEditPending: StateFlow<Boolean> = _nonUndoableEditPending.asStateFlow()
+
     private val bufferMutex = Mutex()
     private var pieceTable: PieceTable? = null
     private var originalDocument: BlockOriginalDocument? = null
@@ -189,6 +211,7 @@ class DocumentBuffer @AssistedInject constructor(
             currentGeneration = 0L
             savedGeneration = 0L
             savedGenerationValid = true
+            _nonUndoableEditPending.value = false
             refreshStats()
             updateModified()
             refreshUndoRedo()
@@ -230,6 +253,7 @@ class DocumentBuffer @AssistedInject constructor(
             _totalLines.value = 0
             _totalLength.value = 0L
             _isModified.value = false
+            _nonUndoableEditPending.value = false
             refreshUndoRedo()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -396,7 +420,14 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
-    /** [coalesce] marks a keystroke-sized edit eligible to merge into the current typing run. */
+    /**
+     * [coalesce] marks a keystroke-sized edit eligible to merge into the current typing run.
+     *
+     * A removed span larger than [maxUndoableEditChars] is deleted WITHOUT reading it into memory
+     * (which would OOM on a giant single line) and WITHOUT an undo entry - undo/redo history is
+     * cleared instead, [nonUndoableEditPending] is raised, and the returned deleted text is EMPTY
+     * (not materialized). [table.delete]'s own range check still guards against an invalid range.
+     */
     suspend fun deleteText(
         startPosition: TextPosition,
         endPosition: TextPosition,
@@ -405,6 +436,11 @@ class DocumentBuffer @AssistedInject constructor(
         bufferMutex.withLock {
             try {
                 val table = table()
+                if (endPosition.offset - startPosition.offset > maxUndoableEditChars) {
+                    table.delete(startPosition.offset, endPosition.offset)
+                    discardHistoryForUnrecordedEdit()
+                    return@withLock Result.success("")
+                }
                 val deletedText = table.read(startPosition.offset, endPosition.offset)
                 if (deletedText.isNotEmpty()) {
                     table.delete(startPosition.offset, endPosition.offset)
@@ -418,6 +454,8 @@ class DocumentBuffer @AssistedInject constructor(
                     )
                 }
                 Result.success(deletedText)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 log(tag, ERROR) { "Failed to delete text from $startPosition to $endPosition - ${e.asLog()}" }
                 Result.failure(e)
@@ -437,6 +475,42 @@ class DocumentBuffer @AssistedInject constructor(
     ): Result<TextPosition> = bufferMutex.withLock {
         try {
             val table = table()
+            if (endPosition.offset - startPosition.offset > maxUndoableEditChars) {
+                // Non-undoable replace: never materialize the removed text. Insert BEFORE delete so
+                // a failed insert leaves the original range intact (nothing to roll back), then
+                // delete the old range shifted right by the inserted length. NonCancellable keeps a
+                // cancellation from landing between the two and leaving both old and new content.
+                if (startPosition.offset < 0 ||
+                    startPosition.offset > endPosition.offset ||
+                    endPosition.offset > table.totalCharLength
+                ) {
+                    return@withLock Result.failure(
+                        IllegalArgumentException("Replace range out of bounds: $startPosition-$endPosition"),
+                    )
+                }
+                if (newText.isNotEmpty()) table.insert(startPosition.offset, newText)
+                try {
+                    withContext(NonCancellable) {
+                        table.delete(
+                            startPosition.offset + newText.length,
+                            endPosition.offset + newText.length,
+                        )
+                    }
+                } catch (e: Exception) {
+                    // The delete failed AFTER the insert already ran (e.g. an original-byte read
+                    // error while splitting mid-piece). Roll the insert back so the document is
+                    // left unchanged; this rollback deletes only the just-inserted Added piece
+                    // (clean boundaries, no original reads), so it can't fail the same way.
+                    if (newText.isNotEmpty()) {
+                        withContext(NonCancellable) {
+                            table.delete(startPosition.offset, startPosition.offset + newText.length)
+                        }
+                    }
+                    throw e
+                }
+                discardHistoryForUnrecordedEdit()
+                return@withLock Result.success(insertEndPosition(startPosition, newText))
+            }
             val deletedText = table.read(startPosition.offset, endPosition.offset)
             if (deletedText.isNotEmpty()) {
                 table.delete(startPosition.offset, endPosition.offset)
@@ -464,6 +538,8 @@ class DocumentBuffer @AssistedInject constructor(
                 commitNewEdit(EditOperation.Insert(startPosition, newText))
             }
             Result.success(insertEndPosition(startPosition, newText))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to replace text from $startPosition to $endPosition - ${e.asLog()}" }
             Result.failure(e)
@@ -849,6 +925,24 @@ class DocumentBuffer @AssistedInject constructor(
         charBuf.clear()
     }
 
+    /**
+     * Bookkeeping after a piece-table mutation whose removed text was deliberately NOT read into
+     * memory (oversized delete/replace). No undo entry exists for it, and every existing entry's
+     * recorded offsets are potentially invalid against the now-shrunk document, so ALL history is
+     * discarded - not just this op. Generation advances so isModified reflects the edit;
+     * savedGeneration is left as-is (the file isn't saved) but marked invalid, so isModified stays
+     * true until a real save. Callers invoke this only AFTER the table mutation succeeded.
+     */
+    private fun discardHistoryForUnrecordedEdit() {
+        structuralVersion++
+        currentGeneration = ++generationCounter
+        savedGenerationValid = false
+        clearUndoHistoryLocked()
+        _nonUndoableEditPending.value = true
+        refreshStats()
+        updateModified()
+    }
+
     private fun clearUndoHistoryLocked() {
         undoStack.clear()
         redoStack.clear()
@@ -945,6 +1039,7 @@ class DocumentBuffer @AssistedInject constructor(
         }
         savedGeneration = currentGeneration
         savedGenerationValid = true
+        _nonUndoableEditPending.value = false
         breakUndoRunLocked()
         refreshStats()
         updateModified()
@@ -1166,6 +1261,7 @@ class DocumentBuffer @AssistedInject constructor(
     }
 
     internal fun commitNewEdit(ops: List<EditOperation>) {
+        _nonUndoableEditPending.value = false
         structuralVersion++
         val before = currentGeneration
         currentGeneration = ++generationCounter
@@ -1328,6 +1424,12 @@ class DocumentBuffer @AssistedInject constructor(
          * the FULL line; only display reads are sliced.
          */
         const val MAX_DISPLAY_LINE_CHARS = 10_000
+
+        /** Threshold floor: keeps cut (≤250K copy cap) undoable and tolerates a tiny undo budget. */
+        const val MIN_UNDOABLE_EDIT_CHARS = 1_000_000L
+
+        /** Threshold ceiling: bounds a recorded delete's materialization at ~100MB, under the Int cap. */
+        const val MAX_UNDOABLE_EDIT_CHARS = 50_000_000L
 
         // Bounded working memory for the streaming line-ending conversion
         private const val CONVERT_CHUNK_BYTES = 64 * 1024

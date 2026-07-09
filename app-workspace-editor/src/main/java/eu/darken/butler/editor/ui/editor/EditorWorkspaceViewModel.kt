@@ -141,6 +141,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             canUndo = editorState.canUndo,
             canRedo = editorState.canRedo,
             hasSystemClipboardContent = hasClipboardContent,
+            maxUndoableEditChars = editorState.maxUndoableEditChars,
+            showLargeDeleteConfirmDialog = dialogs.showLargeDeleteConfirmDialog,
         )
     }.filterNotNull()
 
@@ -385,11 +387,41 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().deleteSelection()
     }
 
+    /**
+     * True (and shows the confirm dialog) when the current selection is larger than
+     * [State.maxUndoableEditChars] - deleting it can't be undone (materializing it for undo would
+     * OOM). Shared by every "delete the selection" gesture (Delete button, Backspace, forward-Delete
+     * key), which all delete the same current selection, so [confirmLargeDelete] runs the delete on
+     * confirm. Returns false (delete directly) below the threshold or before a file is loaded.
+     */
+    private suspend fun confirmIfLargeSelection(): Boolean {
+        val current = state.first()
+        val threshold = current.maxUndoableEditChars ?: return false
+        if (current.hasSelection && current.selectedCharacterCount > threshold) {
+            dialogsController.showLargeDeleteConfirmDialog()
+            return true
+        }
+        return false
+    }
+
+    fun requestDeleteSelection() = launch {
+        if (!confirmIfLargeSelection()) deleteSelection()
+    }
+
+    fun confirmLargeDelete() {
+        dialogsController.dismissLargeDeleteConfirmDialog()
+        deleteSelection()
+    }
+
     fun deleteAtCursor(count: Int) = launch {
+        // Backspace over an oversized selection deletes non-undoably; confirm like the Delete button.
+        // A plain backspace (no selection) is never gated.
+        if (confirmIfLargeSelection()) return@launch
         getWorkspace().deleteAtCursor(count)
     }
 
     fun deleteForward() = launch {
+        if (confirmIfLargeSelection()) return@launch
         getWorkspace().deleteForward()
     }
 
@@ -436,7 +468,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             EditorActionBarItem.Copy -> clipboardController.copyToClipboard()
             EditorActionBarItem.Cut -> clipboardController.cutToClipboard()
             EditorActionBarItem.Paste -> clipboardController.pasteFromClipboard()
-            EditorActionBarItem.Delete -> deleteSelection()
+            EditorActionBarItem.Delete -> requestDeleteSelection()
             EditorActionBarItem.SelectAll -> selectAll()
             EditorActionBarItem.GoToLine -> dialogsController.showGoToLineDialog()
             EditorActionBarItem.Search -> searchController.showSearchBar()
@@ -518,6 +550,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Dialog.ConfirmReload -> confirmReload()
             is EditorPageAction.Dialog.DismissReloadConfirm -> dialogsController.dismissReloadConfirmDialog()
             is EditorPageAction.Dialog.DismissLineEnding -> dialogsController.dismissLineEndingDialog()
+            is EditorPageAction.Dialog.ConfirmLargeDelete -> confirmLargeDelete()
+            is EditorPageAction.Dialog.DismissLargeDeleteConfirm -> dialogsController.dismissLargeDeleteConfirmDialog()
 
             // Clipboard actions
             is EditorPageAction.Clipboard.Paste -> clipboardController.pasteFromClipboard(action.clip)
@@ -586,6 +620,9 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val canUndo: Boolean = false,
         val canRedo: Boolean = false,
         val hasSystemClipboardContent: Boolean = false,
+        /** Delete/replace above this is applied non-undoably; null until a file is loaded. */
+        val maxUndoableEditChars: Long? = null,
+        val showLargeDeleteConfirmDialog: Boolean = false,
     ) {
         val isLoading: Boolean get() = progress != null
         val hasFile: Boolean get() = contentSource is ContentSource.File
@@ -618,15 +655,15 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             get() {
                 if (selectionRange == null) return 0
                 val (start, end) = selectionRange
-                // Calculate character count from offset difference
-                return end.offset - start.offset
+                // setSelection stores the received order, which may be reversed; measure absolute
+                return maxOf(start.offset, end.offset) - minOf(start.offset, end.offset)
             }
 
         val selectedLineCount: Long
             get() {
                 if (selectionRange == null) return 0
                 val (start, end) = selectionRange
-                return (end.line - start.line) + 1
+                return (maxOf(start.line, end.line) - minOf(start.line, end.line)) + 1
             }
 
         // Available actions based on current state; mutating actions vanish on read-only/binary

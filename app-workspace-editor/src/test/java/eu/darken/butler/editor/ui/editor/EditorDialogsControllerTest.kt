@@ -134,6 +134,19 @@ class EditorDialogsControllerTest : BaseTest() {
     }
 
     @Test
+    fun `large delete confirm dialog visibility transitions`() = runTest {
+        val controller = controller(mockWorkspace())
+
+        controller.state.first().showLargeDeleteConfirmDialog shouldBe false
+
+        controller.showLargeDeleteConfirmDialog()
+        controller.state.first().showLargeDeleteConfirmDialog shouldBe true
+
+        controller.dismissLargeDeleteConfirmDialog()
+        controller.state.first().showLargeDeleteConfirmDialog shouldBe false
+    }
+
+    @Test
     fun `backup notice dismissal can be re-armed`() = runTest {
         val controller = controller(mockWorkspace())
 
