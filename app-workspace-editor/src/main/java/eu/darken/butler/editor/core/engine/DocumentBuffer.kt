@@ -332,10 +332,10 @@ class DocumentBuffer @AssistedInject constructor(
     }
 
     /**
-     * A line's display slice: at most [maxDisplayLineChars] chars of its content. Chunk-shaped
-     * for a future scroll-driven horizontal chunking package - [startColumn] is the slice's
-     * first raw column (fixed 0 until chunking decides it) and [hiddenChars] counts the line's
-     * content chars NOT in [text].
+     * A line's display slice: a window of at most [maxDisplayLineChars] chars of the line's content,
+     * anchored at raw column [startColumn]. [startColumn] counts the content chars hidden BEFORE the
+     * window (0 when the window starts at the line's beginning) and [hiddenChars] counts the content
+     * chars hidden AFTER it. Total hidden on the line is [startColumn] + [hiddenChars].
      */
     data class LineSlice(
         val text: String,
@@ -345,33 +345,46 @@ class DocumentBuffer @AssistedInject constructor(
 
     /**
      * A display window: line range joined by '\n' with each line capped at
-     * [maxDisplayLineChars], plus per-line hidden char counts (non-zero entries only,
-     * keyed by ABSOLUTE line number).
+     * [maxDisplayLineChars], plus per-line hidden char counts. Both maps carry non-zero
+     * entries only, keyed by ABSOLUTE line number. [startColumns] is the leading-hidden count
+     * (window anchor) per line; [truncatedLines] is the trailing-hidden count.
      */
     data class DisplayWindow(
         val text: String,
         val truncatedLines: Map<Long, Long> = emptyMap(),
+        val startColumns: Map<Long, Long> = emptyMap(),
     )
 
-    /** Like [getTextForRange], but every line is capped at [maxDisplayLineChars] for display. */
-    suspend fun getDisplayRange(startLine: Long, endLine: Long): Result<DisplayWindow> = bufferMutex.withLock {
+    /**
+     * Like [getTextForRange], but every line is capped at [maxDisplayLineChars] for display.
+     * [columnAnchors] optionally anchors a line's window at a non-zero raw column (keyed by
+     * absolute line number); lines absent from the map anchor at column 0.
+     */
+    suspend fun getDisplayRange(
+        startLine: Long,
+        endLine: Long,
+        columnAnchors: Map<Long, Long> = emptyMap(),
+    ): Result<DisplayWindow> = bufferMutex.withLock {
         if (startLine < 0 || endLine >= _totalLines.value || startLine > endLine) {
             return@withLock Result.failure(IndexOutOfBoundsException("Invalid line range: $startLine-$endLine"))
         }
         val result = StringBuilder()
         val truncatedLines = mutableMapOf<Long, Long>()
+        val startColumns = mutableMapOf<Long, Long>()
         for (lineNumber in startLine..endLine) {
             // Separator per line PAIR (see getTextForRange): leading empty lines must keep theirs
             if (lineNumber > startLine) result.append('\n')
-            val slice = getLineSliceInternal(lineNumber).getOrElse { return@withLock Result.failure(it) }
+            val anchor = columnAnchors[lineNumber] ?: 0L
+            val slice = getLineSliceInternal(lineNumber, anchor).getOrElse { return@withLock Result.failure(it) }
             result.append(slice.text)
             if (slice.hiddenChars > 0) truncatedLines[lineNumber] = slice.hiddenChars
+            if (slice.startColumn > 0) startColumns[lineNumber] = slice.startColumn
         }
-        Result.success(DisplayWindow(result.toString(), truncatedLines))
+        Result.success(DisplayWindow(result.toString(), truncatedLines, startColumns))
     }
 
-    suspend fun getLineSlice(lineNumber: Long): Result<LineSlice> = bufferMutex.withLock {
-        getLineSliceInternal(lineNumber)
+    suspend fun getLineSlice(lineNumber: Long, anchorColumn: Long = 0L): Result<LineSlice> = bufferMutex.withLock {
+        getLineSliceInternal(lineNumber, anchorColumn)
     }
 
     /** EXACT content length of a line (breaks excluded) via pure offset math, no materialization. */
@@ -390,22 +403,39 @@ class DocumentBuffer @AssistedInject constructor(
         }
     }
 
-    private suspend fun getLineSliceInternal(lineNumber: Long): Result<LineSlice> {
+    private suspend fun getLineSliceInternal(lineNumber: Long, anchorColumn: Long = 0L): Result<LineSlice> {
         if (lineNumber < 0 || lineNumber >= _totalLines.value) {
             return Result.failure(IndexOutOfBoundsException("Line number $lineNumber is out of bounds"))
         }
         return try {
             val table = table()
-            val start = table.lineStartOffset(lineNumber)
-            val end = lineContentEnd(table, lineNumber)
-            val realLength = end - start
-            val sliceEnd = minOf(end, start + maxDisplayLineChars)
-            var text = table.read(start, sliceEnd)
-            // The cap must not split a surrogate pair (precedent: computeTextEdit boundary nudging)
-            if (realLength > text.length && text.isNotEmpty() && text.last().isHighSurrogate()) {
-                text = text.dropLast(1)
+            val lineStart = table.lineStartOffset(lineNumber)
+            val lineEnd = lineContentEnd(table, lineNumber)
+            val realLength = lineEnd - lineStart
+            // Clamp the anchor so a full-width window never hangs past the line end (a window near the
+            // end still shows maxDisplayLineChars, just with nothing hidden after it).
+            val maxStart = (realLength - maxDisplayLineChars).coerceAtLeast(0)
+            var windowStart = lineStart + anchorColumn.coerceIn(0, maxStart)
+            var sliceEnd = minOf(lineEnd, windowStart + maxDisplayLineChars)
+            var text = table.read(windowStart, sliceEnd)
+            // Leading edge: a non-zero window start can land on the low half of a surrogate pair.
+            // Advance one unit so the slice never begins mid-pair (only reachable when anchored past 0).
+            if (windowStart > lineStart && text.isNotEmpty() && text.first().isLowSurrogate()) {
+                windowStart += 1
+                text = table.read(windowStart, sliceEnd)
             }
-            Result.success(LineSlice(text = text, startColumn = 0L, hiddenChars = realLength - text.length))
+            // Trailing edge: the cap must not split a surrogate pair (precedent: computeTextEdit).
+            if (sliceEnd < lineEnd && text.isNotEmpty() && text.last().isHighSurrogate()) {
+                text = text.dropLast(1)
+                sliceEnd -= 1
+            }
+            Result.success(
+                LineSlice(
+                    text = text,
+                    startColumn = windowStart - lineStart,
+                    hiddenChars = lineEnd - sliceEnd,
+                ),
+            )
         } catch (e: Exception) {
             log(tag, ERROR) { "Failed to get line slice for $lineNumber - ${e.asLog()}" }
             Result.failure(e)

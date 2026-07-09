@@ -99,6 +99,7 @@ fun LazyTextEditor(
     selection: Pair<TextPosition, TextPosition>?,
     visibleRange: LongRange,
     truncatedLines: Map<Long, Long> = emptyMap(),
+    startColumns: Map<Long, Long> = emptyMap(),
     showLineNumbers: Boolean = true,
     wordWrap: Boolean = false,
     readOnly: Boolean = false,
@@ -111,6 +112,7 @@ fun LazyTextEditor(
     onCursorPositionChange: (TextPosition) -> Unit,
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     onVisibleRangeChange: (LongRange) -> Unit,
+    onRevealMoreColumns: (Boolean) -> Unit = {},
     onCursorMove: (CursorDirection, Boolean) -> Unit,
     onForwardDelete: () -> Unit,
 ) {
@@ -179,10 +181,51 @@ fun LazyTextEditor(
         }
     }
 
+    // Scroll-driven horizontal reveal (wrap-off only): when the user pans a long line to an edge and
+    // there is content hidden beyond it, ask the engine to slide the shared window one page that way -
+    // browsing past the cap WITHOUT moving the caret. `revealArmed` fires at most once per edge approach
+    // and only re-arms after the scroll leaves the edge. It is HOISTED to remember (not a per-launch
+    // local) and the effect is keyed only on the stable ScrollState, so a reveal - which republishes
+    // truncatedLines/startColumns - can't restart the effect, re-arm mid-edge, and flip-flop against the
+    // programmatic auto-scroll-to-cursor. The window maps are read latest via rememberUpdatedState.
+    var revealArmed by remember { mutableStateOf(true) }
+    val revealTruncated by rememberUpdatedState(truncatedLines)
+    val revealStartColumns by rememberUpdatedState(startColumns)
+    @OptIn(FlowPreview::class)
+    if (!wordWrap) {
+        LaunchedEffect(horizontalScrollState) {
+            val edgePx = charWidth * 4f
+            snapshotFlow { horizontalScrollState.value to horizontalScrollState.maxValue }
+                .debounce(120)
+                .collect { (value, max) ->
+                    if (max <= 0) return@collect
+                    val atRight = value >= max - edgePx
+                    val atLeft = value <= edgePx
+                    if (!atRight && !atLeft) {
+                        revealArmed = true // left the edge -> ready for the next approach
+                        return@collect
+                    }
+                    if (!revealArmed) return@collect
+                    when {
+                        atRight && revealTruncated.isNotEmpty() -> {
+                            revealArmed = false
+                            onRevealMoreColumns(true)
+                        }
+                        atLeft && revealStartColumns.isNotEmpty() -> {
+                            revealArmed = false
+                            onRevealMoreColumns(false)
+                        }
+                    }
+                }
+        }
+    }
+
     // Scroll to cursor position when it changes (line, column, or offset)
     // Triggers on any cursor change to ensure cursor is always visible during typing
     // Also triggers on scrollTrigger to force scroll when navigating search results
-    LaunchedEffect(cursorPosition, scrollTrigger) {
+    // Also triggers on startColumns: when a long line's window SLIDES to follow the caret, the caret's
+    // local pixel position changes even though its (absolute) column may not, so re-run to re-centre.
+    LaunchedEffect(cursorPosition, scrollTrigger, startColumns) {
         if (totalLines <= 0 || contentListState.layoutInfo.totalItemsCount <= 0) return@LaunchedEffect
 
         val targetLine = cursorPosition.line.coerceIn(0, totalLines - 1)
@@ -219,10 +262,12 @@ fun LazyTextEditor(
             // line, clamped into the line FIRST (a display-truncated line's cursor column can sit
             // far past the visible prefix - expanding it unclamped computes huge scroll targets).
             val cursorLineContent = visibleLineContent[cursorPosition.line]
+            // Localize the absolute cursor column to the rendered window (it starts at this anchor).
+            val cursorLocalColumn = cursorPosition.column - (startColumns[cursorPosition.line] ?: 0L).toInt()
             val expandedCursorColumn = if (cursorLineContent != null) {
-                rawToExpandedColumnClamped(cursorLineContent, cursorPosition.column, tabSize)
+                rawToExpandedColumnClamped(cursorLineContent, cursorLocalColumn, tabSize)
             } else {
-                cursorPosition.column
+                cursorLocalColumn
             }
             // Use the cursor line's real layout when available so the scroll decision uses the SAME
             // glyph geometry as tap hit-testing; the measured advance is only the pre-layout fallback.
@@ -284,6 +329,7 @@ fun LazyTextEditor(
         visibleLineContent = visibleLineContent,
         visibleRange = visibleRange,
         truncatedLines = truncatedLines,
+        startColumns = startColumns,
         cursorPosition = cursorPosition,
         selection = selection,
         lineNumbersListState = lineNumbersListState,
@@ -315,6 +361,7 @@ private fun DualColumnEditorContent(
     visibleLineContent: Map<Long, String>,
     visibleRange: LongRange,
     truncatedLines: Map<Long, Long>,
+    startColumns: Map<Long, Long>,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     lineNumbersListState: LazyListState,
@@ -337,8 +384,11 @@ private fun DualColumnEditorContent(
     onForwardDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Ensure drag handlers always see latest values, not captured closures
+    // Ensure drag/tap handlers always see latest values, not closures captured by pointerInput: the
+    // gesture coroutine outlives the anchor, so a stale startColumns map would localize a tap with the
+    // OLD window and land the caret at the wrong absolute column after a horizontal slide.
     val currentVisibleLineContent by rememberUpdatedState(visibleLineContent)
+    val currentStartColumns by rememberUpdatedState(startColumns)
     val isWorkspaceFocused = LocalWorkspaceFocused.current
     val requestWorkspaceFocus = LocalWorkspaceFocusRequest.current
     val focusManager = LocalFocusManager.current
@@ -353,10 +403,13 @@ private fun DualColumnEditorContent(
     var isFocused by remember { mutableStateOf(false) }
     var isUserEditing by remember { mutableStateOf(false) }
 
-    // Engine echo (text + truncation map) captured when typing authority was taken: convergence
-    // checks against the display-capped echo only run once the echo has CHANGED from this -
-    // repeated-char lines would make prefix-consistency against a STALE echo trivially true.
-    var authorityEcho by remember { mutableStateOf<Pair<String, Map<Long, Long>>?>(null) }
+    // Engine echo (text + trailing-hidden map + window-anchor map) captured when typing authority was
+    // taken: convergence checks against the display-capped echo only run once the echo has CHANGED from
+    // this - repeated-char lines would make prefix-consistency against a STALE echo trivially true. The
+    // window-anchor map (startColumns) is frozen too so a mid-typing horizontal slide is detectable.
+    var authorityEcho by remember {
+        mutableStateOf<Triple<String, Map<Long, Long>, Map<Long, Long>>?>(null)
+    }
     var lastTapTime by remember { mutableLongStateOf(0L) }
     var lastTapPosition by remember { mutableStateOf<Offset?>(null) }
     var tapCount by remember { mutableIntStateOf(0) }
@@ -385,11 +438,17 @@ private fun DualColumnEditorContent(
     //  - Otherwise (tap, arrows, undo/redo, programmatic): the engine is authoritative. Rebuild the field
     //    text and map the field selection from the engine cursor/selection so the IME composes in the
     //    right place.
-    LaunchedEffect(currentContent, truncatedLines, visibleRange, cursorPosition, selection) {
+    LaunchedEffect(currentContent, truncatedLines, startColumns, visibleRange, cursorPosition, selection) {
         if (isUserEditing) {
             val prior = authorityEcho
-            val echoChanged = prior == null || prior.first != currentContent || prior.second != truncatedLines
-            val converged = textFieldValue.text == currentContent || (
+            val echoChanged = prior == null || prior.first != currentContent ||
+                prior.second != truncatedLines || prior.third != startColumns
+            // A horizontal window slide (startColumns changed) makes the frozen field and the current
+            // engine echo window-misaligned, so plain/prefix convergence can't fire. Release authority
+            // and rebuild the field from the current window instead - transient and lossless mid-burst,
+            // exactly like the capped-projection release below (edits are already dispatched).
+            val windowSlid = prior != null && prior.third != startColumns
+            val converged = textFieldValue.text == currentContent || windowSlid || (
                 echoChanged && contentsConverged(
                     fieldText = textFieldValue.text,
                     engineText = currentContent,
@@ -399,13 +458,16 @@ private fun DualColumnEditorContent(
                 )
                 )
             if (converged) {
+                val priorStartColumns = prior?.third ?: startColumns
                 isUserEditing = false
                 authorityEcho = null
                 if (textFieldValue.text != currentContent) {
                     val oldLines = textFieldValue.text.split('\n')
                     val newLines = currentContent.split('\n')
-                    val caret = flatOffsetToPosition(oldLines, visibleRange.first, textFieldValue.selection.end)
-                    val caretOffset = positionToFlatOffset(newLines, visibleRange.first, caret)
+                    val caret = flatOffsetToPosition(
+                        oldLines, visibleRange.first, textFieldValue.selection.end, priorStartColumns,
+                    )
+                    val caretOffset = positionToFlatOffset(newLines, visibleRange.first, caret, startColumns)
                         ?: currentContent.length
                     textFieldValue = TextFieldValue(text = currentContent, selection = TextRange(caretOffset))
                 }
@@ -417,10 +479,10 @@ private fun DualColumnEditorContent(
         val rangeStart = visibleRange.first
 
         val mappedSelection: TextRange? = selection?.let { (start, end) ->
-            val s = positionToFlatOffset(visibleLines, rangeStart, start)
-            val e = positionToFlatOffset(visibleLines, rangeStart, end)
+            val s = positionToFlatOffset(visibleLines, rangeStart, start, startColumns)
+            val e = positionToFlatOffset(visibleLines, rangeStart, end, startColumns)
             if (s != null && e != null) TextRange(s, e) else null
-        } ?: positionToFlatOffset(visibleLines, rangeStart, cursorPosition)?.let { TextRange(it) }
+        } ?: positionToFlatOffset(visibleLines, rangeStart, cursorPosition, startColumns)?.let { TextRange(it) }
 
         val newSelection = computeFieldSelectionSync(
             fieldText = textFieldValue.text,
@@ -509,16 +571,19 @@ private fun DualColumnEditorContent(
                 if (edit != null) {
                     if (!isUserEditing) {
                         isUserEditing = true
-                        authorityEcho = currentContent to truncatedLines
+                        authorityEcho = Triple(currentContent, truncatedLines, startColumns)
                     }
+                    // The field is window-relative to the window it was last built from (frozen in the
+                    // echo while editing); map its offsets back to absolute engine columns through it.
+                    val fieldStartColumns = authorityEcho?.third ?: startColumns
                     val rangeStart = visibleRange.first
                     val oldLines = oldText.split('\n')
                     val newLines = newText.split('\n')
-                    val start = flatOffsetToPosition(oldLines, rangeStart, edit.start)
-                    val end = flatOffsetToPosition(oldLines, rangeStart, edit.end)
+                    val start = flatOffsetToPosition(oldLines, rangeStart, edit.start, fieldStartColumns)
+                    val end = flatOffsetToPosition(oldLines, rangeStart, edit.end, fieldStartColumns)
                     // Forward the resulting caret (mapped from the field selection in the NEW text) so the
                     // engine cursor lands exactly where the IME caret is and the echo maps back unchanged.
-                    val caret = flatOffsetToPosition(newLines, rangeStart, newValue.selection.end)
+                    val caret = flatOffsetToPosition(newLines, rangeStart, newValue.selection.end, fieldStartColumns)
                     onTextReplace(start, end, edit.inserted, caret)
                 }
             },
@@ -712,6 +777,7 @@ private fun DualColumnEditorContent(
                                     tabSize = tabSize,
                                     textLayouts = textLayouts,
                                     contentPaddingTop = contentPaddingTopPx,
+                                    lineStartColumns = currentStartColumns,
                                 )
 
                                 if (result != null) {
@@ -726,7 +792,8 @@ private fun DualColumnEditorContent(
                                             val wordSelection = selectWordAt(
                                                 result.position.line,
                                                 result.position.column,
-                                                currentVisibleLineContent
+                                                currentVisibleLineContent,
+                                                currentStartColumns,
                                             )
                                             onSelectionChange(wordSelection)
                                         }
@@ -734,7 +801,8 @@ private fun DualColumnEditorContent(
                                             // Triple tap and beyond: Select line
                                             val lineSelection = selectLineAt(
                                                 result.position.line,
-                                                currentVisibleLineContent
+                                                currentVisibleLineContent,
+                                                currentStartColumns,
                                             )
                                             onSelectionChange(lineSelection)
                                             tapCount = 0 // Reset for next tap sequence
@@ -769,6 +837,7 @@ private fun DualColumnEditorContent(
                                     tabSize = tabSize,
                                     textLayouts = textLayouts,
                                     contentPaddingTop = contentPaddingTopPx,
+                                    lineStartColumns = currentStartColumns,
                                 )
 
                                 if (result != null) {
@@ -776,7 +845,8 @@ private fun DualColumnEditorContent(
                                     val wordSelection = selectWordAt(
                                         result.position.line,
                                         result.position.column,
-                                        currentVisibleLineContent
+                                        currentVisibleLineContent,
+                                        currentStartColumns,
                                     )
                                     onSelectionChange(wordSelection)
                                 }
@@ -801,6 +871,7 @@ private fun DualColumnEditorContent(
                         lineIndex = lineIndex,
                         lineContent = lineContent,
                         hiddenChars = truncatedLines[lineIndex] ?: 0L,
+                        lineStartColumn = startColumns[lineIndex] ?: 0L,
                         cursorPosition = cursorPosition,
                         selection = selection,
                         isCurrentLine = lineIndex == cursorPosition.line,
@@ -846,6 +917,7 @@ private fun DualColumnEditorContent(
                         tabSize = tabSize,
                         textLayouts = textLayouts,
                         contentPaddingTop = contentPaddingTopPx,
+                        lineStartColumns = currentStartColumns,
                     )
 
                     if (result != null) {
@@ -866,6 +938,7 @@ private fun DualColumnEditorContent(
                 visibleLineContent = currentVisibleLineContent,
                 tabSize = tabSize,
                 contentPaddingTop = contentPaddingTopPx,
+                lineStartColumn = startColumns[start.line] ?: 0L,
             )
 
             // End handle
@@ -885,6 +958,7 @@ private fun DualColumnEditorContent(
                         tabSize = tabSize,
                         textLayouts = textLayouts,
                         contentPaddingTop = contentPaddingTopPx,
+                        lineStartColumns = currentStartColumns,
                     )
 
                     if (result != null) {
@@ -905,6 +979,7 @@ private fun DualColumnEditorContent(
                 visibleLineContent = currentVisibleLineContent,
                 tabSize = tabSize,
                 contentPaddingTop = contentPaddingTopPx,
+                lineStartColumn = startColumns[end.line] ?: 0L,
             )
         }
     }

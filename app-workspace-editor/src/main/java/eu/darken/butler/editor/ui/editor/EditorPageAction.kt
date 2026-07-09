@@ -112,6 +112,9 @@ sealed interface EditorPageAction {
 
         /** Update the visible range of lines */
         data class UpdateVisibleRange(val startLine: Long, val endLine: Long) : Navigation
+
+        /** Scroll-driven horizontal reveal: pan the display window past the cap without moving the caret. */
+        data class RevealMoreColumns(val forward: Boolean) : Navigation
     }
 
     /**

@@ -53,7 +53,10 @@ internal fun SelectionHandle(
     visibleLineContent: Map<Long, String> = emptyMap(),
     tabSize: Int = 4,
     contentPaddingTop: Float = 0f,
+    lineStartColumn: Long = 0L,
 ) {
+    // [position.column] is an absolute engine column; the rendered line starts at its window anchor.
+    val localColumn = (position.column - lineStartColumn.toInt())
     val density = LocalDensity.current
     val handleColor = MaterialTheme.colorScheme.primary
 
@@ -68,7 +71,7 @@ internal fun SelectionHandle(
     // display-truncated lines can carry columns far past the visible prefix, and multiplying an
     // unclamped expanded column by charWidth translates the handle kilometers off-screen.
     val currentPositionColumn by rememberUpdatedState(
-        rawToExpandedColumnClamped(visibleLineContent[position.line] ?: "", position.column, tabSize)
+        rawToExpandedColumnClamped(visibleLineContent[position.line] ?: "", localColumn, tabSize)
     )
 
     // Use simple state to store Y position, updated via LaunchedEffect observing layout
@@ -86,15 +89,16 @@ internal fun SelectionHandle(
         }
     }
 
-    // Calculate visual line offset and X position when word wrap is enabled
-    LaunchedEffect(position.line, position.column, wordWrap, textLayouts) {
+    // Calculate visual line offset and X position when word wrap is enabled. Keyed on lineStartColumn
+    // too: a horizontal window slide changes the caret's LOCAL column even if position.column doesn't.
+    LaunchedEffect(position.line, position.column, wordWrap, textLayouts, lineStartColumn) {
         if (wordWrap && textLayouts.containsKey(position.line)) {
             val layout = textLayouts[position.line]!!
             // The layout is built from the tab-EXPANDED line, so work in expanded columns/length.
             val rawLine = visibleLineContent[position.line] ?: ""
             val textLength = rawLine.toDisplayText(tabSize).length
             if (textLength > 0) {
-                val columnForCalc = rawToExpandedColumnClamped(rawLine, position.column, tabSize).coerceIn(0, textLength)
+                val columnForCalc = rawToExpandedColumnClamped(rawLine, localColumn, tabSize).coerceIn(0, textLength)
 
                 // Calculate visual line, handling boundary case
                 // getLineForOffset(N) returns the line where char N starts, but if N equals

@@ -346,6 +346,7 @@ fun EditorWorkspacePage(
                     selection = state.selectionRange,
                     visibleRange = state.visibleRange,
                     truncatedLines = state.truncatedLines,
+                    startColumns = state.startColumns,
                     showLineNumbers = state.showLineNumbers,
                     wordWrap = state.wordWrap,
                     readOnly = state.isReadOnly,
@@ -369,6 +370,9 @@ fun EditorWorkspacePage(
                     },
                     onVisibleRangeChange = { range ->
                         onPageAction(EditorPageAction.Navigation.UpdateVisibleRange(range.first, range.last))
+                    },
+                    onRevealMoreColumns = { forward ->
+                        onPageAction(EditorPageAction.Navigation.RevealMoreColumns(forward))
                     },
                     onCursorMove = { direction, extendSelection ->
                         onPageAction(EditorPageAction.Navigation.MoveCursor(direction, extendSelection))

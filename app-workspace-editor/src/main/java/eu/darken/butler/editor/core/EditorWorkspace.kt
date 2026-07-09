@@ -199,6 +199,7 @@ class EditorWorkspace @AssistedInject constructor(
                 isModified = isModified,
                 currentContent = visibleContent.text,
                 truncatedLines = visibleContent.truncatedLines,
+                startColumns = visibleContent.startColumns,
                 cursorPosition = cursorPosition,
                 selectionRange = selectionRange,
                 searchQuery = searchQuery,
@@ -644,6 +645,8 @@ class EditorWorkspace @AssistedInject constructor(
     suspend fun updateVisibleRange(startLine: Long, endLine: Long) =
         currentEngine().updateVisibleRange(startLine, endLine)
 
+    suspend fun revealMoreColumns(forward: Boolean) = currentEngine().revealMoreColumns(forward)
+
     suspend fun moveCursor(direction: CursorDirection, extendSelection: Boolean) {
         log(tag) { "moveCursor(direction=$direction, extendSelection=$extendSelection)" }
         currentEngine().moveCursor(direction, extendSelection)
@@ -686,8 +689,10 @@ class EditorWorkspace @AssistedInject constructor(
         val totalLines: Long = 0,
         val isModified: Boolean = false,
         val currentContent: String = "",
-        /** Absolute line number -> hidden char count for display-truncated lines in the window. */
+        /** Absolute line number -> chars hidden AFTER the window on display-truncated lines. */
         val truncatedLines: Map<Long, Long> = emptyMap(),
+        /** Absolute line number -> chars hidden BEFORE the window (the window's anchor column). */
+        val startColumns: Map<Long, Long> = emptyMap(),
         val cursorPosition: TextPosition = TextPosition.ZERO,
         val selectionRange: Pair<TextPosition, TextPosition>? = null,
         val searchQuery: String = "",
