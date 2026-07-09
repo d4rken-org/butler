@@ -209,7 +209,6 @@ fun EditorWorkspacePage(
                         totalLines = state.totalLines,
                         cursorLine = state.cursorPosition.line,
                         cursorColumn = state.cursorPosition.column,
-                        hiddenChars = state.hiddenCharsOnCursorLine,
                         selectedLineCount = state.selectedLineCount,
                         selectedCharacterCount = state.selectedCharacterCount,
                         fileEncoding = if (state.hasFile) state.fileEncoding else null,

@@ -66,10 +66,6 @@
         <item quantity="one">%1$d character</item>
         <item quantity="other">%1$d characters</item>
     </plurals>
-    <plurals name="editor_infobar_hidden_chars">
-        <item quantity="one">+%1$d hidden char</item>
-        <item quantity="other">+%1$d hidden chars</item>
-    </plurals>
 
     <string name="editor_infobar_selected_x_y">Selected %1$s, %2$s</string>
     <string name="editor_infobar_lines_size">%1$dL · %2$s</string>

@@ -611,10 +611,6 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             get() = (contentSource as? ContentSource.File)?.staleBackups ?: emptyList()
         val showBackupNotice: Boolean get() = staleBackups.isNotEmpty() && !backupNoticeDismissed
         val hasLongLines: Boolean get() = (contentSource as? ContentSource.File)?.hasLongLines == true
-
-        /** Total chars hidden on the cursor's line (before + after the window); 0 when nothing is hidden. */
-        val hiddenCharsOnCursorLine: Long
-            get() = (startColumns[cursorPosition.line] ?: 0L) + (truncatedLines[cursorPosition.line] ?: 0L)
         val showLongLinesNotice: Boolean get() = hasLongLines && !longLinesNoticeDismissed
         val showExternalChangeBanner: Boolean
             get() = externalChange != null && externalChange.generation != externalChangeDismissedGeneration

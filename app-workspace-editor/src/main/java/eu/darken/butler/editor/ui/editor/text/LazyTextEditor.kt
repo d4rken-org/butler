@@ -183,36 +183,40 @@ fun LazyTextEditor(
 
     // Scroll-driven horizontal reveal (wrap-off only): when the user pans a long line to an edge and
     // there is content hidden beyond it, ask the engine to slide the shared window one page that way -
-    // browsing past the cap WITHOUT moving the caret. An `armed` latch fires at most once per edge
-    // approach (a settled scroll can't runaway-loop), and the hidden-after/hidden-before guards keep the
-    // programmatic auto-scroll-to-cursor from spuriously triggering a reveal.
+    // browsing past the cap WITHOUT moving the caret. `revealArmed` fires at most once per edge approach
+    // and only re-arms after the scroll leaves the edge. It is HOISTED to remember (not a per-launch
+    // local) and the effect is keyed only on the stable ScrollState, so a reveal - which republishes
+    // truncatedLines/startColumns - can't restart the effect, re-arm mid-edge, and flip-flop against the
+    // programmatic auto-scroll-to-cursor. The window maps are read latest via rememberUpdatedState.
+    var revealArmed by remember { mutableStateOf(true) }
+    val revealTruncated by rememberUpdatedState(truncatedLines)
+    val revealStartColumns by rememberUpdatedState(startColumns)
     @OptIn(FlowPreview::class)
     if (!wordWrap) {
-        LaunchedEffect(horizontalScrollState, truncatedLines, startColumns) {
-            var armed = true
+        LaunchedEffect(horizontalScrollState) {
             val edgePx = charWidth * 4f
-            snapshotFlow {
-                Triple(horizontalScrollState.value, horizontalScrollState.maxValue, horizontalScrollState.isScrollInProgress)
-            }.debounce(120).collect { (value, max, inProgress) ->
-                if (max <= 0) return@collect
-                val atRight = value >= max - edgePx
-                val atLeft = value <= edgePx
-                if (!atRight && !atLeft) {
-                    armed = true
-                    return@collect
-                }
-                if (!armed || inProgress) return@collect
-                when {
-                    atRight && truncatedLines.isNotEmpty() -> {
-                        armed = false
-                        onRevealMoreColumns(true)
+            snapshotFlow { horizontalScrollState.value to horizontalScrollState.maxValue }
+                .debounce(120)
+                .collect { (value, max) ->
+                    if (max <= 0) return@collect
+                    val atRight = value >= max - edgePx
+                    val atLeft = value <= edgePx
+                    if (!atRight && !atLeft) {
+                        revealArmed = true // left the edge -> ready for the next approach
+                        return@collect
                     }
-                    atLeft && startColumns.isNotEmpty() -> {
-                        armed = false
-                        onRevealMoreColumns(false)
+                    if (!revealArmed) return@collect
+                    when {
+                        atRight && revealTruncated.isNotEmpty() -> {
+                            revealArmed = false
+                            onRevealMoreColumns(true)
+                        }
+                        atLeft && revealStartColumns.isNotEmpty() -> {
+                            revealArmed = false
+                            onRevealMoreColumns(false)
+                        }
                     }
                 }
-            }
         }
     }
 

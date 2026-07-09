@@ -1556,7 +1556,11 @@ class EditorEngine @AssistedInject constructor(
             val lineMax = (len - cap).coerceAtLeast(0L)
             if (lineMax > maxAnchor) maxAnchor = lineMax
         }
-        val newAnchor = (viewportColumnAnchor + if (forward) page else -page).coerceIn(0L, maxAnchor)
+        // Normalize a stale anchor first: a prior reveal may have left it past what the CURRENT visible
+        // lines can start at (e.g. after vertically scrolling from a very long line to shorter ones),
+        // and those lines already render clamped - so page from the clamped value, not the raw one.
+        val current = viewportColumnAnchor.coerceIn(0L, maxAnchor)
+        val newAnchor = (current + if (forward) page else -page).coerceIn(0L, maxAnchor)
         if (newAnchor == viewportColumnAnchor) return
         viewportColumnAnchor = newAnchor
         refreshVisibleContent(ensureCursor = false)
