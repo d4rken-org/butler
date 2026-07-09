@@ -4,5 +4,3 @@
 
 - How do we handle the system deleting our app cache and the trash folder
 - System cache deletion handling - DB inconsistency risk (syncWithFileSystem() runs at app init)
-
-- Restore ownership/permissions - Data stored but not restored (TODO at line 179)
