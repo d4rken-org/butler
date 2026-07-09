@@ -495,6 +495,18 @@ private fun DualColumnEditorContent(
         }
     }
 
+    // When the document flips read-only mid-edit (e.g. the backing file vanished), the field's
+    // in-flight local text is now unappliable and would otherwise linger on screen while the
+    // engine stays behind. Hand authority back to the engine and rebuild from its content.
+    LaunchedEffect(readOnly) {
+        if (readOnly && isUserEditing) {
+            isUserEditing = false
+            authorityEcho = null
+            val caret = textFieldValue.selection.end.coerceIn(0, currentContent.length)
+            textFieldValue = TextFieldValue(text = currentContent, selection = TextRange(caret))
+        }
+    }
+
     val lineNumberWidth = if (showLineNumbers) {
         remember(totalLines) {
             (totalLines.toString().length * 8 + 16).dp

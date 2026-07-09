@@ -43,10 +43,40 @@ class PieceTable private constructor(
 
     internal fun pieceSnapshot(): List<Piece> = pieces.toList()
 
+    /**
+     * Immutable capture of the table's full mutable state for all-or-nothing batch edits.
+     * [Piece]s are immutable and the add buffer is append-only, so a shallow piece copy plus the
+     * add-buffer text is a complete, cheap snapshot.
+     */
+    internal class Checkpoint(
+        val pieces: List<Piece>,
+        val addBuffer: String,
+        val expectedCharLength: Long,
+    )
+
+    internal fun checkpoint(): Checkpoint = Checkpoint(
+        pieces = pieces.toList(),
+        addBuffer = addBuffer.toString(),
+        expectedCharLength = expectedCharLength,
+    )
+
+    /**
+     * Restores a prior [checkpoint], discarding every mutation since. Purely in-memory - it never
+     * reads the original document - so it is a reliable rollback even when the backing file is
+     * gone (unlike replaying inverse edits, which would re-read it).
+     */
+    internal fun restore(checkpoint: Checkpoint) {
+        pieces.clear()
+        pieces.addAll(checkpoint.pieces)
+        addBuffer = StringBuilder(checkpoint.addBuffer)
+        expectedCharLength = checkpoint.expectedCharLength
+        rebuildPrefix()
+        checkInvariants()
+    }
+
     suspend fun insert(offset: Long, text: String) {
         require(offset in 0..totalCharLength) { "Insert offset $offset not in [0, $totalCharLength]" }
         if (text.isEmpty()) return
-        expectedCharLength += text.length
 
         val endingPiece = pieceEndingAt(offset)
         val coalesced = endingPiece?.let { pieceIndex ->
@@ -64,11 +94,14 @@ class PieceTable private constructor(
         } ?: false
 
         if (!coalesced) {
+            // splitAt may read original bytes (charToByte) and throw if the backing file is gone;
+            // bookkeeping is bumped only after the throwing work so a failed insert is a no-op
             val insertAt = splitAt(offset)
             val addStart = addBuffer.length
             addBuffer.append(text)
             pieces.add(insertAt, makeAdded(addStart, text.length))
         }
+        expectedCharLength += text.length
         afterEdit()
     }
 
@@ -77,10 +110,13 @@ class PieceTable private constructor(
             "Delete range $start-$end not in [0, $totalCharLength]"
         }
         if (start == end) return
-        expectedCharLength -= end - start
 
+        // splitAt may read original bytes (charToByte) and throw if the backing file is gone.
+        // Splits are content-preserving, so a partial split (start done, end thrown) leaves the
+        // document identical; bookkeeping is decremented only once both splits succeed.
         val from = splitAt(start)
         val to = splitAt(end)
+        expectedCharLength -= end - start
         repeat(to - from) { pieces.removeAt(from) }
         afterEdit()
     }

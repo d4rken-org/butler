@@ -43,6 +43,45 @@ class PieceTableTest : BaseTest() {
         endsWithBreak shouldBe TextMetrics.endsWithBreak(text)
     }
 
+    /** [StringOriginalDocument] whose [charToByte] can be toggled to throw, mimicking a vanished file. */
+    private class ToggleFailOriginal(private val delegate: StringOriginalDocument) : OriginalDocument by delegate {
+        var fail = false
+        override suspend fun charToByte(charOffset: Long): Long {
+            if (fail) throw java.io.IOException("backing gone")
+            return delegate.charToByte(charOffset)
+        }
+    }
+
+    @Test
+    fun `checkpoint then restore round-trips a mutated table`() = runTest {
+        val table = stringTable("hello world")
+        val checkpoint = table.checkpoint()
+
+        table.insert(5, " brave new")
+        table.delete(0, 5)
+        table.readAll() shouldBe " brave new world"
+
+        table.restore(checkpoint)
+        table.shouldMatch("hello world")
+    }
+
+    @Test
+    fun `a mid-batch mutation failure restores fully via checkpoint`() = runTest {
+        val original = ToggleFailOriginal(StringOriginalDocument("aXaYaZa"))
+        val table = PieceTable.create(original, assertions = true)
+        val checkpoint = table.checkpoint()
+
+        // First replacement lands; the second reads the (now-gone) original and throws
+        table.delete(5, 6)
+        table.insert(5, "!")
+        original.fail = true
+        runCatching { table.delete(1, 2) }.isFailure shouldBe true
+
+        table.restore(checkpoint)
+        original.fail = false
+        table.shouldMatch("aXaYaZa")
+    }
+
     // ========== Insert splits ==========
 
     @Test
