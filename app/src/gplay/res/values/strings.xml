@@ -28,6 +28,8 @@
     <string name="upgrade_screen_restore_sync_patience_hint">Play Store synchronization may take time. Try rebooting, clearing Google Play cache or simply wait.</string>
     <string name="upgrade_screen_restore_multiaccount_hint">Multiple accounts can confuse Google Play. Log out of other accounts or install through the Google Play website, which forces associations with a specific account.</string>
 
+    <string name="upgrades_gplay_already_owned_error_title">Already purchased?</string>
+    <string name="upgrades_gplay_already_owned_error_description">Google Play reports that you already own this upgrade, but it couldn\'t be restored automatically. Make sure you are logged in with the Google account used for the original purchase, then try \"Restore purchase\".</string>
     <string name="upgrades_gplay_unavailable_error_title">Google Play is unavailable</string>
     <string name="upgrades_gplay_unavailable_error_description">Butler can\'t connect to Google Play. Is Google Play installed and up to date? Is your Google Account logged in? Try clearing the cache of the Google Play app and rebooting your device.</string>
     <string name="upgrades_no_purchases_found_check_account">No purchases found. Are you using the right account?</string>

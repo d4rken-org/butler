@@ -12,9 +12,11 @@ import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.core.billing.BillingData
 import eu.darken.butler.upgrade.core.billing.BillingManager
+import eu.darken.butler.upgrade.core.billing.ItemAlreadyOwnedBillingException
 import eu.darken.butler.upgrade.core.billing.PurchasedSku
 import eu.darken.butler.upgrade.core.billing.Sku
 import eu.darken.butler.upgrade.core.billing.SkuDetails
+import eu.darken.butler.upgrade.core.billing.UserCanceledBillingException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.pow
@@ -71,14 +74,46 @@ class UpgradeRepoGplay @Inject constructor(
     // restore banner. Local signal only — a fresh install or switched Google account starts false.
     val wasEverPro: Flow<Boolean> = billingCache.lastProStateAt.flow.map { it > 0 }
 
-    fun launchBillingFlow(activity: Activity, sku: Sku, offer: Sku.Subscription.Offer?) {
+    fun launchBillingFlow(
+        activity: Activity,
+        sku: Sku,
+        offer: Sku.Subscription.Offer?,
+        onError: (Throwable) -> Unit,
+    ) {
         log(TAG) { "launchBillingFlow($activity,$sku)" }
         scope.launch {
             try {
                 billingManager.startIapFlow(activity, sku, offer)
-            } catch (e: Exception) {
-                log(TAG) { "startIapFlow failed:${e.asLog()}" }
+            } catch (e: CancellationException) {
                 throw e
+            } catch (e: Exception) {
+                when (e) {
+                    is UserCanceledBillingException -> log(TAG) { "User canceled billing flow" }
+
+                    is ItemAlreadyOwnedBillingException -> {
+                        // Stale local state: Play says they already own it, so tapping "buy" really
+                        // means "unlock what I own" — restore instead of showing an error.
+                        log(TAG, INFO) { "Launch says already owned -> restoring purchase" }
+                        val restored = try {
+                            withTimeoutOrNull(RESTORE_ON_OWNED_TIMEOUT_MS) { restorePurchaseNow() }
+                        } catch (re: CancellationException) {
+                            throw re
+                        } catch (re: Exception) {
+                            log(TAG, WARN) { "Restore after already-owned failed: ${re.asLog()}" }
+                            null
+                        }
+                        if (restored?.isUpgraded != true) {
+                            // Couldn't reconcile the entitlement (pending purchase, account mismatch,
+                            // Play quirk) — fall back to the already-owned dialog with restore tips.
+                            onError(e)
+                        }
+                    }
+
+                    else -> {
+                        log(TAG) { "startIapFlow failed:${e.asLog()}" }
+                        onError(e)
+                    }
+                }
             }
         }
     }
@@ -200,6 +235,7 @@ class UpgradeRepoGplay @Inject constructor(
         val GRACE_PERIOD_MS = 7.days.inWholeMilliseconds
         val GRACE_PERIOD_IAP_MS = 30.days.inWholeMilliseconds
         private val RETRY_DELAY_CAP_MS = 10.minutes.inWholeMilliseconds
+        private const val RESTORE_ON_OWNED_TIMEOUT_MS = 15_000L
         val TAG: String = logTag("Upgrade", "Gplay", "Repo")
 
         // The SKU whose grace window applies when several are owned: the permanent one-time purchase

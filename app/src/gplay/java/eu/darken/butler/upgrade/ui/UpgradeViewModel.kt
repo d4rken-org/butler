@@ -145,17 +145,21 @@ class UpgradeViewModel @Inject constructor(
 
     fun onGoIap(activity: Activity) {
         log(tag) { "onGoIap($activity)" }
-        upgradeRepo.launchBillingFlow(activity, OurSku.Iap.PRO_UPGRADE, null)
+        upgradeRepo.launchBillingFlow(activity, OurSku.Iap.PRO_UPGRADE, null) { errorEvents.tryEmit(it) }
     }
 
     fun onGoSubscription(activity: Activity) {
         log(tag) { "onGoSubscription($activity)" }
-        upgradeRepo.launchBillingFlow(activity, OurSku.Sub.PRO_UPGRADE, OurSku.Sub.PRO_UPGRADE.BASE_OFFER)
+        upgradeRepo.launchBillingFlow(activity, OurSku.Sub.PRO_UPGRADE, OurSku.Sub.PRO_UPGRADE.BASE_OFFER) {
+            errorEvents.tryEmit(it)
+        }
     }
 
     fun onGoSubscriptionTrial(activity: Activity) {
         log(tag) { "onGoSubscriptionTrial($activity)" }
-        upgradeRepo.launchBillingFlow(activity, OurSku.Sub.PRO_UPGRADE, OurSku.Sub.PRO_UPGRADE.TRIAL_OFFER)
+        upgradeRepo.launchBillingFlow(activity, OurSku.Sub.PRO_UPGRADE, OurSku.Sub.PRO_UPGRADE.TRIAL_OFFER) {
+            errorEvents.tryEmit(it)
+        }
     }
 
     fun restorePurchase() = launch {
