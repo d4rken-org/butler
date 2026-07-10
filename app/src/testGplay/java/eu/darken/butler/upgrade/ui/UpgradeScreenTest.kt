@@ -1,0 +1,56 @@
+package eu.darken.butler.upgrade.ui
+
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import eu.darken.butler.common.compose.PreviewWrapper
+import org.junit.Test
+import testhelpers.ComposeTest
+
+class UpgradeScreenTest : ComposeTest() {
+
+    private fun loadedState(wasPreviouslyPro: Boolean = false) = UpgradeViewModel.State(
+        isLoadingPrices = false,
+        iapState = UpgradeViewModel.State.Iap(available = true, formattedPrice = "$4.99"),
+        subState = UpgradeViewModel.State.Sub(available = true, formattedPrice = "$2.99"),
+        trialState = UpgradeViewModel.State.Trial(available = true, formattedPrice = "$2.99"),
+        wasPreviouslyPro = wasPreviouslyPro,
+    )
+
+    private fun setScreen(
+        state: UpgradeViewModel.State,
+        onRestorePurchase: () -> Unit = {},
+    ) = composeTestRule.setContent {
+        PreviewWrapper {
+            UpgradeScreen(
+                state = state,
+                onNavigateBack = {},
+                onGoIap = {},
+                onGoSubscription = {},
+                onGoSubscriptionTrial = {},
+                onRestorePurchase = onRestorePurchase,
+            )
+        }
+    }
+
+    @Test
+    fun `returning buyer sees the restore banner and can trigger restore`() {
+        var restoreClicks = 0
+        setScreen(
+            state = loadedState(wasPreviouslyPro = true),
+            onRestorePurchase = { restoreClicks++ },
+        )
+
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTestTags.RESTORE_BANNER).assertCountEquals(1)
+        composeTestRule.onNodeWithTag(UpgradeScreenTestTags.RESTORE_BANNER_ACTION).performClick()
+        composeTestRule.runOnIdle { check(restoreClicks == 1) { "expected 1 restore click, got $restoreClicks" } }
+    }
+
+    @Test
+    fun `banner is hidden without a prior purchase on this device`() {
+        setScreen(state = loadedState(wasPreviouslyPro = false))
+
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTestTags.RESTORE_BANNER).assertCountEquals(0)
+    }
+}

@@ -22,6 +22,8 @@ class UpgradeViewModelTest : BaseTest() {
 
     private fun mockRepo(): UpgradeRepoGplay = mockk<UpgradeRepoGplay>(relaxed = true).apply {
         every { upgradeInfo } returns MutableStateFlow(UpgradeRepoGplay.Info(false, null))
+        every { wasEverPro } returns MutableStateFlow(false)
+        coEvery { querySkus(any()) } returns emptyList()
     }
 
     private fun buildVm(repo: UpgradeRepoGplay): UpgradeViewModel = UpgradeViewModel(
@@ -70,5 +72,31 @@ class UpgradeViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         forwardedError.await() shouldBe boom
+    }
+
+    @Test
+    fun `previously-pro on this device flows into the banner flag`() = runTest2(context = testDispatcher) {
+        val repo = mockRepo()
+        every { repo.wasEverPro } returns MutableStateFlow(true)
+        val vm = buildVm(repo)
+
+        val loaded = async { vm.state.first { it?.isLoadingPrices == false } }
+        advanceUntilIdle()
+
+        loaded.await()!!.wasPreviouslyPro shouldBe true
+    }
+
+    @Test
+    fun `banner flag stays off while grace still keeps the user pro`() = runTest2(context = testDispatcher) {
+        val repo = mockRepo()
+        // gracePeriod = true => Info.isUpgraded is true even without a current raw purchase.
+        every { repo.upgradeInfo } returns MutableStateFlow(UpgradeRepoGplay.Info(gracePeriod = true, billingData = null))
+        every { repo.wasEverPro } returns MutableStateFlow(true)
+        val vm = buildVm(repo)
+
+        val loaded = async { vm.state.first { it?.isLoadingPrices == false } }
+        advanceUntilIdle()
+
+        loaded.await()!!.wasPreviouslyPro shouldBe false
     }
 }

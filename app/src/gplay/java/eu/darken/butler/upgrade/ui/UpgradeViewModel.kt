@@ -68,7 +68,8 @@ class UpgradeViewModel @Inject constructor(
             emit(QueryState.Loaded(data))
         },
         upgradeRepo.upgradeInfo,
-    ) { iapQueryState, subQueryState, current ->
+        upgradeRepo.wasEverPro,
+    ) { iapQueryState, subQueryState, current, wasEverPro ->
         val isLoadingPrices = iapQueryState is QueryState.Loading || subQueryState is QueryState.Loading
 
         val iap = (iapQueryState as? QueryState.Loaded)?.data
@@ -107,6 +108,8 @@ class UpgradeViewModel @Inject constructor(
             iapState = iapState,
             subState = subState,
             trialState = trialState,
+            // Hidden while a grace period or an actual purchase keeps the user Pro.
+            wasPreviouslyPro = wasEverPro && !current.isUpgraded,
         )
     }.asStateFlow()
 
@@ -115,6 +118,7 @@ class UpgradeViewModel @Inject constructor(
         val iapState: Iap,
         val subState: Sub,
         val trialState: Trial,
+        val wasPreviouslyPro: Boolean = false,
     ) {
 
         class Iap(

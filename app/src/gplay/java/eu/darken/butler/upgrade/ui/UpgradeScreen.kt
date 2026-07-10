@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -222,6 +223,13 @@ private fun NarrowScreenLayout(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        if (state.wasPreviouslyPro) {
+            RestoreBanner(
+                modifier = Modifier.padding(bottom = 8.dp),
+                onRestorePurchase = onRestorePurchase,
+            )
+        }
+
         PreambleCard()
 
         BenefitsList(modifier = Modifier.padding(top = 8.dp, bottom = 8.dp))
@@ -296,6 +304,10 @@ private fun WideScreenLayout(
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (state.wasPreviouslyPro) {
+                RestoreBanner(onRestorePurchase = onRestorePurchase)
+            }
+
             PreambleCard()
 
             HowToSection()
@@ -563,6 +575,57 @@ private fun SubscriptionButtons(
 }
 
 @Composable
+private fun RestoreBanner(
+    modifier: Modifier = Modifier,
+    onRestorePurchase: () -> Unit,
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(UpgradeScreenTestTags.RESTORE_BANNER),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.upgrade_screen_restore_banner_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+            Text(
+                text = stringResource(R.string.upgrade_screen_restore_banner_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+            Button(
+                onClick = onRestorePurchase,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(UpgradeScreenTestTags.RESTORE_BANNER_ACTION),
+            ) {
+                Text(stringResource(R.string.upgrade_screen_restore_purchase_action))
+            }
+        }
+    }
+}
+
+internal object UpgradeScreenTestTags {
+    const val RESTORE_BANNER = "upgrade_restore_banner"
+    const val RESTORE_BANNER_ACTION = "upgrade_restore_banner_action"
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RestoreBannerPreview() {
+    RestoreBanner(onRestorePurchase = {})
+}
+
+@Composable
 private fun RestorePurchaseSection(
     onRestorePurchase: () -> Unit,
 ) {
@@ -632,6 +695,35 @@ private fun UpgradeScreenLoadingPreview() {
                 available = false,
                 formattedPrice = null
             ),
+        ),
+        onNavigateBack = {},
+        onGoIap = {},
+        onGoSubscription = {},
+        onGoSubscriptionTrial = {},
+        onRestorePurchase = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun UpgradeScreenReturningBuyerPreview() {
+    UpgradeScreen(
+        state = UpgradeViewModel.State(
+            isLoadingPrices = false,
+            iapState = UpgradeViewModel.State.Iap(
+                available = true,
+                formattedPrice = "$4.99",
+            ),
+            subState = UpgradeViewModel.State.Sub(
+                available = true,
+                formattedPrice = "$2.99",
+            ),
+            trialState = UpgradeViewModel.State.Trial(
+                available = true,
+                formattedPrice = "$2.99"
+            ),
+            wasPreviouslyPro = true,
         ),
         onNavigateBack = {},
         onGoIap = {},
