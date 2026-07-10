@@ -64,7 +64,17 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
             coEvery { deleteSelection() } returns Result.success("")
             coEvery { deleteAtCursor(any()) } returns Result.success("")
             coEvery { deleteForward() } returns Unit
+            coEvery { replaceText(any(), any(), any(), any()) } returns Unit
+            coEvery { insertText(any()) } returns Unit
+            coEvery { selectionExceedsUndoThreshold() } returns (
+                selection != null &&
+                    kotlin.math.abs(selection.second.offset - selection.first.offset) > threshold
+                )
         }
+
+    private val hugeSelection = TextPosition(0, 0, 0) to TextPosition(threshold + 1, 0, 0)
+    private val smallSelection = TextPosition(0, 0, 0) to TextPosition(500, 0, 500)
+    private val pos = TextPosition(0, 0, 0)
 
     private fun makeViewModel(workspace: EditorWorkspace): EditorWorkspaceViewModel {
         val remote = mockk<WorkspaceRemote> {
@@ -162,5 +172,99 @@ class EditorWorkspaceViewModelDeleteGateTest : BaseTest() {
 
         vm.state.first().showLargeDeleteConfirmDialog shouldBe false
         coVerify(exactly = 1) { workspace.deleteAtCursor(1) }
+    }
+
+    // ==================== Replace / typing over a huge selection ====================
+
+    @Test
+    fun `typing over a huge selection confirms instead of replacing`() = runTest {
+        val workspace = makeWorkspace(hugeSelection)
+        val vm = makeViewModel(workspace)
+
+        vm.replaceText(pos, pos, "x", pos)
+
+        val state = vm.state.first()
+        state.showLargeDeleteConfirmDialog shouldBe true
+        // Field-originated gate must bump the resync signal so the hidden field reverts.
+        state.editResyncSignal shouldBe 1
+        coVerify(exactly = 0) { workspace.replaceText(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `confirming a huge type-over replays the replace`() = runTest {
+        val workspace = makeWorkspace(hugeSelection)
+        val vm = makeViewModel(workspace)
+
+        vm.replaceText(pos, pos, "x", pos)
+        vm.confirmLargeDelete()
+
+        vm.state.first().showLargeDeleteConfirmDialog shouldBe false
+        coVerify(exactly = 1) { workspace.replaceText(pos, pos, "x", pos) }
+    }
+
+    @Test
+    fun `typing below the threshold replaces directly`() = runTest {
+        val workspace = makeWorkspace(smallSelection)
+        val vm = makeViewModel(workspace)
+
+        vm.replaceText(pos, pos, "x", pos)
+
+        val state = vm.state.first()
+        state.showLargeDeleteConfirmDialog shouldBe false
+        state.editResyncSignal shouldBe 0
+        coVerify(exactly = 1) { workspace.replaceText(pos, pos, "x", pos) }
+    }
+
+    @Test
+    fun `insert over a huge selection defers without bumping the field resync`() = runTest {
+        val workspace = makeWorkspace(hugeSelection)
+        val vm = makeViewModel(workspace)
+
+        // Paste-style insert is programmatic (not field-originated): gated, but no resync bump.
+        vm.insertText("x")
+
+        val state = vm.state.first()
+        state.showLargeDeleteConfirmDialog shouldBe true
+        state.editResyncSignal shouldBe 0
+        coVerify(exactly = 0) { workspace.insertText(any()) }
+    }
+
+    @Test
+    fun `dismissing clears the pending edit so a later confirm is a no-op`() = runTest {
+        val workspace = makeWorkspace(hugeSelection)
+        val vm = makeViewModel(workspace)
+
+        vm.replaceText(pos, pos, "x", pos)
+        vm.onPageAction(EditorPageAction.Dialog.DismissLargeDeleteConfirm)
+        vm.confirmLargeDelete()
+
+        vm.state.first().showLargeDeleteConfirmDialog shouldBe false
+        coVerify(exactly = 0) { workspace.replaceText(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `a second gated edit while pending is dropped (first-writer-wins)`() = runTest {
+        val workspace = makeWorkspace(hugeSelection)
+        val vm = makeViewModel(workspace)
+
+        vm.replaceText(pos, pos, "first", pos)
+        vm.replaceText(pos, pos, "second", pos)
+        vm.confirmLargeDelete()
+
+        // The first edit is the one the user reviewed; the second must not replace it.
+        coVerify(exactly = 1) { workspace.replaceText(pos, pos, "first", pos) }
+        coVerify(exactly = 0) { workspace.replaceText(pos, pos, "second", pos) }
+    }
+
+    @Test
+    fun `a delete gate does not bump the field resync signal`() = runTest {
+        val workspace = makeWorkspace(hugeSelection)
+        val vm = makeViewModel(workspace)
+
+        vm.requestDeleteSelection()
+
+        val state = vm.state.first()
+        state.showLargeDeleteConfirmDialog shouldBe true
+        state.editResyncSignal shouldBe 0
     }
 }

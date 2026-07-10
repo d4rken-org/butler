@@ -115,6 +115,7 @@ fun LazyTextEditor(
     onRevealMoreColumns: (Boolean) -> Unit = {},
     onCursorMove: (CursorDirection, Boolean) -> Unit,
     onForwardDelete: () -> Unit,
+    resyncSignal: Int = 0,
 ) {
     // Create a map of visible line content indexed by line number
     val visibleLineContent = remember(content, visibleRange) {
@@ -350,6 +351,7 @@ fun LazyTextEditor(
         onSelectionChange = onSelectionChange,
         onCursorMove = onCursorMove,
         onForwardDelete = onForwardDelete,
+        resyncSignal = resyncSignal,
         modifier = modifier
     )
 }
@@ -382,6 +384,7 @@ private fun DualColumnEditorContent(
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     onCursorMove: (CursorDirection, Boolean) -> Unit,
     onForwardDelete: () -> Unit,
+    resyncSignal: Int = 0,
     modifier: Modifier = Modifier
 ) {
     // Ensure drag/tap handlers always see latest values, not closures captured by pointerInput: the
@@ -500,6 +503,21 @@ private fun DualColumnEditorContent(
     // engine stays behind. Hand authority back to the engine and rebuild from its content.
     LaunchedEffect(readOnly) {
         if (readOnly && isUserEditing) {
+            isUserEditing = false
+            authorityEcho = null
+            val caret = textFieldValue.selection.end.coerceIn(0, currentContent.length)
+            textFieldValue = TextFieldValue(text = currentContent, selection = TextRange(caret))
+        }
+    }
+
+    // The engine gated a field-originated edit behind the large-edit confirm dialog (too large to
+    // undo). The field already applied that edit optimistically, so its local text no longer matches
+    // the (unchanged) engine content and the echo can never converge. Hand authority back to the
+    // engine and rebuild from its content, exactly like the read-only flip above. Bumps only on the
+    // rare oversized gate; a confirmed edit then flows back through the normal engine-authoritative
+    // path once applied.
+    LaunchedEffect(resyncSignal) {
+        if (isUserEditing) {
             isUserEditing = false
             authorityEcho = null
             val caret = textFieldValue.selection.end.coerceIn(0, currentContent.length)
