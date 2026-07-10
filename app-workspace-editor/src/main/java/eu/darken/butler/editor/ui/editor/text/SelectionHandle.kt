@@ -66,13 +66,22 @@ internal fun SelectionHandle(
     val lineNumberWidthPx = with(density) { lineNumberWidth.toPx() }
     val handleHalfWidth = with(density) { 12.dp.toPx() }  // Half of 24.dp handle width
 
+    // Read the line's layout and content during COMPOSITION: the textLayouts map is a stable
+    // instance, so as an effect key it never re-fires — only the entry read here subscribes to
+    // a layout landing or being replaced (wrap toggle, content edit, window slide).
+    val lineLayout = textLayouts[position.line]
+    val rawLine = visibleLineContent[position.line] ?: ""
+
     // Engine columns are RAW char indices; the rendered line is tab-EXPANDED, so convert for all
     // pixel math (column * charWidth and layout indexing below). Clamped into the line FIRST:
     // display-truncated lines can carry columns far past the visible prefix, and multiplying an
     // unclamped expanded column by charWidth translates the handle kilometers off-screen.
     val currentPositionColumn by rememberUpdatedState(
-        rawToExpandedColumnClamped(visibleLineContent[position.line] ?: "", localColumn, tabSize)
+        rawToExpandedColumnClamped(rawLine, localColumn, tabSize)
     )
+
+    // The drag coroutine below outlives recompositions and must never invoke a stale capture.
+    val currentOnDrag by rememberUpdatedState(onDrag)
 
     // Use simple state to store Y position, updated via LaunchedEffect observing layout
     var yPosition by remember { mutableStateOf<Float?>(null) }
@@ -89,47 +98,47 @@ internal fun SelectionHandle(
         }
     }
 
-    // Calculate visual line offset and X position when word wrap is enabled. Keyed on lineStartColumn
-    // too: a horizontal window slide changes the caret's LOCAL column even if position.column doesn't.
-    LaunchedEffect(position.line, position.column, wordWrap, textLayouts, lineStartColumn) {
-        if (wordWrap && textLayouts.containsKey(position.line)) {
-            val layout = textLayouts[position.line]!!
-            // The layout is built from the tab-EXPANDED line, so work in expanded columns/length.
-            val rawLine = visibleLineContent[position.line] ?: ""
-            val textLength = rawLine.toDisplayText(tabSize).length
-            if (textLength > 0) {
-                val columnForCalc = rawToExpandedColumnClamped(rawLine, localColumn, tabSize).coerceIn(0, textLength)
+    // Calculate visual line offset and X position from the line's layout (both wrap modes: the
+    // measured-M advance is wrong for CJK/wide glyphs, only real glyph geometry is exact). Keyed on
+    // lineStartColumn too: a horizontal window slide changes the caret's LOCAL column even if
+    // position.column doesn't.
+    LaunchedEffect(position.line, position.column, wordWrap, lineLayout, rawLine, lineStartColumn, tabSize) {
+        // The layout is built from the tab-EXPANDED line, so work in expanded columns/length.
+        val textLength = rawLine.toDisplayText(tabSize).length
+        // A layout shorter than the current content is stale (edit landed, relayout pending) and
+        // indexing it below would throw — fall back until the fresh layout arrives.
+        if (lineLayout != null && textLength in 1..lineLayout.layoutInput.text.length) {
+            val columnForCalc = rawToExpandedColumnClamped(rawLine, localColumn, tabSize).coerceIn(0, textLength)
 
-                // Calculate visual line, handling boundary case
-                // getLineForOffset(N) returns the line where char N starts, but if N equals
-                // getLineStart of that line (i.e., it's at a line boundary), cursor should
-                // appear at the END of the previous visual line, not start of next
-                val rawVisualLine = if (columnForCalc < textLength) {
-                    layout.getLineForOffset(columnForCalc)
-                } else {
-                    layout.lineCount - 1
-                }
-                val isAtBoundary = rawVisualLine > 0 && columnForCalc == layout.getLineStart(rawVisualLine)
-                val visualLine = if (isAtBoundary) rawVisualLine - 1 else rawVisualLine
-                visualLineOffsetY = layout.getLineTop(visualLine)
-
-                // Calculate X position from TextLayoutResult
-                // At boundary: use right edge of previous char (end of visual line)
-                // Otherwise: use left edge of current char
-                visualCharOffsetX = if (isAtBoundary && columnForCalc > 0) {
-                    layout.getBoundingBox(columnForCalc - 1).right
-                } else if (columnForCalc < textLength) {
-                    layout.getBoundingBox(columnForCalc).left
-                } else {
-                    layout.getBoundingBox(textLength - 1).right
-                }
+            // Calculate visual line, handling boundary case
+            // getLineForOffset(N) returns the line where char N starts, but if N equals
+            // getLineStart of that line (i.e., it's at a line boundary), cursor should
+            // appear at the END of the previous visual line, not start of next
+            val rawVisualLine = if (columnForCalc < textLength) {
+                lineLayout.getLineForOffset(columnForCalc)
             } else {
-                visualLineOffsetY = 0f
-                visualCharOffsetX = 0f
+                lineLayout.lineCount - 1
             }
+            val isAtBoundary = rawVisualLine > 0 && columnForCalc == lineLayout.getLineStart(rawVisualLine)
+            val visualLine = if (isAtBoundary) rawVisualLine - 1 else rawVisualLine
+            visualLineOffsetY = lineLayout.getLineTop(visualLine)
+
+            // Calculate X position from TextLayoutResult
+            // At boundary: use right edge of previous char (end of visual line)
+            // Otherwise: use left edge of current char
+            visualCharOffsetX = if (isAtBoundary && columnForCalc > 0) {
+                lineLayout.getBoundingBox(columnForCalc - 1).right
+            } else if (columnForCalc < textLength) {
+                lineLayout.getBoundingBox(columnForCalc).left
+            } else {
+                lineLayout.getBoundingBox(textLength - 1).right
+            }
+        } else if (textLength == 0) {
+            visualLineOffsetY = 0f
+            visualCharOffsetX = 0f
         } else {
             visualLineOffsetY = 0f
-            visualCharOffsetX = -1f  // Use column * charWidth fallback
+            visualCharOffsetX = -1f  // No usable layout yet: use column * charWidth fallback
         }
     }
 
@@ -142,45 +151,42 @@ internal fun SelectionHandle(
                     // Safely capture yPosition at start of lambda to prevent race conditions
                     val currentYPos = yPosition ?: return@graphicsLayer
 
-                    // Calculate X position
-                    val baseX = if (visualCharOffsetX >= 0f) {
-                        // Word wrap: use calculated position from TextLayoutResult (no scroll when wrapped)
-                        lineNumberWidthPx + contentPaddingPx + visualCharOffsetX
+                    // Layout-based glyph X when available, measured-advance fallback before the
+                    // first layout lands. Wrapped lines never scroll horizontally.
+                    val horizontalScrollOffset = if (wordWrap) 0f else horizontalScrollState.value.toFloat()
+                    val contentX = if (visualCharOffsetX >= 0f) {
+                        visualCharOffsetX
                     } else {
-                        // No wrap: use column * charWidth with scroll offset
-                        val horizontalScrollOffset = horizontalScrollState.value.toFloat()
-                        lineNumberWidthPx + contentPaddingPx + (currentPositionColumn * charWidth) - horizontalScrollOffset
+                        currentPositionColumn * charWidth
                     }
-                    val xPosition = baseX - handleHalfWidth
+                    val xPosition =
+                        lineNumberWidthPx + contentPaddingPx + contentX - horizontalScrollOffset - handleHalfWidth
 
                     // Use translation for GPU-accelerated positioning
                     translationX = xPosition
                     // Add visual line offset for wrapped text positioning and content padding top
                     translationY = currentYPos + visualLineOffsetY + contentPaddingTop
                 }
-                .pointerInput(lineNumberWidthPx) {
+                .pointerInput(lineNumberWidthPx, wordWrap, charWidth) {
                     detectDragGestures { change, _ ->
-                        // Calculate current handle position for drag conversion
-                        val currentCharOffsetX = visualCharOffsetX
-                        val baseX = if (currentCharOffsetX >= 0f) {
-                            // Word wrap: use calculated position from TextLayoutResult
-                            lineNumberWidthPx + contentPaddingPx + currentCharOffsetX
+                        // Recompute the handle's anchor the same way the graphicsLayer block does
+                        // so drag deltas convert back into content coordinates.
+                        val horizontalScrollOffset = if (wordWrap) 0f else horizontalScrollState.value.toFloat()
+                        val contentX = if (visualCharOffsetX >= 0f) {
+                            visualCharOffsetX
                         } else {
-                            // No wrap: use column * charWidth with scroll offset
-                            val horizontalScrollOffset = horizontalScrollState.value.toFloat()
-                            lineNumberWidthPx + contentPaddingPx + (currentPositionColumn * charWidth) - horizontalScrollOffset
+                            currentPositionColumn * charWidth
                         }
-                        val xPosition = baseX - handleHalfWidth
+                        val xPosition =
+                            lineNumberWidthPx + contentPaddingPx + contentX - horizontalScrollOffset - handleHalfWidth
                         val currentYPosition = yPosition ?: 0f
 
                         // Convert handle-relative position to LazyColumn coordinates
-                        val horizontalScrollOffset =
-                            if (currentCharOffsetX >= 0f) 0f else horizontalScrollState.value.toFloat()
                         val lazyColumnX = (change.position.x + xPosition) - lineNumberWidthPx + horizontalScrollOffset
                         // Add contentPaddingTop to match tap coordinate space (full LazyColumn area)
                         val lazyColumnY = change.position.y + currentYPosition + visualLineOffsetY + contentPaddingTop
 
-                        onDrag(Offset(lazyColumnX, lazyColumnY))
+                        currentOnDrag(Offset(lazyColumnX, lazyColumnY))
                         change.consume()
                     }
                 }
