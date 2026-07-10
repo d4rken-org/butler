@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -227,6 +228,7 @@ private fun NarrowScreenLayout(
             RestoreBanner(
                 modifier = Modifier.padding(bottom = 8.dp),
                 onRestorePurchase = onRestorePurchase,
+                restoreInProgress = state.restoreInProgress,
             )
         }
 
@@ -248,7 +250,10 @@ private fun NarrowScreenLayout(
             onGoSubscriptionTrial = onGoSubscriptionTrial,
         )
 
-        RestorePurchaseSection(onRestorePurchase = onRestorePurchase)
+        RestorePurchaseSection(
+            onRestorePurchase = onRestorePurchase,
+            restoreInProgress = state.restoreInProgress,
+        )
     }
 }
 
@@ -305,7 +310,10 @@ private fun WideScreenLayout(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (state.wasPreviouslyPro) {
-                RestoreBanner(onRestorePurchase = onRestorePurchase)
+                RestoreBanner(
+                    onRestorePurchase = onRestorePurchase,
+                    restoreInProgress = state.restoreInProgress,
+                )
             }
 
             PreambleCard()
@@ -321,7 +329,10 @@ private fun WideScreenLayout(
                 onGoSubscriptionTrial = onGoSubscriptionTrial,
             )
 
-            RestorePurchaseSection(onRestorePurchase = onRestorePurchase)
+            RestorePurchaseSection(
+                onRestorePurchase = onRestorePurchase,
+                restoreInProgress = state.restoreInProgress,
+            )
         }
     }
 }
@@ -578,6 +589,7 @@ private fun SubscriptionButtons(
 private fun RestoreBanner(
     modifier: Modifier = Modifier,
     onRestorePurchase: () -> Unit,
+    restoreInProgress: Boolean = false,
 ) {
     Card(
         modifier = modifier
@@ -603,10 +615,18 @@ private fun RestoreBanner(
             )
             Button(
                 onClick = onRestorePurchase,
+                enabled = !restoreInProgress,
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag(UpgradeScreenTestTags.RESTORE_BANNER_ACTION),
             ) {
+                if (restoreInProgress) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
                 Text(stringResource(R.string.upgrade_screen_restore_purchase_action))
             }
         }
@@ -616,6 +636,7 @@ private fun RestoreBanner(
 internal object UpgradeScreenTestTags {
     const val RESTORE_BANNER = "upgrade_restore_banner"
     const val RESTORE_BANNER_ACTION = "upgrade_restore_banner_action"
+    const val RESTORE_ACTION = "upgrade_restore_action"
 }
 
 @Preview2
@@ -625,9 +646,17 @@ private fun RestoreBannerPreview() {
     RestoreBanner(onRestorePurchase = {})
 }
 
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RestoreBannerRestoringPreview() {
+    RestoreBanner(onRestorePurchase = {}, restoreInProgress = true)
+}
+
 @Composable
 private fun RestorePurchaseSection(
     onRestorePurchase: () -> Unit,
+    restoreInProgress: Boolean = false,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         HorizontalDivider(
@@ -637,12 +666,14 @@ private fun RestorePurchaseSection(
 
         TextButton(
             onClick = onRestorePurchase,
-            modifier = Modifier.fillMaxWidth()
+            enabled = !restoreInProgress,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(UpgradeScreenTestTags.RESTORE_ACTION),
         ) {
             Text(
                 text = stringResource(R.string.upgrade_screen_restore_purchase_action),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
             )
         }
     }

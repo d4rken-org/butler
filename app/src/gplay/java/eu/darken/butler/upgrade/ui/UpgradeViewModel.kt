@@ -13,6 +13,7 @@ import eu.darken.butler.upgrade.core.OurSku
 import eu.darken.butler.upgrade.core.UpgradeRepoGplay
 import eu.darken.butler.upgrade.core.billing.GplayServiceUnavailableException
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
@@ -33,6 +34,8 @@ class UpgradeViewModel @Inject constructor(
 ) : ViewModel4(dispatcherProvider, logTag("Upgrade", "Screen", "VM")) {
 
     val events = SingleEventFlow<UpgradeEvents>()
+
+    private val restoring = MutableStateFlow(false)
 
     init {
         upgradeRepo.upgradeInfo
@@ -69,7 +72,8 @@ class UpgradeViewModel @Inject constructor(
         },
         upgradeRepo.upgradeInfo,
         upgradeRepo.wasEverPro,
-    ) { iapQueryState, subQueryState, current, wasEverPro ->
+        restoring,
+    ) { iapQueryState, subQueryState, current, wasEverPro, isRestoring ->
         val isLoadingPrices = iapQueryState is QueryState.Loading || subQueryState is QueryState.Loading
 
         val iap = (iapQueryState as? QueryState.Loaded)?.data
@@ -110,6 +114,7 @@ class UpgradeViewModel @Inject constructor(
             trialState = trialState,
             // Hidden while a grace period or an actual purchase keeps the user Pro.
             wasPreviouslyPro = wasEverPro && !current.isUpgraded,
+            restoreInProgress = isRestoring,
         )
     }.asStateFlow()
 
@@ -119,6 +124,7 @@ class UpgradeViewModel @Inject constructor(
         val subState: Sub,
         val trialState: Trial,
         val wasPreviouslyPro: Boolean = false,
+        val restoreInProgress: Boolean = false,
     ) {
 
         class Iap(
@@ -153,10 +159,31 @@ class UpgradeViewModel @Inject constructor(
     }
 
     fun restorePurchase() = launch {
+        // Single-flight: repeated taps while a restore is running (worst case bounded by
+        // RESTORE_TIMEOUT_MS) must not stack concurrent restores and duplicate result dialogs.
+        if (!restoring.compareAndSet(expect = false, update = true)) {
+            log(tag) { "restorePurchase() ignored, already in progress" }
+            return@launch
+        }
         log(tag) { "restorePurchase()" }
 
-        val restored = try {
-            withTimeoutOrNull(RESTORE_TIMEOUT_MS) { upgradeRepo.restorePurchaseNow() }
+        try {
+            val restored = withTimeoutOrNull(RESTORE_TIMEOUT_MS) { upgradeRepo.restorePurchaseNow() }
+            when {
+                restored == null -> {
+                    // Play never answered in time; the restore-failed dialog already suggests waiting /
+                    // clearing the Play cache, which fits a timeout too.
+                    log(tag, WARN) { "Restore purchase timed out" }
+                    events.tryEmit(UpgradeEvents.RestoreFailed)
+                }
+
+                restored.isUpgraded -> log(tag, INFO) { "Restored purchase :))" }
+
+                else -> {
+                    log(tag, WARN) { "Restore purchase failed" }
+                    events.tryEmit(UpgradeEvents.RestoreFailed)
+                }
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -164,23 +191,9 @@ class UpgradeViewModel @Inject constructor(
             // of the generic "restore failed" message, so the user can tell the two cases apart.
             log(tag, WARN) { "Restore purchase errored: ${e.asLog()}" }
             errorEvents.tryEmit(e)
-            return@launch
-        }
-
-        when {
-            restored == null -> {
-                // Play never answered in time; the restore-failed dialog already suggests waiting /
-                // clearing the Play cache, which fits a timeout too.
-                log(tag, WARN) { "Restore purchase timed out" }
-                events.tryEmit(UpgradeEvents.RestoreFailed)
-            }
-
-            restored.isUpgraded -> log(tag, INFO) { "Restored purchase :))" }
-
-            else -> {
-                log(tag, WARN) { "Restore purchase failed" }
-                events.tryEmit(UpgradeEvents.RestoreFailed)
-            }
+        } finally {
+            // Reset only after result handling, so the single-flight guard covers the whole action.
+            restoring.value = false
         }
     }
 

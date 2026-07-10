@@ -1,6 +1,7 @@
 package eu.darken.butler.upgrade.ui
 
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -10,12 +11,16 @@ import testhelpers.ComposeTest
 
 class UpgradeScreenTest : ComposeTest() {
 
-    private fun loadedState(wasPreviouslyPro: Boolean = false) = UpgradeViewModel.State(
+    private fun loadedState(
+        wasPreviouslyPro: Boolean = false,
+        restoreInProgress: Boolean = false,
+    ) = UpgradeViewModel.State(
         isLoadingPrices = false,
         iapState = UpgradeViewModel.State.Iap(available = true, formattedPrice = "$4.99"),
         subState = UpgradeViewModel.State.Sub(available = true, formattedPrice = "$2.99"),
         trialState = UpgradeViewModel.State.Trial(available = true, formattedPrice = "$2.99"),
         wasPreviouslyPro = wasPreviouslyPro,
+        restoreInProgress = restoreInProgress,
     )
 
     private fun setScreen(
@@ -52,5 +57,13 @@ class UpgradeScreenTest : ComposeTest() {
         setScreen(state = loadedState(wasPreviouslyPro = false))
 
         composeTestRule.onAllNodesWithTag(UpgradeScreenTestTags.RESTORE_BANNER).assertCountEquals(0)
+    }
+
+    @Test
+    fun `both restore affordances are disabled while a restore is running`() {
+        setScreen(state = loadedState(wasPreviouslyPro = true, restoreInProgress = true))
+
+        composeTestRule.onNodeWithTag(UpgradeScreenTestTags.RESTORE_BANNER_ACTION).assertIsNotEnabled()
+        composeTestRule.onNodeWithTag(UpgradeScreenTestTags.RESTORE_ACTION).assertIsNotEnabled()
     }
 }

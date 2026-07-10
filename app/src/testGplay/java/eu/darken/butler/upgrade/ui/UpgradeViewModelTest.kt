@@ -3,6 +3,7 @@ package eu.darken.butler.upgrade.ui
 import eu.darken.butler.upgrade.core.UpgradeRepoGplay
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.async
@@ -72,6 +73,37 @@ class UpgradeViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         forwardedError.await() shouldBe boom
+    }
+
+    @Test
+    fun `restore is single-flight, taps during a running restore are ignored`() = runTest2(context = testDispatcher) {
+        val repo = mockRepo()
+        coEvery { repo.restorePurchaseNow() } coAnswers {
+            delay(5_000)
+            UpgradeRepoGplay.Info(gracePeriod = true, billingData = null)
+        }
+        val vm = buildVm(repo)
+
+        vm.restorePurchase()
+        vm.restorePurchase()
+        vm.restorePurchase()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repo.restorePurchaseNow() }
+    }
+
+    @Test
+    fun `a finished restore allows a new attempt`() = runTest2(context = testDispatcher) {
+        val repo = mockRepo()
+        coEvery { repo.restorePurchaseNow() } returns UpgradeRepoGplay.Info(false, null)
+        val vm = buildVm(repo)
+
+        vm.restorePurchase()
+        advanceUntilIdle()
+        vm.restorePurchase()
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { repo.restorePurchaseNow() }
     }
 
     @Test
