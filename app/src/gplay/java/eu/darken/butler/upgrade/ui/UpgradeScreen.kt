@@ -622,7 +622,9 @@ private fun RestoreBanner(
             ) {
                 if (restoreInProgress) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier
+                            .size(18.dp)
+                            .testTag(UpgradeScreenTestTags.RESTORE_BANNER_PROGRESS),
                         strokeWidth = 2.dp,
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -636,6 +638,7 @@ private fun RestoreBanner(
 internal object UpgradeScreenTestTags {
     const val RESTORE_BANNER = "upgrade_restore_banner"
     const val RESTORE_BANNER_ACTION = "upgrade_restore_banner_action"
+    const val RESTORE_BANNER_PROGRESS = "upgrade_restore_banner_progress"
     const val RESTORE_ACTION = "upgrade_restore_action"
 }
 

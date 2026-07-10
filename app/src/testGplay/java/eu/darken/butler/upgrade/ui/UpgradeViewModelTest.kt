@@ -1,6 +1,7 @@
 package eu.darken.butler.upgrade.ui
 
 import eu.darken.butler.upgrade.core.UpgradeRepoGplay
+import eu.darken.butler.upgrade.core.billing.GplayServiceUnavailableException
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -10,6 +11,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.jupiter.api.Test
@@ -116,6 +118,30 @@ class UpgradeViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         loaded.await()!!.wasPreviouslyPro shouldBe true
+    }
+
+    @Test
+    fun `price-query error is emitted once, not re-emitted by restore state changes`() = runTest2(context = testDispatcher) {
+        val repo = mockRepo()
+        // Both queries fail -> data resolves to null -> the combine's "Play unavailable" emission.
+        // The individual query errors are also forwarded (pre-existing behavior), so this pins the
+        // count of the aggregate error specifically.
+        coEvery { repo.querySkus(any()) } throws RuntimeException("price query failed")
+        coEvery { repo.restorePurchaseNow() } returns UpgradeRepoGplay.Info(false, null)
+        val vm = buildVm(repo)
+
+        val errors = mutableListOf<Throwable>()
+        backgroundScope.launch { vm.errorEvents.collect { errors.add(it) } }
+        backgroundScope.launch { vm.state.collect { } }
+        advanceUntilIdle()
+
+        // The restoring flag toggling through the state combine must not re-emit the error.
+        vm.restorePurchase()
+        advanceUntilIdle()
+        vm.restorePurchase()
+        advanceUntilIdle()
+
+        errors.count { it is GplayServiceUnavailableException } shouldBe 1
     }
 
     @Test

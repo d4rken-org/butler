@@ -128,6 +128,8 @@ class BillingManager @Inject constructor(
             useConnection {
                 launchBillingFlow(activity, sku, offer)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to start IAP flow:\n${e.asLog()}" }
             // Expected environmental/user situations — user-facing handling only, no bug report.

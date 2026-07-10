@@ -36,6 +36,7 @@ class UpgradeViewModel @Inject constructor(
     val events = SingleEventFlow<UpgradeEvents>()
 
     private val restoring = MutableStateFlow(false)
+    private var priceErrorReported = false
 
     init {
         upgradeRepo.upgradeInfo
@@ -79,7 +80,10 @@ class UpgradeViewModel @Inject constructor(
         val iap = (iapQueryState as? QueryState.Loaded)?.data
         val sub = (subQueryState as? QueryState.Loaded)?.data
 
-        if (!isLoadingPrices && iap == null && sub == null) {
+        // Emit once per ViewModel: the combine transform re-runs for every restoring/wasEverPro
+        // change, which must not re-pop the "Play unavailable" dialog for the same failed queries.
+        if (!isLoadingPrices && iap == null && sub == null && !priceErrorReported) {
+            priceErrorReported = true
             errorEvents.emit(
                 GplayServiceUnavailableException(RuntimeException("IAP and SUB data request timed out."))
             )

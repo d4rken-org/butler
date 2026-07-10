@@ -81,8 +81,8 @@ data class BillingConnection(
     // caller can tell "not owned" apart from "couldn't verify".
     suspend fun refreshPurchases(): Collection<Purchase> = coroutineScope {
         log(TAG) { "refreshPurchases()" }
-        val iapJob = async { queryPurchasedProducts(BillingClient.ProductType.INAPP) { queryCacheIaps.value = it } }
-        val subJob = async { queryPurchasedProducts(BillingClient.ProductType.SUBS) { queryCacheSubs.value = it } }
+        val iapJob = async { queryPurchasedProducts(BillingClient.ProductType.INAPP, queryCacheIaps) }
+        val subJob = async { queryPurchasedProducts(BillingClient.ProductType.SUBS, queryCacheSubs) }
         val iap = iapJob.await()
         val sub = subJob.await()
         log(TAG) { "Refreshed IAPs=${iap.getOrNull()}, SUBs=${sub.getOrNull()}" }
@@ -93,14 +93,19 @@ data class BillingConnection(
     // sibling query (or the coroutineScope). The exception is already user-friendly-mapped.
     private suspend fun queryPurchasedProducts(
         @BillingClient.ProductType type: String,
-        cache: (Collection<Purchase>) -> Unit,
+        cache: MutableStateFlow<Collection<Purchase>?>,
     ): Result<Collection<Purchase>> = try {
         val purchased = queryPurchases(type).filter { it.purchaseState == PurchaseState.PURCHASED }
-        cache(purchased)
+        cache.value = purchased
         Result.success(purchased)
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
+        // The purchases combine gates on both caches being initialized. A failed side that has no
+        // data yet counts as "no purchases" so a one-sided failure can't stall the reactive flow
+        // (and with it ack + upgradeInfo); later failures keep the last known values instead.
+        // compareAndSet so a concurrent successful refresh can't be overwritten with empty.
+        cache.compareAndSet(null, emptyList())
         Result.failure(e.tryMapUserFriendly())
     }
 

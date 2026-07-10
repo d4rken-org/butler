@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import eu.darken.butler.common.compose.PreviewWrapper
 import org.junit.Test
+import org.robolectric.annotation.Config
 import testhelpers.ComposeTest
 
 class UpgradeScreenTest : ComposeTest() {
@@ -65,5 +66,22 @@ class UpgradeScreenTest : ComposeTest() {
 
         composeTestRule.onNodeWithTag(UpgradeScreenTestTags.RESTORE_BANNER_ACTION).assertIsNotEnabled()
         composeTestRule.onNodeWithTag(UpgradeScreenTestTags.RESTORE_ACTION).assertIsNotEnabled()
+        composeTestRule
+            .onNodeWithTag(UpgradeScreenTestTags.RESTORE_BANNER_PROGRESS, useUnmergedTree = true)
+            .assertExists()
+    }
+
+    @Test
+    @Config(qualifiers = "w840dp-h900dp")
+    fun `wide layout also shows the banner for returning buyers`() {
+        var restoreClicks = 0
+        setScreen(
+            state = loadedState(wasPreviouslyPro = true),
+            onRestorePurchase = { restoreClicks++ },
+        )
+
+        composeTestRule.onAllNodesWithTag(UpgradeScreenTestTags.RESTORE_BANNER).assertCountEquals(1)
+        composeTestRule.onNodeWithTag(UpgradeScreenTestTags.RESTORE_BANNER_ACTION).performClick()
+        composeTestRule.runOnIdle { check(restoreClicks == 1) { "expected 1 restore click, got $restoreClicks" } }
     }
 }
