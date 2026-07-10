@@ -5,6 +5,7 @@ import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.upgrade.UpgradeRepo
 import eu.darken.butler.upgrade.core.billing.BillingData
 import eu.darken.butler.upgrade.core.billing.BillingManager
+import eu.darken.butler.upgrade.core.billing.PurchasedSku
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
 import testhelpers.coroutine.TestDispatcherProvider
 import testhelpers.coroutine.runTest2
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
 class UpgradeRepoGplayTest : BaseTest() {
@@ -28,12 +30,16 @@ class UpgradeRepoGplayTest : BaseTest() {
 
     // Builds a repo whose stored last-Pro timestamp is `lastProAt`. billingData is stubbed only
     // because the upgradeInfo flow references it at construction; it is never collected here.
-    private fun repo(lastProAt: Long): UpgradeRepoGplay {
+    private fun repo(lastProAt: Long, lastSku: String = ""): UpgradeRepoGplay {
         every { billingManager.billingData } returns flowOf(BillingData(emptySet()))
         val lastPro = mockk<DataStoreValue<Long>>(relaxed = true).apply {
             every { flow } returns flowOf(lastProAt)
         }
         every { billingCache.lastProStateAt } returns lastPro
+        val lastProSku = mockk<DataStoreValue<String>>(relaxed = true).apply {
+            every { flow } returns flowOf(lastSku)
+        }
+        every { billingCache.lastProStateSku } returns lastProSku
         return UpgradeRepoGplay(scope, dispatcherProvider, billingManager, billingCache)
     }
 
@@ -108,5 +114,37 @@ class UpgradeRepoGplayTest : BaseTest() {
         shouldThrow<RuntimeException> {
             repo(lastProAt = 0L).restorePurchaseNow()
         }
+    }
+
+    @Test fun `permanent IAP keeps grace well beyond the subscription window`() = runTest2 {
+        coEvery { billingManager.refresh() } returns BillingData(emptySet())
+        // 20 days ago: past the 7-day subscription window, but within the 30-day IAP window.
+        val twentyDaysAgo = System.currentTimeMillis() - 20.days.inWholeMilliseconds
+
+        repo(lastProAt = twentyDaysAgo, lastSku = OurSku.Iap.PRO_UPGRADE.id)
+            .restorePurchaseNow().isUpgraded shouldBe true
+    }
+
+    @Test fun `subscription grace expires after the short window`() = runTest2 {
+        coEvery { billingManager.refresh() } returns BillingData(emptySet())
+        val twentyDaysAgo = System.currentTimeMillis() - 20.days.inWholeMilliseconds
+
+        repo(lastProAt = twentyDaysAgo, lastSku = OurSku.Sub.PRO_UPGRADE.id)
+            .restorePurchaseNow().isUpgraded shouldBe false
+    }
+
+    @Test fun `IAP grace window is longer than the subscription window`() {
+        (UpgradeRepoGplay.GRACE_PERIOD_IAP_MS > UpgradeRepoGplay.GRACE_PERIOD_MS) shouldBe true
+        UpgradeRepoGplay.GRACE_PERIOD_IAP_MS shouldBe 30.days.inWholeMilliseconds
+    }
+
+    @Test fun `preferredProSku prefers the permanent IAP when both are owned`() {
+        val iap = PurchasedSku(OurSku.Iap.PRO_UPGRADE, mockk<Purchase>())
+        val sub = PurchasedSku(OurSku.Sub.PRO_UPGRADE, mockk<Purchase>())
+
+        UpgradeRepoGplay.preferredProSku(listOf(sub, iap))?.id shouldBe OurSku.Iap.PRO_UPGRADE.id
+        UpgradeRepoGplay.preferredProSku(listOf(iap))?.id shouldBe OurSku.Iap.PRO_UPGRADE.id
+        UpgradeRepoGplay.preferredProSku(listOf(sub))?.id shouldBe OurSku.Sub.PRO_UPGRADE.id
+        UpgradeRepoGplay.preferredProSku(emptyList()) shouldBe null
     }
 }
