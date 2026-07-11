@@ -2,8 +2,8 @@ package eu.darken.butler.editor.ui.editor.elements
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.KeyboardReturn
 import androidx.compose.material.icons.twotone.Description
-import androidx.compose.material.icons.twotone.KeyboardReturn
 import androidx.compose.material.icons.twotone.Lock
 import androidx.compose.material.icons.twotone.TextFields
 import androidx.compose.material.icons.twotone.Translate
@@ -87,7 +87,7 @@ fun EditorInfoBar(
                 }
                 if (lineEnding != null) {
                     InfoChip(
-                        icon = Icons.TwoTone.KeyboardReturn,
+                        icon = Icons.AutoMirrored.TwoTone.KeyboardReturn,
                         label = when (lineEnding) {
                             LineEnding.MIXED -> stringResource(R.string.editor_line_ending_mixed)
                             else -> lineEnding.name

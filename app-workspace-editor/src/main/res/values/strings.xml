@@ -49,6 +49,8 @@
     <string name="editor_long_lines_banner_message">Very long lines are shortened for display; the full content is preserved and saved.</string>
     <string name="editor_line_truncated_marker">⋯ +%1$d</string>
     <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Show next part of the line</string>
+    <string name="editor_line_truncated_marker_previous_action">Show previous part of the line</string>
 
     <!-- Backing-file-lost notice -->
     <string name="editor_backing_lost_banner_title">File no longer available</string>
@@ -128,9 +130,9 @@
     <string name="editor_dialog_close_confirm_title">Unsaved Changes</string>
     <string name="editor_dialog_close_confirm_message">You have unsaved changes. Discard them?</string>
     <string name="editor_dialog_close_confirm_discard">Discard</string>
-    <string name="editor_dialog_large_delete_confirm_title">Delete large selection?</string>
-    <string name="editor_dialog_large_delete_confirm_message">This selection is too large to undo. Delete it anyway?</string>
-    <string name="editor_dialog_large_delete_confirm_action">Delete</string>
+    <string name="editor_dialog_large_delete_confirm_title">Edit large selection?</string>
+    <string name="editor_dialog_large_delete_confirm_message">This selection is too large to undo. Continue anyway?</string>
+    <string name="editor_dialog_large_delete_confirm_action">Continue</string>
     <string name="editor_encoding_dialog_title">Encoding</string>
     <string name="editor_encoding_dialog_message">Reopen the file with a different encoding. Unsaved changes are discarded; unedited bytes stay untouched on save.</string>
     <string name="editor_infobar_read_only">Read-only</string>

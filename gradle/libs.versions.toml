@@ -11,7 +11,6 @@ screenshot = "0.0.1-alpha15"
 coroutines = "1.11.0"
 dagger = "2.60"
 androidx-hilt = "1.4.0"
-hilt-navigation-compose = "1.4.0"
 kotlinx-serialization = "1.11.0"
 okio = "3.13.0"
 retrofit = "2.11.0"
@@ -82,7 +81,7 @@ hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", ve
 hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "dagger" }
 hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "androidx-hilt" }
 hilt-compiler-androidx = { module = "androidx.hilt:hilt-compiler", version.ref = "androidx-hilt" }
-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
+hilt-lifecycle-viewmodel-compose = { module = "androidx.hilt:hilt-lifecycle-viewmodel-compose", version.ref = "androidx-hilt" }
 # Kotlin / coroutines
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }

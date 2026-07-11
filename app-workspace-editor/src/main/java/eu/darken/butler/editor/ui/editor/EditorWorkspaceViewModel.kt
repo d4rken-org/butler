@@ -43,18 +43,20 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicReference
 
 @HiltViewModel(assistedFactory = EditorWorkspaceViewModel.Factory::class)
 class EditorWorkspaceViewModel @AssistedInject constructor(
@@ -75,7 +77,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
 
     private val searchController = EditorSearchController(vmScope, doLaunch, ::getWorkspace, tag)
     private val clipboardController =
-        EditorClipboardController(id, doLaunch, ::getWorkspace, clipboardHelper, clipboardRepo, tag)
+        EditorClipboardController(id, doLaunch, ::getWorkspace, ::guardedInsertText, clipboardHelper, clipboardRepo, tag)
     private val dialogsController = EditorDialogsController(doLaunch, ::getWorkspace)
 
     private var openFileJob: Job? = null
@@ -84,13 +86,20 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         .filterNotNull()
         .flatMapLatest { ws -> ws.state.map { state -> ws to state } }
 
+    // Bumped whenever a field-originated edit (typing/backspace) is gated behind the large-edit
+    // confirm dialog. LazyTextEditor applies its edit to the hidden field optimistically before
+    // dispatching, so a gated (unapplied) edit would leave the field diverged from the engine;
+    // observing this signal makes the field revert to engine content. Only fires on the rare
+    // oversized gate - normal typing never bumps it.
+    private val _editResyncSignal = MutableStateFlow(0)
+
     val state: Flow<State> = combine(
         workspaceWithState,
         dialogsController.state,
         searchController.state,
-        flowOf(id),
         clipboardController.hasSystemClipboardContent,
-    ) { (workspace, wsState), dialogs, search, workspaceId, hasClipboardContent ->
+        _editResyncSignal,
+    ) { (workspace, wsState), dialogs, search, hasClipboardContent, editResyncSignal ->
         // Only emit Ready states - Init/Error are handled globally by WorkspaceMapper
         val readyState = wsState as? EditorWorkspace.State.Ready ?: return@combine null
 
@@ -101,7 +110,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val subTitle = displayPath?.parent?.userReadablePath ?: "In-Memory-Buffer".toCaString()
 
         State(
-            id = workspaceId,
+            id = id,
             contentSource = editorState.contentSource,
             title = title,
             subTitle = subTitle,
@@ -149,6 +158,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             hasSystemClipboardContent = hasClipboardContent,
             maxUndoableEditChars = editorState.maxUndoableEditChars,
             showLargeDeleteConfirmDialog = dialogs.showLargeDeleteConfirmDialog,
+            editResyncSignal = editResyncSignal,
         )
     }.filterNotNull()
 
@@ -404,60 +414,97 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         getWorkspace().revealMoreColumns(forward)
     }
 
-    fun insertText(text: String) = launch {
+    fun insertText(text: String) = launch { guardedInsertText(text) }
+
+    private suspend fun performInsertText(text: String) {
         editActivity.tryEmit(Unit)
         getWorkspace().insertText(text)
     }
 
     fun replaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) = launch {
+        // Typing/backspace over an oversized selection replaces it non-undoably (materializing it
+        // for undo would OOM). The field already applied the edit locally, so a deferred gate bumps
+        // the resync signal to revert it; on confirm we replay the replace.
+        if (deferIfOversized(fromField = true) { performReplaceText(start, end, text, caret) }) return@launch
+        performReplaceText(start, end, text, caret)
+    }
+
+    private suspend fun performReplaceText(start: TextPosition, end: TextPosition, text: String, caret: TextPosition) {
         editActivity.tryEmit(Unit)
         getWorkspace().replaceText(start, end, text, caret)
     }
 
-    fun deleteSelection() = launch {
+    fun deleteSelection() = launch { performDeleteSelection() }
+
+    private suspend fun performDeleteSelection() {
         editActivity.tryEmit(Unit)
         getWorkspace().deleteSelection()
     }
 
+    // Deferred edit stashed behind the large-edit confirm dialog; replayed by [confirmLargeDelete],
+    // dropped by [dismissLargeEditConfirm]. AtomicReference gives lock-free first-writer-wins: VM
+    // coroutines run on a multi-threaded dispatcher, so a plain var could be raced by two gated edits.
+    private val pendingOversizedEdit = AtomicReference<(suspend () -> Unit)?>(null)
+
     /**
-     * True (and shows the confirm dialog) when the current selection is larger than
-     * [State.maxUndoableEditChars] - deleting it can't be undone (materializing it for undo would
-     * OOM). Shared by every "delete the selection" gesture (Delete button, Backspace, forward-Delete
-     * key), which all delete the same current selection, so [confirmLargeDelete] runs the delete on
-     * confirm. Returns false (delete directly) below the threshold or before a file is loaded.
+     * True (edit deferred behind the confirm dialog) when the current selection is too large to edit
+     * undoably - replacing/deleting it clears history (materializing it for undo would OOM). Reads the
+     * engine's authoritative selection via [EditorWorkspace.selectionExceedsUndoThreshold] (not the
+     * async state projection, which can lag a just-set selection and let the gate be skipped).
+     * [onConfirm] is stashed (first-writer-wins) and replayed on confirm.
+     *
+     * For paste/delete the engine replaces the whole selection, so this is exact. For a field edit
+     * (typing/backspace) the field may only dispatch a window-bounded replace, so this can over-fire
+     * (confirm an edit that would actually be undoable) - the safe direction; it never skips a genuine
+     * non-undoable edit. [fromField] edits already mutated the hidden field locally, so a gate bumps
+     * [_editResyncSignal] to revert it to engine content.
      */
-    private suspend fun confirmIfLargeSelection(): Boolean {
-        val current = state.first()
-        val threshold = current.maxUndoableEditChars ?: return false
-        if (current.hasSelection && current.selectedCharacterCount > threshold) {
+    private suspend fun deferIfOversized(fromField: Boolean = false, onConfirm: suspend () -> Unit): Boolean {
+        if (!getWorkspace().selectionExceedsUndoThreshold()) return false
+        // Only the first writer shows the dialog; a later gated edit is dropped, not stashed.
+        if (pendingOversizedEdit.compareAndSet(null, onConfirm)) {
             dialogsController.showLargeDeleteConfirmDialog()
-            return true
         }
-        return false
+        // Revert the field's optimistic local edit (deferred first edit or a dropped later one).
+        if (fromField) _editResyncSignal.update { it + 1 }
+        return true
     }
 
     fun requestDeleteSelection() = launch {
-        if (!confirmIfLargeSelection()) deleteSelection()
+        if (!deferIfOversized { performDeleteSelection() }) performDeleteSelection()
     }
 
     fun confirmLargeDelete() {
+        val action = pendingOversizedEdit.getAndSet(null) ?: return
         dialogsController.dismissLargeDeleteConfirmDialog()
-        deleteSelection()
+        launch { action() }
+    }
+
+    /** Cancel the pending oversized edit without applying it. */
+    private fun dismissLargeEditConfirm() {
+        pendingOversizedEdit.set(null)
+        dialogsController.dismissLargeDeleteConfirmDialog()
     }
 
     fun deleteAtCursor(count: Int) = launch {
-        // Backspace over an oversized selection deletes non-undoably; confirm like the Delete button.
-        // A plain backspace (no selection) is never gated. editActivity fires only on the actual
-        // delete, not when we stop to show the confirm dialog.
-        if (confirmIfLargeSelection()) return@launch
+        // Over an oversized selection this deletes non-undoably; confirm and replay as a selection
+        // delete. A plain backspace (no selection) is never gated.
+        if (deferIfOversized { performDeleteSelection() }) return@launch
         editActivity.tryEmit(Unit)
         getWorkspace().deleteAtCursor(count)
     }
 
     fun deleteForward() = launch {
-        if (confirmIfLargeSelection()) return@launch
+        if (deferIfOversized { performDeleteSelection() }) return@launch
         editActivity.tryEmit(Unit)
         getWorkspace().deleteForward()
+    }
+
+    /** Insert (e.g. paste) guarded by the oversized-selection gate. Returns false when deferred. */
+    private suspend fun guardedInsertText(text: String): Boolean {
+        if (deferIfOversized { performInsertText(text) }) return false
+        performInsertText(text)
+        return true
     }
 
     fun moveCursor(direction: CursorDirection, extendSelection: Boolean) = launch {
@@ -587,7 +634,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             is EditorPageAction.Dialog.DismissReloadConfirm -> dialogsController.dismissReloadConfirmDialog()
             is EditorPageAction.Dialog.DismissLineEnding -> dialogsController.dismissLineEndingDialog()
             is EditorPageAction.Dialog.ConfirmLargeDelete -> confirmLargeDelete()
-            is EditorPageAction.Dialog.DismissLargeDeleteConfirm -> dialogsController.dismissLargeDeleteConfirmDialog()
+            is EditorPageAction.Dialog.DismissLargeDeleteConfirm -> dismissLargeEditConfirm()
 
             // Clipboard actions
             is EditorPageAction.Clipboard.Paste -> clipboardController.pasteFromClipboard(action.clip)
@@ -663,6 +710,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         /** Delete/replace above this is applied non-undoably; null until a file is loaded. */
         val maxUndoableEditChars: Long? = null,
         val showLargeDeleteConfirmDialog: Boolean = false,
+        /** Increments when a field edit is gated behind the confirm dialog; signals the text field to revert to engine content. */
+        val editResyncSignal: Int = 0,
     ) {
         val isLoading: Boolean get() = progress != null
         val hasFile: Boolean get() = contentSource is ContentSource.File
