@@ -47,6 +47,8 @@
     <string name="editor_long_lines_banner_message">Very long lines are shortened for display; the full content is preserved and saved.</string>
     <string name="editor_line_truncated_marker">⋯ +%1$d</string>
     <string name="editor_line_leading_truncated_marker">+%1$d ⋯</string>
+    <string name="editor_line_truncated_marker_next_action">Show next part of the line</string>
+    <string name="editor_line_truncated_marker_previous_action">Show previous part of the line</string>
 
     <!-- Backing-file-lost notice -->
     <string name="editor_backing_lost_banner_title">File no longer available</string>
