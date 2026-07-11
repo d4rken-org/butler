@@ -152,7 +152,7 @@ fun Project.addAndroidUI() {
     add("implementation", "androidx-activity-compose")
     add("implementation", "lifecycle-viewmodel-compose")
 
-    add("implementation", "hilt-navigation-compose")
+    add("implementation", "hilt-lifecycle-viewmodel-compose")
 
     add("implementation", "accompanist-drawablepainter")
 }
