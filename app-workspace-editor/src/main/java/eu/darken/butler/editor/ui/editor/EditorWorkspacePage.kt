@@ -378,6 +378,7 @@ fun EditorWorkspacePage(
                         onPageAction(EditorPageAction.Navigation.MoveCursor(direction, extendSelection))
                     },
                     onForwardDelete = { onPageAction(EditorPageAction.Edit.ForwardDelete) },
+                    resyncSignal = state.editResyncSignal,
                     modifier = Modifier
                         .fillMaxSize()
                         .nestedScroll(topBarStackState.nestedScrollConnection)

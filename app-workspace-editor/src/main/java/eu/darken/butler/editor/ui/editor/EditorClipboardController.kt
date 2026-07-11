@@ -29,6 +29,9 @@ class EditorClipboardController(
     private val id: Workspace.Id,
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit,
     private val workspace: suspend () -> EditorWorkspace,
+    // Inserts text guarded by the oversized-selection confirm gate; returns false when the edit was
+    // deferred behind the confirm dialog (so paste success isn't logged prematurely).
+    private val guardedInsert: suspend (String) -> Boolean,
     private val clipboardHelper: SystemClipboardHelper,
     private val clipboardRepo: ClipboardRepo,
     private val tag: String,
@@ -134,8 +137,7 @@ class EditorClipboardController(
     fun pasteFromClipboard() = doLaunch {
         val text = clipboardHelper.getClipboardText()
         if (text != null) {
-            workspace().insertText(text)
-            log(tag) { "Pasted ${text.length} characters from clipboard" }
+            if (guardedInsert(text)) log(tag) { "Pasted ${text.length} characters from clipboard" }
         } else {
             log(tag) { "No text content in clipboard to paste" }
         }
@@ -145,8 +147,9 @@ class EditorClipboardController(
         log(tag) { "pasteFromClipboard($clip)" }
         when (clip) {
             is ClipboardClip.Text -> {
-                workspace().insertText(clip.content)
-                log(tag, INFO) { "Pasted ${clip.content.length} characters from Butler clipboard" }
+                if (guardedInsert(clip.content)) {
+                    log(tag, INFO) { "Pasted ${clip.content.length} characters from Butler clipboard" }
+                }
             }
             is ClipboardClip.Paths -> {
                 val textFile = clip.paths.firstOrNull { isLikelyTextFile(it) }
@@ -172,8 +175,7 @@ class EditorClipboardController(
     private suspend fun pasteFileContent(path: APath<*>) {
         log(tag) { "pasteFileContent($path)" }
         val content = workspace().readFileContent(path).getOrThrow()
-        workspace().insertText(content)
-        log(tag, INFO) { "Pasted ${content.length} characters from file: ${path.name}" }
+        if (guardedInsert(content)) log(tag, INFO) { "Pasted ${content.length} characters from file: ${path.name}" }
     }
 
     fun showClipboardInfo(clip: ClipboardClip) {
