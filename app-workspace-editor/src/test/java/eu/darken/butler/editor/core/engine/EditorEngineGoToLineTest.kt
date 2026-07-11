@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
+import testhelpers.coroutine.TestDispatcherProvider
 
 class EditorEngineGoToLineTest : DocumentBufferTestBase() {
 
@@ -24,6 +25,9 @@ class EditorEngineGoToLineTest : DocumentBufferTestBase() {
         every { undoMaxMemory.flow } returns flowOf(10 * 1_048_576L)
         every { settings.undoStackSize } returns undoStackSize
         every { settings.undoMaxMemory } returns undoMaxMemory
+        val syntaxHighlighting = mockk<DataStoreValue<Boolean>>()
+        every { syntaxHighlighting.flow } returns flowOf(true)
+        every { settings.syntaxHighlighting } returns syntaxHighlighting
         return settings
     }
 
@@ -51,6 +55,7 @@ class EditorEngineGoToLineTest : DocumentBufferTestBase() {
             initialContent = content,
             gatewaySwitch = mockk(),
             editorSettings = createMockSettings(),
+            dispatcherProvider = TestDispatcherProvider(),
             fileDataSourceFactory = mockk(),
             inMemoryDataSourceFactory = inMemoryDataSourceFactory,
             documentBufferFactory = documentBufferFactory,

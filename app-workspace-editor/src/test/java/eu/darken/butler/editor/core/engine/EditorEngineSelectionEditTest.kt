@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
+import testhelpers.coroutine.TestDispatcherProvider
 /**
  * Tests for selection-aware editing behavior in EditorEngine.
  *
@@ -32,6 +33,9 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
 
         every { settings.undoStackSize } returns undoStackSize
         every { settings.undoMaxMemory } returns undoMaxMemory
+        val syntaxHighlighting = mockk<DataStoreValue<Boolean>>()
+        every { syntaxHighlighting.flow } returns flowOf(true)
+        every { settings.syntaxHighlighting } returns syntaxHighlighting
 
         return settings
     }
@@ -65,6 +69,7 @@ class EditorEngineSelectionEditTest : DocumentBufferTestBase() {
             initialContent = content,
             gatewaySwitch = mockk(), // Not used for in-memory
             editorSettings = settings,
+            dispatcherProvider = TestDispatcherProvider(),
             fileDataSourceFactory = mockk(), // Not used for in-memory
             inMemoryDataSourceFactory = inMemoryDataSourceFactory,
             documentBufferFactory = documentBufferFactory,

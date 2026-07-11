@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
+import testhelpers.coroutine.TestDispatcherProvider
 
 /**
  * copySelection with a size cap: the refusal happens under the engine lock BEFORE the selection
@@ -27,6 +28,9 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
         every { undoMaxMemory.flow } returns flowOf(10 * 1_048_576L)
         every { settings.undoStackSize } returns undoStackSize
         every { settings.undoMaxMemory } returns undoMaxMemory
+        val syntaxHighlighting = mockk<DataStoreValue<Boolean>>()
+        every { syntaxHighlighting.flow } returns flowOf(true)
+        every { settings.syntaxHighlighting } returns syntaxHighlighting
         return settings
     }
 
@@ -54,6 +58,7 @@ class EditorEngineCopySelectionTest : DocumentBufferTestBase() {
             initialContent = content,
             gatewaySwitch = mockk(),
             editorSettings = createMockSettings(),
+            dispatcherProvider = TestDispatcherProvider(),
             fileDataSourceFactory = mockk(),
             inMemoryDataSourceFactory = inMemoryDataSourceFactory,
             documentBufferFactory = documentBufferFactory,

@@ -19,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import java.nio.charset.Charset
 import kotlin.random.Random
+import testhelpers.coroutine.TestDispatcherProvider
 
 class EditorEngineCancelInitTest : EditorEngineTestBase() {
 
@@ -56,6 +57,7 @@ class EditorEngineCancelInitTest : EditorEngineTestBase() {
             initialContent = null,
             gatewaySwitch = gateway,
             editorSettings = createMockSettings(),
+            dispatcherProvider = TestDispatcherProvider(),
             fileDataSourceFactory = fileFactory,
             inMemoryDataSourceFactory = mockk(),
             documentBufferFactory = documentBufferFactory,

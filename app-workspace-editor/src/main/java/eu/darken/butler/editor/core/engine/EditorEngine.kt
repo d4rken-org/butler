@@ -9,6 +9,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ca.toCaString
+import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.progress.Progress
@@ -16,6 +17,8 @@ import eu.darken.butler.editor.BuildConfig
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.EditorSettings
 import eu.darken.butler.editor.core.engine.text.WindowedSearch
+import eu.darken.butler.editor.core.syntax.EditorHighlighter
+import eu.darken.butler.editor.core.syntax.Language
 import eu.darken.butler.editor.core.sources.EditorDataSource
 import eu.darken.butler.editor.core.sources.FileDataSource
 import eu.darken.butler.editor.core.sources.InMemoryDataSource
@@ -50,6 +53,7 @@ class EditorEngine @AssistedInject constructor(
     @Assisted private val charsetOverride: Charset? = null,
     private val gatewaySwitch: GatewaySwitch,
     private val editorSettings: EditorSettings,
+    private val dispatcherProvider: DispatcherProvider,
     private val fileDataSourceFactory: FileDataSource.Factory,
     private val inMemoryDataSourceFactory: InMemoryDataSource.Factory,
     private val documentBufferFactory: DocumentBuffer.Factory,
@@ -170,6 +174,26 @@ class EditorEngine @AssistedInject constructor(
 
     val textBuffer: DocumentBuffer?
         get() = (state.value as? EditorState.Loaded)?.resources?.textBuffer
+
+    /**
+     * Per-line syntax tokens for the visible window, computed off the display path: text never
+     * waits for highlighting (see [EditorHighlighter]). Language is fixed per engine lifetime -
+     * open/save-as create a new engine via the existing switch machinery.
+     */
+    val highlighter = EditorHighlighter(
+        language = Language.fromFileName(filePath?.name),
+        enabled = editorSettings.syntaxHighlighting.flow,
+        visibleContent = visibleContent,
+        visibleRange = visibleRange,
+        // Recomputes on every mutation (edits above the window don't change visibleContent) and
+        // on load (Empty -> Loaded swaps in the buffer's flow, so highlighting starts without
+        // waiting for a scroll/edit).
+        structuralVersion = state.flatMapLatest { s ->
+            (s as? EditorState.Loaded)?.resources?.textBuffer?.structuralVersionFlow ?: flowOf(-1L)
+        },
+        bufferProvider = { textBuffer },
+        dispatcherProvider = dispatcherProvider,
+    )
 
     /**
      * Matches inserted text to the document's line ending so editing doesn't turn a uniform

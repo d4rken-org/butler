@@ -347,6 +347,7 @@ fun EditorWorkspacePage(
                     visibleRange = state.visibleRange,
                     truncatedLines = state.truncatedLines,
                     startColumns = state.startColumns,
+                    highlightedLines = state.highlightedLines,
                     showLineNumbers = state.showLineNumbers,
                     wordWrap = state.wordWrap,
                     readOnly = state.isReadOnly,

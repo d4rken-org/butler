@@ -32,6 +32,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -45,6 +46,8 @@ import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.core.syntax.Token
+import eu.darken.butler.editor.core.syntax.TokenType
 
 private data class SelectionBounds(
     val left: Float,
@@ -73,6 +76,7 @@ internal fun TextLineItem(
     charWidthPx: Float,
     hiddenChars: Long = 0L,
     lineStartColumn: Long = 0L,
+    tokens: List<Token> = emptyList(),
     searchHighlights: List<Pair<Int, SearchResult>> = emptyList(),
     currentSearchResultIndex: Int = 0,
     modifier: Modifier = Modifier,
@@ -81,10 +85,19 @@ internal fun TextLineItem(
 ) {
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val density = LocalDensity.current
-    val cursorColor = MaterialTheme.colorScheme.primary
+    val colorScheme = MaterialTheme.colorScheme
+    val cursorColor = colorScheme.primary
     // Computed once per (content, tabSize); the draw lambda below re-runs every cursor-blink
     // frame and must not re-expand the line each time
     val displayText = remember(lineContent, tabSize) { lineContent.toDisplayText(tabSize) }
+    // Same blink-loop discipline as displayText; keyed on colorScheme so theme switches restyle
+    val annotatedText = remember(displayText, tokens, tabSize, colorScheme) {
+        if (tokens.isEmpty()) {
+            null
+        } else {
+            buildHighlightedText(displayText, lineContent, tokens, tabSize, colorScheme)
+        }
+    }
 
     // Blinking animation when focused
     val infiniteTransition = rememberInfiniteTransition(label = "cursor_blink")
@@ -258,6 +271,7 @@ internal fun TextLineItem(
     ) {
         SelectableText(
             text = displayText.ifEmpty { " " },
+            annotatedText = annotatedText,
             rawLineContent = lineContent,
             lineIndex = lineIndex,
             cursorPosition = cursorPosition,
@@ -284,6 +298,7 @@ internal fun SelectableText(
     text: String,
     rawLineContent: String,
     lineIndex: Long,
+    annotatedText: AnnotatedString? = null,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     searchHighlights: List<Pair<Int, SearchResult>> = emptyList(),
@@ -537,22 +552,39 @@ internal fun SelectableText(
             }
         }
 
-        Text(
-            text = if (text.isEmpty()) " " else text,
-            style = TextStyle(
-                fontSize = fontSize.sp,
-                fontFamily = FontFamily.Monospace,
-                color = textColor
-            ),
-            softWrap = wordWrap,
-            overflow = TextOverflow.Visible,
-            onTextLayout = { result ->
-                layoutResult = result
-                onTextLayout(result)
-            },
-            modifier = (if (wordWrap) Modifier.fillMaxWidth() else Modifier.wrapContentWidth())
-                .then(if (markerText != null) Modifier.padding(end = markerReserve) else Modifier)
+        val textStyle = TextStyle(
+            fontSize = fontSize.sp,
+            fontFamily = FontFamily.Monospace,
+            color = textColor
         )
+        val handleTextLayout: (TextLayoutResult) -> Unit = { result ->
+            layoutResult = result
+            onTextLayout(result)
+        }
+        val textModifier = (if (wordWrap) Modifier.fillMaxWidth() else Modifier.wrapContentWidth())
+            .then(if (markerText != null) Modifier.padding(end = markerReserve) else Modifier)
+        // Branch at the terminal call: without tokens this stays the exact pre-highlighting
+        // String path. Span colors don't move glyphs, so every TextLayoutResult consumer
+        // (cursor, selection, search overlays, hit-testing) is unaffected by the swap.
+        if (annotatedText != null && annotatedText.text.isNotEmpty()) {
+            Text(
+                text = annotatedText,
+                style = textStyle,
+                softWrap = wordWrap,
+                overflow = TextOverflow.Visible,
+                onTextLayout = handleTextLayout,
+                modifier = textModifier
+            )
+        } else {
+            Text(
+                text = if (text.isEmpty()) " " else text,
+                style = textStyle,
+                softWrap = wordWrap,
+                overflow = TextOverflow.Visible,
+                onTextLayout = handleTextLayout,
+                modifier = textModifier
+            )
+        }
 
         // Truncation marker: a non-interactive sibling OVERLAY - never concatenated into the
         // measured Text (that would shift every getBoundingBox index) and never fed to
@@ -630,6 +662,30 @@ private fun TextLineItemPreview() {
         tabSize = 4,
         charWidthPx = 8.4f,
         modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun TextLineItemHighlightedPreview() {
+    TextLineItem(
+        lineIndex = 0,
+        lineContent = "const sum = a + 42 // total",
+        tokens = listOf(
+            Token(0, 5, TokenType.KEYWORD),
+            Token(16, 18, TokenType.NUMBER),
+            Token(19, 27, TokenType.COMMENT),
+        ),
+        cursorPosition = TextPosition(offset = 0, line = 0, column = 0),
+        selection = null,
+        isCurrentLine = false,
+        isFocused = false,
+        wordWrap = false,
+        fontSize = 14,
+        tabSize = 4,
+        charWidthPx = 8.4f,
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 

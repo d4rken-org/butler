@@ -28,6 +28,7 @@ import testhelpers.BaseTest
 import java.io.File
 import java.nio.charset.Charset
 import kotlin.random.Random
+import testhelpers.coroutine.TestDispatcherProvider
 
 /**
  * Insert-side line-ending consistency: text entering the engine conforms to the document's
@@ -69,6 +70,9 @@ class EditorEngineLineEndingTest : BaseTest() {
         }
         every { settings.undoStackSize } returns value(100)
         every { settings.undoMaxMemory } returns value(10 * 1_048_576L)
+        val syntaxHighlighting = mockk<DataStoreValue<Boolean>>()
+        every { syntaxHighlighting.flow } returns flowOf(true)
+        every { settings.syntaxHighlighting } returns syntaxHighlighting
         return settings
     }
 
@@ -81,6 +85,7 @@ class EditorEngineLineEndingTest : BaseTest() {
         initialContent = null,
         gatewaySwitch = gateway,
         editorSettings = createMockSettings(),
+        dispatcherProvider = TestDispatcherProvider(),
         fileDataSourceFactory = object : FileDataSource.Factory {
             override fun create(
                 workspaceId: Workspace.Id,

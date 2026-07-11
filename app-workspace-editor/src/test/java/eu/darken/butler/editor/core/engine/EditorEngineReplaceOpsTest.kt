@@ -25,6 +25,7 @@ import java.nio.charset.Charset
 import kotlin.random.Random
 import kotlin.time.TimeSource
 import kotlin.uuid.Uuid
+import testhelpers.coroutine.TestDispatcherProvider
 
 class EditorEngineReplaceOpsTest : BaseTest() {
 
@@ -37,6 +38,9 @@ class EditorEngineReplaceOpsTest : BaseTest() {
         }
         every { settings.undoStackSize } returns value(100)
         every { settings.undoMaxMemory } returns value(10 * 1_048_576L)
+        val syntaxHighlighting = mockk<DataStoreValue<Boolean>>()
+        every { syntaxHighlighting.flow } returns flowOf(true)
+        every { settings.syntaxHighlighting } returns syntaxHighlighting
         return settings
     }
 
@@ -47,6 +51,7 @@ class EditorEngineReplaceOpsTest : BaseTest() {
             initialContent = content,
             gatewaySwitch = mockk<GatewaySwitch>(),
             editorSettings = createMockSettings(),
+            dispatcherProvider = TestDispatcherProvider(),
             fileDataSourceFactory = object : FileDataSource.Factory {
                 override fun create(
                     workspaceId: Workspace.Id,
@@ -313,6 +318,7 @@ class EditorEngineReplaceOpsTest : BaseTest() {
                     every { flow } returns flowOf(64L) // absurdly small cap
                 }
             },
+            dispatcherProvider = TestDispatcherProvider(),
             fileDataSourceFactory = object : FileDataSource.Factory {
                 override fun create(
                     workspaceId: Workspace.Id,

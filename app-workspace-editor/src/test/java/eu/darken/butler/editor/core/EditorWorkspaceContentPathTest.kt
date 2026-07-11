@@ -28,6 +28,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import testhelpers.BaseTest
+import testhelpers.coroutine.TestDispatcherProvider
 import java.io.File
 import java.nio.charset.Charset
 import kotlin.random.Random
@@ -82,6 +83,7 @@ class EditorWorkspaceContentPathTest : BaseTest() {
         every { settings.autoSaveInterval } returns value(30.seconds)
         every { settings.undoStackSize } returns value(100)
         every { settings.undoMaxMemory } returns value(10 * 1_048_576L)
+        every { settings.syntaxHighlighting } returns value(true)
         return settings
     }
 
@@ -129,6 +131,7 @@ class EditorWorkspaceContentPathTest : BaseTest() {
                 charsetOverride = charsetOverride,
                 gatewaySwitch = gateway,
                 editorSettings = settings,
+                dispatcherProvider = TestDispatcherProvider(),
                 fileDataSourceFactory = fileFactory,
                 inMemoryDataSourceFactory = inMemoryFactory,
                 documentBufferFactory = documentBufferFactory,

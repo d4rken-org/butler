@@ -29,6 +29,7 @@ import testhelpers.BaseTest
 import java.io.File
 import java.nio.charset.Charset
 import kotlin.random.Random
+import testhelpers.coroutine.TestDispatcherProvider
 
 /**
  * External-change detection: the poll-side meta probe ([EditorEngine.checkExternalChange]) and
@@ -69,6 +70,9 @@ class EditorEngineExternalChangeTest : BaseTest() {
         }
         every { settings.undoStackSize } returns value(100)
         every { settings.undoMaxMemory } returns value(10 * 1_048_576L)
+        val syntaxHighlighting = mockk<DataStoreValue<Boolean>>()
+        every { syntaxHighlighting.flow } returns flowOf(true)
+        every { settings.syntaxHighlighting } returns syntaxHighlighting
         return settings
     }
 
@@ -82,6 +86,7 @@ class EditorEngineExternalChangeTest : BaseTest() {
         initialContent = content,
         gatewaySwitch = gateway,
         editorSettings = createMockSettings(),
+        dispatcherProvider = TestDispatcherProvider(),
         fileDataSourceFactory = object : FileDataSource.Factory {
             override fun create(
                 workspaceId: Workspace.Id,

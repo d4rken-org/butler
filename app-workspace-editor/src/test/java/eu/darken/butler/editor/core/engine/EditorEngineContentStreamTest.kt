@@ -25,6 +25,7 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import kotlin.random.Random
 import java.nio.charset.Charset
+import testhelpers.coroutine.TestDispatcherProvider
 
 /**
  * Tests for [EditorEngine.writeContentTo], which backs "Save As".
@@ -45,6 +46,9 @@ class EditorEngineContentStreamTest : DocumentBufferTestBase() {
         every { undoMaxMemory.flow } returns flowOf(10 * 1_048_576L)
         every { settings.undoStackSize } returns undoStackSize
         every { settings.undoMaxMemory } returns undoMaxMemory
+        val syntaxHighlighting = mockk<DataStoreValue<Boolean>>()
+        every { syntaxHighlighting.flow } returns flowOf(true)
+        every { settings.syntaxHighlighting } returns syntaxHighlighting
         return settings
     }
 
@@ -96,6 +100,7 @@ class EditorEngineContentStreamTest : DocumentBufferTestBase() {
         initialContent = content,
         gatewaySwitch = gateway,
         editorSettings = createMockSettings(),
+        dispatcherProvider = TestDispatcherProvider(),
         fileDataSourceFactory = fileDataSourceFactory,
         inMemoryDataSourceFactory = inMemoryDataSourceFactory,
         documentBufferFactory = documentBufferFactory,

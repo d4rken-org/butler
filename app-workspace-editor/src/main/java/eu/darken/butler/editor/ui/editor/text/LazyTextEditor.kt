@@ -77,6 +77,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.ui.propagateScrollAtBoundary
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.core.syntax.Token
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import kotlinx.coroutines.FlowPreview
@@ -100,6 +101,7 @@ fun LazyTextEditor(
     visibleRange: LongRange,
     truncatedLines: Map<Long, Long> = emptyMap(),
     startColumns: Map<Long, Long> = emptyMap(),
+    highlightedLines: Map<Long, List<Token>> = emptyMap(),
     showLineNumbers: Boolean = true,
     wordWrap: Boolean = false,
     readOnly: Boolean = false,
@@ -330,6 +332,7 @@ fun LazyTextEditor(
         visibleRange = visibleRange,
         truncatedLines = truncatedLines,
         startColumns = startColumns,
+        highlightedLines = highlightedLines,
         cursorPosition = cursorPosition,
         selection = selection,
         lineNumbersListState = lineNumbersListState,
@@ -362,6 +365,7 @@ private fun DualColumnEditorContent(
     visibleRange: LongRange,
     truncatedLines: Map<Long, Long>,
     startColumns: Map<Long, Long>,
+    highlightedLines: Map<Long, List<Token>>,
     cursorPosition: TextPosition,
     selection: Pair<TextPosition, TextPosition>?,
     lineNumbersListState: LazyListState,
@@ -872,6 +876,7 @@ private fun DualColumnEditorContent(
                         lineContent = lineContent,
                         hiddenChars = truncatedLines[lineIndex] ?: 0L,
                         lineStartColumn = startColumns[lineIndex] ?: 0L,
+                        tokens = highlightedLines[lineIndex] ?: emptyList(),
                         cursorPosition = cursorPosition,
                         selection = selection,
                         isCurrentLine = lineIndex == cursorPosition.line,

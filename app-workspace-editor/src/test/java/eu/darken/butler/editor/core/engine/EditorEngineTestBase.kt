@@ -8,6 +8,7 @@ import eu.darken.butler.workspace.core.Workspace
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
+import testhelpers.coroutine.TestDispatcherProvider
 import kotlin.random.Random
 
 /** Shared harness for tests running a full [EditorEngine] over an in-memory document. */
@@ -17,10 +18,13 @@ abstract class EditorEngineTestBase : DocumentBufferTestBase() {
         val settings = mockk<EditorSettings>()
         val undoStackSize = mockk<DataStoreValue<Int>>()
         val undoMaxMemory = mockk<DataStoreValue<Long>>()
+        val syntaxHighlighting = mockk<DataStoreValue<Boolean>>()
         every { undoStackSize.flow } returns flowOf(100)
         every { undoMaxMemory.flow } returns flowOf(undoMaxMemoryBytes)
+        every { syntaxHighlighting.flow } returns flowOf(true)
         every { settings.undoStackSize } returns undoStackSize
         every { settings.undoMaxMemory } returns undoMaxMemory
+        every { settings.syntaxHighlighting } returns syntaxHighlighting
         return settings
     }
 
@@ -61,6 +65,7 @@ abstract class EditorEngineTestBase : DocumentBufferTestBase() {
             initialContent = content,
             gatewaySwitch = mockk(),
             editorSettings = createMockSettings(undoMaxMemoryBytes),
+            dispatcherProvider = TestDispatcherProvider(),
             fileDataSourceFactory = mockk(),
             inMemoryDataSourceFactory = inMemoryDataSourceFactory,
             documentBufferFactory = documentBufferFactory,

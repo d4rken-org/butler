@@ -22,14 +22,16 @@ constructor(
     val state = combine(
         editorSettings.showLineNumbers.flow,
         editorSettings.wordWrap.flow,
+        editorSettings.syntaxHighlighting.flow,
         editorSettings.fontSize.flow,
         editorSettings.tabSize.flow,
         editorSettings.autoSaveEnabled.flow,
         editorSettings.autoSaveInterval.flow,
-    ) { showLineNumbers, wordWrap, fontSize, tabSize, autoSaveEnabled, autoSaveInterval ->
+    ) { showLineNumbers, wordWrap, syntaxHighlighting, fontSize, tabSize, autoSaveEnabled, autoSaveInterval ->
         State(
             showLineNumbers = showLineNumbers,
             wordWrap = wordWrap,
+            syntaxHighlighting = syntaxHighlighting,
             fontSize = fontSize,
             tabSize = tabSize,
             autoSaveEnabled = autoSaveEnabled,
@@ -46,6 +48,11 @@ constructor(
     fun updateWordWrap(enabled: Boolean) = launch {
         log(tag) { "updateWordWrap($enabled)" }
         editorSettings.wordWrap.value(enabled)
+    }
+
+    fun updateSyntaxHighlighting(enabled: Boolean) = launch {
+        log(tag) { "updateSyntaxHighlighting($enabled)" }
+        editorSettings.syntaxHighlighting.value(enabled)
     }
 
     fun updateFontSize(size: Int) = launch {
@@ -71,6 +78,7 @@ constructor(
     data class State(
         val showLineNumbers: Boolean = true,
         val wordWrap: Boolean = false,
+        val syntaxHighlighting: Boolean = true,
         val fontSize: Int = 14,
         val tabSize: Int = 4,
         val autoSaveEnabled: Boolean = false,

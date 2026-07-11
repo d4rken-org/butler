@@ -7,6 +7,8 @@
     <string name="editor_settings_show_line_numbers_subtitle">Display line numbers in editor.</string>
     <string name="editor_settings_word_wrap_title">Line wrap</string>
     <string name="editor_settings_word_wrap_subtitle">Wrap long lines to fit screen width.</string>
+    <string name="editor_settings_syntax_highlighting_title">Syntax highlighting</string>
+    <string name="editor_settings_syntax_highlighting_subtitle">Color code in supported files (JavaScript, Bash, Markdown, JSON).</string>
     <string name="editor_settings_font_size_title">Font size</string>
     <string name="editor_settings_font_size_subtitle">Text size in the editor</string>
     <string name="editor_settings_font_size_value">%1$d sp</string>

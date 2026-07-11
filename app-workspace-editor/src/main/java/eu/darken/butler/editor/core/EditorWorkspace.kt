@@ -21,6 +21,7 @@ import eu.darken.butler.common.files.extensions.exists
 import eu.darken.butler.common.files.extensions.lookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.combine
+import eu.darken.butler.editor.core.syntax.Token
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.editor.R
 import eu.darken.butler.editor.core.engine.ContentSource
@@ -51,6 +52,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -188,11 +190,12 @@ class EditorWorkspace @AssistedInject constructor(
             engine.canRedo,
             engine.maxUndoableEditChars,
             engine.nonUndoableEditPending,
+            engine.highlighter.highlightedLines,
             displaySettings,
         ) { contentSource, totalLines, isModified, visibleContent, cursorPosition,
             selectionRange, searchQuery, searchState, visibleRange, error,
             externalChange, progress, canUndo, canRedo, maxUndoableEditChars,
-            nonUndoableEditPending, display ->
+            nonUndoableEditPending, highlightedLines, display ->
             EditorState(
                 contentSource = contentSource,
                 totalLines = totalLines,
@@ -217,6 +220,7 @@ class EditorWorkspace @AssistedInject constructor(
                 canRedo = canRedo,
                 maxUndoableEditChars = maxUndoableEditChars,
                 nonUndoableEditPending = nonUndoableEditPending,
+                highlightedLines = highlightedLines,
             )
         }
     }
@@ -301,11 +305,22 @@ class EditorWorkspace @AssistedInject constructor(
         // externally changed pause too: every save would be refused by the staleness guard.
         // A pending non-undoable edit pauses auto-save so an accidental oversized replace isn't
         // silently persisted before the user can discard it (undo can't recover it).
+        // Sourced from the engine flows directly, NOT editorStateInternal: that flow is cold and
+        // already collected for state publication - a second collection would run every upstream
+        // (including the highlighter pipeline) twice in parallel.
         combine(
-            editorStateInternal.map { state ->
-                val file = state.contentSource as? ContentSource.File
-                state.isModified && file != null && file.canWrite && !file.isLikelyBinary &&
-                    !file.isBackingLost && state.externalChange == null && !state.nonUndoableEditPending
+            _engine.flatMapLatest { engine ->
+                if (engine == null) return@flatMapLatest flowOf(false)
+                combine(
+                    engine.contentSource,
+                    engine.isModified,
+                    engine.externalChange,
+                    engine.nonUndoableEditPending,
+                ) { contentSource, isModified, externalChange, nonUndoableEditPending ->
+                    val file = contentSource as? ContentSource.File
+                    isModified && file != null && file.canWrite && !file.isLikelyBinary &&
+                        !file.isBackingLost && externalChange == null && !nonUndoableEditPending
+                }
             }.distinctUntilChanged(),
             editorSettings.autoSaveEnabled.flow,
             editorSettings.autoSaveInterval.flow,
@@ -712,6 +727,8 @@ class EditorWorkspace @AssistedInject constructor(
         val maxUndoableEditChars: Long? = null,
         /** True while a non-undoable edit is pending a save/recorded edit; pauses auto-save. */
         val nonUndoableEditPending: Boolean = false,
+        /** Absolute line number -> syntax tokens (RAW offsets); empty when highlighting is off/unavailable. */
+        val highlightedLines: Map<Long, List<Token>> = emptyMap(),
     )
 
     sealed interface State {

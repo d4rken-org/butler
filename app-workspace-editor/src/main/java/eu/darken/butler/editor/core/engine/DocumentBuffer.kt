@@ -156,8 +156,24 @@ class DocumentBuffer @AssistedInject constructor(
 
     // Bumped on EVERY piece-table mutation (edits, undo/redo, rebase, initialize). Searches
     // validate it per window so a long scan aborts instead of holding the lock across the
-    // whole document while typing queues behind it.
+    // whole document while typing queues behind it. Mutated ONLY via [bumpStructuralVersion]
+    // so the observable mirror below can never drift from it.
     private var structuralVersion = 0L
+
+    private val _structuralVersionFlow = MutableStateFlow(0L)
+
+    /**
+     * Observable mirror of the mutation counter: lets derived reactive consumers (syntax
+     * highlighting) recompute after mutations that don't change their other inputs - e.g. a
+     * replace-all above the visible window leaves the window's text (and thus [contentSource]/
+     * display flows) identical while the document before it changed.
+     */
+    val structuralVersionFlow: StateFlow<Long> = _structuralVersionFlow.asStateFlow()
+
+    private fun bumpStructuralVersion() {
+        structuralVersion++
+        _structuralVersionFlow.value = structuralVersion
+    }
 
     // Test seam: lets tests shrink windows and gate reads outside the lock
     internal var windowedSearchFactory: (suspend (Long, Long) -> String) -> WindowedSearch =
@@ -203,7 +219,7 @@ class DocumentBuffer @AssistedInject constructor(
             originalDocument = original
             blockIndex = index
             pieceTable = PieceTable.create(original, assertions)
-            structuralVersion++
+            bumpStructuralVersion()
 
             _lineEnding.value = index.lineEnding
             (_contentSource.value as? ContentSource.File)?.let {
@@ -386,6 +402,12 @@ class DocumentBuffer @AssistedInject constructor(
     suspend fun getLineSlice(lineNumber: Long, anchorColumn: Long = 0L): Result<LineSlice> = bufferMutex.withLock {
         getLineSliceInternal(lineNumber, anchorColumn)
     }
+
+    /**
+     * Current mutation counter for consistency checks by readers scanning outside the lock
+     * (same invalidation idea as [search]): read before and after, discard work on mismatch.
+     */
+    suspend fun getStructuralVersion(): Long = bufferMutex.withLock { structuralVersion }
 
     /** EXACT content length of a line (breaks excluded) via pure offset math, no materialization. */
     suspend fun getLineLength(lineNumber: Long): Result<Long> = bufferMutex.withLock {
@@ -1004,7 +1026,7 @@ class DocumentBuffer @AssistedInject constructor(
      * true until a real save. Callers invoke this only AFTER the table mutation succeeded.
      */
     private fun discardHistoryForUnrecordedEdit() {
-        structuralVersion++
+        bumpStructuralVersion()
         currentGeneration = ++generationCounter
         savedGenerationValid = false
         clearUndoHistoryLocked()
@@ -1091,7 +1113,7 @@ class DocumentBuffer @AssistedInject constructor(
         originalDocument = original
         blockIndex = index
         pieceTable = PieceTable.create(original, assertions)
-        structuralVersion++
+        bumpStructuralVersion()
 
         _lineEnding.value = index.lineEnding
         lastKnownMeta = dataSource.getMeta()
@@ -1231,7 +1253,7 @@ class DocumentBuffer @AssistedInject constructor(
                     }
                 }
             }
-            structuralVersion++
+            bumpStructuralVersion()
             val memory = entry.estimateMemoryBytes()
             currentUndoMemoryBytes -= memory
             redoStack.addLast(entry)
@@ -1267,7 +1289,7 @@ class DocumentBuffer @AssistedInject constructor(
                     }
                 }
             }
-            structuralVersion++
+            bumpStructuralVersion()
             val memory = entry.estimateMemoryBytes()
             currentRedoMemoryBytes -= memory
             undoStack.addLast(entry)
@@ -1394,7 +1416,7 @@ class DocumentBuffer @AssistedInject constructor(
 
     internal fun commitNewEdit(ops: List<EditOperation>) {
         _nonUndoableEditPending.value = false
-        structuralVersion++
+        bumpStructuralVersion()
         val before = currentGeneration
         currentGeneration = ++generationCounter
         for (discarded in redoStack) {
@@ -1467,7 +1489,7 @@ class DocumentBuffer @AssistedInject constructor(
         }
         if (merged == null) return false
 
-        structuralVersion++
+        bumpStructuralVersion()
         currentGeneration = ++generationCounter
         currentUndoMemoryBytes -= top.estimateMemoryBytes()
         undoStack.pollLast()

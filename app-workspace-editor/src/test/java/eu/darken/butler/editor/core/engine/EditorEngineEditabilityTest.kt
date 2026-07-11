@@ -29,6 +29,7 @@ import java.io.File
 import java.nio.charset.Charset
 import kotlin.random.Random
 import kotlin.uuid.Uuid
+import testhelpers.coroutine.TestDispatcherProvider
 
 /**
  * Read-only and binary documents must reject mutations at the ENGINE level - the UI disables
@@ -48,6 +49,9 @@ class EditorEngineEditabilityTest : BaseTest() {
         every { undoMaxMemory.flow } returns flowOf(10 * 1_048_576L)
         every { settings.undoStackSize } returns undoStackSize
         every { settings.undoMaxMemory } returns undoMaxMemory
+        val syntaxHighlighting = mockk<DataStoreValue<Boolean>>()
+        every { syntaxHighlighting.flow } returns flowOf(true)
+        every { settings.syntaxHighlighting } returns syntaxHighlighting
         return settings
     }
 
@@ -76,6 +80,7 @@ class EditorEngineEditabilityTest : BaseTest() {
             initialContent = null,
             gatewaySwitch = gateway,
             editorSettings = createMockSettings(),
+            dispatcherProvider = TestDispatcherProvider(),
             fileDataSourceFactory = object : FileDataSource.Factory {
                 override fun create(
                     workspaceId: Workspace.Id,

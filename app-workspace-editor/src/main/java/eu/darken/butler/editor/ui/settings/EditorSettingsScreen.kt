@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardTab
 import androidx.compose.material.icons.automirrored.filled.WrapText
 import androidx.compose.material.icons.twotone.FormatListNumbered
 import androidx.compose.material.icons.twotone.FormatSize
+import androidx.compose.material.icons.twotone.Palette
 import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material.icons.twotone.Timer
 import androidx.compose.material3.AlertDialog
@@ -59,6 +60,7 @@ fun EditorSettingsScreen(
     onNavigateUp: () -> Unit,
     onShowLineNumbersChange: (Boolean) -> Unit,
     onWordWrapChange: (Boolean) -> Unit,
+    onSyntaxHighlightingChange: (Boolean) -> Unit,
     onFontSizeChange: (Int) -> Unit,
     onTabSizeChange: (Int) -> Unit,
     onAutoSaveEnabledChange: (Boolean) -> Unit,
@@ -110,6 +112,17 @@ fun EditorSettingsScreen(
                     subtitle = stringResource(R.string.editor_settings_word_wrap_subtitle),
                     checked = state.wordWrap,
                     onCheckedChange = onWordWrapChange
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.Palette,
+                    title = stringResource(R.string.editor_settings_syntax_highlighting_title),
+                    subtitle = stringResource(R.string.editor_settings_syntax_highlighting_subtitle),
+                    checked = state.syntaxHighlighting,
+                    onCheckedChange = onSyntaxHighlightingChange
                 )
                 SettingsDivider()
             }
@@ -266,6 +279,7 @@ private fun EditorSettingsScreenPreview() {
         onNavigateUp = {},
         onShowLineNumbersChange = {},
         onWordWrapChange = {},
+        onSyntaxHighlightingChange = {},
         onFontSizeChange = {},
         onTabSizeChange = {},
         onAutoSaveEnabledChange = {},
@@ -286,6 +300,7 @@ fun EditorSettingsScreenHost(vm: EditorSettingsViewModel = hiltViewModel()) {
             onNavigateUp = { vm.navUp() },
             onShowLineNumbersChange = { vm.updateShowLineNumbers(it) },
             onWordWrapChange = { vm.updateWordWrap(it) },
+            onSyntaxHighlightingChange = { vm.updateSyntaxHighlighting(it) },
             onFontSizeChange = { vm.updateFontSize(it) },
             onTabSizeChange = { vm.updateTabSize(it) },
             onAutoSaveEnabledChange = { vm.updateAutoSaveEnabled(it) },

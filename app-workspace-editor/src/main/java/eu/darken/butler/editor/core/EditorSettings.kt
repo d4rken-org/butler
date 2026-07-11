@@ -31,6 +31,8 @@ class EditorSettings @Inject constructor(
     val fontSize = dataStore.createValue("editor.font_size", 14)
     val tabSize = dataStore.createValue("editor.tab_size", 4)
 
+    val syntaxHighlighting = dataStore.createValue("editor.syntax_highlighting.enabled", true)
+
     val autoSaveInterval = dataStore.createValue("editor.auto_save.interval", 30.seconds, json)
     val autoSaveEnabled = dataStore.createValue("editor.auto_save.enabled", false)
 
@@ -42,6 +44,7 @@ class EditorSettings @Inject constructor(
         wordWrap,
         fontSize,
         tabSize,
+        syntaxHighlighting,
 
         autoSaveInterval,
         autoSaveEnabled,

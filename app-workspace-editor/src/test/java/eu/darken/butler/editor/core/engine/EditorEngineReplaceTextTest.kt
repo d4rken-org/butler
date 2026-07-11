@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
+import testhelpers.coroutine.TestDispatcherProvider
 /**
  * Tests for [EditorEngine.replaceText], the single-region edit that all soft-keyboard input flows through.
  *
@@ -29,6 +30,9 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
 
         every { settings.undoStackSize } returns undoStackSize
         every { settings.undoMaxMemory } returns undoMaxMemory
+        val syntaxHighlighting = mockk<DataStoreValue<Boolean>>()
+        every { syntaxHighlighting.flow } returns flowOf(true)
+        every { settings.syntaxHighlighting } returns syntaxHighlighting
 
         return settings
     }
@@ -60,6 +64,7 @@ class EditorEngineReplaceTextTest : DocumentBufferTestBase() {
             initialContent = content,
             gatewaySwitch = mockk(),
             editorSettings = settings,
+            dispatcherProvider = TestDispatcherProvider(),
             fileDataSourceFactory = mockk(),
             inMemoryDataSourceFactory = inMemoryDataSourceFactory,
             documentBufferFactory = documentBufferFactory,

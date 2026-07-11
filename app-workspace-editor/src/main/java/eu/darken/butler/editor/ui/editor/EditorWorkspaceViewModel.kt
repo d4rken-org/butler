@@ -23,6 +23,7 @@ import eu.darken.butler.editor.core.engine.EditorEngine
 import eu.darken.butler.editor.core.engine.LineEnding
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
+import eu.darken.butler.editor.core.syntax.Token
 import eu.darken.butler.editor.ui.editor.elements.EditorActionBarItem
 import eu.darken.butler.editor.ui.editor.text.CursorDirection
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
@@ -109,6 +110,7 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
             currentContent = editorState.currentContent,
             truncatedLines = editorState.truncatedLines,
             startColumns = editorState.startColumns,
+            highlightedLines = editorState.highlightedLines,
             cursorPosition = editorState.cursorPosition,
             selectionRange = editorState.selectionRange,
             progress = readyState.progress,
@@ -620,6 +622,8 @@ class EditorWorkspaceViewModel @AssistedInject constructor(
         val truncatedLines: Map<Long, Long> = emptyMap(),
         /** Absolute line number -> chars hidden BEFORE the window (the window's anchor column). */
         val startColumns: Map<Long, Long> = emptyMap(),
+        /** Absolute line number -> syntax tokens (RAW offsets); empty when highlighting is off. */
+        val highlightedLines: Map<Long, List<Token>> = emptyMap(),
         val cursorPosition: TextPosition = TextPosition.ZERO,
         val selectionRange: Pair<TextPosition, TextPosition>? = null,
         val progress: Progress.Data? = null,
