@@ -7,15 +7,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertHasNoClickAction
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.editor.core.engine.SearchResult
 import eu.darken.butler.editor.core.engine.TextPosition
+import io.kotest.matchers.shouldBe
 import org.junit.Test
 import testhelpers.ComposeTest
 
@@ -222,6 +226,118 @@ class TextLineItemTruncationTest : ComposeTest() {
             }
         }
         composeTestRule.waitForIdle()
+    }
+
+    @Test
+    fun `tapping the trailing marker fires reveal forward`() {
+        val reveals = mutableListOf<Boolean>()
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TextLineItem(
+                    lineIndex = 0,
+                    lineContent = cappedLine,
+                    hiddenChars = 1234L,
+                    cursorPosition = TextPosition(0, 0, 0),
+                    selection = null,
+                    isCurrentLine = false,
+                    isFocused = false,
+                    wordWrap = false,
+                    fontSize = 14,
+                    tabSize = 4,
+                    charWidthPx = 8.4f,
+                    modifier = Modifier.fillMaxWidth(),
+                    onRevealTap = { reveals += it },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(EDITOR_TRUNCATION_MARKER_TEST_TAG).performClick()
+        reveals shouldBe listOf(true)
+    }
+
+    @Test
+    fun `tapping the leading marker fires reveal backward`() {
+        val reveals = mutableListOf<Boolean>()
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TextLineItem(
+                    lineIndex = 0,
+                    lineContent = cappedLine,
+                    hiddenChars = 0L,
+                    lineStartColumn = 1234L,
+                    cursorPosition = TextPosition(0, 0, 0),
+                    selection = null,
+                    isCurrentLine = false,
+                    isFocused = false,
+                    wordWrap = false,
+                    fontSize = 14,
+                    tabSize = 4,
+                    charWidthPx = 8.4f,
+                    modifier = Modifier.fillMaxWidth(),
+                    onRevealTap = { reveals += it },
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(EDITOR_LEADING_TRUNCATION_MARKER_TEST_TAG).performClick()
+        reveals shouldBe listOf(false)
+    }
+
+    @Test
+    fun `markers without a reveal callback expose no click action`() {
+        composeTestRule.setContent {
+            PreviewWrapper {
+                TextLineItem(
+                    lineIndex = 0,
+                    lineContent = cappedLine,
+                    hiddenChars = 1234L,
+                    lineStartColumn = 500L,
+                    cursorPosition = TextPosition(0, 0, 0),
+                    selection = null,
+                    isCurrentLine = false,
+                    isFocused = false,
+                    wordWrap = false,
+                    fontSize = 14,
+                    tabSize = 4,
+                    charWidthPx = 8.4f,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithTag(EDITOR_TRUNCATION_MARKER_TEST_TAG).assertHasNoClickAction()
+        composeTestRule.onNodeWithTag(EDITOR_LEADING_TRUNCATION_MARKER_TEST_TAG).assertHasNoClickAction()
+    }
+
+    @Test
+    fun `trailing marker stays tappable in word wrap inside a narrow container`() {
+        // In wrap-on the chip is OFFSET past the last visual line's right edge; a narrow parent is
+        // the case where that placement risks leaving the hit-testable bounds
+        val reveals = mutableListOf<Boolean>()
+        composeTestRule.setContent {
+            PreviewWrapper {
+                Box(modifier = Modifier.width(120.dp)) {
+                    TextLineItem(
+                        lineIndex = 0,
+                        lineContent = cappedLine,
+                        hiddenChars = 1234L,
+                        cursorPosition = TextPosition(0, 0, 0),
+                        selection = null,
+                        isCurrentLine = false,
+                        isFocused = false,
+                        wordWrap = true,
+                        fontSize = 14,
+                        tabSize = 4,
+                        charWidthPx = 8.4f,
+                        modifier = Modifier.fillMaxWidth(),
+                        onRevealTap = { reveals += it },
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag(EDITOR_TRUNCATION_MARKER_TEST_TAG).performClick()
+        reveals shouldBe listOf(true)
     }
 
     @Test

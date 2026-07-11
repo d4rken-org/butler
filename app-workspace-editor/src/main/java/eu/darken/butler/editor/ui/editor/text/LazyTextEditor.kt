@@ -352,6 +352,12 @@ fun LazyTextEditor(
         onCursorMove = onCursorMove,
         onForwardDelete = onForwardDelete,
         resyncSignal = resyncSignal,
+        // Disarm the pan-at-edge reveal: after a tap slides the window the scroll can still sit at
+        // max, and an armed edge effect would immediately fire a second slide.
+        onRevealTap = { forward ->
+            revealArmed = false
+            onRevealMoreColumns(forward)
+        },
         modifier = modifier
     )
 }
@@ -385,6 +391,7 @@ private fun DualColumnEditorContent(
     onCursorMove: (CursorDirection, Boolean) -> Unit,
     onForwardDelete: () -> Unit,
     resyncSignal: Int = 0,
+    onRevealTap: (forward: Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Ensure drag/tap handlers always see latest values, not closures captured by pointerInput: the
@@ -416,6 +423,18 @@ private fun DualColumnEditorContent(
     var lastTapTime by remember { mutableLongStateOf(0L) }
     var lastTapPosition by remember { mutableStateOf<Offset?>(null) }
     var tapCount by remember { mutableIntStateOf(0) }
+
+    // Marker-chip taps are consumed by the chip's clickable and never reach the ancestor tap
+    // handler: activate the workspace like a normal editor tap would (but without showing the
+    // keyboard) and reset the multi-tap tracker so the next nearby text tap can't be misread as
+    // a double/triple tap continuing a sequence the chip tap interrupted.
+    val onMarkerRevealTap: (Boolean) -> Unit = { forward ->
+        requestWorkspaceFocus?.invoke()
+        lastTapTime = 0L
+        lastTapPosition = null
+        tapCount = 0
+        onRevealTap(forward)
+    }
     rememberCoroutineScope()
     val density = LocalDensity.current
     val contentPaddingTopPx = with(density) { contentPadding.calculateTopPadding().toPx() }
@@ -909,6 +928,7 @@ private fun DualColumnEditorContent(
                         onTextLayoutResult = { layoutResult ->
                             textLayouts[lineIndex] = layoutResult
                         },
+                        onRevealTap = onMarkerRevealTap,
                     )
                 }
             }
