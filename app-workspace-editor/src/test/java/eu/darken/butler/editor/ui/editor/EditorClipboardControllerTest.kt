@@ -73,6 +73,8 @@ class EditorClipboardControllerTest : BaseTest() {
         workspace: EditorWorkspace = mockWorkspace(),
         helper: SystemClipboardHelper = mockk(relaxed = true),
         repo: ClipboardRepo = mockRepo(),
+        // Default forwards to the workspace (undeferred), matching the pre-gate paste behavior.
+        guardedInsert: suspend (String) -> Boolean = { text -> workspace.insertText(text); true },
     ) = EditorClipboardController(
         id = workspaceId,
         doLaunch = { block ->
@@ -85,6 +87,7 @@ class EditorClipboardControllerTest : BaseTest() {
             }
         },
         workspace = { workspace },
+        guardedInsert = guardedInsert,
         clipboardHelper = helper,
         clipboardRepo = repo,
         tag = "test",
@@ -279,6 +282,21 @@ class EditorClipboardControllerTest : BaseTest() {
         runCurrent()
 
         coVerify { workspace.insertText("clip text") }
+    }
+
+    @Test
+    fun `paste routes text through the guarded insert`() = runTest {
+        val inserted = mutableListOf<String>()
+        val workspace = mockWorkspace()
+        // Simulate the gate deferring the insert behind the confirm dialog (returns false).
+        val controller = controller(workspace, guardedInsert = { text -> inserted += text; false })
+        val clip = ClipboardClip.Text(origin = workspaceId, content = "huge clip")
+
+        controller.pasteFromClipboard(clip)
+        runCurrent()
+
+        inserted shouldBe listOf("huge clip")
+        coVerify(exactly = 0) { workspace.insertText(any()) }
     }
 
     @Test

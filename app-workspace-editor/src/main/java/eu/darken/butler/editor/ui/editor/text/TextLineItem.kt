@@ -7,6 +7,7 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -32,6 +34,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -78,6 +81,7 @@ internal fun TextLineItem(
     modifier: Modifier = Modifier,
     onHeightMeasured: ((Int) -> Unit)? = null,
     onTextLayoutResult: ((TextLayoutResult) -> Unit)? = null,
+    onRevealTap: ((forward: Boolean) -> Unit)? = null,
 ) {
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val density = LocalDensity.current
@@ -270,6 +274,7 @@ internal fun TextLineItem(
             charWidthPx = charWidthPx,
             hiddenChars = hiddenChars,
             lineStartColumn = lineStartColumn,
+            onRevealTap = onRevealTap,
             onTextLayout = { layoutResult ->
                 textLayoutResult = layoutResult
                 onTextLayoutResult?.invoke(layoutResult)
@@ -294,6 +299,7 @@ internal fun SelectableText(
     charWidthPx: Float,
     hiddenChars: Long = 0L,
     lineStartColumn: Long = 0L,
+    onRevealTap: ((forward: Boolean) -> Unit)? = null,
     onTextLayout: (TextLayoutResult) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -554,9 +560,10 @@ internal fun SelectableText(
                 .then(if (markerText != null) Modifier.padding(end = markerReserve) else Modifier)
         )
 
-        // Truncation marker: a non-interactive sibling OVERLAY - never concatenated into the
-        // measured Text (that would shift every getBoundingBox index) and never fed to
-        // onTextLayout. Taps fall through to line hit-testing, which self-clamps.
+        // Truncation marker: a sibling OVERLAY - never concatenated into the measured Text (that
+        // would shift every getBoundingBox index) and never fed to onTextLayout. Tapping the chip
+        // slides the window forward; taps outside it fall through to line hit-testing, which
+        // self-clamps (clickable consumes the up-event before the ancestor's detectTapGestures).
         if (markerText != null) {
             val layout = layoutResult
             val markerModifier = if (wordWrap && layout != null && layout.lineCount > 0) {
@@ -579,18 +586,30 @@ internal fun SelectableText(
                 softWrap = false,
                 modifier = markerModifier
                     .testTag(EDITOR_TRUNCATION_MARKER_TEST_TAG)
+                    .clip(RoundedCornerShape(4.dp))
                     .background(
                         MaterialTheme.colorScheme.secondaryContainer,
                         RoundedCornerShape(4.dp),
+                    )
+                    .then(
+                        if (onRevealTap != null) {
+                            Modifier.clickable(
+                                onClickLabel = stringResource(R.string.editor_line_truncated_marker_next_action),
+                                role = Role.Button,
+                            ) { onRevealTap(true) }
+                        } else {
+                            Modifier
+                        }
                     )
                     .padding(horizontal = 6.dp),
             )
         }
 
         // Leading truncation marker: chars hidden BEFORE the window (line anchored past column 0).
-        // Like the trailing marker it's a non-interactive OVERLAY outside the measured Text - it
-        // reserves no start padding, so glyph/getBoundingBox indices are never shifted. Pinned to
-        // the window's start edge; taps fall through to line hit-testing (which self-clamps).
+        // Like the trailing marker it's an OVERLAY outside the measured Text - it reserves no start
+        // padding, so glyph/getBoundingBox indices are never shifted. Pinned to the window's start
+        // edge; tapping the chip slides the window backward, taps outside it fall through to line
+        // hit-testing (which self-clamps).
         if (lineStartColumn > 0) {
             Text(
                 text = stringResource(R.string.editor_line_leading_truncated_marker, lineStartColumn),
@@ -604,9 +623,20 @@ internal fun SelectableText(
                 modifier = Modifier
                     .align(if (wordWrap) Alignment.TopStart else Alignment.CenterStart)
                     .testTag(EDITOR_LEADING_TRUNCATION_MARKER_TEST_TAG)
+                    .clip(RoundedCornerShape(4.dp))
                     .background(
                         MaterialTheme.colorScheme.secondaryContainer,
                         RoundedCornerShape(4.dp),
+                    )
+                    .then(
+                        if (onRevealTap != null) {
+                            Modifier.clickable(
+                                onClickLabel = stringResource(R.string.editor_line_truncated_marker_previous_action),
+                                role = Role.Button,
+                            ) { onRevealTap(false) }
+                        } else {
+                            Modifier
+                        }
                     )
                     .padding(horizontal = 6.dp),
             )

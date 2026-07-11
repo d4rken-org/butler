@@ -52,6 +52,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
@@ -556,6 +557,22 @@ class EditorWorkspace @AssistedInject constructor(
 
     private fun currentEngine(): EditorEngine =
         _engine.value ?: throw IllegalStateException("No engine available")
+
+    /**
+     * Authoritative "would editing the current selection be non-undoable?" preflight for the confirm
+     * gate. Reads the engine's live [EditorEngine.selectionRange] directly rather than the async
+     * [state] projection, so a selection set moments earlier (e.g. Select-All immediately followed by
+     * paste/delete) is seen before the projected state emits - otherwise the gate could read a stale
+     * (small/absent) selection and skip confirmation while the engine performs the huge, history-
+     * clearing edit. Returns false when no file is open, there is no selection, or the span is within
+     * the undoable threshold.
+     */
+    suspend fun selectionExceedsUndoThreshold(): Boolean {
+        val engine = _engine.value ?: return false
+        val selection = engine.selectionRange.value ?: return false
+        val threshold = engine.maxUndoableEditChars.first() ?: return false
+        return kotlin.math.abs(selection.second.offset - selection.first.offset) > threshold
+    }
 
     suspend fun saveFile() {
         // TODO: Wrap as an Operation submitted via OperationsManager so editor saves appear in

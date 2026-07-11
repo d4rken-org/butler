@@ -54,6 +54,19 @@ class EditorEngineSlidingWindowTest : EditorEngineTestBase() {
     }
 
     @Test
+    fun `one reveal slides the shared window for all visible long lines`() = runTest {
+        // The window anchor is SHARED: revealing from any one line's marker moves every windowed
+        // line, with per-line counts reflecting each line's own length
+        val engine = createEngine("0123456789ABCDEFGHIJ\nabcdefghijklmnopqrstuvwxyz0123", displayLineCap = cap)
+
+        engine.revealMoreColumns(forward = true)
+
+        engine.visibleContent.value.text shouldBe "56789ABCDE\nfghijklmno"
+        engine.visibleContent.value.startColumns shouldBe mapOf(0L to 5L, 1L to 5L)
+        engine.visibleContent.value.truncatedLines shouldBe mapOf(0L to 5L, 1L to 15L)
+    }
+
+    @Test
     fun `reveal does not move the caret`() = runTest {
         val engine = createEngine(content, displayLineCap = cap)
         engine.setCursorPosition(TextPosition(offset = 0, line = 0, column = 2))

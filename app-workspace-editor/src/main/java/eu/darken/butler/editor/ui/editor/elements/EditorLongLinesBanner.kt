@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.twotone.Notes
 import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.Notes
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -50,7 +50,7 @@ fun EditorLongLinesBanner(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                Icons.TwoTone.Notes,
+                Icons.AutoMirrored.TwoTone.Notes,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onTertiaryContainer,
             )

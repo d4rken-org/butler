@@ -115,6 +115,7 @@ fun LazyTextEditor(
     onRevealMoreColumns: (Boolean) -> Unit = {},
     onCursorMove: (CursorDirection, Boolean) -> Unit,
     onForwardDelete: () -> Unit,
+    resyncSignal: Int = 0,
 ) {
     // Create a map of visible line content indexed by line number
     val visibleLineContent = remember(content, visibleRange) {
@@ -350,6 +351,13 @@ fun LazyTextEditor(
         onSelectionChange = onSelectionChange,
         onCursorMove = onCursorMove,
         onForwardDelete = onForwardDelete,
+        resyncSignal = resyncSignal,
+        // Disarm the pan-at-edge reveal: after a tap slides the window the scroll can still sit at
+        // max, and an armed edge effect would immediately fire a second slide.
+        onRevealTap = { forward ->
+            revealArmed = false
+            onRevealMoreColumns(forward)
+        },
         modifier = modifier
     )
 }
@@ -382,6 +390,8 @@ private fun DualColumnEditorContent(
     onSelectionChange: (Pair<TextPosition, TextPosition>?) -> Unit,
     onCursorMove: (CursorDirection, Boolean) -> Unit,
     onForwardDelete: () -> Unit,
+    resyncSignal: Int = 0,
+    onRevealTap: (forward: Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Ensure drag/tap handlers always see latest values, not closures captured by pointerInput: the
@@ -413,6 +423,18 @@ private fun DualColumnEditorContent(
     var lastTapTime by remember { mutableLongStateOf(0L) }
     var lastTapPosition by remember { mutableStateOf<Offset?>(null) }
     var tapCount by remember { mutableIntStateOf(0) }
+
+    // Marker-chip taps are consumed by the chip's clickable and never reach the ancestor tap
+    // handler: activate the workspace like a normal editor tap would (but without showing the
+    // keyboard) and reset the multi-tap tracker so the next nearby text tap can't be misread as
+    // a double/triple tap continuing a sequence the chip tap interrupted.
+    val onMarkerRevealTap: (Boolean) -> Unit = { forward ->
+        requestWorkspaceFocus?.invoke()
+        lastTapTime = 0L
+        lastTapPosition = null
+        tapCount = 0
+        onRevealTap(forward)
+    }
     rememberCoroutineScope()
     val density = LocalDensity.current
     val contentPaddingTopPx = with(density) { contentPadding.calculateTopPadding().toPx() }
@@ -500,6 +522,21 @@ private fun DualColumnEditorContent(
     // engine stays behind. Hand authority back to the engine and rebuild from its content.
     LaunchedEffect(readOnly) {
         if (readOnly && isUserEditing) {
+            isUserEditing = false
+            authorityEcho = null
+            val caret = textFieldValue.selection.end.coerceIn(0, currentContent.length)
+            textFieldValue = TextFieldValue(text = currentContent, selection = TextRange(caret))
+        }
+    }
+
+    // The engine gated a field-originated edit behind the large-edit confirm dialog (too large to
+    // undo). The field already applied that edit optimistically, so its local text no longer matches
+    // the (unchanged) engine content and the echo can never converge. Hand authority back to the
+    // engine and rebuild from its content, exactly like the read-only flip above. Bumps only on the
+    // rare oversized gate; a confirmed edit then flows back through the normal engine-authoritative
+    // path once applied.
+    LaunchedEffect(resyncSignal) {
+        if (isUserEditing) {
             isUserEditing = false
             authorityEcho = null
             val caret = textFieldValue.selection.end.coerceIn(0, currentContent.length)
@@ -891,6 +928,7 @@ private fun DualColumnEditorContent(
                         onTextLayoutResult = { layoutResult ->
                             textLayouts[lineIndex] = layoutResult
                         },
+                        onRevealTap = onMarkerRevealTap,
                     )
                 }
             }
