@@ -17,8 +17,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,6 +38,10 @@ class BillingManager @Inject constructor(
     @AppScope private val scope: CoroutineScope,
     connectionProvider: BillingConnectionProvider,
 ) {
+
+    // Wakes a pending connection-retry backoff early. Zero replay: kicks fired while no retry is
+    // waiting are dropped, so a healthy connection can't accumulate stale wake-ups.
+    private val connectionKick = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     private val connection = connectionProvider.connection
         .onEach {
@@ -53,7 +60,11 @@ class BillingManager @Inject constructor(
                 false
             } else {
                 log(TAG, WARN) { "Billing connection failed (attempt=$attempt), will retry: ${cause.asLog()}" }
-                delay((30_000L * (attempt + 1)).coerceAtMost(300_000L))
+                val backoff = (30_000L * (attempt + 1)).coerceAtMost(300_000L)
+                // Interruptible backoff: an explicit billing action (restore tap, app-open refresh)
+                // wakes the retry immediately — the user may have just fixed Play, don't make them
+                // wait out up to 5 minutes for us to notice.
+                withTimeoutOrNull(backoff) { connectionKick.first() }
                 true
             }
         }
@@ -127,10 +138,14 @@ class BillingManager @Inject constructor(
             .launchIn(scope)
     }
 
-    private suspend fun <T> useConnection(action: suspend BillingConnection.() -> T): T = connection
-        .map { action(it) }
-        .take(1)
-        .single()
+    private suspend fun <T> useConnection(action: suspend BillingConnection.() -> T): T {
+        // Every explicit billing operation counts as a user-driven "try again NOW".
+        connectionKick.tryEmit(Unit)
+        return connection
+            .map { action(it) }
+            .take(1)
+            .single()
+    }
 
     suspend fun querySkus(vararg skus: Sku): Collection<SkuDetails> = useConnection {
         log(TAG) { "querySkus(): $skus..." }
