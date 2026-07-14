@@ -1,0 +1,8 @@
+package eu.darken.butler.upgrade.core.billing
+
+/**
+ * Exception thrown when the user cancels the billing flow.
+ * Does NOT implement HasLocalizedError - should be dismissed silently.
+ */
+class UserCanceledBillingException(cause: Throwable) :
+    BillingException("User canceled billing flow.", cause)

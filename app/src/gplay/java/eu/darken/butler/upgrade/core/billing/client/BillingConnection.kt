@@ -18,13 +18,17 @@ import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.upgrade.core.billing.BillingManager.Companion.tryMapUserFriendly
 import eu.darken.butler.upgrade.core.billing.Sku
 import eu.darken.butler.upgrade.core.billing.SkuDetails
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -54,6 +58,13 @@ data class BillingConnection(
         combined.sortedByDescending { it.purchaseTime }
     }.setupCommonEventHandlers(TAG) { "purchases" }
 
+    // Non-OK results from onPurchasesUpdated (e.g. async ITEM_ALREADY_OWNED after the Play sheet
+    // opened). Consumed by a single persistent collector in UpgradeRepoGplay — not an event bus.
+    val purchaseFailures: Flow<BillingResult> = purchaseEvents
+        .filterNotNull()
+        .filter { (result, _) -> !result.isSuccess }
+        .map { (result, _) -> result }
+
     private suspend fun queryPurchases(@BillingClient.ProductType type: String): Collection<Purchase> {
         val params = QueryPurchasesParams.newBuilder().apply {
             setProductType(type)
@@ -72,27 +83,39 @@ data class BillingConnection(
         return purchaseData
     }
 
-    suspend fun refreshPurchases() = coroutineScope {
+    // Returns the freshly queried PURCHASED purchases so callers get a guaranteed happens-before
+    // relation instead of racing the shared purchases/upgradeInfo replay caches after a refresh.
+    // Tolerant of a single product-type failure: if either query finds a purchase we treat that as
+    // authoritative, and only propagate an error when nothing was found AND a query failed — so the
+    // caller can tell "not owned" apart from "couldn't verify".
+    suspend fun refreshPurchases(): Collection<Purchase> = coroutineScope {
         log(TAG) { "refreshPurchases()" }
-        val iapJob = async {
-            try {
-                val iaps = queryPurchases(BillingClient.ProductType.INAPP)
-                log(TAG) { "Refreshed IAPs: $iaps" }
-                queryCacheIaps.value = iaps.filter { it.purchaseState == PurchaseState.PURCHASED }
-            } catch (e: Exception) {
-                throw e.tryMapUserFriendly()
-            }
-        }
-        val subJob = async {
-            try {
-                val subs = queryPurchases(BillingClient.ProductType.SUBS)
-                log(TAG) { "Refreshed SUBs: $subs" }
-                queryCacheSubs.value = subs.filter { it.purchaseState == PurchaseState.PURCHASED }
-            } catch (e: Exception) {
-                throw e.tryMapUserFriendly()
-            }
-        }
-        awaitAll(iapJob, subJob)
+        val iapJob = async { queryPurchasedProducts(BillingClient.ProductType.INAPP, queryCacheIaps) }
+        val subJob = async { queryPurchasedProducts(BillingClient.ProductType.SUBS, queryCacheSubs) }
+        val iap = iapJob.await()
+        val sub = subJob.await()
+        log(TAG) { "Refreshed IAPs=${iap.getOrNull()}, SUBs=${sub.getOrNull()}" }
+        combinePurchaseResults(iap, sub)
+    }
+
+    // Never throws except on cancellation, so a single failing product-type query doesn't cancel the
+    // sibling query (or the coroutineScope). The exception is already user-friendly-mapped.
+    private suspend fun queryPurchasedProducts(
+        @BillingClient.ProductType type: String,
+        cache: MutableStateFlow<Collection<Purchase>?>,
+    ): Result<Collection<Purchase>> = try {
+        val purchased = queryPurchases(type).filter { it.purchaseState == PurchaseState.PURCHASED }
+        cache.value = purchased
+        Result.success(purchased)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        // The purchases combine gates on both caches being initialized. A failed side that has no
+        // data yet counts as "no purchases" so a one-sided failure can't stall the reactive flow
+        // (and with it ack + upgradeInfo); later failures keep the last known values instead.
+        // compareAndSet so a concurrent successful refresh can't be overwritten with empty.
+        cache.compareAndSet(null, emptyList())
+        Result.failure(e.tryMapUserFriendly())
     }
 
     suspend fun acknowledgePurchase(purchase: Purchase): BillingResult {
@@ -179,10 +202,43 @@ data class BillingConnection(
             setProductDetailsParamsList(listOf(productDetail))
         }.build()
 
-        return client.launchBillingFlow(activity, params)
+        // launchBillingFlow must run on the main thread (documented BillingClient contract), and its
+        // RETURNED result reports whether the flow could be launched at all (DEVELOPER_ERROR,
+        // ITEM_ALREADY_OWNED, BILLING_UNAVAILABLE, ...) — failures arrive here, not as exceptions.
+        // Throw like the other client calls do, so callers can surface them instead of silence.
+        val result = withContext(Dispatchers.Main) {
+            client.launchBillingFlow(activity, params)
+        }
+        log(TAG) {
+            "launchBillingFlow(sku=$sku): code=${result.responseCode}, message=${result.debugMessage}"
+        }
+        if (!result.isSuccess) throw BillingClientException(result)
+
+        return result
     }
 
     companion object {
         val TAG: String = logTag("Upgrade", "Gplay", "Billing", "ClientConnection")
+
+        // Combines the two product-type query results: a purchase found by either type is
+        // authoritative; an error is only propagated when nothing was found, so callers can tell
+        // "not owned" apart from "couldn't verify one product type". Pure and unit-tested.
+        internal fun combinePurchaseResults(
+            iap: Result<Collection<Purchase>>,
+            sub: Result<Collection<Purchase>>,
+        ): Collection<Purchase> {
+            val found = iap.getOrNull().orEmpty() + sub.getOrNull().orEmpty()
+            return when {
+                found.isNotEmpty() -> found.sortedByDescending { it.purchaseTime }
+                else -> {
+                    val primary = iap.exceptionOrNull() ?: sub.exceptionOrNull()
+                    if (primary != null) {
+                        sub.exceptionOrNull()?.takeIf { it !== primary }?.let { primary.addSuppressed(it) }
+                        throw primary
+                    }
+                    emptyList()
+                }
+            }
+        }
     }
 }

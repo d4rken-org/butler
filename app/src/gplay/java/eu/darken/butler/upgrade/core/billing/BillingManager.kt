@@ -2,6 +2,7 @@ package eu.darken.butler.upgrade.core.billing
 
 import android.app.Activity
 import com.android.billingclient.api.BillingClient.*
+import com.android.billingclient.api.BillingResult
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.debug.Bugs
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -17,7 +18,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -45,7 +44,19 @@ class BillingManager @Inject constructor(
                 log(TAG, ERROR) { "Initial purchase data refresh failed: ${e.asLog()}" }
             }
         }
-        .catch { log(TAG, ERROR) { "Unable to provide client connection:\n${it.asLog()}" } }
+        .retryWhen { cause, attempt ->
+            // Never give up terminally: the ack collector pins this shareIn forever, so WhileSubscribed
+            // can't restart a completed upstream — a swallowed terminal failure (e.g. one transient
+            // BILLING_UNAVAILABLE while Play updates itself at boot) would leave billing dead until
+            // process restart. Retry with capped backoff instead; Play recovering makes this heal.
+            if (cause is CancellationException) {
+                false
+            } else {
+                log(TAG, WARN) { "Billing connection failed (attempt=$attempt), will retry: ${cause.asLog()}" }
+                delay((30_000L * (attempt + 1)).coerceAtMost(300_000L))
+                true
+            }
+        }
         .setupCommonEventHandlers(TAG) { "connection" }
         .shareIn(scope, WhileSubscribed(3000L, 0L), replay = 1)
 
@@ -58,6 +69,10 @@ class BillingManager @Inject constructor(
     val billingData: Flow<BillingData> = purchases
         .map { BillingData(purchases = it) }
         .shareIn(scope, WhileSubscribed(3000L, 0L), replay = 1)
+
+    val purchaseFailures: Flow<BillingResult> = connection
+        .flatMapLatest { it.purchaseFailures }
+        .setupCommonEventHandlers(TAG) { "purchaseFailures" }
 
     init {
         purchases
@@ -129,9 +144,18 @@ class BillingManager @Inject constructor(
             useConnection {
                 launchBillingFlow(activity, sku, offer)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to start IAP flow:\n${e.asLog()}" }
-            val ignoredCodes = listOf(3, 6)
+            // Expected environmental/user situations — user-facing handling only, no bug report.
+            // ITEM_ALREADY_OWNED is auto-handled by UpgradeRepoGplay (restore instead of error).
+            val ignoredCodes = listOf(
+                BillingResponseCode.USER_CANCELED,
+                BillingResponseCode.BILLING_UNAVAILABLE,
+                BillingResponseCode.ERROR,
+                BillingResponseCode.ITEM_ALREADY_OWNED,
+            )
             when {
                 e !is BillingException -> {
                     Bugs.report(RuntimeException("State exception for $sku, U", e))
@@ -145,17 +169,12 @@ class BillingManager @Inject constructor(
         }
     }
 
-    suspend fun refresh() {
+    suspend fun refresh(): BillingData {
         log(TAG) { "refresh()" }
-        scope.launch {
-            useConnection {
-                try {
-                    refreshPurchases()
-                } catch (e: Exception) {
-                    log(TAG, ERROR) { "Manual purchase data refresh failed: ${e.asLog()}" }
-                }
-            }
-        }.join()
+        // Query in the caller's context and return the result directly, so callers get the fresh
+        // purchases (and any billing error) with a real happens-before instead of racing the shared
+        // upgradeInfo replay cache.
+        return BillingData(purchases = useConnection { refreshPurchases() })
     }
 
     companion object {
@@ -163,6 +182,8 @@ class BillingManager @Inject constructor(
             if (this !is BillingClientException) return this
 
             return when (result.responseCode) {
+                BillingResponseCode.USER_CANCELED -> UserCanceledBillingException(this)
+                BillingResponseCode.ITEM_ALREADY_OWNED -> ItemAlreadyOwnedBillingException(this)
                 BillingResponseCode.BILLING_UNAVAILABLE,
                 BillingResponseCode.SERVICE_UNAVAILABLE,
                 BillingResponseCode.SERVICE_DISCONNECTED,

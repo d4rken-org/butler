@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
@@ -222,6 +224,14 @@ private fun NarrowScreenLayout(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        if (state.wasPreviouslyPro) {
+            RestoreBanner(
+                modifier = Modifier.padding(bottom = 8.dp),
+                onRestorePurchase = onRestorePurchase,
+                restoreInProgress = state.restoreInProgress,
+            )
+        }
+
         PreambleCard()
 
         BenefitsList(modifier = Modifier.padding(top = 8.dp, bottom = 8.dp))
@@ -231,7 +241,7 @@ private fun NarrowScreenLayout(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         )
 
-        HowToSection()
+        HowToSection(showTrialInfo = state.trialState.available)
 
         SubscriptionButtons(
             state = state,
@@ -240,7 +250,10 @@ private fun NarrowScreenLayout(
             onGoSubscriptionTrial = onGoSubscriptionTrial,
         )
 
-        RestorePurchaseSection(onRestorePurchase = onRestorePurchase)
+        RestorePurchaseSection(
+            onRestorePurchase = onRestorePurchase,
+            restoreInProgress = state.restoreInProgress,
+        )
     }
 }
 
@@ -296,9 +309,16 @@ private fun WideScreenLayout(
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (state.wasPreviouslyPro) {
+                RestoreBanner(
+                    onRestorePurchase = onRestorePurchase,
+                    restoreInProgress = state.restoreInProgress,
+                )
+            }
+
             PreambleCard()
 
-            HowToSection()
+            HowToSection(showTrialInfo = state.trialState.available)
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -309,7 +329,10 @@ private fun WideScreenLayout(
                 onGoSubscriptionTrial = onGoSubscriptionTrial,
             )
 
-            RestorePurchaseSection(onRestorePurchase = onRestorePurchase)
+            RestorePurchaseSection(
+                onRestorePurchase = onRestorePurchase,
+                restoreInProgress = state.restoreInProgress,
+            )
         }
     }
 }
@@ -407,6 +430,7 @@ private fun BenefitsList(
 @Composable
 private fun HowToSection(
     modifier: Modifier = Modifier,
+    showTrialInfo: Boolean = true,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -416,7 +440,11 @@ private fun HowToSection(
         )
 
         Text(
-            text = stringResource(R.string.upgrade_screen_how_body),
+            // Don't promise the free trial when Play didn't return the trial offer — the buy button
+            // falls back to plain "Subscribe" in that case, and the copy must match.
+            text = stringResource(
+                if (showTrialInfo) R.string.upgrade_screen_how_body else R.string.upgrade_screen_how_body_no_trial
+            ),
             style = MaterialTheme.typography.bodyMedium,
         )
     }
@@ -563,8 +591,80 @@ private fun SubscriptionButtons(
 }
 
 @Composable
+private fun RestoreBanner(
+    modifier: Modifier = Modifier,
+    onRestorePurchase: () -> Unit,
+    restoreInProgress: Boolean = false,
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(UpgradeScreenTestTags.RESTORE_BANNER),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.upgrade_screen_restore_banner_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+            Text(
+                text = stringResource(R.string.upgrade_screen_restore_banner_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+            Button(
+                onClick = onRestorePurchase,
+                enabled = !restoreInProgress,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(UpgradeScreenTestTags.RESTORE_BANNER_ACTION),
+            ) {
+                if (restoreInProgress) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .testTag(UpgradeScreenTestTags.RESTORE_BANNER_PROGRESS),
+                        strokeWidth = 2.dp,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(stringResource(R.string.upgrade_screen_restore_purchase_action))
+            }
+        }
+    }
+}
+
+internal object UpgradeScreenTestTags {
+    const val RESTORE_BANNER = "upgrade_restore_banner"
+    const val RESTORE_BANNER_ACTION = "upgrade_restore_banner_action"
+    const val RESTORE_BANNER_PROGRESS = "upgrade_restore_banner_progress"
+    const val RESTORE_ACTION = "upgrade_restore_action"
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RestoreBannerPreview() {
+    RestoreBanner(onRestorePurchase = {})
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun RestoreBannerRestoringPreview() {
+    RestoreBanner(onRestorePurchase = {}, restoreInProgress = true)
+}
+
+@Composable
 private fun RestorePurchaseSection(
     onRestorePurchase: () -> Unit,
+    restoreInProgress: Boolean = false,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         HorizontalDivider(
@@ -574,12 +674,14 @@ private fun RestorePurchaseSection(
 
         TextButton(
             onClick = onRestorePurchase,
-            modifier = Modifier.fillMaxWidth()
+            enabled = !restoreInProgress,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(UpgradeScreenTestTags.RESTORE_ACTION),
         ) {
             Text(
                 text = stringResource(R.string.upgrade_screen_restore_purchase_action),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -632,6 +734,35 @@ private fun UpgradeScreenLoadingPreview() {
                 available = false,
                 formattedPrice = null
             ),
+        ),
+        onNavigateBack = {},
+        onGoIap = {},
+        onGoSubscription = {},
+        onGoSubscriptionTrial = {},
+        onRestorePurchase = {},
+    )
+}
+
+@Preview2
+@ComposePreviewWrapper(ButlerPreviewWrapper::class)
+@Composable
+private fun UpgradeScreenReturningBuyerPreview() {
+    UpgradeScreen(
+        state = UpgradeViewModel.State(
+            isLoadingPrices = false,
+            iapState = UpgradeViewModel.State.Iap(
+                available = true,
+                formattedPrice = "$4.99",
+            ),
+            subState = UpgradeViewModel.State.Sub(
+                available = true,
+                formattedPrice = "$2.99",
+            ),
+            trialState = UpgradeViewModel.State.Trial(
+                available = true,
+                formattedPrice = "$2.99"
+            ),
+            wasPreviouslyPro = true,
         ),
         onNavigateBack = {},
         onGoIap = {},
