@@ -95,6 +95,12 @@ class UpgradeViewModel @Inject constructor(
             formattedPrice = iapOffer?.formattedPrice,
         )
 
+        // Play can withhold offers (e.g. trial eligibility): log what actually came back so
+        // "Play withheld the trial" vs "offer matching failed" is diagnosable from logs.
+        sub?.firstOrNull()?.details?.subscriptionOfferDetails?.let { offers ->
+            log(tag) { "Subscription offers returned: ${offers.map { "${it.basePlanId}/${it.offerId}" }}" }
+        }
+
         val subOffer = sub?.firstOrNull()?.details?.subscriptionOfferDetails?.singleOrNull { offer ->
             OurSku.Sub.PRO_UPGRADE.BASE_OFFER.matches(offer)
         }
@@ -107,7 +113,9 @@ class UpgradeViewModel @Inject constructor(
             OurSku.Sub.PRO_UPGRADE.TRIAL_OFFER.matches(offer)
         }
         val trialState = State.Trial(
-            available = trialOffer != null,
+            // `any` returns false when Play withheld the trial offer - `!= null` was true for any
+            // non-empty offer list, showing a trial button whose purchase flow couldn't find its offer.
+            available = trialOffer == true,
             formattedPrice = subState.formattedPrice,
         )
 

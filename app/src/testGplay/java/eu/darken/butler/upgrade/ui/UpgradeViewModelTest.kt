@@ -1,7 +1,10 @@
 package eu.darken.butler.upgrade.ui
 
+import com.android.billingclient.api.ProductDetails
+import eu.darken.butler.upgrade.core.OurSku
 import eu.darken.butler.upgrade.core.UpgradeRepoGplay
 import eu.darken.butler.upgrade.core.billing.GplayServiceUnavailableException
+import eu.darken.butler.upgrade.core.billing.SkuDetails
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -156,5 +159,54 @@ class UpgradeViewModelTest : BaseTest() {
         advanceUntilIdle()
 
         loaded.await()!!.wasPreviouslyPro shouldBe false
+    }
+
+    private fun subDetails(vararg offers: Pair<String, String?>): SkuDetails {
+        val offerMocks = offers.map { (basePlan, offer) ->
+            mockk<ProductDetails.SubscriptionOfferDetails>(relaxed = true).apply {
+                every { basePlanId } returns basePlan
+                every { offerId } returns offer
+            }
+        }
+        val details = mockk<ProductDetails>().apply {
+            every { subscriptionOfferDetails } returns offerMocks
+        }
+        return SkuDetails(OurSku.Sub.PRO_UPGRADE, details)
+    }
+
+    @Test
+    fun `trial is not offered when play withholds the trial offer`() = runTest2(context = testDispatcher) {
+        val repo = mockRepo()
+        // Play returned the subscription with only the base plan offer - e.g. an account that is
+        // not trial-eligible. `any {}` returning false must not count as "trial available".
+        coEvery { repo.querySkus(OurSku.Sub.PRO_UPGRADE) } returns listOf(
+            subDetails(OurSku.Sub.PRO_UPGRADE.BASE_OFFER.basePlanId to null),
+        )
+        val vm = buildVm(repo)
+
+        val loaded = async { vm.state.first { it?.isLoadingPrices == false } }
+        advanceUntilIdle()
+
+        loaded.await()!!.apply {
+            trialState.available shouldBe false
+            subState.available shouldBe true
+        }
+    }
+
+    @Test
+    fun `trial is offered when play returns the trial offer`() = runTest2(context = testDispatcher) {
+        val repo = mockRepo()
+        coEvery { repo.querySkus(OurSku.Sub.PRO_UPGRADE) } returns listOf(
+            subDetails(
+                OurSku.Sub.PRO_UPGRADE.BASE_OFFER.basePlanId to null,
+                OurSku.Sub.PRO_UPGRADE.TRIAL_OFFER.basePlanId to OurSku.Sub.PRO_UPGRADE.TRIAL_OFFER.offerId,
+            ),
+        )
+        val vm = buildVm(repo)
+
+        val loaded = async { vm.state.first { it?.isLoadingPrices == false } }
+        advanceUntilIdle()
+
+        loaded.await()!!.trialState.available shouldBe true
     }
 }

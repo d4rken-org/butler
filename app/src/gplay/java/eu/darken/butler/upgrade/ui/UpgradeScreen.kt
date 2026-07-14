@@ -241,7 +241,7 @@ private fun NarrowScreenLayout(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
         )
 
-        HowToSection()
+        HowToSection(showTrialInfo = state.trialState.available)
 
         SubscriptionButtons(
             state = state,
@@ -318,7 +318,7 @@ private fun WideScreenLayout(
 
             PreambleCard()
 
-            HowToSection()
+            HowToSection(showTrialInfo = state.trialState.available)
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -430,6 +430,7 @@ private fun BenefitsList(
 @Composable
 private fun HowToSection(
     modifier: Modifier = Modifier,
+    showTrialInfo: Boolean = true,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -439,7 +440,11 @@ private fun HowToSection(
         )
 
         Text(
-            text = stringResource(R.string.upgrade_screen_how_body),
+            // Don't promise the free trial when Play didn't return the trial offer — the buy button
+            // falls back to plain "Subscribe" in that case, and the copy must match.
+            text = stringResource(
+                if (showTrialInfo) R.string.upgrade_screen_how_body else R.string.upgrade_screen_how_body_no_trial
+            ),
             style = MaterialTheme.typography.bodyMedium,
         )
     }
