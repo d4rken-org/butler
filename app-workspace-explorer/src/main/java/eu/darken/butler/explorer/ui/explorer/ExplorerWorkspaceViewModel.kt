@@ -17,6 +17,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -575,7 +576,7 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val focusedItem = stateSnap.items?.getOrNull(focusedIndex) as? ExplorerItem.Lookup ?: return@launch
         if (stateSnap.currentLocation !is ExplorerLocation.Directory) return@launch
         // Archive contents are read-only; the keyboard-shortcut path bypasses action-bar gating.
-        if (focusedItem.path is eu.darken.butler.common.files.ArchivePath) return@launch
+        if (focusedItem.path is ArchivePath) return@launch
 
         log(tag) { "deleteFocusedItem(forcePermDelete=$forcePermDelete): ${focusedItem.lookup.name}" }
         dialogEvents.emit(
@@ -594,6 +595,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         val pathsToDelete = selectedItems
             .filterIsInstance<ExplorerItem.Lookup>()
+            // Archive contents are read-only; the Shift+Delete shortcut bypasses action-bar gating.
+            .filter { it.path !is ArchivePath }
             .map { it.lookup.lookedUp }
             .toSet()
 
@@ -832,6 +835,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerActionBarItem.Common.Rename -> {
                 dismissDialog()
+                // Archive contents are read-only; the F2 shortcut bypasses action-bar gating.
+                if (action.item.path is ArchivePath) return@launch
                 val event = ExplorerDialogEvent.ShowRename(
                     item = action.item.lookup.lookedUp,
                 )
@@ -1174,6 +1179,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun pasteClipboard(clip: ClipboardClip) = launch {
         log(tag) { "pasteClipboard($clip)" }
         dismissDialog()
+        // Archive contents are read-only; paste (Ctrl+V / clipboard bar) has no valid target inside an
+        // archive, for either a path paste or a text-snippet paste.
+        val pasteLocation = getState().currentLocation
+        if (pasteLocation is ExplorerLocation.Directory && pasteLocation.path is ArchivePath) return@launch
         when (clip) {
             is ClipboardClip.Paths -> {
                 val currentLocation = getState().currentLocation

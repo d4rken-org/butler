@@ -50,6 +50,7 @@ import coil3.request.ImageRequest
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.archive.ArchiveFormat
@@ -219,11 +220,16 @@ private fun FileOptionsContent(
         val isTextFile = remember(item.mimeType) {
             item.mimeType.isText
         }
-        val isArchiveFile = remember(item.lookup.name) {
-            ArchiveFormat.fromFileName(item.lookup.name) != null
+        // Archive entries are structurally read-only (checked directly so it holds even before the
+        // async writability pass sets canWrite). Otherwise canWrite==false gates writes; null (still
+        // loading) stays permissive.
+        val isArchiveEntry = item.lookup.lookedUp is ArchivePath
+        val isWritable = !isArchiveEntry && item.canWrite != false
+        // Offer Extract only for real archive files. An entry that is itself inside an archive (a nested
+        // archive) can't be opened as a container, so extraction would fail.
+        val isArchiveFile = remember(item.lookup.name, isArchiveEntry) {
+            !isArchiveEntry && ArchiveFormat.fromFileName(item.lookup.name) != null
         }
-        // canWrite == false only once metadata is loaded; null (loading) stays permissive.
-        val isWritable = item.canWrite != false
 
         if (isArchiveFile) {
             FileActionRow(

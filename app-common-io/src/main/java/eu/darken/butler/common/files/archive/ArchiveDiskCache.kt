@@ -2,19 +2,23 @@ package eu.darken.butler.common.files.archive
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,6 +33,7 @@ import javax.inject.Singleton
 @Singleton
 class ArchiveDiskCache @Inject constructor(
     @ApplicationContext private val context: Context,
+    @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
 ) {
 
@@ -39,7 +44,21 @@ class ArchiveDiskCache @Inject constructor(
     }
     private val keyLocks = ConcurrentHashMap<String, Mutex>()
     private val evictionMutex = Mutex()
-    private val swept = AtomicBoolean(false)
+
+    // Single, memoized sweep of crash-partials and any decrypted plaintext left by a previous session.
+    // Every materialize() awaits it, so a cached file can never be read back before the sweep has
+    // actually finished deleting stale decrypted content (which would otherwise be served without the
+    // password being re-entered). Started eagerly at construction so it runs even if no read follows.
+    private val sweepOnce: Deferred<Unit> = appScope.async(
+        dispatcherProvider.IO,
+        start = CoroutineStart.LAZY,
+    ) {
+        sweepStaleFiles()
+    }
+
+    init {
+        sweepOnce.start()
+    }
 
     /**
      * Returns the cached file for [key], producing it via [producer] on miss.
@@ -50,7 +69,9 @@ class ArchiveDiskCache @Inject constructor(
         key: String,
         producer: suspend (File) -> Unit,
     ): File = withContext(dispatcherProvider.IO) {
-        sweepStaleFiles()
+        // Barrier: block until the startup sweep has finished removing stale decrypted plaintext, so a
+        // leftover file from a previous session can never be returned by the fast path below.
+        sweepOnce.await()
         val fileName = "$keyPrefix-${key.sha256()}"
         val target = File(cacheDir, fileName)
         keyLocks.getOrPut(fileName) { Mutex() }.withLock {
@@ -94,14 +115,13 @@ class ArchiveDiskCache @Inject constructor(
     }
 
     private fun sweepStaleFiles() {
-        if (!swept.compareAndSet(false, true)) return
         try {
             cacheDir.listFiles()
                 // Partial writes from a crashed run, AND any decrypted plaintext left from a previous
                 // session - decrypted archive content must never survive a process restart (it would be
                 // readable without re-entering the password).
                 ?.filter { it.name.endsWith(PART_SUFFIX) || it.name.startsWith("$PREFIX_EPHEMERAL_DECRYPTED-") }
-                ?.forEach { it.delete() }
+                ?.forEach { if (!it.delete()) log(TAG, WARN) { "Failed to delete stale ${it.name}" } }
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to sweep stale files: ${e.asLog()}" }
         }

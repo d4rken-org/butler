@@ -34,4 +34,34 @@ class ArchiveFormatTest : BaseTest() {
         ArchiveFormat.fromFileName("archive.rar") shouldBe null
         ArchiveFormat.fromFileName("archive.7z") shouldBe null
     }
+
+    @Test
+    fun `stemOf strips single and compound extensions`() {
+        ArchiveFormat.stemOf("photos.zip") shouldBe "photos"
+        ArchiveFormat.stemOf("backup.tar") shouldBe "backup"
+        // Compound suffixes strip whole, not just the last component.
+        ArchiveFormat.stemOf("backup.tar.gz") shouldBe "backup"
+        ArchiveFormat.stemOf("backup.tar.bz2") shouldBe "backup"
+        // Alias suffixes.
+        ArchiveFormat.stemOf("backup.tgz") shouldBe "backup"
+        ArchiveFormat.stemOf("backup.tbz2") shouldBe "backup"
+    }
+
+    @Test
+    fun `stemOf is case-insensitive`() {
+        ArchiveFormat.stemOf("Backup.TAR.GZ") shouldBe "Backup"
+        ArchiveFormat.stemOf("PHOTOS.ZIP") shouldBe "PHOTOS"
+    }
+
+    @Test
+    fun `stemOf keeps a name that is only an extension rather than mangling it`() {
+        ArchiveFormat.stemOf(".tar.gz") shouldBe ".tar.gz"
+        ArchiveFormat.stemOf(".zip") shouldBe ".zip"
+    }
+
+    @Test
+    fun `stemOf falls back for names without a recognized archive suffix`() {
+        ArchiveFormat.stemOf("noextension") shouldBe "noextension"
+        ArchiveFormat.stemOf("notes.txt") shouldBe "notes"
+    }
 }

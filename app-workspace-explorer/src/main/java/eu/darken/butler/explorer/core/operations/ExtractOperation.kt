@@ -16,6 +16,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.ArchiveService
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.explorer.R
@@ -88,9 +89,7 @@ class ExtractOperation @AssistedInject constructor(
         // Whole-archive extraction lands in an archive-named subdirectory; selection extraction
         // writes entries at their in-archive paths directly under the destination.
         val baseDir = if (command.entries == null) {
-            // Fall back to the full name when the archive name has no stem (e.g. ".zip").
-            val stem = command.archive.name.substringBeforeLast('.').ifBlank { command.archive.name }
-            command.destinationDir.child(stem)
+            command.destinationDir.child(ArchiveFormat.stemOf(command.archive.name))
         } else {
             command.destinationDir
         }

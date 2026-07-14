@@ -24,5 +24,22 @@ enum class ArchiveFormat(val displayExtension: String) {
                 else -> null
             }
         }
+
+        // Compound suffixes first so ".tar.gz" is stripped whole rather than leaving ".tar".
+        private val STEM_SUFFIXES = listOf(
+            ".tar.gz", ".tar.bz2", ".tbz2", ".tgz", ".tar", ".zip",
+        )
+
+        /**
+         * File name without its archive extension, e.g. "backup.tar.gz" -> "backup". Handles compound
+         * and alias suffixes. Falls back to the pre-last-dot stem, then the full name, so a name that is
+         * only an extension (".tar.gz") is returned unchanged rather than mangled into ".tar".
+         */
+        fun stemOf(fileName: String): String {
+            val lower = fileName.lowercase()
+            val suffix = STEM_SUFFIXES.firstOrNull { lower.endsWith(it) }
+            if (suffix != null) return fileName.dropLast(suffix.length).ifBlank { fileName }
+            return fileName.substringBeforeLast('.').ifBlank { fileName }
+        }
     }
 }
