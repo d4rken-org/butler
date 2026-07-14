@@ -54,6 +54,10 @@ fun IssuesBottomSheet(
                 issue = issue,
                 onResolution = onResolution,
             )
+            is PathActionIssue.ArchivePasswordRequired -> ArchivePasswordIssueSheet(
+                issue = issue,
+                onResolution = onResolution,
+            )
             else -> throw IllegalArgumentException("Unknown issue type: $issue")
         }
     }

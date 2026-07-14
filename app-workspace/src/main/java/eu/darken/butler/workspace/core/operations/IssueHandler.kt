@@ -4,6 +4,8 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.archive.ArchivePasswordStore
 import eu.darken.butler.common.issue.Issue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +22,8 @@ import kotlin.time.Instant
 
 @Singleton
 class IssueHandler @Inject constructor(
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
+    private val archivePasswordStore: ArchivePasswordStore,
 ) {
     private val scope = CoroutineScope(dispatcherProvider.IO + SupervisorJob())
 
@@ -69,6 +72,12 @@ class IssueHandler @Inject constructor(
     fun resolveIssue(id: Operation.Id, resolution: Issue.Resolution): Boolean {
         val deferred = pendingResolutions[id]
         return if (deferred != null) {
+            // Cache a submitted archive password before the operation retries with it.
+            if (resolution is PathActionIssue.ArchivePasswordRequired.Resolution.Submit) {
+                (_pendingIssues.value[id]?.issue as? PathActionIssue.ArchivePasswordRequired)?.let { issue ->
+                    archivePasswordStore.set(issue.container, resolution.password.toCharArray())
+                }
+            }
             deferred.complete(resolution)
             true
         } else {

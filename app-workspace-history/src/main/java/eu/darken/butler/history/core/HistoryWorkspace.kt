@@ -144,6 +144,8 @@ class HistoryWorkspace @AssistedInject constructor(
                         Operation.Metadata.Kind.CREATE_FILE -> ctx.getString(R.string.history_workspace_title_kind_create_file)
                         Operation.Metadata.Kind.CREATE_FOLDER -> ctx.getString(R.string.history_workspace_title_kind_create_folder)
                         Operation.Metadata.Kind.SAVE -> ctx.getString(R.string.history_workspace_title_kind_save)
+                        Operation.Metadata.Kind.COMPRESS -> ctx.getString(R.string.history_workspace_title_kind_compress)
+                        Operation.Metadata.Kind.EXTRACT -> ctx.getString(R.string.history_workspace_title_kind_extract)
                     }
                 else -> ctx.getString(R.string.history_workspace_title_filtered)
             }

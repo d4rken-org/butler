@@ -14,6 +14,8 @@
     <string name="history_workspace_title_kind_create_file">History: Create file</string>
     <string name="history_workspace_title_kind_create_folder">History: Create folder</string>
     <string name="history_workspace_title_kind_save">History: Save</string>
+    <string name="history_workspace_title_kind_compress">History: Compress</string>
+    <string name="history_workspace_title_kind_extract">History: Extract</string>
     <string name="history_workspace_title_filtered">History (filtered)</string>
     <plurals name="history_workspace_title_scoped_many">
         <item quantity="one">History: %1$d path</item>
@@ -34,6 +36,8 @@
     <string name="history_filter_kind_create_file">Create file</string>
     <string name="history_filter_kind_create_folder">Create folder</string>
     <string name="history_filter_kind_save">Save</string>
+    <string name="history_filter_kind_compress">Compress</string>
+    <string name="history_filter_kind_extract">Extract</string>
 
     <!-- Path scope chip + dialog -->
     <string name="history_path_scope_set_action">Set path scope…</string>

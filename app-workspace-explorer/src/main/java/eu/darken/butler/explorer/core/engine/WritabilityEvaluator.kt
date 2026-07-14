@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.core.engine
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.metadata.Ownership
@@ -29,6 +30,11 @@ class WritabilityEvaluator @Inject constructor() {
         ownership: Ownership?,
         context: WritabilityContext,
     ): Boolean? {
+        // Archive contents are never writable, regardless of access level.
+        if (path is ArchivePath) {
+            return false
+        }
+
         // Rule 1: Elevated access for local paths = always writable
         if (path is LocalPath && context.hasElevatedAccess) {
             return true

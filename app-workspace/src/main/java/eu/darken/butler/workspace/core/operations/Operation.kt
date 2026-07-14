@@ -58,7 +58,7 @@ interface Operation {
          */
         val intendedPaths: Collection<APath<*>>? get() = null
 
-        enum class Kind { COPY, MOVE, DELETE, CREATE_FOLDER, CREATE_FILE, SAVE }
+        enum class Kind { COPY, MOVE, DELETE, CREATE_FOLDER, CREATE_FILE, SAVE, COMPRESS, EXTRACT }
 
         enum class Intent { RENAME, PASTE_COPY, PASTE_MOVE }
 

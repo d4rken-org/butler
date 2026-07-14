@@ -161,6 +161,8 @@ class OperationHistoryRepo @Inject constructor(
                     Operation.Metadata.Kind.SAVE,
                     Operation.Metadata.Kind.CREATE_FILE,
                     Operation.Metadata.Kind.CREATE_FOLDER,
+                    Operation.Metadata.Kind.COMPRESS,
+                    Operation.Metadata.Kind.EXTRACT,
                     null -> Operation.Report.PathChange.Change.ADDED
                 }
                 out += HistoryEntry.PathChange(

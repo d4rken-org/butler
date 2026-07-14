@@ -84,6 +84,8 @@
     <string name="explorer_action_delete">Delete</string>
     <string name="explorer_action_select_all">Select all</string>
     <string name="explorer_action_deselect_all">Deselect all</string>
+    <string name="explorer_action_compress">Compress</string>
+    <string name="explorer_action_extract">Extract</string>
     <string name="explorer_action_add_location">Add location</string>
     <string name="explorer_action_info">Info</string>
 
@@ -316,6 +318,8 @@
     <string name="explorer_file_action_move_to_trash_subtitle">Move file to trash</string>
     <string name="explorer_file_action_properties">Properties</string>
     <string name="explorer_file_action_properties_subtitle">View detailed file information</string>
+    <string name="explorer_file_action_extract">Extract</string>
+    <string name="explorer_file_action_extract_subtitle">Extract archive contents to a folder</string>
 
     <!-- Operations -->
     <plurals name="explorer_operation_report_files_created">
@@ -345,6 +349,33 @@
         <item quantity="one">%s copied.</item>
         <item quantity="other">%s copied.</item>
     </plurals>
+
+    <string name="explorer_operation_extract_title">Extract operation</string>
+    <string name="explorer_operation_extract_description">Extract \"%1$s\" to \"%2$s\".</string>
+    <plurals name="explorer_operation_report_files_extracted">
+        <item quantity="one">%d file extracted.</item>
+        <item quantity="other">%d files extracted.</item>
+    </plurals>
+    <plurals name="explorer_operation_report_bytes_extracted">
+        <item quantity="one">%s extracted.</item>
+        <item quantity="other">%s extracted.</item>
+    </plurals>
+
+    <string name="explorer_operation_compress_title">Compress operation</string>
+    <plurals name="explorer_operation_compress_description">
+        <item quantity="one">Compress %1$d item into \"%2$s\".</item>
+        <item quantity="other">Compress %1$d items into \"%2$s\".</item>
+    </plurals>
+    <plurals name="explorer_operation_report_files_compressed">
+        <item quantity="one">%d file compressed.</item>
+        <item quantity="other">%d files compressed.</item>
+    </plurals>
+
+    <!-- Compress dialog -->
+    <string name="explorer_compress_dialog_title">Create archive</string>
+    <string name="explorer_compress_dialog_name_label">Archive name</string>
+    <string name="explorer_compress_dialog_format_label">Format</string>
+    <string name="explorer_compress_dialog_create_action">Create</string>
 
     <string name="explorer_operation_move_title">Move operation</string>
     <string name="explorer_operation_move_description_single">Move \"%1$s\" from \"%2$s\" to \"%3$s\".</string>

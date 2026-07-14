@@ -8,6 +8,8 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.archive.ArchivePathLookup
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.saf.SAFPathLookup
 import kotlinx.serialization.json.Json
@@ -32,10 +34,12 @@ class SerializationIOModule {
             polymorphic(APath::class) {
                 subclass(LocalPath::class)
                 subclass(SAFPath::class)
+                subclass(ArchivePath::class)
             }
             polymorphic(APathLookup::class) {
                 subclass(LocalPathLookup::class)
                 subclass(SAFPathLookup::class)
+                subclass(ArchivePathLookup::class)
             }
         }
     }

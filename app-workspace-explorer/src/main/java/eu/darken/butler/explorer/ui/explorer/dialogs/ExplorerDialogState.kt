@@ -37,6 +37,12 @@ sealed interface ExplorerDialogState {
 
     data class FileOptions(val item: ExplorerItem.File) : ExplorerDialogState
 
+    data class CompressOptions(
+        val sources: Set<APath<*>>,
+        val destinationDir: APath<*>,
+        val suggestedName: String,
+    ) : ExplorerDialogState
+
     data class TrashItemOptions(val item: ExplorerItem.Trash.Root) : ExplorerDialogState
 
     data class TrashNestedItemOptions(val item: ExplorerItem.Trash.Nested) : ExplorerDialogState

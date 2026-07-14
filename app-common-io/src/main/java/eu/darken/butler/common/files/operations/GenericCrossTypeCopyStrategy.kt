@@ -69,13 +69,14 @@ class GenericCrossTypeCopyStrategy<
     ): TransferStrategy.TransferResult<SP, DP> {
         log(TAG, DEBUG) { "Copying cross-type: ${sourceLookup.lookedUp} → $destination" }
 
-        // Create destination file (parent exists from depth-first traversal)
-        destOps.createFile(destination)
-
         var totalBytesTransferred = 0L
 
-        // Copy file contents using streams
+        // Open the source FIRST so a source-open failure (e.g. an encrypted archive entry that needs a
+        // password) doesn't leave an empty destination file behind for the caller to clean up. The
+        // destination is only created once the source stream is successfully open.
         sourceOps.openInputStream(sourceLookup.lookedUp).source().buffer().use { source ->
+            // Create destination file (parent exists from depth-first traversal)
+            destOps.createFile(destination)
             destOps.openOutputStream(destination, append = false).sink().buffer().use { sink ->
                 val buffer = okio.Buffer()
                 var bytesRead: Long

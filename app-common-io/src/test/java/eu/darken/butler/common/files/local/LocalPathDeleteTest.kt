@@ -398,6 +398,7 @@ class LocalPathDeleteTest : BaseTest() {
                         is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
                         is PathActionIssue.TrashMoveFailed -> throw NotImplementedError()
                         is PathActionIssue.TrashSizeLimitExceeded -> throw NotImplementedError()
+                        is PathActionIssue.ArchivePasswordRequired -> throw NotImplementedError()
                     }
                 } else {
                     // Subsequent issues should not occur due to "Apply to All"
@@ -454,6 +455,7 @@ class LocalPathDeleteTest : BaseTest() {
                     is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
                     is PathActionIssue.TrashMoveFailed -> throw NotImplementedError()
                     is PathActionIssue.TrashSizeLimitExceeded -> throw NotImplementedError()
+                        is PathActionIssue.ArchivePasswordRequired -> throw NotImplementedError()
                 }
             }
         ).last()
@@ -975,6 +977,7 @@ class LocalPathDeleteTest : BaseTest() {
                     is PathActionIssue.PathAlreadyExists -> throw NotImplementedError()
                     is PathActionIssue.TrashMoveFailed -> throw NotImplementedError()
                     is PathActionIssue.TrashSizeLimitExceeded -> throw NotImplementedError()
+                        is PathActionIssue.ArchivePasswordRequired -> throw NotImplementedError()
                 }
             }
         ).last() as DeleteAction.State.Completed

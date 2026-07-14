@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.common.files.local.accessibility.LocalPathAccessChecker
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
@@ -61,9 +62,20 @@ class PathPermissionCheck @Inject constructor(
                 storageEnvironment.ourPublicDirs.any { path.isDescendantOfOrSelf(it) }
         }
         is SAFPath -> false
+        is ArchivePath -> false
     }
 
     private suspend fun determineModuleRequirements(path: APath<*>): PathRequirements {
+        // Archive entries inherit their container's access requirements (e.g. root-only storage).
+        if (path is ArchivePath) {
+            val containerRequirements = determineModuleRequirements(path.container)
+            return when (val alternative = containerRequirements.alternativePath) {
+                // Keep pointing INTO the archive when the container has a SAF alternative.
+                null -> containerRequirements
+                else -> containerRequirements.copy(alternativePath = ArchivePath(alternative, path.segments))
+            }
+        }
+
         // Only LocalPath from here on
         val localPath = path as? LocalPath ?: return PathRequirements()
 

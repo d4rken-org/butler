@@ -90,6 +90,21 @@ fun ExplorerDialogHost(
             )
         }
 
+        is ExplorerDialogState.CompressOptions -> {
+            CompressOptionsDialog(
+                suggestedName = dialogState.suggestedName,
+                onDismiss = { vm?.dismissDialog() },
+                onConfirm = { name, format ->
+                    vm?.onCompressConfirmed(
+                        sources = dialogState.sources,
+                        destinationDir = dialogState.destinationDir,
+                        archiveName = name,
+                        format = format,
+                    )
+                },
+            )
+        }
+
         is ExplorerDialogState.TrashItemOptions -> {
             TrashItemDetailsBottomSheet(
                 item = dialogState.item,

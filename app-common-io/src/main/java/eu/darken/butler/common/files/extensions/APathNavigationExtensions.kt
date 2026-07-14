@@ -3,6 +3,11 @@ package eu.darken.butler.common.files.extensions
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.archive.isAncestorOf
+import eu.darken.butler.common.files.archive.isParentOf
+import eu.darken.butler.common.files.archive.removePrefix
+import eu.darken.butler.common.files.archive.startsWith
 import eu.darken.butler.common.files.local.isAncestorOf
 import eu.darken.butler.common.files.local.isParentOf
 import eu.darken.butler.common.files.local.removePrefix
@@ -18,6 +23,7 @@ fun APath<*>.isAncestorOf(descendant: APath<*>): Boolean {
     return when (this) {
         is LocalPath -> (this as LocalPath).isAncestorOf(descendant as LocalPath)
         is SAFPath -> (this as SAFPath).isAncestorOf(descendant as SAFPath)
+        is ArchivePath -> this.isAncestorOf(descendant as ArchivePath)
     }
 }
 
@@ -43,6 +49,7 @@ fun APath<*>.isParentOf(child: APath<*>): Boolean {
     return when (this) {
         is LocalPath -> this.isParentOf(child as LocalPath)
         is SAFPath -> this.isParentOf(child as SAFPath)
+        is ArchivePath -> this.isParentOf(child as ArchivePath)
     }
 }
 
@@ -56,6 +63,7 @@ fun APath<*>.matches(other: APath<*>): Boolean {
     return when (this) {
         is LocalPath -> this.path == (other as LocalPath).path
         is SAFPath -> this.path == (other as SAFPath).path
+        is ArchivePath -> this == (other as ArchivePath)
     }
 }
 
@@ -68,6 +76,7 @@ fun APath<*>.startsWith(prefix: APath<*>): Boolean {
     return when (this) {
         is LocalPath -> this.startsWith(prefix as LocalPath)
         is SAFPath -> this.startsWith(prefix as SAFPath)
+        is ArchivePath -> this.startsWith(prefix as ArchivePath)
     }
 }
 
@@ -78,6 +87,7 @@ fun APath<*>.removePrefix(prefix: APath<*>, overlap: Int = 0): Segments {
     return when (this) {
         is LocalPath -> this.removePrefix(prefix as LocalPath, overlap)
         is SAFPath -> this.removePrefix(prefix as SAFPath, overlap)
+        is ArchivePath -> this.removePrefix(prefix as ArchivePath, overlap)
     }
 }
 

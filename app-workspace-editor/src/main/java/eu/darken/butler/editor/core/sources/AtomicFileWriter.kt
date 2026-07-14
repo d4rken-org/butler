@@ -47,6 +47,12 @@ class AtomicFileWriter(
         originalAccess: OriginalAccess,
         writer: suspend (EditorDataSource.CommitContext) -> Unit,
     ) {
+        // Archive entries are read-only; reject before touching the gateway. The editor already opens
+        // them read-only (canWrite=false), so this is a defensive backstop against a bypassed save gate.
+        if (target is eu.darken.butler.common.files.ArchivePath) {
+            throw IllegalArgumentException("Archive entries are read-only and cannot be saved: $target")
+        }
+
         // Unique per-save artifact names so we never collide with or delete a user's own
         // files, and never touch artifacts from a different (e.g. crashed) save. The existence
         // pre-check keeps a token collision from truncating or cleaning up a foreign file.

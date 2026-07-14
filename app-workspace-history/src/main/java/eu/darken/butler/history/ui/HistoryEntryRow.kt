@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.DriveFileMove
 import androidx.compose.material.icons.automirrored.twotone.NoteAdd
+import androidx.compose.material.icons.twotone.Archive
 import androidx.compose.material.icons.twotone.Cancel
 import androidx.compose.material.icons.twotone.CheckCircle
 import androidx.compose.material.icons.twotone.CopyAll
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.ErrorOutline
 import androidx.compose.material.icons.twotone.Save
+import androidx.compose.material.icons.twotone.Unarchive
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -170,6 +172,8 @@ private fun Operation.Metadata.Kind.entryHeadlineLabel(): String = when (this) {
     Operation.Metadata.Kind.CREATE_FOLDER -> "Created folder"
     Operation.Metadata.Kind.CREATE_FILE -> "Created file"
     Operation.Metadata.Kind.SAVE -> "Saved"
+    Operation.Metadata.Kind.COMPRESS -> "Compressed"
+    Operation.Metadata.Kind.EXTRACT -> "Extracted"
 }
 
 internal fun Operation.Metadata.Kind.icon(): ImageVector = when (this) {
@@ -179,6 +183,8 @@ internal fun Operation.Metadata.Kind.icon(): ImageVector = when (this) {
     Operation.Metadata.Kind.CREATE_FOLDER -> Icons.TwoTone.CreateNewFolder
     Operation.Metadata.Kind.CREATE_FILE -> Icons.AutoMirrored.TwoTone.NoteAdd
     Operation.Metadata.Kind.SAVE -> Icons.TwoTone.Save
+    Operation.Metadata.Kind.COMPRESS -> Icons.TwoTone.Archive
+    Operation.Metadata.Kind.EXTRACT -> Icons.TwoTone.Unarchive
 }
 
 @Composable

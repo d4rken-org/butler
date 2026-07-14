@@ -14,6 +14,8 @@ androidx-hilt = "1.4.0"
 hilt-navigation-compose = "1.4.0"
 kotlinx-serialization = "1.11.0"
 okio = "3.13.0"
+commons-compress = "1.28.0"
+zip4j = "2.11.6"
 retrofit = "2.11.0"
 retrofit-kotlinx-converter = "1.0.0"
 okhttp = "5.4.0"
@@ -93,6 +95,8 @@ coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", ve
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
+zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
 retrofit-serialization-converter = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter", version.ref = "retrofit-kotlinx-converter" }

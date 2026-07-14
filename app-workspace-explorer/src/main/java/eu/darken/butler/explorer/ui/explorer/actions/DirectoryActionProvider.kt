@@ -1,5 +1,6 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -53,6 +54,24 @@ class DirectoryActionProvider @Inject constructor(
             if (selectionState.selectedItems.all { it is ExplorerItem.File }) {
                 actions.add(ExplorerActionBarItem.Directory.Share())
             }
+
+            // Compress works on any real (non-archive) selection.
+            val allRealPaths = selectionState.selectedItems.all {
+                it is ExplorerItem.Lookup && it.path !is eu.darken.butler.common.files.ArchivePath
+            }
+            if (allRealPaths && isWritable) {
+                actions.add(ExplorerActionBarItem.Directory.Compress())
+            }
+
+            // Extract appears when every selected item is a browsable archive file.
+            val allArchives = selectionState.selectedItems.isNotEmpty() &&
+                selectionState.selectedItems.all {
+                    it is ExplorerItem.RegularFile && ArchiveFormat.fromFileName(it.lookup.name) != null
+                }
+            if (allArchives) {
+                actions.add(ExplorerActionBarItem.Directory.Extract())
+            }
+
             actions.add(ExplorerActionBarItem.Common.Info())
 
             addFavoritesSelectionAction(actions, selectionState)

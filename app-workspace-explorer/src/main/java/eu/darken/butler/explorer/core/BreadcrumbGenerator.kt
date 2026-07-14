@@ -7,8 +7,11 @@ import androidx.compose.material.icons.twotone.FolderShared
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material.icons.twotone.PauseCircle
 import androidx.compose.material.icons.twotone.PhoneAndroid
+import androidx.compose.material.icons.twotone.FolderZip
 import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.datastore.value
+import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
@@ -91,8 +94,13 @@ class BreadcrumbGenerator @Inject constructor(
                 }
             }
 
-            when (location.path) {
-                is LocalPath -> location.path.segments.fold("") { accPath, segment ->
+            addPathCrumbs(location.path)
+        }
+    }
+
+    private suspend fun MutableList<ExplorerBreadcrumb>.addPathCrumbs(path: APath<*>) {
+        when (path) {
+                is LocalPath -> path.segments.fold("") { accPath, segment ->
                     val newPath = when {
                         segment.isEmpty() -> "/"
                         accPath == "/" -> "$accPath$segment"
@@ -116,7 +124,7 @@ class BreadcrumbGenerator @Inject constructor(
                 }
                 is SAFPath -> {
                     // Find the SAF location to get its display name
-                    val locationMatch = safLocationManager.findPermissionFor(location.path)
+                    val locationMatch = safLocationManager.findPermissionFor(path)
 
                     if (locationMatch != null) {
                         // Add breadcrumb for the SAF root location
@@ -125,7 +133,7 @@ class BreadcrumbGenerator @Inject constructor(
                                 label = locationMatch.location.displayName,
                                 icon = Icons.TwoTone.FolderShared,
                                 target = ExplorerNavigation.Target.Directory(
-                                    SAFPath.build(location.path.treeRootUri)
+                                    SAFPath.build(path.treeRootUri)
                                 )
                             )
                         )
@@ -138,11 +146,11 @@ class BreadcrumbGenerator @Inject constructor(
 
                             add(
                                 ExplorerBreadcrumb(
-                                    label = segment.ifEmpty { location.path.name }.toCaString(),
+                                    label = segment.ifEmpty { path.name }.toCaString(),
                                     icon = Icons.TwoTone.FolderOpen,
                                     target = ExplorerNavigation.Target.Directory(
                                         SAFPath.build(
-                                            location.path.treeRootUri,
+                                            path.treeRootUri,
                                             *accumulatedSegments.toTypedArray()
                                         )
                                     )
@@ -152,16 +160,16 @@ class BreadcrumbGenerator @Inject constructor(
                     } else {
                         // Fallback: No permission match found, show all segments
                         val accumulatedSegments = mutableListOf<String>()
-                        location.path.segments.forEach { segment ->
+                        path.segments.forEach { segment ->
                             accumulatedSegments.add(segment)
 
                             add(
                                 ExplorerBreadcrumb(
-                                    label = segment.ifEmpty { location.path.name }.toCaString(),
+                                    label = segment.ifEmpty { path.name }.toCaString(),
                                     icon = Icons.TwoTone.FolderOpen,
                                     target = ExplorerNavigation.Target.Directory(
                                         SAFPath.build(
-                                            location.path.treeRootUri,
+                                            path.treeRootUri,
                                             *accumulatedSegments.toTypedArray()
                                         )
                                     )
@@ -170,9 +178,35 @@ class BreadcrumbGenerator @Inject constructor(
                         }
                     }
                 }
+
+                is ArchivePath -> {
+                    // The archive sits in a regular directory: prefix with that directory's crumbs.
+                    path.container.parent?.let { addPathCrumbs(it) }
+
+                    add(
+                        ExplorerBreadcrumb(
+                            label = path.container.userReadableName,
+                            icon = Icons.TwoTone.FolderZip,
+                            target = ExplorerNavigation.Target.Directory(ArchivePath.root(path.container)),
+                        )
+                    )
+
+                    val accumulated = mutableListOf<String>()
+                    path.segments.forEach { segment ->
+                        accumulated.add(segment)
+                        add(
+                            ExplorerBreadcrumb(
+                                label = segment.toCaString(),
+                                icon = Icons.TwoTone.FolderOpen,
+                                target = ExplorerNavigation.Target.Directory(
+                                    ArchivePath(path.container, accumulated.toList())
+                                ),
+                            )
+                        )
+                    }
+                }
             }
         }
-    }
 
     companion object {
 
