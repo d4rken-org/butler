@@ -4,6 +4,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import kotlinx.serialization.json.Json
@@ -45,6 +46,8 @@ class DocumentIdCodec @Inject constructor(
         val pathType = when (path) {
             is LocalPath -> "local"
             is SAFPath -> "saf"
+            // Archive contents are not exposed to other apps via the DocumentsProvider.
+            is ArchivePath -> throw IllegalArgumentException("Archive paths have no document ID: $path")
         }
 
         val encodedData = when (path) {
@@ -60,6 +63,7 @@ class DocumentIdCodec @Inject constructor(
                     jsonString.toByteArray(Charsets.UTF_8)
                 )
             }
+            is ArchivePath -> throw IllegalArgumentException("Archive paths have no document ID: $path")
         }
 
         val documentId = "$pathType$SEPARATOR$encodedData"

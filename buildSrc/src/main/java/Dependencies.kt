@@ -89,6 +89,11 @@ fun Project.addIO() {
     add("implementation", "okio")
 }
 
+fun Project.addArchive() {
+    add("implementation", "commons-compress")
+    add("implementation", "zip4j")
+}
+
 fun Project.addRetrofit() {
     add("implementation", "retrofit")
     add("implementation", "retrofit-serialization-converter")

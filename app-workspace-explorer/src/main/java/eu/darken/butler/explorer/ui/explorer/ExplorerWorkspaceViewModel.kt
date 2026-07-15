@@ -17,6 +17,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -574,6 +575,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         val focusedIndex = stateSnap.focusedItemIndex ?: return@launch
         val focusedItem = stateSnap.items?.getOrNull(focusedIndex) as? ExplorerItem.Lookup ?: return@launch
         if (stateSnap.currentLocation !is ExplorerLocation.Directory) return@launch
+        // Archive contents are read-only; the keyboard-shortcut path bypasses action-bar gating.
+        if (focusedItem.path is ArchivePath) return@launch
 
         log(tag) { "deleteFocusedItem(forcePermDelete=$forcePermDelete): ${focusedItem.lookup.name}" }
         dialogEvents.emit(
@@ -592,6 +595,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
         val pathsToDelete = selectedItems
             .filterIsInstance<ExplorerItem.Lookup>()
+            // Archive contents are read-only; the Shift+Delete shortcut bypasses action-bar gating.
+            .filter { it.path !is ArchivePath }
             .map { it.lookup.lookedUp }
             .toSet()
 
@@ -671,6 +676,29 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                         }
                     }
                 }
+            }
+            is ExplorerActionBarItem.Directory.Compress -> {
+                val currentLocation = getState().currentLocation as? ExplorerLocation.Directory ?: return@launch
+                val sources = selection.selectedItems.value
+                    .filterIsInstance<ExplorerItem.Lookup>()
+                    .map { it.lookup.lookedUp }
+                    .toSet()
+                if (sources.isEmpty()) return@launch
+                val suggestedName = sources.singleOrNull()?.name ?: currentLocation.path.name
+                dialogs.show(
+                    CompressOptions(
+                        sources = sources,
+                        destinationDir = currentLocation.path,
+                        suggestedName = suggestedName.ifEmpty { "archive" },
+                    )
+                )
+            }
+            is ExplorerActionBarItem.Directory.Extract -> {
+                val archives = selection.selectedItems.value
+                    .filterIsInstance<ExplorerItem.RegularFile>()
+                    .map { it.lookup.lookedUp }
+                clearSelection()
+                extractArchives(archives)
             }
             is ExplorerActionBarItem.Directory.Share -> {
                 log(tag) { "shareSelectedItems(): ${selection.selectedItems.value.size} items" }
@@ -807,6 +835,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
             }
             is ExplorerActionBarItem.Common.Rename -> {
                 dismissDialog()
+                // Archive contents are read-only; the F2 shortcut bypasses action-bar gating.
+                if (action.item.path is ArchivePath) return@launch
                 val event = ExplorerDialogEvent.ShowRename(
                     item = action.item.lookup.lookedUp,
                 )
@@ -939,6 +969,49 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                 val infoContext = ItemInfo.InfoContext.SingleFile(action.item)
                 dialogs.show(ItemInfo(infoContext))
             }
+            is ExplorerActionBarItem.File.Extract -> {
+                extractArchives(listOf(action.item.lookup.lookedUp))
+            }
+        }
+    }
+
+    /** Extracts each archive into a subfolder beside itself (its parent directory). */
+    private suspend fun extractArchives(archives: List<APath<*>>) {
+        archives.forEach { archive ->
+            val destinationDir = archive.parent ?: return@forEach
+            val completed = getWorkspace().execute(
+                ExplorerCommand.Extract(archive = archive, destinationDir = destinationDir, entries = null)
+            )
+            if (completed.error == null) {
+                completed.report?.affectedPaths?.map { it.path }?.let { revealItems(it) }
+            }
+        }
+    }
+
+    fun onCompressConfirmed(
+        sources: Set<APath<*>>,
+        destinationDir: APath<*>,
+        archiveName: String,
+        format: eu.darken.butler.common.files.archive.ArchiveFormat,
+    ) = launch {
+        log(tag) { "onCompressConfirmed($archiveName, $format)" }
+        dismissDialog()
+        val fullName = if (archiveName.endsWith(".${format.displayExtension}", ignoreCase = true)) {
+            archiveName
+        } else {
+            "$archiveName.${format.displayExtension}"
+        }
+        clearSelection()
+        val completed = getWorkspace().execute(
+            ExplorerCommand.Compress(
+                sources = sources,
+                destinationDir = destinationDir,
+                archiveName = fullName,
+                format = format,
+            )
+        )
+        if (completed.error == null) {
+            completed.report?.affectedPaths?.map { it.path }?.let { revealItems(it) }
         }
     }
 
@@ -1106,6 +1179,10 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     fun pasteClipboard(clip: ClipboardClip) = launch {
         log(tag) { "pasteClipboard($clip)" }
         dismissDialog()
+        // Archive contents are read-only; paste (Ctrl+V / clipboard bar) has no valid target inside an
+        // archive, for either a path paste or a text-snippet paste.
+        val pasteLocation = getState().currentLocation
+        if (pasteLocation is ExplorerLocation.Directory && pasteLocation.path is ArchivePath) return@launch
         when (clip) {
             is ClipboardClip.Paths -> {
                 val currentLocation = getState().currentLocation
@@ -1134,9 +1211,11 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     }
 
                     when (clip.mode) {
-                        ClipboardClip.Paths.Mode.CUT -> clipboardRepo.remove(clip.id)
+                        // Only clear a CUT clip once the move actually succeeded, otherwise the
+                        // sources are lost from the clipboard while still on disk.
+                        ClipboardClip.Paths.Mode.CUT -> if (completed.error == null) clipboardRepo.remove(clip.id)
                         ClipboardClip.Paths.Mode.COPY -> {
-                            if (clipboardSettings.removeOnPaste.value()) {
+                            if (completed.error == null && clipboardSettings.removeOnPaste.value()) {
                                 clipboardRepo.remove(clip.id)
                             }
                         }

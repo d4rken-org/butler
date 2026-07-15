@@ -1,6 +1,7 @@
 package eu.darken.butler.explorer.core.operations
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.workspace.core.operations.Operation
 
 sealed interface ExplorerCommand {
@@ -61,5 +62,27 @@ sealed interface ExplorerCommand {
     data class CreateTextFile(
         val path: APath<*>,
         val content: String,
+    ) : ExplorerCommand
+
+    /**
+     * Compress [sources] into a new archive named [archiveName] in [destinationDir].
+     * Sources must all share a parent (their names are the archive's top-level entries).
+     */
+    data class Compress(
+        val sources: Set<APath<*>>,
+        val destinationDir: APath<*>,
+        val archiveName: String,
+        val format: ArchiveFormat,
+    ) : ExplorerCommand
+
+    /**
+     * Extract from [archive] into [destinationDir].
+     * [entries] limits extraction to specific entry paths (relative to the archive root); null
+     * extracts the whole archive into an archive-named subdirectory.
+     */
+    data class Extract(
+        val archive: APath<*>,
+        val destinationDir: APath<*>,
+        val entries: Set<List<String>>? = null,
     ) : ExplorerCommand
 }

@@ -92,5 +92,7 @@ internal fun Operation.Metadata.Kind.label(): String = stringResource(
         Operation.Metadata.Kind.CREATE_FILE -> R.string.history_filter_kind_create_file
         Operation.Metadata.Kind.CREATE_FOLDER -> R.string.history_filter_kind_create_folder
         Operation.Metadata.Kind.SAVE -> R.string.history_filter_kind_save
+        Operation.Metadata.Kind.COMPRESS -> R.string.history_filter_kind_compress
+        Operation.Metadata.Kind.EXTRACT -> R.string.history_filter_kind_extract
     }
 )

@@ -3,10 +3,12 @@ package eu.darken.butler.explorer.ui.explorer
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.flow.SingleEventFlow
@@ -85,6 +87,20 @@ class ExplorerNavigationController(
                     val workspace = workspace()
                     val config = workspace.pickerConfig
 
+                    // Archives open like folders. Pickers keep treating them as selectable files,
+                    // and archives nested inside another archive only offer the options sheet.
+                    val isBrowsableArchive = config == null &&
+                        ArchiveFormat.fromFileName(item.lookup.name) != null &&
+                        item.lookup.lookedUp !is ArchivePath
+                    if (isBrowsableArchive) {
+                        log(tag, INFO) { "Browsing into archive: ${item.lookup.name}" }
+                        workspace.navigate(
+                            ExplorerNavigation.Target.Directory(ArchivePath.root(item.lookup.lookedUp))
+                        )
+                        clearSelection()
+                        return@doLaunch
+                    }
+
                     // FileSingle mode: instant selection on file tap
                     if (config?.selection?.instantFileSelection == true) {
                         log(tag, INFO) { "FileSingle instant selection: ${item.lookup.name}" }
@@ -157,6 +173,10 @@ class ExplorerNavigationController(
                 SAFPath.build(currentPath.treeRootUri, *segments)
             }
             is LocalPath -> LocalPath.build(File("/$trimmed"))
+            is ArchivePath -> ArchivePath(
+                container = currentPath.container,
+                segments = trimmed.split("/").filter { it.isNotEmpty() && it != "." && it != ".." },
+            )
         }
         navigateToPath(newPath)
     }

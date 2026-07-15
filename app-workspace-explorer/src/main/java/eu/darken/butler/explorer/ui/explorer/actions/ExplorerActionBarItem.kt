@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.automirrored.twotone.ViewList
 import androidx.compose.material.icons.twotone.Add
+import androidx.compose.material.icons.twotone.Archive
 import androidx.compose.material.icons.twotone.ContentCopy
 import androidx.compose.material.icons.twotone.ContentCut
 import androidx.compose.material.icons.twotone.Delete
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.twotone.Bookmark
 import androidx.compose.material.icons.twotone.BookmarkBorder
 import androidx.compose.material.icons.twotone.SelectAll
 import androidx.compose.material.icons.twotone.Share
+import androidx.compose.material.icons.twotone.Unarchive
 import androidx.compose.ui.graphics.vector.ImageVector
 import eu.darken.butler.common.ca.CaString
 import eu.darken.butler.common.ca.toCaString
@@ -164,6 +166,20 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             override val label = eu.darken.butler.common.R.string.general_share_action.toCaString()
         }
 
+        data class Compress(
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
+        ) : Directory {
+            override val icon = Icons.TwoTone.Archive
+            override val label = R.string.explorer_action_compress.toCaString()
+        }
+
+        data class Extract(
+            override val group: WorkspaceActionBarItem.Group = WorkspaceActionBarItem.Group.SECONDARY,
+        ) : Directory {
+            override val icon = Icons.TwoTone.Unarchive
+            override val label = R.string.explorer_action_extract.toCaString()
+        }
+
         object SelectAll : Directory {
             override val icon = Icons.TwoTone.SelectAll
             override val label = R.string.explorer_action_select_all.toCaString()
@@ -286,6 +302,14 @@ sealed interface ExplorerActionBarItem : WorkspaceActionBarItem {
             val item: ExplorerItem.File,
             override val icon: ImageVector = Icons.TwoTone.Info,
             val labelRes: Int = R.string.explorer_file_action_properties,
+        ) : File {
+            override val label = labelRes.toCaString()
+        }
+
+        data class Extract(
+            val item: ExplorerItem.File,
+            override val icon: ImageVector = Icons.TwoTone.Unarchive,
+            val labelRes: Int = R.string.explorer_file_action_extract,
         ) : File {
             override val label = labelRes.toCaString()
         }

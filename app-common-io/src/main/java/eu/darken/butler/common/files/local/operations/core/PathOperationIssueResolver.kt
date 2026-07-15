@@ -98,6 +98,12 @@ class PathOperationIssueResolver(
                 }
             }
 
+            is PathActionIssue.ArchivePasswordRequired -> {
+                if (resolution is PathActionIssue.ArchivePasswordRequired.Resolution.Cancel) {
+                    throw CancellationException("User cancelled operation", resolution.error)
+                }
+            }
+
             is PathActionIssue.TrashSizeLimitExceeded -> {
                 // TrashSizeLimitExceeded is handled at CoreDeleteExecutor level, not here
                 // But if it does come through, handle Cancel appropriately

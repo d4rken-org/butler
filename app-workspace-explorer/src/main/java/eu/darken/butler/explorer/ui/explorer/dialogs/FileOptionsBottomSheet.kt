@@ -23,6 +23,7 @@ import androidx.compose.material.icons.twotone.DriveFileRenameOutline
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.Share
+import androidx.compose.material.icons.twotone.Unarchive
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -49,8 +50,10 @@ import coil3.request.ImageRequest
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.toCaString
@@ -217,6 +220,25 @@ private fun FileOptionsContent(
         val isTextFile = remember(item.mimeType) {
             item.mimeType.isText
         }
+        // Archive entries are structurally read-only (checked directly so it holds even before the
+        // async writability pass sets canWrite). Otherwise canWrite==false gates writes; null (still
+        // loading) stays permissive.
+        val isArchiveEntry = item.lookup.lookedUp is ArchivePath
+        val isWritable = !isArchiveEntry && item.canWrite != false
+        // Offer Extract only for real archive files. An entry that is itself inside an archive (a nested
+        // archive) can't be opened as a container, so extraction would fail.
+        val isArchiveFile = remember(item.lookup.name, isArchiveEntry) {
+            !isArchiveEntry && ArchiveFormat.fromFileName(item.lookup.name) != null
+        }
+
+        if (isArchiveFile) {
+            FileActionRow(
+                icon = Icons.TwoTone.Unarchive,
+                title = stringResource(R.string.explorer_file_action_extract),
+                subtitle = stringResource(R.string.explorer_file_action_extract_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.File.Extract(item)) },
+            )
+        }
 
         if (isTextFile) {
             FileActionRow(
@@ -250,35 +272,39 @@ private fun FileOptionsContent(
             onClick = { onAction(ExplorerActionBarItem.File.Copy(item)) },
         )
 
-        FileActionRow(
-            icon = Icons.TwoTone.ContentCut,
-            title = stringResource(R.string.explorer_file_action_cut),
-            subtitle = stringResource(R.string.explorer_file_action_cut_subtitle),
-            onClick = { onAction(ExplorerActionBarItem.File.Cut(item)) },
-        )
+        if (isWritable) {
+            FileActionRow(
+                icon = Icons.TwoTone.ContentCut,
+                title = stringResource(R.string.explorer_file_action_cut),
+                subtitle = stringResource(R.string.explorer_file_action_cut_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.File.Cut(item)) },
+            )
 
-        FileActionRow(
-            icon = Icons.TwoTone.DriveFileRenameOutline,
-            title = stringResource(R.string.explorer_file_action_rename),
-            subtitle = stringResource(R.string.explorer_file_action_rename_subtitle),
-            onClick = { onAction(ExplorerActionBarItem.Common.Rename(item)) },
-        )
+            FileActionRow(
+                icon = Icons.TwoTone.DriveFileRenameOutline,
+                title = stringResource(R.string.explorer_file_action_rename),
+                subtitle = stringResource(R.string.explorer_file_action_rename_subtitle),
+                onClick = { onAction(ExplorerActionBarItem.Common.Rename(item)) },
+            )
+        }
 
         HorizontalDivider()
 
-        FileActionRow(
-            icon = Icons.TwoTone.Delete,
-            title = stringResource(
-                if (trashEnabled) R.string.explorer_file_action_move_to_trash
-                else R.string.explorer_file_action_delete
-            ),
-            subtitle = stringResource(
-                if (trashEnabled) R.string.explorer_file_action_move_to_trash_subtitle
-                else R.string.explorer_file_action_delete_subtitle
-            ),
-            onClick = { onAction(ExplorerActionBarItem.File.Delete(item)) },
-            isDestructive = !trashEnabled,
-        )
+        if (isWritable) {
+            FileActionRow(
+                icon = Icons.TwoTone.Delete,
+                title = stringResource(
+                    if (trashEnabled) R.string.explorer_file_action_move_to_trash
+                    else R.string.explorer_file_action_delete
+                ),
+                subtitle = stringResource(
+                    if (trashEnabled) R.string.explorer_file_action_move_to_trash_subtitle
+                    else R.string.explorer_file_action_delete_subtitle
+                ),
+                onClick = { onAction(ExplorerActionBarItem.File.Delete(item)) },
+                isDestructive = !trashEnabled,
+            )
+        }
 
         FileActionRow(
             icon = Icons.TwoTone.Info,

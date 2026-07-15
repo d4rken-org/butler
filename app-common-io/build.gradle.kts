@@ -60,6 +60,7 @@ dependencies {
     addCoroutines()
     addSerialization()
     addIO()
+    addArchive()
     addRoomDb()
     addWorkerManager()
 

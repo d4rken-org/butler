@@ -3,6 +3,8 @@ package eu.darken.butler.common.files.extensions
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.ArchivePath
+import eu.darken.butler.common.files.archive.crumbsTo
 import eu.darken.butler.common.files.local.relativeSegmentsTo
 import eu.darken.butler.common.files.saf.crumbsTo
 import java.io.File
@@ -13,11 +15,15 @@ fun APath<*>.crumbsTo(child: APath<*>): Array<String> {
     return when (this) {
         is LocalPath -> this.relativeSegmentsTo(child as LocalPath)
         is SAFPath -> this.crumbsTo(child as SAFPath)
+        is ArchivePath -> this.crumbsTo(child as ArchivePath)
     }
 }
 
 fun APath<*>.toFile(): File = when (this) {
     is LocalPath -> this.file
+    // Archive entries have no filesystem representation; a File from the synthetic
+    // "container!/entry" path would silently point at nothing.
+    is ArchivePath -> throw IllegalArgumentException("Archive paths have no File representation: $this")
     else -> File(this.path)
 }
 
@@ -40,6 +46,11 @@ fun Collection<APath<*>>.commonParent(): APath<*>? {
     // Ensure all paths are the same type
     val firstType = first()::class
     if (!all { it::class == firstType }) return null
+
+    // Archive entries with identical inner segments may come from different archives.
+    (first() as? ArchivePath)?.let { firstArchive ->
+        if (!all { (it as ArchivePath).container == firstArchive.container }) return null
+    }
 
     // Get all segment lists
     val allSegments = map { it.segments }

@@ -6,6 +6,7 @@ import eu.darken.butler.common.error.causeChain
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.archive.ArchivePasswordRequiredException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.local.routing.RouteUnavailableException
@@ -136,6 +137,36 @@ class TransferErrorHandler {
     ) {
         val errorPath = destinationPath ?: sourceLookup.lookedUp
         log(tag, ERROR) { "Operation failed: $errorPath - $error" }
+
+        // Archive password errors get their own prompt-and-retry flow. Checked before the
+        // apply-to-all/permission paths: the exception extends ReadException and would otherwise
+        // be misclassified (and silently skipped by "skip all") instead of prompting.
+        val passwordError = (error as? ArchivePasswordRequiredException)
+            ?: error.causeChain.filterIsInstance<ArchivePasswordRequiredException>().firstOrNull()
+        if (passwordError != null && onIssue != null) {
+            val resolution = issueResolver.resolveIssue(
+                PathActionIssue.ArchivePasswordRequired(
+                    container = passwordError.container,
+                    attemptFailed = passwordError.attemptFailed,
+                )
+            )
+            when (resolution) {
+                is PathActionIssue.ArchivePasswordRequired.Resolution.Submit -> {
+                    // The UI cached the password before resolving; retry decrypts with it.
+                    if (onRetry != null) {
+                        onRetry()
+                    } else {
+                        onSkip(sourceLookup)
+                        progressTracker.completeItem()
+                    }
+                }
+                else -> {
+                    onSkip(sourceLookup)
+                    progressTracker.completeItem()
+                }
+            }
+            return
+        }
 
         // Fast path: Check "apply to all" flags
         if (checkApplyToAllErrorFlags(error, sourceLookup, issueResolver, onSkip, progressTracker::completeItem, tag)) {

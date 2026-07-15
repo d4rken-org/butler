@@ -1,6 +1,10 @@
 package eu.darken.butler.explorer.ui.explorer.actions
 
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MimeInfo
+import eu.darken.butler.common.files.archive.ArchivePathLookup
+import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
@@ -72,5 +76,85 @@ class DirectoryActionProviderTest : BaseTest() {
         val actions = actionsFor(null)
 
         actions.hasSecondaryBrowsingActions() shouldBe true
+    }
+
+    private val container = LocalPath.build("/home/user/a.zip")
+
+    private fun archiveEntry(vararg segments: String) = ExplorerItem.RegularFile(
+        lookup = ArchivePathLookup(
+            lookedUp = ArchivePath(container, segments.toList()),
+            fileType = FileType.FILE,
+            size = 10L,
+            modifiedAt = null,
+        ),
+        mimeType = MimeInfo("text/plain"),
+    )
+
+    private fun selectionActions(
+        location: ExplorerLocation,
+        selected: Set<ExplorerItem>,
+    ) = provider().getActions(
+        location = location,
+        selectionState = ExplorerSelectionState(selectedItems = selected),
+        viewStyle = ExplorerViewStyle.List(),
+        trashEnabled = false,
+    )
+
+    @Test
+    fun `archive location hides Rename, Cut and Delete but keeps Copy`() {
+        val archiveLocation = ExplorerLocation.Directory(
+            items = null,
+            // Even with a stale/true isWritable, the archive path type forces read-only.
+            info = ExplorerLocation.Directory.Info(isWritable = true),
+            path = ArchivePath(container, listOf("sub")),
+        )
+        val actions = selectionActions(archiveLocation, setOf(archiveEntry("sub", "file.txt")))
+
+        actions.any { it is ExplorerActionBarItem.Directory.Rename } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Directory.Cut } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Directory.Delete } shouldBe false
+        // Copy-out of archive entries must stay available.
+        actions.any { it is ExplorerActionBarItem.Directory.Copy } shouldBe true
+    }
+
+    @Test
+    fun `writable local location shows Rename, Cut and Delete for a selection`() {
+        val actions = selectionActions(directory(null), setOf(MockDataProvider.createMockRegularFile()))
+
+        actions.any { it is ExplorerActionBarItem.Directory.Rename } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Directory.Cut } shouldBe true
+        actions.any { it is ExplorerActionBarItem.Directory.Delete } shouldBe true
+    }
+
+    @Test
+    fun `an archive entry in a selection over a real directory still hides Rename, Cut and Delete`() {
+        // A stale/transitioning selection can carry an archive entry into a real, writable directory,
+        // so the gating keys off the selected paths, not just the location.
+        val actions = selectionActions(directory(null), setOf(archiveEntry("sub", "file.txt")))
+
+        actions.any { it is ExplorerActionBarItem.Directory.Rename } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Directory.Cut } shouldBe false
+        actions.any { it is ExplorerActionBarItem.Directory.Delete } shouldBe false
+    }
+
+    @Test
+    fun `a nested archive entry does not offer Extract`() {
+        // "inner.zip" is itself inside an archive; the archive service can't open an ArchivePath as a
+        // container, so Extract must not appear even though the name looks like an archive.
+        val archiveLocation = ExplorerLocation.Directory(
+            items = null,
+            info = ExplorerLocation.Directory.Info(isWritable = false),
+            path = ArchivePath(container, listOf("sub")),
+        )
+        val actions = selectionActions(archiveLocation, setOf(archiveEntry("sub", "inner.zip")))
+
+        actions.any { it is ExplorerActionBarItem.Directory.Extract } shouldBe false
+    }
+
+    @Test
+    fun `a real archive file offers Extract`() {
+        val actions = selectionActions(directory(null), setOf(MockDataProvider.createMockRegularFile("real.zip")))
+
+        actions.any { it is ExplorerActionBarItem.Directory.Extract } shouldBe true
     }
 }

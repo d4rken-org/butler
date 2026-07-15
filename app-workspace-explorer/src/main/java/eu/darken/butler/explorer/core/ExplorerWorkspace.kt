@@ -21,12 +21,14 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
 import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.explorer.core.operations.CompressOperation
 import eu.darken.butler.explorer.core.operations.CopyOperation
 import eu.darken.butler.explorer.core.operations.CreateOperation
 import eu.darken.butler.explorer.core.operations.CreateTextFileOperation
 import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.ExplorerOperation
+import eu.darken.butler.explorer.core.operations.ExtractOperation
 import eu.darken.butler.explorer.core.operations.MoveOperation
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
@@ -79,6 +81,8 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val createTextFileOperationFactory: CreateTextFileOperation.Factory,
     private val copyOperationFactory: CopyOperation.Factory,
     private val moveOperationFactory: MoveOperation.Factory,
+    private val compressOperationFactory: CompressOperation.Factory,
+    private val extractOperationFactory: ExtractOperation.Factory,
     private val explorerSettings: ExplorerSettings,
 ) : Workspace<ExplorerArguments> {
 
@@ -380,6 +384,14 @@ class ExplorerWorkspace @AssistedInject constructor(
             command = command,
         )
         is ExplorerCommand.Move -> moveOperationFactory.create(
+            workspaceId = id,
+            command = command,
+        )
+        is ExplorerCommand.Compress -> compressOperationFactory.create(
+            workspaceId = id,
+            command = command,
+        )
+        is ExplorerCommand.Extract -> extractOperationFactory.create(
             workspaceId = id,
             command = command,
         )

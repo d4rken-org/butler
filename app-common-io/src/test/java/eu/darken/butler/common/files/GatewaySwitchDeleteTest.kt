@@ -35,6 +35,7 @@ class GatewaySwitchDeleteTest : BaseTest() {
 
     private lateinit var localGateway: LocalGateway
     private lateinit var safGateway: SAFGateway
+    private lateinit var archiveGateway: eu.darken.butler.common.files.archive.ArchiveGateway
     private lateinit var safLocationManager: SAFLocationManager
     private lateinit var testScope: TestScope
     private lateinit var gatewaySwitch: GatewaySwitch
@@ -74,6 +75,7 @@ class GatewaySwitchDeleteTest : BaseTest() {
     fun setup() {
         localGateway = mockk(relaxed = true)
         safGateway = mockk(relaxed = true)
+        archiveGateway = mockk(relaxed = true)
         safLocationManager = mockk(relaxed = true)
         testScope = TestScope()
         gatewaySwitch = GatewaySwitch(
@@ -81,6 +83,7 @@ class GatewaySwitchDeleteTest : BaseTest() {
             dispatcherProvider = TestDispatcherProvider(),
             safGateway = safGateway,
             localGateway = localGateway,
+            archiveGateway = archiveGateway,
             safLocationManager = safLocationManager,
         )
     }

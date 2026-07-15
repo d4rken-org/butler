@@ -125,6 +125,37 @@ sealed interface PathActionIssue : Issue {
         }
     }
 
+    data class ArchivePasswordRequired(
+        override val id: Issue.Id = Issue.Id(),
+        val container: APath<*>,
+        val attemptFailed: Boolean = false,
+        val canSkip: Boolean = true,
+    ) : PathActionIssue {
+        override val title: CaString = caString {
+            getString(eu.darken.butler.common.io.R.string.path_action_archive_password_title)
+        }
+        override val description: CaString = caString {
+            if (attemptFailed) {
+                getString(
+                    eu.darken.butler.common.io.R.string.path_action_archive_password_wrong_description,
+                    container.name,
+                )
+            } else {
+                getString(
+                    eu.darken.butler.common.io.R.string.path_action_archive_password_description,
+                    container.name,
+                )
+            }
+        }
+
+        sealed interface Resolution : PathActionIssue.Resolution {
+            /** The password must already be cached (UI stores it) before resolving; the item is retried. */
+            data class Submit(val password: String) : Resolution
+            data class Skip(val applyToAll: Boolean = false) : Resolution
+            data class Cancel(val error: Exception? = null) : Resolution
+        }
+    }
+
     data class TrashSizeLimitExceeded(
         override val id: Issue.Id = Issue.Id(),
         val totalSize: Long,

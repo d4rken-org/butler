@@ -69,6 +69,10 @@ fun PathActionIssue.toFileOperationIssue(context: Context): FileOperationIssue {
         is PathActionIssue.TrashMoveFailed -> throw IllegalArgumentException(
             "TrashMoveFailed is not an IPC-transportable issue type"
         )
+
+        is PathActionIssue.ArchivePasswordRequired -> throw IllegalArgumentException(
+            "ArchivePasswordRequired is not an IPC-transportable issue type"
+        )
     }
 }
 
@@ -235,6 +239,8 @@ fun FileOperationIssueResolution.toPathActionIssueResolution(
                 throw IllegalArgumentException("TrashSizeLimitExceeded is not an IPC-transportable issue type")
             is PathActionIssue.TrashMoveFailed ->
                 throw IllegalArgumentException("TrashMoveFailed is not an IPC-transportable issue type")
+            is PathActionIssue.ArchivePasswordRequired ->
+                throw IllegalArgumentException("ArchivePasswordRequired is not an IPC-transportable issue type")
         }
     }
 
@@ -278,5 +284,8 @@ fun FileOperationIssueResolution.toPathActionIssueResolution(
 
         is PathActionIssue.TrashMoveFailed ->
             throw IllegalArgumentException("TrashMoveFailed is not an IPC-transportable issue type")
+
+        is PathActionIssue.ArchivePasswordRequired ->
+            throw IllegalArgumentException("ArchivePasswordRequired is not an IPC-transportable issue type")
     }
 }

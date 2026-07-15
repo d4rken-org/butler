@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.ContentCopy
+import androidx.compose.material.icons.twotone.FolderZip
 import androidx.compose.material.icons.twotone.Home
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -62,6 +63,7 @@ import eu.darken.butler.common.compose.BadgedIcon
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.saf.location.SAFLocationManager
@@ -187,6 +189,11 @@ fun BreadcrumbBar(
                         is LocalPath -> {
                             // Navigate to filesystem root
                             onBreadcrumbClick(ExplorerNavigation.Target.Directory(LocalPath.build("/")))
+                            isEditMode = false
+                        }
+                        is ArchivePath -> {
+                            // Navigate to the archive's root
+                            onBreadcrumbClick(ExplorerNavigation.Target.Directory(ArchivePath.root(path.container)))
                             isEditMode = false
                         }
                         else -> {
@@ -332,6 +339,13 @@ private fun rememberBreadcrumbPathInfo(
                             prefixLabel = rootBreadcrumb?.label?.get(context),
                         )
                     }
+                    is ArchivePath -> BreadcrumbPathInfo(
+                        // Edited text is interpreted as a path INSIDE the archive.
+                        displayPath = path.segments.joinToString("/"),
+                        path = path,
+                        prefixIcon = Icons.TwoTone.FolderZip,
+                        prefixLabel = path.container.name,
+                    )
                 }
             }
             else -> BreadcrumbPathInfo(displayPath = "", path = null)

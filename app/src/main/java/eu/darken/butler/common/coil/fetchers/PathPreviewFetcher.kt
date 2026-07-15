@@ -26,6 +26,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.extensions.extension
 import eu.darken.butler.common.files.iconRes
@@ -91,6 +92,10 @@ class PathPreviewFetcher @Inject constructor(
         if (isEasterEggPath()) return easterEggIcon
 
         if (data.fileType != FileType.FILE || data.size == 0L) return fallbackIcon
+
+        // Archive entries would need decompression to scratch storage for a thumbnail;
+        // previews must never trigger that implicitly.
+        if (data.lookedUp is ArchivePath) return fallbackIcon
 
         val mimeType = mimeTypeTool.determineMimeType(data)
 
