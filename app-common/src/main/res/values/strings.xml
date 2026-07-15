@@ -61,6 +61,7 @@
     <string name="general_back_action">Back</string>
     <string name="general_navigate_up_action">Navigate up</string>
     <string name="general_error_label">Error</string>
+    <string name="general_error_unknown_label">Unknown error</string>
     <string name="general_error_invalid_input_label">Invalid input</string>
     <string name="general_share_error_action">Share Error</string>
     <string name="general_error_report_title">Error Report</string>
@@ -135,6 +136,7 @@
     <string name="general_view_action">View</string>
     <string name="general_delete_action">Delete</string>
     <string name="general_show_details_action">Show details</string>
+    <string name="general_hide_details_action">Hide details</string>
 
     <string name="general_delete_confirmation_title">Confirm deletion</string>
     <string name="general_delete_confirmation_message_x">Delete \"%s\"?</string>
