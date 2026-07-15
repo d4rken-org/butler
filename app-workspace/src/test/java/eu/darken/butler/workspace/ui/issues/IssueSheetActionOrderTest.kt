@@ -1,9 +1,11 @@
 package eu.darken.butler.workspace.ui.issues
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import eu.darken.butler.common.compose.PreviewWrapper
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.actions.PathActionIssue
@@ -139,6 +141,32 @@ class IssueSheetActionOrderTest : ComposeTest() {
         retry.performClick()
         resolutions[0] shouldBe PathActionIssue.UnknownError.Resolution.Skip()
         resolutions[1] shouldBe PathActionIssue.UnknownError.Resolution.Retry
+    }
+
+    @Test
+    fun `archive password - cancel is left of unlock and both resolve`() {
+        val resolutions = mutableListOf<PathActionIssue.Resolution>()
+        composeTestRule.setContent {
+            PreviewWrapper {
+                ArchivePasswordIssueSheet(
+                    issue = PathActionIssue.ArchivePasswordRequired(
+                        container = LocalPath.build("/storage/emulated/0/Download/secret.zip"),
+                    ),
+                    onResolution = { resolutions.add(it) },
+                )
+            }
+        }
+
+        val cancel = composeTestRule.onNodeWithText("Cancel")
+        val unlock = composeTestRule.onNodeWithText("Unlock")
+        cancel.getBoundsInRoot().left shouldBeLessThan unlock.getBoundsInRoot().left
+
+        unlock.assertIsNotEnabled()
+        composeTestRule.onNodeWithText("Password").performTextInput("hunter2")
+        unlock.performClick()
+        cancel.performClick()
+        resolutions[0] shouldBe PathActionIssue.ArchivePasswordRequired.Resolution.Submit("hunter2")
+        resolutions[1] shouldBe PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
     }
 
     @Test

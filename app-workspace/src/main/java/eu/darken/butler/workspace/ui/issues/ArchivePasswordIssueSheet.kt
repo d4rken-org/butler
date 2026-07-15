@@ -92,6 +92,23 @@ fun ArchivePasswordIssueSheet(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            TextButton(
+                onClick = { onResolution(PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()) },
+                modifier = Modifier.weight(1f),
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Cancel,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(text = stringResource(R.string.workspace_issue_common_cancel))
+                }
+            }
+
             OutlinedButton(
                 onClick = { onResolution(PathActionIssue.ArchivePasswordRequired.Resolution.Submit(password)) },
                 enabled = password.isNotEmpty(),
@@ -107,23 +124,6 @@ fun ArchivePasswordIssueSheet(
                         modifier = Modifier.size(18.dp),
                     )
                     Text(text = stringResource(R.string.workspace_issue_archive_password_unlock))
-                }
-            }
-
-            TextButton(
-                onClick = { onResolution(PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()) },
-                modifier = Modifier.weight(1f),
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Cancel,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(text = stringResource(R.string.workspace_issue_common_cancel))
                 }
             }
         }
