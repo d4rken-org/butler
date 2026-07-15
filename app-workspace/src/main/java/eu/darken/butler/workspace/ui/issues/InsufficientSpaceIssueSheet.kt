@@ -81,29 +81,6 @@ fun InsufficientSpaceIssueSheet(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            OutlinedButton(
-                onClick = {
-                    onResolution(PathActionIssue.InsufficientSpace.Resolution.Retry)
-                },
-                modifier = Modifier.weight(1f),
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Refresh,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        text = stringResource(CommonR.string.general_retry_action),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-
             TextButton(
                 onClick = {
                     onResolution(PathActionIssue.InsufficientSpace.Resolution.Cancel())
@@ -121,6 +98,29 @@ fun InsufficientSpaceIssueSheet(
                     )
                     Text(
                         text = stringResource(R.string.workspace_issue_common_cancel),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
+            OutlinedButton(
+                onClick = {
+                    onResolution(PathActionIssue.InsufficientSpace.Resolution.Retry)
+                },
+                modifier = Modifier.weight(1f),
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Refresh,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        text = stringResource(CommonR.string.general_retry_action),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )

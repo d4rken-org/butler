@@ -213,57 +213,59 @@ fun UnknownErrorIssueSheet(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (issue.canRetry) {
-                    Button(
-                        onClick = {
-                            onResolution(PathActionIssue.UnknownError.Resolution.Retry)
-                        },
-                        modifier = Modifier.weight(1f),
-                        enabled = !applyToAll,
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+            if (issue.canRetry || issue.canSkip) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (issue.canSkip) {
+                        OutlinedButton(
+                            onClick = {
+                                onResolution(PathActionIssue.UnknownError.Resolution.Skip(applyToAll))
+                            },
+                            modifier = Modifier.weight(1f),
                         ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Refresh,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Text(
-                                text = stringResource(eu.darken.butler.common.R.string.general_retry_action),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.SkipNext,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Text(
+                                    text = stringResource(R.string.workspace_issue_common_skip),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
                         }
                     }
-                }
 
-                if (issue.canSkip) {
-                    OutlinedButton(
-                        onClick = {
-                            onResolution(PathActionIssue.UnknownError.Resolution.Skip(applyToAll))
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                    if (issue.canRetry) {
+                        Button(
+                            onClick = {
+                                onResolution(PathActionIssue.UnknownError.Resolution.Retry)
+                            },
+                            modifier = Modifier.weight(1f),
+                            enabled = !applyToAll,
                         ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.SkipNext,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Text(
-                                text = stringResource(R.string.workspace_issue_common_skip),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.TwoTone.Refresh,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Text(
+                                    text = stringResource(eu.darken.butler.common.R.string.general_retry_action),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
                         }
                     }
                 }

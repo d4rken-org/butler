@@ -1,19 +1,12 @@
 package eu.darken.butler.common.debug.recorder.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
-import androidx.compose.ui.unit.dp
 import eu.darken.butler.R
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
@@ -39,17 +32,13 @@ fun ShortRecordingDialog(
             )
         },
         confirmButton = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                TextButton(onClick = onStopAnyway) {
-                    Text(stringResource(R.string.debug_log_stop_action))
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                TextButton(onClick = onKeepRecording) {
-                    Text(stringResource(R.string.debug_log_short_recording_keep_action))
-                }
+            TextButton(onClick = onStopAnyway) {
+                Text(stringResource(R.string.debug_log_stop_action))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onKeepRecording) {
+                Text(stringResource(R.string.debug_log_short_recording_keep_action))
             }
         },
     )
