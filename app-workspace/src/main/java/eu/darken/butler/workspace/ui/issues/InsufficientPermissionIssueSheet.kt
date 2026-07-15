@@ -113,6 +113,29 @@ fun InsufficientPermissionIssueSheet(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            TextButton(
+                onClick = {
+                    onResolution(PathActionIssue.InsufficientPermission.Resolution.Cancel())
+                },
+                modifier = Modifier.weight(1f),
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.TwoTone.Cancel,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.workspace_issue_common_cancel),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+
             if (issue.canSkip) {
                 OutlinedButton(
                     onClick = {
@@ -135,29 +158,6 @@ fun InsufficientPermissionIssueSheet(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                }
-            }
-
-            TextButton(
-                onClick = {
-                    onResolution(PathActionIssue.InsufficientPermission.Resolution.Cancel())
-                },
-                modifier = Modifier.weight(1f),
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.Cancel,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.workspace_issue_common_cancel),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
                 }
             }
         }

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.ButlerPreviewWrapper
 import eu.darken.butler.common.compose.Preview2
 import eu.darken.butler.common.compose.PreviewWrapper
+import eu.darken.butler.searcher.R
 import java.io.IOException
 
 @Composable
@@ -53,7 +54,7 @@ fun SearchErrorDialog(
             )
         },
         title = {
-            Text("Search Error")
+            Text(stringResource(R.string.searcher_search_error))
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -64,13 +65,23 @@ fun SearchErrorDialog(
                 )
 
                 Text(
-                    text = exception.message ?: exception::class.simpleName ?: "Unknown error",
+                    text = exception.message?.takeIf { it.isNotBlank() }
+                        ?: exception::class.simpleName
+                        ?: stringResource(eu.darken.butler.common.R.string.general_error_unknown_label),
                     style = MaterialTheme.typography.bodyMedium
                 )
 
                 // Expandable stack trace
                 TextButton(onClick = { showDetails = !showDetails }) {
-                    Text(if (showDetails) "Hide Details" else "Show Details")
+                    Text(
+                        stringResource(
+                            if (showDetails) {
+                                eu.darken.butler.common.R.string.general_hide_details_action
+                            } else {
+                                eu.darken.butler.common.R.string.general_show_details_action
+                            }
+                        )
+                    )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
                         imageVector = if (showDetails) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
@@ -95,7 +106,7 @@ fun SearchErrorDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Dismiss")
+                Text(stringResource(eu.darken.butler.common.R.string.general_dismiss_action))
             }
         },
         dismissButton = {

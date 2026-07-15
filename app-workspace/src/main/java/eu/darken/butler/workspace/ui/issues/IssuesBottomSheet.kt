@@ -1,6 +1,7 @@
 package eu.darken.butler.workspace.ui.issues
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -29,36 +30,38 @@ fun IssuesBottomSheet(
         topInset = topInset,
         bottomInset = bottomInset,
     ) {
-        when (issue) {
-            is PathActionIssue.PathAlreadyExists -> PathAlreadyExistsIssueSheet(
-                issue = issue,
-                onResolution = onResolution,
-            )
-            is PathActionIssue.InsufficientPermission -> InsufficientPermissionIssueSheet(
-                issue = issue,
-                onResolution = onResolution,
-            )
-            is PathActionIssue.InsufficientSpace -> InsufficientSpaceIssueSheet(
-                issue = issue,
-                onResolution = onResolution,
-            )
-            is PathActionIssue.UnknownError -> UnknownErrorIssueSheet(
-                issue = issue,
-                onResolution = onResolution,
-            )
-            is PathActionIssue.TrashSizeLimitExceeded -> TrashSizeLimitIssueSheet(
-                issue = issue,
-                onResolution = onResolution,
-            )
-            is PathActionIssue.TrashMoveFailed -> TrashMoveFailedIssueSheet(
-                issue = issue,
-                onResolution = onResolution,
-            )
-            is PathActionIssue.ArchivePasswordRequired -> ArchivePasswordIssueSheet(
-                issue = issue,
-                onResolution = onResolution,
-            )
-            else -> throw IllegalArgumentException("Unknown issue type: $issue")
+        key(issue.id) {
+            when (issue) {
+                is PathActionIssue.PathAlreadyExists -> PathAlreadyExistsIssueSheet(
+                    issue = issue,
+                    onResolution = onResolution,
+                )
+                is PathActionIssue.InsufficientPermission -> InsufficientPermissionIssueSheet(
+                    issue = issue,
+                    onResolution = onResolution,
+                )
+                is PathActionIssue.InsufficientSpace -> InsufficientSpaceIssueSheet(
+                    issue = issue,
+                    onResolution = onResolution,
+                )
+                is PathActionIssue.UnknownError -> UnknownErrorIssueSheet(
+                    issue = issue,
+                    onResolution = onResolution,
+                )
+                is PathActionIssue.TrashSizeLimitExceeded -> TrashSizeLimitIssueSheet(
+                    issue = issue,
+                    onResolution = onResolution,
+                )
+                is PathActionIssue.TrashMoveFailed -> TrashMoveFailedIssueSheet(
+                    issue = issue,
+                    onResolution = onResolution,
+                )
+                is PathActionIssue.ArchivePasswordRequired -> ArchivePasswordIssueSheet(
+                    issue = issue,
+                    onResolution = onResolution,
+                )
+                else -> throw IllegalArgumentException("Unknown issue type: $issue")
+            }
         }
     }
 }
