@@ -1,8 +1,5 @@
 package eu.darken.butler.common.adb.shizuku
 
-import android.content.Context
-import android.content.pm.PackageManager
-import dagger.hilt.android.qualifiers.ApplicationContext
 import eu.darken.butler.common.adb.AdbSettings
 import eu.darken.butler.common.adb.service.AdbServiceClient
 import eu.darken.butler.common.coroutine.AppScope
@@ -15,7 +12,6 @@ import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.toPkgId
-import eu.darken.butler.common.root.RootManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,7 +32,6 @@ import javax.inject.Singleton
 
 @Singleton
 class ShizukuManager @Inject constructor(
-    @ApplicationContext private val context: Context,
     @AppScope private val appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     settings: AdbSettings,
@@ -45,7 +40,10 @@ class ShizukuManager @Inject constructor(
 ) {
 
     val shizukuBinder: Flow<ShizukuBaseServiceBinder?> = settings.useShizuku.flow
-        .flatMapLatest { if (it == true) shizukuWrapper.baseServiceBinder else flowOf(null) }
+        // Only touch the Shizuku binder if the user opted in AND Shizuku is actually installed.
+        // Otherwise (e.g. useShizuku left enabled after uninstalling Shizuku) every subscription would
+        // probe the absent service and spam "binder haven't been received" on each resume.
+        .flatMapLatest { if (it == true && isInstalled()) shizukuWrapper.baseServiceBinder else flowOf(null) }
         .catch { e ->
             log(TAG, WARN) { "Shizuku binder access failed: ${e.asLog()}" }
             emit(null)
@@ -59,7 +57,8 @@ class ShizukuManager @Inject constructor(
         }
         .replayingShare(appScope)
 
-    suspend fun managerIds() = KNOWN_ADB_MANAGERS
+    // The reference package plus, if a fork under a different package name is installed, its package too.
+    suspend fun managerIds(): Set<Pkg.Id> = setOf(PKG_ID) + listOfNotNull(getManagerId())
 
     val permissionGrantEvents: Flow<ShizukuWrapper.ShizukuPermissionRequest> = shizukuWrapper.permissionGrantEvents
         .setupCommonEventHandlers(TAG) { "grantEvents" }
@@ -107,21 +106,21 @@ class ShizukuManager @Inject constructor(
         }
     }
 
+    // Reference package, also used as a fallback for previews and when nothing is installed.
     val shizukuPkgId: Pkg.Id
-        get() = KNOWN_ADB_MANAGERS.first()
+        get() = PKG_ID
 
+    /**
+     * The installed Shizuku manager's package, resolved via its permission so forks and hidden-mode
+     * installs are handled, or null if Shizuku isn't installed.
+     */
+    suspend fun getManagerId(): Pkg.Id? = shizukuWrapper.getManagerPackage()?.toPkgId()
 
+    // Not cached: a stale "not installed" result would keep the binder gate (see shizukuBinder) closed
+    // even after Shizuku gets installed, until the next process restart. The lookup is cheap.
     suspend fun isInstalled(): Boolean {
-        val installed = KNOWN_ADB_MANAGERS.any {
-            try {
-                @Suppress("DEPRECATION")
-                context.packageManager.getPackageInfo(it.name, 0)
-                true
-            } catch (_: PackageManager.NameNotFoundException) {
-                false
-            }
-        }
-        log(RootManager.Companion.TAG) { "isInstalled(): $installed" }
+        val installed = getManagerId() != null
+        log(TAG) { "isInstalled(): $installed" }
         return installed
     }
 
@@ -175,8 +174,6 @@ class ShizukuManager @Inject constructor(
 
     companion object {
         private val TAG = logTag("ADB", "Shizuku", "Manager")
-        private val KNOWN_ADB_MANAGERS = setOf(
-            "moe.shizuku.privileged.api"
-        ).map { it.toPkgId() }.toSet()
+        internal val PKG_ID = "moe.shizuku.privileged.api".toPkgId()
     }
 }
