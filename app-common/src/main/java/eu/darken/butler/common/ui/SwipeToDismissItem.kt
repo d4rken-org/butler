@@ -12,7 +12,9 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,7 +27,9 @@ import androidx.compose.ui.unit.dp
  * A reusable swipe-to-dismiss composable that provides consistent behavior across the app.
  *
  * @param modifier Modifier for the SwipeToDismissBox
- * @param onDismiss Called when the item is dismissed
+ * @param onDismiss Called after the swipe has settled in the dismissed position. Must not be
+ *   called mid-gesture: removing the item while the pointer is still down detaches the drag node
+ *   and leaks the remaining gesture to enclosing scrollables (e.g. the workspace pager).
  * @param enabled Whether swipe gestures are enabled (default: true)
  * @param dismissThreshold Fraction of the width that must be swiped to trigger dismiss (0.0 to 1.0)
  * @param backgroundShape Shape for the background (e.g., RoundedCornerShape for rounded corners)
@@ -55,17 +59,13 @@ fun SwipeToDismissItem(
     content: @Composable () -> Unit
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { dismissValue ->
-            when (dismissValue) {
-                SwipeToDismissBoxValue.EndToStart -> {
-                    onDismiss()
-                    true
-                }
-                else -> false
-            }
-        },
-        positionalThreshold = { totalDistance -> totalDistance * dismissThreshold }
+        positionalThreshold = { totalDistance -> totalDistance * dismissThreshold },
     )
+
+    // Stable identity: m3 keys its settle-effect on the onDismiss lambda, an unstable caller
+    // lambda could otherwise restart it and re-fire for an already dismissed item.
+    val currentOnDismiss by rememberUpdatedState(onDismiss)
+    val settledDismissCallback = remember { { _: SwipeToDismissBoxValue -> currentOnDismiss() } }
 
     // Handle programmatic dismiss trigger (e.g., for clear all animations)
     if (programmaticDismissTrigger > 0L) {
@@ -85,6 +85,7 @@ fun SwipeToDismissItem(
         modifier = modifier,
         enableDismissFromStartToEnd = false,
         gesturesEnabled = enabled,
+        onDismiss = settledDismissCallback,
         backgroundContent = {
             Box(
                 modifier = Modifier
