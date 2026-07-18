@@ -6,6 +6,7 @@ import eu.darken.butler.common.datastore.DataStoreValue
 import eu.darken.butler.common.pkgs.toPkgId
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -136,6 +137,23 @@ class ShizukuManagerTest : BaseTest() {
         val mgr = manager()
 
         runBlocking { mgr.getManagerId() } shouldBe forkPkg.toPkgId()
+    }
+
+    @Test fun `isOurServiceAvailable does not launch the service client without permission`() {
+        // Enabled-but-absent Shizuku (or permission not yet granted): the availability probe must
+        // fail fast without acquiring the service client, which would attempt a host launch and
+        // enter SharedResource.
+        val mgr = manager()
+
+        // Shizuku absent: no binder, permission state unknowable.
+        coEvery { shizukuWrapper.isGranted() } returns null
+        runBlocking { mgr.isOurServiceAvailable() } shouldBe false
+
+        // Shizuku present but permission denied.
+        coEvery { shizukuWrapper.isGranted() } returns false
+        runBlocking { mgr.isOurServiceAvailable() } shouldBe false
+
+        coVerify(exactly = 0) { serviceClient.get() }
     }
 
     @Test fun `managerIds always includes the reference package plus any detected fork`() {
