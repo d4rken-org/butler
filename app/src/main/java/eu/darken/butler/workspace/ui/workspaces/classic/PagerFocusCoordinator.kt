@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
@@ -23,6 +24,11 @@ class PagerFocusCoordinatorState internal constructor() {
         internal set
     internal var lastSyncedFocusId: Workspace.Id? = null
     internal var lastUserSwipeFocusId: Workspace.Id? = null
+
+    // Page of an in-flight clamp correction. The matching settle emission is swallowed instead of
+    // being reported as a user swipe — during a clamp, focus is stale/null, so the usual
+    // settledId != focused guard can't suppress the echo.
+    internal var pendingClampPage: Int? = null
 }
 
 /**
@@ -38,6 +44,9 @@ class PagerFocusCoordinatorState internal constructor() {
  * - Wraps every programmatic scroll in `try/finally` so
  *   [PagerFocusCoordinatorState.isAnimatingProgrammatically] is always reset,
  *   even on cancellation.
+ * - Owns ALL programmatic pager movement, including the clamp back into the
+ *   real-tab range after a list shrink strands the pager on the trailing
+ *   placeholder page. Nothing else may scroll this pager.
  *
  * @param pagerState the pager being driven
  * @param tabIds stable list of currently-displayed workspace IDs (placeholder
@@ -63,18 +72,25 @@ fun rememberPagerFocusCoordinator(
     val currentOnSettled by rememberUpdatedState(onSettled)
 
     LaunchedEffect(pagerState, tabIds, focused, isRestoring, isOverlayVisible) {
-        val desiredId = focused ?: return@LaunchedEffect
+        val desiredId = focused
+        val targetIndex = desiredId?.let { tabIds.indexOf(it) } ?: -1
+
+        if (targetIndex < 0) {
+            // No focus, or focus points at a workspace that is gone or not yet listed (e.g. the
+            // tab that was just closed). Never leave the pager parked beyond the last real tab:
+            // a list shrink hands the current index to the trailing creation placeholder, and
+            // sitting there must not look like user intent to the placeholder logic.
+            if (desiredId != null) {
+                log(TAG, VERBOSE) { "Focus $desiredId not in tabIds yet — waiting" }
+            }
+            clampToLastRealPage(pagerState, tabIds, coordinator)
+            return@LaunchedEffect
+        }
 
         if (desiredId == coordinator.lastUserSwipeFocusId) {
             log(TAG, VERBOSE) { "Skip pager sync — focus came from user swipe: $desiredId" }
             coordinator.lastUserSwipeFocusId = null
             coordinator.lastSyncedFocusId = desiredId
-            return@LaunchedEffect
-        }
-
-        val targetIndex = tabIds.indexOf(desiredId)
-        if (targetIndex < 0) {
-            log(TAG, VERBOSE) { "Focus $desiredId not in tabIds yet — waiting" }
             return@LaunchedEffect
         }
 
@@ -119,6 +135,13 @@ fun rememberPagerFocusCoordinator(
             .map { (settled, _) -> settled }
             .distinctUntilChanged()
             .collect { settled ->
+                // One-shot: whatever settle follows a clamp consumes the marker, so a stale
+                // marker can never swallow a later genuine swipe to the same page.
+                val clampPage = coordinator.pendingClampPage
+                if (clampPage != null) {
+                    coordinator.pendingClampPage = null
+                    if (settled == clampPage) return@collect
+                }
                 if (coordinator.isAnimatingProgrammatically) return@collect
                 if (settled !in tabIds.indices) return@collect
 
@@ -132,4 +155,37 @@ fun rememberPagerFocusCoordinator(
     }
 
     return coordinator
+}
+
+/**
+ * Snaps the pager back into the real-tab range when it is parked beyond the last tab without a
+ * (valid) focus to sync to. Waits for any in-flight scroll to settle first, then re-checks —
+ * the pager may have landed in range on its own.
+ */
+private suspend fun clampToLastRealPage(
+    pagerState: PagerState,
+    tabIds: List<Workspace.Id>,
+    coordinator: PagerFocusCoordinatorState,
+) {
+    if (tabIds.isEmpty()) return
+    val lastReal = tabIds.size - 1
+
+    if (pagerState.isScrollInProgress) {
+        log(TAG, VERBOSE) { "Pager mid-scroll, deferring clamp check" }
+        snapshotFlow { pagerState.isScrollInProgress }.first { !it }
+    }
+    if (pagerState.currentPage <= lastReal) return
+
+    log(TAG, VERBOSE) { "Clamping pager from page ${pagerState.currentPage} to last real page $lastReal" }
+    coordinator.pendingClampPage = lastReal
+    coordinator.isAnimatingProgrammatically = true
+    try {
+        pagerState.scrollToPage(lastReal)
+    } catch (e: CancellationException) {
+        // Clamp aborted (focus arrived, keys changed) — the marked settle may never happen.
+        coordinator.pendingClampPage = null
+        throw e
+    } finally {
+        coordinator.isAnimatingProgrammatically = false
+    }
 }
