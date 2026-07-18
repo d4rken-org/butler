@@ -6,6 +6,7 @@ import eu.darken.butler.common.adb.AdbUnavailableException
 import eu.darken.butler.common.adb.service.internal.AdbConnection
 import eu.darken.butler.common.adb.service.internal.AdbHostLauncher
 import eu.darken.butler.common.coroutine.AppScope
+import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.DebugSettings
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.plus
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.time.Duration
@@ -39,6 +41,7 @@ import kotlin.time.Duration.Companion.seconds
 class AdbServiceClient @Inject constructor(
     serviceLauncher: AdbHostLauncher,
     @AppScope coroutineScope: CoroutineScope,
+    dispatcherProvider: DispatcherProvider,
     private val adbSettings: AdbSettings,
     private val debugSettings: DebugSettings,
     private val fileOpsClientFactory: FileOpsClient.Factory,
@@ -46,7 +49,10 @@ class AdbServiceClient @Inject constructor(
     private val shellOpsClientFactory: ShellOpsClient.Factory,
 ) : SharedResource<AdbServiceClient.Connection>(
     TAG,
-    coroutineScope,
+    // Run source lifecycle + teardown on IO, not the @AppScope Default pool. On low-core devices the
+    // slow host-disconnect IPC during keep-alive expiry would otherwise starve Dispatchers.Default —
+    // the same pool the UI's vmScope uses — wedging the dashboard. Mirrors ShellOps/PkgOps.
+    coroutineScope + dispatcherProvider.IO,
     callbackFlow {
         log(TAG) { "Instantiating ADB launcher..." }
 
