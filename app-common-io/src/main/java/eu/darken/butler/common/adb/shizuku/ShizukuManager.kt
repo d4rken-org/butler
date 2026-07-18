@@ -15,7 +15,6 @@ import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.toPkgId
-import eu.darken.butler.common.root.RootManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,7 +44,10 @@ class ShizukuManager @Inject constructor(
 ) {
 
     val shizukuBinder: Flow<ShizukuBaseServiceBinder?> = settings.useShizuku.flow
-        .flatMapLatest { if (it == true) shizukuWrapper.baseServiceBinder else flowOf(null) }
+        // Only touch the Shizuku binder if the user opted in AND Shizuku is actually installed.
+        // Otherwise (e.g. useShizuku left enabled after uninstalling Shizuku) every subscription would
+        // probe the absent service and spam "binder haven't been received" on each resume.
+        .flatMapLatest { if (it == true && isInstalled()) shizukuWrapper.baseServiceBinder else flowOf(null) }
         .catch { e ->
             log(TAG, WARN) { "Shizuku binder access failed: ${e.asLog()}" }
             emit(null)
@@ -111,6 +113,8 @@ class ShizukuManager @Inject constructor(
         get() = KNOWN_ADB_MANAGERS.first()
 
 
+    // Not cached: a stale "not installed" result would keep the binder gate (see shizukuBinder) closed
+    // even after Shizuku gets installed, until the next process restart. The package lookup is cheap.
     suspend fun isInstalled(): Boolean {
         val installed = KNOWN_ADB_MANAGERS.any {
             try {
@@ -121,7 +125,7 @@ class ShizukuManager @Inject constructor(
                 false
             }
         }
-        log(RootManager.Companion.TAG) { "isInstalled(): $installed" }
+        log(TAG) { "isInstalled(): $installed" }
         return installed
     }
 
