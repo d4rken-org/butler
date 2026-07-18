@@ -11,8 +11,11 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.common.root.service.RootServiceClient
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
@@ -76,11 +79,17 @@ class RootManager @Inject constructor(
 
             val newState = try {
                 serviceClient.get().use { it.item.ipc.checkBase() != null }
+            } catch (e: CancellationException) {
+                throw e // don't cache a cancelled probe as "not rooted"
             } catch (e: Exception) {
                 log(TAG, WARN) { "Error while checking for root: $e" }
                 false
             }
 
+            // checkBase() is blocking IPC: cancellation during the call isn't observed until the next
+            // suspension, so a probe that raced with cancellation (e.g. binder killed by our own
+            // teardown) can produce a bogus negative — never cache it.
+            currentCoroutineContext().ensureActive()
             newState.also { cachedState = it }
         }
     }

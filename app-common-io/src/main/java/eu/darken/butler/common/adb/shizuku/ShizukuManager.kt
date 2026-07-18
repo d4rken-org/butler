@@ -12,7 +12,10 @@ import eu.darken.butler.common.flow.replayingShare
 import eu.darken.butler.common.flow.setupCommonEventHandlers
 import eu.darken.butler.common.pkgs.Pkg
 import eu.darken.butler.common.pkgs.toPkgId
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
@@ -100,6 +103,10 @@ class ShizukuManager @Inject constructor(
 
         log(TAG, VERBOSE) { "isShizukud(): Checking availability of (Our) ShizukuService..." }
         isOurServiceAvailable().also {
+            // checkBase() is blocking IPC: cancellation during the call isn't observed until the next
+            // suspension, so a probe that raced with cancellation can produce a bogus negative —
+            // never cache it.
+            currentCoroutineContext().ensureActive()
             isShizukudCache = it
             if (it) log(TAG, VERBOSE) { "isShizukud(): (Our) ShizukuService is available :)" }
             else log(TAG) { "isShizukud(): (Our) ShizukuService is unavailable" }
@@ -141,9 +148,15 @@ class ShizukuManager @Inject constructor(
     suspend fun requestPermission() = shizukuWrapper.requestPermission()
 
     suspend fun isOurServiceAvailable(): Boolean = withContext(dispatcherProvider.IO) {
+        if (isGranted() != true) {
+            log(TAG, VERBOSE) { "isOurServiceAvailable(): Shizuku permission not granted" }
+            return@withContext false
+        }
         try {
             log(TAG, VERBOSE) { "isOurServiceAvailable(): Requesting service client (CACHE MISS)" }
             serviceClient.get().use { it.item.ipc.checkBase() != null }
+        } catch (e: CancellationException) {
+            throw e // don't cache a cancelled probe as "unavailable"
         } catch (e: Exception) {
             log(TAG, WARN) { "isOurServiceAvailable(): Error during checkBase(): $e" }
             false

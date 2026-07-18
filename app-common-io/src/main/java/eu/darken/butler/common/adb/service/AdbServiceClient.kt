@@ -32,6 +32,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 @Singleton
 class AdbServiceClient @Inject constructor(
@@ -97,6 +99,7 @@ class AdbServiceClient @Inject constructor(
                 )
             )
         },
+    stopTimeout = ADB_HOST_KEEPALIVE,
     // ADB teardown hangs were a silent-failure support pain point (#2453); surface its lifecycle
     // breadcrumbs at DEBUG even outside trace mode.
     verboseLifecycle = true,
@@ -108,6 +111,13 @@ class AdbServiceClient @Inject constructor(
     )
 
     companion object {
+
+        // Keep the privileged ADB host bound briefly after the last lease is released so in-session
+        // re-acquisition (screen-bouncing between dashboard and tools, back-to-back privileged ops)
+        // reuses the warm host instead of paying the multi-second Shizuku/ADB cold-start. Bounded on
+        // purpose: a uid-2000 host should not linger in the background for long. Teardown still happens
+        // (and is prompt/safe); this only delays its start.
+        private val ADB_HOST_KEEPALIVE: Duration = 30.seconds
 
         fun AdbHostLauncher.createServiceHostConnection(
             options: AdbHostOptions,
