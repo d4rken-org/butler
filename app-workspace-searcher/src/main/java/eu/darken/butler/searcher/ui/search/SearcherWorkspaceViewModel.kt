@@ -16,7 +16,6 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
-import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.extensions.commonParent
 import eu.darken.butler.common.files.metadata.FileType
@@ -751,16 +750,18 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             }
             is SearcherActionBarItem.OpenInExplorer -> {
                 launch {
-                    if (action.result.path is LocalPath) {
-                        val parentPath = (action.result.path as LocalPath).parent
-                        if (parentPath != null) {
-                            workspaceRemote.createAndFocus(
-                                type = Workspace.Type.EXPLORER,
-                                arguments = ExplorerArguments.Default(
-                                    startPath = parentPath
-                                )
-                            )
-                        }
+                    val startPath = if (action.result.fileType == FileType.DIRECTORY) {
+                        action.result.path
+                    } else {
+                        action.result.path.parent
+                    }
+                    if (startPath != null) {
+                        workspaceRemote.createAndFocus(
+                            type = Workspace.Type.EXPLORER,
+                            arguments = ExplorerArguments.Default(
+                                startPath = startPath,
+                            ),
+                        )
                     }
                 }
             }
