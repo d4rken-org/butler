@@ -13,19 +13,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import eu.darken.butler.common.debug.logging.Logging.Priority.INFO
-import eu.darken.butler.common.debug.logging.Logging.Priority.VERBOSE
-import eu.darken.butler.common.debug.logging.log
-import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceAction
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocusRequest
@@ -39,9 +29,6 @@ import eu.darken.butler.workspace.ui.workspaces.WorkspaceScreenAction
 import eu.darken.butler.workspace.ui.workspaces.WorkspaceSwitchIndicator
 import eu.darken.butler.workspace.ui.workspaces.WorkspacesViewModel
 import eu.darken.butler.workspace.ui.workspaces.asPaneInfo
-import kotlinx.coroutines.delay
-
-private val TAG = logTag("Workspace", "Container", "Classic")
 
 // Stable key for the on-demand-creation placeholder page (last index when enabled).
 // Distinct from any Workspace.Id so the pager preserves identity across list churn.
@@ -75,15 +62,12 @@ internal fun ClassicWorkspaceContainer(
         snapPositionalThreshold = 0.5f,
     )
 
-    // State machine for placeholder workspace creation
-    var creationState by remember { mutableStateOf<PlaceholderCreationState>(PlaceholderCreationState.Idle) }
-
     // Stable list of workspace IDs — does NOT re-identity on Workspace.Info field
     // changes (operationCount, attentionCount, etc.), so the coordinator below
     // doesn't trigger spurious pager scrolls when an unrelated workspace updates.
     val tabIds = state.tabWorkspaces.map { it.id }
 
-    val coordinator = rememberPagerFocusCoordinator(
+    rememberPagerFocusCoordinator(
         pagerState = pagerState,
         tabIds = tabIds,
         focused = state.focused,
@@ -94,113 +78,16 @@ internal fun ClassicWorkspaceContainer(
         },
     )
 
-    val isScrolling by remember { derivedStateOf { pagerState.isScrollInProgress } }
-
     val hasBlockingDialog = managerDialogs.any { it.isBlocking }
-    val settledPage by remember { derivedStateOf { pagerState.settledPage } }
-    val workspaceCount = state.tabWorkspaces.size
 
-    // State machine transitions for placeholder creation
-    LaunchedEffect(
-        settledPage,
-        isScrolling,
-        workspaceCount,
-        hasBlockingDialog,
-        creationState,
-    ) {
-        if (isScrolling || coordinator.isAnimatingProgrammatically) return@LaunchedEffect
-
-        // Don't run placeholder creation logic when EmptyClassicWorkspaceContent is shown
-        // (it has its own explicit creation actions)
-        if (workspaceCount == 0) {
-            if (creationState != PlaceholderCreationState.Idle) {
-                creationState = PlaceholderCreationState.Idle
-            }
-            return@LaunchedEffect
-        }
-
-        val isOnPlaceholder = settledPage >= workspaceCount
-
-        val newState = when (creationState) {
-            is PlaceholderCreationState.Idle -> {
-                if (isOnPlaceholder && state.onDemandWorkspaceCreation) {
-                    log(TAG, INFO) { "Placeholder page settled, transitioning to Visiting" }
-                    PlaceholderCreationState.Visiting
-                } else {
-                    PlaceholderCreationState.Idle
-                }
-            }
-            is PlaceholderCreationState.Visiting -> {
-                when {
-                    !isOnPlaceholder -> {
-                        log(TAG, VERBOSE) { "Left placeholder page, resetting to Idle" }
-                        PlaceholderCreationState.Idle
-                    }
-                    else -> PlaceholderCreationState.Visiting
-                }
-            }
-            is PlaceholderCreationState.Triggered -> PlaceholderCreationState.Creating
-            is PlaceholderCreationState.Creating -> {
-                when {
-                    !isOnPlaceholder -> {
-                        log(TAG, VERBOSE) { "Left placeholder during creation, resetting to Idle" }
-                        PlaceholderCreationState.Idle
-                    }
-                    hasBlockingDialog -> {
-                        log(TAG, INFO) { "Blocking dialog shown (limit reached), transitioning to Failed" }
-                        PlaceholderCreationState.Failed
-                    }
-                    else -> PlaceholderCreationState.Creating
-                }
-            }
-            is PlaceholderCreationState.Failed -> {
-                when {
-                    !hasBlockingDialog && isOnPlaceholder -> {
-                        log(TAG, INFO) { "Dialog dismissed but still on placeholder, transitioning to Blocked" }
-                        PlaceholderCreationState.Blocked
-                    }
-                    !hasBlockingDialog -> {
-                        log(TAG, VERBOSE) { "Dialog dismissed and left placeholder, resetting to Idle" }
-                        PlaceholderCreationState.Idle
-                    }
-                    else -> PlaceholderCreationState.Failed
-                }
-            }
-            is PlaceholderCreationState.Blocked -> {
-                when {
-                    !isOnPlaceholder -> {
-                        log(TAG, VERBOSE) { "Left placeholder from Blocked state, resetting to Idle" }
-                        PlaceholderCreationState.Idle
-                    }
-                    else -> PlaceholderCreationState.Blocked
-                }
-            }
-        }
-
-        if (newState != creationState) {
-            creationState = newState
-        }
-    }
-
-    // Auto-trigger creation after settling on placeholder (with brief delay)
-    LaunchedEffect(creationState) {
-        if (creationState is PlaceholderCreationState.Visiting) {
-            delay(100) // Brief delay to confirm user intent
-            if (creationState is PlaceholderCreationState.Visiting) {
-                log(TAG, INFO) { "Auto-triggering workspace creation from placeholder" }
-                creationState = PlaceholderCreationState.Triggered
-                onWorkspaceScreenAction(WorkspaceScreenAction.CreateOnDemand)
-            }
-        }
-    }
-
-    // Reset to Idle when workspace count increases (creation succeeded)
-    LaunchedEffect(workspaceCount) {
-        if (creationState is PlaceholderCreationState.Creating && workspaceCount > 0) {
-            log(TAG, INFO) { "Workspace count increased, creation succeeded" }
-            creationState = PlaceholderCreationState.Idle
-        }
-    }
+    val creationController = rememberPlaceholderCreationController(
+        pagerState = pagerState,
+        tabIds = tabIds,
+        onDemandEnabled = state.onDemandWorkspaceCreation,
+        isInteractionBlocked = isOverlayVisible || state.fullScreenModalWorkspace != null,
+        hasBlockingDialog = hasBlockingDialog,
+        onCreateRequested = { onWorkspaceScreenAction(WorkspaceScreenAction.CreateOnDemand) },
+    )
 
     Box(
         modifier = Modifier
@@ -221,20 +108,9 @@ internal fun ClassicWorkspaceContainer(
                 val isPlaceholderPage = page >= state.tabWorkspaces.size
 
                 if (paneInfo == null) {
-                    val isCreating = creationState is PlaceholderCreationState.Creating ||
-                        creationState is PlaceholderCreationState.Triggered
                     CreatingWorkspacePlaceholder(
-                        isCreating = isPlaceholderPage && isCreating,
-                        onClick = {
-                            if (creationState is PlaceholderCreationState.Visiting ||
-                                creationState is PlaceholderCreationState.Idle ||
-                                creationState is PlaceholderCreationState.Blocked
-                            ) {
-                                log(TAG, INFO) { "Manual click triggered workspace creation" }
-                                creationState = PlaceholderCreationState.Triggered
-                                onWorkspaceScreenAction(WorkspaceScreenAction.CreateOnDemand)
-                            }
-                        },
+                        isCreating = isPlaceholderPage && creationController.isCreating,
+                        onClick = { creationController.onPlaceholderClick() },
                     )
                 } else {
                     // When overlay is visible, no workspace should be considered focused
