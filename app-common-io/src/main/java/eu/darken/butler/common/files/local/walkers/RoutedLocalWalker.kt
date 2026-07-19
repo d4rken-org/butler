@@ -7,6 +7,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.extensions.isSymlink
 import eu.darken.butler.common.files.extensions.matches
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
@@ -33,18 +34,24 @@ import kotlin.coroutines.cancellation.CancellationException
  *
  * Mode handling:
  * - Children inherit their parent directory's route without consulting the router — the router is
- *   only consulted at the start path, at known boundary children, and after failures. This keeps
- *   per-directory overhead and route-cache size near zero on full-device walks.
+ *   only consulted at the start path, at known boundary children, for symlink targets, and after
+ *   failures. This keeps per-directory overhead and route-cache size near zero on full-device walks.
  * - Escalated subtrees run through sticky [eu.darken.butler.common.files.local.routing.ModeSession]s
  *   (one privileged connection per mode for the whole walk).
- * - Boundary children that the OS hides from directory listings are spliced in and each walked
- *   exactly once, in their own route.
- * - A directory listing that fails with an IO error in a non-escalated mode is retried once per
- *   untried escalation mode (ROOT, then ADB) before the failure reaches [onError] — with the
- *   ORIGINAL exception.
+ * - Known boundary children get their own route whether the OS hides them from the parent listing
+ *   (spliced in) or shows them (visible but listing empty through the parent's mode); each is
+ *   walked exactly once.
+ * - Symlink targets are routed by their canonical target path, and a followed symlink directory is
+ *   traversed through the target's route — a link from public storage into protected territory
+ *   escalates like any other boundary.
+ * - An escalation-worthy failure is retried once per untried escalation mode (ROOT, then ADB)
+ *   before reaching [onError] with the ORIGINAL exception. This covers plain listings, boundary
+ *   entry, and delegated subtree streams (streams only retry when nothing was emitted yet, so
+ *   consumers never see duplicates; a partially-streamed failure is reported via [onError]).
  *
- * Symlink targets are routed by their canonical target path, so following a link from public
- * storage into protected territory escalates like any other boundary.
+ * Ordering note: delegated ISOLATED subtrees stream their ordinary content first and excluded
+ * boundary subtrees after, which deviates from strict in-process LIFO interleaving. This is a
+ * documented trade-off of wholesale host-side streaming.
  */
 class RoutedLocalWalker(
     private val routingPolicy: LocalPathRoutingPolicy,
@@ -52,6 +59,7 @@ class RoutedLocalWalker(
     private val caps: CapabilitySnapshot,
     private val start: LocalPath,
     private val lookupOptions: LookupOptions,
+    private val pathDoesNotContain: Set<String>? = null,
     private val onFilter: suspend (LocalPathLookup) -> Boolean = { true },
     private val onError: suspend (LocalPathLookup, Exception) -> Boolean = { _, _ -> true },
     private val followSymlinks: Boolean = false,
@@ -95,12 +103,16 @@ class RoutedLocalWalker(
         // Route of the directory currently being processed; children inherit it via onEnqueue.
         private var currentRoute: Route? = null
 
-        // Boundary roots already spliced, so each is walked exactly once even if the parent
-        // directory is listed again through another overlapping path.
+        // Boundary roots already scheduled, so each is walked exactly once.
         private val scheduledBoundaries = HashSet<String>()
 
-        // Boundary children discovered while listing the current directory (own route, not inherited).
+        // Boundary children of the current directory that need their own route instead of
+        // inheriting (both hidden/spliced and visible-but-unreadable-through-parent ones).
         private val pendingBoundaryRoutes = HashMap<String, Route>()
+
+        // Route of the most recently resolved symlink target; consumed by onEnqueue so a
+        // followed symlink directory is listed through the target's route, not the parent's.
+        private var pendingSymlinkTargetRoute: Route? = null
 
         override suspend fun lookupStart(start: LocalPath): LocalPathLookup {
             val route = router.routeFor(start, AccessIntent.Read)
@@ -123,21 +135,34 @@ class RoutedLocalWalker(
 
             val children = runEscalating(dirPath, route, { currentRoute = it }) { activeRoute ->
                 activeRoute.ops.lookupFiles(dirPath, lookupOptions)
-            }
+            }.filterNot(::isExcluded)
 
-            val hiddenBoundaries = router.knownRouteBoundariesUnder(dirPath)
+            val boundaries = router.knownRouteBoundariesUnder(dirPath)
                 .filter { boundary -> boundary.parent?.matches(dirPath) == true }
-                .filter { boundary -> children.none { it.lookedUp.matches(boundary) } }
-            if (hiddenBoundaries.isEmpty()) return WalkerStrategy.Listing.Children(children)
+            if (boundaries.isEmpty()) return WalkerStrategy.Listing.Children(children)
 
             val spliced = children.toMutableList()
-            for (boundary in hiddenBoundaries) {
+            for (boundary in boundaries) {
+                if (isExcluded(boundary)) continue
                 if (!scheduledBoundaries.add(boundary.path)) continue
+                val visibleChild = children.any { it.lookedUp.matches(boundary) }
                 try {
                     val boundaryRoute = router.routeFor(boundary, AccessIntent.Read)
-                    val boundaryLookup = boundaryRoute.ops.lookup(boundary, lookupOptions)
-                    pendingBoundaryRoutes[boundary.path] = boundaryRoute
-                    spliced.add(boundaryLookup)
+                    if (visibleChild) {
+                        // Present in the parent's listing, but its CONTENT needs the boundary
+                        // route (a DIRECT listing of Android/data is just silently empty).
+                        pendingBoundaryRoutes[boundary.path] = boundaryRoute
+                    } else {
+                        val boundaryLookup = runEscalating(
+                            boundary,
+                            boundaryRoute,
+                            { pendingBoundaryRoutes[boundary.path] = it },
+                        ) { activeRoute ->
+                            activeRoute.ops.lookup(boundary, lookupOptions)
+                        }
+                        pendingBoundaryRoutes.putIfAbsent(boundary.path, boundaryRoute)
+                        spliced.add(boundaryLookup)
+                    }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -158,56 +183,30 @@ class RoutedLocalWalker(
          * ROOT/ADB hosts see at least as much as any deeper mode, so wholesale delegation is
          * safe there (ADB is only ever chosen when ROOT is unavailable). An ISOLATED host has
          * plain app privileges though: known deeper boundaries (`Android/data` on a removable
-         * volume) are excluded from the stream and scheduled through their own stronger route.
+         * volume) are excluded from the stream and walked through their own stronger route.
          */
         private suspend fun delegatedListing(dirPath: LocalPath, route: Route): WalkerStrategy.Listing? {
-            val client = route.ops as? FileOpsClient ?: return null
+            if (route.ops !is FileOpsClient) return null
 
             val excludedBoundaries = if (route.mode == AccessMode.ISOLATED) {
-                router.knownRouteBoundariesUnder(dirPath).filter { scheduledBoundaries.add(it.path) }
+                router.knownRouteBoundariesUnder(dirPath)
+                    .filterNot(::isExcluded)
+                    .filter { scheduledBoundaries.add(it.path) }
             } else {
                 emptyList()
             }
 
-            val subtree = client.walk(
-                path = dirPath,
-                lookupOptions = lookupOptions,
-                walkOptions = APathGateway.WalkOptions(
-                    onError = onError,
-                    followSymlinks = followSymlinks,
-                ),
-                excludeSubtrees = excludedBoundaries.takeIf { it.isNotEmpty() },
-            )
-
             return WalkerStrategy.Listing.Delegated(flow {
-                emitAll(subtree)
+                emitSubtree(dirPath, route, excludedBoundaries.takeIf { it.isNotEmpty() })
                 for (boundary in excludedBoundaries) {
                     try {
-                        val boundaryRoute = router.routeFor(boundary, AccessIntent.Read)
-                        val boundaryClient = boundaryRoute.ops as? FileOpsClient
-                        emit(boundaryRoute.ops.lookup(boundary, lookupOptions))
-                        if (boundaryClient != null) {
-                            emitAll(
-                                boundaryClient.walk(
-                                    path = boundary,
-                                    lookupOptions = lookupOptions,
-                                    walkOptions = APathGateway.WalkOptions(
-                                        onError = onError,
-                                        followSymlinks = followSymlinks,
-                                    ),
-                                )
-                            )
-                        } else {
-                            emitAll(
-                                DirectLocalWalker(
-                                    fileSystemOps = boundaryRoute.ops,
-                                    start = boundary,
-                                    lookupOptions = lookupOptions,
-                                    onError = onError,
-                                    followSymlinks = followSymlinks,
-                                )
-                            )
+                        var boundaryRoute = router.routeFor(boundary, AccessIntent.Read)
+                        val boundaryLookup = runEscalating(boundary, boundaryRoute, { boundaryRoute = it }) {
+                            it.ops.lookup(boundary, lookupOptions)
                         }
+                        if (isExcluded(boundaryLookup)) continue
+                        emit(boundaryLookup)
+                        emitSubtree(boundary, boundaryRoute)
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
@@ -218,13 +217,82 @@ class RoutedLocalWalker(
             })
         }
 
+        /**
+         * Streams one subtree through [route], retrying once per untried escalation mode when the
+         * stream fails before emitting anything. A stream that fails after items were emitted is
+         * NOT retried (that would duplicate them) — the failure goes to [onError] instead.
+         */
+        private suspend fun FlowCollector<LocalPathLookup>.emitSubtree(
+            path: LocalPath,
+            route: Route,
+            excludeSubtrees: List<LocalPath>? = null,
+        ) {
+            var emittedAny = false
+            try {
+                subtreeFlowVia(route, path, excludeSubtrees).collect {
+                    emittedAny = true
+                    emit(it)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                val fallback = if (!emittedAny && e.isEscalationWorthy()) {
+                    router.routeAfterFailure(path, AccessIntent.Read, route.mode)
+                } else {
+                    null
+                }
+                if (fallback == null) {
+                    log(tag, WARN) { "Subtree stream failed for $path: $e" }
+                    if (!onError(LocalPathLookup.unknown(path, e.message), e)) throw e
+                    return
+                }
+                log(tag, INFO) { "Escalating subtree $path from ${route.mode} to ${fallback.mode} after: $e" }
+                try {
+                    emitAll(subtreeFlowVia(fallback, path, excludeSubtrees))
+                } catch (e2: CancellationException) {
+                    throw e2
+                } catch (e2: Exception) {
+                    e.addSuppressed(e2)
+                    log(tag, WARN) { "Subtree stream retry failed for $path: $e" }
+                    if (!onError(LocalPathLookup.unknown(path, e.message), e)) throw e
+                }
+            }
+        }
+
+        private fun subtreeFlowVia(route: Route, path: LocalPath, excludeSubtrees: List<LocalPath>?) =
+            when (val client = route.ops as? FileOpsClient) {
+                null -> DirectLocalWalker(
+                    fileSystemOps = route.ops,
+                    start = path,
+                    lookupOptions = lookupOptions,
+                    onFilter = { !isExcluded(it) },
+                    onError = onError,
+                    followSymlinks = followSymlinks,
+                )
+                else -> client.walk(
+                    path = path,
+                    lookupOptions = lookupOptions,
+                    walkOptions = APathGateway.WalkOptions(
+                        pathDoesNotContain = pathDoesNotContain,
+                        onError = onError,
+                        followSymlinks = followSymlinks,
+                    ),
+                    excludeSubtrees = excludeSubtrees,
+                )
+            }
+
         override suspend fun onEnqueue(child: LocalPathLookup) {
             val childPath = child.lookedUp.path
-            val route = pendingBoundaryRoutes.remove(childPath) ?: currentRoute ?: return
+            val symlinkTargetRoute = pendingSymlinkTargetRoute.also { pendingSymlinkTargetRoute = null }
+            val route = pendingBoundaryRoutes.remove(childPath)
+                ?: symlinkTargetRoute.takeIf { child.isSymlink }
+                ?: currentRoute
+                ?: return
             contexts[childPath] = route
         }
 
         override suspend fun canonicalize(path: LocalPath): LocalPath {
+            pendingSymlinkTargetRoute = null
             val route = currentRoute ?: router.routeFor(path, AccessIntent.Read)
             return runEscalating(path, route, {}) { activeRoute ->
                 activeRoute.ops.canonicalize(path)
@@ -232,12 +300,19 @@ class RoutedLocalWalker(
         }
 
         override suspend fun lookup(path: LocalPath): LocalPathLookup {
-            // Used for symlink targets, which can point anywhere — route by the target path.
+            // Used for symlink targets, which can point anywhere — route by the target path and
+            // remember the route so traversal of the followed link uses it too.
             val route = router.routeFor(path, AccessIntent.Read)
-            return runEscalating(path, route, {}) { activeRoute ->
+            pendingSymlinkTargetRoute = route
+            return runEscalating(path, route, { pendingSymlinkTargetRoute = it }) { activeRoute ->
                 activeRoute.ops.lookup(path, lookupOptions)
             }
         }
+
+        private fun isExcluded(lookup: LocalPathLookup): Boolean = isExcluded(lookup.lookedUp)
+
+        private fun isExcluded(path: LocalPath): Boolean =
+            pathDoesNotContain?.any { path.path.contains(it) } == true
 
         /**
          * Runs [block] with [route]; on an escalation-worthy failure, retries once per untried

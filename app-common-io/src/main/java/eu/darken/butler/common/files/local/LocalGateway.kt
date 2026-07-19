@@ -550,6 +550,7 @@ class LocalGateway @Inject constructor(
             ),
             start = path,
             lookupOptions = lookupOptions,
+            pathDoesNotContain = walkOptions.pathDoesNotContain,
             onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
             onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
             followSymlinks = walkOptions.followSymlinks,

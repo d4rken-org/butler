@@ -186,11 +186,11 @@ class LocalFileSystemOpsTest : BaseTest() {
     }
 
     @Test
-    fun `lookupFiles with continueOnError=true skips a child that fails lookup`(@TempDir tempDir: File) = runTest {
+    fun `lookupFiles with continueOnError=true keeps an unreadable child as UNKNOWN`(@TempDir tempDir: File) = runTest {
         File(tempDir, "good1.txt").apply { writeText("a") }
-        File(tempDir, "vanished.txt").apply { writeText("b") }
+        File(tempDir, "unreadable.txt").apply { writeText("b") }
         File(tempDir, "good2.txt").apply { writeText("c") }
-        val failingChild = LocalPath.build(tempDir, "vanished.txt")
+        val failingChild = LocalPath.build(tempDir, "unreadable.txt")
 
         val spyOps = spyk(fileSystemOps)
         coEvery { spyOps.lookup(failingChild, any()) } throws ReadException(path = failingChild)
@@ -200,7 +200,36 @@ class LocalFileSystemOpsTest : BaseTest() {
             LookupOptions.BASE.copy(continueOnError = true),
         )
 
-        lookups.map { it.lookedUp.name } shouldContainExactlyInAnyOrder listOf("good1.txt", "good2.txt")
+        // Still exists but can't be read: stays visible as UNKNOWN instead of silently vanishing
+        lookups.map { it.lookedUp.name } shouldContainExactlyInAnyOrder listOf(
+            "good1.txt",
+            "good2.txt",
+            "unreadable.txt",
+        )
+        val unreadable = lookups.single { it.lookedUp.name == "unreadable.txt" }
+        unreadable.fileType shouldBe FileType.UNKNOWN
+        unreadable.error shouldNotBe null
+    }
+
+    @Test
+    fun `lookupFiles with continueOnError=true silently skips a vanished child`(@TempDir tempDir: File) = runTest {
+        File(tempDir, "good.txt").apply { writeText("a") }
+        val vanishing = File(tempDir, "vanished.txt").apply { writeText("b") }
+        val vanishedChild = LocalPath.build(vanishing)
+
+        val spyOps = spyk(fileSystemOps)
+        // The child disappears between the directory listing and its lookup
+        coEvery { spyOps.lookup(vanishedChild, any()) } answers {
+            vanishing.delete()
+            throw ReadException(path = vanishedChild)
+        }
+
+        val lookups = spyOps.lookupFiles(
+            LocalPath.build(tempDir),
+            LookupOptions.BASE.copy(continueOnError = true),
+        )
+
+        lookups.map { it.lookedUp.name } shouldContainExactlyInAnyOrder listOf("good.txt")
     }
 
     @Test

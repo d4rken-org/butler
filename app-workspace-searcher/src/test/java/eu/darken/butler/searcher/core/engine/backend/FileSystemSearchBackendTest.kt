@@ -170,6 +170,28 @@ class FileSystemSearchBackendTest : BaseTest() {
     }
 
     @Test
+    fun `unreadable UNKNOWN lookup is counted as error and never matched`(): Unit = runTest {
+        val harness = Harness()
+        // Its name would match the query, but the entry couldn't be read (continueOnError)
+        val unreadable = LocalPathLookup.unknown(LocalPath.build("/sdcard/needle-locked.txt"), "Permission denied")
+        harness.stubWalk {
+            emit(unreadable)
+            emit(lookup("/sdcard/needle.txt"))
+        }
+        val query = SearchQuery(
+            filenameQuery = FilenameQuery(pattern = "needle"),
+            targets = listOf(target),
+        )
+
+        val results = harness.backend.scan(harness.session(query)).toList()
+
+        results.map { it.path.path } shouldContainExactly listOf("/sdcard/needle.txt")
+        val finalProgress = harness.progressUpdates.last()
+        finalProgress.errorCount shouldBe 1
+        finalProgress.firstErrorPath shouldBe unreadable.lookedUp
+    }
+
+    @Test
     fun `walk receives the reduced lookup projection`(): Unit = runTest {
         val harness = Harness()
         harness.stubWalk { emit(lookup("/sdcard/needle.txt")) }

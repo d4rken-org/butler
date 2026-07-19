@@ -1,8 +1,10 @@
 package eu.darken.butler.common.files.local.walkers
 
+import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.local.ipc.FileOpsClient
@@ -24,7 +26,9 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -52,6 +56,7 @@ class RoutedLocalWalkerTest : BaseTest() {
 
     private fun dir(path: String) = lookup(path, FileType.DIRECTORY)
     private fun file(path: String) = lookup(path, FileType.FILE)
+    private fun symlink(path: String) = lookup(path, FileType.SYMBOLIC_LINK)
 
     private fun mockOps(): FileSystemOps<LocalPath, LocalPathLookup> = mockk()
 
@@ -71,7 +76,9 @@ class RoutedLocalWalkerTest : BaseTest() {
         policy: LocalPathRoutingPolicy,
         factory: ModeSessionFactory,
         caps: CapabilitySnapshot = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = false),
+        pathDoesNotContain: Set<String>? = null,
         onError: suspend (LocalPathLookup, Exception) -> Boolean = { _, _ -> true },
+        followSymlinks: Boolean = false,
         streamingEligible: Boolean = false,
     ) = RoutedLocalWalker(
         routingPolicy = policy,
@@ -79,7 +86,9 @@ class RoutedLocalWalkerTest : BaseTest() {
         caps = caps,
         start = start,
         lookupOptions = LookupOptions.BASE,
+        pathDoesNotContain = pathDoesNotContain,
         onError = onError,
+        followSymlinks = followSymlinks,
         streamingEligible = streamingEligible,
     )
 
@@ -264,6 +273,219 @@ class RoutedLocalWalkerTest : BaseTest() {
         emitted.map { it.lookedUp.path } shouldContainExactly listOf("/data/subtree/a.txt")
         verify(exactly = 0) { client.walk(any(), any(), any(), any()) }
         coVerify(exactly = 1) { client.lookupFiles(start, any()) }
+    }
+
+    @Test
+    fun `visible boundary child is listed through its own route`() = runTest {
+        val start = p("/sdcard/Android")
+        val boundary = p("/sdcard/Android/data")
+
+        val directOps = mockOps()
+        coEvery { directOps.lookup(start, any()) } returns dir("/sdcard/Android")
+        // The OS SHOWS Android/data in the parent listing, but a DIRECT listing of it is empty
+        coEvery { directOps.lookupFiles(start, any()) } returns listOf(
+            dir("/sdcard/Android/data"),
+            dir("/sdcard/Android/media"),
+        )
+        coEvery { directOps.lookupFiles(p("/sdcard/Android/media"), any()) } returns emptyList()
+
+        val rootOps = mockOps()
+        coEvery { rootOps.lookupFiles(boundary, any()) } returns listOf(file("/sdcard/Android/data/secret.txt"))
+
+        val policy = mockk<LocalPathRoutingPolicy> {
+            coEvery { classify(any(), any(), any()) } answers {
+                if (firstArg<LocalPath>().isDescendantOfOrSelf(boundary)) {
+                    RouteDecision.Allowed(AccessMode.ROOT)
+                } else {
+                    RouteDecision.Allowed(AccessMode.DIRECT)
+                }
+            }
+            every { knownRouteBoundariesUnder(any()) } returns setOf(boundary)
+        }
+        val factory = factoryOf(
+            AccessMode.DIRECT to ModeSession(AccessMode.DIRECT, directOps, null, null),
+            AccessMode.ROOT to ModeSession(AccessMode.ROOT, rootOps, null, null),
+        )
+
+        val emitted = walker(start, policy, factory).toList().map { it.lookedUp.path }
+
+        emitted shouldContainExactlyInAnyOrder listOf(
+            "/sdcard/Android/data",
+            "/sdcard/Android/media",
+            "/sdcard/Android/data/secret.txt",
+        )
+        emitted.count { it == "/sdcard/Android/data" } shouldBe 1
+        // The visible boundary's content is listed through its own ROOT route, not the parent's
+        coVerify(exactly = 1) { rootOps.lookupFiles(boundary, any()) }
+        coVerify(exactly = 0) { directOps.lookupFiles(boundary, any()) }
+    }
+
+    @Test
+    fun `followed symlink directory is listed through the target route`() = runTest {
+        val start = p("/sdcard/dir")
+        val link = p("/sdcard/dir/link")
+        val target = p("/data/protected")
+
+        val directOps = mockOps()
+        coEvery { directOps.lookup(start, any()) } returns dir("/sdcard/dir")
+        coEvery { directOps.canonicalize(start) } returns start
+        coEvery { directOps.lookupFiles(start, any()) } returns listOf(symlink("/sdcard/dir/link"))
+        coEvery { directOps.canonicalize(link) } returns target
+
+        val rootOps = mockOps()
+        coEvery { rootOps.lookup(target, any()) } returns dir("/data/protected")
+        coEvery { rootOps.lookupFiles(link, any()) } returns listOf(file("/sdcard/dir/link/inner.txt"))
+
+        val policy = mockk<LocalPathRoutingPolicy> {
+            coEvery { classify(any(), any(), any()) } answers {
+                if (firstArg<LocalPath>().isDescendantOfOrSelf(target)) {
+                    RouteDecision.Allowed(AccessMode.ROOT)
+                } else {
+                    RouteDecision.Allowed(AccessMode.DIRECT)
+                }
+            }
+            every { knownRouteBoundariesUnder(any()) } returns emptySet()
+        }
+        val factory = factoryOf(
+            AccessMode.DIRECT to ModeSession(AccessMode.DIRECT, directOps, null, null),
+            AccessMode.ROOT to ModeSession(AccessMode.ROOT, rootOps, null, null),
+        )
+
+        val emitted = walker(start, policy, factory, followSymlinks = true).toList().map { it.lookedUp.path }
+
+        emitted shouldContainExactlyInAnyOrder listOf(
+            "/sdcard/dir/link",
+            "/sdcard/dir/link/inner.txt",
+        )
+        // The followed link is traversed through the TARGET's ROOT route, not the parent's DIRECT one
+        coVerify(exactly = 1) { rootOps.lookupFiles(link, any()) }
+        coVerify(exactly = 0) { directOps.lookupFiles(link, any()) }
+    }
+
+    @Test
+    fun `pathDoesNotContain filters children out of plain listings`() = runTest {
+        val start = p("/root")
+
+        val directOps = mockOps()
+        coEvery { directOps.lookup(start, any()) } returns dir("/root")
+        coEvery { directOps.lookupFiles(start, any()) } returns listOf(
+            file("/root/keep.txt"),
+            file("/root/cache.bin"),
+            dir("/root/cachedir"),
+        )
+
+        val policy = directPolicy()
+        val factory = factoryOf(AccessMode.DIRECT to ModeSession(AccessMode.DIRECT, directOps, null, null))
+
+        val emitted = walker(start, policy, factory, pathDoesNotContain = setOf("cache")).toList()
+
+        emitted.map { it.lookedUp.path } shouldContainExactly listOf("/root/keep.txt")
+        // The excluded directory is not just unemitted, it is never traversed either
+        coVerify(exactly = 0) { directOps.lookupFiles(p("/root/cachedir"), any()) }
+    }
+
+    @Test
+    fun `pathDoesNotContain is forwarded into the delegated walk options`() = runTest {
+        val start = p("/data/subtree")
+
+        val client = mockk<FileOpsClient>()
+        coEvery { client.lookup(start, any()) } returns dir("/data/subtree")
+        val optionsSlot = slot<APathGateway.WalkOptions<LocalPath, LocalPathLookup>>()
+        every { client.walk(any(), any(), capture(optionsSlot), any()) } returns flowOf(file("/data/subtree/a.txt"))
+
+        val policy = mockk<LocalPathRoutingPolicy> {
+            coEvery { classify(any(), any(), any()) } returns RouteDecision.Allowed(AccessMode.ROOT)
+            every { knownRouteBoundariesUnder(any()) } returns emptySet()
+        }
+        val factory = factoryOf(AccessMode.ROOT to ModeSession(AccessMode.ROOT, client, null, null))
+
+        walker(
+            start = start,
+            policy = policy,
+            factory = factory,
+            pathDoesNotContain = setOf("cache"),
+            streamingEligible = true,
+        ).toList()
+
+        optionsSlot.captured.pathDoesNotContain shouldBe setOf("cache")
+    }
+
+    @Test
+    fun `delegated stream failing before emission retries through the next escalation mode`() = runTest {
+        val start = p("/data/subtree")
+
+        val rootClient = mockk<FileOpsClient>()
+        coEvery { rootClient.lookup(start, any()) } returns dir("/data/subtree")
+        every { rootClient.walk(any(), any(), any(), any()) } returns flow { throw ReadException(path = start) }
+
+        val adbClient = mockk<FileOpsClient>()
+        every { adbClient.walk(any(), any(), any(), any()) } returns flowOf(file("/data/subtree/a.txt"))
+
+        val policy = mockk<LocalPathRoutingPolicy> {
+            coEvery { classify(any(), any(), any()) } returns RouteDecision.Allowed(AccessMode.ROOT)
+            every { knownRouteBoundariesUnder(any()) } returns emptySet()
+        }
+        val factory = factoryOf(
+            AccessMode.ROOT to ModeSession(AccessMode.ROOT, rootClient, null, null),
+            AccessMode.ADB to ModeSession(AccessMode.ADB, adbClient, null, null),
+        )
+        val errors = mutableListOf<Pair<LocalPathLookup, Exception>>()
+
+        val emitted = walker(
+            start = start,
+            policy = policy,
+            factory = factory,
+            caps = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = true),
+            onError = { lookup, e ->
+                errors += lookup to e
+                true
+            },
+            streamingEligible = true,
+        ).toList()
+
+        emitted.map { it.lookedUp.path } shouldContainExactly listOf("/data/subtree/a.txt")
+        errors.shouldBeEmpty()
+        verify(exactly = 1) { rootClient.walk(any(), any(), any(), any()) }
+        verify(exactly = 1) { adbClient.walk(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `delegated stream failing after emission reports onError without retry`() = runTest {
+        val start = p("/data/subtree")
+        val boom = ReadException(path = start)
+
+        val rootClient = mockk<FileOpsClient>()
+        coEvery { rootClient.lookup(start, any()) } returns dir("/data/subtree")
+        every { rootClient.walk(any(), any(), any(), any()) } returns flow {
+            emit(file("/data/subtree/a.txt"))
+            throw boom
+        }
+
+        val policy = mockk<LocalPathRoutingPolicy> {
+            coEvery { classify(any(), any(), any()) } returns RouteDecision.Allowed(AccessMode.ROOT)
+            every { knownRouteBoundariesUnder(any()) } returns emptySet()
+        }
+        val factory = factoryOf(AccessMode.ROOT to ModeSession(AccessMode.ROOT, rootClient, null, null))
+        val errors = mutableListOf<Pair<LocalPathLookup, Exception>>()
+
+        val emitted = walker(
+            start = start,
+            policy = policy,
+            factory = factory,
+            caps = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = true),
+            onError = { lookup, e ->
+                errors += lookup to e
+                true
+            },
+            streamingEligible = true,
+        ).toList()
+
+        // Emitted items are never duplicated by a retry — the failure is reported instead
+        emitted.map { it.lookedUp.path } shouldContainExactly listOf("/data/subtree/a.txt")
+        errors.single().first.lookedUp shouldBe start
+        errors.single().second shouldBeSameInstanceAs boom
+        verify(exactly = 1) { rootClient.walk(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { factory.open(AccessMode.ADB) }
     }
 
     @Test

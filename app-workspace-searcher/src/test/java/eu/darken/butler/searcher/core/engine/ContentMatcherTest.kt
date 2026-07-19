@@ -134,7 +134,7 @@ class ContentMatcherTest : BaseTest() {
         override fun protectedClose() = Unit
     }
 
-    private fun mockLookup(fileName: String, byteCount: Long): APathLookup<*> = mockk<APathLookup<LocalPath>> {
+    private fun mockLookup(fileName: String, byteCount: Long?): APathLookup<*> = mockk<APathLookup<LocalPath>> {
         every { name } returns fileName
         every { size } returns byteCount
         every { lookedUp } returns LocalPath.build("/test/$fileName")
@@ -388,6 +388,33 @@ class ContentMatcherTest : BaseTest() {
             includeBinaries = false,
         )
 
+        outcome.shouldBeInstanceOf<ContentMatcher.Outcome.NoMatch>()
+        outcome.degraded.shouldBeTrue()
+    }
+
+    @Test
+    fun `needle past the content cap in an unknown-size file is not matched`(): Unit = runBlocking {
+        // Unknown size bypasses the up-front size gate; the read loop must still clamp at the cap
+        val cap = SearchConfig.MAX_CONTENT_FILE_SIZE.toInt()
+        val fillerLine = ("A".repeat(63) + "\n").toByteArray()
+        val data = ByteArray(cap + 4096)
+        var offset = 0
+        while (offset < data.size) {
+            fillerLine.copyInto(data, offset, 0, minOf(fillerLine.size, data.size - offset))
+            offset += fillerLine.size
+        }
+        val needle = "the needle is here".toByteArray()
+        needle.copyInto(data, cap + 64)
+        val opens = AtomicInteger(0)
+        val matcher = matcherWith(data, opens)
+
+        val outcome = matcher.matchesContent(
+            lookup = mockLookup("unknown-size.txt", byteCount = null),
+            query = ContentQuery(pattern = "needle"),
+            includeBinaries = false,
+        )
+
+        // Bytes past the cap must never produce a match; the partial search is flagged degraded
         outcome.shouldBeInstanceOf<ContentMatcher.Outcome.NoMatch>()
         outcome.degraded.shouldBeTrue()
     }

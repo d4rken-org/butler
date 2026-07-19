@@ -224,12 +224,19 @@ class LocalFileSystemOps @Inject constructor(
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                // A child can vanish between listing and lookup; that is not a directory failure
-                if (options.continueOnError) {
-                    log(TAG, WARN) { "lookupFiles: skipping unreadable child $child: $e" }
-                    null
-                } else {
-                    throw e
+                when {
+                    !options.continueOnError -> throw e
+                    // Vanished between listing and lookup — benign, not a directory failure
+                    runCatching { exists(child) }.getOrDefault(true) == false -> {
+                        log(TAG, VERBOSE) { "lookupFiles: child vanished during listing: $child" }
+                        null
+                    }
+                    // Still exists but can't be read: keep it visible as UNKNOWN so callers can
+                    // surface the access problem instead of the entry silently disappearing
+                    else -> {
+                        log(TAG, WARN) { "lookupFiles: unreadable child $child: $e" }
+                        LocalPathLookup.unknown(child, e.message)
+                    }
                 }
             }
         }

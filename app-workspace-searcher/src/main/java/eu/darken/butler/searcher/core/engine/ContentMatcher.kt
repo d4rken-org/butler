@@ -155,7 +155,9 @@ class ContentMatcher @Inject constructor(
         val chunk = ByteArray(SearchConfig.CONTENT_READ_BUFFER)
         while (totalBytes < SearchConfig.MAX_CONTENT_FILE_SIZE) {
             currentCoroutineContext().ensureActive()
-            val read = source.read(chunk, 0, chunk.size)
+            // The final read is clamped so matching never sees bytes past the content cap
+            val allowed = minOf(chunk.size.toLong(), SearchConfig.MAX_CONTENT_FILE_SIZE - totalBytes).toInt()
+            val read = source.read(chunk, 0, allowed)
             if (read == -1) break
             totalBytes += read
             decode(chunk, 0, read, endOfInput = false)?.let {

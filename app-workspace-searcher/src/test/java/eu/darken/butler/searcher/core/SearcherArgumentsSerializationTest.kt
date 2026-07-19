@@ -37,7 +37,8 @@ class SearcherArgumentsSerializationTest : BaseTest() {
         serialized.toString().toComparableJson() shouldBe """
             {
                 "type": "arguments",
-                "startSearch": false
+                "startSearch": false,
+                "followSymlinks": false
             }
         """.toComparableJson()
     }
@@ -58,6 +59,7 @@ class SearcherArgumentsSerializationTest : BaseTest() {
             {
                 "type": "arguments",
                 "startSearch": false,
+                "followSymlinks": false,
                 "startTargets": [
                     {
                         "type": "path",
@@ -100,6 +102,37 @@ class SearcherArgumentsSerializationTest : BaseTest() {
         val deserialized = json.decodeFromString<SearcherArguments>(serialized.toString())
 
         deserialized shouldBe original
+    }
+
+    @Test
+    fun `roundtrip Default with followSymlinks enabled`() {
+        val original = SearcherArguments.Default(followSymlinks = true)
+
+        val serialized = json.encodeToJsonElement<SearcherArguments>(original)
+        val deserialized = json.decodeFromString<SearcherArguments>(serialized.toString())
+
+        serialized.toString().toComparableJson() shouldBe """
+            {
+                "type": "arguments",
+                "startSearch": false,
+                "followSymlinks": true
+            }
+        """.toComparableJson()
+        deserialized shouldBe original
+    }
+
+    @Test
+    fun `deserialize stored format without followSymlinks defaults to false`() {
+        val jsonString = """
+            {
+                "type": "arguments",
+                "startSearch": true
+            }
+        """
+
+        val args = json.decodeFromString<SearcherArguments>(jsonString)
+
+        args shouldBe SearcherArguments.Default(startSearch = true, followSymlinks = false)
     }
 
     @Test

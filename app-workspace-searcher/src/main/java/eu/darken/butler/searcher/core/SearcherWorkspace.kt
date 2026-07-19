@@ -91,6 +91,7 @@ class SearcherWorkspace @AssistedInject constructor(
             contentQuery = currentState.currentSearchQuery?.contentQuery,
             filter = currentState.currentSearchQuery?.filter,
             startSearch = false,
+            followSymlinks = currentState.currentSearchQuery?.options?.followSymlinks ?: false,
         )
     }
 
@@ -191,6 +192,7 @@ class SearcherWorkspace @AssistedInject constructor(
                         contentQuery = contentQuery,
                         targets = args?.startTargets ?: emptyList(),
                         filter = filter,
+                        options = SearchQuery.Options(followSymlinks = args?.followSymlinks ?: false),
                     )
                 )
             }
@@ -364,7 +366,7 @@ class SearcherWorkspace @AssistedInject constructor(
                         _searchState.update {
                             it.copy(
                                 searchStatus = State.SearchStatus.ERROR,
-                                error = firstError as? Exception,
+                                error = firstError,
                             )
                         }
                     } else {

@@ -31,14 +31,8 @@ interface FileOpsConnection {
     LocalPathLookup lookup(in LocalPath path, in LookupOptions options);
     RemoteInputStream lookupFilesStream(in LocalPath path, in LookupOptions options);
 
-    /** Legacy walk stream (raw lookups, no error transport). Kept for update-window compatibility. */
+    /** Legacy walk stream (raw lookups, no error transport). Superseded by walkStreamV2 (see end of interface). */
     RemoteInputStream walkStream(in LocalPath path, in LookupOptions options, in List<String> pathDoesNotContain);
-
-    /**
-     * Streaming walk with error transport: the returned stream carries WalkEvent chunks
-     * (Item/DirError terminated by Done or FatalError, see WalkEvent).
-     */
-    RemoteInputStream walkStreamV2(in LocalPath path, in LookupOptions options, in WalkSpec spec);
 
     long du(in LocalPath path);
 
@@ -113,4 +107,15 @@ interface FileOpsConnection {
         boolean followSymlinks,
         in FileOperationCallback callback
     );
+
+    /**
+     * Streaming walk with error transport: the returned stream carries WalkEvent chunks
+     * (Item/DirError terminated by Done or FatalError, see WalkEvent).
+     *
+     * MUST stay the LAST method: AIDL transaction IDs are positional, and appending keeps every
+     * pre-existing method's ID stable if host and client processes ever run different builds.
+     * (That window is otherwise closed by host lifecycle: the root host dies with the app process
+     * and the Shizuku user service is version-pinned via UserServiceArgs.version.)
+     */
+    RemoteInputStream walkStreamV2(in LocalPath path, in LookupOptions options, in WalkSpec spec);
 }

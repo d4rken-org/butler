@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.isActive
@@ -56,7 +55,6 @@ class FileSystemSearchBackend @Inject constructor(
 
     override fun monitorRequirements(target: SearchTarget): Flow<PathRequirements> = when (target) {
         is SearchTarget.Path -> pathPermissionCheck.monitor(target.path)
-        else -> flowOf(PathRequirements())
     }
 
     override suspend fun scan(session: SearchBackend.ScanSession): Flow<SearchItem> {
@@ -112,6 +110,13 @@ class FileSystemSearchBackend @Inject constructor(
                     itemsScanned++
                     if (itemsScanned % SearchConfig.PROGRESS_UPDATE_INTERVAL == 0) {
                         session.onProgress(progressSnapshot())
+                    }
+
+                    // Entries that exist but couldn't be read arrive as UNKNOWN with an error
+                    // (continueOnError) — count them toward the partial signal, don't match them
+                    if (lookup.fileType == FileType.UNKNOWN && lookup.error != null) {
+                        recordError(lookup.lookedUp)
+                        return@mapNotNull null
                     }
 
                     if (!FilterConditionEvaluator.matchesAll(query.filter.conditions, lookup)) {
