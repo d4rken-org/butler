@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewWrapper as ComposePreviewWrapper
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,10 @@ import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.ui.search.preview.SearcherMockDataProvider
+import eu.darken.butler.workspace.ui.preview.FolderPreviewCollage
+import eu.darken.butler.workspace.ui.preview.rememberFolderPreviewChildren
+
+internal const val TEST_TAG_SEARCHER_GRID_THUMBNAIL = "searcher.grid.thumbnail"
 
 @Composable
 fun SelectableFileGrid(
@@ -88,13 +93,27 @@ fun SelectableFileGrid(
                     onLongClick = onLongPress
                 )
         ) {
-            // Preview/thumbnail background
-            TintedAsyncImage(
-                model = result.lookup,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
+            // Preview/thumbnail background; directories show a collage of their newest media
+            val previewChildren = if (result.fileType == FileType.DIRECTORY) {
+                rememberFolderPreviewChildren(result.path)
+            } else {
+                emptyList()
+            }
+            if (previewChildren.isNotEmpty()) {
+                FolderPreviewCollage(
+                    modifier = Modifier.fillMaxSize(),
+                    children = previewChildren,
+                )
+            } else {
+                TintedAsyncImage(
+                    model = result.lookup,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag(TEST_TAG_SEARCHER_GRID_THUMBNAIL),
+                    contentScale = ContentScale.Crop,
+                )
+            }
 
             // Top overlay bar with icon and file size
             Row(

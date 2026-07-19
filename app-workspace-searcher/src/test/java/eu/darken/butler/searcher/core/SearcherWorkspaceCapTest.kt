@@ -7,6 +7,8 @@ import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
 import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -25,7 +27,7 @@ import testhelpers.coroutine.TestDispatcherProvider
 
 class SearcherWorkspaceCapTest : BaseTest() {
 
-    private fun mockItems(count: Int): List<SearchItem> = List(count) { mockk<SearchItem>() }
+    private fun mockItems(count: Int): List<SearchItem> = List(count) { mockk<SearchItem.RegularFile>() }
 
     private fun createWorkspace(engineResults: List<SearchItem>): SearcherWorkspace {
         val engine = mockk<SearchEngine> {
@@ -48,6 +50,8 @@ class SearcherWorkspaceCapTest : BaseTest() {
             operationsManager = operationsManager,
             deleteOperationFactory = mockk<DeleteOperation.Factory>(),
             searchEngineFactory = engineFactory,
+            fileSystemHinter = FileSystemHinter(),
+            folderPreviewResolver = mockk<FolderPreviewResolver>(relaxUnitFun = true),
         )
     }
 

@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -50,8 +49,8 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerReadyContent
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerTopBars
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
-import eu.darken.butler.explorer.ui.explorer.items.grid.LocalFolderPreviewObserver
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
 import eu.darken.butler.workspace.core.Workspace
@@ -566,7 +565,7 @@ fun ExplorerWorkspacePageHost(
         }
     }
 
-    CompositionLocalProvider(LocalFolderPreviewObserver provides vm.folderPreviewObserver) {
+    ProvideFolderPreviews(vm.folderPreviewObserver) {
         ExplorerWorkspacePage(
             workspaceId = id,
             design = design,

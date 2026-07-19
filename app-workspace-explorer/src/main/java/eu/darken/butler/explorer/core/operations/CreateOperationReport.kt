@@ -5,7 +5,7 @@ import eu.darken.butler.common.ca.caString
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
+import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.operations.Operation.Report.*
 
 data class CreateOperationReport(

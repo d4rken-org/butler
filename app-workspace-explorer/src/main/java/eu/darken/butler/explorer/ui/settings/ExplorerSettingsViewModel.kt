@@ -10,6 +10,7 @@ import eu.darken.butler.common.trash.TrashSettings
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.explorer.core.ExplorerSettings
 import eu.darken.butler.explorer.core.SortSettings
+import eu.darken.butler.workspace.core.WorkspaceSettings
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
 
@@ -17,13 +18,14 @@ import kotlin.time.Duration.Companion.days
 class ExplorerSettingsViewModel @Inject constructor(
     dispatcherProvider: DispatcherProvider,
     private val explorerSettings: ExplorerSettings,
+    private val workspaceSettings: WorkspaceSettings,
     private val trashSettings: TrashSettings,
 ) : ViewModel4(dispatcherProvider, logTag("Explorer", "Settings", "Screen", "VM")) {
 
     val state = combine(
         explorerSettings.sortSettings.flow,
         explorerSettings.useRegexPatterns.flow,
-        explorerSettings.showFolderMediaPreviews.flow,
+        workspaceSettings.showFolderMediaPreviews.flow,
         explorerSettings.useBackButtonForNavigation.flow,
         trashSettings.enabled.flow,
         trashSettings.expiresAfter.flow,
@@ -45,7 +47,7 @@ class ExplorerSettingsViewModel @Inject constructor(
     }
 
     fun toggleFolderMediaPreviews(enabled: Boolean) = launch {
-        explorerSettings.showFolderMediaPreviews.value(enabled)
+        workspaceSettings.showFolderMediaPreviews.value(enabled)
     }
 
     fun toggleBackButtonNavigation(enabled: Boolean) = launch {

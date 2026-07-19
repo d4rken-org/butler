@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.core.preview
+package eu.darken.butler.workspace.core.preview
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
@@ -6,7 +6,7 @@ import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.Operation
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
@@ -55,6 +55,7 @@ class FolderPreviewResolverTest : BaseTest() {
         fileSystemHinter = hinter,
         appScope = scope,
         dispatcherProvider = TestDispatcherProvider(),
+        workspaceSettings = mockk(),
     )
 
     @Test
@@ -152,6 +153,24 @@ class FolderPreviewResolverTest : BaseTest() {
         resolver.observe(dir).first()
 
         coVerify(exactly = 2) { gateway.lookupFiles(dir, any()) }
+    }
+
+    @Test
+    fun `invalidateDirs drops exactly the given directories`() = runTest {
+        val gateway = mockk<GatewaySwitch>()
+        val otherDir = LocalPath.build(File("/tmp/preview-test/other"))
+        coEvery { gateway.lookupFiles(dir, any()) } returns listOf(fileLookup("pic.jpg"))
+        coEvery { gateway.lookupFiles(otherDir, any()) } returns emptyList()
+        val resolver = create(backgroundScope, gatewaySwitch = gateway)
+
+        resolver.observe(dir).first()
+        resolver.observe(otherDir).first()
+        resolver.invalidateDirs(listOf(dir))
+        resolver.observe(dir).first()
+        resolver.observe(otherDir).first()
+
+        coVerify(exactly = 2) { gateway.lookupFiles(dir, any()) }
+        coVerify(exactly = 1) { gateway.lookupFiles(otherDir, any()) }
     }
 
     @Test

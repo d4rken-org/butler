@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.core.filesystem
+package eu.darken.butler.workspace.core.filesystem
 
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
@@ -31,6 +31,6 @@ class FileSystemHinter @Inject constructor() {
     }
 
     companion object {
-        private val TAG = logTag("Explorer", "FileSystemHinter")
+        private val TAG = logTag("Workspace", "FileSystemHinter")
     }
 }

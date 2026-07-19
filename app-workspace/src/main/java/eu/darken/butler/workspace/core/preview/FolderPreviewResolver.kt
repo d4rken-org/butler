@@ -1,4 +1,4 @@
-package eu.darken.butler.explorer.core.preview
+package eu.darken.butler.workspace.core.preview
 
 import eu.darken.butler.common.coroutine.AppScope
 import eu.darken.butler.common.coroutine.DispatcherProvider
@@ -11,11 +11,12 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.files.extensions.isFile
-import eu.darken.butler.explorer.core.engine.FileTypeClassifier
-import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
-import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.WorkspaceSettings
+import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -23,6 +24,8 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -54,7 +57,15 @@ class FolderPreviewResolver @Inject constructor(
     fileSystemHinter: FileSystemHinter,
     @AppScope appScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
+    workspaceSettings: WorkspaceSettings,
 ) {
+
+    /** [observe] gated by the global folder-preview setting; what workspace pages should use. */
+    val settingsGatedObserver: FolderPreviewObserver = { dir ->
+        workspaceSettings.showFolderMediaPreviews.flow.flatMapLatest { enabled ->
+            if (enabled) observe(dir) else flowOf(emptyList())
+        }
+    }
 
     private data class Entry(
         val children: List<APathLookup<*>>,
@@ -68,7 +79,6 @@ class FolderPreviewResolver @Inject constructor(
     private val invalidatedParents = lruMap<APath<*>, Long>(MAX_STAMP_RECORDS)
     private val revision = MutableStateFlow(0L)
     private val semaphore = Semaphore(MAX_CONCURRENT_LOOKUPS)
-    private val classifier = FileTypeClassifier()
 
     init {
         fileSystemHinter.events
@@ -96,6 +106,22 @@ class FolderPreviewResolver @Inject constructor(
         revision.update { it + 1 }
     }
 
+    /**
+     * Marks the given directories' own selections as stale, e.g. directory search results that
+     * should resolve fresh for this search. One revision bump for the whole batch.
+     */
+    fun invalidateDirs(dirs: Collection<APath<*>>) {
+        if (dirs.isEmpty()) return
+        synchronized(lock) {
+            val stamp = ++counter
+            dirs.forEach { dir ->
+                invalidatedDirs[dir] = stamp
+                cache.remove(dir)
+            }
+        }
+        revision.update { it + 1 }
+    }
+
     private fun onFileSystemEvent(event: FileSystemEvent) {
         val paths = when (event) {
             is FileSystemEvent.Added -> event.paths
@@ -113,14 +139,7 @@ class FolderPreviewResolver @Inject constructor(
             }
         }
 
-        synchronized(lock) {
-            val stamp = ++counter
-            staleDirs.forEach { dir ->
-                invalidatedDirs[dir] = stamp
-                cache.remove(dir)
-            }
-        }
-        revision.update { it + 1 }
+        invalidateDirs(staleDirs)
     }
 
     private fun stampForLocked(dir: APath<*>): Long = maxOf(
@@ -154,7 +173,7 @@ class FolderPreviewResolver @Inject constructor(
                         // The preview fetcher renders exactly-0-byte files as generic icons;
                         // unknown (null) sizes may still decode, so only exclude confirmed-empty.
                         .filter { it.size != 0L }
-                        .filter { classifier.getMimeType(it.name).let { mime -> mime.isImage || mime.isVideo } }
+                        .filter { MimeInfo.fromFileName(it.name).let { mime -> mime.isImage || mime.isVideo } }
                         .sortedWith(
                             compareByDescending<APathLookup<*>> { it.modifiedAt ?: Instant.DISTANT_PAST }
                                 .thenBy { it.name }
@@ -193,6 +212,6 @@ class FolderPreviewResolver @Inject constructor(
         private const val MAX_CACHED_DIRS = 500
         private const val MAX_STAMP_RECORDS = 1024
         private const val MAX_CONCURRENT_LOOKUPS = 4
-        private val TAG = logTag("Explorer", "Preview", "FolderResolver")
+        private val TAG = logTag("Workspace", "Preview", "FolderResolver")
     }
 }

@@ -20,7 +20,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.explorer.core.operations.CompressOperation
 import eu.darken.butler.explorer.core.operations.CopyOperation
 import eu.darken.butler.explorer.core.operations.CreateOperation

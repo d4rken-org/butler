@@ -18,6 +18,8 @@ import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.preview.FolderPreviewCollage
+import eu.darken.butler.workspace.ui.preview.rememberFolderPreviewChildren
 
 @Composable
 internal fun DirectoryGrid(

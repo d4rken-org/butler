@@ -25,7 +25,7 @@ import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.canUseRootNow
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.preview.FolderPreviewResolver
+import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.currentCoroutineContext

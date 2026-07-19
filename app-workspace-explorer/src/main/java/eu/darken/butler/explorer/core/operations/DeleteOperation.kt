@@ -12,7 +12,7 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.getQuantityString2
-import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.CoreDeleteExecutor
 import eu.darken.butler.workspace.core.operations.IssueHandler

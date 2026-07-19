@@ -108,8 +108,8 @@ fun ExplorerSettingsScreen(
             item {
                 SettingsSwitchItem(
                     icon = Icons.TwoTone.PhotoLibrary,
-                    title = stringResource(R.string.explorer_settings_folder_media_previews_title),
-                    subtitle = stringResource(R.string.explorer_settings_folder_media_previews_desc),
+                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_folder_media_previews_title),
+                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_folder_media_previews_desc),
                     checked = state.showFolderMediaPreviews,
                     onCheckedChange = onToggleFolderMediaPreviews,
                 )

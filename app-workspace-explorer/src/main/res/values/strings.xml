@@ -7,8 +7,6 @@
     <string name="explorer_settings_file_display">File display</string>
     <string name="explorer_settings_filter_regex_title">Advanced wildcard matching</string>
     <string name="explorer_settings_filter_regex_desc">Use regex patterns in filters in include/exclude filters.</string>
-    <string name="explorer_settings_folder_media_previews_title">Folder media previews</string>
-    <string name="explorer_settings_folder_media_previews_desc">In grid view, show a collage of the newest photos and videos on folder tiles.</string>
     <string name="explorer_settings_navigation">Navigation</string>
     <string name="explorer_settings_back_button_title">Back button navigation</string>
     <string name="explorer_settings_back_button_desc">Navigate through history with back button/gesture. At top-level the tab closes.</string>
