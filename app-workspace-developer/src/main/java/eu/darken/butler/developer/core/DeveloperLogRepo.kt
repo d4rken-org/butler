@@ -1,59 +1,56 @@
 package eu.darken.butler.developer.core
 
-import eu.darken.butler.common.debug.logging.Logging
-import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.debug.logviewer.core.LogHistoryRecorder
+import eu.darken.butler.common.flow.throttleLatest
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Thin adapter exposing the shared [LogHistoryRecorder] to the Developer workspace LOGS tab.
+ *
+ * Ownership is delegated to the recorder's internal ref-counting, so the workspace (owns for its
+ * lifetime) and the floating log panel (owns while visible) coexist as independent owners.
+ *
+ * The throttle sits BEFORE the map: the snapshot+render over the shared buffer must run at most
+ * once per interval, not once per log line.
+ */
 @Singleton
-class DeveloperLogRepo @Inject constructor() {
+class DeveloperLogRepo @Inject constructor(
+    private val recorder: LogHistoryRecorder,
+) {
 
-    private val mutex = Mutex()
-    private val bufferedLogger = BufferedLogger()
-    private var refCount = 0
-
-    val logLines: Flow<List<String>> = bufferedLogger.logLines.map { lines ->
-        lines.map { it.format() }
-    }
+    val logLines: Flow<List<String>> = recorder.changes
+        .onStart { emit(Unit) }
+        .throttleLatest(100.milliseconds)
+        .map { renderTail() }
 
     val currentLogLines: List<String>
-        get() = bufferedLogger.logLines.value.map { it.format() }
+        get() = renderTail()
 
-    suspend fun install() = mutex.withLock {
-        refCount++
-        if (refCount == 1) {
-            log(TAG) { "Installing BufferedLogger" }
-            Logging.install(bufferedLogger)
-        } else {
-            log(TAG) { "BufferedLogger already installed, refCount=$refCount" }
-        }
+    private fun renderTail(): List<String> = recorder.snapshot().takeLast(TAB_LINE_CAP).map { it.renderTab() }
+
+    suspend fun install() {
+        log(TAG) { "install()" }
+        recorder.acquire()
     }
 
-    suspend fun uninstall() = mutex.withLock {
-        if (refCount <= 0) {
-            log(TAG, WARN) { "uninstall() called but refCount=$refCount" }
-            return@withLock
-        }
-        refCount--
-        if (refCount == 0) {
-            log(TAG) { "Uninstalling BufferedLogger" }
-            Logging.remove(bufferedLogger)
-        } else {
-            log(TAG) { "BufferedLogger still in use, refCount=$refCount" }
-        }
+    suspend fun uninstall() {
+        log(TAG) { "uninstall()" }
+        recorder.release()
     }
 
     fun clear() {
-        bufferedLogger.clear()
+        recorder.clear()
     }
 
     companion object {
+        private const val TAB_LINE_CAP = 500
         private val TAG = logTag("Developer", "LogRepo")
     }
 }

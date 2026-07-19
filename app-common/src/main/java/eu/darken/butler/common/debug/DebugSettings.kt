@@ -27,6 +27,10 @@ class DebugSettings @Inject constructor(
         "debug.trace.enabled",
         false,
     )
+    val floatingLogVisible = dataStore.createValue(
+        "debug.logview.floating.visible",
+        false,
+    )
     val recorderPath = dataStore.createValue<String?>(
         "recorder.log.path",
         null
