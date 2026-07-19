@@ -305,4 +305,19 @@
     <!-- Workspace Limit -->
     <string name="workspace_limit_reached_title">Tab Limit Reached</string>
     <string name="workspace_limit_reached_message">Free users can have up to %1$d tabs open at a time. Upgrade to Butler Pro for unlimited tabs!</string>
+
+    <!-- Folder media previews (shared toggle) -->
+    <string name="workspace_settings_folder_media_previews_title">Folder media previews</string>
+    <string name="workspace_settings_folder_media_previews_desc">In grid views, show a collage of the newest photos and videos on folder tiles.</string>
+
+    <!-- Restore operation -->
+    <string name="workspace_operation_restore_title">Trash restore</string>
+    <plurals name="workspace_operation_restore_description">
+        <item quantity="one">Restore %d item from trash.</item>
+        <item quantity="other">Restore %d items from trash.</item>
+    </plurals>
+    <plurals name="workspace_operation_restore_summary">
+        <item quantity="one">%d item restored</item>
+        <item quantity="other">%d items restored</item>
+    </plurals>
 </resources>

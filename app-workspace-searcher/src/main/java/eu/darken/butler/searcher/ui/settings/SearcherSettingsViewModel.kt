@@ -5,11 +5,12 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.flow.combine
 import eu.darken.butler.common.ui.ViewModel4
 import eu.darken.butler.searcher.core.SearcherSettings
 import eu.darken.butler.searcher.core.history.SearchHistory
+import eu.darken.butler.workspace.core.WorkspaceSettings
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -19,6 +20,7 @@ class SearcherSettingsViewModel
 constructor(
     dispatcherProvider: DispatcherProvider,
     private val searcherSettings: SearcherSettings,
+    private val workspaceSettings: WorkspaceSettings,
     private val searchHistory: SearchHistory,
 ) : ViewModel4(dispatcherProvider, logTag("Searcher", "Settings")) {
 
@@ -28,13 +30,15 @@ constructor(
         searcherSettings.maxHistoryItems.flow,
         searcherSettings.saveHistory.flow,
         searcherSettings.contentSearchBinaries.flow,
+        workspaceSettings.showFolderMediaPreviews.flow,
         searchHistory.observeHistoryCount(),
-    ) { maxSearchResults, maxHistoryItems, saveHistory, contentSearchBinaries, historyCount ->
+    ) { maxSearchResults, maxHistoryItems, saveHistory, contentSearchBinaries, showFolderMediaPreviews, historyCount ->
         State(
             maxSearchResults = maxSearchResults,
             maxHistoryItems = maxHistoryItems,
             saveHistory = saveHistory,
             contentSearchBinaries = contentSearchBinaries,
+            showFolderMediaPreviews = showFolderMediaPreviews,
             currentHistoryCount = historyCount,
         )
     }.asStateFlow()
@@ -67,11 +71,17 @@ constructor(
         searcherSettings.contentSearchBinaries.value(enabled)
     }
 
+    fun toggleFolderMediaPreviews(enabled: Boolean) = launch {
+        log(tag) { "toggleFolderMediaPreviews($enabled)" }
+        workspaceSettings.showFolderMediaPreviews.value(enabled)
+    }
+
     data class State(
         val maxSearchResults: Int = 1000,
         val maxHistoryItems: Int = 10,
         val saveHistory: Boolean = true,
         val contentSearchBinaries: Boolean = false,
+        val showFolderMediaPreviews: Boolean = true,
         val currentHistoryCount: Int = 0,
     )
 }

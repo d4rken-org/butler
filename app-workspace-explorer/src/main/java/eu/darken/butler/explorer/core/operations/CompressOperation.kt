@@ -23,7 +23,7 @@ import eu.darken.butler.common.files.extensions.isDirectory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.common.progress.Progress
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import kotlinx.coroutines.NonCancellable

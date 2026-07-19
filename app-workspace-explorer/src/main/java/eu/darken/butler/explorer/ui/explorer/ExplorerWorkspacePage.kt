@@ -50,6 +50,7 @@ import eu.darken.butler.explorer.ui.explorer.elements.ExplorerReadyContent
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerTopBars
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
 import eu.darken.butler.workspace.core.Workspace
@@ -564,14 +565,16 @@ fun ExplorerWorkspacePageHost(
         }
     }
 
-    ExplorerWorkspacePage(
-        workspaceId = id,
-        design = design,
-        mainStateSource = vm.state,
-        clipboardStateSource = vm.clipboard,
-        operationsStateSource = vm.operations,
-        vm = vm,
-    )
+    ProvideFolderPreviews(vm.folderPreviewObserver) {
+        ExplorerWorkspacePage(
+            workspaceId = id,
+            design = design,
+            mainStateSource = vm.state,
+            clipboardStateSource = vm.clipboard,
+            operationsStateSource = vm.operations,
+            vm = vm,
+        )
+    }
 }
 
 @Composable

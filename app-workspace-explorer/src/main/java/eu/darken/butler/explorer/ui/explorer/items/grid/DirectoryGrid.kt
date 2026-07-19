@@ -18,6 +18,8 @@ import eu.darken.butler.explorer.ui.explorer.items.ItemDecorations
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.ExplorerItem
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
+import eu.darken.butler.workspace.ui.preview.FolderPreviewCollage
+import eu.darken.butler.workspace.ui.preview.rememberFolderPreviewChildren
 
 @Composable
 internal fun DirectoryGrid(
@@ -32,6 +34,7 @@ internal fun DirectoryGrid(
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
 ) {
+    val previewChildren = rememberFolderPreviewChildren(item.lookup.lookedUp)
     FileGridBase(
         modifier = modifier,
         item = item,
@@ -43,6 +46,9 @@ internal fun DirectoryGrid(
         isEnabled = isEnabled,
         isHighlighted = isHighlighted,
         decorations = decorations,
+        previewContent = previewChildren.takeIf { it.isNotEmpty() }?.let { children ->
+            { FolderPreviewCollage(children = children) }
+        },
         icon = {
             Icon(
                 imageVector = Icons.TwoTone.Folder,

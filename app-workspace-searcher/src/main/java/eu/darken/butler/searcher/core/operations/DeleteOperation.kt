@@ -13,6 +13,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.operations.CoreDeleteExecutor
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
@@ -26,6 +27,7 @@ class DeleteOperation @AssistedInject constructor(
     @Assisted private val command: SearcherCommand.Delete,
     private val issueHandler: IssueHandler,
     private val coreDeleteExecutor: CoreDeleteExecutor,
+    private val fileSystemHinter: FileSystemHinter,
 ) : SearcherOperation() {
 
     private val tag = logTag("Searcher", "Workspace", workspaceId.shortTag, "Operation", "Delete")
@@ -82,6 +84,9 @@ class DeleteOperation @AssistedInject constructor(
                         issueHandler.handleIssue(operationContext.id, issue) as PathActionIssue.Resolution
                     send(stateActive)
                     resolution
+                },
+                onPathsRemoved = { deletedPaths ->
+                    fileSystemHinter.trackPathsRemoved(operationContext.id, deletedPaths)
                 },
             )
         )

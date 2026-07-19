@@ -14,7 +14,9 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
 import eu.darken.butler.common.flow.chunked
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.engine.SearchConfig
@@ -29,6 +31,9 @@ import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.WorkspaceFactory
 import eu.darken.butler.workspace.core.WorkspaceTypeKey
+import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -40,6 +45,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -50,6 +56,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
+import java.util.concurrent.atomic.AtomicLong
 
 
 class SearcherWorkspace @AssistedInject constructor(
@@ -60,6 +67,8 @@ class SearcherWorkspace @AssistedInject constructor(
     private val operationsManager: OperationsManager,
     private val deleteOperationFactory: DeleteOperation.Factory,
     searchEngineFactory: SearchEngine.Factory,
+    private val fileSystemHinter: FileSystemHinter,
+    private val folderPreviewResolver: FolderPreviewResolver,
 ) : Workspace<SearcherArguments> {
 
     private val tag = logTag("Searcher", "Workspace", id.shortTag)
@@ -120,13 +129,51 @@ class SearcherWorkspace @AssistedInject constructor(
 
     private val _searchState = MutableStateFlow(State())
 
+    /**
+     * Paths removed by file operations (any workspace) while a search is running. Batches of an
+     * in-flight search may still append items below these paths, so display filters against them;
+     * once the search reaches a terminal state they are folded into the results and cleared.
+     * Kept as a minimal ancestor antichain, scoped to the current search targets.
+     */
+    private val removedPaths = MutableStateFlow<Set<APath<*>>>(emptySet())
+
+    /**
+     * Increases for every new search (and clear). All state writes belonging to a search run are
+     * guarded by the generation they started with, so a cancelled run can't write e.g. a stale
+     * CANCELLED status into the run that replaced it.
+     */
+    private val searchGeneration = AtomicLong(0L)
+
+    private fun updateGuarded(generation: Long, transform: (State) -> State) {
+        _searchState.update { state ->
+            if (searchGeneration.get() == generation) transform(state) else state
+        }
+    }
+
+    @Volatile
+    private var visibleResultsCache: Triple<List<SearchItem>, Set<APath<*>>, List<SearchItem>>? = null
+
+    private fun visibleResults(raw: List<SearchItem>, removed: Set<APath<*>>): List<SearchItem> {
+        // Identity of the raw list is preserved when nothing is filtered, so downstream
+        // identity-keyed caches (sorting/dedup in the ViewModel) stay effective.
+        if (removed.isEmpty()) return raw
+        visibleResultsCache?.let { (cachedRaw, cachedRemoved, cachedValue) ->
+            if (cachedRaw === raw && cachedRemoved === removed) return cachedValue
+        }
+        val computed = raw.pruning(removed)
+        visibleResultsCache = Triple(raw, removed, computed)
+        return computed
+    }
+
     val state: Flow<State> = combine(
         _searchState,
         searchEngine.targetState,
         searchEngine.setupRequirements,
         searchEngine.targetProgressState,
-    ) { searchState, targets, requirements, targetProgress ->
+        removedPaths,
+    ) { searchState, targets, requirements, targetProgress, removed ->
         searchState.copy(
+            results = visibleResults(searchState.results, removed),
             searchTargets = targets,
             setupRequirements = requirements,
             targetProgress = targetProgress,
@@ -138,13 +185,57 @@ class SearcherWorkspace @AssistedInject constructor(
     fun search(command: SearcherCommand.Search) {
         log(tag) { "search(): $command" }
 
-        // Cancel any active search
-        activeSearchJob?.cancel()
+        val generation = searchGeneration.incrementAndGet()
 
-        // Launch new search
+        // Serialize runs: the previous job is fully terminated before the new run touches any
+        // shared state (engine progress, info subtitle), so a late cancellation of the old run
+        // can't leak into the new one.
+        val previousJob = activeSearchJob
         activeSearchJob = scope.launch {
-            processSearchRequest(command)
+            previousJob?.cancelAndJoin()
+            processSearchRequest(command, generation)
         }
+    }
+
+    private fun onFileSystemEvent(event: FileSystemEvent) {
+        if (event !is FileSystemEvent.Removed) return
+
+        // Scope against the query that produced the displayed results, not the editable engine
+        // targets — editing targets without re-searching must not stop pruning of old results.
+        val targets = _searchState.value.currentSearchQuery?.targets
+            ?.filterIsInstance<SearchTarget.Path>()?.filter { it.enabled }
+            ?: emptyList()
+        if (targets.isEmpty()) return
+
+        val relevant = event.paths.map { it.lookedUp }.filter { removed ->
+            targets.any { it.path.isAncestorOfOrSelf(removed) || removed.isAncestorOfOrSelf(it.path) }
+        }
+        if (relevant.isEmpty()) return
+        log(tag) { "onFileSystemEvent(): pruning ${relevant.size} removed paths from results" }
+
+        if (_searchState.value.searchStatus == State.SearchStatus.SEARCHING) {
+            // Batches may still append items below these paths; filter at display time
+            removedPaths.update { it.plusMinimal(relevant) }
+        } else {
+            // No batches in flight; prune directly. A concurrently starting search resets
+            // results anyway, making this either a no-op or harmless.
+            _searchState.update { state ->
+                state.copy(results = state.results.pruning(relevant))
+            }
+        }
+    }
+
+    private fun List<SearchItem>.pruning(removed: Collection<APath<*>>): List<SearchItem> =
+        filterNot { item -> removed.any { it.isAncestorOfOrSelf(item.path) } }
+
+    private fun Set<APath<*>>.plusMinimal(new: Collection<APath<*>>): Set<APath<*>> {
+        val result = toMutableSet()
+        new.forEach { candidate ->
+            if (result.any { it.isAncestorOfOrSelf(candidate) }) return@forEach
+            result.removeAll { candidate.isAncestorOfOrSelf(it) }
+            result.add(candidate)
+        }
+        return result
     }
 
     init {
@@ -212,9 +303,14 @@ class SearcherWorkspace @AssistedInject constructor(
                 log(tag, VERBOSE) { "Updated operation counts: active=$operationCount, attention=$attentionCount" }
             }
             .launchIn(scope)
+
+        // Live-prune results when files are removed by operations from any workspace
+        fileSystemHinter.events
+            .onEach { onFileSystemEvent(it) }
+            .launchIn(scope)
     }
 
-    private suspend fun processSearchRequest(command: SearcherCommand.Search) {
+    private suspend fun processSearchRequest(command: SearcherCommand.Search, generation: Long) {
         log(tag) { "processSearchRequest(): filename=${command.filenameQuery.pattern}, content=${command.contentQuery.pattern}" }
 
         // Set initial progress with first target
@@ -235,8 +331,11 @@ class SearcherWorkspace @AssistedInject constructor(
             options = command.options,
         )
 
-        // Clear previous results and enter SEARCHING state
-        _searchState.update {
+        // Clear previous results and enter SEARCHING state; results reset before tombstones so
+        // no frame can re-show previously pruned items. Only the tombstones captured BEFORE the
+        // reset are dropped — one added concurrently belongs to this run and must survive.
+        val staleTombstones = removedPaths.value
+        updateGuarded(generation) {
             it.copy(
                 currentSearchQuery = searchQuery,
                 searchStatus = State.SearchStatus.SEARCHING,
@@ -246,6 +345,7 @@ class SearcherWorkspace @AssistedInject constructor(
                 error = null,
             )
         }
+        removedPaths.update { it - staleTombstones }
 
         // Update workspace info with current search (triggers session save + shows in tab)
         val subtitleText = buildString {
@@ -258,14 +358,15 @@ class SearcherWorkspace @AssistedInject constructor(
         info.value = info.value.copy(subtitle = subtitleText.toCaString())
 
         // Delegate to engine
+        try {
         when (val result = searchEngine.search(command, onProgress = { engineProgress ->
-            _searchState.update { state ->
+            updateGuarded(generation) { state ->
                 state.copy(progress = engineProgress)
             }
         })) {
             is SearchEngine.Result.InvalidQuery -> {
                 log(tag, WARN) { "Search failed: Invalid query" }
-                _searchState.update {
+                updateGuarded(generation) {
                     it.copy(
                         searchStatus = State.SearchStatus.ERROR,
                         error = IllegalArgumentException("Invalid query"),
@@ -275,7 +376,7 @@ class SearcherWorkspace @AssistedInject constructor(
 
             is SearchEngine.Result.NoTargets -> {
                 log(tag, ERROR) { "Search failed: No targets" }
-                _searchState.update {
+                updateGuarded(generation) {
                     it.copy(
                         searchStatus = State.SearchStatus.ERROR,
                         error = IllegalArgumentException("No search targets specified"),
@@ -285,7 +386,7 @@ class SearcherWorkspace @AssistedInject constructor(
 
             is SearchEngine.Result.PermissionsRequired -> {
                 log(tag, WARN) { "Search failed: Permissions required - ${result.requirements}" }
-                _searchState.update {
+                updateGuarded(generation) {
                     it.copy(
                         searchStatus = State.SearchStatus.ERROR,
                         error = IllegalStateException("Insufficient permissions for search targets"),
@@ -295,7 +396,7 @@ class SearcherWorkspace @AssistedInject constructor(
 
             is SearchEngine.Result.Error -> {
                 log(tag, ERROR) { "Search failed: ${result.exception.asLog()}" }
-                _searchState.update {
+                updateGuarded(generation) {
                     it.copy(
                         searchStatus = State.SearchStatus.ERROR,
                         error = result.exception,
@@ -318,8 +419,12 @@ class SearcherWorkspace @AssistedInject constructor(
                     cappedResults
                         .chunked(SearchConfig.RESULT_BATCH_SIZE, SearchConfig.RESULT_BATCH_INTERVAL)
                         .collect { batch ->
+                            // Directory results resolve fresh collages for this search
+                            val dirs = batch.filterIsInstance<SearchItem.Directory>().map { it.path }
+                            folderPreviewResolver.invalidateDirs(dirs)
+
                             results += batch
-                            _searchState.update { state ->
+                            updateGuarded(generation) { state ->
                                 // The truncation sentinel item is never displayed
                                 state.copy(results = results.take(maxResults ?: results.size))
                             }
@@ -342,7 +447,7 @@ class SearcherWorkspace @AssistedInject constructor(
                             ?: IllegalStateException("All search targets failed")
 
                         log(tag, ERROR) { "Search failed: All ${targetProgress.size} target(s) failed" }
-                        _searchState.update {
+                        updateGuarded(generation) {
                             it.copy(
                                 searchStatus = State.SearchStatus.ERROR,
                                 error = firstError as? Exception,
@@ -350,21 +455,25 @@ class SearcherWorkspace @AssistedInject constructor(
                         }
                     } else {
                         log(tag, INFO) { "Search completed: ${results.size} results, limitReached=$limitReached" }
-                        _searchState.update {
+                        // Fold accumulated removals into the final list, then drop exactly the
+                        // folded tombstones — one added concurrently must keep filtering.
+                        val foldedTombstones = removedPaths.value
+                        val finalResults = results.toList().pruning(foldedTombstones)
+                        updateGuarded(generation) {
                             it.copy(
                                 searchStatus = State.SearchStatus.COMPLETED,
-                                results = results.toList(),
+                                results = finalResults,
                                 limitReached = limitReached,
                             )
                         }
+                        if (searchGeneration.get() == generation) {
+                            removedPaths.update { it - foldedTombstones }
+                        }
                     }
-                } catch (e: CancellationException) {
-                    log(tag, INFO) { "Search cancelled" }
-                    _searchState.update { it.copy(searchStatus = State.SearchStatus.CANCELLED) }
-                    throw e
                 } catch (e: Exception) {
+                    if (e is CancellationException) throw e
                     log(tag, ERROR) { "Search result collection failed: ${e.asLog()}" }
-                    _searchState.update {
+                    updateGuarded(generation) {
                         it.copy(
                             searchStatus = State.SearchStatus.ERROR,
                             error = e,
@@ -372,6 +481,11 @@ class SearcherWorkspace @AssistedInject constructor(
                     }
                 }
             }
+        }
+        } catch (e: CancellationException) {
+            log(tag, INFO) { "Search cancelled" }
+            updateGuarded(generation) { it.copy(searchStatus = State.SearchStatus.CANCELLED) }
+            throw e
         }
     }
 
@@ -389,10 +503,12 @@ class SearcherWorkspace @AssistedInject constructor(
             }
             is SearcherCommand.Clear -> {
                 log(tag, INFO) { "Clearing search state" }
+                searchGeneration.incrementAndGet()
                 // Cancel any active search
                 activeSearchJob?.cancel()
-                // Reset state to initial empty state
+                // Reset state to initial empty state; results before tombstones
                 _searchState.value = State()
+                removedPaths.value = emptySet()
                 // Clear target progress from engine
                 searchEngine.clearTargetProgress()
             }

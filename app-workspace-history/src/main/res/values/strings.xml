@@ -142,4 +142,6 @@
     <string name="history_clear_dialog_message">Removes all entries from the operation history database. This cannot be undone.</string>
     <string name="history_clear_confirm_action">Clear</string>
     <string name="history_cleared_success">History cleared</string>
+    <string name="history_workspace_title_kind_restore">Restores</string>
+    <string name="history_filter_kind_restore">Restore</string>
 </resources>

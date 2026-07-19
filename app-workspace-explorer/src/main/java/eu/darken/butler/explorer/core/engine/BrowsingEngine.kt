@@ -11,7 +11,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.explorer.core.BreadcrumbGenerator
 import eu.darken.butler.explorer.core.ExplorerBreadcrumb
 import eu.darken.butler.explorer.core.ExplorerNavigation
-import eu.darken.butler.explorer.core.filesystem.FileSystemEvent
+import eu.darken.butler.workspace.core.filesystem.FileSystemEvent
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel

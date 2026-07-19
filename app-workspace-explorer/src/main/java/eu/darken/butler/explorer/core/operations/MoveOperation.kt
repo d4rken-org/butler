@@ -18,7 +18,7 @@ import eu.darken.butler.common.files.extensions.move
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
 import eu.darken.butler.common.getQuantityString2
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation

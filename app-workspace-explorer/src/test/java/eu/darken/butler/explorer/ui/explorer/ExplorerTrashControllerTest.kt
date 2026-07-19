@@ -7,6 +7,8 @@ import eu.darken.butler.common.trash.TrashRepo
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.operations.ExplorerCommand
+import eu.darken.butler.explorer.core.operations.RestoreOperation
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.Runs
@@ -15,6 +17,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
@@ -29,7 +32,9 @@ class ExplorerTrashControllerTest : BaseTest() {
     private fun trashRootItem(itemId: Uuid = Uuid.random()): ExplorerItem.Trash.Root = ExplorerItem.Trash.Root(
         itemId = itemId,
         deletedAt = Instant.fromEpochMilliseconds(0),
-        originalLookup = mockk(),
+        originalLookup = mockk {
+            every { lookedUp } returns LocalPath.build("/tmp/trash-test/original")
+        },
         trashLookup = null,
     )
 
@@ -59,22 +64,22 @@ class ExplorerTrashControllerTest : BaseTest() {
     )
 
     @Test
-    fun `successful restore refreshes and clears selection`() = runTest {
+    fun `successful restore runs as operation, refreshes, and clears selection`() = runTest {
         var selectionCleared = false
-        val trashRepo = mockk<TrashRepo>().apply {
-            coEvery { getById(any()) } returns mockk()
-        }
-        val trashManager = mockk<TrashManager>().apply {
-            coEvery { restore(any()) } returns mockk {
-                every { restored } returns setOf(LocalPath.build("/tmp/trash-test/restored"))
-                every { failed } returns emptySet()
-                every { conflicts } returns emptySet()
+        val commandSlot = slot<ExplorerCommand>()
+        val workspace = mockWorkspace().apply {
+            coEvery { execute(capture(commandSlot)) } returns mockk {
+                every { error } returns null
+                every { report } returns RestoreOperation.Report(
+                    restoredPaths = setOf(LocalPath.build("/tmp/trash-test/restored")),
+                    conflictCount = 0,
+                    failedCount = 0,
+                )
             }
         }
-        val workspace = mockWorkspace()
         val controller = controller(
-            trashManager = trashManager,
-            trashRepo = trashRepo,
+            trashManager = mockk(),
+            trashRepo = mockk(),
             workspace = workspace,
             clearSelection = { selectionCleared = true },
         )
@@ -82,22 +87,28 @@ class ExplorerTrashControllerTest : BaseTest() {
         controller.restoreRoot(listOf(trashRootItem()))
         runCurrent()
 
+        (commandSlot.captured as ExplorerCommand.Restore).rootItemIds.size shouldBe 1
         coVerify { workspace.navigate(ExplorerNavigation.Refresh) }
         selectionCleared shouldBe true
     }
 
     @Test
-    fun `restore with no repo entries surfaces an error`() = runTest {
+    fun `restore that restores nothing surfaces an error without refresh`() = runTest {
         var error: Throwable? = null
         var selectionCleared = false
-        val trashRepo = mockk<TrashRepo>().apply {
-            coEvery { getById(any()) } returns null
+        val workspace = mockWorkspace().apply {
+            coEvery { execute(any()) } returns mockk {
+                every { this@mockk.error } returns null
+                every { report } returns RestoreOperation.Report(
+                    restoredPaths = emptySet(),
+                    conflictCount = 0,
+                    failedCount = 1,
+                )
+            }
         }
-        val trashManager = mockk<TrashManager>()
-        val workspace = mockWorkspace()
         val controller = controller(
-            trashManager = trashManager,
-            trashRepo = trashRepo,
+            trashManager = mockk(),
+            trashRepo = mockk(),
             workspace = workspace,
             clearSelection = { selectionCleared = true },
             onError = { error = it },
@@ -107,7 +118,30 @@ class ExplorerTrashControllerTest : BaseTest() {
         runCurrent()
 
         error shouldNotBe null
-        selectionCleared shouldBe true
+        selectionCleared shouldBe false
+        coVerify(exactly = 0) { workspace.navigate(any()) }
+    }
+
+    @Test
+    fun `crashed restore operation surfaces its error without refresh`() = runTest {
+        var error: Throwable? = null
+        val workspace = mockWorkspace().apply {
+            coEvery { execute(any()) } returns mockk {
+                every { report } returns null
+                every { this@mockk.error } returns IllegalStateException("boom")
+            }
+        }
+        val controller = controller(
+            trashManager = mockk(),
+            trashRepo = mockk(),
+            workspace = workspace,
+            onError = { error = it },
+        )
+
+        controller.restoreRoot(listOf(trashRootItem()))
+        runCurrent()
+
+        error?.message shouldBe "boom"
         coVerify(exactly = 0) { workspace.navigate(any()) }
     }
 
