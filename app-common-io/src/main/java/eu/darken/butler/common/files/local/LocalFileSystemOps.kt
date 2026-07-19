@@ -217,6 +217,23 @@ class LocalFileSystemOps @Inject constructor(
         throw ReadException(path = path, cause = e)
     }
 
+    override suspend fun lookupFiles(path: LocalPath, options: LookupOptions): List<LocalPathLookup> =
+        listFiles(path).mapNotNull { child ->
+            try {
+                lookup(child, options)
+            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // A child can vanish between listing and lookup; that is not a directory failure
+                if (options.continueOnError) {
+                    log(TAG, WARN) { "lookupFiles: skipping unreadable child $child: $e" }
+                    null
+                } else {
+                    throw e
+                }
+            }
+        }
+
     override suspend fun exists(path: LocalPath): Boolean = try {
         Files.exists(path.toNioPath(), LinkOption.NOFOLLOW_LINKS)
     } catch (e: Exception) {

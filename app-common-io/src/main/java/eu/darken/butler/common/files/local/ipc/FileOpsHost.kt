@@ -14,6 +14,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
+import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalFileSystemOps
@@ -30,7 +31,10 @@ import eu.darken.butler.common.ipc.RemoteFileHandle
 import eu.darken.butler.common.ipc.RemoteInputStream
 import eu.darken.butler.common.ipc.remoteFileHandle
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
@@ -92,6 +96,40 @@ class FileOpsHost @Inject constructor(
         }.toRemoteInputStream(appScope + dispatcherProvider.IO)
     } catch (e: Exception) {
         log(TAG, ERROR) { "walkStream(path=$path) failed\n${e.asLog()}" }
+        throw e.wrapToPropagate()
+    }
+
+    override fun walkStreamV2(
+        path: LocalPath,
+        options: LookupOptions,
+        spec: WalkSpec,
+    ): RemoteInputStream = try {
+        if (Bugs.isTrace) log(TAG, VERBOSE) { "walkStreamV2($path, $spec)..." }
+        val events: Flow<WalkEvent> = flow {
+            DirectLocalWalker(
+                fileSystemOps = fileSystemOps,
+                start = path,
+                lookupOptions = options,
+                onFilter = filter@{ lookup ->
+                    if (spec.pathDoesNotContain?.any { lookup.path.contains(it) } == true) return@filter false
+                    if (spec.excludeSubtrees?.any { lookup.lookedUp.isDescendantOfOrSelf(it) } == true) return@filter false
+                    true
+                },
+                onError = { lookup, e ->
+                    emit(WalkEvent.DirError(lookup, e.message ?: e.toString()))
+                    true
+                },
+                followSymlinks = spec.followSymlinks,
+            ).collect { emit(WalkEvent.Item(it)) }
+            emit(WalkEvent.Done)
+        }.catch { e ->
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            log(TAG, ERROR) { "walkStreamV2($path) fatal: ${e.asLog()}" }
+            emit(WalkEvent.FatalError(path, e.message ?: e.toString()))
+        }
+        events.toEventRemoteStream(appScope + dispatcherProvider.IO)
+    } catch (e: Exception) {
+        log(TAG, ERROR) { "walkStreamV2(path=$path) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()
     }
 

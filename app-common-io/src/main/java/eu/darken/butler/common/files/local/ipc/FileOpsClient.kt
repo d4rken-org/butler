@@ -15,6 +15,7 @@ import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.DeleteAction
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
@@ -22,6 +23,7 @@ import eu.darken.butler.common.files.metadata.Permissions
 import eu.darken.butler.common.ipc.IpcClientModule
 import eu.darken.butler.common.ipc.fileHandle
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import okio.FileHandle
@@ -74,25 +76,59 @@ class FileOpsClient @AssistedInject constructor(
     }
 
     /**
-     * Doesn't run into IPC buffer overflows on large directories
+     * Host-side streaming walk: the whole subtree is walked in the privileged process, one IPC
+     * stream total. Directory errors arrive as events and are routed to [walkOptions].onError;
+     * a stream ending without a terminal event is reported as truncation, not clean completion.
+     *
+     * Doesn't run into IPC buffer overflows on large directories.
      */
     fun walk(
         path: LocalPath,
         lookupOptions: LookupOptions,
         walkOptions: APathGateway.WalkOptions<LocalPath, LocalPathLookup>,
+        excludeSubtrees: List<LocalPath>? = null,
     ): Flow<LocalPathLookup> {
-        if (!walkOptions.isDirect) throw IllegalArgumentException("Only direct walk options are supported")
-
-        val output = try {
-            fileOpsConnection.walkStream(
-                path,
-                lookupOptions,
-                (walkOptions.pathDoesNotContain ?: emptyList()).toMutableList(),
-            )
-        } catch (e: Exception) {
-            throw e.refineException()
+        if (!walkOptions.isStreamable) {
+            throw IllegalArgumentException("onFilter cannot cross the IPC boundary")
         }
-        return output.toLocalPathLookupFlow()
+
+        val spec = WalkSpec(
+            pathDoesNotContain = walkOptions.pathDoesNotContain?.toList(),
+            followSymlinks = walkOptions.followSymlinks,
+            excludeSubtrees = excludeSubtrees,
+        )
+
+        return flow {
+            val output = try {
+                fileOpsConnection.walkStreamV2(path, lookupOptions, spec)
+            } catch (e: Exception) {
+                throw e.refineException()
+            }
+
+            var terminated = false
+            output.toWalkEventFlow().collect { event ->
+                when (event) {
+                    is WalkEvent.Item -> emit(event.lookup)
+                    is WalkEvent.DirError -> {
+                        val error = ReadException(
+                            message = event.message ?: "Failed to read directory",
+                            path = event.lookup.lookedUp,
+                        )
+                        val continueWalk = walkOptions.onError?.invoke(event.lookup, error) ?: true
+                        if (!continueWalk) throw error
+                    }
+                    is WalkEvent.FatalError -> {
+                        terminated = true
+                        throw ReadException(
+                            message = event.message ?: "Walk failed",
+                            path = event.path ?: path,
+                        )
+                    }
+                    WalkEvent.Done -> terminated = true
+                }
+            }
+            if (!terminated) throw ReadException("Walk stream truncated", path)
+        }
     }
 
     suspend fun du(path: LocalPath): Long = try {

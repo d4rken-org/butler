@@ -1,29 +1,17 @@
 package eu.darken.butler.common.files.local.walkers
 
-import eu.darken.butler.common.debug.Bugs
-import eu.darken.butler.common.debug.logging.Logging
-import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
-import eu.darken.butler.common.files.extensions.isDirectory
-import eu.darken.butler.common.files.extensions.isFile
-import eu.darken.butler.common.files.extensions.isSymlink
-import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalPathLookup
 import kotlinx.coroutines.flow.AbstractFlow
 import kotlinx.coroutines.flow.FlowCollector
-import java.util.LinkedList
-import kotlin.coroutines.cancellation.CancellationException
 
-// Symlinks are always emitted. By default they are NOT followed (cycle-safe). With followSymlinks=true
-// they are followed wherever they point (like `find -L`), with canonical-path cycle detection guaranteeing
-// termination. Destructive callers (delete/cleanup) must keep this false (mirrors `rm -r` not following links).
-//
-// This walker uses direct (unescalated) ops, so a symlink whose target needs ROOT/ADB to resolve or stat
-// is simply not followed. Escalation-aware following is handled by IndirectLocalWalker.
+// Walks with a single fixed set of ops, so a symlink whose target needs ROOT/ADB to resolve or stat
+// is simply not followed. Escalation-aware walking is handled by RoutedLocalWalker/IndirectLocalWalker.
 class DirectLocalWalker(
-    private val fileSystemOps: LocalFileSystemOps,
+    private val fileSystemOps: FileSystemOps<LocalPath, LocalPathLookup>,
     private val start: LocalPath,
     private val lookupOptions: LookupOptions,
     private val onFilter: suspend (LocalPathLookup) -> Boolean = { true },
@@ -33,88 +21,28 @@ class DirectLocalWalker(
     private val tag = "$TAG#${hashCode()}"
 
     override suspend fun collectSafely(collector: FlowCollector<LocalPathLookup>) {
-        val startLookUp = fileSystemOps.lookup(start, lookupOptions)
-        if (startLookUp.isFile) {
-            collector.emit(startLookUp)
-            return
-        }
-
-        val queue = LinkedList(mutableListOf(startLookUp))
-        // Canonical real-paths of directories descended into via a symlink; bounds traversal -> termination.
-        val visitedCanonical: MutableSet<String>? = if (followSymlinks) HashSet<String>().also { set ->
-            try {
-                set.add(fileSystemOps.canonicalize(start).path)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                // Best-effort seed: if the start can't be canonicalized, a symlink pointing back to start
-                // just costs one extra traversal iteration before the cycle is detected (still bounded).
-            }
-        } else null
-
-        while (!queue.isEmpty()) {
-            val lookUp = queue.removeFirst()
-
-            val newBatch = try {
-                // Use lookupFiles for efficient single-call operation
-                fileSystemOps.lookupFiles(lookUp.lookedUp, lookupOptions)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                log(TAG, Logging.Priority.ERROR) { "Failed to read $lookUp: $e" }
-                if (onError(lookUp, e)) {
-                    emptyList()
-                } else {
-                    throw e
-                }
-            }
-
-            newBatch
-                .filter {
-                    val allowed = onFilter(it)
-                    if (Bugs.isTrace) {
-                        if (!allowed) log(tag, Logging.Priority.VERBOSE) { "Skipping (filter): $it" }
-                    }
-                    allowed
-                }
-                .forEach { child ->
-                    if (shouldDescend(child, visitedCanonical)) {
-                        if (Bugs.isTrace) log(tag, Logging.Priority.VERBOSE) { "Walking: $child" }
-                        queue.addFirst(child)
-                    }
-                    collector.emit(child)
-                }
-        }
+        LocalWalkerCore(
+            strategy = Strategy(),
+            start = start,
+            onFilter = onFilter,
+            onError = onError,
+            followSymlinks = followSymlinks,
+            tag = tag,
+        ).walk(collector)
     }
 
-    private suspend fun shouldDescend(
-        child: LocalPathLookup,
-        visitedCanonical: MutableSet<String>?,
-    ): Boolean {
-        if (child.isSymlink) {
-            if (!followSymlinks || visitedCanonical == null) return false
-            val canonical = try {
-                fileSystemOps.canonicalize(child.lookedUp)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                return false // unresolvable target -> treat as leaf
-            }
-            val targetIsDir = try {
-                fileSystemOps.lookup(canonical, lookupOptions).isDirectory
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                false
-            }
-            if (!targetIsDir) return false
-            if (!visitedCanonical.add(canonical.path)) {
-                log(tag, Logging.Priority.WARN) { "Symlink cycle, not following: $child -> ${canonical.path}" }
-                return false
-            }
-            return true
-        }
-        return child.isDirectory
+    private inner class Strategy : WalkerStrategy {
+        override suspend fun lookupStart(start: LocalPath): LocalPathLookup =
+            fileSystemOps.lookup(start, lookupOptions)
+
+        override suspend fun list(dir: LocalPathLookup): WalkerStrategy.Listing =
+            WalkerStrategy.Listing.Children(fileSystemOps.lookupFiles(dir.lookedUp, lookupOptions))
+
+        override suspend fun canonicalize(path: LocalPath): LocalPath =
+            fileSystemOps.canonicalize(path)
+
+        override suspend fun lookup(path: LocalPath): LocalPathLookup =
+            fileSystemOps.lookup(path, lookupOptions)
     }
 
     companion object {

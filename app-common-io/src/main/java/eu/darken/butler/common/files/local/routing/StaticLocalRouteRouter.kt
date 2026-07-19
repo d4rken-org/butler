@@ -24,6 +24,7 @@ class StaticLocalRouteRouter(
 
     private val routes = ConcurrentHashMap<RouteKey, Route>()
     private val aliases = ConcurrentHashMap<AliasKey, LocalPath>()
+    private val failedModes = ConcurrentHashMap<RouteKey, MutableSet<AccessMode>>()
 
     suspend fun routeFor(path: LocalPath, intent: AccessIntent): Route {
         val routedPath = resolveAlias(path, intent)
@@ -54,6 +55,48 @@ class StaticLocalRouteRouter(
 
     suspend fun ensurePlanned(path: LocalPath, intent: AccessIntent) {
         routeFor(path, intent)
+    }
+
+    /**
+     * Re-routes [path] after an operation through [failedMode] failed at runtime (e.g. a
+     * policy-DIRECT directory that turns out to need elevation). Unlike [routeFor], this bypasses
+     * the cached route and picks the next untried escalation mode (ROOT, then ADB).
+     *
+     * Attempted modes are tracked per (path, intent), so repeated calls walk down the candidate
+     * list and never loop. Returns null when no untried mode remains — the caller should surface
+     * the ORIGINAL failure, not a routing error.
+     */
+    suspend fun routeAfterFailure(path: LocalPath, intent: AccessIntent, failedMode: AccessMode): Route? {
+        val routedPath = resolveAlias(path, intent)
+        val key = RouteKey(routedPath.path, intent)
+        val attempted = failedModes.getOrPut(key) { ConcurrentHashMap.newKeySet() }
+        attempted.add(failedMode)
+
+        for (candidate in ESCALATION_ORDER) {
+            if (!attempted.add(candidate)) continue
+
+            val available = when (candidate) {
+                AccessMode.ROOT -> caps.hasRoot()
+                AccessMode.ADB -> caps.hasAdb()
+                else -> false
+            }
+            if (!available) continue
+
+            val session = try {
+                sessions.getOrOpen(candidate)
+            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                continue
+            }
+            return Route(
+                mode = session.mode,
+                ops = session.ops,
+                batch = session.batch,
+                session = session,
+            ).also { routes[key] = it }
+        }
+        return null
     }
 
     fun proactiveChildren(parent: LocalPath): Set<LocalPath> = policy.proactiveChildren(parent)
@@ -89,4 +132,8 @@ class StaticLocalRouteRouter(
 
     private fun routeUnavailable(path: LocalPath, intent: AccessIntent, cause: Exception): RouteUnavailableException =
         RouteUnavailableException(path, intent).apply { initCause(cause) }
+
+    companion object {
+        private val ESCALATION_ORDER = listOf(AccessMode.ROOT, AccessMode.ADB)
+    }
 }
