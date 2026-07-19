@@ -25,7 +25,6 @@ import eu.darken.butler.common.developer.DeveloperSettings
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.flow.combine
-import eu.darken.butler.common.flow.throttleLatest
 import eu.darken.butler.common.formatFileSize
 import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.ui.ViewModel4
@@ -51,14 +50,16 @@ import eu.darken.butler.workspace.ui.page.WorkspacePageChrome
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -108,57 +109,84 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     private val shizukuTestResult = MutableStateFlow<ShizukuTestResult?>(null)
     private val isShizukuTesting = MutableStateFlow(false)
 
-    val state = combine(
-        selectedTab,
-        developerLogRepo.logLines.throttleLatest(100.milliseconds),
+    private val logSource = combine(
+        developerLogRepo.logLines,
         pausedLogSnapshot,
         isLogPaused,
+    ) { liveLogs, snapshot, paused ->
+        LogDisplay(
+            lines = if (paused && snapshot != null) snapshot else liveLogs,
+            isPaused = paused,
+        )
+    }
+
+    private val testDataSource = combine(
         targetPaths,
         largeFilesEnabled,
         nestedStructureEnabled,
         textFilesEnabled,
-        debugSettings.isDebugMode.flow,
-        debugSettings.isTraceMode.flow,
-        rootTestResult,
-        isRootTesting,
-        shizukuTestResult,
-        isShizukuTesting,
-        developerSettings.isDeveloperModeUnlocked.flow,
-    ) { tab, liveLogs, snapshot, paused, paths, largeFiles, nested, text,
-        isDebugMode, isTraceMode, rootResult,
-        rootTesting, shizukuResult, shizukuTesting, isDeveloperModeUnlocked ->
-        val displayLogs = if (paused && snapshot != null) snapshot else liveLogs
-        val systemInfo = getSystemInfo()
-
+    ) { paths, largeFiles, nested, text ->
         val pathInfos = paths.map { path ->
             TargetPathInfo(
                 path = path,
                 displayPath = path.userReadablePath.get(context),
             )
         }
+        TestDataState(
+            targetPaths = pathInfos,
+            largeFilesEnabled = largeFiles,
+            nestedStructureEnabled = nested,
+            textFilesEnabled = text,
+            canGenerate = pathInfos.isNotEmpty() && (largeFiles || nested || text),
+        )
+    }
 
+    private val optionsSource = combine(
+        debugSettings.isDebugMode.flow,
+        debugSettings.isTraceMode.flow,
+        debugSettings.floatingLogVisible.flow,
+        rootTestResult,
+        isRootTesting,
+        shizukuTestResult,
+        isShizukuTesting,
+        developerSettings.isDeveloperModeUnlocked.flow,
+    ) { isDebugMode, isTraceMode, isFloatingLog, rootResult, rootTesting, shizukuResult, shizukuTesting, isDeveloperModeUnlocked ->
+        OptionsState(
+            isDebugMode = isDebugMode,
+            isTraceMode = isTraceMode,
+            isFloatingLogEnabled = isFloatingLog,
+            rootTestResult = rootResult,
+            isRootTesting = rootTesting,
+            shizukuTestResult = shizukuResult,
+            isShizukuTesting = shizukuTesting,
+            canHideDeveloperMode = isDeveloperModeUnlocked,
+        )
+    }
+
+    // System info polls on its own cadence instead of riding the log tick, so log spam doesn't
+    // re-run StatFs/ActivityManager queries; the sub-state split keeps the top-level combine cheap.
+    private val systemInfoSource = flow {
+        while (true) {
+            emit(getSystemInfo())
+            delay(5.seconds)
+        }
+    }.flowOn(dispatchers.IO)
+
+    val state = combine(
+        selectedTab,
+        systemInfoSource,
+        logSource,
+        testDataSource,
+        optionsSource,
+    ) { tab, systemInfo, logDisplay, testDataState, optionsState ->
         State(
             id = id,
             selectedTab = tab,
             systemInfo = systemInfo,
-            logLines = displayLogs,
-            isLogPaused = paused,
-            testDataState = TestDataState(
-                targetPaths = pathInfos,
-                largeFilesEnabled = largeFiles,
-                nestedStructureEnabled = nested,
-                textFilesEnabled = text,
-                canGenerate = pathInfos.isNotEmpty() && (largeFiles || nested || text),
-            ),
-            optionsState = OptionsState(
-                isDebugMode = isDebugMode,
-                isTraceMode = isTraceMode,
-                rootTestResult = rootResult,
-                isRootTesting = rootTesting,
-                shizukuTestResult = shizukuResult,
-                isShizukuTesting = shizukuTesting,
-                canHideDeveloperMode = isDeveloperModeUnlocked,
-            ),
+            logLines = logDisplay.lines,
+            isLogPaused = logDisplay.isPaused,
+            testDataState = testDataState,
+            optionsState = optionsState,
         )
     }.asStateFlow()
 
@@ -205,9 +233,11 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     }
 
     fun clearLogs() {
+        // Log first: with the shared recorder capturing all tags, logging after the clear would
+        // immediately repopulate the buffer with this very line.
+        log(tag) { "Clearing logs" }
         developerLogRepo.clear()
         pausedLogSnapshot.value = null
-        log(tag) { "Logs cleared" }
     }
 
     fun openPathPicker() = launch {
@@ -400,6 +430,11 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
     fun toggleTraceMode(enabled: Boolean) {
         log(tag) { "Trace mode toggled: $enabled" }
         launch { debugSettings.isTraceMode.value(enabled) }
+    }
+
+    fun toggleFloatingLog(enabled: Boolean) {
+        log(tag) { "Floating log panel toggled: $enabled" }
+        launch { debugSettings.floatingLogVisible.value(enabled) }
     }
 
     fun hideDeveloperMode() = launch {
@@ -599,9 +634,15 @@ class DeveloperWorkspaceViewModel @AssistedInject constructor(
         TEST_DATA,
     }
 
+    private data class LogDisplay(
+        val lines: List<String>,
+        val isPaused: Boolean,
+    )
+
     data class OptionsState(
         val isDebugMode: Boolean,
         val isTraceMode: Boolean,
+        val isFloatingLogEnabled: Boolean,
         val rootTestResult: RootTestResult?,
         val isRootTesting: Boolean,
         val shizukuTestResult: ShizukuTestResult?,

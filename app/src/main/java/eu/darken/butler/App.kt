@@ -23,6 +23,7 @@ import eu.darken.butler.common.debug.logging.LogCatLogger
 import eu.darken.butler.common.debug.logging.Logging
 import eu.darken.butler.common.debug.logging.RingLogBuffer
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
+import eu.darken.butler.common.debug.logviewer.core.LogHistoryRecorder
 import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
@@ -71,6 +72,7 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
     @Inject lateinit var trashCleanupScheduler: TrashCleanupScheduler
     @Inject lateinit var workspaceRegistryValidator: WorkspaceRegistryValidator
     @Inject lateinit var ringLogBuffer: RingLogBuffer
+    @Inject lateinit var logHistoryRecorder: LogHistoryRecorder
     @Inject lateinit var bugReportRepo: BugReportRepo
 
     /**
@@ -130,6 +132,10 @@ open class App : Application(), Configuration.Provider, SingletonImageLoader.Fac
             // Capture more detail into the in-memory buffer when the cost is already accepted.
             val verbose = isDebug || recorderState.isRecording
             ringLogBuffer.setThreshold(if (verbose) DEBUG else RingLogBuffer.DEFAULT_THRESHOLD)
+
+            // Global capture floor for the shared log-viewer buffer (floating panel + Developer
+            // LOGS tab). Owned here, not by the viewer UIs — a panel-level selection is display-only.
+            logHistoryRecorder.setMinPriority(if (verbose) VERBOSE else DEBUG)
 
             Bugs.isDebug = isDebug || recorderState.isRecording
             Bugs.isTrace = isDebug && isTrace
