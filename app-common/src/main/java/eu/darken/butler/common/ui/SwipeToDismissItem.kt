@@ -83,7 +83,6 @@ fun SwipeToDismissItem(
     SwipeToDismissBox(
         state = dismissState,
         modifier = modifier,
-        enableDismissFromStartToEnd = false,
         gesturesEnabled = enabled,
         onDismiss = settledDismissCallback,
         backgroundContent = {
@@ -96,7 +95,10 @@ fun SwipeToDismissItem(
                         horizontal = horizontalPadding.dp,
                         vertical = verticalPadding.dp
                     ),
-                contentAlignment = Alignment.CenterEnd
+                contentAlignment = when (dismissState.dismissDirection) {
+                    SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                    else -> Alignment.CenterEnd
+                },
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

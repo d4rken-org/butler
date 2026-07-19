@@ -22,6 +22,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.unit.dp
 import eu.darken.butler.common.compose.PreviewWrapper
 import io.kotest.matchers.shouldBe
@@ -51,6 +52,32 @@ class SwipeToDismissItemTest : ComposeTest() {
         }
 
         composeTestRule.onNodeWithTag("item").performTouchInput { swipeLeft() }
+        composeTestRule.waitForIdle()
+
+        dismissCount shouldBe 1
+    }
+
+    @Test
+    fun `full swipe start-to-end invokes onDismiss once`() {
+        var dismissCount = 0
+
+        composeTestRule.setContent {
+            PreviewWrapper {
+                SwipeToDismissItem(
+                    onDismiss = { dismissCount++ },
+                    dismissContent = {},
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .testTag("item"),
+                    )
+                }
+            }
+        }
+
+        composeTestRule.onNodeWithTag("item").performTouchInput { swipeRight() }
         composeTestRule.waitForIdle()
 
         dismissCount shouldBe 1
@@ -215,6 +242,35 @@ class SwipeToDismissItemTest : ComposeTest() {
     }
 
     @Test
+    fun `held start-to-end dismiss gesture inside pager does not remove item mid-gesture or move the pager`() {
+        lateinit var pagerState: PagerState
+        var dismissCount = 0
+
+        composeTestRule.setContent {
+            PagerTestContent(
+                onPagerState = { pagerState = it },
+                onDismiss = { dismissCount++ },
+                itemsPage = 1,
+            )
+        }
+
+        // Items live on page 1 so a leaked rightward drag would move the pager back to page 0
+        composeTestRule.onNodeWithTag("Item A").performTouchInput {
+            down(Offset(left + 2f, centerY))
+            moveBy(Offset(width * 0.62f, 0f))
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag("Item A").assertExists()
+        dismissCount shouldBe 0
+
+        composeTestRule.onNodeWithTag("pager").performTouchInput { up() }
+        composeTestRule.waitForIdle()
+
+        pagerState.currentPage shouldBe 1
+    }
+
+    @Test
     fun `completed swipe inside pager dismisses item without changing page`() {
         lateinit var pagerState: PagerState
         var dismissCount = 0
@@ -238,9 +294,10 @@ class SwipeToDismissItemTest : ComposeTest() {
     private fun PagerTestContent(
         onPagerState: (PagerState) -> Unit,
         onDismiss: () -> Unit,
+        itemsPage: Int = 0,
     ) {
         PreviewWrapper {
-            val pagerState = rememberPagerState(pageCount = { 2 })
+            val pagerState = rememberPagerState(initialPage = itemsPage, pageCount = { 2 })
             onPagerState(pagerState)
             var items by remember { mutableStateOf(listOf("Item A")) }
 
@@ -250,7 +307,7 @@ class SwipeToDismissItemTest : ComposeTest() {
                     .fillMaxSize()
                     .testTag("pager"),
             ) { page ->
-                if (page == 0) {
+                if (page == itemsPage) {
                     Column(modifier = Modifier.fillMaxSize()) {
                         items.forEach { item ->
                             key(item) {
