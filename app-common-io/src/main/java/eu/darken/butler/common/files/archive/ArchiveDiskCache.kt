@@ -117,10 +117,16 @@ class ArchiveDiskCache @Inject constructor(
     private fun sweepStaleFiles() {
         try {
             cacheDir.listFiles()
-                // Partial writes from a crashed run, AND any decrypted plaintext left from a previous
-                // session - decrypted archive content must never survive a process restart (it would be
-                // readable without re-entering the password).
-                ?.filter { it.name.endsWith(PART_SUFFIX) || it.name.startsWith("$PREFIX_EPHEMERAL_DECRYPTED-") }
+                // No materialized archive cache survives a process restart:
+                //  - *.part            : partial writes from a crashed run
+                //  - entrydec-*        : decrypted plaintext (must never persist without the password)
+                //  - container-*, entry-* : materialized copies keyed by size:mtime:generation, where
+                //    the in-process generation resets to 0 on restart; sweeping them means a fresh
+                //    process always re-materializes from the current source instead of risking a stale
+                //    same-size/coarse-mtime hit.
+                ?.filter { file ->
+                    file.name.endsWith(PART_SUFFIX) || SWEEP_PREFIXES.any { file.name.startsWith("$it-") }
+                }
                 ?.forEach { if (!it.delete()) log(TAG, WARN) { "Failed to delete stale ${it.name}" } }
         } catch (e: Exception) {
             log(TAG, WARN) { "Failed to sweep stale files: ${e.asLog()}" }
@@ -138,10 +144,20 @@ class ArchiveDiskCache @Inject constructor(
         private const val MAX_CACHE_BYTES = 256L * 1024 * 1024
         private const val EVICT_GRACE_MS = 30_000L
 
+        /** Key prefix for a materialized whole-container copy (seekable access to SAF/root/ADB archives). */
+        const val PREFIX_CONTAINER = "container"
+
+        /** Key prefix for a materialized plain (non-encrypted) archive entry. */
+        const val PREFIX_ENTRY = "entry"
+
         /**
-         * Key prefix for decrypted archive-entry plaintext. Swept on startup so it never survives a
-         * process restart. [ArchiveService] must use this prefix for decrypted materializations.
+         * Key prefix for decrypted archive-entry plaintext. [ArchiveService] must use this prefix for
+         * decrypted materializations.
          */
         const val PREFIX_EPHEMERAL_DECRYPTED = "entrydec"
+
+        // All materialized-cache prefixes; every one is swept on startup (see [sweepStaleFiles]).
+        // "entrydec-" does not start with "entry-", so the two are matched distinctly.
+        private val SWEEP_PREFIXES = listOf(PREFIX_CONTAINER, PREFIX_ENTRY, PREFIX_EPHEMERAL_DECRYPTED)
     }
 }

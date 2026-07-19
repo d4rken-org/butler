@@ -806,10 +806,10 @@ class ArchiveService @Inject constructor(
         private const val COPY_BUFFER_SIZE = 64 * 1024
         private const val UNIX_TYPE_MASK = 0xF000
         private const val UNIX_TYPE_SYMLINK = 0xA000
-        private const val PREFIX_CONTAINER = "container"
-        private const val PREFIX_ENTRY = "entry"
-        // Shared with ArchiveDiskCache, which sweeps this prefix on startup so decrypted
-        // plaintext never survives a process restart.
+        // Prefixes live in ArchiveDiskCache, which sweeps them all on startup so no materialized
+        // archive cache survives a process restart (stale content or decrypted plaintext).
+        private val PREFIX_CONTAINER = ArchiveDiskCache.PREFIX_CONTAINER
+        private val PREFIX_ENTRY = ArchiveDiskCache.PREFIX_ENTRY
         private val PREFIX_ENTRY_DECRYPTED = ArchiveDiskCache.PREFIX_EPHEMERAL_DECRYPTED
     }
 }

@@ -50,18 +50,24 @@ class ArchiveDiskCacheTest : BaseTest() {
         .joinToString("") { "%02x".format(it) }
 
     @Test
-    fun `startup sweep removes decrypted plaintext and partial files but keeps container caches`() {
+    fun `startup sweep removes all materialized archive caches`() {
         val staleDecrypted = File(cacheDir, "entrydec-stale").apply { writeText("secret") }
         val partial = File(cacheDir, "container-x.part").apply { writeText("half") }
-        val cachedContainer = File(cacheDir, "container-keep").apply { writeText("cached") }
+        val staleContainer = File(cacheDir, "container-keep").apply { writeText("cached") }
+        val staleEntry = File(cacheDir, "entry-keep").apply { writeText("cached") }
+        val unrelated = File(cacheDir, "somethingelse").apply { writeText("keep") }
 
         // Construction eagerly runs the sweep.
         create()
 
+        // No materialized archive cache survives a restart: a fresh process re-materializes from the
+        // current source, so a same-size/coarse-mtime overwrite can never be served stale.
         staleDecrypted.exists() shouldBe false
         partial.exists() shouldBe false
-        // Whole-container caches are session-independent and must survive the sweep.
-        cachedContainer.exists() shouldBe true
+        staleContainer.exists() shouldBe false
+        staleEntry.exists() shouldBe false
+        // Files that aren't archive caches are left alone.
+        unrelated.exists() shouldBe true
     }
 
     @Test
@@ -83,6 +89,35 @@ class ArchiveDiskCacheTest : BaseTest() {
         // producer (password-backed re-decryption) must have run.
         producerRan shouldBe true
         result.readText() shouldBe "FRESH-DECRYPTED"
+    }
+
+    @Test
+    fun `container and entry caches from a previous session are re-materialized fresh`() = runTest {
+        // Simulates a same-size/coarse-mtime overwrite across a restart: a prior session left files at
+        // the exact cache paths a materialize(prefix, key) would hit for the current fingerprint.
+        val containerKey = "content://tree/archive.zip:1024:0"
+        val entryKey = "content://tree/archive.zip:1024:0:dir/a.txt"
+        File(cacheDir, "${ArchiveDiskCache.PREFIX_CONTAINER}-${sha256Hex(containerKey)}").writeText("STALE-CONTAINER")
+        File(cacheDir, "${ArchiveDiskCache.PREFIX_ENTRY}-${sha256Hex(entryKey)}").writeText("STALE-ENTRY")
+
+        val cache = create()
+
+        var containerProducerRan = false
+        val container = cache.materialize(ArchiveDiskCache.PREFIX_CONTAINER, containerKey) { part ->
+            containerProducerRan = true
+            part.writeText("FRESH-CONTAINER")
+        }
+        var entryProducerRan = false
+        val entry = cache.materialize(ArchiveDiskCache.PREFIX_ENTRY, entryKey) { part ->
+            entryProducerRan = true
+            part.writeText("FRESH-ENTRY")
+        }
+
+        // Both stale files were swept before the fast path, so producers re-ran against the real source.
+        containerProducerRan shouldBe true
+        container.readText() shouldBe "FRESH-CONTAINER"
+        entryProducerRan shouldBe true
+        entry.readText() shouldBe "FRESH-ENTRY"
     }
 
     @Test
