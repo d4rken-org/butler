@@ -10,6 +10,8 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.ExplorerNavigation
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.operations.ExplorerCommand
+import eu.darken.butler.explorer.core.operations.RestoreOperation
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -30,25 +32,51 @@ class ExplorerTrashController(
     fun restoreRoot(items: Collection<ExplorerItem.Trash.Root>) = doLaunch {
         log(tag) { "restoreTrashItems(): ${items.size} items" }
         if (items.isEmpty()) return@doLaunch
+        restoreViaOperation(
+            command = ExplorerCommand.Restore(
+                rootItemIds = items.map { it.itemId }.toSet(),
+                intendedPaths = items.map { it.originalLookup.lookedUp },
+            ),
+        )
+    }
+
+    /**
+     * Restores run as managed operations: visible in the operations bar, logged to history, and
+     * emitting filesystem events so listings, search results, and folder previews update.
+     */
+    private suspend fun restoreViaOperation(command: ExplorerCommand.Restore) {
         try {
-            val repoItems = items.mapNotNull { trashRepo.getById(it.itemId) }
-            if (repoItems.isEmpty()) {
-                onError(Exception(context.getString(R.string.explorer_trash_error_items_not_found)))
-                clearSelection()
-                return@doLaunch
+            val completed = workspace().execute(command)
+            val report = completed.report as? RestoreOperation.Report
+
+            if (completed.error != null && (report == null || report.restoredPaths.isEmpty())) {
+                // Crashed or fully failed operation — nothing to refresh
+                log(tag, ERROR) { "Restore failed: ${completed.error?.asLog()}" }
+                onError(completed.error ?: Exception(context.getString(R.string.explorer_trash_error_restore_failed)))
+                return
             }
-            val result = trashManager.restore(repoItems)
-            if (result.restored.isNotEmpty()) {
-                log(tag, INFO) { "Successfully restored ${result.restored.size} items" }
-                workspace().navigate(ExplorerNavigation.Refresh)
-                clearSelection()
-            } else if (result.failed.isNotEmpty()) {
-                log(tag, ERROR) { "Failed to restore ${result.failed.size} items" }
-                onError(Exception(context.getString(R.string.explorer_trash_error_restore_failed)))
-            } else if (result.conflicts.isNotEmpty()) {
-                log(tag, WARN) { "Conflicts when restoring ${result.conflicts.size} items" }
-                onError(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
+
+            when {
+                report == null || report.restoredPaths.isNotEmpty() -> {
+                    workspace().navigate(ExplorerNavigation.Refresh)
+                    clearSelection()
+                    // Partial problems still deserve a notification after the refresh
+                    when {
+                        report == null -> Unit
+                        report.conflictCount > 0 ->
+                            onError(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
+                        report.failedCount > 0 ->
+                            onError(Exception(context.getString(R.string.explorer_trash_error_restore_failed)))
+                    }
+                }
+                report.conflictCount > 0 ->
+                    onError(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
+                else ->
+                    onError(Exception(context.getString(R.string.explorer_trash_error_restore_failed)))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // User cancellation is not an error
+            throw e
         } catch (e: Exception) {
             log(tag, ERROR) { "Error restoring trash items: ${e.asLog()}" }
             onError(e)
@@ -83,48 +111,17 @@ class ExplorerTrashController(
     fun restoreNested(items: Collection<ExplorerItem.Trash.Nested>) = doLaunch {
         log(tag) { "restoreNestedItems(): ${items.size} items" }
         if (items.isEmpty()) return@doLaunch
-        try {
-            var totalRestored = 0
-            // Group items by parent to reduce duplicate repo lookups
-            val itemsByParent = items.groupBy { it.parentRef.itemId }
-
-            for ((parentId, parentItems) in itemsByParent) {
-                val parentRepoItem = trashRepo.getById(parentId)
-                if (parentRepoItem == null) {
-                    log(tag, ERROR) { "Parent trash item not found: $parentId" }
-                    onError(Exception(context.getString(R.string.explorer_trash_nested_parent_missing)))
-                    continue
-                }
-
-                for (item in parentItems) {
-                    val result = trashManager.restoreNested(parentRepoItem, item.relativePath)
-                    if (result.restored.isNotEmpty()) {
-                        totalRestored += result.restored.size
-                        log(tag, INFO) { "Successfully restored nested item" }
-                    } else if (result.conflicts.isNotEmpty()) {
-                        log(tag, WARN) { "Conflict when restoring nested item" }
-                        onError(Exception(context.getString(R.string.explorer_trash_nested_restore_conflict)))
-                    } else {
-                        log(tag, ERROR) { "Failed to restore nested item" }
-                        onError(
-                            Exception(
-                                context.getString(
-                                    R.string.explorer_trash_nested_error_restore_failed,
-                                    item.displayName.get(context)
-                                )
-                            )
-                        )
-                    }
-                }
-            }
-            if (totalRestored > 0) {
-                workspace().navigate(ExplorerNavigation.Refresh)
-                clearSelection()
-            }
-        } catch (e: Exception) {
-            log(tag, ERROR) { "Error restoring nested trash items: ${e.asLog()}" }
-            onError(e)
-        }
+        restoreViaOperation(
+            command = ExplorerCommand.Restore(
+                nestedItems = items.map {
+                    ExplorerCommand.Restore.NestedTarget(
+                        parentId = it.parentRef.itemId,
+                        relativePath = it.relativePath,
+                    )
+                },
+                intendedPaths = items.map { it.originalRestoredPath },
+            ),
+        )
     }
 
     fun deleteNestedPermanently(items: Collection<ExplorerItem.Trash.Nested>) = doLaunch {

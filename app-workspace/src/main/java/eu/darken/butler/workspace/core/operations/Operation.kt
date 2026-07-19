@@ -58,7 +58,7 @@ interface Operation {
          */
         val intendedPaths: Collection<APath<*>>? get() = null
 
-        enum class Kind { COPY, MOVE, DELETE, CREATE_FOLDER, CREATE_FILE, SAVE, COMPRESS, EXTRACT }
+        enum class Kind { COPY, MOVE, DELETE, RESTORE, CREATE_FOLDER, CREATE_FILE, SAVE, COMPRESS, EXTRACT }
 
         enum class Intent { RENAME, PASTE_COPY, PASTE_MOVE }
 
@@ -139,4 +139,12 @@ interface Operation {
     )
 
     fun perform(operationContext: Context): Flow<State>
+
+    /**
+     * Releases sensitive or transient data held by this operation (e.g. wiping a password buffer).
+     * Invoked by [ManagedOperation] when the operation reaches a terminal state, and also when it is
+     * cancelled before [perform] ever begins. Must be idempotent — it can be called more than once.
+     * Default: nothing to release.
+     */
+    fun onDiscarded() {}
 }

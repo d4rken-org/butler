@@ -2,7 +2,9 @@ package eu.darken.butler.explorer.core.operations
 
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.workspace.core.operations.Operation
+import kotlin.uuid.Uuid
 
 sealed interface ExplorerCommand {
     data class Create(
@@ -67,13 +69,36 @@ sealed interface ExplorerCommand {
     /**
      * Compress [sources] into a new archive named [archiveName] in [destinationDir].
      * Sources must all share a parent (their names are the archive's top-level entries).
+     *
+     * [overwriteConfirmed] must be true for the operation to replace an existing archive at the
+     * target path; otherwise the operation aborts at commit rather than deleting the existing file.
+     *
+     * Note: because [Options] is intentionally not a data class (see below), this data class's
+     * generated `equals`/`hashCode` compare [options] by reference. No code relies on structural
+     * equality of a [Compress] command, so this is acceptable.
      */
     data class Compress(
         val sources: Set<APath<*>>,
         val destinationDir: APath<*>,
         val archiveName: String,
         val format: ArchiveFormat,
-    ) : ExplorerCommand
+        val options: Options = Options(),
+        val overwriteConfirmed: Boolean = false,
+    ) : ExplorerCommand {
+        /**
+         * A non-null [password] enables AES-256 encryption (ZIP only). It is the single mutable
+         * copy for the operation's lifetime: [CompressOperation] wipes it when done, so commands
+         * retained in operation history hold only zeroes. Not a data class — generated
+         * toString/equals would expose the password.
+         */
+        class Options(
+            val preset: CompressionPreset = CompressionPreset.NORMAL,
+            val password: CharArray? = null,
+        ) {
+            override fun toString(): String =
+                "Options(preset=$preset, password=${if (password != null) "<set>" else "null"})"
+        }
+    }
 
     /**
      * Extract from [archive] into [destinationDir].
@@ -85,4 +110,15 @@ sealed interface ExplorerCommand {
         val destinationDir: APath<*>,
         val entries: Set<List<String>>? = null,
     ) : ExplorerCommand
+
+    data class Restore(
+        val rootItemIds: Set<Uuid> = emptySet(),
+        val nestedItems: List<NestedTarget> = emptyList(),
+        val intendedPaths: List<APath<*>>,
+    ) : ExplorerCommand {
+        data class NestedTarget(
+            val parentId: Uuid,
+            val relativePath: String,
+        )
+    }
 }

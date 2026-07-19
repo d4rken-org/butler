@@ -61,7 +61,7 @@ class ManagedOperation(
             startedAt = startTime,
         )
 
-        operation
+        val job = operation
             .perform(operationContext)
             .onStart {
 
@@ -107,6 +107,11 @@ class ManagedOperation(
                 }
             }
             .launchIn(scope)
+
+        // Fires exactly once when the job terminates for any reason — normal completion, error, or
+        // cancellation, INCLUDING cancellation before perform() ever dispatched — and only after the
+        // flow's own finalizers have run, so it never wipes state mid-operation.
+        job.invokeOnCompletion { runCatching { operation.onDiscarded() } }
     }
 
     fun cancel() {

@@ -18,15 +18,22 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import eu.darken.butler.common.files.errors.WriteException
 import net.lingala.zip4j.exception.ZipException
+import net.lingala.zip4j.io.outputstream.ZipOutputStream
+import net.lingala.zip4j.model.ZipParameters
+import net.lingala.zip4j.model.enums.AesKeyStrength
+import net.lingala.zip4j.model.enums.CompressionLevel
+import net.lingala.zip4j.model.enums.CompressionMethod
+import net.lingala.zip4j.model.enums.EncryptionMethod
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipFile
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
+import org.apache.commons.compress.compressors.gzip.GzipParameters
 import java.io.File
 import java.io.FilterInputStream
 import java.io.IOException
@@ -63,6 +70,16 @@ class ArchiveService @Inject constructor(
     private val indexCache = object : LinkedHashMap<APath<*>, ArchiveIndex>(MAX_CACHED_INDEXES, 0.75f, true) {}
     private val buildLocks = ConcurrentHashMap<APath<*>, Mutex>()
 
+    // Per-container write generation folded into the stat fingerprint. Bumped by [invalidate] so a
+    // same-size/coarse-mtime overwrite yields a fresh fingerprint, forcing index + disk-cache
+    // (container and per-entry) keys to change instead of serving stale content.
+    private val generations = ConcurrentHashMap<APath<*>, Int>()
+
+    // Serializes the read-modify-write commit of a compressed archive per output path, so two
+    // operations targeting the same name can't interleave delete/move/seed. Striped (fixed size) so
+    // the map can't grow without bound over a long-lived process; unrelated paths may share a stripe.
+    private val commitLockStripes = Array(COMMIT_LOCK_STRIPES) { Mutex() }
+
     fun detectFormat(container: APath<*>): ArchiveFormat? = ArchiveFormat.fromFileName(container.name)
 
     /**
@@ -98,10 +115,32 @@ class ArchiveService @Inject constructor(
         }
     }
 
+    /**
+     * Drops cached state for [container] after it was (over)written. Needed because a replaced
+     * archive with an unchanged stat fingerprint (equal size, coarse/null mtime) would otherwise
+     * keep serving the old index and the old materialized container from cache.
+     */
+    suspend fun invalidate(container: APath<*>) {
+        // Bump the generation so every future index/container/entry cache key for this container
+        // differs from the pre-overwrite keys; stale disk entries are simply never served again
+        // (and reclaimed by the disk cache's LRU). Also drop the in-memory index eagerly.
+        generations.merge(container, 1) { current, delta -> current + delta }
+        cacheMutex.withLock { indexCache.remove(container) }
+    }
+
+    /**
+     * Serializes commit of an archive at [output] against other compress operations targeting the
+     * same path, so their delete/move/seed steps can't interleave.
+     */
+    suspend fun withOutputCommitLock(output: APath<*>, block: suspend () -> Unit) {
+        val stripe = commitLockStripes[(output.path.hashCode() and Int.MAX_VALUE) % COMMIT_LOCK_STRIPES]
+        stripe.withLock { block() }
+    }
+
     /** Container stat used both as cache fingerprint and for archive-root lookups. */
     suspend fun statContainer(container: APath<*>): ContainerStat {
         val lookup = gatewaySwitch.lookup(container, LookupOptions(fetchSize = true, fetchModifiedAt = true))
-        return ContainerStat(size = lookup.size, modifiedAt = lookup.modifiedAt)
+        return ContainerStat(size = lookup.size, modifiedAt = lookup.modifiedAt, generation = generations[container] ?: 0)
     }
 
     /**
@@ -215,53 +254,148 @@ class ArchiveService @Inject constructor(
     )
 
     /**
-     * Writes [entries] into a new archive at [destination] in [format]. Sources are read through
+     * Writes [entries] into a new archive at [destination] per [options]. Sources are read through
      * the gateway (any backend). [onEntry] reports bytes as each file completes.
+     *
+     * Entry names and count are validated against the same policy [index] enforces on read, so a
+     * created archive is never one this service refuses or silently reinterprets.
      */
     suspend fun compress(
-        format: ArchiveFormat,
+        options: ArchiveWriteOptions,
         destination: APath<*>,
         entries: List<WriteEntry>,
         onEntry: suspend (WriteEntry, Long) -> Unit,
     ) = withContext(dispatcherProvider.IO) {
+        validateWriteEntries(entries, destination)
         gatewaySwitch.openOutputStream(destination).use { rawOut ->
-            when (format) {
-                ArchiveFormat.ZIP -> ZipArchiveOutputStream(rawOut).use { zip ->
-                    entries.forEach { entry ->
-                        currentCoroutineContext().ensureActive()
-                        val zipEntry = ZipArchiveEntry(entry.name + if (entry.isDirectory) "/" else "")
-                        entry.size?.let { zipEntry.size = it }
-                        zip.putArchiveEntry(zipEntry)
-                        val written = if (entry.isDirectory) 0L else pumpSource(entry.source, zip)
-                        zip.closeArchiveEntry()
-                        onEntry(entry, written)
-                    }
-                }
-                ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2 -> {
-                    val compressed = when (format) {
-                        ArchiveFormat.TAR_GZ -> GzipCompressorOutputStream(rawOut)
-                        ArchiveFormat.TAR_BZ2 -> BZip2CompressorOutputStream(rawOut)
-                        else -> rawOut
-                    }
-                    org.apache.commons.compress.archivers.tar.TarArchiveOutputStream(compressed).use { tar ->
-                        tar.setLongFileMode(
-                            org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX
-                        )
-                        entries.forEach { entry ->
-                            currentCoroutineContext().ensureActive()
-                            val tarEntry = org.apache.commons.compress.archivers.tar.TarArchiveEntry(
-                                entry.name + if (entry.isDirectory) "/" else ""
-                            )
-                            if (!entry.isDirectory) tarEntry.size = entry.size ?: 0L
-                            tar.putArchiveEntry(tarEntry)
-                            val written = if (entry.isDirectory) 0L else pumpSource(entry.source, tar)
-                            tar.closeArchiveEntry()
-                            onEntry(entry, written)
-                        }
-                    }
-                }
+            when (options.format) {
+                ArchiveFormat.ZIP -> writeZipEntries(rawOut, options, entries, onEntry)
+                ArchiveFormat.TAR, ArchiveFormat.TAR_GZ, ArchiveFormat.TAR_BZ2 ->
+                    writeTarEntries(rawOut, options, entries, onEntry)
             }
         }
+    }
+
+    private fun validateWriteEntries(entries: List<WriteEntry>, destination: APath<*>) {
+        if (entries.size > MAX_ENTRIES) {
+            throw WriteException("Too many entries (${entries.size}, limit $MAX_ENTRIES)", destination)
+        }
+        entries.forEach { entry ->
+            // The reader must parse the written name back to exactly the segments we intend;
+            // anything it would drop (NUL, "..", depth) or reinterpret (backslashes) is rejected.
+            val intended = entry.name.split('/')
+            if (ArchiveEntrySafety.parseEntryName(entry.name) != intended) {
+                throw WriteException("Entry name is not archive-safe: ${entry.name}", entry.source)
+            }
+        }
+    }
+
+    private suspend fun writeZipEntries(
+        rawOut: java.io.OutputStream,
+        options: ArchiveWriteOptions,
+        entries: List<WriteEntry>,
+        onEntry: suspend (WriteEntry, Long) -> Unit,
+    ) {
+        val zipOut = options.password?.let { ZipOutputStream(rawOut, it) } ?: ZipOutputStream(rawOut)
+        zipOut.use { zip ->
+            entries.forEach { entry ->
+                currentCoroutineContext().ensureActive()
+                zip.putNextEntry(buildZipParameters(entry, options))
+                val written = if (entry.isDirectory) 0L else pumpSource(entry.source, zip)
+                if (!entry.isDirectory) {
+                    // zip4j doesn't verify the declared size against the bytes written, and derives
+                    // the ZIP64 local layout from it up front. Abort (discarding the temp) rather than
+                    // commit a malformed archive when a source changed under us or an unknown-size
+                    // stream crossed the ZIP64 boundary without a reservation.
+                    val declared = entry.size
+                    if (declared != null && written != declared) {
+                        throw WriteException("Source changed during compression: ${entry.name}", entry.source)
+                    }
+                    if (declared == null && written > ZIP64_SIZE_LIMIT) {
+                        throw WriteException("Unknown-size entry exceeded the ZIP64 limit: ${entry.name}", entry.source)
+                    }
+                }
+                zip.closeEntry()
+                onEntry(entry, written)
+            }
+        }
+    }
+
+    private fun buildZipParameters(entry: WriteEntry, options: ArchiveWriteOptions) = ZipParameters().apply {
+        // zip4j defaults to UTF-8 names with the language-encoding flag set; no charset config needed.
+        fileNameInZip = entry.name + if (entry.isDirectory) "/" else ""
+        if (entry.isDirectory) {
+            compressionMethod = CompressionMethod.STORE
+            entrySize = 0
+        } else {
+            compressionMethod = CompressionMethod.DEFLATE
+            compressionLevel = options.preset.toZip4jLevel()
+            // Declare the size when known so zip4j reserves ZIP64 local-header fields for entries
+            // >= 4 GiB; it still writes a data descriptor with the real size. Left unset (-1) only
+            // when the size is unknown, which caps such entries at the 32-bit descriptor layout.
+            entry.size?.let { entrySize = it }
+            if (options.password != null) {
+                isEncryptFiles = true
+                encryptionMethod = EncryptionMethod.AES
+                aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
+            }
+        }
+    }
+
+    private suspend fun writeTarEntries(
+        rawOut: java.io.OutputStream,
+        options: ArchiveWriteOptions,
+        entries: List<WriteEntry>,
+        onEntry: suspend (WriteEntry, Long) -> Unit,
+    ) {
+        val compressed = when (options.format) {
+            ArchiveFormat.TAR_GZ -> GzipCompressorOutputStream(
+                rawOut,
+                GzipParameters().apply { compressionLevel = options.preset.toGzipLevel() },
+            )
+            ArchiveFormat.TAR_BZ2 -> BZip2CompressorOutputStream(rawOut, options.preset.toBzip2BlockSize())
+            else -> rawOut
+        }
+        org.apache.commons.compress.archivers.tar.TarArchiveOutputStream(compressed).use { tar ->
+            tar.setLongFileMode(
+                org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.LONGFILE_POSIX
+            )
+            entries.forEach { entry ->
+                currentCoroutineContext().ensureActive()
+                val tarEntry = org.apache.commons.compress.archivers.tar.TarArchiveEntry(
+                    entry.name + if (entry.isDirectory) "/" else ""
+                )
+                if (!entry.isDirectory) {
+                    // Tar headers need the exact size up front; resolve it now if enumeration didn't.
+                    tarEntry.size = entry.size
+                        ?: gatewaySwitch.lookup(entry.source, LookupOptions(fetchSize = true)).size
+                        ?: throw WriteException("Size unknown for tar entry", entry.source)
+                }
+                tar.putArchiveEntry(tarEntry)
+                val written = if (entry.isDirectory) 0L else pumpSource(entry.source, tar)
+                tar.closeArchiveEntry()
+                onEntry(entry, written)
+            }
+        }
+    }
+
+    private fun CompressionPreset.toZip4jLevel(): CompressionLevel = when (this) {
+        CompressionPreset.FAST -> CompressionLevel.FASTEST
+        // HIGHER is deflate 6, the java.util.zip default.
+        CompressionPreset.NORMAL -> CompressionLevel.HIGHER
+        CompressionPreset.BEST -> CompressionLevel.ULTRA
+    }
+
+    private fun CompressionPreset.toGzipLevel(): Int = when (this) {
+        CompressionPreset.FAST -> 1
+        CompressionPreset.NORMAL -> 6
+        CompressionPreset.BEST -> 9
+    }
+
+    private fun CompressionPreset.toBzip2BlockSize(): Int = when (this) {
+        CompressionPreset.FAST -> 1
+        CompressionPreset.NORMAL -> 5
+        CompressionPreset.BEST -> 9
     }
 
     private suspend fun pumpSource(source: APath<*>, out: java.io.OutputStream): Long {
@@ -654,15 +788,19 @@ class ArchiveService @Inject constructor(
     data class ContainerStat(
         val size: Long?,
         val modifiedAt: Instant?,
+        val generation: Int = 0,
     ) {
         // Null mtimes make change detection unreliable; the size-only fingerprint is still
-        // process-stable, and index() re-stats around every build.
-        val fingerprint: String = "${size ?: "?"}:${modifiedAt?.toEpochMilliseconds() ?: "?"}"
+        // process-stable, and index() re-stats around every build. [generation] disambiguates
+        // same-size/coarse-mtime overwrites (bumped by invalidate()).
+        val fingerprint: String = "${size ?: "?"}:${modifiedAt?.toEpochMilliseconds() ?: "?"}:$generation"
     }
 
     companion object {
         private val TAG = logTag("Gateway", "Archive", "Service")
         private const val MAX_CACHED_INDEXES = 8
+        private const val COMMIT_LOCK_STRIPES = 16
+        private const val ZIP64_SIZE_LIMIT = 0xFFFFFFFFL
         private const val MAX_ENTRIES = 50_000
         private const val MAX_TAR_SCAN_BYTES = 4L * 1024 * 1024 * 1024
         private const val COPY_BUFFER_SIZE = 64 * 1024

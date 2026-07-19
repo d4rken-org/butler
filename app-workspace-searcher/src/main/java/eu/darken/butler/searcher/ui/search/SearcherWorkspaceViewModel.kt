@@ -59,6 +59,8 @@ import eu.darken.butler.workspace.core.WorkspaceEvent
 import eu.darken.butler.workspace.core.WorkspaceProvider
 import eu.darken.butler.workspace.core.WorkspaceRemote
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
+import eu.darken.butler.workspace.core.preview.FolderPreviewObserver
+import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import eu.darken.butler.workspace.core.clipboard.ClipboardRepo
 import eu.darken.butler.workspace.core.createAndFocus
 import eu.darken.butler.workspace.core.handleResult
@@ -101,12 +103,15 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val openInNewTabsUseCase: OpenInNewTabsUseCase,
     private val shareIntentUseCase: ShareIntentUseCase,
     private val trashSettings: TrashSettings,
+    private val folderPreviewResolver: FolderPreviewResolver,
     itemSorterFactory: SearchItemSorter.Factory,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
 
     private val itemSorter = itemSorterFactory.create(id)
     private val chrome = chromeFactory.create(id, vmScope)
+
+    val folderPreviewObserver: FolderPreviewObserver get() = folderPreviewResolver.settingsGatedObserver
 
     private val workspaceSource: Flow<SearcherWorkspace?> =
         workspaceProvider.retrieve(id)
@@ -313,9 +318,17 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     else -> Unit
                 }
 
-                // Update selection state when results change
+                // Update selection state when results change; drop selections (and the quick
+                // actions target) for results that no longer exist, e.g. deleted externally
+                val visibleIds = displayed.mapTo(mutableSetOf()) { it.path.path }
                 selectionState.update { selection ->
-                    selection.copy(selectableResults = displayed)
+                    selection.copy(
+                        selectableResults = displayed,
+                        selectedResultIds = selection.selectedResultIds.filterTo(mutableSetOf()) { it in visibleIds },
+                    )
+                }
+                quickActionsResult.update { current ->
+                    current?.takeIf { it.path.path in visibleIds }
                 }
             }
             .launchIn(vmScope)

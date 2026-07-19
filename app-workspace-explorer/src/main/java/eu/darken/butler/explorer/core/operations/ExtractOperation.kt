@@ -20,7 +20,7 @@ import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.ArchiveService
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.explorer.R
-import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation

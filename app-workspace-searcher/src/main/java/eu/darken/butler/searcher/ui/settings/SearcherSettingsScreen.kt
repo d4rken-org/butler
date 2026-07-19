@@ -10,6 +10,7 @@ import androidx.compose.material.icons.twotone.ClearAll
 import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.History
 import androidx.compose.material.icons.twotone.Numbers
+import androidx.compose.material.icons.twotone.PhotoLibrary
 import androidx.compose.material.icons.twotone.QueryStats
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material3.AlertDialog
@@ -54,6 +55,7 @@ fun SearcherSettingsScreen(
     onMaxHistoryItemsChange: (Int) -> Unit,
     onSaveHistoryChange: (Boolean) -> Unit,
     onContentSearchBinariesChange: (Boolean) -> Unit,
+    onToggleFolderMediaPreviews: (Boolean) -> Unit,
     onClearSearchHistory: () -> Unit,
 ) {
     var showClearHistoryDialog by remember { mutableStateOf(false) }
@@ -109,6 +111,17 @@ fun SearcherSettingsScreen(
                         }
                         onMaxSearchResultsChange(newValue)
                     }
+                )
+                SettingsDivider()
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.PhotoLibrary,
+                    title = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_folder_media_previews_title),
+                    subtitle = stringResource(eu.darken.butler.workspace.R.string.workspace_settings_folder_media_previews_desc),
+                    checked = state.showFolderMediaPreviews,
+                    onCheckedChange = onToggleFolderMediaPreviews,
                 )
                 SettingsDivider()
             }
@@ -241,6 +254,7 @@ private fun SearcherSettingsScreenPreview() {
         onMaxHistoryItemsChange = {},
         onSaveHistoryChange = {},
         onContentSearchBinariesChange = {},
+        onToggleFolderMediaPreviews = {},
         onClearSearchHistory = {},
     )
 }
@@ -260,6 +274,7 @@ fun SearcherSettingsScreenHost(vm: SearcherSettingsViewModel = hiltViewModel()) 
             onMaxHistoryItemsChange = { vm.updateMaxHistoryItems(it) },
             onSaveHistoryChange = { vm.updateSaveHistory(it) },
             onContentSearchBinariesChange = { vm.updateContentSearchBinaries(it) },
+            onToggleFolderMediaPreviews = { vm.toggleFolderMediaPreviews(it) },
             onClearSearchHistory = { vm.clearSearchHistory() },
         )
     }

@@ -20,7 +20,7 @@ import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.explorer.R
 import eu.darken.butler.explorer.core.engine.BrowsingEngine
 import eu.darken.butler.explorer.core.engine.ExplorerLocation
-import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.explorer.core.operations.CompressOperation
 import eu.darken.butler.explorer.core.operations.CopyOperation
 import eu.darken.butler.explorer.core.operations.CreateOperation
@@ -29,6 +29,7 @@ import eu.darken.butler.explorer.core.operations.DeleteOperation
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.operations.ExplorerOperation
 import eu.darken.butler.explorer.core.operations.ExtractOperation
+import eu.darken.butler.explorer.core.operations.RestoreOperation
 import eu.darken.butler.explorer.core.operations.MoveOperation
 import eu.darken.butler.workspace.contracts.explorer.ExplorerArguments
 import eu.darken.butler.workspace.contracts.explorer.PickerConfig
@@ -83,6 +84,7 @@ class ExplorerWorkspace @AssistedInject constructor(
     private val moveOperationFactory: MoveOperation.Factory,
     private val compressOperationFactory: CompressOperation.Factory,
     private val extractOperationFactory: ExtractOperation.Factory,
+    private val restoreOperationFactory: RestoreOperation.Factory,
     private val explorerSettings: ExplorerSettings,
 ) : Workspace<ExplorerArguments> {
 
@@ -368,6 +370,10 @@ class ExplorerWorkspace @AssistedInject constructor(
 
     private fun createOperation(command: ExplorerCommand): ExplorerOperation = when (command) {
         is ExplorerCommand.Delete -> deleteOperationFactory.create(
+            workspaceId = id,
+            command = command,
+        )
+        is ExplorerCommand.Restore -> restoreOperationFactory.create(
             workspaceId = id,
             command = command,
         )

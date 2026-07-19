@@ -1,7 +1,7 @@
 # Play Console — Permissions Declarations
 
 Copy-paste source for the **Permissions Declaration Form** in Google Play Console
-(App content → *Sensitive app permissions* / *Permissions declaration*). Butler declares two
+(App content → *Sensitive app permissions* / *Permissions declaration*). Butler declares three
 sensitive permissions that gate review — they must be declared **and approved** before the app
 can pass review, including for closed testing.
 
@@ -12,6 +12,7 @@ recorder script for its demo video:
 |--------|------------|-------|---------------------------|
 | [`manage-external-storage/`](./manage-external-storage/DECLARATION.md) | `android.permission.MANAGE_EXTERNAL_STORAGE` | Core file-manager features | **File management** |
 | [`query-all-packages/`](./query-all-packages/DECLARATION.md) | `android.permission.QUERY_ALL_PACKAGES` | App Manager | **File managers** |
+| [`request-install-packages/`](./request-install-packages/DECLARATION.md) | `android.permission.REQUEST_INSTALL_PACKAGES` | Opening APK files ("Open with") | **File sharing, transfer or management** |
 
 Package name: `eu.darken.butler`
 
@@ -75,6 +76,14 @@ title/end-card text) and `<permission>/DECLARATION.md` (the Play Console copy).
 ./query-all-packages/record.sh emulator-5564
 ./postprocess.sh /tmp/butler-demo/query-all-packages
 
+# APK-install (request-install-packages) demo — the install-source grant must be
+# PRISTINE so the source-approval shot is captured. The recorder ABORTS if it is
+# not; reset it first by reinstalling Butler (cheap) or wiping the emulator:
+#   adb -s emulator-5578 uninstall eu.darken.butler
+#   adb -s emulator-5578 install -g app/build/outputs/apk/foss/debug/app-foss-debug.apk
+./request-install-packages/record.sh emulator-5578
+./postprocess.sh /tmp/butler-demo/request-install-packages
+
 # NOREC=1 ./<permission>/record.sh ...   # validate the tap chain without recording
 ```
 
@@ -87,6 +96,11 @@ only synthetic/seeded data — nothing personal is uploaded.
   `Download`) → Tab Manager showing live previews of both the Explorer and Searcher
   tabs. The three shots map to the three reasons SAF/MediaStore are insufficient:
   non-media files, bulk cross-tree moves, and per-folder-grant-free search.
+- **`request-install-packages`** (~55 s): an `.apk` in `Download` → **"Open with"**
+  hands it to the system installer → Android's per-source **"Install unknown apps"**
+  grant for Butler (the policy-critical shot) → the user confirms **Install** in the
+  system installer → "App installed". Shows all three user decisions that gate an
+  install; the installed app is CapOd (same developer, pinned URL + SHA-256).
 - **`query-all-packages`** (~50 s): App Manager breadth (user + system app counts)
   → **search across all installed apps** → deep app detail → **Export APK into the
   file explorer** (Export → Save-as → the `.apk` lands in `Download`, browsable in
@@ -97,3 +111,4 @@ only synthetic/seeded data — nothing personal is uploaded.
 
 - All files access: <https://support.google.com/googleplay/android-developer/answer/10467955>
 - Query all packages: <https://support.google.com/googleplay/android-developer/answer/10158779>
+- Request install packages: <https://support.google.com/googleplay/android-developer/answer/12085295>

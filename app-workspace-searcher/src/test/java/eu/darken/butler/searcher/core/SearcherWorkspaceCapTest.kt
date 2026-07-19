@@ -10,6 +10,8 @@ import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
 import eu.darken.butler.workspace.contracts.searcher.SearcherArguments
 import eu.darken.butler.workspace.core.Workspace
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.preview.FolderPreviewResolver
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.ManagedOperation
 import eu.darken.butler.workspace.core.operations.OperationsManager
@@ -63,6 +65,8 @@ class SearcherWorkspaceCapTest : BaseTest() {
             operationsManager = operationsManager,
             deleteOperationFactory = mockk<DeleteOperation.Factory>(),
             searchEngineFactory = engineFactory,
+            fileSystemHinter = FileSystemHinter(),
+            folderPreviewResolver = mockk<FolderPreviewResolver>(relaxUnitFun = true),
         )
     }
 

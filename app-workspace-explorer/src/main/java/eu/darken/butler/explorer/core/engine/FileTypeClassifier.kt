@@ -4,7 +4,6 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.MimeInfo
 import eu.darken.butler.common.files.metadata.FileMetadata
 import eu.darken.butler.common.files.metadata.FileType
-import java.util.Locale
 
 class FileTypeClassifier {
 
@@ -40,53 +39,7 @@ class FileTypeClassifier {
         }
     }
 
-    private fun getMimeType(fileName: String): MimeInfo {
-        val extension = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)
-
-        val rawType = when (extension) {
-            // Images
-            "jpg", "jpeg" -> "image/jpeg"
-            "png" -> "image/png"
-            "gif" -> "image/gif"
-            "webp" -> "image/webp"
-            "bmp" -> "image/bmp"
-
-            // Videos
-            "mp4" -> "video/mp4"
-            "mkv" -> "video/x-matroska"
-            "avi" -> "video/x-msvideo"
-            "mov" -> "video/quicktime"
-            "webm" -> "video/webm"
-
-            // Audio
-            "mp3" -> "audio/mpeg"
-            "wav" -> "audio/wav"
-            "flac" -> "audio/flac"
-            "ogg" -> "audio/ogg"
-            "m4a" -> "audio/mp4"
-
-            // Archives
-            "zip" -> "application/zip"
-            "tar" -> "application/x-tar"
-            "gz" -> "application/gzip"
-            "7z" -> "application/x-7z-compressed"
-            "rar" -> "application/vnd.rar"
-
-            // Documents
-            "pdf" -> "application/pdf"
-            "doc" -> "application/msword"
-            "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            "txt" -> "text/plain"
-            "md" -> "text/markdown"
-
-            // Android
-            "apk" -> "application/vnd.android.package-archive"
-
-            else -> "application/octet-stream"
-        }
-
-        return MimeInfo(rawType)
-    }
+    internal fun getMimeType(fileName: String): MimeInfo = MimeInfo.fromFileName(fileName)
 
     private fun isArchiveType(mimeType: String): Boolean {
         return mimeType in setOf(

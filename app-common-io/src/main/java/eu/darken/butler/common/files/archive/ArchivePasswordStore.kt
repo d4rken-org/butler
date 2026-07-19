@@ -14,12 +14,16 @@ class ArchivePasswordStore @Inject constructor() {
 
     private val passwords = ConcurrentHashMap<APath<*>, CharArray>()
 
+    // Synchronized so a reader's copyOf() can't race a concurrent set/evict zeroing the same array.
+    @Synchronized
     fun get(container: APath<*>): CharArray? = passwords[container]?.copyOf()
 
+    @Synchronized
     fun set(container: APath<*>, password: CharArray) {
         passwords.put(container, password.copyOf())?.fill(Char(0))
     }
 
+    @Synchronized
     fun evict(container: APath<*>) {
         passwords.remove(container)?.fill(Char(0))
     }

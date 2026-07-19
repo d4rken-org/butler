@@ -1,16 +1,20 @@
 package eu.darken.butler.common.files.archive
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 /**
- * Archive formats supported for browsing/extraction. [ZIP] additionally supports creation.
+ * Archive formats supported for browsing, extraction and creation (see [ArchiveService.compress]).
  *
  * Detection is filename-based because compound suffixes (`.tar.gz`) cannot be distinguished
  * from their plain compression counterparts (`.gz`) via single-extension MIME lookups.
  */
+@Serializable
 enum class ArchiveFormat(val displayExtension: String) {
-    ZIP("zip"),
-    TAR("tar"),
-    TAR_GZ("tar.gz"),
-    TAR_BZ2("tar.bz2"),
+    @SerialName("zip") ZIP("zip"),
+    @SerialName("tar") TAR("tar"),
+    @SerialName("tar_gz") TAR_GZ("tar.gz"),
+    @SerialName("tar_bz2") TAR_BZ2("tar.bz2"),
     ;
 
     companion object {

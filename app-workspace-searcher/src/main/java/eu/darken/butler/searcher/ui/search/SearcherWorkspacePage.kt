@@ -90,6 +90,7 @@ import eu.darken.butler.workspace.ui.operations.bar.OperationsBar
 import eu.darken.butler.workspace.ui.LocalWorkspaceFocused
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogHost
 import eu.darken.butler.workspace.ui.operations.details.OperationDialogState
+import eu.darken.butler.workspace.ui.preview.ProvideFolderPreviews
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -848,15 +849,17 @@ fun SearcherWorkspacePageHost(
         }
     }
 
-    SearcherWorkspacePage(
-        workspaceId = id,
-        design = design,
-        stateSource = vm.state,
-        clipboardStateSource = vm.clipboard,
-        operationsStateSource = vm.operations,
-        issueStateSource = vm.issueState,
-        onPageAction = vm::onPageAction,
-    )
+    ProvideFolderPreviews(vm.folderPreviewObserver) {
+        SearcherWorkspacePage(
+            workspaceId = id,
+            design = design,
+            stateSource = vm.state,
+            clipboardStateSource = vm.clipboard,
+            operationsStateSource = vm.operations,
+            issueStateSource = vm.issueState,
+            onPageAction = vm::onPageAction,
+        )
+    }
 }
 
 @Preview2

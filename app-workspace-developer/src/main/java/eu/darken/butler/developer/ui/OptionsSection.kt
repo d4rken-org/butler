@@ -39,6 +39,7 @@ internal fun OptionsSection(
     bottomPadding: Dp = 0.dp,
     onToggleDebugMode: (Boolean) -> Unit,
     onToggleTraceMode: (Boolean) -> Unit,
+    onToggleFloatingLog: (Boolean) -> Unit,
     onTestRoot: () -> Unit,
     onTestShizuku: () -> Unit,
     onHideDeveloperMode: () -> Unit,
@@ -61,6 +62,13 @@ internal fun OptionsSection(
                     description = stringResource(R.string.developer_options_trace_mode_desc),
                     checked = optionsState.isTraceMode,
                     onCheckedChange = onToggleTraceMode,
+                    enabled = optionsState.isDebugMode,
+                )
+                DeveloperToggleRow(
+                    title = stringResource(R.string.developer_options_floating_log),
+                    description = stringResource(R.string.developer_options_floating_log_desc),
+                    checked = optionsState.isFloatingLogEnabled,
+                    onCheckedChange = onToggleFloatingLog,
                     enabled = optionsState.isDebugMode,
                 )
             }
@@ -291,6 +299,7 @@ private fun OptionsSectionPreview() {
         optionsState = OptionsState(
             isDebugMode = false,
             isTraceMode = false,
+            isFloatingLogEnabled = false,
             rootTestResult = null,
             isRootTesting = false,
             shizukuTestResult = null,
@@ -299,6 +308,7 @@ private fun OptionsSectionPreview() {
         ),
         onToggleDebugMode = {},
         onToggleTraceMode = {},
+        onToggleFloatingLog = {},
         onTestRoot = {},
         onTestShizuku = {},
         onHideDeveloperMode = {},
@@ -313,6 +323,7 @@ private fun OptionsSectionWithResultsPreview() {
         optionsState = OptionsState(
             isDebugMode = true,
             isTraceMode = true,
+            isFloatingLogEnabled = true,
             rootTestResult = RootTestResult(
                 isInstalled = true,
                 isRooted = true,
@@ -330,6 +341,7 @@ private fun OptionsSectionWithResultsPreview() {
         ),
         onToggleDebugMode = {},
         onToggleTraceMode = {},
+        onToggleFloatingLog = {},
         onTestRoot = {},
         onTestShizuku = {},
         onHideDeveloperMode = {},
