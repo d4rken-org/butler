@@ -343,6 +343,38 @@ class WorkspacePageManager @Inject constructor(
     }
 
     /**
+     * Atomically applies a pane layout: selections and focus in a single state update, with one
+     * MRU stamp for the focused workspace. Replaces the setFocusedWorkspace()+setSelectedWorkspaces()
+     * two-step, whose ordering either dropped the MRU stamp (focus target not yet selected, so
+     * setFocusedWorkspace no-ops) or dropped the focus change entirely (old focus still among the
+     * new selections, so setSelectedWorkspaces keeps it). Intermediate emissions between the two
+     * steps also fed pager/focus races in the UI.
+     *
+     * For normal (pane-rendered) workspaces only — sub-workspace focus goes through
+     * [handleWorkspaceSelection], which focuses without pane assignment.
+     */
+    fun setLayout(selections: Map<Int, Workspace.Id>, focusedId: Workspace.Id?) {
+        _state.update { currentState ->
+            val newFocus = focusedId?.takeIf { selections.containsValue(it) }
+                ?: currentState.focusedWorkspaceId?.takeIf { selections.containsValue(it) }
+                ?: selections.values.firstOrNull()
+            log(TAG) { "setLayout: selections=$selections, requestedFocus=$focusedId, newFocus=$newFocus" }
+
+            val updatedAccessTimes = if (newFocus != null) {
+                currentState.workspaceAccessTimes + (newFocus to Clock.System.now())
+            } else {
+                currentState.workspaceAccessTimes
+            }
+
+            currentState.copy(
+                selectedWorkspaces = selections,
+                focusedWorkspaceId = newFocus,
+                workspaceAccessTimes = updatedAccessTimes,
+            )
+        }
+    }
+
+    /**
      * Atomically sets both focus and selections during session restoration.
      * Unlike calling setFocusedWorkspace() + setSelectedWorkspaces() separately,
      * this avoids the auto-focus side effect in setSelectedWorkspaces().

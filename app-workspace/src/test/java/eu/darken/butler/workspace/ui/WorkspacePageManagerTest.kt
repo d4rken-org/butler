@@ -485,6 +485,86 @@ class WorkspacePageManagerTest : BaseTest() {
     }
 
     @Test
+    fun `setLayout applies selections and focus atomically with an MRU stamp`() = runTest {
+        val ws1 = Workspace.Id()
+        val ws2 = Workspace.Id()
+
+        pageManager.setLayout(mapOf(0 to ws1), focusedId = ws1)
+        pageManager.setLayout(mapOf(0 to ws2), focusedId = ws2)
+
+        val state = pageManager.state.value
+        state.selectedWorkspaces shouldBe mapOf(0 to ws2)
+        state.focusedWorkspaceId shouldBe ws2
+        state.workspaceAccessTimes[ws2] shouldNotBe null
+    }
+
+    @Test
+    fun `setLayout falls back when requested focus is not in the selections`() = runTest {
+        val ws1 = Workspace.Id()
+        val ws2 = Workspace.Id()
+
+        pageManager.setLayout(mapOf(0 to ws1), focusedId = ws1)
+        pageManager.setLayout(mapOf(0 to ws1), focusedId = ws2)
+
+        pageManager.state.value.focusedWorkspaceId shouldBe ws1
+    }
+
+    @Test
+    fun `setLayout keeps a newly created workspace focused when panes are full`() = runTest {
+        // Guards the CreateForPane path: the old setFocusedWorkspace()+setSelectedWorkspaces()
+        // two-step no-opped the focus change (new id not yet selected) and then kept the old
+        // focus (old id still among the new selections), so the fresh pane never got focus.
+        val paneA = Workspace.Id()
+        val paneB = Workspace.Id()
+        val created = Workspace.Id()
+
+        pageManager.setPaneCount(2)
+        pageManager.setLayout(mapOf(0 to paneA, 1 to paneB), focusedId = paneA)
+
+        pageManager.setLayout(mapOf(0 to paneA, 1 to created), focusedId = created)
+
+        val state = pageManager.state.value
+        state.focusedWorkspaceId shouldBe created
+        state.selectedWorkspaces shouldBe mapOf(0 to paneA, 1 to created)
+    }
+
+    @Test
+    fun `MRU refocus after close honors selection recency from setLayout`() = runTest {
+        // Swipe-selects go through setLayout, so a tab visited via swipe must outrank
+        // earlier-visited tabs when the closed workspace's focus is reassigned.
+        val ws1 = Workspace.Id()
+        val ws2 = Workspace.Id()
+        val ws3 = Workspace.Id()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+                createWorkspaceInfo(id = ws3),
+            )
+        )
+
+        pageManager.setPaneCount(1)
+        // Visit order: ws2, then ws1, then ws3 — most recent survivor of a ws3 close is ws1.
+        pageManager.setLayout(mapOf(0 to ws2), focusedId = ws2)
+        pageManager.setLayout(mapOf(0 to ws1), focusedId = ws1)
+        pageManager.setLayout(mapOf(0 to ws3), focusedId = ws3)
+
+        eventsFlow.emit(WorkspaceEvent.Closed(workspaceId = ws3, callerWorkspaceId = null))
+        testScope.testScheduler.advanceUntilIdle()
+
+        stateFlow.value = WorkspaceRemote.State(
+            infos = listOf(
+                createWorkspaceInfo(id = ws1),
+                createWorkspaceInfo(id = ws2),
+            )
+        )
+        testScope.testScheduler.advanceUntilIdle()
+
+        pageManager.state.value.focusedWorkspaceId shouldBe ws1
+    }
+
+    @Test
     fun `manager overlay is hidden by default`() = runTest {
         pageManager.state.value.isManagerOverlayVisible shouldBe false
     }

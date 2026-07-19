@@ -19,6 +19,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.ArchivePath
 import eu.darken.butler.common.files.GatewaySwitch
+import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.common.files.TextFileDetector
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.extensions.isDirectory
@@ -51,6 +53,7 @@ import eu.darken.butler.explorer.core.favorites.ExplorerFavoritesRepo
 import eu.darken.butler.explorer.core.favorites.FavoriteItem
 import eu.darken.butler.explorer.core.favorites.PendingFavoriteRemoval
 import eu.darken.butler.explorer.core.favorites.applyFavoritePriority
+import eu.darken.butler.explorer.core.ArchiveCompressionDefaults
 import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.explorer.core.sorting.ExplorerItemSorter
 import eu.darken.butler.explorer.ui.explorer.actions.DefaultActionProvider
@@ -307,6 +310,8 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
 
     override fun onCleared() {
         conflicts.onCleared()
+        // A pending overwrite confirmation still holds an un-submitted password; wipe it on teardown.
+        (dialogs.current() as? CompressOverwriteConfirmation)?.pending?.options?.password?.fill(Char(0))
         super.onCleared()
     }
 
@@ -690,11 +695,14 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
                     .toSet()
                 if (sources.isEmpty()) return@launch
                 val suggestedName = sources.singleOrNull()?.name ?: currentLocation.path.name
+                val defaults = explorerSettings.compressDefaults.value()
                 dialogs.show(
                     CompressOptions(
                         sources = sources,
                         destinationDir = currentLocation.path,
                         suggestedName = suggestedName.ifEmpty { "archive" },
+                        defaultFormat = defaults.format,
+                        defaultPreset = defaults.level,
                     )
                 )
             }
@@ -997,24 +1005,66 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
         sources: Set<APath<*>>,
         destinationDir: APath<*>,
         archiveName: String,
-        format: eu.darken.butler.common.files.archive.ArchiveFormat,
+        format: ArchiveFormat,
+        preset: CompressionPreset,
+        password: String?,
     ) = launch {
-        log(tag) { "onCompressConfirmed($archiveName, $format)" }
+        log(tag) { "onCompressConfirmed($archiveName, $format, $preset)" }
         dismissDialog()
-        val fullName = if (archiveName.endsWith(".${format.displayExtension}", ignoreCase = true)) {
-            archiveName
-        } else {
-            "$archiveName.${format.displayExtension}"
+        runCatching {
+            explorerSettings.compressDefaults.value(ArchiveCompressionDefaults(format = format, level = preset))
+        }.onFailure { log(tag, WARN) { "Failed to persist compress defaults: ${it.asLog()}" } }
+
+        val baseName = archiveName.trim()
+        val fullName = when (ArchiveFormat.fromFileName(baseName)) {
+            // Name already carries a matching extension (canonical or alias like .tgz) - keep it.
+            format -> baseName
+            // No archive extension: append the format's.
+            null -> "$baseName.${format.displayExtension}"
+            // Mismatched archive extension (e.g. leftover after switching formats): swap it.
+            else -> "${ArchiveFormat.stemOf(baseName)}.${format.displayExtension}"
         }
         clearSelection()
-        val completed = getWorkspace().execute(
-            ExplorerCommand.Compress(
-                sources = sources,
-                destinationDir = destinationDir,
-                archiveName = fullName,
-                format = format,
-            )
+
+        val command = ExplorerCommand.Compress(
+            sources = sources,
+            destinationDir = destinationDir,
+            archiveName = fullName,
+            format = format,
+            options = ExplorerCommand.Compress.Options(
+                preset = preset,
+                password = password?.takeIf { it.isNotBlank() }?.toCharArray(),
+            ),
         )
+
+        // Best-effort pre-check for the overwrite prompt. If it can't tell (error), we proceed
+        // without the prompt; the operation's own commit guard still refuses to overwrite an
+        // existing archive that wasn't confirmed, so no silent data loss.
+        val outputExists = runCatching {
+            gatewaySwitch.exists(destinationDir.child(fullName))
+        }.getOrDefault(false)
+        if (outputExists) {
+            dialogs.show(CompressOverwriteConfirmation(pending = command))
+        } else {
+            executeCompress(command)
+        }
+    }
+
+    fun onCompressOverwriteConfirmed(pending: ExplorerCommand.Compress) = launch {
+        log(tag) { "onCompressOverwriteConfirmed(${pending.archiveName})" }
+        dismissDialog()
+        executeCompress(pending.copy(overwriteConfirmed = true))
+    }
+
+    fun onCompressOverwriteCancelled(pending: ExplorerCommand.Compress) = launch {
+        log(tag) { "onCompressOverwriteCancelled(${pending.archiveName})" }
+        // The command never runs, so nothing else will wipe its password.
+        pending.options.password?.fill(Char(0))
+        dismissDialog()
+    }
+
+    private suspend fun executeCompress(command: ExplorerCommand.Compress) {
+        val completed = getWorkspace().execute(command)
         if (completed.error == null) {
             completed.report?.affectedPaths?.map { it.path }?.let { revealItems(it) }
         }

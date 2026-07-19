@@ -35,6 +35,14 @@ class ExplorerSettings @Inject constructor(
 
     val favoritePaths = dataStore.createAPathListValue("explorer.favorites.paths", emptyList(), json)
 
+    // Nonessential preference: a corrupt/unknown persisted value must never block archive creation.
+    val compressDefaults = dataStore.createValue(
+        "explorer.compress.defaults",
+        ArchiveCompressionDefaults(),
+        json,
+        onErrorFallbackToDefault = true,
+    )
+
     override val mapper = PreferenceStoreMapper(
         sortSettings,
         useRegexPatterns,
@@ -42,6 +50,7 @@ class ExplorerSettings @Inject constructor(
         defaultViewStyle,
         defaultStartLocation,
         favoritePaths,
+        compressDefaults,
     )
 
     companion object {

@@ -13,7 +13,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.archive.ArchivePasswordStore
 import eu.darken.butler.common.files.archive.ArchiveService
+import eu.darken.butler.common.files.archive.ArchiveWriteOptions
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.crumbsTo
 import eu.darken.butler.common.files.extensions.isAncestorOfOrSelf
@@ -24,9 +26,12 @@ import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.withContext
 import kotlin.uuid.Uuid
 
 class CompressOperation @AssistedInject constructor(
@@ -34,6 +39,7 @@ class CompressOperation @AssistedInject constructor(
     @Assisted private val command: ExplorerCommand.Compress,
     private val gatewaySwitch: GatewaySwitch,
     private val archiveService: ArchiveService,
+    private val archivePasswordStore: ArchivePasswordStore,
     private val fileSystemHinter: FileSystemHinter,
 ) : ExplorerOperation() {
 
@@ -57,6 +63,26 @@ class CompressOperation @AssistedInject constructor(
 
     override fun perform(operationContext: Operation.Context): Flow<State> = channelFlow {
         log(tag) { "perform(): $command" }
+        try {
+            performGuarded(operationContext)
+        } finally {
+            // Deterministic wipe for every path where perform() actually runs (success, error,
+            // mid-run cancellation). The queued-cancel path is covered by onDiscarded().
+            command.options.password?.fill(Char(0))
+        }
+    }
+
+    /**
+     * Safety net for the case where [perform] never runs (operation cancelled while queued):
+     * [ManagedOperation] invokes this so the password buffer is still wiped. Idempotent.
+     */
+    override fun onDiscarded() {
+        command.options.password?.fill(Char(0))
+    }
+
+    private suspend fun ProducerScope<State>.performGuarded(
+        operationContext: Operation.Context,
+    ) {
         var stateActive = State.Active(startedAt = operationContext.startedAt)
         send(stateActive)
 
@@ -101,7 +127,12 @@ class CompressOperation @AssistedInject constructor(
         val tempPath = command.destinationDir.child(".${command.archiveName}.${Uuid.random().toString().take(8)}.part")
         try {
             var processed = 0
-            archiveService.compress(command.format, tempPath, entries) { entry, _ ->
+            val writeOptions = ArchiveWriteOptions(
+                format = command.format,
+                preset = command.options.preset,
+                password = command.options.password,
+            )
+            archiveService.compress(writeOptions, tempPath, entries) { entry, _ ->
                 if (!entry.isDirectory) {
                     processed++
                     reportBuilder.addCompressedFile()
@@ -114,10 +145,57 @@ class CompressOperation @AssistedInject constructor(
                 )
                 trySend(stateActive)
             }
-            if (gatewaySwitch.exists(outputPath)) gatewaySwitch.delete(outputPath)
-            gatewaySwitch.move(tempPath, outputPath)
         } catch (e: Exception) {
-            runCatching { if (gatewaySwitch.exists(tempPath)) gatewaySwitch.delete(tempPath) }
+            // Cleanup runs even though the coroutine may already be cancelled.
+            withContext(NonCancellable) {
+                runCatching { if (gatewaySwitch.exists(tempPath)) gatewaySwitch.delete(tempPath) }
+            }
+            throw e
+        }
+
+        // Commit, serialized per output path so concurrent compresses to the same name can't
+        // interleave their delete/move/seed steps.
+        //
+        // Once a pre-existing archive is deleted the temp may be the only surviving copy, so it must
+        // be kept on any later failure. Before that boundary — including while awaiting the lock or on
+        // the "target already exists, not confirmed" abort — the temp is a discardable orphan.
+        var destructiveBoundaryCrossed = false
+        try {
+            archiveService.withOutputCommitLock(outputPath) {
+                if (gatewaySwitch.exists(outputPath)) {
+                    if (!command.overwriteConfirmed) {
+                        // Target appeared after the pre-check (or the pre-check errored); abort without
+                        // touching the existing archive.
+                        throw WriteException("Archive already exists", outputPath)
+                    }
+                    if (!gatewaySwitch.delete(outputPath)) {
+                        throw WriteException("Could not replace existing archive, data kept as ${tempPath.name}", outputPath)
+                    }
+                    destructiveBoundaryCrossed = true
+                }
+                if (!gatewaySwitch.move(tempPath, outputPath) || !gatewaySwitch.exists(outputPath)) {
+                    throw WriteException("Could not finalize archive, data kept as ${tempPath.name}", outputPath)
+                }
+
+                // Post-commit bookkeeping is one consistent step even if the operation is cancelled now.
+                withContext(NonCancellable) {
+                    archiveService.invalidate(outputPath)
+                    val password = command.options.password
+                    if (password != null) {
+                        // Let the user browse/extract their fresh archive without a reprompt this session.
+                        archivePasswordStore.set(outputPath, password)
+                    } else {
+                        // A plain archive may have replaced an encrypted one of the same name.
+                        archivePasswordStore.evict(outputPath)
+                    }
+                }
+            }
+        } catch (e: Throwable) {
+            if (!destructiveBoundaryCrossed) {
+                withContext(NonCancellable) {
+                    runCatching { if (gatewaySwitch.exists(tempPath)) gatewaySwitch.delete(tempPath) }
+                }
+            }
             throw e
         }
 

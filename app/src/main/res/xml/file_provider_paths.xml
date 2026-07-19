@@ -3,6 +3,9 @@
     <cache-path
         name="bug_reports"
         path="bugreports_share" />
+    <cache-path
+        name="logview_share"
+        path="logview_share" />
     <root-path
         name="device_root"
         path="." />

@@ -13,7 +13,30 @@ UIX="$OUTDIR/ui.xml"; RAW="$OUTDIR/raw.mp4"; CAPS="$OUTDIR/captions.txt"
 mkdir -p "$OUTDIR"; : > "$CAPS"
 
 # ---- ui helpers -------------------------------------------------------------
-dump() { "${ADB[@]}" shell uiautomator dump /sdcard/__ui.xml >/dev/null 2>&1; "${ADB[@]}" exec-out cat /sdcard/__ui.xml > "$UIX"; }
+# Dump the current UI hierarchy. uiautomator intermittently fails with "could
+# not get idle state" during animations/transitions (worse under screenrecord
+# load); on failure it writes nothing, leaving a stale dump. Retry a few times
+# and only overwrite $UIX with a dump that actually contains nodes.
+dump() {
+  local i out
+  for i in 1 2 3 4; do
+    if "${ADB[@]}" shell uiautomator dump /sdcard/__ui.xml 2>&1 | grep -q "dumped to"; then
+      out="$("${ADB[@]}" exec-out cat /sdcard/__ui.xml)"
+      if [ -n "$out" ] && printf '%s' "$out" | grep -q "<node"; then
+        printf '%s' "$out" > "$UIX"; return 0
+      fi
+    fi
+    sleep 0.4
+  done
+  # All attempts failed: leave the previous valid $UIX untouched rather than
+  # overwriting it with stale/partial content. Callers see unchanged nodes and
+  # their tap()/_find retry loops handle the miss.
+  [ -s "$UIX" ] && return 1
+  # No prior dump exists yet — surface whatever the device has so the first
+  # caller has something to parse.
+  "${ADB[@]}" exec-out cat /sdcard/__ui.xml > "$UIX" 2>/dev/null || true
+  return 1
+}
 _find() { python3 "$LIBDIR/find_node.py" "$@" 2>/dev/null; }
 
 tap() {  # tap <needle> [idx] [-c]   (-c = substring match)

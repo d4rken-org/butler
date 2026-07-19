@@ -40,6 +40,7 @@ import eu.darken.butler.common.BuildConfigWrap
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.debug.logviewer.ui.FloatingLogPanelHost
 import eu.darken.butler.common.debug.recorder.ui.banner.RecordingBannerHost
 import eu.darken.butler.common.error.ErrorEventHandler
 import eu.darken.butler.common.navigation.LocalNavigationController
@@ -225,6 +226,10 @@ class MainActivity : Activity2() {
                     .align(Alignment.TopStart)
                     .statusBarsPadding(),
             )
+
+            // Debug-only floating log panel; last child so it draws above nav content and the
+            // banner. Handles safeDrawing insets itself for full-screen drag bounds.
+            FloatingLogPanelHost(modifier = Modifier.fillMaxSize())
         }
     }
 

@@ -13,6 +13,7 @@ import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.Test
 import testhelpers.ComposeTest
 import kotlin.time.Instant
@@ -165,8 +166,10 @@ class IssueSheetActionOrderTest : ComposeTest() {
         composeTestRule.onNodeWithText("Password").performTextInput("hunter2")
         unlock.performClick()
         cancel.performClick()
-        resolutions[0] shouldBe PathActionIssue.ArchivePasswordRequired.Resolution.Submit("hunter2")
-        resolutions[1] shouldBe PathActionIssue.ArchivePasswordRequired.Resolution.Cancel()
+        // Submit is not a data class (redacted toString, referential equality) - assert structurally.
+        val submit = resolutions[0].shouldBeInstanceOf<PathActionIssue.ArchivePasswordRequired.Resolution.Submit>()
+        submit.password shouldBe "hunter2"
+        resolutions[1].shouldBeInstanceOf<PathActionIssue.ArchivePasswordRequired.Resolution.Cancel>()
     }
 
     @Test

@@ -93,15 +93,28 @@ fun ExplorerDialogHost(
         is ExplorerDialogState.CompressOptions -> {
             CompressOptionsDialog(
                 suggestedName = dialogState.suggestedName,
+                defaultFormat = dialogState.defaultFormat,
+                defaultPreset = dialogState.defaultPreset,
+                onValidate = vm?.let { vm::validateFilename } ?: { FilenameValidator.ValidationResult.Valid },
                 onDismiss = { vm?.dismissDialog() },
-                onConfirm = { name, format ->
+                onConfirm = { name, format, preset, password ->
                     vm?.onCompressConfirmed(
                         sources = dialogState.sources,
                         destinationDir = dialogState.destinationDir,
                         archiveName = name,
                         format = format,
+                        preset = preset,
+                        password = password,
                     )
                 },
+            )
+        }
+
+        is ExplorerDialogState.CompressOverwriteConfirmation -> {
+            CompressOverwriteDialog(
+                archiveName = dialogState.pending.archiveName,
+                onDismiss = { vm?.onCompressOverwriteCancelled(dialogState.pending) },
+                onConfirm = { vm?.onCompressOverwriteConfirmed(dialogState.pending) },
             )
         }
 

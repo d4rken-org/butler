@@ -8,6 +8,8 @@
 
     <!--    For some reason this affects PackageManager.getSharedLibraries() results, i.e. trichromelibrary-->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <!--    Required to hand a user-selected APK to the system installer via "Open with"; without it the app cannot be authorized as an install source-->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <uses-permission
         android:name="android.permission.CLEAR_APP_CACHE"

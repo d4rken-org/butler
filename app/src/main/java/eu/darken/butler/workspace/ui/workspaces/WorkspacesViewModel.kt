@@ -213,8 +213,7 @@ class WorkspacesViewModel @Inject constructor(
             else -> null
         } ?: return
 
-        workspacePageManager.setFocusedWorkspace(targetId)
-        workspacePageManager.setSelectedWorkspaces(mapOf(0 to targetId))
+        workspacePageManager.setLayout(mapOf(0 to targetId), focusedId = targetId)
     }
 
     private val visibleMotd = kotlinx.coroutines.flow.combine(motdRepo.motd, hiddenMotdIds) { motd, hiddenIds ->
@@ -248,8 +247,7 @@ class WorkspacesViewModel @Inject constructor(
 
         when (action) {
             is WorkspaceScreenAction.Select -> {
-                workspacePageManager.setFocusedWorkspace(action.id)
-                workspacePageManager.setSelectedWorkspaces(mapOf(0 to action.id))
+                workspacePageManager.setLayout(mapOf(0 to action.id), focusedId = action.id)
             }
             is WorkspaceScreenAction.SelectMultiple -> {
                 workspacePageManager.setSelectedWorkspaces(action.positions)
@@ -269,13 +267,11 @@ class WorkspacesViewModel @Inject constructor(
                 when (val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES))) {
                     is WorkspaceAction.Create.Result.Success -> {
                         log(tag) { "On-demand workspace created: ${result.newId}, focusing it" }
-                        workspacePageManager.setFocusedWorkspace(result.newId)
-                        workspacePageManager.setSelectedWorkspaces(mapOf(0 to result.newId))
+                        workspacePageManager.setLayout(mapOf(0 to result.newId), focusedId = result.newId)
                     }
                     is WorkspaceAction.Create.Result.AlreadyOpen -> {
                         log(tag) { "Singleton already open, focusing existing: ${result.existingId}" }
-                        workspacePageManager.setFocusedWorkspace(result.existingId)
-                        workspacePageManager.setSelectedWorkspaces(mapOf(0 to result.existingId))
+                        workspacePageManager.setLayout(mapOf(0 to result.existingId), focusedId = result.existingId)
                     }
                     is WorkspaceAction.Create.Result.LimitReached -> {
                         log(tag, WARN) { "On-demand workspace creation blocked - limit reached" }
@@ -287,17 +283,15 @@ class WorkspacesViewModel @Inject constructor(
                 when (val result = workspaceRepo.execute(WorkspaceAction.Create(type = Workspace.Type.TEMPLATES))) {
                     is WorkspaceAction.Create.Result.Success -> {
                         log(tag) { "Workspace created: ${result.newId}, assigning to pane ${action.paneIndex}" }
-                        workspacePageManager.setFocusedWorkspace(result.newId)
-                        val currentSelections = workspacePageManager.state.value.selectedWorkspaces.toMutableMap()
-                        currentSelections[action.paneIndex] = result.newId
-                        workspacePageManager.setSelectedWorkspaces(currentSelections)
+                        val selections = workspacePageManager.state.value.selectedWorkspaces +
+                            (action.paneIndex to result.newId)
+                        workspacePageManager.setLayout(selections, focusedId = result.newId)
                     }
                     is WorkspaceAction.Create.Result.AlreadyOpen -> {
                         log(tag) { "Singleton already open, focusing existing: ${result.existingId} in pane ${action.paneIndex}" }
-                        workspacePageManager.setFocusedWorkspace(result.existingId)
-                        val currentSelections = workspacePageManager.state.value.selectedWorkspaces.toMutableMap()
-                        currentSelections[action.paneIndex] = result.existingId
-                        workspacePageManager.setSelectedWorkspaces(currentSelections)
+                        val selections = workspacePageManager.state.value.selectedWorkspaces +
+                            (action.paneIndex to result.existingId)
+                        workspacePageManager.setLayout(selections, focusedId = result.existingId)
                     }
                     is WorkspaceAction.Create.Result.LimitReached -> {
                         log(tag, WARN) { "Workspace creation blocked - limit reached" }

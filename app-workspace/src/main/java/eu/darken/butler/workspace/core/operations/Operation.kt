@@ -139,4 +139,12 @@ interface Operation {
     )
 
     fun perform(operationContext: Context): Flow<State>
+
+    /**
+     * Releases sensitive or transient data held by this operation (e.g. wiping a password buffer).
+     * Invoked by [ManagedOperation] when the operation reaches a terminal state, and also when it is
+     * cancelled before [perform] ever begins. Must be idempotent — it can be called more than once.
+     * Default: nothing to release.
+     */
+    fun onDiscarded() {}
 }

@@ -10,6 +10,7 @@ Features include:
 - Searching for and through files (with regex support).
 - Text editor that handles huge files.
 - App manager - browse, disable, export APKs, clear cache, uninstall.
+- Receive, manage, and open APK files - install apps through Android's system installer.
 - Tablet support with multi-pane layouts.
 - Root & Shizuku support.
 - Material You theming - dynamic colors, dark mode, AMOLED.
