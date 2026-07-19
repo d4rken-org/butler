@@ -11,6 +11,7 @@ import eu.darken.butler.common.ca.toCaString
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
+import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.archive.ArchiveService
@@ -78,8 +79,14 @@ class CompressOperation @AssistedInject constructor(
                 continue
             }
             entries += ArchiveService.WriteEntry(source.name, source, isDirectory = true, size = null)
+            // Fail fast on unreadable subtrees: an archive silently missing entries is worse
+            // than a failed compression.
             val descendants = gatewaySwitch
-                .walk(source, LookupOptions(fetchSize = true))
+                .walk(
+                    source,
+                    LookupOptions(fetchSize = true),
+                    APathGateway.WalkOptions(onError = { _, _ -> false }),
+                )
                 .toList()
             descendants.forEach { lookup ->
                 val relative = source.crumbsTo(lookup.lookedUp)
