@@ -112,6 +112,122 @@ class StaticLocalRouteRouterTest : BaseTest() {
     }
 
     @Test
+    fun `routeAfterFailure bypasses the cached route and replaces it`() = runTest {
+        val path = p("/sdcard/dir")
+        val directOps = mockOps()
+        val rootOps = mockOps()
+        val factory = mockk<ModeSessionFactory> {
+            coEvery { open(AccessMode.DIRECT) } returns ModeSession(AccessMode.DIRECT, directOps, null, null)
+            coEvery { open(AccessMode.ROOT) } returns ModeSession(AccessMode.ROOT, rootOps, fakeBatch(), null)
+        }
+        val policy = mockk<LocalPathRoutingPolicy> {
+            coEvery { classify(path, AccessIntent.Read, caps) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+        }
+        val registry = ModeSessionRegistry(factory)
+        val router = StaticLocalRouteRouter(policy, caps, registry)
+
+        try {
+            router.routeFor(path, AccessIntent.Read).mode shouldBe AccessMode.DIRECT
+
+            val fallback = router.routeAfterFailure(path, AccessIntent.Read, AccessMode.DIRECT)
+
+            fallback?.mode shouldBe AccessMode.ROOT
+            fallback?.ops shouldBe rootOps
+            // Subsequent routeFor calls see the escalated route, not the stale cached DIRECT one
+            router.routeFor(path, AccessIntent.Read).mode shouldBe AccessMode.ROOT
+        } finally {
+            registry.close()
+        }
+    }
+
+    @Test
+    fun `routeAfterFailure tries ROOT then ADB and never retries attempted modes`() = runTest {
+        val bothCaps = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = true)
+        val path = p("/sdcard/dir")
+        val rootOps = mockOps()
+        val adbOps = mockOps()
+        val factory = mockk<ModeSessionFactory> {
+            coEvery { open(AccessMode.ROOT) } returns ModeSession(AccessMode.ROOT, rootOps, fakeBatch(), null)
+            coEvery { open(AccessMode.ADB) } returns ModeSession(AccessMode.ADB, adbOps, fakeBatch(), null)
+        }
+        val policy = mockk<LocalPathRoutingPolicy>()
+        val registry = ModeSessionRegistry(factory)
+        val router = StaticLocalRouteRouter(policy, bothCaps, registry)
+
+        try {
+            router.routeAfterFailure(path, AccessIntent.Read, AccessMode.DIRECT)?.mode shouldBe AccessMode.ROOT
+            // ROOT already attempted, the next failure walks down to ADB
+            router.routeAfterFailure(path, AccessIntent.Read, AccessMode.ROOT)?.mode shouldBe AccessMode.ADB
+            // All modes attempted, the caller must surface the original failure
+            router.routeAfterFailure(path, AccessIntent.Read, AccessMode.ADB) shouldBe null
+
+            coVerify(exactly = 1) { factory.open(AccessMode.ROOT) }
+            coVerify(exactly = 1) { factory.open(AccessMode.ADB) }
+        } finally {
+            registry.close()
+        }
+    }
+
+    @Test
+    fun `routeAfterFailure skips capability-unavailable candidates`() = runTest {
+        val adbOnlyCaps = CapabilitySnapshot.fixed(hasRoot = false, hasAdb = true)
+        val path = p("/sdcard/dir")
+        val adbOps = mockOps()
+        val factory = mockk<ModeSessionFactory> {
+            coEvery { open(AccessMode.ADB) } returns ModeSession(AccessMode.ADB, adbOps, fakeBatch(), null)
+        }
+        val policy = mockk<LocalPathRoutingPolicy>()
+        val registry = ModeSessionRegistry(factory)
+        val router = StaticLocalRouteRouter(policy, adbOnlyCaps, registry)
+
+        try {
+            router.routeAfterFailure(path, AccessIntent.Read, AccessMode.DIRECT)?.mode shouldBe AccessMode.ADB
+
+            coVerify(exactly = 0) { factory.open(AccessMode.ROOT) }
+        } finally {
+            registry.close()
+        }
+    }
+
+    @Test
+    fun `routeAfterFailure returns null when no escalation mode is available`() = runTest {
+        val noCaps = CapabilitySnapshot.fixed(hasRoot = false, hasAdb = false)
+        val path = p("/sdcard/dir")
+        val factory = mockk<ModeSessionFactory>()
+        val policy = mockk<LocalPathRoutingPolicy>()
+        val registry = ModeSessionRegistry(factory)
+        val router = StaticLocalRouteRouter(policy, noCaps, registry)
+
+        try {
+            router.routeAfterFailure(path, AccessIntent.Read, AccessMode.DIRECT) shouldBe null
+
+            coVerify(exactly = 0) { factory.open(any()) }
+        } finally {
+            registry.close()
+        }
+    }
+
+    @Test
+    fun `routeAfterFailure falls through to ADB when the ROOT session fails to open`() = runTest {
+        val bothCaps = CapabilitySnapshot.fixed(hasRoot = true, hasAdb = true)
+        val path = p("/sdcard/dir")
+        val adbOps = mockOps()
+        val factory = mockk<ModeSessionFactory> {
+            coEvery { open(AccessMode.ROOT) } throws RootUnavailableException()
+            coEvery { open(AccessMode.ADB) } returns ModeSession(AccessMode.ADB, adbOps, fakeBatch(), null)
+        }
+        val policy = mockk<LocalPathRoutingPolicy>()
+        val registry = ModeSessionRegistry(factory)
+        val router = StaticLocalRouteRouter(policy, bothCaps, registry)
+
+        try {
+            router.routeAfterFailure(path, AccessIntent.Read, AccessMode.DIRECT)?.mode shouldBe AccessMode.ADB
+        } finally {
+            registry.close()
+        }
+    }
+
+    @Test
     fun `retained stream keeps session lease alive until stream close`() {
         val lease = RecordingKeepAlive()
         val session = ModeSession(AccessMode.ROOT, mockOps(), fakeBatch(), lease)

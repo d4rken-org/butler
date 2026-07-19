@@ -1,20 +1,21 @@
 package eu.darken.butler.searcher.core.engine
 
 import eu.darken.butler.common.files.LocalPath
-import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.searcher.core.engine.backend.SearchBackend
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
+import eu.darken.butler.workspace.contracts.searcher.FilterCondition
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.core.Workspace
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -25,19 +26,22 @@ import testhelpers.coroutine.TestDispatcherProvider
 
 class SearchEngineNoCapTest : BaseTest() {
 
+    private class StubBackend(private val items: List<SearchItem>) : SearchBackend {
+        override val priority: Int = 0
+        override fun canHandle(target: SearchTarget): Boolean = true
+        override fun supports(condition: FilterCondition): Boolean = true
+        override fun monitorRequirements(target: SearchTarget): Flow<PathRequirements> = flowOf(PathRequirements())
+        override suspend fun scan(session: SearchBackend.ScanSession): Flow<SearchItem> = items.asFlow()
+    }
+
     @Test
     fun `engine streams past maxResults and completes normally`(): Unit = runTest {
         val items = List(25) { mockk<SearchItem>() }
-        val scanner = mockk<PathScanner> {
-            coEvery { scan(any(), any(), any(), any()) } returns items.asFlow()
-        }
         val target = SearchTarget.Path.from(LocalPath.build("/sdcard"))
         val engine = SearchEngine(
             workspaceId = Workspace.Id(),
             workspaceScope = backgroundScope,
-            pathScannerFactory = mockk<PathScanner.Factory> {
-                every { create(any()) } returns scanner
-            },
+            backends = setOf(StubBackend(items)),
             dispatcherProvider = TestDispatcherProvider(),
             storageManager2 = mockk(),
             searcherSettings = mockk<SearcherSettings> {
@@ -47,9 +51,6 @@ class SearchEngineNoCapTest : BaseTest() {
                 every { contentSearchBinaries } returns mockk {
                     every { flow } returns flowOf(false)
                 }
-            },
-            pathPermissionCheck = mockk<PathPermissionCheck> {
-                every { monitor(any()) } returns flowOf(PathRequirements())
             },
         )
 

@@ -1,5 +1,6 @@
 package eu.darken.butler.searcher.core.engine
 
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
@@ -256,6 +257,34 @@ class PatternMatcherTest : BaseTest() {
             options = PatternOptions(),
         )
         result.shouldBeInstanceOf<MatchResult.NotFound>()
+    }
+
+    // === validate() ===
+
+    @Test
+    fun `validate - plain substring is valid`() {
+        PatternMatcher.validate("needle", PatternOptions()) shouldBe null
+    }
+
+    @Test
+    fun `validate - valid regex is valid`() {
+        PatternMatcher.validate("file\\d+\\.txt", PatternOptions(useRegex = true)) shouldBe null
+    }
+
+    @Test
+    fun `validate - invalid regex returns a reason`() {
+        val reason = PatternMatcher.validate("[invalid", PatternOptions(useRegex = true))
+        reason.shouldNotBeNull()
+    }
+
+    @Test
+    fun `validate - blank pattern returns a reason`() {
+        PatternMatcher.validate("   ", PatternOptions()) shouldBe "Pattern is blank"
+    }
+
+    @Test
+    fun `validate - whole word with special regex chars is valid due to escaping`() {
+        PatternMatcher.validate("[test]", PatternOptions(wholeWord = true)) shouldBe null
     }
 
     // === MatchResult helper tests ===

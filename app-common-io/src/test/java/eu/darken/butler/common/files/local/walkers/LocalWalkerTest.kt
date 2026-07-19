@@ -2,7 +2,6 @@ package eu.darken.butler.common.files.local.walkers
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
-import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.local.LocalGateway
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
@@ -33,14 +32,14 @@ import kotlin.time.Instant
 /**
  * Shared coverage for [DirectLocalWalker] and [IndirectLocalWalker].
  *
- * Both walkers run byte-for-byte identical traversal logic; the only difference is the data source
- * ([LocalFileSystemOps] vs [LocalGateway] with a routing [LocalGateway.Mode]). The traversal matrix
- * is therefore parameterized over [WalkerVariant]; [LocalGateway]-specific mode threading is verified
- * in its own (non-parameterized) test.
+ * Both walkers run the shared [LocalWalkerCore] traversal; the only difference is the data source
+ * ([eu.darken.butler.common.files.FileSystemOps] vs [LocalGateway] with a routing [LocalGateway.Mode]).
+ * The traversal matrix is therefore parameterized over [WalkerVariant]; [LocalGateway]-specific mode
+ * threading is verified in its own (non-parameterized) test.
  *
- * Each variant is backed by an in-memory [MockFileSystemOps]; the typed dependency each walker needs
- * is a mockk facade that delegates to that backing store (the walkers take concrete types, not the
- * [eu.darken.butler.common.files.FileSystemOps] interface, so the mock cannot be passed directly).
+ * Each variant is backed by an in-memory [MockFileSystemOps]. [DirectLocalWalker] takes the
+ * [eu.darken.butler.common.files.FileSystemOps] interface, so the mock is passed directly;
+ * [IndirectLocalWalker] still needs a mockk [LocalGateway] facade delegating to the backing store.
  */
 class LocalWalkerTest : BaseTest() {
 
@@ -68,13 +67,6 @@ class LocalWalkerTest : BaseTest() {
         backing = MockFileSystemOps(lookupFactory)
     }
 
-    private fun directOps(store: MockFileSystemOps<LocalPath, LocalPathLookup>): LocalFileSystemOps {
-        val ops = mockk<LocalFileSystemOps>()
-        coEvery { ops.lookup(any(), any()) } coAnswers { store.lookup(firstArg<LocalPath>(), secondArg<LookupOptions>()) }
-        coEvery { ops.lookupFiles(any(), any()) } coAnswers { store.lookupFiles(firstArg<LocalPath>(), secondArg<LookupOptions>()) }
-        return ops
-    }
-
     private fun gatewayOps(store: MockFileSystemOps<LocalPath, LocalPathLookup>): LocalGateway {
         val gw = mockk<LocalGateway>()
         coEvery {
@@ -94,7 +86,7 @@ class LocalWalkerTest : BaseTest() {
         onError: suspend (LocalPathLookup, Exception) -> Boolean = { _, _ -> true },
     ): Flow<LocalPathLookup> = when (variant) {
         WalkerVariant.DIRECT ->
-            DirectLocalWalker(directOps(store), start, LookupOptions(), onFilter, onError)
+            DirectLocalWalker(store, start, LookupOptions(), onFilter, onError)
         WalkerVariant.INDIRECT ->
             IndirectLocalWalker(gatewayOps(store), LocalGateway.Mode.AUTO, start, LookupOptions(), onFilter, onError)
     }
