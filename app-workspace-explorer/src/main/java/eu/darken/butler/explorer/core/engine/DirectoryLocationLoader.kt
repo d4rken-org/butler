@@ -25,6 +25,7 @@ import eu.darken.butler.common.root.RootManager
 import eu.darken.butler.common.root.canUseRootNow
 import eu.darken.butler.common.storage.StorageEnvironment
 import eu.darken.butler.explorer.R
+import eu.darken.butler.explorer.core.preview.FolderPreviewResolver
 import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.workspace.core.Workspace
 import kotlinx.coroutines.currentCoroutineContext
@@ -43,6 +44,7 @@ class DirectoryLocationLoader @AssistedInject constructor(
     private val adbManager: AdbManager,
     private val safLocationManager: SAFLocationManager,
     private val writabilityEvaluator: WritabilityEvaluator,
+    private val folderPreviewResolver: FolderPreviewResolver,
 ) {
 
     private val tag = logTag("Explorer", "Workspace", workspaceId.shortTag, "DirectoryLoader")
@@ -92,6 +94,10 @@ class DirectoryLocationLoader @AssistedInject constructor(
                     )
                     return@flow
                 }
+
+                // Every actual load produces fresh folder preview collages, matching how the
+                // child-count badge refreshes on navigation and manual refresh.
+                folderPreviewResolver.invalidateFor(path)
 
                 gatewaySwitch.useRes {
                     currentCoroutineContext().ensureActive()

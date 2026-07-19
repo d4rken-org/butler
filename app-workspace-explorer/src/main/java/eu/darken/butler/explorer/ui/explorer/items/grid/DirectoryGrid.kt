@@ -32,6 +32,7 @@ internal fun DirectoryGrid(
     isHighlighted: Boolean = false,
     decorations: ItemDecorations = ItemDecorations(),
 ) {
+    val previewChildren = rememberFolderPreviewChildren(item.lookup.lookedUp)
     FileGridBase(
         modifier = modifier,
         item = item,
@@ -43,6 +44,9 @@ internal fun DirectoryGrid(
         isEnabled = isEnabled,
         isHighlighted = isHighlighted,
         decorations = decorations,
+        previewContent = previewChildren.takeIf { it.isNotEmpty() }?.let { children ->
+            { FolderPreviewCollage(children = children) }
+        },
         icon = {
             Icon(
                 imageVector = Icons.TwoTone.Folder,

@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,6 +50,7 @@ import eu.darken.butler.explorer.ui.explorer.dialogs.ExplorerDialogHost
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerReadyContent
 import eu.darken.butler.explorer.ui.explorer.elements.ExplorerTopBars
 import eu.darken.butler.explorer.ui.explorer.elements.PermissionRequestCard
+import eu.darken.butler.explorer.ui.explorer.items.grid.LocalFolderPreviewObserver
 import eu.darken.butler.explorer.ui.explorer.preview.MockDataProvider
 import eu.darken.butler.explorer.ui.explorer.util.OpenDocumentTreeWithIntent
 import eu.darken.butler.explorer.ui.explorer.util.explorerKeyboardShortcuts
@@ -564,14 +566,16 @@ fun ExplorerWorkspacePageHost(
         }
     }
 
-    ExplorerWorkspacePage(
-        workspaceId = id,
-        design = design,
-        mainStateSource = vm.state,
-        clipboardStateSource = vm.clipboard,
-        operationsStateSource = vm.operations,
-        vm = vm,
-    )
+    CompositionLocalProvider(LocalFolderPreviewObserver provides vm.folderPreviewObserver) {
+        ExplorerWorkspacePage(
+            workspaceId = id,
+            design = design,
+            mainStateSource = vm.state,
+            clipboardStateSource = vm.clipboard,
+            operationsStateSource = vm.operations,
+            vm = vm,
+        )
+    }
 }
 
 @Composable

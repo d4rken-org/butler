@@ -40,7 +40,7 @@ class FileTypeClassifier {
         }
     }
 
-    private fun getMimeType(fileName: String): MimeInfo {
+    internal fun getMimeType(fileName: String): MimeInfo {
         val extension = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)
 
         val rawType = when (extension) {
@@ -50,6 +50,9 @@ class FileTypeClassifier {
             "gif" -> "image/gif"
             "webp" -> "image/webp"
             "bmp" -> "image/bmp"
+            "heic" -> "image/heic"
+            "heif" -> "image/heif"
+            "avif" -> "image/avif"
 
             // Videos
             "mp4" -> "video/mp4"
@@ -57,6 +60,8 @@ class FileTypeClassifier {
             "avi" -> "video/x-msvideo"
             "mov" -> "video/quicktime"
             "webm" -> "video/webm"
+            "3gp" -> "video/3gpp"
+            "m4v" -> "video/x-m4v"
 
             // Audio
             "mp3" -> "audio/mpeg"

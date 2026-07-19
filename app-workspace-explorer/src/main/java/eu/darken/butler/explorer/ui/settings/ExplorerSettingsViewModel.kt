@@ -23,14 +23,16 @@ class ExplorerSettingsViewModel @Inject constructor(
     val state = combine(
         explorerSettings.sortSettings.flow,
         explorerSettings.useRegexPatterns.flow,
+        explorerSettings.showFolderMediaPreviews.flow,
         explorerSettings.useBackButtonForNavigation.flow,
         trashSettings.enabled.flow,
         trashSettings.expiresAfter.flow,
         trashSettings.maxTrashSize.flow,
-    ) { sortSettings, useRegexPatterns, useBackButtonForNavigation, recycleBinEnabled, expiresAfter, maxSize ->
+    ) { sortSettings, useRegexPatterns, showFolderMediaPreviews, useBackButtonForNavigation, recycleBinEnabled, expiresAfter, maxSize ->
         State(
             sortSettings = sortSettings,
             useRegexPatterns = useRegexPatterns,
+            showFolderMediaPreviews = showFolderMediaPreviews,
             useBackButtonForNavigation = useBackButtonForNavigation,
             trashEnabled = recycleBinEnabled,
             trashAutoDeleteDays = expiresAfter.inWholeDays.toInt(),
@@ -40,6 +42,10 @@ class ExplorerSettingsViewModel @Inject constructor(
 
     fun toggleRegexPatterns(enabled: Boolean) = launch {
         explorerSettings.useRegexPatterns.value(enabled)
+    }
+
+    fun toggleFolderMediaPreviews(enabled: Boolean) = launch {
+        explorerSettings.showFolderMediaPreviews.value(enabled)
     }
 
     fun toggleBackButtonNavigation(enabled: Boolean) = launch {
@@ -64,6 +70,7 @@ class ExplorerSettingsViewModel @Inject constructor(
     data class State(
         val sortSettings: SortSettings,
         val useRegexPatterns: Boolean,
+        val showFolderMediaPreviews: Boolean,
         val useBackButtonForNavigation: Boolean,
         val trashEnabled: Boolean = true,
         val trashAutoDeleteDays: Int = 30,

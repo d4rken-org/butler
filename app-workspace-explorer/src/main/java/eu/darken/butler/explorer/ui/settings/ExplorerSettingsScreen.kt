@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.twotone.ArrowBack
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.DeleteSweep
 import androidx.compose.material.icons.twotone.FilterList
+import androidx.compose.material.icons.twotone.PhotoLibrary
 import androidx.compose.material.icons.twotone.Storage
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -43,6 +44,7 @@ fun ExplorerSettingsScreen(
     state: ExplorerSettingsViewModel.State,
     onNavigateUp: () -> Unit,
     onToggleRegexPatterns: (Boolean) -> Unit,
+    onToggleFolderMediaPreviews: (Boolean) -> Unit,
     onToggleBackButtonNavigation: (Boolean) -> Unit,
     onToggleTrash: (Boolean) -> Unit,
     onAutoDeleteDaysChanged: (Int) -> Unit,
@@ -100,6 +102,16 @@ fun ExplorerSettingsScreen(
                     subtitle = stringResource(R.string.explorer_settings_filter_regex_desc),
                     checked = state.useRegexPatterns,
                     onCheckedChange = onToggleRegexPatterns,
+                )
+            }
+
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.TwoTone.PhotoLibrary,
+                    title = stringResource(R.string.explorer_settings_folder_media_previews_title),
+                    subtitle = stringResource(R.string.explorer_settings_folder_media_previews_desc),
+                    checked = state.showFolderMediaPreviews,
+                    onCheckedChange = onToggleFolderMediaPreviews,
                 )
             }
 
@@ -233,6 +245,7 @@ fun ExplorerSettingsScreenHost(vm: ExplorerSettingsViewModel = hiltViewModel()) 
             state = vmState,
             onNavigateUp = { vm.navUp() },
             onToggleRegexPatterns = { vm.toggleRegexPatterns(it) },
+            onToggleFolderMediaPreviews = { vm.toggleFolderMediaPreviews(it) },
             onToggleBackButtonNavigation = { vm.toggleBackButtonNavigation(it) },
             onToggleTrash = { vm.toggleTrash(it) },
             onAutoDeleteDaysChanged = { vm.setTrashAutoDeleteDays(it) },

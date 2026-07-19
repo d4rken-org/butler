@@ -41,6 +41,8 @@ import eu.darken.butler.explorer.core.ExplorerViewStyle
 import eu.darken.butler.explorer.core.ExplorerWorkspace
 import eu.darken.butler.explorer.core.FileIntentHelper
 import eu.darken.butler.explorer.core.FileTypeFilter
+import eu.darken.butler.explorer.core.preview.FolderPreviewObserver
+import eu.darken.butler.explorer.core.preview.FolderPreviewResolver
 import eu.darken.butler.explorer.core.FilterState
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
@@ -127,10 +129,17 @@ class ExplorerWorkspaceViewModel @AssistedInject constructor(
     private val pickerHelper: ExplorerPickerHelper,
     private val favoritesRepo: ExplorerFavoritesRepo,
     private val operationFocusRequest: OperationFocusRequest,
+    private val folderPreviewResolver: FolderPreviewResolver,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Explorer", "Workspace", id.shortTag, "Page")) {
 
     private val chrome = chromeFactory.create(id, vmScope)
+
+    val folderPreviewObserver: FolderPreviewObserver = { dir ->
+        explorerSettings.showFolderMediaPreviews.flow.flatMapLatest { enabled ->
+            if (enabled) folderPreviewResolver.observe(dir) else flowOf(emptyList())
+        }
+    }
 
     private val doLaunch: (suspend CoroutineScope.() -> Unit) -> Unit = { block -> launch(block = block) }
 

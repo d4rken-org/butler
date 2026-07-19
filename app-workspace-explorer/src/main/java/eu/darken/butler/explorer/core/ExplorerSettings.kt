@@ -27,6 +27,7 @@ class ExplorerSettings @Inject constructor(
 
     val sortSettings = dataStore.createValue("explorer.sort.default", SortSettings(), json)
     val useRegexPatterns = dataStore.createValue("explorer.filter.regex.enabled", false)
+    val showFolderMediaPreviews = dataStore.createValue("explorer.grid.folder_media_previews.enabled", true)
     val useBackButtonForNavigation = dataStore.createValue("explorer.navigation.use_back_button", true)
 
     val defaultViewStyle = dataStore.createValue("explorer.view.style.default", ExplorerViewStyle.default(), json)
@@ -38,6 +39,7 @@ class ExplorerSettings @Inject constructor(
     override val mapper = PreferenceStoreMapper(
         sortSettings,
         useRegexPatterns,
+        showFolderMediaPreviews,
         useBackButtonForNavigation,
         defaultViewStyle,
         defaultStartLocation,
