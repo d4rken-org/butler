@@ -68,6 +68,7 @@ fun SearchProgressCard(
     modifier: Modifier = Modifier,
     initiallyExpanded: Boolean = false,
     limitReached: Boolean = false,
+    partialResults: Boolean = false,
 ) {
     // Auto-collapse when search completes, but expand during active search
     var isExpanded by rememberSaveable(searchStatus) {
@@ -93,6 +94,7 @@ fun SearchProgressCard(
                 searchStatus = searchStatus,
                 failedCount = targetProgress.count { it.status == SearchEngine.SearchTargetProgress.Status.ERROR },
                 limitReached = limitReached,
+                partialResults = partialResults,
                 isExpanded = isExpanded,
                 onExpandClick = { isExpanded = !isExpanded },
                 onCancelClick = onCancel,
@@ -130,15 +132,16 @@ fun SearchProgressCard(
                                 pathProgress.status
                             }
                             SearchPathProgressRow(
-                                path = pathProgress.target.path.userReadablePath.get(context),
+                                path = pathProgress.target.displayText.get(context),
                                 itemsScanned = pathProgress.itemsScanned,
                                 resultsFound = pathProgress.resultsFound,
                                 status = displayStatus,
                                 exception = pathProgress.exception,
+                                errorCount = pathProgress.errorCount,
                                 onErrorClick = if (pathProgress.exception != null) {
                                     {
                                         onErrorClick(
-                                            pathProgress.target.path.userReadablePath.get(context),
+                                            pathProgress.target.displayText.get(context),
                                             pathProgress.exception
                                         )
                                     }
@@ -167,6 +170,7 @@ private fun SearchProgressHeader(
     searchStatus: SearcherWorkspace.State.SearchStatus,
     failedCount: Int,
     limitReached: Boolean,
+    partialResults: Boolean,
     isExpanded: Boolean,
     onExpandClick: () -> Unit,
     onCancelClick: () -> Unit,
@@ -276,6 +280,13 @@ private fun SearchProgressHeader(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (partialResults) {
+                Text(
+                    text = stringResource(R.string.searcher_progress_partial_results),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
 
         IconButton(onClick = onExpandClick) {
@@ -313,6 +324,7 @@ private fun SearchPathProgressRow(
     status: SearchEngine.SearchTargetProgress.Status,
     exception: Throwable?,
     onErrorClick: (() -> Unit)?,
+    errorCount: Int = 0,
 ) {
     val rowModifier =
         if (status == SearchEngine.SearchTargetProgress.Status.ERROR && exception != null && onErrorClick != null) {
@@ -375,8 +387,11 @@ private fun SearchPathProgressRow(
                 resultsFound,
                 resultsFound
             )
+            val errorCountText = if (errorCount > 0) {
+                " • ${pluralStringResource(R.plurals.searcher_progress_access_errors_count, errorCount, errorCount)}"
+            } else ""
             Text(
-                text = "$scannedText • $foundText",
+                text = "$scannedText • $foundText$errorCountText",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )

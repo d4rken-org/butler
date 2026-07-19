@@ -16,8 +16,14 @@ object SearchConfig {
     /** Maximum file size to search content within (10MB) */
     const val MAX_CONTENT_FILE_SIZE = 10L * 1024 * 1024
 
-    /** Buffer size for reading file content (128KB) */
+    /** Chunk size for streaming file content (128KB) */
     const val CONTENT_READ_BUFFER = 128 * 1024
+
+    /**
+     * Maximum bytes buffered for a single line (512KB). Longer lines are matched only within
+     * this window; the result is flagged as degraded instead of failing silently.
+     */
+    const val MAX_LINE_LENGTH = 512 * 1024
 
     /** Report progress every N items scanned */
     const val PROGRESS_UPDATE_INTERVAL = 100

@@ -14,6 +14,9 @@ import kotlinx.serialization.Serializable
 sealed class SearchTarget : Parcelable {
     abstract val enabled: Boolean
 
+    /** Backend-agnostic label for progress rows, chips, and history entries. */
+    abstract val displayText: CaString
+
     @Serializable
     @SerialName("path")
     @Parcelize
@@ -24,7 +27,7 @@ sealed class SearchTarget : Parcelable {
     ) : SearchTarget() {
 
         @IgnoredOnParcel
-        val displayText: CaString
+        override val displayText: CaString
             get() = label?.toCaString() ?: path.userReadablePath
 
         companion object {

@@ -13,11 +13,13 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.storage.StorageManager2
-import eu.darken.butler.permissions.core.PathPermissionCheck
 import eu.darken.butler.permissions.core.PathRequirements
 import eu.darken.butler.searcher.core.SearchItem
 import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.SearcherSettings
+import eu.darken.butler.searcher.core.engine.backend.SearchBackend
+import eu.darken.butler.searcher.core.engine.backend.UnsupportedFilterException
+import eu.darken.butler.searcher.core.engine.backend.UnsupportedTargetException
 import eu.darken.butler.searcher.core.operations.SearcherCommand
 import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import eu.darken.butler.workspace.core.Workspace
@@ -36,20 +38,19 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SearchEngine @AssistedInject constructor(
     @Assisted private val workspaceId: Workspace.Id,
     @Assisted private val workspaceScope: CoroutineScope,
-    pathScannerFactory: PathScanner.Factory,
+    private val backends: Set<@JvmSuppressWildcards SearchBackend>,
     private val dispatcherProvider: DispatcherProvider,
     private val storageManager2: StorageManager2,
     private val searcherSettings: SearcherSettings,
-    private val pathPermissionCheck: PathPermissionCheck,
 ) {
 
     private val tag = logTag("Searcher", "Workspace", workspaceId.shortTag, "Engine")
-    private val pathScanner = pathScannerFactory.create(workspaceId)
     private val scope = workspaceScope
 
     private val _targetState = MutableStateFlow<List<SearchTarget>>(emptyList())
@@ -62,7 +63,7 @@ class SearchEngine @AssistedInject constructor(
     val targetProgressState: StateFlow<List<SearchTargetProgress>> = _targetProgressState.asStateFlow()
 
     init {
-        log(tag, INFO) { "Initialized" }
+        log(tag, INFO) { "Initialized with ${backends.size} backend(s)" }
         scope.launch {
             val savedTargets = searcherSettings.searchDefaultTargets.value()
             if (savedTargets != null) {
@@ -74,34 +75,30 @@ class SearchEngine @AssistedInject constructor(
             }
         }
 
-        // Reactively monitor permission requirements for enabled targets
+        // Reactively monitor permission requirements for enabled targets.
+        // Gating is per-target (any target that needs setup blocks the search); the published
+        // aggregate is a display-only union for the setup card.
         _targetState
             .flatMapLatest { targets ->
-                val enabledPaths = targets
-                    .filterIsInstance<SearchTarget.Path>()
-                    .filter { it.enabled }
-                    .map { it.path }
-
-                if (enabledPaths.isEmpty()) {
-                    flowOf(PathRequirements())
+                val enabledTargets = targets.filter { it.enabled }
+                if (enabledTargets.isEmpty()) {
+                    flowOf(emptyList())
                 } else {
-                    // Combine permission monitors for all enabled paths
-                    combine(enabledPaths.map { pathPermissionCheck.monitor(it) }) { requirementsList ->
-                        PathRequirements(
-                            combos = requirementsList.flatMap { it.combos }.distinct().toSet(),
-                            complete = requirementsList.flatMap { it.complete }.distinct().toSet(),
-                        )
-                    }
+                    combine(
+                        enabledTargets.map { target ->
+                            backendFor(target)?.monitorRequirements(target) ?: flowOf(PathRequirements())
+                        }
+                    ) { it.toList() }
                 }
             }
             .distinctUntilChanged()
-            .onEach { requirements ->
-                log(tag, INFO) { "Permission requirements updated: $requirements" }
-                _setupRequirements.value = requirements
+            .onEach { requirementsList ->
+                val aggregate = aggregateForDisplay(requirementsList)
+                log(tag, INFO) { "Permission requirements updated: $aggregate" }
+                _setupRequirements.value = aggregate
             }
             .launchIn(scope)
     }
-
 
     data class SearchProgress(
         val currentPath: APath<*>,
@@ -110,11 +107,13 @@ class SearchEngine @AssistedInject constructor(
     )
 
     data class SearchTargetProgress(
-        val target: SearchTarget.Path,
+        val target: SearchTarget,
         val itemsScanned: Int,
         val resultsFound: Int,
         val status: Status,
         val exception: Throwable? = null,
+        val errorCount: Int = 0,
+        val firstErrorPath: APath<*>? = null,
     ) {
         enum class Status {
             SEARCHING, COMPLETED, ERROR, CANCELLED
@@ -143,6 +142,25 @@ class SearchEngine @AssistedInject constructor(
         log(tag, INFO) { "Clearing target progress state" }
         _targetProgressState.value = emptyList()
     }
+
+    private fun backendFor(target: SearchTarget): SearchBackend? {
+        val candidates = backends.filter { it.canHandle(target) }
+        if (candidates.isEmpty()) return null
+        val topPriority = candidates.maxOf { it.priority }
+        val top = candidates.filter { it.priority == topPriority }
+        if (top.size > 1) {
+            log(tag, ERROR) {
+                "Ambiguous backend registration for $target: ${top.map { it::class.simpleName }} " +
+                    "share priority $topPriority — picking deterministically, fix the registrations!"
+            }
+        }
+        return top.minByOrNull { it::class.java.name }
+    }
+
+    private fun aggregateForDisplay(requirementsList: List<PathRequirements>) = PathRequirements(
+        combos = requirementsList.flatMap { it.combos }.distinct().toSet(),
+        complete = requirementsList.flatMap { it.complete }.distinct().toSet(),
+    )
 
     private fun getDefaultSearchPaths(): List<SearchTarget> {
         log(tag, INFO) { "Getting default search paths (all public storage volumes)" }
@@ -185,48 +203,46 @@ class SearchEngine @AssistedInject constructor(
         val hasFilters = command.filter.hasConditions()
         if (!hasPattern && !hasFilters) {
             log(tag, WARN) { "Skipping search - no patterns and no filters" }
-            return Result.InvalidQuery
+            return Result.InvalidQuery()
+        }
+
+        // Patterns must compile - checked once here so an invalid regex surfaces as an error
+        // instead of failing per item and reading as "no results"
+        if (command.filenameQuery.isNotEmpty) {
+            PatternMatcher.validate(command.filenameQuery.pattern, command.filenameQuery.patternOptions)?.let {
+                log(tag, WARN) { "Invalid filename pattern: $it" }
+                return Result.InvalidQuery(it)
+            }
+        }
+        if (command.contentQuery.isNotEmpty) {
+            PatternMatcher.validate(command.contentQuery.pattern, command.contentQuery.patternOptions)?.let {
+                log(tag, WARN) { "Invalid content pattern: $it" }
+                return Result.InvalidQuery(it)
+            }
         }
 
         // Validate targets
-        if (command.targets.isEmpty()) {
-            log(tag, ERROR) { "Cannot start search: No search targets" }
-            return Result.NoTargets
-        }
-
-        // Check permissions for enabled paths
-        val enabledPaths = command.targets
-            .filterIsInstance<SearchTarget.Path>()
-            .filter { it.enabled }
-            .map { it.path }
-
-        if (enabledPaths.isEmpty()) {
+        val enabledTargets = command.targets.filter { it.enabled }
+        if (enabledTargets.isEmpty()) {
             log(tag, ERROR) { "Cannot start search: No enabled search targets" }
             return Result.NoTargets
         }
 
         return try {
-            // Get permission requirements for all enabled paths
-            val requirementsList = enabledPaths.map { path ->
-                pathPermissionCheck.monitor(path).first()
+            // Per-target permission gating: ANY target that needs setup blocks the search —
+            // a union would let one satisfied target mask another target's requirements.
+            val requirementsByTarget = enabledTargets.mapNotNull { target ->
+                val backend = backendFor(target) ?: return@mapNotNull null
+                target to backend.monitorRequirements(target).first()
+            }
+            val aggregate = aggregateForDisplay(requirementsByTarget.map { it.second })
+            _setupRequirements.value = aggregate
+
+            if (requirementsByTarget.any { it.second.needsSetup }) {
+                log(tag, WARN) { "Cannot start search: Setup required - $aggregate" }
+                return Result.PermissionsRequired(aggregate)
             }
 
-            // Aggregate requirements
-            val setupRequirements = PathRequirements(
-                combos = requirementsList.flatMap { it.combos }.distinct().toSet(),
-                complete = requirementsList.flatMap { it.complete }.distinct().toSet(),
-            )
-
-            // Update state with permission requirements
-            _setupRequirements.value = setupRequirements
-
-            // Check if setup is needed
-            if (setupRequirements.needsSetup) {
-                log(tag, WARN) { "Cannot start search: Setup required - $setupRequirements" }
-                return Result.PermissionsRequired(setupRequirements)
-            }
-
-            // Permission check passed, proceed with search
             val searchQuery = SearchQuery(
                 filenameQuery = command.filenameQuery,
                 contentQuery = command.contentQuery,
@@ -246,7 +262,7 @@ class SearchEngine @AssistedInject constructor(
     }
 
     sealed interface Result {
-        data object InvalidQuery : Result
+        data class InvalidQuery(val reason: String? = null) : Result
         data object NoTargets : Result
         data class PermissionsRequired(val requirements: PathRequirements) : Result
         data class Success(val results: Flow<SearchItem>) : Result
@@ -257,17 +273,15 @@ class SearchEngine @AssistedInject constructor(
         searchQuery: SearchQuery,
         onProgress: ((SearchProgress) -> Unit)? = null
     ): Flow<SearchItem> = channelFlow {
-        val enabledTargets = searchQuery.targets
-            .filterIsInstance<SearchTarget.Path>()
-            .filter { it.enabled }
+        val enabledTargets = searchQuery.targets.filter { it.enabled }
 
         log(
             tag,
             INFO
-        ) { "Starting concurrent search (filename: ${searchQuery.filenameQuery.pattern}, content: ${searchQuery.contentQuery.pattern}) across ${enabledTargets.size} enabled path(s)" }
+        ) { "Starting concurrent search (filename: ${searchQuery.filenameQuery.pattern}, content: ${searchQuery.contentQuery.pattern}) across ${enabledTargets.size} enabled target(s)" }
 
         // Initialize target progress states
-        val initialProgress = enabledTargets.map { target ->
+        _targetProgressState.value = enabledTargets.map { target ->
             SearchTargetProgress(
                 target = target,
                 itemsScanned = 0,
@@ -275,87 +289,78 @@ class SearchEngine @AssistedInject constructor(
                 status = SearchTargetProgress.Status.SEARCHING,
             )
         }
-        _targetProgressState.value = initialProgress
+
+        fun updateProgress(target: SearchTarget, transform: (SearchTargetProgress) -> SearchTargetProgress) {
+            _targetProgressState.update { current ->
+                current.map { if (it.target == target) transform(it) else it }
+            }
+        }
 
         val progressAggregator = ProgressAggregator()
         val includeBinaries = searcherSettings.contentSearchBinaries.value()
 
-        // Launch concurrent scanner for each path
-        enabledTargets.forEach { pathTarget ->
+        // Launch concurrent scanner for each target
+        enabledTargets.forEach { target ->
             launch {
                 try {
-                    pathScanner.scan(
-                        path = pathTarget.path,
+                    val backend = backendFor(target) ?: throw UnsupportedTargetException(target)
+                    searchQuery.filter.conditions.firstOrNull { !backend.supports(it) }?.let {
+                        throw UnsupportedFilterException(it)
+                    }
+
+                    val session = SearchBackend.ScanSession(
+                        workspaceId = workspaceId,
+                        target = target,
                         query = searchQuery,
                         includeBinaries = includeBinaries,
-                        onProgress = { pathProgress ->
-                            progressAggregator.update(pathTarget.path, pathProgress)
+                        onProgress = { scanProgress ->
+                            scanProgress.currentPath?.let { progressAggregator.update(it, scanProgress) }
 
-                            // Update target progress state
-                            _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
-                                if (targetProgress.target.path == pathTarget.path) {
-                                    targetProgress.copy(
-                                        itemsScanned = pathProgress.itemsScanned,
-                                        resultsFound = pathProgress.resultsFound,
-                                    )
-                                } else {
-                                    targetProgress
-                                }
+                            updateProgress(target) {
+                                it.copy(
+                                    itemsScanned = scanProgress.itemsScanned,
+                                    resultsFound = scanProgress.resultsFound,
+                                    errorCount = scanProgress.errorCount,
+                                    firstErrorPath = scanProgress.firstErrorPath,
+                                )
                             }
 
                             // Report aggregate progress every 100 items
-                            if (pathProgress.itemsScanned % 100 == 0) {
+                            if (scanProgress.itemsScanned % 100 == 0) {
                                 val aggregate = progressAggregator.createSnapshot()
-                                onProgress?.invoke(
-                                    SearchProgress(
-                                        currentPath = aggregate.currentPath ?: pathTarget.path,
-                                        itemsScanned = aggregate.totalScanned,
-                                        resultsFound = aggregate.totalFound,
+                                val currentPath = aggregate.currentPath ?: scanProgress.currentPath
+                                if (currentPath != null) {
+                                    onProgress?.invoke(
+                                        SearchProgress(
+                                            currentPath = currentPath,
+                                            itemsScanned = aggregate.totalScanned,
+                                            resultsFound = aggregate.totalFound,
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
-                    ).collect { result ->
+                    )
+
+                    backend.scan(session).collect { result ->
                         send(result) // Send to channelFlow
                     }
 
-                    log(tag, INFO) { "Completed scan for path: ${pathTarget.path}" }
-
-                    // Mark as completed
-                    _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
-                        if (targetProgress.target.path == pathTarget.path) {
-                            targetProgress.copy(status = SearchTargetProgress.Status.COMPLETED)
-                        } else {
-                            targetProgress
-                        }
-                    }
+                    log(tag, INFO) { "Completed scan for target: ${target.displayText}" }
+                    updateProgress(target) { it.copy(status = SearchTargetProgress.Status.COMPLETED) }
                 } catch (e: CancellationException) {
-                    log(tag, INFO) { "Scanner cancelled for ${pathTarget.path}" }
-
-                    // Mark as cancelled
-                    _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
-                        if (targetProgress.target.path == pathTarget.path) {
-                            targetProgress.copy(status = SearchTargetProgress.Status.CANCELLED)
-                        } else {
-                            targetProgress
-                        }
-                    }
+                    log(tag, INFO) { "Scanner cancelled for ${target.displayText}" }
+                    updateProgress(target) { it.copy(status = SearchTargetProgress.Status.CANCELLED) }
                     throw e
                 } catch (e: Exception) {
-                    log(tag, WARN) { "Failed to scan ${pathTarget.path}: ${e.message}" }
-
-                    // Mark as error with exception details
-                    _targetProgressState.value = _targetProgressState.value.map { targetProgress ->
-                        if (targetProgress.target.path == pathTarget.path) {
-                            targetProgress.copy(
-                                status = SearchTargetProgress.Status.ERROR,
-                                exception = e,
-                            )
-                        } else {
-                            targetProgress
-                        }
+                    log(tag, WARN) { "Failed to scan ${target.displayText}: ${e.message}" }
+                    updateProgress(target) {
+                        it.copy(
+                            status = SearchTargetProgress.Status.ERROR,
+                            exception = e,
+                        )
                     }
-                    // Continue with other paths
+                    // Continue with other targets
                 }
             }
         }

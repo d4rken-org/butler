@@ -49,9 +49,29 @@ object PatternMatcher {
     }
 
     /**
+     * Validates that [pattern] compiles under [options]. Returns a human-readable reason when it
+     * doesn't, null when it is usable. Call this ONCE per search for each non-empty query side —
+     * per-item compilation of an invalid pattern used to silently produce zero results.
+     */
+    fun validate(pattern: String, options: PatternOptions): String? {
+        if (pattern.isBlank()) return "Pattern is blank"
+        if (!options.useRegex && !options.wholeWord) return null
+        return try {
+            if (options.useRegex) {
+                getOrCompileRegex(pattern, options.caseSensitive)
+            } else {
+                getOrCompileRegex("\\b${Regex.escape(pattern)}\\b", options.caseSensitive)
+            }
+            null
+        } catch (e: Exception) {
+            e.message ?: "Invalid pattern"
+        }
+    }
+
+    /**
      * Returns true if pattern matches anywhere in text.
      */
-    fun matches(text: String, pattern: String, options: PatternOptions): MatchResult {
+    fun matches(text: CharSequence, pattern: String, options: PatternOptions): MatchResult {
         if (pattern.isBlank()) return MatchResult.InvalidPattern("Pattern is blank")
 
         return when {
@@ -71,7 +91,7 @@ object PatternMatcher {
     /**
      * Finds the first match of pattern in text.
      */
-    fun find(text: String, pattern: String, options: PatternOptions): MatchResult {
+    fun find(text: CharSequence, pattern: String, options: PatternOptions): MatchResult {
         if (pattern.isBlank()) return MatchResult.InvalidPattern("Pattern is blank")
 
         return when {
@@ -94,7 +114,7 @@ object PatternMatcher {
         }
     }
 
-    private fun matchRegex(text: String, pattern: String, caseSensitive: Boolean): MatchResult {
+    private fun matchRegex(text: CharSequence, pattern: String, caseSensitive: Boolean): MatchResult {
         return try {
             val regex = getOrCompileRegex(pattern, caseSensitive)
             if (regex.containsMatchIn(text)) {
@@ -107,7 +127,7 @@ object PatternMatcher {
         }
     }
 
-    private fun matchWholeWord(text: String, pattern: String, caseSensitive: Boolean): MatchResult {
+    private fun matchWholeWord(text: CharSequence, pattern: String, caseSensitive: Boolean): MatchResult {
         return try {
             val wordPattern = "\\b${Regex.escape(pattern)}\\b"
             val regex = getOrCompileRegex(wordPattern, caseSensitive)
@@ -121,7 +141,7 @@ object PatternMatcher {
         }
     }
 
-    private fun findRegex(text: String, pattern: String, caseSensitive: Boolean): MatchResult {
+    private fun findRegex(text: CharSequence, pattern: String, caseSensitive: Boolean): MatchResult {
         return try {
             val regex = getOrCompileRegex(pattern, caseSensitive)
             val match = regex.find(text)
@@ -135,7 +155,7 @@ object PatternMatcher {
         }
     }
 
-    private fun findWholeWord(text: String, pattern: String, caseSensitive: Boolean): MatchResult {
+    private fun findWholeWord(text: CharSequence, pattern: String, caseSensitive: Boolean): MatchResult {
         return try {
             val wordPattern = "\\b${Regex.escape(pattern)}\\b"
             val regex = getOrCompileRegex(wordPattern, caseSensitive)
@@ -150,7 +170,7 @@ object PatternMatcher {
         }
     }
 
-    private fun findSubstring(text: String, pattern: String, caseSensitive: Boolean): MatchResult {
+    private fun findSubstring(text: CharSequence, pattern: String, caseSensitive: Boolean): MatchResult {
         val idx = text.indexOf(pattern, ignoreCase = !caseSensitive)
         return if (idx >= 0) {
             MatchResult.Found(idx, idx + pattern.length)
