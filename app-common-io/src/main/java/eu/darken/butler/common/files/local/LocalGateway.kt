@@ -42,6 +42,7 @@ import eu.darken.butler.common.files.local.service.IsolatedServiceClient.*
 import eu.darken.butler.common.files.local.service.runModuleAction
 import eu.darken.butler.common.files.local.walkers.DirectLocalWalker
 import eu.darken.butler.common.files.local.walkers.IndirectLocalWalker
+import eu.darken.butler.common.files.local.walkers.RoutedLocalWalker
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -538,6 +539,24 @@ class LocalGateway @Inject constructor(
             followSymlinks = walkOptions.followSymlinks,
         )
 
+        // Routes each subtree to the mode the policy assigns it, escalating at boundaries and on
+        // runtime failures — a walk over mixed-access trees no longer silently skips subtrees.
+        fun routedWalker(): Flow<LocalPathLookup> = RoutedLocalWalker(
+            routingPolicy = routingPolicy,
+            sessionFactory = modeSessionFactory,
+            caps = CapabilitySnapshot(
+                rootProvider = { hasRoot() },
+                adbProvider = { hasAdb() },
+            ),
+            start = path,
+            lookupOptions = lookupOptions,
+            pathDoesNotContain = walkOptions.pathDoesNotContain,
+            onFilter = { lookup -> walkOptions.onFilter?.invoke(lookup) ?: true },
+            onError = { lookup, exception -> walkOptions.onError?.invoke(lookup, exception) ?: true },
+            followSymlinks = walkOptions.followSymlinks,
+            streamingEligible = walkOptions.isStreamable,
+        )
+
         // Can't pass functions via IPC
         fun indirectWalker(walkMode: Mode): Flow<LocalPathLookup> = IndirectLocalWalker(
             gateway = this,
@@ -549,12 +568,17 @@ class LocalGateway @Inject constructor(
             followSymlinks = walkOptions.followSymlinks,
         )
 
-        suspend fun walkVia(walkMode: Mode): Flow<LocalPathLookup> = if (walkOptions.isDirect) {
+        suspend fun walkVia(walkMode: Mode): Flow<LocalPathLookup> = if (walkOptions.isStreamable) {
             log(TAG, VERBOSE) { "walk($walkMode, direct): $path" }
             walkViaIpc(walkMode, path, lookupOptions, walkOptions)
         } else {
             log(TAG, VERBOSE) { "walk($walkMode, indirect): $path" }
             indirectWalker(walkMode)
+        }
+
+        if (mode == Mode.AUTO) {
+            log(TAG, VERBOSE) { "walk(AUTO, routed): $path" }
+            return routedWalker().catch { throw mapPermissionError(path, "walk", it) }
         }
 
         return executeWithMode(

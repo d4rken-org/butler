@@ -31,13 +31,17 @@ interface APathGateway<
         val onError: (suspend (PLU, Exception) -> Boolean)? = null,
         /**
          * Follow symlinks-to-directories wherever they point (with canonical-path cycle detection),
-         * like `find -L`. Default false. Destructive callers must leave this false. Enabling it forces
-         * the in-process walker (the streaming-IPC walk path does not honor it), see [isDirect].
+         * like `find -L`. Default false. Destructive callers must leave this false.
          */
         val followSymlinks: Boolean = false,
     ) {
-        val isDirect: Boolean
-            get() = onFilter == null && onError == null && !followSymlinks
+        /**
+         * Whether escalated walks may run host-side as one streaming IPC call. Only [onFilter]
+         * disqualifies: its traversal-pruning contract cannot cross the IPC boundary, while
+         * [onError] and [followSymlinks] are carried by the WalkEvent protocol/WalkSpec.
+         */
+        val isStreamable: Boolean
+            get() = onFilter == null
     }
 
     suspend fun du(

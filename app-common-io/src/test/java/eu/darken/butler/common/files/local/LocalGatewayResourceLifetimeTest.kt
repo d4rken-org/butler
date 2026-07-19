@@ -59,7 +59,8 @@ import kotlin.time.Instant
  * - Explicit walk(ROOT/ADB) does not pre-check root/ADB availability (historic behavior).
  * - AUTO escalation never converts an original error into NO_MECHANISM when no
  *   escalation mechanism is available.
- * - walk(AUTO) collection-time errors do not trigger escalation (cold flow semantics).
+ * - walk(AUTO) runs through RoutedLocalWalker: collection-time IO failures escalate
+ *   mid-walk through untried modes, and all mode sessions are closed when the flow ends.
  * - Routed AUTO operations close their mode sessions even when collection fails.
  */
 @RunWith(AndroidJUnit4::class)
@@ -144,7 +145,7 @@ class LocalGatewayResourceLifetimeTest : BaseTest() {
         val heldResource = mockRootResource()
         val sessionResource = mockRootResource()
         coEvery { mockRootServiceClient.get() } returnsMany listOf(heldResource, sessionResource)
-        coEvery { mockFileOpsClient.walk(path, any(), any()) } returns flowOf(lookup(path.child("file")))
+        coEvery { mockFileOpsClient.walk(path, any(), any(), any()) } returns flowOf(lookup(path.child("file")))
 
         // Note: useRoot is false — explicit walk(ROOT) intentionally skips the availability pre-check
         val walkFlow = gateway.walk(
@@ -168,7 +169,7 @@ class LocalGatewayResourceLifetimeTest : BaseTest() {
         val heldResource = mockRootResource()
         val sessionResource = mockRootResource()
         coEvery { mockRootServiceClient.get() } returnsMany listOf(heldResource, sessionResource)
-        coEvery { mockFileOpsClient.walk(path, any(), any()) } returns flow {
+        coEvery { mockFileOpsClient.walk(path, any(), any(), any()) } returns flow {
             while (true) emit(lookup(path.child("file")))
         }
 
@@ -188,7 +189,7 @@ class LocalGatewayResourceLifetimeTest : BaseTest() {
         val heldResource = mockRootResource()
         val sessionResource = mockRootResource()
         coEvery { mockRootServiceClient.get() } returnsMany listOf(heldResource, sessionResource)
-        coEvery { mockFileOpsClient.walk(path, any(), any()) } throws IOException("boom")
+        coEvery { mockFileOpsClient.walk(path, any(), any(), any()) } throws IOException("boom")
 
         shouldThrow<IOException> {
             gateway.walk(
@@ -203,10 +204,31 @@ class LocalGatewayResourceLifetimeTest : BaseTest() {
     }
 
     @Test
-    fun `walk AUTO collection-time IOException does not escalate`() = runTest2 {
+    fun `walk AUTO escalates after collection-time IOException and closes mode sessions`() = runTest2 {
         val path = LocalPath.build("/sdcard/dir")
         every { mockRootManager.useRoot } returns flowOf(true)
-        coEvery { mockFileSystemOps.lookup(path, any()) } throws IOException("boom")
+
+        val directLease = RecordingKeepAlive()
+        val rootLease = RecordingKeepAlive()
+        val directOps = mockk<FileSystemOps<LocalPath, LocalPathLookup>>()
+        val rootOps = mockk<FileSystemOps<LocalPath, LocalPathLookup>>()
+        coEvery { directOps.lookup(path, any()) } returns lookup(path, FileType.DIRECTORY)
+        coEvery { directOps.lookupFiles(path, any()) } throws IOException("boom")
+        coEvery { rootOps.lookupFiles(path, any()) } returns listOf(lookup(path.child("file")))
+
+        coEvery { mockRoutingPolicy.classify(any(), any(), any()) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+        coEvery { mockModeSessionFactory.open(AccessMode.DIRECT) } returns ModeSession(
+            mode = AccessMode.DIRECT,
+            ops = directOps,
+            batch = null,
+            lease = directLease,
+        )
+        coEvery { mockModeSessionFactory.open(AccessMode.ROOT) } returns ModeSession(
+            mode = AccessMode.ROOT,
+            ops = rootOps,
+            batch = null,
+            lease = rootLease,
+        )
 
         val walkFlow = gateway.walk(
             path = path,
@@ -215,10 +237,46 @@ class LocalGatewayResourceLifetimeTest : BaseTest() {
             mode = LocalGateway.Mode.AUTO,
         )
 
-        shouldThrow<IOException> { walkFlow.collect() }
+        // Sessions open lazily during collection, never at flow construction
+        coVerify(exactly = 0) { mockModeSessionFactory.open(any()) }
 
-        // Escalation only applies at flow construction time, never during collection
-        coVerify(exactly = 0) { mockRootServiceClient.get() }
+        walkFlow.toList().map { it.lookedUp } shouldBe listOf(path.child("file"))
+
+        // The collection-time IO failure escalated to ROOT instead of surfacing
+        coVerify(exactly = 1) { mockModeSessionFactory.open(AccessMode.ROOT) }
+        // The routed walker closes its session registry when the flow completes
+        directLease.isClosed shouldBe true
+        rootLease.isClosed shouldBe true
+    }
+
+    @Test
+    fun `walk AUTO closes mode sessions when the flow is cancelled`() = runTest2 {
+        val path = LocalPath.build("/sdcard/dir")
+
+        val directLease = RecordingKeepAlive()
+        val directOps = mockk<FileSystemOps<LocalPath, LocalPathLookup>>()
+        coEvery { directOps.lookup(path, any()) } returns lookup(path, FileType.DIRECTORY)
+        coEvery { directOps.lookupFiles(path, any()) } returns listOf(
+            lookup(path.child("file1")),
+            lookup(path.child("file2")),
+        )
+
+        coEvery { mockRoutingPolicy.classify(any(), any(), any()) } returns RouteDecision.Allowed(AccessMode.DIRECT)
+        coEvery { mockModeSessionFactory.open(AccessMode.DIRECT) } returns ModeSession(
+            mode = AccessMode.DIRECT,
+            ops = directOps,
+            batch = null,
+            lease = directLease,
+        )
+
+        gateway.walk(
+            path = path,
+            lookupOptions = LookupOptions.BASE,
+            walkOptions = APathGateway.WalkOptions(),
+            mode = LocalGateway.Mode.AUTO,
+        ).first()
+
+        directLease.isClosed shouldBe true
     }
 
     // ========================================================================

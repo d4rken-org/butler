@@ -26,5 +26,6 @@ sealed interface SearcherArguments : Workspace.Arguments {
         val contentQuery: ContentQuery? = null,
         val filter: SearchFilter? = null,
         val startSearch: Boolean = false,
+        val followSymlinks: Boolean = false,
     ) : SearcherArguments
 }

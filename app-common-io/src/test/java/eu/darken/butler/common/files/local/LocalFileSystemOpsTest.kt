@@ -11,14 +11,17 @@ import eu.darken.butler.common.files.metadata.OwnershipResolver
 import eu.darken.butler.common.files.metadata.Permissions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
+import io.mockk.spyk
 import io.mockk.unmockkConstructor
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -180,6 +183,70 @@ class LocalFileSystemOpsTest : BaseTest() {
         // Note: permissions and ownership require Android APIs (Os.lstat) which aren't
         // available in pure JVM unit tests. Verify the method returns data, not the values.
         lookups.all { it.createdAt != null } shouldBe true
+    }
+
+    @Test
+    fun `lookupFiles with continueOnError=true keeps an unreadable child as UNKNOWN`(@TempDir tempDir: File) = runTest {
+        File(tempDir, "good1.txt").apply { writeText("a") }
+        File(tempDir, "unreadable.txt").apply { writeText("b") }
+        File(tempDir, "good2.txt").apply { writeText("c") }
+        val failingChild = LocalPath.build(tempDir, "unreadable.txt")
+
+        val spyOps = spyk(fileSystemOps)
+        coEvery { spyOps.lookup(failingChild, any()) } throws ReadException(path = failingChild)
+
+        val lookups = spyOps.lookupFiles(
+            LocalPath.build(tempDir),
+            LookupOptions.BASE.copy(continueOnError = true),
+        )
+
+        // Still exists but can't be read: stays visible as UNKNOWN instead of silently vanishing
+        lookups.map { it.lookedUp.name } shouldContainExactlyInAnyOrder listOf(
+            "good1.txt",
+            "good2.txt",
+            "unreadable.txt",
+        )
+        val unreadable = lookups.single { it.lookedUp.name == "unreadable.txt" }
+        unreadable.fileType shouldBe FileType.UNKNOWN
+        unreadable.error shouldNotBe null
+    }
+
+    @Test
+    fun `lookupFiles with continueOnError=true silently skips a vanished child`(@TempDir tempDir: File) = runTest {
+        File(tempDir, "good.txt").apply { writeText("a") }
+        val vanishing = File(tempDir, "vanished.txt").apply { writeText("b") }
+        val vanishedChild = LocalPath.build(vanishing)
+
+        val spyOps = spyk(fileSystemOps)
+        // The child disappears between the directory listing and its lookup
+        coEvery { spyOps.lookup(vanishedChild, any()) } answers {
+            vanishing.delete()
+            throw ReadException(path = vanishedChild)
+        }
+
+        val lookups = spyOps.lookupFiles(
+            LocalPath.build(tempDir),
+            LookupOptions.BASE.copy(continueOnError = true),
+        )
+
+        lookups.map { it.lookedUp.name } shouldContainExactlyInAnyOrder listOf("good.txt")
+    }
+
+    @Test
+    fun `lookupFiles with continueOnError=false fails the directory when a child fails lookup`(@TempDir tempDir: File) = runTest {
+        File(tempDir, "good.txt").apply { writeText("a") }
+        File(tempDir, "vanished.txt").apply { writeText("b") }
+        val failingChild = LocalPath.build(tempDir, "vanished.txt")
+
+        val spyOps = spyk(fileSystemOps)
+        coEvery { spyOps.lookup(failingChild, any()) } throws ReadException(path = failingChild)
+
+        shouldThrow<ReadException> {
+            spyOps.lookupFiles(
+                LocalPath.build(tempDir),
+                LookupOptions.BASE.copy(continueOnError = false),
+            )
+        }
     }
 
     @Test

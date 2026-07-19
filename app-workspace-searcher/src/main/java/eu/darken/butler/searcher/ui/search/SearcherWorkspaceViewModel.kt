@@ -39,7 +39,6 @@ import eu.darken.butler.searcher.core.sorting.SearchItemSorter
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogEvent
 import eu.darken.butler.searcher.ui.search.dialogs.SearcherDialogState
 import eu.darken.butler.searcher.ui.search.util.SearchListItem
-import eu.darken.butler.searcher.ui.search.util.distinctByPath
 import eu.darken.butler.searcher.ui.search.util.SearcherActionBarItem
 import eu.darken.butler.searcher.ui.search.util.SearcherPageAction
 import eu.darken.butler.searcher.ui.search.util.SearcherSelectionState
@@ -168,7 +167,8 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         displayResultsCache?.let { (cachedRaw, cachedSort, cachedValue) ->
             if (cachedRaw === raw && cachedSort == sort) return cachedValue
         }
-        val computed = itemSorter.sortItems(raw.distinctByPath(), sort)
+        // Results arrive path-deduplicated from the workspace (dedup runs before the result cap)
+        val computed = itemSorter.sortItems(raw, sort)
         displayResultsCache = Triple(raw, sort, computed)
         return computed
     }
@@ -226,10 +226,12 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 if (result.selectedPaths.isNotEmpty()) {
                     vmScope.launch {
                         val workspace = getWorkspace()
-                        // Add each selected path, deduplicating
+                        // Add each selected path, deduplicating against existing path targets only
+                        // (a null-keyed distinctBy would collapse all non-Path targets into one)
                         result.selectedPaths.forEach { path ->
                             workspace.updateTargets { current ->
-                                (current + SearchTarget.Path.from(path)).distinctBy { (it as? SearchTarget.Path)?.path }
+                                val exists = current.any { it is SearchTarget.Path && it.path == path }
+                                if (exists) current else current + SearchTarget.Path.from(path)
                             }
                         }
                     }
@@ -640,23 +642,29 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         clearExecutedResults()
     }
 
+    // Targets are matched by identity-relevant fields, not by a Path cast: a nullable-cast
+    // comparison would treat ALL non-Path targets as equal to each other.
+    private fun SearchTarget.matchesIdentity(other: SearchTarget): Boolean = when (this) {
+        is SearchTarget.Path -> other is SearchTarget.Path && path == other.path
+    }
+
     private fun removeSearchTarget(target: SearchTarget) {
-        log(TAG) { "Removing search target: ${(target as? SearchTarget.Path)?.path}" }
+        log(TAG) { "Removing search target: ${target.displayText}" }
         vmScope.launch {
             val workspace = getWorkspace()
             workspace.updateTargets { current ->
-                current.filter { (it as? SearchTarget.Path)?.path != (target as? SearchTarget.Path)?.path }
+                current.filter { !it.matchesIdentity(target) }
             }
         }
     }
 
     private fun toggleTargetEnabled(target: SearchTarget) {
-        log(TAG) { "Toggling target enabled: ${(target as? SearchTarget.Path)?.path}" }
+        log(TAG) { "Toggling target enabled: ${target.displayText}" }
         vmScope.launch {
             val workspace = getWorkspace()
             workspace.updateTargets { current ->
                 current.map {
-                    if ((it as? SearchTarget.Path)?.path == (target as? SearchTarget.Path)?.path) {
+                    if (it.matchesIdentity(target)) {
                         when (it) {
                             is SearchTarget.Path -> it.copy(enabled = !it.enabled)
                         }

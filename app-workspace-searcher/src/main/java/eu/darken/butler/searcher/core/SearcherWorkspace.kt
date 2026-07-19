@@ -49,6 +49,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
@@ -99,6 +100,7 @@ class SearcherWorkspace @AssistedInject constructor(
             contentQuery = currentState.currentSearchQuery?.contentQuery,
             filter = currentState.currentSearchQuery?.filter,
             startSearch = false,
+            followSymlinks = currentState.currentSearchQuery?.options?.followSymlinks ?: false,
         )
     }
 
@@ -122,6 +124,18 @@ class SearcherWorkspace @AssistedInject constructor(
         val setupRequirements: PathRequirements = PathRequirements(), // From engine
         val targetProgress: List<SearchEngine.SearchTargetProgress> = emptyList(), // From engine
     ) {
+        /**
+         * True when the result set may be incomplete: some target failed outright or hit
+         * per-subtree/per-file errors while others produced results. Derived from target
+         * progress (not separately stored) and also true when there are zero results — "nothing
+         * found" and "nothing found, but some locations couldn't be searched" must not look
+         * alike. Cap truncation is NOT partiality; it is reported via [limitReached].
+         */
+        val partialResults: Boolean
+            get() = targetProgress.any {
+                it.errorCount > 0 || it.status == SearchEngine.SearchTargetProgress.Status.ERROR
+            } && searchStatus != SearchStatus.ERROR
+
         enum class SearchStatus {
             IDLE, SEARCHING, COMPLETED, ERROR, CANCELLED
         }
@@ -269,6 +283,7 @@ class SearcherWorkspace @AssistedInject constructor(
                         contentQuery = contentQuery,
                         targets = args?.startTargets ?: emptyList(),
                         filter = filter,
+                        options = SearchQuery.Options(followSymlinks = args?.followSymlinks ?: false),
                     )
                 )
             }
@@ -365,11 +380,13 @@ class SearcherWorkspace @AssistedInject constructor(
             }
         })) {
             is SearchEngine.Result.InvalidQuery -> {
-                log(tag, WARN) { "Search failed: Invalid query" }
+                log(tag, WARN) { "Search failed: Invalid query (${result.reason})" }
                 updateGuarded(generation) {
                     it.copy(
                         searchStatus = State.SearchStatus.ERROR,
-                        error = IllegalArgumentException("Invalid query"),
+                        error = IllegalArgumentException(
+                            result.reason?.let { reason -> "Invalid query: $reason" } ?: "Invalid query"
+                        ),
                     )
                 }
             }
@@ -409,10 +426,14 @@ class SearcherWorkspace @AssistedInject constructor(
                     // The engine streams unlimited; the cap is enforced here so that stopping at
                     // the limit is a normal completion, not a cancellation. One extra item is
                     // requested to tell "exactly the limit exists" apart from actual truncation.
+                    // Dedup runs BEFORE the cap: overlapping search roots surface the same file
+                    // once, and duplicates must not consume the result budget.
                     val maxResults = command.options.maxResults?.takeIf { it > 0 }
+                    val seenPaths = HashSet<String>()
+                    val distinctResults = result.results.filter { seenPaths.add(it.path.path) }
                     val cappedResults = when (maxResults) {
-                        null -> result.results
-                        else -> result.results.take(maxResults + 1)
+                        null -> distinctResults
+                        else -> distinctResults.take(maxResults + 1)
                     }
 
                     val results = mutableListOf<SearchItem>()
@@ -450,7 +471,7 @@ class SearcherWorkspace @AssistedInject constructor(
                         updateGuarded(generation) {
                             it.copy(
                                 searchStatus = State.SearchStatus.ERROR,
-                                error = firstError as? Exception,
+                                error = firstError,
                             )
                         }
                     } else {
