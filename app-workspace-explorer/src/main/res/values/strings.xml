@@ -376,6 +376,20 @@
     <string name="explorer_compress_dialog_name_label">Archive name</string>
     <string name="explorer_compress_dialog_format_label">Format</string>
     <string name="explorer_compress_dialog_create_action">Create</string>
+    <string name="explorer_compress_dialog_level_label">Compression level</string>
+    <string name="explorer_compress_dialog_level_fast">Fast</string>
+    <string name="explorer_compress_dialog_level_normal">Normal</string>
+    <string name="explorer_compress_dialog_level_best">Best</string>
+    <string name="explorer_compress_dialog_password_label">Password (optional)</string>
+    <string name="explorer_compress_dialog_password_confirm_label">Confirm password</string>
+    <string name="explorer_compress_dialog_password_mismatch">Passwords don\'t match</string>
+    <string name="explorer_compress_dialog_password_weak">Weak password</string>
+    <string name="explorer_compress_dialog_password_notice">File contents are encrypted, file names are not.</string>
+    <string name="explorer_compress_dialog_password_show">Show password</string>
+    <string name="explorer_compress_dialog_password_hide">Hide password</string>
+    <string name="explorer_compress_dialog_overwrite_title">Replace archive?</string>
+    <string name="explorer_compress_dialog_overwrite_message">\"%1$s\" already exists and will be replaced.</string>
+    <string name="explorer_compress_dialog_overwrite_action">Replace</string>
 
     <string name="explorer_operation_move_title">Move operation</string>
     <string name="explorer_operation_move_description_single">Move \"%1$s\" from \"%2$s\" to \"%3$s\".</string>
