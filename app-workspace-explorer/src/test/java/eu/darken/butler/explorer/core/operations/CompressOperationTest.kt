@@ -13,7 +13,7 @@ import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
-import eu.darken.butler.explorer.core.filesystem.FileSystemHinter
+import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.Operation
 import io.kotest.assertions.throwables.shouldThrow
