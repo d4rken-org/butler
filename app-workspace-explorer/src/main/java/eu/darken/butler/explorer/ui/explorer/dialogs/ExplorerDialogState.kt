@@ -1,9 +1,12 @@
 package eu.darken.butler.explorer.ui.explorer.dialogs
 
 import eu.darken.butler.common.files.APath
+import eu.darken.butler.common.files.archive.ArchiveFormat
+import eu.darken.butler.common.files.archive.CompressionPreset
 import eu.darken.butler.explorer.core.FileTypeFilter
 import eu.darken.butler.explorer.core.SortSettings
 import eu.darken.butler.explorer.core.engine.ExplorerItem
+import eu.darken.butler.explorer.core.operations.ExplorerCommand
 import eu.darken.butler.workspace.core.clipboard.ClipboardClip
 
 sealed interface ExplorerDialogState {
@@ -41,6 +44,13 @@ sealed interface ExplorerDialogState {
         val sources: Set<APath<*>>,
         val destinationDir: APath<*>,
         val suggestedName: String,
+        val defaultFormat: ArchiveFormat = ArchiveFormat.ZIP,
+        val defaultPreset: CompressionPreset = CompressionPreset.NORMAL,
+    ) : ExplorerDialogState
+
+    /** [pending] carries the ready-to-run command; on cancel its password must be wiped. */
+    data class CompressOverwriteConfirmation(
+        val pending: ExplorerCommand.Compress,
     ) : ExplorerDialogState
 
     data class TrashItemOptions(val item: ExplorerItem.Trash.Root) : ExplorerDialogState

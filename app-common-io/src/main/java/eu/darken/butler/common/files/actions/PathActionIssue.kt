@@ -149,8 +149,13 @@ sealed interface PathActionIssue : Issue {
         }
 
         sealed interface Resolution : PathActionIssue.Resolution {
-            /** The password must already be cached (UI stores it) before resolving; the item is retried. */
-            data class Submit(val password: String) : Resolution
+            /**
+             * The password must already be cached (UI stores it) before resolving; the item is retried.
+             * Not a data class: a generated toString would leak the plaintext password into logs.
+             */
+            class Submit(val password: String) : Resolution {
+                override fun toString(): String = "Submit(password=<set>)"
+            }
             data class Skip(val applyToAll: Boolean = false) : Resolution
             data class Cancel(val error: Exception? = null) : Resolution
         }
