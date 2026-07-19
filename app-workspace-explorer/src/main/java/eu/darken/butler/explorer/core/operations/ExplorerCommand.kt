@@ -3,6 +3,7 @@ package eu.darken.butler.explorer.core.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.workspace.core.operations.Operation
+import kotlin.uuid.Uuid
 
 sealed interface ExplorerCommand {
     data class Create(
@@ -85,4 +86,15 @@ sealed interface ExplorerCommand {
         val destinationDir: APath<*>,
         val entries: Set<List<String>>? = null,
     ) : ExplorerCommand
+
+    data class Restore(
+        val rootItemIds: Set<Uuid> = emptySet(),
+        val nestedItems: List<NestedTarget> = emptyList(),
+        val intendedPaths: List<APath<*>>,
+    ) : ExplorerCommand {
+        data class NestedTarget(
+            val parentId: Uuid,
+            val relativePath: String,
+        )
+    }
 }
