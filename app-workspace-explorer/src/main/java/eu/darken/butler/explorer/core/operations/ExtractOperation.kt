@@ -15,17 +15,21 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.ArchiveService
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
 import eu.darken.butler.explorer.R
 import eu.darken.butler.workspace.core.filesystem.FileSystemHinter
 import eu.darken.butler.workspace.core.Workspace
 import eu.darken.butler.workspace.core.operations.IssueHandler
 import eu.darken.butler.workspace.core.operations.Operation
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlin.time.Clock
@@ -118,6 +122,7 @@ class ExtractOperation @AssistedInject constructor(
                 return@useEntryStreams
             }
 
+            var overwriteAuthorized = false
             if (gatewaySwitch.exists(destPath)) {
                 val destLookup = gatewaySwitch.lookup(destPath, LookupOptions())
                 val resolution = issueHandler.handleIssue(
@@ -129,7 +134,9 @@ class ExtractOperation @AssistedInject constructor(
                     ),
                 )
                 when (resolution) {
-                    is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> Unit
+                    is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> overwriteAuthorized = true
+                    is PathActionIssue.PathAlreadyExists.Resolution.Cancel ->
+                        throw kotlin.coroutines.cancellation.CancellationException("User cancelled")
                     else -> {
                         reportBuilder.addSkipped(meta.segments.joinToString("/"))
                         return@useEntryStreams
@@ -140,7 +147,12 @@ class ExtractOperation @AssistedInject constructor(
             // Write to a temp sibling and commit on success so an interrupted extract never
             // leaves a truncated file at the destination. A random token keeps the temp name from
             // ever colliding with a real archive entry or a user's file (which we'd otherwise delete).
+            //
+            // Once a pre-existing destination is deleted the temp may be the only surviving copy of
+            // that user file's replacement, so it must be kept on any later failure. Before that
+            // boundary the temp is a discardable orphan (the archive still has the data).
             val tempPath = destParent!!.child(".${destPath.name}.${Uuid.random().toString().take(8)}.part")
+            var destructiveBoundaryCrossed = false
             try {
                 val written = gatewaySwitch.openOutputStream(tempPath).use { output ->
                     var count = 0L
@@ -155,13 +167,35 @@ class ExtractOperation @AssistedInject constructor(
                     output.flush()
                     count
                 }
-                if (gatewaySwitch.exists(destPath)) gatewaySwitch.delete(destPath)
-                gatewaySwitch.move(tempPath, destPath)
+                // Commit serialized per output path so concurrent operations on the same name
+                // can't interleave their delete/move steps.
+                archiveService.withOutputCommitLock(destPath) {
+                    if (gatewaySwitch.exists(destPath)) {
+                        if (!overwriteAuthorized) {
+                            // Appeared after the conflict check — never delete what the user
+                            // didn't authorize us to replace.
+                            throw WriteException("Destination appeared during extraction", destPath)
+                        }
+                        if (!gatewaySwitch.delete(destPath)) {
+                            throw WriteException("Could not replace existing file", destPath)
+                        }
+                        destructiveBoundaryCrossed = true
+                    }
+                    if (gatewaySwitch.move(tempPath, destPath) !is MoveOutcome.Moved || !gatewaySwitch.exists(destPath)) {
+                        val kept = if (destructiveBoundaryCrossed) ", data kept as ${tempPath.name}" else ""
+                        throw WriteException("Could not finalize extracted file$kept", destPath)
+                    }
+                }
                 processedBytes += written
                 reportBuilder.addExtracted(destPath, written)
                 runCatching { gatewaySwitch.lookup(destPath, LookupOptions()) }.getOrNull()?.let { addedLookups.add(it) }
             } catch (e: Exception) {
-                runCatching { if (gatewaySwitch.exists(tempPath)) gatewaySwitch.delete(tempPath) }
+                if (!destructiveBoundaryCrossed) {
+                    // Cleanup runs even though the coroutine may already be cancelled.
+                    withContext(NonCancellable) {
+                        runCatching { if (gatewaySwitch.exists(tempPath)) gatewaySwitch.delete(tempPath) }
+                    }
+                }
                 throw e
             }
 

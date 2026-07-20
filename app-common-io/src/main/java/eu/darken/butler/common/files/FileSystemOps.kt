@@ -203,17 +203,24 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
     suspend fun canonicalize(path: P): P
 
     /**
-     * Move/rename a file or directory.
+     * Move/rename a file or directory atomically.
      *
-     * Attempts atomic move when source and destination are on the same file system.
-     * Falls back to copy+delete if atomic move is not possible.
+     * Attempts an atomic move when source and destination are on the same file system.
+     * Does NOT fall back to copy+delete — that is the caller's responsibility on [MoveOutcome.NotSupported].
+     *
+     * Contract:
+     * - [MoveOutcome.Moved]: the document now exists at [destination] under the requested name.
+     * - [MoveOutcome.NotSupported]: provably nothing was mutated; the caller may fall back to copy+delete.
+     * - Exceptions signal failure, possibly with side effects — callers must NOT assume the source
+     *   is still intact and must not blindly fall back to copying it.
+     *
+     * Note: SAF cannot atomically reparent AND rename in one step; such moves return [MoveOutcome.NotSupported].
      *
      * @param source The source path to move
      * @param destination The destination path
-     * @return true if moved successfully
      * @throws eu.darken.butler.common.files.errors.WriteException if move fails
      */
-    suspend fun move(source: P, destination: P): Boolean
+    suspend fun move(source: P, destination: P): MoveOutcome
 
     /**
      * Open input stream for reading file contents.
@@ -231,12 +238,13 @@ interface FileSystemOps<P : APath<P>, PL : APathLookup<P>> {
      * Open output stream for writing file contents.
      *
      * Caller is responsible for closing the stream.
-     * Creates parent directories if needed.
+     * Creates the file if it doesn't exist yet (both append and truncate modes).
+     * The parent directory must already exist — parents are NOT created.
      *
      * @param path The file path to write
      * @param append If true, append to existing file; if false, truncate existing content
      * @return OutputStream for writing
-     * @throws eu.darken.butler.common.files.errors.WriteException if file cannot be opened
+     * @throws eu.darken.butler.common.files.errors.WriteException if file cannot be opened or created
      */
     suspend fun openOutputStream(path: P, append: Boolean = false): OutputStream
 

@@ -5,7 +5,9 @@ import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.metadata.FileType
@@ -126,7 +128,7 @@ class TransferConflictResolver<
         if (issueResolver.overwriteAllPathExists) {
             val recursive = destLookup.fileType == FileType.DIRECTORY
             log(tag, INFO) { "Overwriting (apply-to-all): $destination" }
-            destOps.delete(destination, recursive = recursive)
+            deleteForOverwrite(destination, recursive)
             onOverwrite(recursive)
             return ApplyToAllResult.Resolved
         }
@@ -173,7 +175,7 @@ class TransferConflictResolver<
 
         // Check if we have an issue handler
         if (onIssue == null) {
-            throw eu.darken.butler.common.files.errors.WriteException(
+            throw WriteException(
                 path = destination,
                 message = "File already exists: $destination"
             )
@@ -283,7 +285,7 @@ class TransferConflictResolver<
 
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                 val recursive = destLookup.fileType == FileType.DIRECTORY
-                destOps.delete(destination, recursive = recursive)
+                deleteForOverwrite(destination, recursive)
                 onOverwrite(recursive)
             }
 
@@ -304,7 +306,10 @@ class TransferConflictResolver<
                 val newDestPath = parentPath.child(resolution.newName)
                 log(tag, INFO) { "Renaming existing destination: $destination -> $newDestPath" }
                 // Move the existing destination to the new name
-                destOps.move(destination, newDestPath)
+                if (destOps.move(destination, newDestPath) !is MoveOutcome.Moved) {
+                    // Re-queueing without a successful rename would just re-detect the same conflict
+                    throw WriteException("Could not rename existing destination to ${resolution.newName}", destination)
+                }
                 // Re-queue original operation (destination path now clear)
                 onRenameDestination()
             }
@@ -312,6 +317,12 @@ class TransferConflictResolver<
             is PathActionIssue.PathAlreadyExists.Resolution.Cancel -> {
                 throw kotlin.coroutines.cancellation.CancellationException("User cancelled")
             }
+        }
+    }
+
+    private suspend fun deleteForOverwrite(destination: DP, recursive: Boolean) {
+        if (!destOps.delete(destination, recursive = recursive)) {
+            throw WriteException("Could not delete existing destination for overwrite", destination)
         }
     }
 

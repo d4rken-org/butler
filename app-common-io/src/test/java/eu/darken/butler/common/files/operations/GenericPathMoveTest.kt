@@ -3,6 +3,7 @@ package eu.darken.butler.common.files.operations
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.MoveAction
 import eu.darken.butler.common.files.actions.PathActionIssue
 import eu.darken.butler.common.files.local.LocalPathLookup
@@ -25,7 +26,6 @@ import testhelpers.firstPath
 import testhelpers.shouldBePaths
 import testhelpers.shouldContainPath
 import testhelpers.toPathPairs
-import java.nio.file.AtomicMoveNotSupportedException
 import kotlin.time.Instant
 
 /**
@@ -1548,17 +1548,17 @@ class GenericPathMoveTest : BaseTest() {
  * This accurately simulates the real-world bug scenario:
  * 1. If destination's parent directory doesn't exist → throws NoSuchFileException
  *    (This is what happens on real file systems when trying atomic move to non-existent path)
- * 2. If parent exists → throws AtomicMoveNotSupportedException (cross-device link)
+ * 2. If parent exists → returns MoveOutcome.NotSupported (cross-device link)
  *
- * The bug occurs because:
- * - Top-level directory atomic move fails with AtomicMoveNotSupportedException (caught, falls back)
- * - Nested directory atomic move fails with NoSuchFileException (NOT caught, propagates up)
+ * The bug occurred because:
+ * - Top-level directory atomic move refuses with NotSupported (falls back)
+ * - Nested directory atomic move failed with NoSuchFileException (NOT caught, propagates up)
  */
 private class CrossDeviceMockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
     lookupFactory: (path: P, type: FileType, size: Long?, modifiedAt: Instant?, permissions: Permissions?, ownership: Ownership?, createdAt: Instant?) -> PL
 ) : MockFileSystemOps<P, PL>(lookupFactory) {
 
-    override suspend fun move(source: P, destination: P): Boolean {
+    override suspend fun move(source: P, destination: P): MoveOutcome {
         // Check if destination's parent directory exists
         val destParentPath = destination.path.substringBeforeLast('/', "")
         val parentExists = destParentPath.isEmpty() || files.containsKey(destParentPath)
@@ -1573,7 +1573,7 @@ private class CrossDeviceMockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
             )
         }
 
-        // Parent exists but cross-device - throw AtomicMoveNotSupportedException
-        throw AtomicMoveNotSupportedException(source.path, destination.path, "Cross-device link")
+        // Parent exists but cross-device - atomic move is provably not possible
+        return MoveOutcome.NotSupported("Cross-device link")
     }
 }

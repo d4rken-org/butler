@@ -1,12 +1,15 @@
 package eu.darken.butler.common.files.saf
 
 import eu.darken.butler.common.files.SAFPath
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.operations.TransferStrategy
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.spyk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -167,7 +170,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
 
         val sourceLookup = mockOps.lookup(sourcePath)
 
-        // Spy on mockOps - the built-in cross-tree check will throw WriteException
+        // Spy on mockOps - the built-in cross-tree check returns MoveOutcome.NotSupported
         val spyOps = spyk(mockOps)
 
         // When
@@ -193,6 +196,67 @@ class SAFPathMoveStrategyTest : BaseTest() {
     }
 
     @Test
+    fun `cancellation during atomic move propagates without fallback IO`() = runTest {
+        val content = "Cancelled".toByteArray()
+        val sourcePath = SAFPath.build(primaryTreeUri, "source", "file.txt")
+        val destPath = SAFPath.build(primaryTreeUri, "source", "renamed.txt")
+
+        mockOps.addMockFile(sourcePath.path, content)
+        val sourceLookup = mockOps.lookup(sourcePath)
+
+        val spyOps = spyk(mockOps)
+        coEvery { spyOps.move(any(), any()) } throws CancellationException("cancelled")
+
+        shouldThrow<CancellationException> {
+            strategy.transferFile(
+                sourceLookup = sourceLookup,
+                destination = destPath,
+                sourceOps = spyOps,
+                destOps = spyOps,
+                options = TransferStrategy.Options(),
+                onProgress = {}
+            )
+        }
+
+        // No destructive fallback ran: source untouched, nothing written to the destination
+        spyOps.hasFile(sourcePath.path) shouldBe true
+        spyOps.hasFile(destPath.path) shouldBe false
+        coVerify(exactly = 0) { spyOps.openOutputStream(any(), any()) }
+        coVerify(exactly = 0) { spyOps.delete(any(), any()) }
+    }
+
+    @Test
+    fun `move exception with a vanished source is rethrown instead of copied`() = runTest {
+        val content = "Gone".toByteArray()
+        val sourcePath = SAFPath.build(primaryTreeUri, "source", "file.txt")
+        val destPath = SAFPath.build(primaryTreeUri, "source", "renamed.txt")
+
+        mockOps.addMockFile(sourcePath.path, content)
+        val sourceLookup = mockOps.lookup(sourcePath)
+
+        val spyOps = spyk(mockOps)
+        // The failed move had side effects: the source is gone afterwards
+        coEvery { spyOps.move(any(), any()) } coAnswers {
+            mockOps.files.remove(sourcePath.path)
+            throw WriteException("provider failed mid-move", sourcePath)
+        }
+
+        shouldThrow<WriteException> {
+            strategy.transferFile(
+                sourceLookup = sourceLookup,
+                destination = destPath,
+                sourceOps = spyOps,
+                destOps = spyOps,
+                options = TransferStrategy.Options(),
+                onProgress = {}
+            )
+        }
+
+        // The copy fallback must not have run against the vanished source
+        coVerify(exactly = 0) { spyOps.openOutputStream(any(), any()) }
+    }
+
+    @Test
     fun `fallback copy+delete reports progress correctly`() = runTest {
         // Given
         val content = ByteArray(5000) { it.toByte() }
@@ -205,7 +269,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
 
         val sourceLookup = mockOps.lookup(sourcePath)
 
-        // Spy on mockOps - the built-in cross-tree check will throw WriteException
+        // Spy on mockOps - the built-in cross-tree check returns MoveOutcome.NotSupported
         val spyOps = spyk(mockOps)
 
         val progressUpdates = mutableListOf<Long>()
@@ -279,7 +343,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
         mockOps.addMockFile(source2.path, content2)
         mockOps.addMockDir(destParent.path)
 
-        // Spy on mockOps - the built-in cross-tree check will throw WriteException
+        // Spy on mockOps - the built-in cross-tree check returns MoveOutcome.NotSupported
         val spyOps = spyk(mockOps)
 
         // When - move both files
@@ -379,7 +443,7 @@ class SAFPathMoveStrategyTest : BaseTest() {
 
         val sourceLookup = mockOps.lookup(sourcePath)
 
-        // Spy on mockOps - the built-in cross-tree check will throw WriteException
+        // Spy on mockOps - the built-in cross-tree check returns MoveOutcome.NotSupported
         val spyOps = spyk(mockOps)
 
         // When

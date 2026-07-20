@@ -5,6 +5,7 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.archive.ArchiveFormat
 import eu.darken.butler.common.files.archive.ArchivePasswordStore
 import eu.darken.butler.common.files.archive.ArchiveService
@@ -58,7 +59,7 @@ class CompressOperationTest : BaseTest() {
         }
         coEvery { gatewaySwitch.exists(any()) } returns false
         coEvery { gatewaySwitch.exists(outputPath) } returns false andThen true
-        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns true
+        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns MoveOutcome.Moved
         coEvery { gatewaySwitch.delete(any<APath<*>>(), any<Boolean>()) } returns true
         coEvery { archiveService.compress(any(), any(), any(), any()) } returns Unit
         coEvery { archiveService.invalidate(any()) } returns Unit
@@ -134,7 +135,7 @@ class CompressOperationTest : BaseTest() {
         coEvery { gatewaySwitch.exists(outputPath) } returns false
         // The temp was written by compress(), so cleanup finds it present.
         coEvery { gatewaySwitch.exists(match<APath<*>> { it.name.endsWith(".part") }) } returns true
-        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns false
+        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns MoveOutcome.NotSupported("test")
         val password = "hunter2".toCharArray()
 
         shouldThrow<WriteException> {
@@ -151,7 +152,7 @@ class CompressOperationTest : BaseTest() {
     @Test
     fun `failed move after deleting the existing archive keeps the temp`() = runTest2 {
         coEvery { gatewaySwitch.exists(outputPath) } returns true
-        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns false
+        coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } returns MoveOutcome.NotSupported("test")
 
         shouldThrow<WriteException> {
             operation(command(overwriteConfirmed = true)).perform(context()).toList()
@@ -184,7 +185,7 @@ class CompressOperationTest : BaseTest() {
         val moveOrder = mutableListOf<String>()
         coEvery { gatewaySwitch.move(any<APath<*>>(), any<APath<*>>()) } answers {
             moveOrder += "move"
-            true
+            MoveOutcome.Moved
         }
         val password = "hunter2".toCharArray()
 

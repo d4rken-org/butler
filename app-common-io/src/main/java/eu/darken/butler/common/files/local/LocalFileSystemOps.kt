@@ -11,6 +11,7 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
@@ -409,17 +410,24 @@ class LocalFileSystemOps @Inject constructor(
         throw ReadException(path = path, cause = e)
     }
 
-    override suspend fun move(source: LocalPath, destination: LocalPath): Boolean = try {
-        Files.move(
-            source.toNioPath(),
-            destination.toNioPath(),
-            StandardCopyOption.ATOMIC_MOVE,
-            LinkOption.NOFOLLOW_LINKS
-        )
-        true
+    override suspend fun move(source: LocalPath, destination: LocalPath): MoveOutcome = try {
+        // ATOMIC_MOVE maps to rename(2), which silently replaces an existing destination —
+        // refuse instead (mirrors SAF) so callers resolve conflicts deliberately. Best-effort:
+        // NIO has no NOREPLACE+ATOMIC combination, so a racing creation can still be replaced.
+        if (source != destination && Files.exists(destination.toNioPath(), LinkOption.NOFOLLOW_LINKS)) {
+            MoveOutcome.NotSupported("Destination already exists: ${destination.path}")
+        } else {
+            Files.move(
+                source.toNioPath(),
+                destination.toNioPath(),
+                StandardCopyOption.ATOMIC_MOVE,
+                LinkOption.NOFOLLOW_LINKS
+            )
+            MoveOutcome.Moved
+        }
     } catch (e: AtomicMoveNotSupportedException) {
-        // Don't wrap - let caller handle atomic move failures and fallback
-        throw e
+        // Files.move guarantees nothing was mutated in this case
+        MoveOutcome.NotSupported("AtomicMoveNotSupportedException: ${e.message}")
     } catch (e: IOException) {
         throw WriteException(path = source, cause = e)
     }

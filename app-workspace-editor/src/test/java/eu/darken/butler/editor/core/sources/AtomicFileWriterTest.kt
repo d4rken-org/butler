@@ -5,11 +5,13 @@ import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.local.LocalFileSystemOps
 import eu.darken.butler.common.files.metadata.OwnershipResolver
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -40,7 +42,8 @@ class AtomicFileWriterTest : BaseTest() {
         }
         coEvery { delete(any<APath<*>>()) } coAnswers { fileSystemOps.delete(firstArg<APath<*>>() as LocalPath) }
         coEvery { move(any<APath<*>>(), any<APath<*>>()) } coAnswers {
-            (firstArg<APath<*>>() as LocalPath).file.renameTo((secondArg<APath<*>>() as LocalPath).file)
+            val renamed = (firstArg<APath<*>>() as LocalPath).file.renameTo((secondArg<APath<*>>() as LocalPath).file)
+            if (renamed) MoveOutcome.Moved else MoveOutcome.NotSupported("rename failed")
         }
     }
 
@@ -130,7 +133,7 @@ class AtomicFileWriterTest : BaseTest() {
                 match<APath<*>> { it.name.contains(".butler-save-tmp-") },
                 match<APath<*>> { it.name == "doc.txt" },
             )
-        } returns false
+        } returns MoveOutcome.NotSupported("test")
         val writer = AtomicFileWriter(gateway, "test")
 
         shouldThrow<IllegalStateException> {
@@ -150,10 +153,10 @@ class AtomicFileWriterTest : BaseTest() {
         // Commit move fails AND the restore move fails: original only survives as the bak artifact
         coEvery {
             gateway.move(match<APath<*>> { it.name.contains(".butler-save-tmp-") }, match<APath<*>> { it.name == "doc.txt" })
-        } returns false
+        } returns MoveOutcome.NotSupported("test")
         coEvery {
             gateway.move(match<APath<*>> { it.name.contains(".butler-save-bak-") }, match<APath<*>> { it.name == "doc.txt" })
-        } returns false
+        } returns MoveOutcome.NotSupported("test")
         val writer = AtomicFileWriter(gateway, "test")
 
         shouldThrow<CommitIntegrityException> {
@@ -166,6 +169,76 @@ class AtomicFileWriterTest : BaseTest() {
         tempDir.artifacts().single().startsWith("doc.txt.butler-save-bak-") shouldBe true
         File(tempDir, tempDir.artifacts().single()).readText() shouldBe "ORIGINAL"
     }
+
+    @Test
+    fun `backup move that lands but throws is detected and rolled back`(@TempDir tempDir: File) = runTest {
+        val target = File(tempDir, "doc.txt").apply { writeText("ORIGINAL") }
+        val gateway = createMockGateway()
+        // The target -> backup move lands on disk but the reply is lost: it throws with the
+        // bookkeeping flag unset, so recovery must reconcile from observable state
+        coEvery {
+            gateway.move(
+                match<APath<*>> { it.name == "doc.txt" },
+                match<APath<*>> { it.name.contains(".butler-save-bak-") },
+            )
+        } coAnswers {
+            (firstArg<APath<*>>() as LocalPath).file.renameTo((secondArg<APath<*>>() as LocalPath).file)
+            throw IOException("lost reply")
+        }
+        val writer = AtomicFileWriter(gateway, "test")
+
+        val thrown = shouldThrow<IOException> {
+            writer.replace(LocalPath.build(target), AtomicFileWriter.OriginalAccess.None) { context ->
+                context.sink.writeUtf8("NEW")
+            }
+        }
+
+        thrown.message shouldBe "lost reply"
+        coVerify(exactly = 1) {
+            gateway.move(
+                match<APath<*>> { it.name.contains(".butler-save-bak-") },
+                match<APath<*>> { it.name == "doc.txt" },
+            )
+        }
+        target.readText() shouldBe "ORIGINAL"
+        tempDir.artifacts() shouldBe emptyList()
+    }
+
+    @Test
+    fun `commit move that lands but throws keeps the backup without restoring over the target`(@TempDir tempDir: File) =
+        runTest {
+            val target = File(tempDir, "doc.txt").apply { writeText("ORIGINAL") }
+            val gateway = createMockGateway()
+            // The tmp -> target move lands on disk but throws: both target and backup exist,
+            // so recovery must NOT restore the backup over the committed target
+            coEvery {
+                gateway.move(
+                    match<APath<*>> { it.name.contains(".butler-save-tmp-") },
+                    match<APath<*>> { it.name == "doc.txt" },
+                )
+            } coAnswers {
+                (firstArg<APath<*>>() as LocalPath).file.renameTo((secondArg<APath<*>>() as LocalPath).file)
+                throw IOException("lost reply")
+            }
+            val writer = AtomicFileWriter(gateway, "test")
+
+            val thrown = shouldThrow<IOException> {
+                writer.replace(LocalPath.build(target), AtomicFileWriter.OriginalAccess.None) { context ->
+                    context.sink.writeUtf8("NEW")
+                }
+            }
+
+            thrown.message shouldBe "lost reply"
+            coVerify(exactly = 0) {
+                gateway.move(
+                    match<APath<*>> { it.name.contains(".butler-save-bak-") },
+                    match<APath<*>> { it.name == "doc.txt" },
+                )
+            }
+            target.readText() shouldBe "NEW"
+            tempDir.artifacts().single().startsWith("doc.txt.butler-save-bak-") shouldBe true
+            File(tempDir, tempDir.artifacts().single()).readText() shouldBe "ORIGINAL"
+        }
 
     // ==================== in-place strategy (SAF-analog, exercised directly) ====================
 

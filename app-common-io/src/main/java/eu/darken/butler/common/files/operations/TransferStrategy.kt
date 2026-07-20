@@ -86,14 +86,17 @@ interface TransferStrategy<
         /**
          * Whether to attempt atomic directory moves before falling back to recursive moves.
          *
+         * Consumed only by the orchestrator (GenericPathMove.tryAtomicMove), which is the sole
+         * owner of atomic directory moves — strategies never attempt them, because by the time a
+         * strategy's createDirectory runs, child work items are already queued and an atomic
+         * subtree move would orphan them. File-level atomic moves are unaffected by this flag.
+         *
          * When true (default):
-         * - Directory moves attempt atomic rename first (single syscall)
-         * - Falls back to recursive scan+move+delete if atomic not supported
-         * - Optimal performance for same-filesystem renames
+         * - Directory moves attempt one atomic subtree move first (single syscall/contract call)
+         * - Falls back to recursive scan+move+delete if not supported
          *
          * When false:
          * - Always use recursive scan+move+delete pattern
-         * - Useful for tests that expect old behavior
          * - May provide more granular progress tracking
          */
         val attemptAtomicMove: Boolean = true,

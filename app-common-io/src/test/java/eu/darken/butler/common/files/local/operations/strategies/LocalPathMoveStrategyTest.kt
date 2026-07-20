@@ -1,6 +1,7 @@
 package eu.darken.butler.common.files.local.operations.strategies
 
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.MockFileSystemOps
@@ -15,14 +16,13 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import testhelpers.BaseTest
-import java.nio.file.AtomicMoveNotSupportedException
 
 /**
  * Tests for LocalPathMoveStrategy atomic move behavior.
  *
  * This validates that LocalPathMoveStrategy:
  * 1. Attempts atomic move first using Files.move() via sourceOps.move()
- * 2. Falls back to copy+delete when AtomicMoveNotSupportedException is thrown
+ * 2. Falls back to copy+delete when move() returns [MoveOutcome.NotSupported]
  * 3. Correctly reports progress for both atomic and fallback paths
  * 4. Handles symlinks specially with target adjustment
  *
@@ -156,15 +156,11 @@ class LocalPathMoveStrategyTest : BaseTest() {
         val destPath = LocalPath.build("/dest/file.txt")
         val sourceLookup = mockOps.lookup(sourcePath)
 
-        // Mock atomic move failure (cross-device scenario)
+        // Mock atomic move refusal (cross-device scenario)
         val spyOps = spyk(mockOps)
         coEvery {
             spyOps.move(sourcePath, destPath)
-        } throws AtomicMoveNotSupportedException(
-            sourcePath.path,
-            destPath.path,
-            "Cross-device move not supported"
-        )
+        } returns MoveOutcome.NotSupported("Cross-device move not supported")
 
         val spyStrategy = LocalPathMoveStrategy(spyOps)
 
@@ -201,13 +197,9 @@ class LocalPathMoveStrategyTest : BaseTest() {
         val destPath = LocalPath.build("/dest/large.bin")
         val sourceLookup = mockOps.lookup(sourcePath)
 
-        // Mock atomic move failure
+        // Mock atomic move refusal
         val spyOps = spyk(mockOps)
-        coEvery { spyOps.move(sourcePath, destPath) } throws AtomicMoveNotSupportedException(
-            sourcePath.path,
-            destPath.path,
-            "Cross-device"
-        )
+        coEvery { spyOps.move(sourcePath, destPath) } returns MoveOutcome.NotSupported("Cross-device")
 
         val spyStrategy = LocalPathMoveStrategy(spyOps)
         val progressUpdates = mutableListOf<Long>()
@@ -239,13 +231,9 @@ class LocalPathMoveStrategyTest : BaseTest() {
         val destPath = LocalPath.build("/dest/file.txt")
         val sourceLookup = mockOps.lookup(sourcePath)
 
-        // Mock both atomic move failure and delete failure
+        // Mock both atomic move refusal and delete failure
         val spyOps = spyk(mockOps)
-        coEvery { spyOps.move(sourcePath, destPath) } throws AtomicMoveNotSupportedException(
-            sourcePath.path,
-            destPath.path,
-            "Cross-device"
-        )
+        coEvery { spyOps.move(sourcePath, destPath) } returns MoveOutcome.NotSupported("Cross-device")
         coEvery { spyOps.delete(sourcePath, recursive = false) } returns false // Delete fails
 
         val spyStrategy = LocalPathMoveStrategy(spyOps)
@@ -285,13 +273,9 @@ class LocalPathMoveStrategyTest : BaseTest() {
         val dest1 = LocalPath.build("/dest/file1.txt")
         val dest2 = LocalPath.build("/dest/file2.txt")
 
-        // Mock atomic move failures
+        // Mock atomic move refusals
         val spyOps = spyk(mockOps)
-        coEvery { spyOps.move(any(), any()) } throws AtomicMoveNotSupportedException(
-            source1.path,
-            dest1.path,
-            "Cross-device"
-        )
+        coEvery { spyOps.move(any(), any()) } returns MoveOutcome.NotSupported("Cross-device")
 
         val spyStrategy = LocalPathMoveStrategy(spyOps)
 
@@ -426,13 +410,9 @@ class LocalPathMoveStrategyTest : BaseTest() {
         val destPath = LocalPath.build("/dest/file.txt")
         val sourceLookup = mockOps.lookup(sourcePath)
 
-        // Mock atomic move failure
+        // Mock atomic move refusal
         val spyOps = spyk(mockOps)
-        coEvery { spyOps.move(sourcePath, destPath) } throws AtomicMoveNotSupportedException(
-            sourcePath.path,
-            destPath.path,
-            "Cross-device"
-        )
+        coEvery { spyOps.move(sourcePath, destPath) } returns MoveOutcome.NotSupported("Cross-device")
 
         val spyStrategy = LocalPathMoveStrategy(spyOps)
 
@@ -462,13 +442,9 @@ class LocalPathMoveStrategyTest : BaseTest() {
         val destPath = LocalPath.build("/dest/file.txt")
         val sourceLookup = mockOps.lookup(sourcePath)
 
-        // Mock atomic move failure
+        // Mock atomic move refusal
         val spyOps = spyk(mockOps)
-        coEvery { spyOps.move(sourcePath, destPath) } throws AtomicMoveNotSupportedException(
-            sourcePath.path,
-            destPath.path,
-            "Cross-device"
-        )
+        coEvery { spyOps.move(sourcePath, destPath) } returns MoveOutcome.NotSupported("Cross-device")
 
         val spyStrategy = LocalPathMoveStrategy(spyOps)
 
@@ -513,14 +489,12 @@ class LocalPathMoveStrategyTest : BaseTest() {
         mockOps.getFileType("/dest/dir") shouldBe FileType.DIRECTORY
     }
 
-    // ============ DIRECTORY ATOMIC MOVE TESTS ============
+    // ============ DIRECTORY CREATE-ONLY TESTS ============
 
     @Test
-    fun `directory atomic move IS attempted in createDirectory - BUG FIXED`() = runTest {
-        // This test verifies the FIX: createDirectory() now attempts atomic move first
-        // Before fix: Just created empty directory, never attempted atomic move
-        // After fix: Attempts atomic move first
-        // Fixed: Use same device for atomic move to succeed
+    fun `createDirectory never attempts atomic move`() = runTest {
+        // Atomic directory moves are owned solely by GenericPathMove.tryAtomicMove;
+        // createDirectory only creates the empty destination directory.
 
         mockOps.addMockDir("/data/source/folder")
         mockOps.addMockDir("/data/dest")
@@ -541,19 +515,17 @@ class LocalPathMoveStrategyTest : BaseTest() {
             options = TransferStrategy.Options()
         )
 
-        // Then - FIX VERIFIED: move() IS called!
-        coVerify(exactly = 1) { spyOps.move(sourcePath, destPath) }
+        // Then - move() is NOT called, only createDir()
+        coVerify(exactly = 0) { spyOps.move(any(), any()) }
+        coVerify(exactly = 1) { spyOps.createDir(destPath) }
 
-        // Atomic move succeeded
+        // Destination created, source untouched (cleanup happens in GenericPathMove)
         spyOps.hasFile("/data/dest/folder") shouldBe true
-        spyOps.hasFile("/data/source/folder") shouldBe false
+        spyOps.hasFile("/data/source/folder") shouldBe true
     }
 
     @Test
-    fun `directory atomic rename should be attempted first`() = runTest {
-        // This test verifies that atomic move is attempted for directory renames
-        // Fixed: Use same device for atomic move to succeed
-
+    fun `createDirectory with rename creates destination only`() = runTest {
         mockOps.addMockDir("/data/source/AAAA")
         mockOps.addMockDir("/data/dest")
 
@@ -573,38 +545,27 @@ class LocalPathMoveStrategyTest : BaseTest() {
             options = TransferStrategy.Options()
         )
 
-        // Then - SHOULD attempt atomic move first
-        coVerify(exactly = 1) { spyOps.move(sourcePath, destPath) }
+        // Then - no atomic move attempt
+        coVerify(exactly = 0) { spyOps.move(any(), any()) }
 
         // Result should be success
         result.shouldBeInstanceOf<TransferStrategy.TransferResult.Success<*, *>>()
 
-        // Directory atomically renamed
+        // Destination created under the new name, source still present
         spyOps.hasFile("/data/dest/BBB") shouldBe true
-        spyOps.hasFile("/data/source/AAAA") shouldBe false
+        spyOps.hasFile("/data/source/AAAA") shouldBe true
     }
 
     @Test
-    fun `directory atomic move fails falls back to create only`() = runTest {
-        // This test verifies fallback when atomic move is not supported
-
+    fun `createDirectory across devices creates directory only`() = runTest {
         mockOps.addMockDir("/source/folder")
-        mockOps.addMockDir("/otherdevice")  // Fixed: Create parent directory
+        mockOps.addMockDir("/otherdevice")
 
         val sourcePath = LocalPath.build("/source/folder")
         val destPath = LocalPath.build("/otherdevice/folder")
         val sourceLookup = mockOps.lookup(sourcePath)
 
         val spyOps = spyk(mockOps)
-        // Mock atomic move failure (cross-device)
-        coEvery {
-            spyOps.move(sourcePath, destPath)
-        } throws AtomicMoveNotSupportedException(
-            sourcePath.path,
-            destPath.path,
-            "Cross-device"
-        )
-
         val spyStrategy = LocalPathMoveStrategy(spyOps)
 
         // When
@@ -616,10 +577,8 @@ class LocalPathMoveStrategyTest : BaseTest() {
             options = TransferStrategy.Options()
         )
 
-        // Then - should attempt atomic first
-        coVerify(exactly = 1) { spyOps.move(sourcePath, destPath) }
-
-        // Then fall back to createDir
+        // Then - no atomic move attempt, just createDir
+        coVerify(exactly = 0) { spyOps.move(any(), any()) }
         coVerify(exactly = 1) { spyOps.createDir(destPath) }
 
         result.shouldBeInstanceOf<TransferStrategy.TransferResult.Success<*, *>>()
@@ -631,7 +590,7 @@ class LocalPathMoveStrategyTest : BaseTest() {
  *
  * Simulates local file system behavior including:
  * - Atomic moves within same device (succeeds)
- * - Cross-device moves (throws AtomicMoveNotSupportedException)
+ * - Cross-device moves (returns MoveOutcome.NotSupported)
  * - Symlink support
  */
 private class MockLocalFileSystemOps : MockFileSystemOps<LocalPath, LocalPathLookup>(
@@ -649,21 +608,17 @@ private class MockLocalFileSystemOps : MockFileSystemOps<LocalPath, LocalPathLoo
     }
 ) {
 
-    override suspend fun move(source: LocalPath, destination: LocalPath): Boolean {
+    override suspend fun move(source: LocalPath, destination: LocalPath): MoveOutcome {
         // Simulate local file system atomic move behavior:
         // - Same device: atomic move succeeds
-        // - Different device: throws AtomicMoveNotSupportedException
+        // - Different device: returns MoveOutcome.NotSupported
 
         // Simple heuristic: different first path segment = different device
         val sourceDevice = source.path.split("/").getOrNull(1)
         val destDevice = destination.path.split("/").getOrNull(1)
 
         if (sourceDevice != destDevice && sourceDevice != null && destDevice != null) {
-            throw AtomicMoveNotSupportedException(
-                source.path,
-                destination.path,
-                "Cross-device move not supported"
-            )
+            return MoveOutcome.NotSupported("Cross-device move not supported")
         }
 
         // Same device: call parent implementation (handles all bookkeeping + children)

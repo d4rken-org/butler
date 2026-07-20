@@ -101,7 +101,7 @@ class GatewaySwitch @Inject constructor(
         return useGateway(linkPath) { readSymbolicLink(linkPath) }
     }
 
-    override suspend fun move(source: APath<*>, destination: APath<*>): Boolean {
+    override suspend fun move(source: APath<*>, destination: APath<*>): MoveOutcome {
         return useGateway(source) { move(source, destination) }
     }
 
