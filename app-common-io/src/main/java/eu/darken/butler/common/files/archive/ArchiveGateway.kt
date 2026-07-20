@@ -7,6 +7,7 @@ import eu.darken.butler.common.coroutine.DispatcherProvider
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APathGateway
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.actions.CreateAction
 import eu.darken.butler.common.files.actions.DeleteAction
@@ -174,7 +175,7 @@ class ArchiveGateway @Inject constructor(
     override suspend fun delete(path: ArchivePath, recursive: Boolean): Boolean =
         throw WriteException(READ_ONLY_MSG, path)
 
-    override suspend fun move(source: ArchivePath, destination: ArchivePath): Boolean =
+    override suspend fun move(source: ArchivePath, destination: ArchivePath): MoveOutcome =
         throw WriteException(READ_ONLY_MSG, source)
 
     override suspend fun openOutputStream(path: ArchivePath, append: Boolean): OutputStream =

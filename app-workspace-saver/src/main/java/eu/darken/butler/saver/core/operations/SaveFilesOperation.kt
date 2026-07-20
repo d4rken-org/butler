@@ -19,7 +19,9 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.actions.PathActionIssue
+import eu.darken.butler.common.files.errors.WriteException
 import eu.darken.butler.common.files.local.operations.core.PathOperationIssueResolver
 import eu.darken.butler.common.files.local.operations.core.PathOperationProgressTracker
 import eu.darken.butler.common.files.local.operations.core.PerformanceHistory
@@ -245,7 +247,7 @@ class SaveFilesOperation @AssistedInject constructor(
             }
             issueResolver.overwriteAllPathExists -> {
                 log(tag, INFO) { "Overwriting (apply-to-all): ${source.filename}" }
-                gatewaySwitch.delete(targetPath, recursive = false)
+                deleteForOverwrite(targetPath)
                 return targetPath
             }
             issueResolver.renameSourceAllPathExists -> {
@@ -278,7 +280,7 @@ class SaveFilesOperation @AssistedInject constructor(
 
             is PathActionIssue.PathAlreadyExists.Resolution.Overwrite -> {
                 log(tag, INFO) { "User chose to overwrite: ${source.filename}" }
-                gatewaySwitch.delete(targetPath, recursive = false)
+                deleteForOverwrite(targetPath)
                 targetPath
             }
 
@@ -290,11 +292,20 @@ class SaveFilesOperation @AssistedInject constructor(
             is PathActionIssue.PathAlreadyExists.Resolution.RenameDestination -> {
                 log(tag, INFO) { "User chose to rename existing: ${targetPath.name} -> ${resolution.newName}" }
                 val newDestPath = targetDirectory.child(resolution.newName)
-                gatewaySwitch.move(targetPath, newDestPath)
+                if (gatewaySwitch.move(targetPath, newDestPath) !is MoveOutcome.Moved) {
+                    // Writing to targetPath without a successful rename would collide with the existing file
+                    throw WriteException("Could not rename existing file to ${resolution.newName}", targetPath)
+                }
                 targetPath
             }
 
             else -> targetPath
+        }
+    }
+
+    private suspend fun deleteForOverwrite(targetPath: APath<*>) {
+        if (!gatewaySwitch.delete(targetPath, recursive = false)) {
+            throw WriteException("Could not delete existing file for overwrite", targetPath)
         }
     }
 

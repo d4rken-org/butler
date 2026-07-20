@@ -101,21 +101,28 @@ fun Collection<SAFPath>.copy(
 fun SAFPath.move(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
+    options: MoveAction.Options = MoveAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ): Flow<MoveAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> = setOf(this).move(
-    destination, fileSystemOps, onIssue
+    destination, fileSystemOps, options, onIssue
 )
 
 fun Collection<SAFPath>.move(
     destination: SAFPath,
     fileSystemOps: SAFFileSystemOps,
+    options: MoveAction.Options = MoveAction.Options(),
     onIssue: (suspend (PathActionIssue) -> PathActionIssue.Resolution)? = null
 ): Flow<MoveAction.State<SAFPath, SAFPathLookup, SAFPath, SAFPathLookup>> = this.moveGeneric(
     destination = destination,
     sourceOps = fileSystemOps,
     destOps = fileSystemOps,
     strategy = SAFPathMoveStrategy(),
-    options = TransferStrategy.Options(),
+    options = TransferStrategy.Options(
+        preserveAttributes = options.preserveAttributes,
+        followSymlinks = false, // MoveAction doesn't have followSymlinks option
+        overwrite = options.overwrite,
+        attemptAtomicMove = options.attemptAtomicMove,
+    ),
     onIssue = onIssue
 )
 

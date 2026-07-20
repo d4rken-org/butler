@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.local
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.errors.WriteException
@@ -17,6 +18,7 @@ import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.longs.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -439,10 +441,24 @@ class LocalFileSystemOpsTest : BaseTest() {
 
         val result = fileSystemOps.move(sourcePath, destPath)
 
-        result shouldBe true
+        result shouldBe MoveOutcome.Moved
         sourceFile.exists() shouldBe false
         destPath.file.exists() shouldBe true
         destPath.file.readText() shouldBe "content"
+    }
+
+    @Test
+    fun `move refuses existing destination and leaves both files untouched`(@TempDir tempDir: File) = runTest {
+        val sourceFile = File(tempDir, "source.txt").apply { writeText("source content") }
+        val destFile = File(tempDir, "dest.txt").apply { writeText("dest content") }
+        val sourcePath = LocalPath.build(sourceFile)
+        val destPath = LocalPath.build(destFile)
+
+        val result = fileSystemOps.move(sourcePath, destPath)
+
+        result.shouldBeInstanceOf<MoveOutcome.NotSupported>()
+        sourceFile.readText() shouldBe "source content"
+        destFile.readText() shouldBe "dest content"
     }
 
     @Test

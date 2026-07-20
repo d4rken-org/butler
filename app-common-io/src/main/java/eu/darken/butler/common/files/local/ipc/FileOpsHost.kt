@@ -12,6 +12,7 @@ import eu.darken.butler.common.debug.logging.asLog
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.LookupOptions
 import eu.darken.butler.common.files.actions.CopyAction
 import eu.darken.butler.common.files.extensions.isDescendantOfOrSelf
@@ -225,7 +226,8 @@ class FileOpsHost @Inject constructor(
 
     override fun move(source: LocalPath, destination: LocalPath): Boolean = try {
         if (Bugs.isTrace) log(TAG, VERBOSE) { "move($source,$destination)..." }
-        runBlocking { fileSystemOps.move(source, destination) }
+        // AIDL wire format is Boolean: true = Moved, false = NotSupported (nothing mutated)
+        runBlocking { fileSystemOps.move(source, destination) is MoveOutcome.Moved }
     } catch (e: Exception) {
         log(TAG, ERROR) { "move(source=$source, destination=$destination) failed\n${e.asLog()}" }
         throw e.wrapToPropagate()

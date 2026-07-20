@@ -33,7 +33,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.isActive
-import java.nio.file.AtomicMoveNotSupportedException
+import eu.darken.butler.common.files.MoveOutcome
 
 /**
  * Generic move operation that works with any path type.
@@ -216,15 +216,15 @@ internal class GenericPathMove<
             return AtomicMoveResult.NotSupported("Cross-gateway move")
         }
 
-        try {
-            // Attempt atomic move via FileSystemOps
-            @Suppress("UNCHECKED_CAST")
-            val success = (sourceOps as FileSystemOps<DP, DPL>).move(
-                sourceLookup.lookedUp as DP,
-                destination
-            )
+        // Attempt atomic move via FileSystemOps; failures with possible side effects propagate as exceptions
+        @Suppress("UNCHECKED_CAST")
+        val outcome = (sourceOps as FileSystemOps<DP, DPL>).move(
+            sourceLookup.lookedUp as DP,
+            destination
+        )
 
-            if (success) {
+        return when (outcome) {
+            is MoveOutcome.Moved -> {
                 // Lookup moved directory to get metadata
                 val destLookup = destOps.lookup(destination, LookupOptions.BASE)
 
@@ -232,16 +232,10 @@ internal class GenericPathMove<
                     "Atomic directory move succeeded: ${sourceLookup.lookedUp} -> $destination"
                 }
 
-                return AtomicMoveResult.Success(destLookup)
-            } else {
-                return AtomicMoveResult.NotSupported("Move returned false")
+                AtomicMoveResult.Success(destLookup)
             }
-        } catch (e: AtomicMoveNotSupportedException) {
-            return AtomicMoveResult.NotSupported("AtomicMoveNotSupportedException: ${e.message}")
-        } catch (e: UnsupportedOperationException) {
-            return AtomicMoveResult.NotSupported("UnsupportedOperationException: ${e.message}")
-        } catch (e: Exception) {
-            throw e  // Other errors should propagate (permissions, etc.)
+
+            is MoveOutcome.NotSupported -> AtomicMoveResult.NotSupported(outcome.reason)
         }
     }
 

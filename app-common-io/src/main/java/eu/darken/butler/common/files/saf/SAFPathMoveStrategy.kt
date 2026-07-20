@@ -4,30 +4,26 @@ import eu.darken.butler.common.debug.logging.Logging.Priority.*
 import eu.darken.butler.common.debug.logging.log
 import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.SAFPath
 import eu.darken.butler.common.files.operations.TransferStrategy
+import kotlinx.coroutines.CancellationException
 
 /**
  * Strategy for moving files using SAFPath (Storage Access Framework).
  *
- * Move operation attempts atomic moves when possible using DocumentsContract.moveDocument().
- * This mirrors LocalPath behavior for optimal performance.
- *
  * ## Implementation Strategy
  *
- * 1. Try atomic move using DocumentsContract.moveDocument() (API 24+)
- * 2. On failure, fall back to copy+delete pattern:
+ * 1. Try an atomic file move (same-parent rename via renameDocument, or reparent via moveDocument)
+ * 2. On [MoveOutcome.NotSupported] (provably nothing mutated), fall back to copy+delete:
  *    - Copy file using SAFPathCopyStrategy
  *    - Delete source file after successful copy
- * 3. No rollback on failure (source remains if delete fails)
+ * 3. Exceptions from move() may have side effects; the fallback only runs if the source
+ *    still verifiably exists.
  *
- * ## Comparison with LocalPath
- *
- * | Feature | LocalPath | SAFPath |
- * |---------|-----------|---------|
- * | Atomic move | Yes (same filesystem) | Yes (same document tree) |
- * | Fallback | Copy+delete | Copy+delete |
- * | Performance | Fast (rename) | Fast (atomic) or slower (copy) |
+ * Atomic **directory** moves are owned by GenericPathMove (tryAtomicMove), not this strategy —
+ * by the time [createDirectory] runs, child work items are already queued, and moving the
+ * subtree out from under them would orphan those items.
  *
  * @see LocalPathMoveStrategy for comparison
  * @see SAFPathCopyStrategy for copy implementation
@@ -51,19 +47,35 @@ class SAFPathMoveStrategy : TransferStrategy<
 
         // Try atomic move first (most efficient)
         try {
-            sourceOps.move(sourceLookup.lookedUp, destination)
-            log(TAG, DEBUG) { "Atomic move succeeded: ${sourceLookup.lookedUp} -> $destination" }
+            when (val outcome = sourceOps.move(sourceLookup.lookedUp, destination)) {
+                is MoveOutcome.Moved -> {
+                    log(TAG, DEBUG) { "Atomic move succeeded: ${sourceLookup.lookedUp} -> $destination" }
 
-            onProgress(sourceLookup.size ?: 0L)
+                    onProgress(sourceLookup.size ?: 0L)
 
-            return TransferStrategy.TransferResult.Success(
-                source = sourceLookup.lookedUp,
-                destination = destination,
-                bytesTransferred = sourceLookup.size ?: 0L
-            )
+                    return TransferStrategy.TransferResult.Success(
+                        source = sourceLookup.lookedUp,
+                        destination = destination,
+                        bytesTransferred = sourceLookup.size ?: 0L
+                    )
+                }
+
+                is MoveOutcome.NotSupported ->
+                    log(TAG, DEBUG) { "Atomic move not supported (${outcome.reason}), falling back to copy+delete" }
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            log(TAG, DEBUG) { "Atomic move not supported or failed, falling back to copy+delete: ${e.message}" }
-            // Fall through to copy+delete
+            // The move may have had side effects; only fall back if the source is verifiably intact.
+            val sourceIntact = try {
+                sourceOps.exists(sourceLookup.lookedUp)
+            } catch (inner: CancellationException) {
+                throw inner
+            } catch (inner: Exception) {
+                false
+            }
+            if (!sourceIntact) throw e
+            log(TAG, DEBUG) { "Atomic move failed with source intact, falling back to copy+delete: ${e.message}" }
         }
 
         // Atomic move failed - use copy+delete fallback
@@ -86,6 +98,8 @@ class SAFPathMoveStrategy : TransferStrategy<
                     // Note: Source remains, but destination was created successfully
                     // This is acceptable behavior (not an error)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 log(TAG, ERROR) { "Error deleting source after copy: ${sourceLookup.lookedUp} - $e" }
                 // Don't fail the operation - destination was created successfully
@@ -111,24 +125,8 @@ class SAFPathMoveStrategy : TransferStrategy<
     ): TransferStrategy.TransferResult<SAFPath, SAFPath> {
         log(TAG, DEBUG) { "Moving SAF directory: ${sourceLookup.lookedUp} -> $destination" }
 
-        // Try atomic directory move first if enabled (DocumentsContract.moveDocument handles directories)
-        if (options.attemptAtomicMove) {
-            try {
-                sourceOps.move(sourceLookup.lookedUp, destination)
-                log(TAG, DEBUG) { "Atomic SAF directory move succeeded: ${sourceLookup.lookedUp} -> $destination" }
-
-                return TransferStrategy.TransferResult.Success(
-                    source = sourceLookup.lookedUp,
-                    destination = destination,
-                    bytesTransferred = 0L
-                )
-            } catch (e: UnsupportedOperationException) {
-                log(TAG, DEBUG) { "Atomic SAF directory move not supported, creating empty directory" }
-                // Fall through to create empty directory
-            }
-        }
-
-        // Fallback: Create empty directory (children moved separately by GenericPathMove)
+        // No atomic attempt here: GenericPathMove.tryAtomicMove owns atomic directory moves.
+        // Create empty directory (children moved separately by GenericPathMove)
         val result = copyStrategy.createDirectory(
             sourceLookup = sourceLookup,
             destination = destination,

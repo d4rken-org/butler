@@ -8,6 +8,7 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.GatewaySwitch
 import eu.darken.butler.common.files.LocalPath
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.provider.documents.core.ButlerDocumentsProvider
 import eu.darken.butler.provider.documents.core.DocumentIdCodec
@@ -89,7 +90,7 @@ class DocumentModifierTest {
 
         every { codec.decode(documentId) } returns sourcePath
         coEvery { gatewaySwitch.exists(destinationPath) } returns false
-        coEvery { gatewaySwitch.move(sourcePath, destinationPath) } returns true
+        coEvery { gatewaySwitch.move(sourcePath, destinationPath) } returns MoveOutcome.Moved
         every { codec.encode(destinationPath) } returns newDocumentId
         every { codec.encode(parentPath) } returns parentId
 
@@ -114,7 +115,7 @@ class DocumentModifierTest {
 
         every { codec.decode(documentId) } returns sourcePath
         coEvery { gatewaySwitch.exists(destinationPath) } returns false
-        coEvery { gatewaySwitch.move(sourcePath, destinationPath) } returns true
+        coEvery { gatewaySwitch.move(sourcePath, destinationPath) } returns MoveOutcome.Moved
         every { codec.encode(destinationPath) } returns newDocumentId
         every { codec.encode(parentPath) } returns parentId
 
@@ -403,7 +404,7 @@ class DocumentModifierTest {
         every { codec.encode(destinationPath) } returns newDocumentId
         every { codec.encode(parentPath) } returns parentId
         coEvery { gatewaySwitch.exists(destinationPath) } returns false
-        coEvery { gatewaySwitch.move(sourcePath, destinationPath) } returns true
+        coEvery { gatewaySwitch.move(sourcePath, destinationPath) } returns MoveOutcome.Moved
 
         // When
         modifier.renameDocument(documentId, newName)
@@ -456,7 +457,7 @@ class DocumentModifierTest {
 
         every { codec.decode(documentId) } returns sourcePath
         coEvery { gatewaySwitch.exists(destinationPath) } returns false
-        coEvery { gatewaySwitch.move(sourcePath, destinationPath) } returns true
+        coEvery { gatewaySwitch.move(sourcePath, destinationPath) } returns MoveOutcome.Moved
         every { codec.encode(destinationPath) } returns newDocumentId
         every { codec.encode(parentPath) } returns parentId
 

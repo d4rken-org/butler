@@ -2,6 +2,7 @@ package eu.darken.butler.common.files.local.routing
 
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileSystem
 import eu.darken.butler.common.files.metadata.FileType
@@ -11,7 +12,6 @@ import kotlinx.coroutines.CancellationException
 import okio.FileHandle
 import java.io.InputStream
 import java.io.OutputStream
-import java.nio.file.AtomicMoveNotSupportedException
 import kotlin.time.Instant
 
 internal class RoutedLocalFileSystemOps(
@@ -112,13 +112,11 @@ internal class RoutedLocalFileSystemOps(
         return route.ops.canonicalize(path)
     }
 
-    override suspend fun move(source: LocalPath, destination: LocalPath): Boolean {
+    override suspend fun move(source: LocalPath, destination: LocalPath): MoveOutcome {
         val sourceRoute = router.routeFor(source, AccessIntent.Delete)
         val destinationRoute = router.routeFor(destination, AccessIntent.Write)
         if (sourceRoute.mode != destinationRoute.mode) {
-            throw AtomicMoveNotSupportedException(
-                source.path,
-                destination.path,
+            return MoveOutcome.NotSupported(
                 "Routed source and destination modes differ: ${sourceRoute.mode} != ${destinationRoute.mode}"
             )
         }

@@ -6,6 +6,8 @@ import eu.darken.butler.common.debug.logging.logTag
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LocalPath
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
+import eu.darken.butler.common.files.errors.PathAlreadyExistsException
 import eu.darken.butler.common.files.local.LocalPathLookup
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.operations.TransferStrategy
@@ -16,17 +18,13 @@ import okio.source
 /**
  * Strategy for moving files and directories.
  *
- * Attempts atomic moves when possible, falls back to copy+delete for cross-device moves.
- * Handles symlinks by recreating them at the destination with adjusted targets.
+ * Attempts atomic file moves when possible ([MoveOutcome.NotSupported] falls back to copy+delete
+ * for cross-device moves). Handles symlinks by recreating them at the destination with adjusted
+ * targets.
  *
- * ## Comparison with SAF
- *
- * | Feature | LocalPath | SAFPath |
- * |---------|-----------|---------|
- * | Atomic move | Yes (same filesystem) | No |
- * | Fallback | Copy+delete | Always copy+delete |
- * | Performance | Fast (rename) | Slower (full copy) |
- * | Symlinks | Supported with target adjustment | Not supported |
+ * Atomic **directory** moves are owned by GenericPathMove (tryAtomicMove), not this strategy —
+ * by the time [createDirectory] runs, child work items are already queued, and moving the
+ * subtree out from under them would orphan those items.
  *
  * @see eu.darken.butler.common.files.saf.SAFPathMoveStrategy for comparison
  */
@@ -53,27 +51,28 @@ class LocalPathMoveStrategy(
         }
 
         // Try atomic move first (most efficient)
-        try {
-            sourceOps.move(sourceLookup.lookedUp, destination)
-            log(TAG, DEBUG) { "Atomic move succeeded: ${sourceLookup.lookedUp} -> $destination" }
+        when (val outcome = sourceOps.move(sourceLookup.lookedUp, destination)) {
+            is MoveOutcome.Moved -> {
+                log(TAG, DEBUG) { "Atomic move succeeded: ${sourceLookup.lookedUp} -> $destination" }
 
-            onProgress(sourceLookup.size ?: 0L)
+                onProgress(sourceLookup.size ?: 0L)
 
-            // Lookup moved destination to avoid redundant stat in caller
-            val destLookup = destOps.lookup(destination, LookupOptions.BASE)
+                // Lookup moved destination to avoid redundant stat in caller
+                val destLookup = destOps.lookup(destination, LookupOptions.BASE)
 
-            return TransferStrategy.TransferResult.Success(
-                source = sourceLookup.lookedUp,
-                destination = destination,
-                bytesTransferred = sourceLookup.size ?: 0L,
-                destinationLookup = destLookup
-            )
-        } catch (e: java.nio.file.AtomicMoveNotSupportedException) {
-            log(TAG, DEBUG) { "Atomic move not supported, falling back to copy+delete" }
-            // Fall through to copy+delete
+                return TransferStrategy.TransferResult.Success(
+                    source = sourceLookup.lookedUp,
+                    destination = destination,
+                    bytesTransferred = sourceLookup.size ?: 0L,
+                    destinationLookup = destLookup
+                )
+            }
+
+            is MoveOutcome.NotSupported ->
+                log(TAG, DEBUG) { "Atomic move not supported (${outcome.reason}), falling back to copy+delete" }
         }
 
-        // Atomic move failed - use copy+delete fallback
+        // Atomic move not supported - use copy+delete fallback
         return copyAndDeleteFile(sourceLookup, destination, options, onProgress, sourceOps, destOps)
     }
 
@@ -86,31 +85,8 @@ class LocalPathMoveStrategy(
     ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
         log(TAG, DEBUG) { "Creating directory: $destination" }
 
-        // Try atomic directory move first if enabled (moves entire tree in one operation)
-        if (options.attemptAtomicMove) {
-            try {
-                sourceOps.move(sourceLookup.lookedUp, destination)
-                log(TAG, DEBUG) { "Atomic directory move succeeded: ${sourceLookup.lookedUp} -> $destination" }
-
-                // Lookup moved destination to avoid redundant stat in caller
-                val destLookup = destOps.lookup(destination, LookupOptions.BASE)
-
-                return TransferStrategy.TransferResult.Success(
-                    source = sourceLookup.lookedUp,
-                    destination = destination,
-                    bytesTransferred = 0L,
-                    destinationLookup = destLookup
-                )
-            } catch (e: java.nio.file.AtomicMoveNotSupportedException) {
-                log(TAG, DEBUG) { "Atomic directory move not supported, creating empty directory" }
-                // Fall through to create empty directory (children will be moved separately)
-            } catch (e: java.nio.file.DirectoryNotEmptyException) {
-                log(TAG, VERBOSE) { "Directory not empty, creating empty directory" }
-                // Fall through (shouldn't happen but handle it)
-            }
-        }
-
-        // Fallback: Create empty directory (children moved separately by GenericPathMove)
+        // No atomic attempt here: GenericPathMove.tryAtomicMove owns atomic directory moves.
+        // Create empty directory (children moved separately by GenericPathMove)
         // Parent exists due to GenericPathMove's depth-first traversal
         destOps.createDir(destination)
 
@@ -162,8 +138,9 @@ class LocalPathMoveStrategy(
 
         // Delete source
         log(TAG, DEBUG) { "Deleting source symlink: ${sourceLookup.lookedUp}" }
-        sourceOps.delete(sourceLookup.lookedUp, recursive = false)
-        log(TAG, DEBUG) { "Source symlink deleted" }
+        if (!sourceOps.delete(sourceLookup.lookedUp, recursive = false)) {
+            log(TAG, WARN) { "Failed to delete source symlink after copy: ${sourceLookup.lookedUp}" }
+        }
 
         onProgress(sourceLookup.size ?: 0L)
 
@@ -186,6 +163,12 @@ class LocalPathMoveStrategy(
         sourceOps: FileSystemOps<LocalPath, LocalPathLookup>,
         destOps: FileSystemOps<LocalPath, LocalPathLookup>
     ): TransferStrategy.TransferResult<LocalPath, LocalPath> {
+        // move() refuses an occupied destination; the fallback's truncating copy must not then
+        // silently overwrite it either — route it through conflict handling instead.
+        if (!options.overwrite && destOps.exists(destination)) {
+            throw PathAlreadyExistsException(path = destination)
+        }
+
         var totalBytesTransferred = 0L
 
         if (sourceLookup.fileType == FileType.SYMBOLIC_LINK) {
@@ -227,7 +210,10 @@ class LocalPathMoveStrategy(
         }
 
         // Delete source after successful copy
-        sourceOps.delete(sourceLookup.lookedUp, recursive = false)
+        if (!sourceOps.delete(sourceLookup.lookedUp, recursive = false)) {
+            // Destination is complete; a surviving source is an annoyance, not data loss
+            log(TAG, WARN) { "Failed to delete source after copy: ${sourceLookup.lookedUp}" }
+        }
 
         // Lookup moved destination to avoid redundant stat in caller
         val destLookup = destOps.lookup(destination, LookupOptions.BASE)

@@ -4,7 +4,9 @@ import eu.darken.butler.common.files.APath
 import eu.darken.butler.common.files.APathLookup
 import eu.darken.butler.common.files.FileSystemOps
 import eu.darken.butler.common.files.LookupOptions
+import eu.darken.butler.common.files.MoveOutcome
 import eu.darken.butler.common.files.errors.PathAlreadyExistsException
+import eu.darken.butler.common.files.errors.ReadException
 import eu.darken.butler.common.files.metadata.FileType
 import eu.darken.butler.common.files.metadata.Ownership
 import eu.darken.butler.common.files.metadata.Permissions
@@ -445,8 +447,10 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
         }
     }
 
-    override suspend fun move(source: P, destination: P): Boolean {
-        val mockFile = files[source.path] ?: return false
+    override suspend fun move(source: P, destination: P): MoveOutcome {
+        // Contract: missing source is an error, not a "not supported" fallback signal
+        val mockFile = files[source.path]
+            ?: throw ReadException("Source does not exist", source)
 
         // Check if destination already exists
         if (files.containsKey(destination.path)) {
@@ -478,7 +482,7 @@ open class MockFileSystemOps<P : APath<P>, PL : APathLookup<P>>(
             }
         }
 
-        return true
+        return MoveOutcome.Moved
     }
 
     override suspend fun file(path: P, readWrite: Boolean): okio.FileHandle {
