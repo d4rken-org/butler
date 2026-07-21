@@ -61,7 +61,7 @@ class FileSystemSearchBackendTest : BaseTest() {
                 coEvery { extract(any()) } returns null
             },
             dispatcherProvider = TestDispatcherProvider(),
-            contentMatcher = contentMatcher,
+            matcher = SearchItemMatcher(contentMatcher),
             pathPermissionCheck = mockk(),
         )
         val progressUpdates = mutableListOf<SearchBackend.ScanProgress>()
@@ -95,8 +95,9 @@ class FileSystemSearchBackendTest : BaseTest() {
 
         val results = harness.backend.scan(harness.session(query)).toList()
 
-        results.map { it.path.path } shouldContainExactly listOf("/sdcard/big.txt")
-        results.single().matchContext!!.matchType shouldBe SearchItem.MatchContext.MatchType.FILTER
+        results.map { it.item.path.path } shouldContainExactly listOf("/sdcard/big.txt")
+        results.single().item.matchContext!!.matchType shouldBe SearchItem.MatchContext.MatchType.FILTER
+        results.single().sourceRank shouldBe SearchBackend.BackendResult.RANK_FILESYSTEM
     }
 
     @Test
@@ -185,7 +186,7 @@ class FileSystemSearchBackendTest : BaseTest() {
 
         val results = harness.backend.scan(harness.session(query)).toList()
 
-        results.map { it.path.path } shouldContainExactly listOf("/sdcard/needle.txt")
+        results.map { it.item.path.path } shouldContainExactly listOf("/sdcard/needle.txt")
         val finalProgress = harness.progressUpdates.last()
         finalProgress.errorCount shouldBe 1
         finalProgress.firstErrorPath shouldBe unreadable.lookedUp

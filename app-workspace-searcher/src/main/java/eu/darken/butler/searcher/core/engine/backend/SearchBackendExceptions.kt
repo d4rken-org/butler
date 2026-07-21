@@ -8,3 +8,6 @@ class UnsupportedTargetException(target: SearchTarget) :
 
 class UnsupportedFilterException(condition: FilterCondition) :
     IllegalArgumentException("The selected backend does not support filter: $condition")
+
+class UnsupportedCollectionException(collection: SearchTarget.MediaStore.Collection) :
+    IllegalStateException("Media collection $collection requires Android API ${collection.minApiLevel}+")

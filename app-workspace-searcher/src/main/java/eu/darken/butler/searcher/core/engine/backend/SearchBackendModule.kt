@@ -14,5 +14,9 @@ object SearchBackendModule {
     @IntoSet
     fun fileSystemBackend(backend: FileSystemSearchBackend): SearchBackend = backend
 
-    // Future backends (MediaStore, network sources) register here the same way.
+    @Provides
+    @IntoSet
+    fun mediaStoreBackend(backend: MediaStoreSearchBackend): SearchBackend = backend
+
+    // Future backends (network sources) register here the same way.
 }

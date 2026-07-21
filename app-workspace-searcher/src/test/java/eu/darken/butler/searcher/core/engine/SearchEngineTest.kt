@@ -46,9 +46,9 @@ class SearchEngineTest : BaseTest() {
         override fun canHandle(target: SearchTarget): Boolean = handles(target)
         override fun supports(condition: FilterCondition): Boolean = supported(condition)
         override fun monitorRequirements(target: SearchTarget): Flow<PathRequirements> = flowOf(PathRequirements())
-        override suspend fun scan(session: SearchBackend.ScanSession): Flow<SearchItem> {
+        override suspend fun scan(session: SearchBackend.ScanSession): Flow<SearchBackend.BackendResult> {
             scannedTargets += session.target
-            return items.asFlow()
+            return items.map { SearchBackend.BackendResult(it, SearchBackend.BackendResult.RANK_FILESYSTEM) }.asFlow()
         }
     }
 

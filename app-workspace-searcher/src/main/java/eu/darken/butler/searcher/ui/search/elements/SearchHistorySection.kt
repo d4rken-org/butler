@@ -44,7 +44,6 @@ import eu.darken.butler.searcher.core.SearchQuery
 import eu.darken.butler.searcher.core.history.SearchHistory
 import eu.darken.butler.workspace.contracts.searcher.ContentQuery
 import eu.darken.butler.workspace.contracts.searcher.FilenameQuery
-import eu.darken.butler.workspace.contracts.searcher.SearchTarget
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -183,17 +182,13 @@ fun SearchHistoryItem(
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             targets.forEach { target ->
-                                when (target) {
-                                    is SearchTarget.Path -> {
-                                        Text(
-                                            text = target.displayText.asComposable(),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                    }
-                                }
+                                Text(
+                                    text = target.displayText.asComposable(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
                             }
                         }
                     }

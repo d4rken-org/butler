@@ -234,6 +234,8 @@ fun SearchToolbarCard(
                     onPathRemove = { onAction(SearcherPageAction.Targets.Remove(it)) },
                     onPathToggle = { onAction(SearcherPageAction.Targets.ToggleEnabled(it)) },
                     onAddPathClick = { onAction(SearcherPageAction.Targets.OpenPicker) },
+                    addableMediaCollections = state?.addableMediaCollections.orEmpty(),
+                    onAddMediaTarget = { onAction(SearcherPageAction.Targets.AddMediaStore(it)) },
                     isSearching = state?.isSearching ?: false,
                 )
             }

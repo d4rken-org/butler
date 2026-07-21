@@ -64,6 +64,12 @@
     <string name="workspace_history_label">History</string>
     <string name="workspace_bugreport_label">Bug reports</string>
 
+    <!-- Searcher media search targets -->
+    <string name="workspace_searcher_target_photos">Photos</string>
+    <string name="workspace_searcher_target_videos">Videos</string>
+    <string name="workspace_searcher_target_music">Music</string>
+    <string name="workspace_searcher_target_downloads">Downloads</string>
+
     <!-- Workspace UI Actions -->
     <string name="workspace_expand_more_action">More</string>
     <string name="workspace_expand_less_action">Less</string>

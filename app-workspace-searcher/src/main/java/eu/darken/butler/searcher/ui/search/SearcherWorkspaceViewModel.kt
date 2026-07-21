@@ -8,7 +8,9 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.darken.butler.common.ApiLevel
 import eu.darken.butler.common.coroutine.DispatcherProvider
+import eu.darken.butler.searcher.core.resultKey
 import eu.darken.butler.common.datastore.value
 import eu.darken.butler.common.datastore.valueBlocking
 import eu.darken.butler.common.debug.logging.Logging.Priority.*
@@ -104,6 +106,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
     private val shareIntentUseCase: ShareIntentUseCase,
     private val trashSettings: TrashSettings,
     private val folderPreviewResolver: FolderPreviewResolver,
+    private val apiLevel: ApiLevel,
     itemSorterFactory: SearchItemSorter.Factory,
     chromeFactory: WorkspacePageChrome.Factory,
 ) : ViewModel4(dispatchers, logTag("Searcher", "Workspace", id.shortTag, "Page")) {
@@ -154,12 +157,11 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         .filterNotNull()
         .flatMapLatest { it.state }
 
-    // Display results are deduplicated by absolute path (overlapping search roots, e.g.
-    // /storage/emulated/0 and /storage/emulated/0/Download, can surface the same file twice —
-    // dedup keeps the list, counts, selection, and history consistent and makes the path-keyed
-    // results LazyColumn safe) and then sorted. The workspace only publishes a NEW list instance
-    // when results actually change (once per batch), so memoizing on list identity plus sort
-    // settings means progress-only state emissions don't re-run dedup or sorting.
+    // Results arrive already deduplicated by normalized path from the workspace's
+    // ResultAccumulator (which also resolves source-rank replacements); this layer only sorts.
+    // The workspace only publishes a NEW list instance when results actually change (once per
+    // batch), so memoizing on list identity plus sort settings means progress-only state
+    // emissions don't re-run sorting.
     @Volatile
     private var displayResultsCache: Triple<List<SearchItem>, SearchSortSettings, List<SearchItem>>? = null
 
@@ -319,16 +321,20 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                 }
 
                 // Update selection state when results change; drop selections (and the quick
-                // actions target) for results that no longer exist, e.g. deleted externally
-                val visibleIds = displayed.mapTo(mutableSetOf()) { it.path.path }
+                // actions target) for results that no longer exist, e.g. deleted externally.
+                // Identity is the normalized resultKey so a rank replacement (possibly with an
+                // alias-spelled path) keeps selections alive.
+                val visibleIds = displayed.mapTo(mutableSetOf()) { it.resultKey }
                 selectionState.update { selection ->
                     selection.copy(
                         selectableResults = displayed,
                         selectedResultIds = selection.selectedResultIds.filterTo(mutableSetOf()) { it in visibleIds },
                     )
                 }
+                // Rebind (not just retain): a higher-ranked duplicate may have REPLACED the item
+                // instance the sheet was opened with (see ResultAccumulator)
                 quickActionsResult.update { current ->
-                    current?.takeIf { it.path.path in visibleIds }
+                    current?.let { cur -> displayed.firstOrNull { it.resultKey == cur.resultKey } }
                 }
             }
             .launchIn(vmScope)
@@ -414,6 +420,10 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             viewStyle = viewStyle,
             sortSettings = sortSettings,
             trashEnabled = trashEnabled,
+            addableMediaCollections = SearchTarget.MediaStore.Collection.entries.filter { collection ->
+                apiLevel.has(collection.minApiLevel) &&
+                    workspaceState.searchTargets.none { it.identity == collection }
+            },
         )
     }
 
@@ -642,10 +652,19 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
         clearExecutedResults()
     }
 
-    // Targets are matched by identity-relevant fields, not by a Path cast: a nullable-cast
-    // comparison would treat ALL non-Path targets as equal to each other.
-    private fun SearchTarget.matchesIdentity(other: SearchTarget): Boolean = when (this) {
-        is SearchTarget.Path -> other is SearchTarget.Path && path == other.path
+    // Targets are matched by identity-relevant fields (path/collection), not equality —
+    // mutable state like `enabled` must not affect matching.
+    private fun SearchTarget.matchesIdentity(other: SearchTarget): Boolean = identity == other.identity
+
+    private fun addMediaStoreTarget(collection: SearchTarget.MediaStore.Collection) {
+        log(TAG) { "Adding MediaStore target: $collection" }
+        vmScope.launch {
+            val workspace = getWorkspace()
+            workspace.updateTargets { current ->
+                val target = SearchTarget.MediaStore(collection)
+                if (current.any { it.matchesIdentity(target) }) current else current + target
+            }
+        }
     }
 
     private fun removeSearchTarget(target: SearchTarget) {
@@ -667,6 +686,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     if (it.matchesIdentity(target)) {
                         when (it) {
                             is SearchTarget.Path -> it.copy(enabled = !it.enabled)
+                            is SearchTarget.MediaStore -> it.copy(enabled = !it.enabled)
                         }
                     } else it
                 }
@@ -954,6 +974,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
             val viewStyle: SearcherViewStyle = SearcherViewStyle.default(),
             val sortSettings: SearchSortSettings = SearchSortSettings(),
             val trashEnabled: Boolean = false,
+            val addableMediaCollections: List<SearchTarget.MediaStore.Collection> = emptyList(),
         ) : State {
             val isSearching: Boolean
                 get() = workspaceState.searchStatus == SearcherWorkspace.State.SearchStatus.SEARCHING
@@ -1194,6 +1215,7 @@ class SearcherWorkspaceViewModel @AssistedInject constructor(
                     workspaceRemote.launchPicker(id, startPath = null, PickerConfig.Selection.DirectoryMulti)
                 }
             }
+            is SearcherPageAction.Targets.AddMediaStore -> addMediaStoreTarget(action.collection)
             is SearcherPageAction.Targets.AddDefaultPaths -> {
                 vmScope.launch {
                     val workspace = getWorkspace()
